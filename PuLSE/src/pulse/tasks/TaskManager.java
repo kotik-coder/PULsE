@@ -54,6 +54,10 @@ public static void execute(SearchTask t) {
 	removeResult(t); //remove old result	
 	t.setStatus(Status.QUEUED); //notify listeners computatation is about to start
 	
+	//notify listeners
+	notifyListeners( new TaskRepositoryEvent(
+			TaskRepositoryEvent.State.TASK_SUBMITTED, t.getIdentifier()) );	
+	
 	//run task t -- after task completed, write result and trigger listeners
 	
 	CompletableFuture.runAsync(t).thenRun(
@@ -86,8 +90,7 @@ public static void execute(SearchTask t) {
 }
 
 private static void notifyListeners(TaskRepositoryEvent e) {
-	for(TaskRepositoryListener listener : taskRepositoryListeners) 
-		listener.onTaskListChanged(e);
+	taskRepositoryListeners.stream().forEach(l -> l.onTaskListChanged(e));
 }
 
 public static void executeAll() {
@@ -123,7 +126,12 @@ public static boolean isTaskQueueEmpty() {
 
 public static void cancelAllTasks() {
 
-	tasks.stream().forEach(t -> t.terminate() );		
+	tasks.stream().forEach(t -> t.terminate() );
+	
+	TaskRepositoryEvent e = new TaskRepositoryEvent(
+			TaskRepositoryEvent.State.SHUTDOWN, null);
+	
+	notifyListeners(e);
 	
 }
 

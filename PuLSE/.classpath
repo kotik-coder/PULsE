@@ -18,7 +18,5 @@
 	<classpathentry kind="lib" path="/home/kotik/Downloads/javafx-sdk-11.0.2/lib/javafx.base.jar"/>
 	<classpathentry kind="lib" path="/home/kotik/Downloads/javafx-sdk-11.0.2/lib/javafx-swt.jar"/>
 	<classpathentry kind="lib" path="/home/kotik/Documents/leotask.jar"/>
-	<classpathentry kind="lib" path="/home/kotik/Documents/commons-text-1.7/commons-text-1.7.jar"/>
-	<classpathentry kind="lib" path="/home/kotik/Documents/commons-lang3-3.9/commons-lang3-3.9.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
