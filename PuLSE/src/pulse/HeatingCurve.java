@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javafx.scene.chart.XYChart.Data;
 import pulse.input.ExperimentalData;
 import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
@@ -26,9 +27,7 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 	protected int count;
 	protected List<Double> temperature, correctedTemperature;
 	protected List<Double> time;
-	protected double baseline;
-	
-	private final static String EXPORT_EXTENSION = ".html";
+	protected double baseline;	
 	
 	public boolean isEmpty() {
 		return temperature.isEmpty();
@@ -70,14 +69,16 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 	public void clear() {
 		this.time.clear();
 		this.temperature.clear();
+		this.correctedTemperature.clear();
 	}
-
-	public void flattenToBaseline() {
+	
+	public void reinit() {
+		clear();
 		
 		for(int i = 0; i < getCount(); i++) {
 			this.time.add(0.0);
-			this.temperature.add(0.0);
-			correctedTemperature.add(i, baseline);
+			this.temperature.add(0.0);			
+			this.correctedTemperature.add(baseline);
 		}
 		
 	}
@@ -121,6 +122,12 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 	
 	public double temperatureAt(int index) {
 		return correctedTemperature.get(index);
+	}
+	
+	public void add(double t, double T) {
+		time.add(t);
+		temperature.add(T);
+		correctedTemperature.add(T+baseline);
 	}
 	
 	public void setTimeAt(int index, double t) {
@@ -233,7 +240,7 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 		if(!Problem.isSingleStatement())
 			return;
 		
-		HeatingCurve hc;
+		HeatingCurve hc;		
 		
 		for(SearchTask task : TaskManager.getTaskList()) {
 			hc = task.getProblem().getHeatingCurve();

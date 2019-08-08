@@ -38,7 +38,7 @@ public class PropertyHolderTable extends JTable {
 	
 	private static final long serialVersionUID = 1L;
 	
-	private final static Font font = new Font(Messages.getString("PropertyHolderTable.FontName"), Font.PLAIN, 13); //$NON-NLS-1$
+	private final static Font font = new Font(Messages.getString("PropertyHolderTable.FontName"), Font.PLAIN, 15); //$NON-NLS-1$
 	private	final static int ROW_HEIGHT = 50;
 	
 	private PropertySorter sorter;

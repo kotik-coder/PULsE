@@ -1,10 +1,7 @@
-package pulse.search.math;
+package pulse.tasks;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-
-import pulse.tasks.Identifier;
-import pulse.tasks.SearchTask;
 
 public abstract class LogEntry {
 

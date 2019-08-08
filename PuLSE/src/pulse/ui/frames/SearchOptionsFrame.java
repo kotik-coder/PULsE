@@ -167,7 +167,7 @@ public class SearchOptionsFrame extends JFrame {
 					linearList.setEnabled(true);
 					
 					for(SearchTask t : TaskManager.getTaskList())
-						t.checkStatus();
+						t.checkProblems();
 									
 				}
 			});						
@@ -224,7 +224,7 @@ public class SearchOptionsFrame extends JFrame {
 					pathTable.setEnabled(true);
 					
 					for(SearchTask t : TaskManager.getTaskList())
-						t.checkStatus();
+						t.checkProblems();
 					
 				}
 			});

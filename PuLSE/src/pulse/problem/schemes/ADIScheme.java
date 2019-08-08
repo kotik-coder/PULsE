@@ -113,7 +113,7 @@ public class ADIScheme extends DifferenceScheme {
 		pulse.transform(problem, this);
 		
 		HeatingCurve curve = problem.getHeatingCurve();
-		curve.flattenToBaseline();
+		curve.reinit();
 		
 		final int counts = (int) curve.getNumPoints().getValue();
 		

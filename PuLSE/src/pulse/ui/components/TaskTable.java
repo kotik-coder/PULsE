@@ -22,7 +22,8 @@ import javax.swing.table.TableCellRenderer;
 import pulse.tasks.Identifier;
 import pulse.tasks.SearchTask;
 import pulse.tasks.TaskManager;
-import pulse.tasks.listeners.TaskListener;
+import pulse.tasks.listeners.DataCollectionListener;
+import pulse.tasks.listeners.StatusChangeListener;
 import pulse.tasks.listeners.TaskRepositoryEvent;
 import pulse.tasks.listeners.TaskRepositoryListener;
 import pulse.tasks.listeners.TaskSelectionEvent;
@@ -214,12 +215,16 @@ public class TaskTable extends JTable {
 				
 				int row = super.getRowCount() - 1;
 			
-				t.addTaskListener(new TaskListener() {
+				t.addStatusChangeListener(new StatusChangeListener() {
 
 					@Override
 					public void onStatusChange(TaskStateEvent e) { 
-						setValueAt(e.getState(), searchRow(t.getIdentifier()), STATUS_COLUMN);
+							setValueAt(e.getState(), searchRow(t.getIdentifier()), STATUS_COLUMN);						
 					}
+					
+				});
+				
+				t.addTaskListener(new DataCollectionListener() {
 
 					@Override
 					public void onDataCollected(TaskStateEvent e) {

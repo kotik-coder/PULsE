@@ -4,12 +4,9 @@ import java.awt.Dimension;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.time.temporal.ChronoUnit;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import javax.swing.JEditorPane;
 import javax.swing.text.BadLocationException;
@@ -17,9 +14,10 @@ import javax.swing.text.DefaultCaret;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
 
-import pulse.search.math.LogEntry;
 import pulse.tasks.Log;
+import pulse.tasks.LogEntry;
 import pulse.tasks.SearchTask;
+import pulse.tasks.Status;
 import pulse.tasks.TaskManager;
 import pulse.util.Saveable;
 
@@ -29,8 +27,7 @@ public class LogPane extends JEditorPane implements Saveable {
 	 * 
 	 */
 	private static final long serialVersionUID = -8464602356332804481L;
-	
-	private boolean updating = false;
+	private ExecutorService updateExecutor = Executors.newSingleThreadExecutor();	
 
 	public LogPane() {
 		super();	
@@ -38,8 +35,12 @@ public class LogPane extends JEditorPane implements Saveable {
 		setContentType("text/html"); //$NON-NLS-1$
 		setEditable(false);
 		DefaultCaret c = (DefaultCaret)getCaret();
-		c.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);		
+		c.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);	
 	}		
+	
+	private void post(LogEntry logEntry) {
+		post(logEntry.toString());
+	}
 
 	private void post(String text) {
 		
@@ -57,7 +58,7 @@ public class LogPane extends JEditorPane implements Saveable {
 		
 	}
 	
-	private void printTimeTaken(Log log) {
+	public void printTimeTaken(Log log) {
 		long seconds = ChronoUnit.SECONDS.between(log.getStart(), log.getEnd());
 		long ms = ChronoUnit.MILLIS.between(log.getStart(), log.getEnd()) - 1000L*seconds;
 		
@@ -69,66 +70,53 @@ public class LogPane extends JEditorPane implements Saveable {
 	}
 	
 	public void callUpdate() {
-		final int TIME_LIMIT = 5; //seconds
-		
-		ExecutorService threadExecutor = Executors.newSingleThreadExecutor();
-		Future<?> future = threadExecutor.submit(new Runnable() {
-
-			@Override
-			public void run() {
-				update();
-			}
-			
-		});
-		
-		try {
-			future.get(TIME_LIMIT, TimeUnit.SECONDS);
-		} 
-		catch (InterruptedException e) {
-			System.err.println("Log update was interrupted:");
-			e.printStackTrace();
-		} catch (ExecutionException e) {
-			System.err.println("Execution exception (too many calls). Forcing LogPane.callUpdate() to stop...");
-			updating = false;			
-		} catch (TimeoutException e) {
-			System.err.println("Log update timeout");
-			future.cancel(true);
-			e.printStackTrace();
-		}
-		
+		updateExecutor.submit(() -> update());							
 	}
 	
-	private void update() {
-		if(updating)
-			return;
-					
+	public void callPrintAll() {
+		try {
+			updateExecutor.awaitTermination(10, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		printAll();
+	}
+	
+	private void printAll() {
 		clear();
 		
 		SearchTask task = TaskManager.getSelectedTask();
+		
+		if(task == null)
+			return;
+					
 		Log log = task.getLog();
 		
-		if(!log.isStarted()) {
-			updating = false;
-			return;			
-		}
+		if(!log.isStarted()) 
+			return;											
 		
-		updating = true;
+		log.getLogEntries().stream().forEach(entry -> post(entry));
 		
-		post(Messages.getString("LogPane.Init")); //$NON-NLS-1$
-		
-		for(LogEntry le : log.getLogEntries())
-			post(le.toString());
-		
-		if(!log.isFinished()) {
-			updating = false;
-			return;
-		}
+		if(task.getStatus() == Status.DONE)
+			printTimeTaken(log);
 			
-		printTimeTaken(log);
-		updating = false;
 	}
 	
-	public void clear() {
+	private void update() {				
+		SearchTask task = TaskManager.getSelectedTask();
+		
+		if(task == null)
+			return;
+					
+		Log log = task.getLog();
+		
+		if(!log.isStarted()) 
+			return;											
+		
+		post( log.lastEntry() );
+	}
+	
+	public void clear() {		
 		try {
 			getDocument().remove(0, getDocument().getLength());
 		} catch (BadLocationException e) {
@@ -146,9 +134,9 @@ public class LogPane extends JEditorPane implements Saveable {
 			e.printStackTrace();
 		}
 	}
-	
-	public boolean isUpdating() {
-		return updating;
+
+	public ExecutorService getUpdateExecutor() {
+		return updateExecutor;
 	}
 	
 }

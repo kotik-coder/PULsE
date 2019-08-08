@@ -5,11 +5,12 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ForkJoinPool;
 
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 
-public interface SaveableDirectory extends Describable {
+public interface SaveableDirectory extends Describable {	
 
 	public default List<Saveable> saveableContents() {	
 		
@@ -69,9 +70,8 @@ public interface SaveableDirectory extends Describable {
 		File newDirectory = new File(
 				parentDirectory, describe() + File.separator);
 		newDirectory.mkdirs();
-
-		for(Saveable saveable : saveableContents()) 
-			saveable.saveNow(newDirectory);
+		
+		saveableContents().parallelStream().forEach(s -> s.saveNow(newDirectory));				
 					
 	}
 	
@@ -100,6 +100,6 @@ public interface SaveableDirectory extends Describable {
 			
 	    }
 		
-	}
+	}		
 
 }

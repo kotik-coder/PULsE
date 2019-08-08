@@ -11,7 +11,7 @@ public class ExperimentalData extends HeatingCurve implements SaveableDirectory 
 	private int fittingEndIndex = -1;
 	
 	private double BASELINE_TIME_THRESHOLD = 1E-5; //in seconds
-	private final static double CUTOFF_FACTOR = 4.75;
+	private final static double CUTOFF_FACTOR = 6;
 	
 	public ExperimentalData() {
 		super();

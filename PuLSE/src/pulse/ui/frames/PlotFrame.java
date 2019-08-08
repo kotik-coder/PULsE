@@ -11,7 +11,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import pulse.ui.charts.Charting;
+import pulse.ui.charts.PreviewPlot;
 
 public class PlotFrame extends JFrame {
 
@@ -96,7 +96,7 @@ public class PlotFrame extends JFrame {
 				String selectedXText = (String) selectXBox.getSelectedItem();
 				String selectedYText = (String) selectYBox.getSelectedItem();
 				
-				Charting.preview(selectedXText, 
+				PreviewPlot.preview(selectedXText, 
 							selectedYText, 
 							data[selectedX][0], data[selectedY][0],
 							data[selectedX][1], data[selectedY][1]);	

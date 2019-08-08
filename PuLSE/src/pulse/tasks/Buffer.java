@@ -84,7 +84,7 @@ public class Buffer {
 		if(indexMap.isEmpty())
 			return 0;
 		
-		return average(indexMap.get(index));
+		return this.contains(index) ? average(indexMap.get(index)) : Double.NaN;
 	
 	}
 	

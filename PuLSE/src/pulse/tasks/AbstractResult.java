@@ -22,7 +22,7 @@ public abstract class AbstractResult {
 		String[] names = format.shortNames();
 		NumericProperty[] output = new NumericProperty[names.length];
 		
-		int i = 0;
+		int i = 0;				
 		
 		outer : for(NumericProperty property : properties) {
 			

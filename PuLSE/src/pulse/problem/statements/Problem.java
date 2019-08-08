@@ -89,6 +89,23 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 		this.Bi2 		= p.Bi2;
 	}
 	
+	public HeatingCurve classicSolution() {
+		 final int N		= 30;
+		 int size = curve.realCount();
+		 HeatingCurve classicCurve = new HeatingCurve(new NumericProperty(size, NumericProperty.DEFAULT_COUNT));
+		 
+		 double time;
+		 
+	     for(int i = 0; i < size; i++) {
+	    	 	time = curve.timeAt(i);
+	    	 	classicCurve.add(time, classicSolutionAt(time, N)*maximumTemperature);
+	     }
+	     
+	     return classicCurve;
+	     
+	}
+
+	
 	private void superUpdateProperty(Property property) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		super.updateProperty(property);
 	}
@@ -120,7 +137,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 		this.pulse = new Pulse(p.pulse);
 	}
 	
-	public final double classicSolutionAt(double time, int precision) {
+	private final double classicSolutionAt(double time, int precision) {
 		
 		final double EPS = 1E-8; 
 		double Fo = time*a/Math.pow(l, 2);

@@ -3,16 +3,11 @@ package pulse.ui.frames;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.GridLayout;
 import java.awt.Toolkit;
-import java.awt.Window;
-
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 
@@ -20,10 +15,14 @@ import pulse.HeatingCurve;
 import pulse.input.Metadata;
 import pulse.io.readers.MetaFileReader;
 import pulse.io.readers.ReaderManager;
+import pulse.problem.statements.Problem;
 import pulse.tasks.Identifier;
+import pulse.tasks.Log;
+import pulse.tasks.LogEntry;
 import pulse.tasks.ResultFormat;
 import pulse.tasks.SearchTask;
 import pulse.tasks.TaskManager;
+import pulse.tasks.listeners.LogEntryListener;
 import pulse.tasks.listeners.ResultFormatEvent;
 import pulse.tasks.listeners.ResultFormatListener;
 import pulse.tasks.listeners.TaskRepositoryEvent;
@@ -31,25 +30,22 @@ import pulse.tasks.listeners.TaskRepositoryListener;
 import pulse.tasks.listeners.TaskSelectionEvent;
 import pulse.tasks.listeners.TaskSelectionListener;
 import pulse.ui.Launcher;
-import pulse.ui.charts.Charting;
-import pulse.ui.charts.HeatingChartPanel;
+import pulse.ui.charts.Chart;
 import pulse.ui.components.ButtonTabComponent;
+import pulse.ui.components.ExecutionButton;
 import pulse.ui.components.LogPane;
 import pulse.ui.components.LogToolBar;
+import pulse.ui.components.PlotType;
 import pulse.ui.components.ResultTable;
 import pulse.ui.components.ResultTable.ResultTableModel;
 import pulse.ui.components.ResultsToolBar;
 import pulse.ui.components.TaskTable;
 import pulse.ui.components.TaskTable.TaskTableModel;
 import pulse.ui.components.ToolBarButton;
-import pulse.util.Request;
-import pulse.util.RequestListener;
 import pulse.util.SaveableDirectory;
 
 import java.awt.Component;
 import java.awt.Dimension;
-
-import org.apache.commons.text.WordUtils;
 
 import javax.swing.JMenuBar;
 import javax.swing.JMenu;
@@ -64,9 +60,11 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.awt.event.ActionEvent;
 import java.awt.Color;
 import javax.swing.UIManager;
@@ -90,35 +88,32 @@ public class TaskControlFrame extends JFrame {
 	 * 
 	 */
 	private static final long serialVersionUID = -1109525291742210857L;
-	private JPanel contentPane;
-	private LogPane logText;
 	
-	private JScrollPane taskScroller;
-	private JTabbedPane tabbedPane;
+	private static JTabbedPane tabbedPane;
 	
-	private ResultTable resultsTable;
-	private JSplitPane outputPane;
+	private static LogPane logText;
 	
-	private JSplitPane splitPane;
+	private static TaskToolBar taskToolBar;	
+	private static ResultTable resultsTable;
+
+	private static TaskTable taskTable;
 	
-	private JPanel taskManagerPane;
-	private TaskTable taskTable;
-	private final static int RESULTS_HEADER_HEIGHT = 70;
-	
-	private static List<RequestListener> requestListeners = new ArrayList<RequestListener>();
-	
-	private TaskControlFrame reference;
+	private final static int RESULTS_HEADER_HEIGHT = 70;		
 	
 	private final static int WIDTH = 1200;
 	private final static int HEIGHT = 700;
 	
-	private BufferedImage logo;
+	private static TaskControlFrame instance = new TaskControlFrame();
+	
+	private final static float TABBED_PANE_FONT_SIZE = 18;
+	private final static float SYSTEM_INFO_FONT_SIZE = 14;
 	
 	/**
 	 * Create the frame.
 	 */
 	
-	public TaskControlFrame() {
+	private TaskControlFrame() {
+		BufferedImage logo = null;
 		try {
 			logo = ImageIO.read(getClass().getResourceAsStream(Messages.getString("TaskControlFrame.LogoImagePath"))); //$NON-NLS-1$
 		} catch (IOException e1) {
@@ -127,36 +122,34 @@ public class TaskControlFrame extends JFrame {
 		}
 		
 		setIconImage(logo);
-		reference = this;
 		
 		setTitle(Messages.getString("TaskControlFrame.SoftwareTitle")); //$NON-NLS-1$
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		this.setMinimumSize(new Dimension(WIDTH, HEIGHT));
-		
-		contentPane = new JPanel();
-		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
-		setContentPane(contentPane);
-		contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
+		setMinimumSize(new Dimension(WIDTH, HEIGHT));
+				
+		getContentPane().setLayout(new BorderLayout());
 		
 		setJMenuBar( new MainMenu() );										//create main menu
 		
 		tabbedPane = createTabbedPane();									//create tabbed pane
-		contentPane.add( tabbedPane );
+		tabbedPane.setFont(tabbedPane.getFont().deriveFont(TABBED_PANE_FONT_SIZE));
 		
-		//addStandardTab(StandardTabName.WelcomeInfo, new WelcomePane(), true);	//add welcome info
-
-		taskManagerPane = new JPanel();		
+		getContentPane().add( tabbedPane, BorderLayout.CENTER );
+		
+		generateSystemPanel();
+		
+		JPanel taskManagerPane = new JPanel();		
 		taskManagerPane.setLayout(new BorderLayout());
 		
 		taskTable = new TaskTable(); 	
-		taskScroller = new JScrollPane(taskTable);
+		JScrollPane taskScroller = new JScrollPane(taskTable);
 		taskManagerPane.add(taskScroller, BorderLayout.CENTER);
 		
-		TaskToolBar taskToolBar = new TaskToolBar();
+		taskToolBar = new TaskToolBar();
 		
 		taskManagerPane.add(taskToolBar, BorderLayout.NORTH);	//add task toolbar
 			
-		outputPane = new JSplitPane();
+		JSplitPane outputPane = new JSplitPane();
 		
 		outputPane.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1)); 
 	    outputPane.setBorder(null);
@@ -167,6 +160,125 @@ public class TaskControlFrame extends JFrame {
 		
 		resultsTable = new ResultTable(ResultFormat.defaultFormat);
 		
+		adjustEnabledControls();
+		
+		JScrollPane resultsScroller = new JScrollPane(resultsTable);
+		
+		Dimension headersSize = resultsTable.getTableHeader().getPreferredSize();
+		headersSize.height = RESULTS_HEADER_HEIGHT;
+		resultsTable.getTableHeader().setPreferredSize(headersSize);		
+		
+		ResultsToolBar resultsToolBar	= new ResultsToolBar(resultsTable, this);
+
+		JPanel topPane		= new JPanel();
+		topPane.setLayout(new BorderLayout(0, 0));
+		topPane.add(resultsScroller);
+		topPane.add(resultsToolBar, BorderLayout.SOUTH);
+				
+		outputPane.setTopComponent(topPane); 					//Sets top component
+		
+		JPanel bottomPane		= new JPanel();	
+		
+		bottomPane.setLayout(new BorderLayout(0, 0));
+		
+		logText 				= new LogPane();
+		scheduleLogEvents();		
+		
+		JScrollPane scrollPane	= new JScrollPane(logText);
+		bottomPane.add(scrollPane);
+		bottomPane.add(new LogToolBar(this, logText), BorderLayout.SOUTH);
+		
+		outputPane.setBottomComponent(bottomPane);			//Sets bottom component
+		
+		JSplitPane splitPane = new JSplitPane();
+		
+		splitPane.setResizeWeight(0.5);
+		splitPane.setOneTouchExpandable(true);
+
+		splitPane.setLeftComponent(taskManagerPane);	//Sets left component
+		splitPane.setRightComponent(outputPane);			//Sets right component
+		
+		addStandardTab(StandardTabName.TaskManager, splitPane, false);		
+
+		splitPane.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1)); 
+		splitPane.setBorder(null);		
+		
+		scheduleCloseEvent();
+				
+	}
+	
+	public void scheduleCloseEvent() {
+		addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent arg0) {				
+				Object[] options = {"Yes", "No"}; //$NON-NLS-1$ //$NON-NLS-2$
+				Toolkit.getDefaultToolkit().beep();
+				int answer = JOptionPane.showOptionDialog(
+						(Component)arg0.getSource(),
+								Messages.getString("TaskControlFrame.ExitMessage"), //$NON-NLS-1$
+								Messages.getString("TaskControlFrame.ExitTitle"), //$NON-NLS-1$
+								JOptionPane.YES_NO_OPTION,
+								JOptionPane.WARNING_MESSAGE,
+								null,
+								options,
+								options[1]);
+				if(answer == 1)
+					((JFrame)arg0.getSource()).setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+				else 
+					((JFrame)arg0.getSource()).setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+			}
+		});
+	}
+	
+	public void scheduleLogEvents() {
+		TaskManager.addSelectionListener(new TaskSelectionListener() {
+
+			@Override
+			public void onSelectionChanged(TaskSelectionEvent e) {				
+				logText.callPrintAll();
+			}
+			
+		});
+		
+		TaskManager.addTaskRepositoryListener( event -> { 
+			if(event.getState() != TaskRepositoryEvent.State.TASK_ADDED)
+				return;
+						
+			SearchTask task = TaskManager.getTask(event.getId());
+			
+			task.getLog().addListener( new LogEntryListener() {
+
+				@Override
+				public void onNewEntry(LogEntry e) {
+					if(TaskManager.getSelectedTask() == task) 
+						logText.callUpdate();	
+				}
+				
+				@Override
+				public void onLogFinished(Log log) {
+					if(TaskManager.getSelectedTask() == task) {
+						
+						try {
+							logText.getUpdateExecutor().awaitTermination(10, TimeUnit.MILLISECONDS);
+						} catch (InterruptedException e) {
+							System.err.println("Log not finished in time");
+							e.printStackTrace();
+						}
+						
+						logText.printTimeTaken(log);
+						
+					}
+				}
+				
+			}
+			
+			);
+			
+			}
+		);
+	}
+	
+	public void adjustEnabledControls() {
 		TaskTableModel ttm = (TaskTableModel) taskTable.getModel();
 		
 		ttm.addTableModelListener(
@@ -206,132 +318,61 @@ public class TaskControlFrame extends JFrame {
 			}
 		
 		});
-		
-		JScrollPane resultsScroller = new JScrollPane(resultsTable);
-		
-		Dimension headersSize = resultsTable.getTableHeader().getPreferredSize();
-		headersSize.height = RESULTS_HEADER_HEIGHT;
-		resultsTable.getTableHeader().setPreferredSize(headersSize);		
-		
-		ResultsToolBar resultsToolBar	= new ResultsToolBar(resultsTable, this);
+	}
+	
+	public static TaskControlFrame getInstance() {
+		return instance;
+	}
+	
+	public void generateSystemPanel() {
+		JPanel usagePanel = new JPanel();
+		usagePanel.setLayout(new GridLayout(1,2));
+		usagePanel.setBorder(BorderFactory.createLineBorder(Color.black, 1));
 
-		JPanel topPane		= new JPanel();
-		topPane.setLayout(new BorderLayout(0, 0));
-		topPane.add(resultsScroller);
-		topPane.add(resultsToolBar, BorderLayout.SOUTH);
-				
-		outputPane.setTopComponent(topPane); 					//Sets top component
+		String cpuString = String.format("CPU usage: %3f%%", Launcher.CPUUsage());
+		JLabel cpuUsageLabel = new JLabel(cpuString);
+		cpuUsageLabel.setFont(cpuUsageLabel.getFont().deriveFont(SYSTEM_INFO_FONT_SIZE));
 		
-		JPanel bottomPane		= new JPanel();	
+		String memoryString = String.format("Memory usage: %3.1f%%", Launcher.getMemoryUsage());
+		JLabel 		memoryUsageLabel = new JLabel(memoryString);
+		memoryUsageLabel.setFont(memoryUsageLabel.getFont().deriveFont(SYSTEM_INFO_FONT_SIZE));
+		usagePanel.add(cpuUsageLabel);
+		usagePanel.add(memoryUsageLabel);
+		getContentPane().add(usagePanel, BorderLayout.SOUTH);		
 		
-		bottomPane.setLayout(new BorderLayout(0, 0));
-		
-		logText 				= new LogPane();
-		
-		TaskManager.addSelectionListener(new TaskSelectionListener() {
+		ScheduledExecutorService executor =
+			    Executors.newSingleThreadScheduledExecutor();
 
-			@Override
-			public void onSelectionChanged(TaskSelectionEvent e) {
-				logText.callUpdate();				
-			}
+			Runnable periodicTask = new Runnable() {
+			    public void run() {
+			    	double cpuUsage = Launcher.CPUUsage();
+			    	double memoryUsage = Launcher.getMemoryUsage();			    
+			    	
+			        cpuUsageLabel.setText( String.format("CPU usage: %3.1f%%", cpuUsage) );
+			        memoryUsageLabel.setText( String.format("Memory usage: %3.1f%%", memoryUsage) );
+			        
+			        Color borderColor = ( (javax.swing.border.LineBorder) usagePanel.getBorder()).getLineColor();
+			        
+			        if((cpuUsage > 75) || (memoryUsage > 75)) {
+			        	if(! borderColor.equals(Color.red))
+			        		usagePanel.setBorder(BorderFactory.createLineBorder(Color.red, 2));
+			        } 
+			        else if((cpuUsage > 50) || (memoryUsage > 50)) {
+			        	if(! borderColor.equals(Color.yellow))
+			        		usagePanel.setBorder(BorderFactory.createLineBorder(Color.orange, 2));
+			        } else 
+			        	usagePanel.setBorder(BorderFactory.createLineBorder(Color.black, 1));
+			    }
+			};
 			
-		});
-		
-		TaskManager.addTaskRepositoryListener(new TaskRepositoryListener() {
-
-			@Override
-			public void onTaskListChanged(TaskRepositoryEvent e) {
-				switch(e.getState()) {
-				case TASK_ADDED :
-				case TASK_REMOVED :
-					break;									
-				default :
-					if(TaskManager.getTask(e.getId()) == TaskManager.getSelectedTask()) 																														
-						logText.callUpdate();					
-					break;			
-				}
-			}
-			
-		});
-		
-		JScrollPane scrollPane	= new JScrollPane(logText);
-		bottomPane.add(scrollPane);
-		bottomPane.add(new LogToolBar(this, logText), BorderLayout.SOUTH);
-		
-		outputPane.setBottomComponent(bottomPane);			//Sets bottom component
-		
-		splitPane = new JSplitPane();
-		
-		splitPane.setResizeWeight(0.5);
-		splitPane.setOneTouchExpandable(true);
-
-		splitPane.setLeftComponent(taskManagerPane);	//Sets left component
-		splitPane.setRightComponent(outputPane);			//Sets right component
-		
-		addStandardTab(StandardTabName.TaskManager, splitPane, false);
-		
-
-		splitPane.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1)); 
-		splitPane.setBorder(null);
-		
-		/*
-		 * EVENTS
-		 */
-		
-		addWindowListener(new WindowAdapter() {
-			@Override
-			public void windowClosing(WindowEvent arg0) {				
-				Object[] options = {"Yes", "No"}; //$NON-NLS-1$ //$NON-NLS-2$
-				Toolkit.getDefaultToolkit().beep();
-				int answer = JOptionPane.showOptionDialog(
-						(Component)arg0.getSource(),
-								Messages.getString("TaskControlFrame.ExitMessage"), //$NON-NLS-1$
-								Messages.getString("TaskControlFrame.ExitTitle"), //$NON-NLS-1$
-								JOptionPane.YES_NO_OPTION,
-								JOptionPane.WARNING_MESSAGE,
-								null,
-								options,
-								options[1]);
-				if(answer == 1)
-					((JFrame)arg0.getSource()).setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-				else 
-					((JFrame)arg0.getSource()).setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-			}
-		});
-		
-		Window ancestor = SwingUtilities.getWindowAncestor(this);
-		
-		requestListeners.add(new RequestListener() {
-
-			@Override
-			public void onRequestReceived(Request request) {
-				
-				switch(request.getType()) {
-				
-				case CHART :
-				
-					SearchTask t;
-					for(Identifier id : request.getIdentifiers()) {
-						t = TaskManager.getTask(id);
-						plot(t, ancestor);
-					}
-			
-				default : 
-					return;
-					
-				}
-							
-			}
-			
-		});
-		
+		executor.scheduleAtFixedRate(periodicTask, 0, 2, TimeUnit.SECONDS);
 	}
 	
 	/*
 	 * Initiates the dialog to load heating curve experimental data
 	 */
 	
-	public void askToLoadData() {
+	public static void askToLoadData() {
 		JFileChooser fileChooser = new JFileChooser();
 		
 		File workingDirectory = new File(System.getProperty("user.home")); //$NON-NLS-1$
@@ -343,59 +384,37 @@ public class TaskControlFrame extends JFrame {
 		
 		fileChooser.setFileFilter(new FileNameExtensionFilter(Messages.getString("TaskControlFrame.ExtensionDescriptor"), extArray)); //$NON-NLS-1$
 		
-		if(fileChooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION)
+		if(fileChooser.showOpenDialog(instance) != JFileChooser.APPROVE_OPTION)
 			return;							
 		
-		try {
-			SearchTask[] t = null;
+		TaskManager.generateTasks(Arrays.asList(fileChooser.getSelectedFiles()));
+		TaskManager.selectTask(TaskManager.getTaskList().get(0).getIdentifier(), instance);				
+		
+		if(!TaskManager.dataNeedsTruncation())
+			return;				
 			
-			for( File f : fileChooser.getSelectedFiles() )  
-				t = TaskManager.generateTasks(f);	
-			
-			if(TaskManager.dataNeedsTruncation()) {
-				
-				Object[] options = {"Truncate", "Do not change"}; //$NON-NLS-1$ //$NON-NLS-2$
-				Toolkit.getDefaultToolkit().beep();
-				int answer = JOptionPane.showOptionDialog(
-						reference,
-								WordUtils.wrap("It appears that in some experiments the acquisition time was too long. If the number of points is low, this will lead to under-represented statistics in regions critical to thermal diffusivity evaluation, leading to biased estimates. It is recommended to allow PULSE to truncate this data. Would you like to proceed? ", 75), //$NON-NLS-1$
-								"Potential Problem with Data", //$NON-NLS-1$
-								JOptionPane.YES_NO_OPTION,
-								JOptionPane.WARNING_MESSAGE,
-								null,
-								options,
-								options[1]);
-				if(answer == 0) {
-					TaskManager.truncateData();
-					
-				}
-				
-			}
-			
-			System.gc();
-			
-			//select last added task
-			if(t != null)
-				if(t.length > 0)
-					TaskManager.selectTask(t[t.length-1].getIdentifier(), this);
-			
-		} catch (IOException e) {
-			Toolkit.getDefaultToolkit().beep();
-			JOptionPane.showMessageDialog(this,
-				    Messages.getString("TaskControlFrame.LoadError"), //$NON-NLS-1$
-				    Messages.getString("TaskControlFrame.IOError"), //$NON-NLS-1$
-				    JOptionPane.ERROR_MESSAGE);
-			e.printStackTrace();
-		}
+		Object[] options = {"Truncate", "Do not change"}; //$NON-NLS-1$ //$NON-NLS-2$
+		Toolkit.getDefaultToolkit().beep();
+		int answer = JOptionPane.showOptionDialog(
+				instance,
+						("It appears that in some experiments the acquisition time was too long.\nThe model estimates will be biased if time resolution is low.\n\nIt is recommended to allow PULSE to truncate this data.\n\nWould you like to proceed? "), //$NON-NLS-1$
+						"Potential Problem with Data", //$NON-NLS-1$
+						JOptionPane.YES_NO_OPTION,
+						JOptionPane.WARNING_MESSAGE,
+						null,
+						options,
+						options[1]);
+		if(answer == 0) 
+			TaskManager.truncateData();										
 		
 	}
 
 	
 	/*
-	 * Inititaes the dialog to load metadata
+	 * Initiates the dialog to load metadata
 	 */
 	
-	public void askToLoadMetadata() {
+	public static void askToLoadMetadata() {
 		JFileChooser fileChooser = new JFileChooser();
 		
 		File workingDirectory = new File(System.getProperty("user.home")); //$NON-NLS-1$
@@ -408,7 +427,7 @@ public class TaskControlFrame extends JFrame {
 		
 		fileChooser.setFileFilter(new FileNameExtensionFilter(Messages.getString("TaskControlFrame.ExtensionDescriptor"), extension)); //$NON-NLS-1$
 		
-		if(fileChooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION)
+		if(fileChooser.showOpenDialog(instance) != JFileChooser.APPROVE_OPTION)
 			return;							
 		
 		try {
@@ -430,7 +449,7 @@ public class TaskControlFrame extends JFrame {
 			
 		} catch (IOException e) {
 			Toolkit.getDefaultToolkit().beep();
-			JOptionPane.showMessageDialog(this,
+			JOptionPane.showMessageDialog(instance,
 				    Messages.getString("TaskControlFrame.LoadError"), //$NON-NLS-1$
 				    Messages.getString("TaskControlFrame.IOError"), //$NON-NLS-1$
 				    JOptionPane.ERROR_MESSAGE);
@@ -438,100 +457,93 @@ public class TaskControlFrame extends JFrame {
 		}
 		
 	}
-	
-	public static void addRequestListener(RequestListener rl) {
-		requestListeners.add(rl);
-	}
-	
-	public static List<RequestListener> getRequestListeners() {
-		return requestListeners;
-	}
-	
-	public HeatingChartPanel activeChart() {
+
+	public static Chart activeChart() {
 		final int total = tabbedPane.getTabCount();
 		
 		for(int i = 0; i < total; i++) {
 			Component component = tabbedPane.getComponentAt(i);
 			
-			if(! (component instanceof HeatingChartPanel) )
+			if(! (component instanceof Chart) )
 				continue;
 
 			if(! (	tabbedPane.getSelectedIndex() == i))
 				continue;
 			
-			return (HeatingChartPanel) component;			
+			return (Chart) component;			
 		}
 		
 		return null;
 		
 	}
 
-	public HeatingChartPanel searchForPanel(Identifier taskIdentifier) {
-		List<HeatingChartPanel> allPanels = allChartPanels();
-		for(HeatingChartPanel p : allPanels)
+	public static Chart searchForPanel(Identifier taskIdentifier) {
+		List<Chart> allPanels = allChartPanels();
+		for(Chart p : allPanels)
 			if(p.getIdentifier().equals(taskIdentifier))
 				return p;
-		return null;
+
+		Chart chart = new Chart();
+		chart.setIdentifier(taskIdentifier);
+		addChartTab(chart);
+		chart.makeChart();
+		return chart;		
 	}
 	
-	public List<HeatingChartPanel> allChartPanels() {
+	public static List<Chart> allChartPanels() {
 		final int total = tabbedPane.getTabCount();
-		List<HeatingChartPanel> chartList = new ArrayList<HeatingChartPanel>();
+		List<Chart> chartList = new ArrayList<Chart>();
 		
 		for(int i = 0; i < total; i++) {
 			Component component = tabbedPane.getComponentAt(i);
-			if(! (component instanceof HeatingChartPanel) )
+			if(! (component instanceof Chart) )
 				continue;
-			chartList.add((HeatingChartPanel)component);			
+			chartList.add((Chart)component);			
 		}
 		
 		return chartList;		
 	}
 	
-	public void addChartTab(HeatingChartPanel tab) {		
+	public static void addChartTab(Chart tab) {		
 		tabbedPane.add(TaskManager.getSelectedTask().toString(), tab);
 		tabbedPane.setSelectedComponent(tab);
 		int lastAdded = tabbedPane.getTabCount() - 1;
 		tabbedPane.setTabComponentAt(lastAdded, new ButtonTabComponent(tabbedPane));
 	}
 	
-	public void plot(SearchTask task, Window ancestor) {
+	public static void plot(SearchTask task) {
 
 		if(task == null) {
-			JOptionPane.showMessageDialog(ancestor,
+			JOptionPane.showMessageDialog(instance,
 				    Messages.getString("TaskControlFrame.NoTaskError"), //$NON-NLS-1$
 				    Messages.getString("TaskControlFrame.ShowError"), //$NON-NLS-1$
 				    JOptionPane.WARNING_MESSAGE);
 			return;
-		}
-
-		HeatingCurve solutionCurve;
+		}		
+		
+		Chart chart = searchForPanel(task.getIdentifier());		
+		
+		chart.remove(PlotType.EXPERIMENTAL_DATA); //remove experimental data
+		chart.plot(task.getExperimentalCurve(), PlotType.EXPERIMENTAL_DATA); //add exp data				
+		chart.remove(PlotType.SOLUTION); //remove experimental data		
+		
+		tabbedPane.setSelectedIndex(tabbedPane.indexOfComponent(chart));
 		
 		if(task.getProblem() == null)
-			solutionCurve = null;
-		else
-			solutionCurve = task.getProblem().getHeatingCurve();
+			return;
 		
-		HeatingChartPanel chart = searchForPanel(task.getIdentifier());	
+		HeatingCurve solutionCurve = task.getProblem().getHeatingCurve();
 		
-		if( chart != null ) {
-			tabbedPane.setSelectedIndex(tabbedPane.indexOfComponent(chart));
-			chart.setHeatingCurve(solutionCurve);
-		}
-		else {		
-			chart = new HeatingChartPanel(task.getIdentifier(), 
-				task.getExperimentalCurve(), 
-				solutionCurve);
-			addChartTab(chart);
-		}
-			
-		Charting.plotUsing(chart);
+		if(solutionCurve == null)
+			return;
+				
+		chart.plot(solutionCurve, PlotType.SOLUTION); //add solution (if existing)		
 		
 	}
 
-	protected enum StandardTabName {
+	private enum StandardTabName {
 		
-		TaskManager(Messages.getString("TaskControlFrame.TaskManagerTitle")), WelcomeInfo("Welcome Screen"); //$NON-NLS-1$ //$NON-NLS-2$
+		TaskManager(Messages.getString("TaskControlFrame.TaskManagerTitle")); //$NON-NLS-1$ //$NON-NLS-2$
 		
 		private String name;
 		private Component component;
@@ -557,8 +569,8 @@ public class TaskControlFrame extends JFrame {
 	private void addStandardTab(StandardTabName tabName, Component c, boolean closeable) {
 		tabbedPane.addTab(tabName.getName(), null, c, null);
 		int lastAdded = tabbedPane.getTabCount() - 1;
-		if(closeable)
-			tabbedPane.setTabComponentAt(lastAdded, new ButtonTabComponent(tabbedPane));
+		if(closeable) 
+			tabbedPane.setTabComponentAt(lastAdded, new ButtonTabComponent(tabbedPane));	
 		tabName.setAssociatedComponent(c);
 	}
 	
@@ -570,8 +582,12 @@ public class TaskControlFrame extends JFrame {
 
 			@Override
 			public void stateChanged(ChangeEvent e) {
+				if(taskTabbedPane.getSelectedIndex() < 0)
+					return;
 				String title = taskTabbedPane.getTitleAt(taskTabbedPane.getSelectedIndex());
-				TaskManager.selectTask(Identifier.identify(title), taskTabbedPane);
+				Identifier id = Identifier.identify(title);
+				if(id != null)
+					TaskManager.selectTask(id, taskTabbedPane);
 			}
 			
 		});
@@ -591,24 +607,14 @@ public class TaskControlFrame extends JFrame {
 		 */
 		private static final long serialVersionUID = -6823289494869587461L;
 		
-		protected ToolBarButton btnRemove, btnClr, btnReset, btnShowCurve, btnFitTask;
-		protected ControlButton controlButton;
+		private ToolBarButton btnRemove, btnClr, btnReset, btnShowCurve, btnFitTask;
+		private ExecutionButton controlButton;
 
 		public TaskToolBar() {
 			super();
 			setBackground(new Color(240, 248, 255));
 			setForeground(Color.BLACK);
-			setLayout(new GridLayout());
-			
-			btnFitTask = new ToolBarButton(Messages.getString("TaskControlFrame.LoadData")); //$NON-NLS-1$
-				btnFitTask.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					askToLoadData();
-					tabbedPane.setSelectedComponent(StandardTabName.TaskManager.getAssociatedComponent());
-				}
-			});
-				
-			add(btnFitTask);
+			setLayout(new GridLayout());				
 			
 			btnRemove = new ToolBarButton(Messages.getString("TaskControlFrame.RemoveSelected")); //$NON-NLS-1$
 			btnRemove.setEnabled(false);
@@ -641,6 +647,7 @@ public class TaskControlFrame extends JFrame {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					TaskManager.clear();
+					resultsTable.removeAll();
 				}
 				
 			});
@@ -664,21 +671,19 @@ public class TaskControlFrame extends JFrame {
 					
 				public void actionPerformed(ActionEvent e) {
 					int[] rows = taskTable.getSelectedRows();
-					List<Identifier> ids = new ArrayList<Identifier>(); 
 					
-					for(int selected : rows) {
-						ids.add( (Identifier) taskTable.getValueAt(selected, 0) );
-						Request r = new Request(Request.Type.CHART, ids);
-						for(RequestListener rl : requestListeners) 
-							rl.onRequestReceived(r);
-					}
+					if(rows.length > 1) 
+						return;				 
+																				
+					plot(TaskManager.getSelectedTask());
+					
 				}
 					
 			});
 				
 			add(btnShowCurve);
 				
-			controlButton = new ControlButton();
+			controlButton = new ExecutionButton();
 			controlButton.setEnabled(false);
 			add(controlButton);
 				
@@ -699,8 +704,8 @@ public class TaskControlFrame extends JFrame {
 		 */
 		private static final long serialVersionUID = 5676122766981731562L;
 
-		private Font MENU_FONT = new Font(Messages.getString("TaskControlFrame.MenuFont"), Font.BOLD, 14); //$NON-NLS-1$
-		private Font MENU_ITEM_FONT = new Font(Messages.getString("TaskControlFrame.MenuFont"), Font.BOLD, 13); //$NON-NLS-1$
+		private Font MENU_FONT = new Font(Messages.getString("TaskControlFrame.MenuFont"), Font.BOLD, 16); //$NON-NLS-1$
+		private Font MENU_ITEM_FONT = new Font(Messages.getString("TaskControlFrame.MenuFont"), Font.BOLD, 15); //$NON-NLS-1$
 		
 		public MainMenu() {
 			super();
@@ -770,7 +775,7 @@ public class TaskControlFrame extends JFrame {
 			mntmNewMenuItem_3.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent arg0) {
 					ResultChangeDialog changeDialog = new ResultChangeDialog();
-					changeDialog.setLocationRelativeTo(reference);
+					changeDialog.setLocationRelativeTo(instance);
 					changeDialog.setAlwaysOnTop(true);
 					changeDialog.setVisible(true);
 					
@@ -812,33 +817,11 @@ public class TaskControlFrame extends JFrame {
 				
 			});
 			
-			JMenuItem mntmClearChart = new JMenuItem(Messages.getString("TaskControlFrame.MenuItemClear")); //$NON-NLS-1$
-			mntmClearChart.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					HeatingChartPanel chartPanel = activeChart();
-					
-					if(chartPanel == null) {
-						Toolkit.getDefaultToolkit().beep();
-						JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor((Component) e.getSource()),
-							    Messages.getString("TaskControlFrame.NoChartsError"), //$NON-NLS-1$
-							    Messages.getString("TaskControlFrame.CreateChartTitle"), //$NON-NLS-1$
-							    JOptionPane.WARNING_MESSAGE);
-						return;
-					}
-					
-					chartPanel.clearChart();
-				
-				}
-			});
-			
-			mntmClearChart.setFont(MENU_ITEM_FONT); //$NON-NLS-1$
-			mnChartControls.add(mntmClearChart);
-			
 			JMenuItem mntmShowClassicSolution = new JMenuItem(Messages.getString("TaskControlFrame.ShowParkerSolution")); //$NON-NLS-1$
 			mntmShowClassicSolution.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					
-					HeatingChartPanel chartPanel = activeChart();
+					Chart chartPanel = activeChart();
 					
 					if(chartPanel == null) {
 						Toolkit.getDefaultToolkit().beep();
@@ -849,7 +832,9 @@ public class TaskControlFrame extends JFrame {
 						return;
 					}
 					
-					Charting.plotClassicSolution(chartPanel.getHeatingChart());				
+					Problem problem = TaskManager.getSelectedTask().getProblem();
+					
+					chartPanel.plot( problem.classicSolution(), PlotType.CLASSIC_SOLUTION );
 				}
 			});
 			
@@ -864,13 +849,13 @@ public class TaskControlFrame extends JFrame {
 					SearchTask selectedTask = TaskManager.getSelectedTask();
 					
 					if(selectedTask == null) {
-						JOptionPane.showMessageDialog(reference, "No data to export!",
+						JOptionPane.showMessageDialog(instance, "No data to export!",
 							    "No Data to Export",
 							    JOptionPane.WARNING_MESSAGE);
 						return; 
 					}
 					
-					selectedTask.askToSave(reference);
+					selectedTask.askToSave(instance);
 					
 					tabbedPane.setSelectedComponent(StandardTabName.TaskManager.getAssociatedComponent());
 				}
@@ -881,7 +866,7 @@ public class TaskControlFrame extends JFrame {
 			mnChartControls.add(mntmSaveAll);
 			mntmSaveAll.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent arg0) {
-					SaveableDirectory.askToSave(reference, 
+					SaveableDirectory.askToSave(instance, 
 							TaskManager.getInstance().describe(), 
 							TaskManager.saveableContents()
 							);					
@@ -903,8 +888,7 @@ public class TaskControlFrame extends JFrame {
 				public void actionPerformed(ActionEvent e) {
 					String info = Messages.getString("TaskControlFrame.SoftwareDescription"); //$NON-NLS-1$
 					JLabel label = new JLabel(info);
-					label.setIcon(new ImageIcon(logo.getScaledInstance(logo.getWidth()/6, logo.getHeight()/6, java.awt.Image.SCALE_SMOOTH)));
-					JOptionPane.showMessageDialog(reference, label, Messages.getString("TaskControlFrame.AboutTitle"), JOptionPane.PLAIN_MESSAGE); //$NON-NLS-1$
+					JOptionPane.showMessageDialog(instance, label, Messages.getString("TaskControlFrame.AboutTitle"), JOptionPane.PLAIN_MESSAGE); //$NON-NLS-1$
 				}
 				
 				
@@ -912,125 +896,6 @@ public class TaskControlFrame extends JFrame {
 			
 		}
 		
-		
-	}
-	
-	class ControlButton extends ToolBarButton {
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = -6317905957478587768L;
-
-		private ExecutionState state = ExecutionState.EXECUTE;
-		
-		public ControlButton() {
-			super();
-			setBackground(state.getColor());
-			setText(state.getMessage());
-			
-			this.addActionListener(new ActionListener() {
-
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					
-					/*
-					 * STOP PRESSED?
-					 */
-					
-					if(state == ExecutionState.STOP) {
-						TaskManager.cancelAllTasks();
-						setExecutionState(ExecutionState.EXECUTE);	
-						return;
-					}
-					
-					/*
-					 * EXECUTE PRESSED?
-					 */
-					
-					if(TaskManager.getTaskList().isEmpty()) {
-						JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor((Component) e.getSource()),
-							    Messages.getString("TaskControlFrame.PleaseLoadData"), //$NON-NLS-1$
-							    "No Tasks", //$NON-NLS-1$
-							    JOptionPane.ERROR_MESSAGE);			
-						return;
-					}
-						
-					for(SearchTask t : TaskManager.getTaskList())
-						switch(t.checkStatus()) {
-							case READY :
-							case TERMINATED :
-							case DONE :
-								continue;
-							default : 
-								JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor((Component) e.getSource()),
-										    t + " is " + t.getStatus().getMessage() , //$NON-NLS-1$
-										    "Task Not Ready", //$NON-NLS-1$
-										    JOptionPane.ERROR_MESSAGE);			
-								return;
-						}
-
-					TaskManager.executeAll();
-							
-				}
-				
-			});
-			
-			TaskManager.addTaskRepositoryListener(new TaskRepositoryListener() {
-
-				@Override
-				public void onTaskListChanged(TaskRepositoryEvent e) {
-					switch(e.getState()) {
-					case SINGLE_TASK_SUBMITTED :
-					case MULTIPLE_TASKS_SUBMITTED :
-						setExecutionState(ExecutionState.STOP);
-						break;
-					case TASK_FINISHED :
-						if(TaskManager.isTaskQueueEmpty()) 
-							setExecutionState(ExecutionState.EXECUTE);
-						else
-							setExecutionState(ExecutionState.STOP);
-						break;
-					default : 
-						return;
-					}
-		
-				}
-				
-			});
-			
-		}
-		
-		public void setExecutionState(ExecutionState state) {
-			this.state = state;
-			this.setText(state.getMessage());
-			this.setBackground(state.getColor());
-		}
-		
-		
-		public ExecutionState getExecutionState() {
-			return state;
-		}
-		
-	}
-	
-	public enum ExecutionState {
-		EXECUTE("EXECUTE", Color.GREEN), STOP("STOP", Color.RED);
-		
-		private Color color;
-		private String message;
-		
-		private ExecutionState(String message, Color clr) {
-			this.color = clr;
-			this.message = message;
-		}
-		
-		public Color getColor() {
-			return color;
-		}
-		
-		public String getMessage() {
-			return message;
-		}
 		
 	}
 		

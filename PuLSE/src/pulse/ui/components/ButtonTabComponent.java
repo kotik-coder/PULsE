@@ -33,6 +33,9 @@ package pulse.ui.components;
 
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicButtonUI;
+
+import pulse.ui.charts.Chart;
+
 import java.awt.*;
 import java.awt.event.*;
 
@@ -47,6 +50,7 @@ public class ButtonTabComponent extends JPanel {
 	 */
 	private static final long serialVersionUID = -4486213384127646307L;
 	private final JTabbedPane pane;
+	private final static float TAB_TITLE_FONT_SIZE = 18;
 
     public ButtonTabComponent(final JTabbedPane pane) {
         //unset default FlowLayout' gaps
@@ -73,6 +77,7 @@ public class ButtonTabComponent extends JPanel {
             }
         };
         
+        label.setFont(label.getFont().deriveFont(TAB_TITLE_FONT_SIZE));
         add(label);
         //add more space between the label and the button
         label.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 5));
@@ -88,9 +93,10 @@ public class ButtonTabComponent extends JPanel {
 		 * 
 		 */
 		private static final long serialVersionUID = -4991493144160155092L;
-
+		private final int BUTTON_SIZE = 25;
+		
 		public TabButton() {
-            int size = 17;
+            int size = BUTTON_SIZE;
             setPreferredSize(new Dimension(size, size));
             setToolTipText(Messages.getString("ButtonTabComponent.CloseTabToolTip")); //$NON-NLS-1$
             //Make the button looks the same for all Laf's
@@ -112,7 +118,7 @@ public class ButtonTabComponent extends JPanel {
         public void actionPerformed(ActionEvent e) {
             int i = pane.indexOfTabComponent(ButtonTabComponent.this);
             if (i != -1) {
-                pane.remove(i);
+                pane.remove(i); 
             }
         }
 

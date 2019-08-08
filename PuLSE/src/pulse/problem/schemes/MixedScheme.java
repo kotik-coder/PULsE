@@ -82,7 +82,7 @@ public class MixedScheme extends DifferenceScheme {
 		problem.getPulse().transform(problem, this);
 		
 		HeatingCurve curve = problem.getHeatingCurve();
-		curve.flattenToBaseline();
+		curve.reinit();
 		
 		final int counts = (int) curve.getNumPoints().getValue();		
 		

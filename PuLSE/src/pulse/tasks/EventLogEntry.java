@@ -1,6 +1,5 @@
 package pulse.tasks;
 
-import pulse.search.math.LogEntry;
 import pulse.tasks.listeners.TaskStateEvent;
 
 public class EventLogEntry extends LogEntry {

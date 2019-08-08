@@ -153,7 +153,7 @@ public class ProblemStatementFrame extends JFrame {
 					
 				SearchTask t = TaskManager.getSelectedTask();
 				
-				if(t.checkStatus() == Status.INCOMPLETE) {
+				if(t.checkProblems() == Status.INCOMPLETE) {
 					Details d = t.getStatus().getDetails();
 					if(	  d == Details.MISSING_PROBLEM_STATEMENT 
 					   || d == Details.MISSING_DIFFERENCE_SCHEME ||
@@ -170,9 +170,7 @@ public class ProblemStatementFrame extends JFrame {
 				t.adjustScheme();
 				t.solveProblem();
 		
-				for(RequestListener rl : TaskControlFrame.getRequestListeners())
-					rl.onRequestReceived(new Request(Request.Type.CHART, t.getIdentifier()));
-				
+				TaskControlFrame.plot(t);				
 
 			}
 		});
@@ -317,7 +315,7 @@ public class ProblemStatementFrame extends JFrame {
 		problemCopyConstructor = null;
 		problemClass		   = null;
 
-		task.checkStatus();
+		task.checkProblems();
 		
 	}
 	
@@ -347,7 +345,7 @@ public class ProblemStatementFrame extends JFrame {
 		
 		}
 		
-		task.checkStatus();
+		task.checkProblems();
 		
 	}	
 

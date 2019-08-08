@@ -3,11 +3,12 @@ package pulse.tasks;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.time.LocalDateTime;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
-import pulse.search.math.LogEntry;
-import pulse.tasks.listeners.TaskListener;
+import pulse.tasks.listeners.DataCollectionListener;
+import pulse.tasks.listeners.LogEntryListener;
+import pulse.tasks.listeners.StatusChangeListener;
 import pulse.tasks.listeners.TaskStateEvent;
 import pulse.util.Saveable;
 
@@ -17,36 +18,73 @@ public class Log implements Saveable {
 	private LocalDateTime start, end;
 	private static LogFormat logFormat = LogFormat.DEFAULT_FORMAT;
 	private Identifier id;
+	private List<LogEntryListener> listeners;
 	
 	public Log(SearchTask task) {
 		if(task == null)
 			throw new IllegalArgumentException(Messages.getString("Log.NullTaskError")); //$NON-NLS-1$
 		
 		id = task.getIdentifier();
-		this.logEntries = new LinkedList<LogEntry>();
+		
+		this.logEntries = new CopyOnWriteArrayList<LogEntry>();
+		listeners		= new CopyOnWriteArrayList<LogEntryListener>();
 	
-		task.addTaskListener(new TaskListener() {
+		task.addTaskListener(new DataCollectionListener() {
 			
 			@Override
 			public void onDataCollected(TaskStateEvent src) {
-				if(src.getState() != Status.INCOMPLETE) 
-					logEntries.add( new DataLogEntry( task ) );
+				if(src.getState() == Status.INCOMPLETE) 
+					return;
+				
+				LogEntry e = new DataLogEntry( task );
+				logEntries.add( e );
+				notifyListeners(e);
 			}
+				
+		});	
+		
+		task.addStatusChangeListener(new StatusChangeListener() {
 
 			@Override
 			public void onStatusChange(TaskStateEvent e) {
-				logEntries.add(new EventLogEntry(e));	
-				if(e.getState() == Status.IN_PROGRESS) {
-					start = LocalDateTime.now();
-					end = null;
+				LogEntry logEntry = new EventLogEntry(e); 
+				logEntries.add(logEntry);
+				
+				if(e.getStatus() != Status.DONE) {
+					
+					if(e.getState() == Status.IN_PROGRESS) {
+						start = e.getTime();
+						end = null;
+					}
+					
+					notifyListeners(logEntry);
 				}
-				if(e.getState() == Status.DONE)
-					end = LocalDateTime.now();
+				
+				else {
+					end = e.getTime();
+					notifyListeners(logEntry);
+					logFinished();
+				}
 			}
 			
-				
-		});					
-		
+		});
+			
+	}
+	
+	private void logFinished() {
+		listeners.stream().forEach( l -> l.onLogFinished(this));
+	}
+	
+	private void notifyListeners(LogEntry logEntry) {
+		listeners.stream().forEach( l -> l.onNewEntry(logEntry));
+	}
+	
+	public List<LogEntryListener> getListeners() {
+		return listeners;
+	}
+	
+	public void addListener(LogEntryListener l) {
+		listeners.add(l);
 	}
 	
 	public static void setLogFormat(LogFormat logFormat) {
@@ -59,10 +97,6 @@ public class Log implements Saveable {
 	
 	public boolean isStarted() {
 		return start != null;
-	}
-	
-	public boolean isFinished() {
-		return end != null;
 	}
 	
 	@Override
@@ -104,6 +138,10 @@ public class Log implements Saveable {
 	public void printData(FileOutputStream fos) {
 		PrintStream stream = new PrintStream(fos);
 		stream.print(toString());
+	}
+	
+	public LogEntry lastEntry() {
+		return logEntries.stream().reduce( (first,second) -> second).get();
 	}
 	
 }

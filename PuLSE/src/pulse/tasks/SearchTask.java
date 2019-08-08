@@ -3,8 +3,10 @@ package pulse.tasks;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.swing.JOptionPane;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import pulse.HeatingCurve;
 import pulse.input.ExperimentalData;
@@ -18,12 +20,10 @@ import pulse.search.direction.PathSolver;
 import pulse.search.math.ObjectiveFunctionIndex;
 import pulse.search.math.Vector;
 import pulse.tasks.Status.Details;
-import pulse.tasks.listeners.TaskListener;
-import pulse.tasks.listeners.TaskRepositoryEvent;
-import pulse.tasks.listeners.TaskRepositoryListener;
+import pulse.tasks.listeners.DataCollectionListener;
+import pulse.tasks.listeners.StatusChangeListener;
 import pulse.tasks.listeners.TaskStateEvent;
 import pulse.util.Accessible;
-import pulse.util.PropertyHolderListener;
 import pulse.util.SaveableDirectory;
 
 public class SearchTask implements Runnable, Accessible, SaveableDirectory {
@@ -42,19 +42,18 @@ public class SearchTask implements Runnable, Accessible, SaveableDirectory {
 	
 	private Buffer buffer;
 	
-	private List<TaskListener> listeners = new ArrayList<TaskListener>();
+	private List<DataCollectionListener> listeners = new CopyOnWriteArrayList<DataCollectionListener>();
+	private List<StatusChangeListener> statusChangeListeners = new CopyOnWriteArrayList<StatusChangeListener>();
 	
 	private Status status = Status.INCOMPLETE;
 	
 	private Log log;
 	
-	private Result r = null;
-	
 	private Identifier identifier;
 
 	private BooleanProperty[] searchFlags;
-
-	private boolean active;
+	
+	private final static double SUCCESS_CUTOFF = 0.2;
 	
 	@Override
 	public boolean equals(Object o) {		
@@ -87,7 +86,6 @@ public class SearchTask implements Runnable, Accessible, SaveableDirectory {
 		buffer 			= new Buffer();		
 		log 			= new Log(this);
 			
-		this.r			= null;
 		this.path		= null;
 		this.problem	= null;
 		this.scheme		= null;				
@@ -99,9 +97,9 @@ public class SearchTask implements Runnable, Accessible, SaveableDirectory {
 		updateThermalProperties();
 		setStatus(Status.INCOMPLETE);
 		
-		for(TaskListener t : listeners)
-			t.onDataCollected(new TaskStateEvent(this, status));
-		
+		TaskStateEvent e = new TaskStateEvent(this, status);
+		notifyStatusListeners(e);
+		notifyDataListeners(e);
 	}
 	
 	public SearchTask(ExperimentalData curve) {
@@ -217,7 +215,7 @@ public class SearchTask implements Runnable, Accessible, SaveableDirectory {
 			switch(types[i]) {
 				case HEAT_LOSSES : x = (double) NumericProperty.DEFAULT_BIOT.getMaximum(); 
 				case DIFFUSIVITY : x = (double) NumericProperty.DEFAULT_DIFFUSIVITY.getMaximum()/lSq; break;
-				case BASELINE	 :	x = (double) NumericProperty.DEFAULT_BASELINE.getMaximum(); break;
+				case BASELINE	 : x = (double) NumericProperty.DEFAULT_BASELINE.getMaximum(); break;
 				case MAX_TEMP	 : x = (double) NumericProperty.DEFAULT_MAXTEMP.getMaximum(); break;
 				default			 : throw new IllegalArgumentException("Type " + types[i] + " unknown"); //$NON-NLS-1$ //$NON-NLS-2$
 			}
@@ -240,13 +238,14 @@ public class SearchTask implements Runnable, Accessible, SaveableDirectory {
 	
 	@Override
 	public void run() {
-		
-	  setStatus(Status.IN_PROGRESS);
-	  
-	  r = null;
-	  
-	  List<PropertyHolderListener> problemListeners = new ArrayList<PropertyHolderListener>(problem.getListeners());
-	  problem.removeListeners();
+	  switch(status) {
+	  	case READY :
+	  	case QUEUED : 
+	  		setStatus(Status.IN_PROGRESS);
+	  		break;
+	  	default :
+	  		return;
+	  }		
 	  
 	  solveProblem();	  
 	  
@@ -265,52 +264,45 @@ public class SearchTask implements Runnable, Accessible, SaveableDirectory {
 	  
 	  /* search cycle */
 	  
-	  do {		  		  	
+	  TaskStateEvent dataCollected = new TaskStateEvent(this, null);
+	  List<CompletableFuture<Void>> bufferFutures = new ArrayList<CompletableFuture<Void>>(bufferSize);
+	  ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
+	  
+	  do {				 
 		  
-		for (int i = 0; i < bufferSize; i++) {
-			
-				if(!active) {
-					setStatus(Status.TERMINATED);
-					return;
-				}
+		bufferFutures.clear();
+		  
+		for (int i = 0; i < bufferSize; i++) {			
 					
 				sumOfSquares = pathSolver.iteration(this);
 				
-				this.adjustScheme();
-		  		rSquared = solutionCurve.rSquared(this.getExperimentalCurve());		  				  	
-		  		buffer.fill(this, i);
+				adjustScheme();
+		  		rSquared = solutionCurve.rSquared(getExperimentalCurve());		  				  	
 		  		
-		  		for(TaskListener l : listeners)
-		  			l.onDataCollected(new TaskStateEvent(this, null));
+		  		final int j = i;
+		  		
+		  		bufferFutures.add(CompletableFuture.runAsync( () -> {
+		  			buffer.fill(this, j);		  		
+		  			notifyDataListeners(dataCollected); }, singleThreadExecutor ));		  				  		
 		  		
 		}
-						
-		if(buffer.contains(ObjectiveFunctionIndex.HEAT_LOSSES)) 
-			if( buffer.average(ObjectiveFunctionIndex.HEAT_LOSSES) < NEGATIVE_LIMIT_MAX) 
-				  rollback();
 		
+		bufferFutures.forEach( future -> future.join());
+					 
+		if( buffer.average(ObjectiveFunctionIndex.HEAT_LOSSES) < NEGATIVE_LIMIT_MAX) 
+			  rollback();
 	  
-	  }  while( buffer.isErrorHigh(errorTolerance) );
+	  }  while( buffer.isErrorHigh(errorTolerance) && (status != Status.TERMINATED) );
 	  
 	  updateThermalProperties();
-	  
-	  try {
-		r = new Result(this, ResultFormat.getFormat());
-		setStatus(Status.DONE);
-	  } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-		e.printStackTrace();
-		setStatus(Status.EXECUTION_ERROR);
-		JOptionPane.showMessageDialog(null, e.getMessage(), status.toString(), JOptionPane.ERROR_MESSAGE); 
-	  } 
-	  
-		TaskRepositoryEvent e = new TaskRepositoryEvent(TaskRepositoryEvent.State.TASK_FINISHED, getIdentifier());
-		
-		for(TaskRepositoryListener listener : TaskManager.getTaskListeners())
-			listener.onTaskListChanged(e);
-		
-		for(PropertyHolderListener l : problemListeners)
-			problem.addListener(l);
-	  
+	  singleThreadExecutor.shutdown();
+	 	  	  
+	  if( status != Status.TERMINATED )
+		 if(rSquared > SUCCESS_CUTOFF)
+			 setStatus(Status.DONE);
+		 else
+			 setStatus(Status.AMBIGUOUS);
+	  		
 	}
 	
 	public void rollback() {
@@ -321,12 +313,20 @@ public class SearchTask implements Runnable, Accessible, SaveableDirectory {
 		  path.reset(this);
 	}
 	
-	public void addTaskListener(TaskListener toAdd) {
+	public void addTaskListener(DataCollectionListener toAdd) {
 		listeners.add(toAdd);
+	}
+	
+	public void addStatusChangeListener(StatusChangeListener toAdd) {
+		statusChangeListeners.add(toAdd);
 	}
 	
 	public void removeTaskListeners() {
 		listeners.clear();
+	}
+	
+	public void removeStatusChangeListeners() {
+		statusChangeListeners.clear();
 	}
 	
 	@Override
@@ -392,10 +392,6 @@ public class SearchTask implements Runnable, Accessible, SaveableDirectory {
 		
 		if(problem != null) 
 			problem.couple(curve);
-	}
-	
-	public Result getResult() {
-		return r;
 	}
 	
 	public void setTimeLimit(NumericProperty timeLimit) {
@@ -485,26 +481,16 @@ public class SearchTask implements Runnable, Accessible, SaveableDirectory {
 		if(this.status == status)
 			return;
 		
-		this.status = status;
-		
-		for(TaskListener tl : listeners)
-			tl.onStatusChange(new TaskStateEvent(this, status));
-		
-	}
-	
-	public void clearResult() {
-		r = null;
-		this.checkStatus();
+		this.status = status;		
+		notifyStatusListeners(new TaskStateEvent(this, status));
 	}
 		
-	public Status checkStatus() {
-		PathSolver pathSolver = TaskManager.getPathSolver();
+	public Status checkProblems() {
+		if(status == Status.DONE)
+			return status;		
 		
-		if(r != null)
-			return Status.DONE;
-		
+		PathSolver pathSolver = TaskManager.getPathSolver();				
 		Status s = Status.INCOMPLETE;
-		active = false;
 		
 		if(problem == null) 
 			s.setDetails(Details.MISSING_PROBLEM_STATEMENT);
@@ -520,10 +506,8 @@ public class SearchTask implements Runnable, Accessible, SaveableDirectory {
 			s.setDetails(Details.MISSING_LINEAR_SOLVER);
 		else if(buffer == null)
 			s.setDetails(Details.MISSING_BUFFER);
-		else {
-			s = Status.READY;
-			active = true;
-		}
+		else 
+			s = Status.READY;		
 			
 		setStatus(s);
 			
@@ -564,15 +548,6 @@ public class SearchTask implements Runnable, Accessible, SaveableDirectory {
 		return searchFlags;
 	}
 
-	public boolean isActive() {
-		return active;
-	}
-
-	public void setActive(boolean active) {
-		this.active = active;
-	}
-	
-	
 	public NumericProperty getThermalConductivity() {
 		return new NumericProperty(lambda, NumericProperty.DEFAULT_LAMBDA);
 	}
@@ -589,6 +564,16 @@ public class SearchTask implements Runnable, Accessible, SaveableDirectory {
 		this.emissivity = (double)emissivity.getValue();
 	}
 	
+	private void notifyDataListeners(TaskStateEvent e) {
+		for(DataCollectionListener l : listeners)
+  			l.onDataCollected(e);
+	}
+	
+	private void notifyStatusListeners(TaskStateEvent e) {
+		for(StatusChangeListener l : statusChangeListeners)
+  			l.onStatusChange(e);
+	}
+	
 	@Override
 	public String describe() {
 		
@@ -603,6 +588,18 @@ public class SearchTask implements Runnable, Accessible, SaveableDirectory {
 		
 		return sb.toString();
 		
+	}
+	
+	public void terminate() {
+		switch(status) {
+			case IN_PROGRESS :
+			case QUEUED :
+			case READY :
+				setStatus(Status.TERMINATED);
+				break;
+			default :
+				return;
+			}
 	};
 
 }

@@ -4,6 +4,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.StringTokenizer;
 
 import pulse.input.ExperimentalData;
@@ -24,7 +27,7 @@ public class DATReader implements CurveReader {
 	}
 
 	@Override
-	public ExperimentalData[] read(File file) throws IOException {
+	public List<ExperimentalData> read(File file) throws IOException {
 		if(file == null)
 			throw new NullPointerException(Messages.getString("DATReader.1"));				 //$NON-NLS-1$
 		
@@ -54,7 +57,7 @@ public class DATReader implements CurveReader {
 		
 		reader.close();
 		
-		return new ExperimentalData[]{curve};		
+		return new ArrayList<ExperimentalData>(Arrays.asList(curve));		
 				
 	}
 	

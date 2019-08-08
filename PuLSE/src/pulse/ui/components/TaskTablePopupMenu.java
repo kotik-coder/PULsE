@@ -62,8 +62,7 @@ public class TaskTablePopupMenu extends JPopupMenu {
 					return;	
 				}
 				
-				for(RequestListener rl : TaskControlFrame.getRequestListeners())
-					rl.onRequestReceived(new Request(Request.Type.CHART, t.getIdentifier()));
+				TaskControlFrame.plot(t);
 				
 			}
 			
@@ -107,17 +106,17 @@ public class TaskTablePopupMenu extends JPopupMenu {
 					return;
 				}
 				
-				if(t.checkStatus() == Status.DONE) {
+				if(t.checkProblems() == Status.DONE) {
 					int dialogButton = JOptionPane.YES_NO_OPTION;
 					int dialogResult = JOptionPane.showConfirmDialog(referenceWindow, Messages.getString("TaskTablePopupMenu.TaskCompletedWarning") + System.lineSeparator() + Messages.getString("TaskTablePopupMenu.AskToDelete"), Messages.getString("TaskTablePopupMenu.DeleteTitle"), dialogButton); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 					if(dialogResult == 1) 
 					  return;
 					else {
-						t.clearResult();
+						TaskManager.removeResult(t);
 					}
 				}
 				
-				if(t.checkStatus() != Status.READY) {
+				if(t.checkProblems() != Status.READY) {
 					JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor((Component) e.getSource()),
 							t.toString() + " is " + t.getStatus().getMessage(), //$NON-NLS-1$
 						    Messages.getString("TaskTablePopupMenu.TaskNotReady"), //$NON-NLS-1$

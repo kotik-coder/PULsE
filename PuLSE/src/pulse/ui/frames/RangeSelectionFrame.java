@@ -10,8 +10,8 @@ import javax.swing.JTextField;
 import javax.swing.JLabel;
 import javax.swing.SwingConstants;
 import pulse.tasks.TaskManager;
-import pulse.ui.charts.Charting;
-import pulse.ui.charts.HeatingChartPanel;
+import pulse.ui.charts.PreviewPlot;
+import pulse.ui.charts.Chart;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -28,14 +28,14 @@ public class RangeSelectionFrame extends JFrame {
 	private static final long serialVersionUID = 8888698379087886325L;
 	private JTextField maxRangeTextField;
 	private JTextField minRangeTextField;
-	private HeatingChartPanel chartPanel;
+	private Chart chartPanel;
 	
 	private final static Font LABEL_FONT 		= new Font(Messages.getString("RangeSelectionFrame.LabelFont"), Font.PLAIN, 18);
 	private final static Font BUTTON_FONT		= new Font(Messages.getString("RangeSelectionFrame.ButtonFont"), Font.BOLD, 14);
 	private final static Font BIG_LABEL_FONT	= new Font(Messages.getString("RangeSelectionFrame.BigLabelFont"), Font.BOLD, 20);
 	private final static Font TEXT_FIELD_FONT	= new Font(Messages.getString("RangeSelectionFrame.TextFieldFont"), Font.PLAIN, 26);
 	
-	public RangeSelectionFrame(HeatingChartPanel chartPanel) {
+	public RangeSelectionFrame(Chart chartPanel) {
 		this.setSize(new Dimension(400, 200));
 		
 		setUndecorated(true);
@@ -77,7 +77,7 @@ public class RangeSelectionFrame extends JFrame {
 		
 		btnNewButton_2.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				Charting.clearSelection(chartPanel.getHeatingChart());
+				chartPanel.undoHighlight();
 				reference.setVisible(false);
 			}
 		});
@@ -124,7 +124,7 @@ public class RangeSelectionFrame extends JFrame {
 		maxRangeTextField.setText(String.format("%3.3f", max)); //$NON-NLS-1$
 	}
 
-	public HeatingChartPanel getChartPanel() {
+	public Chart getChartPanel() {
 		return chartPanel;
 	}
 

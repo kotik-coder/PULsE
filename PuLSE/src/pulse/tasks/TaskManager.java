@@ -2,42 +2,46 @@ package pulse.tasks;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 
 import pulse.input.ExperimentalData;
 import pulse.input.PropertyCurve;
 import pulse.io.readers.ReaderManager;
 import pulse.search.direction.PathSolver;
-import pulse.tasks.listeners.TaskListener;
 import pulse.tasks.listeners.TaskRepositoryEvent;
 import pulse.tasks.listeners.TaskRepositoryListener;
 import pulse.tasks.listeners.TaskSelectionEvent;
 import pulse.tasks.listeners.TaskSelectionListener;
-import pulse.tasks.listeners.TaskStateEvent;
 import pulse.util.Describable;
 import pulse.util.SaveableDirectory;
-import pulse.tasks.listeners.TaskRepositoryEvent.State;
 
 public final class TaskManager implements Describable {	
 	
 private static TaskManager instance = new TaskManager();	
-	
+private static PathSolver pathSolver;
+private static PropertyCurve specificHeatCurve, densityCurve;
+
+private static ForkJoinPool taskPool;
+
 private static List<SearchTask> tasks = new LinkedList<SearchTask>();
-private static ExecutorService executor;
+private static SearchTask selectedTask;
+
+private static Map<SearchTask,Result> results = new HashMap<SearchTask,Result>();
+
 private static final int threadsAvailable = threadsAvailable();
 
-private static SearchTask selectedTask;
-private static List<TaskSelectionListener> selectionListeners = new ArrayList<TaskSelectionListener>();
-private static List<TaskRepositoryListener> taskListeners = new ArrayList<TaskRepositoryListener>();
-
-private static PathSolver pathSolver;
-
-private static PropertyCurve specificHeatCurve, densityCurve;
+private static List<TaskSelectionListener> selectionListeners = new CopyOnWriteArrayList<TaskSelectionListener>();
+private static List<TaskRepositoryListener> taskRepositoryListeners = new CopyOnWriteArrayList<TaskRepositoryListener>();
 
 private TaskManager() { }
 
@@ -46,100 +50,107 @@ public static TaskManager getInstance() {
 }
 
 public static void execute(SearchTask t) {
-	TaskRepositoryEvent e = new TaskRepositoryEvent(TaskRepositoryEvent.State.SINGLE_TASK_SUBMITTED, t.getIdentifier());
 	
-	for(TaskRepositoryListener listener : taskListeners)
+	removeResult(t); //remove old result	
+	t.setStatus(Status.QUEUED); //notify listeners computatation is about to start
+	
+	//run task t -- after task completed, write result and trigger listeners
+	
+	CompletableFuture.runAsync(t).thenRun(
+					
+					new Runnable() {
+
+						@Override
+						public void run() {
+							if(t.getStatus() != Status.DONE)
+								return;
+							
+							try {
+								results.put( t, new Result(t, ResultFormat.getFormat() ) );
+							} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+								System.err.println("Error retrieving result of task " + t);
+								e.printStackTrace();
+							}
+							
+							TaskRepositoryEvent e = new TaskRepositoryEvent(
+									TaskRepositoryEvent.State.TASK_FINISHED, t.getIdentifier());
+							
+							notifyListeners(e);
+							
+					}
+																		
+			}
+					
+	);
+	
+}
+
+private static void notifyListeners(TaskRepositoryEvent e) {
+	for(TaskRepositoryListener listener : taskRepositoryListeners) 
 		listener.onTaskListChanged(e);
-	
-	t.setStatus(Status.QUEUED);
-	
-	executor	= Executors.newSingleThreadExecutor();
-	executor.execute(t);
 }
 
 public static void executeAll() {
-	executor	= Executors.newFixedThreadPool(threadsAvailable - 1);
-	int submittedTasks = 0;	
 	
-	for(SearchTask t : tasks) {
-		if(t.getStatus() != Status.READY)
-			continue;
-		
-		t.setActive(true);
-		t.setStatus(Status.QUEUED);
-		
-		executor.execute(t);
-		submittedTasks++;
+	List<SearchTask> queue = tasks.stream().filter(t -> 
+													{ switch(t.getStatus()) {
+														case DONE : 
+														case IN_PROGRESS :
+														case EXECUTION_ERROR :
+															return false;
+														default: 
+															return true; }
+													}).collect(Collectors.toList());	
 	
+	taskPool = new ForkJoinPool(threadsAvailable - 1);
+	
+	try {
+		taskPool.submit( () -> queue.parallelStream().forEach( t -> execute(t) ) ).get();
+	} catch (InterruptedException | ExecutionException e) {
+		System.err.println("Execution exception while running multiple tasks");
+		e.printStackTrace();
 	}
-	
-	if(submittedTasks < 1)
-		return;
-	
-	TaskRepositoryEvent e = new TaskRepositoryEvent(TaskRepositoryEvent.State.MULTIPLE_TASKS_SUBMITTED, null);
-	
-	for(TaskRepositoryListener listener : taskListeners)
-		listener.onTaskListChanged(e);
-	
+		
+	System.gc();
+		
 }
 
 public static boolean isTaskQueueEmpty() {
-	if(executor == null)
-		return true;
-	
-	for(SearchTask t : tasks)
-		switch(t.getStatus()) {
-			case QUEUED :
-			case IN_PROGRESS :
-				return false;
-			default:
-				continue;
-		}
-
-	return true;
+	return ! tasks.stream().anyMatch( t -> 
+		t.getStatus() == Status.QUEUED || t.getStatus() == Status.IN_PROGRESS
+	);	
 }
 
 public static void cancelAllTasks() {
-	if(executor == null)
-		return;
-	
-	executor.shutdownNow();
-	
-	for(SearchTask t : tasks)
-		t.setActive(false);
+
+	tasks.stream().forEach(t -> t.terminate() );		
 	
 }
 
 public static boolean dataNeedsTruncation() {
-	ExperimentalData dat;
-	for(SearchTask t : tasks) {
-		dat = t.getExperimentalCurve();
-		if(!dat.isAcquisitionTimeSensible())
-			return true;
-	}
-	return false;
+	
+	return tasks.stream().anyMatch(t -> !t.getExperimentalCurve().isAcquisitionTimeSensible() );
+		
 }
 
 public static void truncateData() {
-	ExperimentalData dat;
-	for(SearchTask t : tasks) {
-		dat = t.getExperimentalCurve();	
-		dat.truncate();
+	tasks.stream().forEach(t -> {
+		t.getExperimentalCurve().truncate();
 		t.updateTimeLimit();
-	}
+	});
+	
 }
 
 public static void clear() {
 	for(SearchTask task : tasks) {
-		TaskRepositoryEvent e = new TaskRepositoryEvent(TaskRepositoryEvent.State.TASK_REMOVED, task.getIdentifier());
+		TaskRepositoryEvent e = new TaskRepositoryEvent(
+				TaskRepositoryEvent.State.TASK_REMOVED, task.getIdentifier());
 		
-		for(TaskRepositoryListener listener : taskListeners)
-			listener.onTaskListChanged(e);
+		notifyListeners(e);
 	}
 	
 	tasks.clear();
-
-	selectedTask = null;
+	selectTask(null, null);
 }
 
 public static String getSampleName() {
@@ -155,26 +166,25 @@ public static void reset() {
 		
 		task.reset();
 		
-		for(TaskRepositoryListener listener : taskListeners)
-			listener.onTaskListChanged(e);		
+		notifyListeners(e);	
 	}
 			
-	TaskManager.selectTask(tasks.get(0).getIdentifier(), TaskManager.getInstance());
+	selectedTask = null;
 }
 
 public static SearchTask retrieveTask(double initialTemperature) {
-	for(SearchTask t : tasks)
-		if(Math.abs((double)t.getTestTemperature().getValue() - initialTemperature) < 1E-10)
-			return t;
+	final double ZERO = 1E-10;
 	
-	return null;
+	return tasks.stream().filter( t -> 
+		Math.abs((double)t.getTestTemperature().getValue() - initialTemperature) < ZERO ).
+		findFirst().get();
+	
 }
 
 public static SearchTask getTask(Identifier id) {
-	for(SearchTask t : tasks)
-		if(t.getIdentifier().equals(id))
-			return t;
-	return null;
+	return tasks.stream().filter( t -> 
+		t.getIdentifier().equals(id) ).
+			findFirst().get();
 }
 
 public static PropertyCurve getSpecificHeatCurve() {
@@ -185,71 +195,64 @@ public static PropertyCurve getDensityCurve() {
 	return densityCurve;
 }
 
-public static SearchTask[] generateTasks(File file) throws IOException {
-	ExperimentalData[] curves = ReaderManager.extractData(file);
-	SearchTask[] tasks = new SearchTask[curves.length];
-	
-	for(int i = 0; i < tasks.length; i++) {
-		tasks[i] = new SearchTask(curves[i]);
-		addTask(tasks[i]);
+public static void generateTask(File file) {
+	List<ExperimentalData> curves = null;
+	try {
+		curves = ReaderManager.extractData(file);
+	} catch (IOException e) {
+		System.err.println("Error loading experimental data");
+		e.printStackTrace();
+	}
+	curves.stream().forEach(curve -> addTask(new SearchTask(curve)) );	
+}
+
+public static void generateTasks(List<File> files) {
+	if(files.size() == 1) {
+		generateTask(files.get(0));
+		return;
 	}
 	
-	return tasks;
+	ForkJoinPool loaderPool = new ForkJoinPool(threadsAvailable - 1); 
+	try {
+		loaderPool.submit( () -> 
+		files.parallelStream().forEach( f -> {
+			generateTask(f);
+		} )
+		).get();
+	} catch (InterruptedException | ExecutionException e) {
+		System.err.println("Problem loading stream of files:");
+		e.printStackTrace();
+	}	
 	
 }
 
 public static SearchTask addTask(SearchTask t)  {		
 
-	for(SearchTask task : tasks)
-		if(task.equals(t))
-			return null;
+	if(tasks.stream().filter(task -> task.equals(t)).count() > 0)
+		return null;
 	
 	tasks.add(t);
 	
 	TaskRepositoryEvent e = new TaskRepositoryEvent(TaskRepositoryEvent.State.TASK_ADDED, t.getIdentifier());
 	
-	for(TaskRepositoryListener listener : taskListeners)
-		listener.onTaskListChanged(e);
-	
-	t.addTaskListener(new TaskListener() {
-
-		@Override
-		public void onStatusChange(TaskStateEvent e) {
-			if(e.getState() == Status.DONE)
-				if(isTaskQueueEmpty())
-					for(TaskRepositoryListener trl : taskListeners) 
-						trl.onTaskListChanged(new TaskRepositoryEvent(State.ALL_TASKS_FINISHED, null));
-		}
-
-		@Override
-		public void onDataCollected(TaskStateEvent e) {
-			// TODO Auto-generated method stub	
-		}
-		
-	});
+	notifyListeners(e);
 	
 	return t;
 }
 
-public static boolean removeTask(SearchTask t)  {		
-	Identifier id = null;
-	
-	for(SearchTask task : tasks)
-		if(task.equals(t)) 
-			id = t.getIdentifier();
-	
-	if(id == null)
+public static boolean removeTask(SearchTask t)  {			
+	if(tasks.stream().filter(task -> task.equals(t)).count() < 1)
 		return false;
-
-	TaskRepositoryEvent e = new TaskRepositoryEvent(TaskRepositoryEvent.State.TASK_REMOVED, id);
-	
-	for(TaskRepositoryListener listener : taskListeners)
-		listener.onTaskListChanged(e);
-	
+		
 	tasks.remove(t);
-	selectedTask = null;
 	
-	TaskManager.selectTask(tasks.get(0).getIdentifier(), TaskManager.getInstance());
+	TaskRepositoryEvent e = 
+			new TaskRepositoryEvent(
+					TaskRepositoryEvent.State.TASK_REMOVED, t.getIdentifier());
+	
+	notifyListeners(e);
+	
+	selectedTask = null;
 	
 	return true;
 }	
@@ -271,22 +274,18 @@ public static void loadDensityData(File f) throws IOException {
 }
 
 public static void selectTask(Identifier id, Object src) {
-	if(id == null) 
-		return;
-	
-	for(SearchTask t : tasks) 
-		if(id.equals(t.getIdentifier())) {
-			selectedTask = t;
-			
-			TaskSelectionEvent e = new TaskSelectionEvent(src);
-			
-			for(TaskSelectionListener l : selectionListeners)
-				l.onSelectionChanged(e);
-			
-			return;
-		}
-	
 	selectedTask = null;
+	
+	tasks.stream().filter( t -> t.getIdentifier().equals(id)).findAny().
+			ifPresent( t -> {
+				selectedTask = t;
+				
+				TaskSelectionEvent e = new TaskSelectionEvent(src);
+				
+				for(TaskSelectionListener l : selectionListeners)
+					l.onSelectionChanged(e);
+				
+			});	
 	
 }
 
@@ -300,7 +299,7 @@ public static void addSelectionListener(TaskSelectionListener listener) {
 }
 
 public static void addTaskRepositoryListener(TaskRepositoryListener listener) {
-	taskListeners.add(listener);
+	taskRepositoryListeners.add(listener);
 }
 
 public static TaskSelectionListener[] getSelectionListeners() {
@@ -331,8 +330,8 @@ public static void setPathSolver(PathSolver pathSolver) {
 	TaskManager.pathSolver = pathSolver;
 }
 
-public static List<TaskRepositoryListener> getTaskListeners() {
-	return taskListeners;
+public static List<TaskRepositoryListener> getTaskRepositoryListeners() {
+	return taskRepositoryListeners;
 }
 
 @Override
@@ -350,6 +349,26 @@ public static List<SaveableDirectory> saveableContents() {
 	
 	return list;
 	
+}
+
+public static Result getResult(SearchTask t) {		
+	return results.get(t);
+}
+
+public static Result getResult(Identifier id) {
+	Optional<SearchTask> optional = tasks.stream().filter(t -> t.getIdentifier().equals(id)).findFirst();
+	
+	if(!optional.isPresent())
+		return null;
+	
+	return results.get(optional.get());
+}
+
+public static void removeResult(SearchTask t) {
+	if(! results.containsKey(t) )
+		return;
+	results.remove(t);
+	t.setStatus(Status.READY);		
 }
 
 }

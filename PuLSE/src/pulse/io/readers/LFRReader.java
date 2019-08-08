@@ -27,7 +27,7 @@ public class LFRReader implements CurveReader {
 	}
 
 	@Override 
-	public ExperimentalData[] read(File file) throws IOException {
+	public List<ExperimentalData> read(File file) throws IOException {
 		if(file == null)
 			throw new NullPointerException(Messages.getString("LFRReader.1"));				 //$NON-NLS-1$
 		
@@ -84,7 +84,7 @@ public class LFRReader implements CurveReader {
 			
 		}	
 		
-		return CurveReader.sort( curves.toArray(new ExperimentalData[curves.size()]) );	
+		return CurveReader.sort( curves );	
 				
 	}
 	

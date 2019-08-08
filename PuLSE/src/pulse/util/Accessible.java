@@ -12,7 +12,7 @@ public interface Accessible {
 	public default Map<String,Object> fieldMap() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		Map<String,Object> fieldMap = new HashMap<String,Object>();
 		
-		Method[] methods = this.getClass().getMethods();
+		Method[] methods = this.getClass().getMethods();		
 		
 	    for(Method m : methods)
 	    {

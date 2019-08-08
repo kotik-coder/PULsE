@@ -2,37 +2,22 @@ package pulse.io.readers;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import pulse.input.ExperimentalData;
 
 public interface CurveReader extends AbstractReader {
 	
-	public abstract ExperimentalData[] read(File file) throws IOException;	
+	public abstract List<ExperimentalData> read(File file) throws IOException;	
 	
-	public static ExperimentalData[] sort(ExperimentalData[] array) {
-		
-		int[] ids = new int[array.length];
-		
-		for(int i = 0; i < array.length; i++) {
+	public static List<ExperimentalData> sort(List<ExperimentalData> array) {
+		Comparator<ExperimentalData> externalIdComparator = (ExperimentalData e1, ExperimentalData e2) -> 
+			Integer.valueOf(e1.getMetadata().getExternalID()).compareTo(
+					Integer.valueOf(e2.getMetadata().getExternalID()) );
 			
-			ids[i] = array[i].getMetadata().getExternalID();
-			
-		}
-		
-		Arrays.sort(ids);
-		
-		List<ExperimentalData> sortedList = new ArrayList<ExperimentalData>();
-		
-		for(int id : ids) 
-			for(ExperimentalData c : array) 
-				if(c.getMetadata().getExternalID() == id)
-					sortedList.add(c);
-			
-		return sortedList.toArray(new ExperimentalData[ids.length]);
-		
+		return array.stream().sorted(externalIdComparator).collect(Collectors.toList()); 		
 	}
 	
 }

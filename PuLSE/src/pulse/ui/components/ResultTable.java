@@ -25,14 +25,11 @@ import pulse.tasks.Identifier;
 import pulse.tasks.Result;
 import pulse.tasks.ResultFormat;
 import pulse.tasks.SearchTask;
-import pulse.tasks.Status;
 import pulse.tasks.TaskManager;
-import pulse.tasks.listeners.TaskListener;
 import pulse.tasks.listeners.TaskRepositoryEvent;
 import pulse.tasks.listeners.TaskRepositoryListener;
 import pulse.tasks.listeners.TaskSelectionEvent;
 import pulse.tasks.listeners.TaskSelectionListener;
-import pulse.tasks.listeners.TaskStateEvent;
 import pulse.util.Saveable;
 
 public class ResultTable extends JTable implements Saveable  {		
@@ -118,58 +115,36 @@ public class ResultTable extends JTable implements Saveable  {
 
 			@Override
 			public void onTaskListChanged(TaskRepositoryEvent e) {
-				SearchTask sourceTask = TaskManager.getTask( e.getId() );
 					
 				//task added
 				
-				if(e.getState() == TaskRepositoryEvent.State.TASK_ADDED) {
+				switch(e.getState()) {
+				
+					case TASK_FINISHED :
 					
-					sourceTask.addTaskListener(new TaskListener() {
+						SearchTask t = TaskManager.getTask(e.getId());
+						Result r = TaskManager.getResult(t);
+						
+						SwingUtilities.invokeLater( new Runnable() {
 	
-						@Override
-						public void onStatusChange(TaskStateEvent e) {
-							if(e.getState() == Status.DONE) {
-								Result r = e.getTask().getResult();
-								if(r != null) 
-									
-									SwingUtilities.invokeLater( new Runnable() {
-	
-										@Override
-										public void run() {
-											((ResultTableModel)getModel()).addRow( r );
-											List<AbstractResult> results = ((ResultTableModel)getModel()).getResults();
-											scrollToSelection(
-													convertColumnIndexToView(results.indexOf(r)) 
-													);
-										}
-										
-									});
-									
+							@Override
+							public void run() {
+								((ResultTableModel)getModel()).addRow( r );
+								List<AbstractResult> results = ((ResultTableModel)getModel()).getResults();
+								scrollToSelection(
+										convertColumnIndexToView(results.indexOf(r)) 
+										);
 							}
-							
-						}
-	
-						@Override
-						public void onDataCollected(TaskStateEvent e) {
-							// TODO Auto-generated method stub
-							
-						}
-							
-						});	
-					
-					
-						}
-				
-						//end task added
-					
-				else if(e.getState() == TaskRepositoryEvent.State.TASK_REMOVED || e.getState() == TaskRepositoryEvent.State.TASK_RESET) {
-					
-					
-					((ResultTableModel)getModel()).removeRow( e.getId() );
-					getSelectionModel().clearSelection();
-					
-				}
-				
+								
+						});
+						
+					break;
+					case TASK_REMOVED :
+					case TASK_RESET :
+						((ResultTableModel)getModel()).removeRow( e.getId() );
+						getSelectionModel().clearSelection();						
+					break;				
+				}				
 				
 				}
 

@@ -102,7 +102,7 @@ public class ResultsToolBar extends JToolBar {
 							resultsTable.convertRowIndexToModel(i) );
 				
 				for(SearchTask t : TaskManager.getTaskList())
-					dtm.addRow(t.getResult());
+					dtm.addRow( TaskManager.getResult(t) );
 				
 			}
 			

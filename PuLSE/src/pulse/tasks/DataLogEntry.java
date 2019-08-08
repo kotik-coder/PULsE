@@ -2,7 +2,7 @@ package pulse.tasks;
 
 import java.lang.reflect.InvocationTargetException;
 import java.text.DecimalFormat;
-import pulse.search.math.LogEntry;
+
 import pulse.search.math.Vector;
 
 public class DataLogEntry extends LogEntry {

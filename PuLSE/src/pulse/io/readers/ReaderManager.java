@@ -105,7 +105,7 @@ public final class ReaderManager {
 		return findPropertyTableReaders(ReaderManager.class.getPackage().getName());
 	}
 	
-	public static ExperimentalData[] extractData(File file) throws IOException {
+	public static List<ExperimentalData> extractData(File file) throws IOException {
 		if(curveReaders == null)
 			curveReaders = findHeatingCurveReaders();		
 		
