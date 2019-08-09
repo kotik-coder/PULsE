@@ -28,6 +28,7 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 	protected List<Double> temperature, correctedTemperature;
 	protected List<Double> time;
 	protected double baseline;	
+	private String name;
 	
 	public boolean isEmpty() {
 		return temperature.isEmpty();
@@ -57,6 +58,8 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 	
 	public HeatingCurve() {
 		this(NumericProperty.DEFAULT_COUNT);
+		clear();
+		reinit();
 	}
 	
 	public HeatingCurve(NumericProperty count) {
@@ -64,6 +67,7 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 		temperature    = new ArrayList<Double>(this.count);
 		correctedTemperature = new ArrayList<Double>(this.count);
 		time		   = new ArrayList<Double>(this.count);
+		reinit();
 	}
 	
 	public void clear() {
@@ -124,10 +128,10 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 		return correctedTemperature.get(index);
 	}
 	
-	public void add(double t, double T) {
-		time.add(t);
-		temperature.add(T);
-		correctedTemperature.add(T+baseline);
+	public void set(int i, double t, double T) {
+		time.set(i, t);
+		temperature.set(i, T);
+		correctedTemperature.set(i,T+baseline);
 	}
 	
 	public void setTimeAt(int index, double t) {
@@ -161,6 +165,9 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 	}
 	
 	public String toString() {
+		if(name != null)
+			return name;
+		
 		StringBuilder sb = new StringBuilder();
 		sb.append(getClass().getSimpleName() + " ("); //$NON-NLS-1$
 		sb.append(getNumPoints());
@@ -299,6 +306,14 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
         stream.print("</table>"); //$NON-NLS-1$
         stream.close();
         
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
 	}
 	
 }

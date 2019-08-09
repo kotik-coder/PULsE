@@ -1,6 +1,7 @@
 package pulse.ui.components;
 
 import java.awt.Component;
+import java.awt.Font;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -15,8 +16,6 @@ import pulse.tasks.Status.Details;
 import pulse.tasks.TaskManager;
 import pulse.ui.Launcher;
 import pulse.ui.frames.TaskControlFrame;
-import pulse.util.Request;
-import pulse.util.RequestListener;
 
 public class TaskTablePopupMenu extends JPopupMenu {
 
@@ -25,10 +24,11 @@ public class TaskTablePopupMenu extends JPopupMenu {
 	 */
 	private static final long serialVersionUID = -4545548692231417093L;
 
-	public TaskTablePopupMenu() {
+	public TaskTablePopupMenu() {	
 		JMenuItem problemStatement, itemExecute, itemChart, itemShowMeta;
 		
-		problemStatement = new JMenuItem(Messages.getString("TaskTablePopupMenu.ShowDetails")); //$NON-NLS-1$
+		problemStatement = new JMenuItem(Messages.getString("TaskTablePopupMenu.ShowDetails")); //$NON-NLS-1$		
+		
 		problemStatement.addActionListener(new ActionListener() {
 
 			@Override

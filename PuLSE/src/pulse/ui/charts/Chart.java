@@ -20,7 +20,6 @@ import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 
 import javafx.application.Platform;
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.Node;
@@ -51,7 +50,11 @@ public class Chart extends JFXPanel {
 	private Identifier identifier;	
 	
 	private final static int FONT_SIZE = 20;
-	private final static Font TOOL_TIP_FONT = Font.font(Messages.getString("Charting.FonName"), 26);	
+	private final static Font TOOL_TIP_FONT = Font.font(Messages.getString("Charting.FonName"), 26);
+	
+	private final static java.awt.Font MENU_FONT = new java.awt.Font(Messages.getString("Charting.FonName"), java.awt.Font.PLAIN, 20);
+	
+	private TimeAxisSpecs timeAxisSpecs;
 	
 	public Chart() {
 		super();
@@ -76,7 +79,6 @@ public class Chart extends JFXPanel {
             	}
             		            	                      	
             	selection.setClickPoint(e.getPoint());
-            	selection.setSelectionBounds(null);
             	undoHighlight();
             }
 
@@ -103,8 +105,7 @@ public class Chart extends JFXPanel {
             	
             	choiceMenu.setLocation(e.getLocationOnScreen());
             	choiceMenu.show(e.getComponent(), (int)bounds.getCenterX(), (int)bounds.getCenterY() );
-           
-                selection.setSelectionBounds(null);
+                           
                 repaint();
             }
 
@@ -151,23 +152,15 @@ public class Chart extends JFXPanel {
 	
 	}
 	
-	public void remove(PlotType type) {
+	public void clear() {
 		
 		Platform.runLater(() -> {
 				ObservableList<Series<Number,Number>> data = chart.getData();
 			
 				if(data.isEmpty())
 					return;
-				
-				if(type.getChartIndex() >= data.size())
-					return;
-			
-				Series<Number,Number> series = data.get(type.getChartIndex());
-				
-				if(series == null)
-					return;
-				
-				data.remove(series);
+
+				data.clear();
 			    				
             }
 				
@@ -211,8 +204,15 @@ public class Chart extends JFXPanel {
 	    
 	    int realCount = curve.realCount();	    
 	    
+	    if(curve.timeAt(realCount - 1) < 0.1) 
+	    	timeAxisSpecs = TimeAxisSpecs.MILLIS;
+	    else
+	    	timeAxisSpecs = TimeAxisSpecs.SECONDS;
+	    
+	    chart.getXAxis().setLabel(timeAxisSpecs.getTitle());
+	    
 	    for(int i = 0; i < realCount; i++) 
-	    	data.add(new Data<Number, Number>(curve.timeAt(i), curve.temperatureAt(i)));	    
+	    	data.add(new Data<Number, Number>(curve.timeAt(i)*timeAxisSpecs.getFactor(), curve.temperatureAt(i)));	    
 	    
 	    return series;			
 	}
@@ -399,7 +399,9 @@ public class Chart extends JFXPanel {
     	public ChoiceMenu(Chart panel) {
     		super();
     		JMenuItem zoomItem = new JMenuItem("Zoom to Selection");
+    		zoomItem.setFont(MENU_FONT);
     		JMenuItem fittingLimits = new JMenuItem("Limit Fitting Range");
+    		fittingLimits.setFont(MENU_FONT);
     		this.add(zoomItem);
     		this.add(fittingLimits);
     		
@@ -409,6 +411,7 @@ public class Chart extends JFXPanel {
 
     				@Override
     				public void actionPerformed(ActionEvent e) {
+    					selection.setSelectionBounds(null);
     					zoomTo(selection.getLocalCoordinatesSelection());
     					setVisible(false); 
     				}
@@ -426,6 +429,7 @@ public class Chart extends JFXPanel {
                 	rangeSelectionFrame.setRangeFields(local.getXLower(), local.getXUpper());
                 	rangeSelectionFrame.setLocationRelativeTo(panel);
                 	rangeSelectionFrame.setVisible(true);
+                	selection.setSelectionBounds(null);
                 	setVisible(false);
     			}
         		
@@ -433,6 +437,10 @@ public class Chart extends JFXPanel {
     		
     	}
     	
+    }
+    
+    public TimeAxisSpecs getTimeAxisSpecs( ) {
+    	return timeAxisSpecs;
     }
 	
 }

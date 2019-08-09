@@ -237,6 +237,6 @@ public class ImplicitScheme extends DifferenceScheme {
 	@Override
 	public String toString() {
 		return Messages.getString("ImplicitScheme.4"); //$NON-NLS-1$
-	}
+	}	
 
 }

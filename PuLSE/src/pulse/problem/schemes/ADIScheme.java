@@ -28,6 +28,8 @@ public class ADIScheme extends DifferenceScheme {
 	private final static NumericProperty DEFAULT_TAU_FACTOR = new NumericProperty(Messages.getString("ADIScheme.0"), 1.0, 1E-4, 1E0, 1.0, 1.0, true); //$NON-NLS-1$
 	private final static NumericProperty DEFAULT_N = new NumericProperty(Messages.getString("ADIScheme.1"), 30, 15, 500, 32, 1, true); //$NON-NLS-1$
 	
+	private final static long INCREASED_TIMEOUT = 60000;
+	
 	/**
 	 * 
 	 */
@@ -593,6 +595,11 @@ public class ADIScheme extends DifferenceScheme {
 	@Override
 	protected double tau() {
 		return tauFactor*(pow(hx, 2) + pow( hy, 2) );
+	}
+	
+	@Override
+	public long getTimeoutAfterMillis() {
+		return INCREASED_TIMEOUT;
 	}
 
 }

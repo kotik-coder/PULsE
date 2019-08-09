@@ -5,7 +5,7 @@ import java.awt.Color;
 public enum Status {
 	
 	INCOMPLETE(Color.RED), READY(Color.MAGENTA), IN_PROGRESS(Color.DARK_GRAY), DONE(Color.BLUE), 
-	EXECUTION_ERROR(Color.red), TERMINATED(Color.DARK_GRAY), QUEUED(Color.GREEN), AMBIGUOUS(Color.GRAY); 
+	EXECUTION_ERROR(Color.red), TERMINATED(Color.DARK_GRAY), QUEUED(Color.GREEN), AMBIGUOUS(Color.GRAY), TIMEOUT(Color.RED); 
 	
 	private final Color clr;
 	private Details details = null;

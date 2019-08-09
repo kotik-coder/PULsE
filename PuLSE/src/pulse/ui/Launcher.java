@@ -99,4 +99,9 @@ public class Launcher {
 	    return (value * 100);
 	}
 	
+	public static int threadsAvailable() {
+		int number = Runtime.getRuntime().availableProcessors();
+		return number > 1 ? (number - 1) : 1;
+	}
+	
 }

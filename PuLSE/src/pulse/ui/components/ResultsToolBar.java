@@ -4,8 +4,6 @@ import java.awt.Component;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.List;
-
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JToolBar;
@@ -14,11 +12,6 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
-import javax.swing.table.DefaultTableModel;
-
-import pulse.tasks.AbstractResult;
-import pulse.tasks.AverageResult;
-import pulse.tasks.SearchTask;
 import pulse.tasks.TaskManager;
 import pulse.ui.components.ResultTable.ResultTableModel;
 import pulse.ui.frames.PlotFrame;
@@ -35,8 +28,7 @@ public class ResultsToolBar extends JToolBar {
 	
 	private static PlotFrame plotFrame;
 	private static SimpleInputFrame simpleInput;
-	private ResultTable resultsTable;
-
+	
 	public ResultsToolBar(ResultTable resultsTable, JFrame parentWindow) {
 		super();
 		setLayout(new GridLayout());
@@ -44,8 +36,6 @@ public class ResultsToolBar extends JToolBar {
 		/*
 		 * CONTROL BUTTONS
 		 */
-			
-		this.resultsTable = resultsTable;
 		
 		ToolBarButton btnDel = new ToolBarButton(Messages.getString("ResultsToolBar.DeleteButton")); //$NON-NLS-1$
 		btnDel.setEnabled(false);
@@ -80,8 +70,7 @@ public class ResultsToolBar extends JToolBar {
 			public void actionPerformed(ActionEvent e) {
 				if(resultsTable.getRowCount() < 1)
 					return;
-				if(simpleInput == null)
-					simpleInput = new SimpleInputFrame(resultsTable);
+				if(simpleInput == null)	simpleInput = new SimpleInputFrame(resultsTable);
 				simpleInput.setLocationRelativeTo(null);
 				simpleInput.setVisible(true);
 			}
@@ -96,14 +85,12 @@ public class ResultsToolBar extends JToolBar {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				ResultTableModel dtm = (ResultTableModel) resultsTable.getModel();
-										
+				
 				for(int i = dtm.getRowCount()-1; i >= 0; i--) 
 					dtm.removeRow( 
 							resultsTable.convertRowIndexToModel(i) );
 				
-				for(SearchTask t : TaskManager.getTaskList())
-					dtm.addRow( TaskManager.getResult(t) );
-				
+				TaskManager.getTaskList().stream().map(t -> TaskManager.getResult(t)).forEach(r -> dtm.addRow(r));				
 			}
 			
 		});
@@ -125,7 +112,7 @@ public class ResultsToolBar extends JToolBar {
 					return;
 				}						
 				
-				showPlotFrame();
+				showPlotFrame(resultsTable);
 				
 			}
 			
@@ -159,12 +146,7 @@ public class ResultsToolBar extends JToolBar {
 			@Override
 			public void valueChanged(ListSelectionEvent arg0) {
 				int[] selection = resultsTable.getSelectedRows();
-				if(selection.length < 1) {
-					btnDel.setEnabled(false);					
-				}
-				else {
-					btnDel.setEnabled(true);
-				}
+				btnDel.setEnabled(selection.length > 0);
 			}
 					
 			}
@@ -173,23 +155,10 @@ public class ResultsToolBar extends JToolBar {
 		resultsTable.getModel().addTableModelListener(new TableModelListener() {
 
 			@Override
-			public void tableChanged(TableModelEvent arg0) {				
-				if(resultsTable.getRowCount() > 1) {
-					btnAvg.setEnabled(true);
-					if(resultsTable.getRowCount() > 3) 
-						btnPlot.setEnabled(true);
-					else
-						btnPlot.setEnabled(false);
-				} 
-				else {
-					btnAvg.setEnabled(false);
-				}				
-				
-				if(resultsTable.getRowCount() > 0) 
-					btnSave.setEnabled(true);
-				else
-					btnSave.setEnabled(false);
-				
+			public void tableChanged(TableModelEvent arg0) {
+				btnPlot.setEnabled(	resultsTable.getRowCount() > 2 );
+				btnAvg.setEnabled(	resultsTable.getRowCount() > 1 );				
+				btnSave.setEnabled( resultsTable.getRowCount() > 0 );
 			}
 			
 		});
@@ -198,7 +167,7 @@ public class ResultsToolBar extends JToolBar {
 		
 	}
 	
-	private void showPlotFrame() {
+	private void showPlotFrame(ResultTable resultsTable) {
 		if(plotFrame == null) 			
 			plotFrame = new PlotFrame( resultsTable.getColumnNames(), resultsTable.data() );		
 		else

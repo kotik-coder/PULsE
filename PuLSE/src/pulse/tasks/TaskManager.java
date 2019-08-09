@@ -22,6 +22,7 @@ import pulse.tasks.listeners.TaskRepositoryEvent;
 import pulse.tasks.listeners.TaskRepositoryListener;
 import pulse.tasks.listeners.TaskSelectionEvent;
 import pulse.tasks.listeners.TaskSelectionListener;
+import pulse.ui.Launcher;
 import pulse.util.Describable;
 import pulse.util.SaveableDirectory;
 
@@ -38,7 +39,7 @@ private static SearchTask selectedTask;
 
 private static Map<SearchTask,Result> results = new HashMap<SearchTask,Result>();
 
-private static final int threadsAvailable = threadsAvailable();
+private static final int threadsAvailable = Launcher.threadsAvailable();
 
 private static List<TaskSelectionListener> selectionListeners = new CopyOnWriteArrayList<TaskSelectionListener>();
 private static List<TaskRepositoryListener> taskRepositoryListeners = new CopyOnWriteArrayList<TaskRepositoryListener>();
@@ -177,7 +178,6 @@ public static void reset() {
 		notifyListeners(e);	
 	}
 			
-	selectedTask = null;
 }
 
 public static SearchTask retrieveTask(double initialTemperature) {
@@ -259,7 +259,6 @@ public static boolean removeTask(SearchTask t)  {
 					TaskRepositoryEvent.State.TASK_REMOVED, t.getIdentifier());
 	
 	notifyListeners(e);
-	
 	selectedTask = null;
 	
 	return true;
@@ -295,11 +294,6 @@ public static void selectTask(Identifier id, Object src) {
 				
 			});	
 	
-}
-
-public static int threadsAvailable() {
-	int number = Runtime.getRuntime().availableProcessors();
-	return number > 1 ? (number - 1) : 1;
 }
 
 public static void addSelectionListener(TaskSelectionListener listener) {

@@ -48,8 +48,6 @@ import pulse.ui.components.LoaderButton.DataType;
 import pulse.util.Accessible;
 import pulse.util.PropertyEvent;
 import pulse.util.PropertyHolderListener;
-import pulse.util.Request;
-import pulse.util.RequestListener;
 
 public class ProblemStatementFrame extends JFrame {
 

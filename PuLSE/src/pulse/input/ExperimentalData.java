@@ -40,6 +40,8 @@ public class ExperimentalData extends HeatingCurve implements SaveableDirectory 
 	}
 	
 	public void setFittingRange(double a, double b) {
+		System.out.println(a + " ; " + b);
+		
 		if(a > b) 
 			return;
 		

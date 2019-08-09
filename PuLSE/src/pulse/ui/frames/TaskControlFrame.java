@@ -108,6 +108,8 @@ public class TaskControlFrame extends JFrame {
 	private final static float TABBED_PANE_FONT_SIZE = 18;
 	private final static float SYSTEM_INFO_FONT_SIZE = 14;
 	
+	private static File dir;
+	
 	/**
 	 * Create the frame.
 	 */
@@ -326,9 +328,13 @@ public class TaskControlFrame extends JFrame {
 	
 	public void generateSystemPanel() {
 		JPanel usagePanel = new JPanel();
-		usagePanel.setLayout(new GridLayout(1,2));
+		usagePanel.setLayout(new GridLayout(1,3));
 		usagePanel.setBorder(BorderFactory.createLineBorder(Color.black, 1));
 
+		String coresAvailable = String.format("Running on " + (Launcher.threadsAvailable()+1) + " cores");
+		JLabel coresLabel = new JLabel(coresAvailable);
+		coresLabel.setFont(coresLabel.getFont().deriveFont(SYSTEM_INFO_FONT_SIZE));
+		
 		String cpuString = String.format("CPU usage: %3f%%", Launcher.CPUUsage());
 		JLabel cpuUsageLabel = new JLabel(cpuString);
 		cpuUsageLabel.setFont(cpuUsageLabel.getFont().deriveFont(SYSTEM_INFO_FONT_SIZE));
@@ -338,6 +344,8 @@ public class TaskControlFrame extends JFrame {
 		memoryUsageLabel.setFont(memoryUsageLabel.getFont().deriveFont(SYSTEM_INFO_FONT_SIZE));
 		usagePanel.add(cpuUsageLabel);
 		usagePanel.add(memoryUsageLabel);
+		usagePanel.add(coresLabel);
+		
 		getContentPane().add(usagePanel, BorderLayout.SOUTH);		
 		
 		ScheduledExecutorService executor =
@@ -374,9 +382,8 @@ public class TaskControlFrame extends JFrame {
 	
 	public static void askToLoadData() {
 		JFileChooser fileChooser = new JFileChooser();
+		fileChooser.setCurrentDirectory(dir);
 		
-		File workingDirectory = new File(System.getProperty("user.home")); //$NON-NLS-1$
-		fileChooser.setCurrentDirectory(workingDirectory);
 		fileChooser.setMultiSelectionEnabled(true);
 		
 		List<String> extensions = ReaderManager.getHeatingCurveExtensions();							
@@ -384,8 +391,11 @@ public class TaskControlFrame extends JFrame {
 		
 		fileChooser.setFileFilter(new FileNameExtensionFilter(Messages.getString("TaskControlFrame.ExtensionDescriptor"), extArray)); //$NON-NLS-1$
 		
-		if(fileChooser.showOpenDialog(instance) != JFileChooser.APPROVE_OPTION)
-			return;							
+		boolean approve = fileChooser.showOpenDialog(instance) == JFileChooser.APPROVE_OPTION;
+		dir = fileChooser.getCurrentDirectory();
+		
+		if(!approve)
+			return;
 		
 		TaskManager.generateTasks(Arrays.asList(fileChooser.getSelectedFiles()));
 		TaskManager.selectTask(TaskManager.getTaskList().get(0).getIdentifier(), instance);				
@@ -416,9 +426,8 @@ public class TaskControlFrame extends JFrame {
 	
 	public static void askToLoadMetadata() {
 		JFileChooser fileChooser = new JFileChooser();
+		fileChooser.setCurrentDirectory(dir);
 		
-		File workingDirectory = new File(System.getProperty("user.home")); //$NON-NLS-1$
-		fileChooser.setCurrentDirectory(workingDirectory);
 		fileChooser.setMultiSelectionEnabled(false);
 		
 		MetaFileReader reader = MetaFileReader.getInstance();
@@ -427,8 +436,11 @@ public class TaskControlFrame extends JFrame {
 		
 		fileChooser.setFileFilter(new FileNameExtensionFilter(Messages.getString("TaskControlFrame.ExtensionDescriptor"), extension)); //$NON-NLS-1$
 		
-		if(fileChooser.showOpenDialog(instance) != JFileChooser.APPROVE_OPTION)
-			return;							
+		boolean approve = fileChooser.showOpenDialog(instance) == JFileChooser.APPROVE_OPTION;
+		dir = fileChooser.getCurrentDirectory();
+		
+		if(!approve)
+			return;
 		
 		try {
 			
@@ -523,9 +535,8 @@ public class TaskControlFrame extends JFrame {
 		
 		Chart chart = searchForPanel(task.getIdentifier());		
 		
-		chart.remove(PlotType.EXPERIMENTAL_DATA); //remove experimental data
-		chart.plot(task.getExperimentalCurve(), PlotType.EXPERIMENTAL_DATA); //add exp data				
-		chart.remove(PlotType.SOLUTION); //remove experimental data		
+		chart.clear();
+		chart.plot(task.getExperimentalCurve(), PlotType.EXPERIMENTAL_DATA); //add exp data					
 		
 		tabbedPane.setSelectedIndex(tabbedPane.indexOfComponent(chart));
 		
@@ -536,8 +547,9 @@ public class TaskControlFrame extends JFrame {
 		
 		if(solutionCurve == null)
 			return;
-				
-		chart.plot(solutionCurve, PlotType.SOLUTION); //add solution (if existing)		
+		
+		solutionCurve.setName(task.getProblem().shortName() +  " : " + task.getScheme().shortName());				
+		chart.plot(solutionCurve, PlotType.SOLUTION); //add solution (if it exists)		
 		
 	}
 
@@ -834,7 +846,8 @@ public class TaskControlFrame extends JFrame {
 					
 					Problem problem = TaskManager.getSelectedTask().getProblem();
 					
-					chartPanel.plot( problem.classicSolution(), PlotType.CLASSIC_SOLUTION );
+					if(problem != null)
+						chartPanel.plot( problem.classicSolution(), PlotType.CLASSIC_SOLUTION);
 				}
 			});
 			

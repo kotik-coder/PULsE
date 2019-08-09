@@ -23,6 +23,7 @@ public class LoaderButton extends ToolBarButton {
 	 */
 	private static final long serialVersionUID = 3550812688285747954L;
 	private DataType dataType;
+	private static File dir;
 	
 	public LoaderButton() {
 		super();
@@ -38,17 +39,19 @@ public class LoaderButton extends ToolBarButton {
 		addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				JFileChooser fileChooser = new JFileChooser();
-
-				File workingDirectory = new File(System.getProperty("user.home")); //$NON-NLS-1$
-				fileChooser.setCurrentDirectory(workingDirectory);
+				fileChooser.setCurrentDirectory(dir);
 
 				List<String> extensions = ReaderManager.getThermalDataExtensions();							
 				String[] extArray = extensions.toArray(new String[extensions.size()]);							
 				fileChooser.setFileFilter(new FileNameExtensionFilter(Messages.getString("LoaderButton.SupportedExtensionsDescriptor"), extArray)); //$NON-NLS-1$
 
-				if (fileChooser.showOpenDialog(
-						SwingUtilities.getWindowAncestor((Component) arg0.getSource())) != JFileChooser.APPROVE_OPTION)
-					return;
+				boolean approve = fileChooser.showOpenDialog(
+						SwingUtilities.getWindowAncestor((Component) arg0.getSource())) == JFileChooser.APPROVE_OPTION;
+			
+				dir = fileChooser.getCurrentDirectory();
+				
+				if(!approve) return;
+				
 				try {
 					switch(dataType) {
 					case SPECIFIC_HEAT : TaskManager.loadSpecificHeatData(fileChooser.getSelectedFile()); break;

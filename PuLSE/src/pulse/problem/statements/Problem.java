@@ -98,9 +98,10 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 		 
 	     for(int i = 0; i < size; i++) {
 	    	 	time = curve.timeAt(i);
-	    	 	classicCurve.add(time, classicSolutionAt(time, N)*maximumTemperature);
+	    	 	classicCurve.set(i, time, classicSolutionAt(time, N)*maximumTemperature);
 	     }
 	     
+	     classicCurve.setName("Classic solution");
 	     return classicCurve;
 	     
 	}
@@ -418,6 +419,10 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 
 	public void setDensity(NumericProperty rho) {
 		this.rho = (double)rho.getValue();
+	}
+
+	public String shortName() {
+		return getClass().getSimpleName();
 	}
 	
 }

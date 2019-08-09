@@ -28,7 +28,6 @@ public class RangeSelectionFrame extends JFrame {
 	private static final long serialVersionUID = 8888698379087886325L;
 	private JTextField maxRangeTextField;
 	private JTextField minRangeTextField;
-	private Chart chartPanel;
 	
 	private final static Font LABEL_FONT 		= new Font(Messages.getString("RangeSelectionFrame.LabelFont"), Font.PLAIN, 18);
 	private final static Font BUTTON_FONT		= new Font(Messages.getString("RangeSelectionFrame.ButtonFont"), Font.BOLD, 14);
@@ -62,9 +61,10 @@ public class RangeSelectionFrame extends JFrame {
 		
 		btnNewButton_1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				int factor = chartPanel.getTimeAxisSpecs().getFactor();
 				TaskManager.getSelectedTask().getExperimentalCurve().setFittingRange(
-						Double.parseDouble(minRangeTextField.getText()),
-						Double.parseDouble(maxRangeTextField.getText()) 
+						Double.parseDouble(minRangeTextField.getText())/factor,
+						Double.parseDouble(maxRangeTextField.getText())/factor 
 						);
 				reference.setVisible(false);
 			}
@@ -122,10 +122,6 @@ public class RangeSelectionFrame extends JFrame {
 	public void setRangeFields(double min, double max) {
 		minRangeTextField.setText(String.format(Messages.getString("RangeSelectionFrame.NumberFormat"), min)); //$NON-NLS-1$
 		maxRangeTextField.setText(String.format("%3.3f", max)); //$NON-NLS-1$
-	}
-
-	public Chart getChartPanel() {
-		return chartPanel;
 	}
 
 }

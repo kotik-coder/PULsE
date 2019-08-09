@@ -53,7 +53,7 @@ public class SearchTask implements Runnable, Accessible, SaveableDirectory {
 
 	private BooleanProperty[] searchFlags;
 	
-	private final static double SUCCESS_CUTOFF = 0.2;
+	private final static double SUCCESS_CUTOFF = 0.2;	
 	
 	@Override
 	public boolean equals(Object o) {		
@@ -268,11 +268,15 @@ public class SearchTask implements Runnable, Accessible, SaveableDirectory {
 	  List<CompletableFuture<Void>> bufferFutures = new ArrayList<CompletableFuture<Void>>(bufferSize);
 	  ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
 	  
+	  long start = System.currentTimeMillis();
+	  long elapsed = 0;
+	  final long TIMEOUT_AFTER = scheme.getTimeoutAfterMillis();
+	  
 	  do {				 
 		  
 		bufferFutures.clear();
 		  
-		for (int i = 0; i < bufferSize; i++) {			
+		for (int i = 0; (i < bufferSize) && (status == Status.IN_PROGRESS); i++) {			
 					
 				sumOfSquares = pathSolver.iteration(this);
 				
@@ -290,14 +294,19 @@ public class SearchTask implements Runnable, Accessible, SaveableDirectory {
 		bufferFutures.forEach( future -> future.join());
 					 
 		if( buffer.average(ObjectiveFunctionIndex.HEAT_LOSSES) < NEGATIVE_LIMIT_MAX) 
-			  rollback();
+			  rollback();		
+		
+		if(System.currentTimeMillis() - start > TIMEOUT_AFTER) {
+			setStatus(Status.TIMEOUT);
+			break;
+		}
 	  
-	  }  while( buffer.isErrorHigh(errorTolerance) && (status != Status.TERMINATED) );
+	  }  while( buffer.isErrorHigh(errorTolerance) );
 	  
 	  updateThermalProperties();
 	  singleThreadExecutor.shutdown();
 	 	  	  
-	  if( status != Status.TERMINATED )
+	  if( status == Status.IN_PROGRESS )
 		 if(rSquared > SUCCESS_CUTOFF)
 			 setStatus(Status.DONE);
 		 else
