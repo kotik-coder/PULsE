@@ -140,6 +140,17 @@ public class Chart extends JFXPanel {
 			return;
 		
 		Platform.runLater(() -> {
+			
+				if(type == PlotType.EXPERIMENTAL_DATA) {
+					int realCount = curve.realCount();
+					if(curve.timeAt(realCount - 1) < 0.1) 
+				    	timeAxisSpecs = TimeAxisSpecs.MILLIS;
+				    else
+				    	timeAxisSpecs = TimeAxisSpecs.SECONDS;
+				    
+				    chart.getXAxis().setLabel(timeAxisSpecs.getTitle());
+				}
+			
 				chart.getData().add(series(curve));
 												
 				Set<Node> nodes = chart.lookupAll(".series" + type.getChartIndex()); //$NON-NLS-1$               
@@ -207,13 +218,6 @@ public class Chart extends JFXPanel {
 	    ObservableList<Data<Number,Number>> data = series.getData();	    
 	    
 	    int realCount = curve.realCount();	    
-	    
-	    if(curve.timeAt(realCount - 1) < 0.1) 
-	    	timeAxisSpecs = TimeAxisSpecs.MILLIS;
-	    else
-	    	timeAxisSpecs = TimeAxisSpecs.SECONDS;
-	    
-	    chart.getXAxis().setLabel(timeAxisSpecs.getTitle());
 	    
 	    for(int i = 0; i < realCount; i++) 
 	    	data.add(new Data<Number, Number>(curve.timeAt(i)*timeAxisSpecs.getFactor(), curve.temperatureAt(i)));	    

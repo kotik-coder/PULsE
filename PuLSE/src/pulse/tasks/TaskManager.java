@@ -12,6 +12,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import pulse.input.ExperimentalData;
@@ -67,14 +68,16 @@ public static void execute(SearchTask t) {
 
 						@Override
 						public void run() {
-							if(t.getStatus() != Status.DONE)
-								return;
+							
+							if(t.getStatus() == Status.DONE) {
 							
 							try {
 								results.put( t, new Result(t, ResultFormat.getFormat() ) );
 							} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 								System.err.println("Error retrieving result of task " + t);
 								e.printStackTrace();
+							}
+							
 							}
 							
 							TaskRepositoryEvent e = new TaskRepositoryEvent(
@@ -220,18 +223,8 @@ public static void generateTasks(List<File> files) {
 		return;
 	}
 	
-	ForkJoinPool loaderPool = new ForkJoinPool(threadsAvailable - 1); 
-	try {
-		loaderPool.submit( () -> 
-		files.parallelStream().forEach( f -> {
-			generateTask(f);
-		} )
-		).get();
-	} catch (InterruptedException | ExecutionException e) {
-		System.err.println("Problem loading stream of files:");
-		e.printStackTrace();
-	}	
-	
+	files.stream().forEach( f -> generateTask(f));
+
 }
 
 public static SearchTask addTask(SearchTask t)  {		
