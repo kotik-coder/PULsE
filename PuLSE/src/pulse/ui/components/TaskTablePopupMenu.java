@@ -23,11 +23,13 @@ public class TaskTablePopupMenu extends JPopupMenu {
 	 * 
 	 */
 	private static final long serialVersionUID = -4545548692231417093L;
+	
+	private final static Font f = new Font(Messages.getString("TaskTable.FontName"), Font.BOLD, 18); //$NON-NLS-1$ 
 
 	public TaskTablePopupMenu() {	
 		JMenuItem problemStatement, itemExecute, itemChart, itemShowMeta;
 		
-		problemStatement = new JMenuItem(Messages.getString("TaskTablePopupMenu.ShowDetails")); //$NON-NLS-1$		
+		problemStatement = new JMenuItem(Messages.getString("TaskTablePopupMenu.ShowDetails")); //$NON-NLS-1$
 		
 		problemStatement.addActionListener(new ActionListener() {
 
@@ -38,6 +40,7 @@ public class TaskTablePopupMenu extends JPopupMenu {
 			
 		});
 		add(problemStatement);
+		problemStatement.setFont(f);
 	
 		Window referenceWindow = SwingUtilities.getWindowAncestor(this);
 		
@@ -69,6 +72,7 @@ public class TaskTablePopupMenu extends JPopupMenu {
 		});
 		
 		add(itemChart);
+		itemChart.setFont(f);
 		
 		itemShowMeta	= new JMenuItem("Show metadata");
 		itemShowMeta.addActionListener(new ActionListener() {
@@ -92,6 +96,7 @@ public class TaskTablePopupMenu extends JPopupMenu {
 		});
 		
 		add(itemShowMeta);
+		itemShowMeta.setFont(f);
 		
 		itemExecute		= new JMenuItem(Messages.getString("TaskTablePopupMenu.Execute")); //$NON-NLS-1$
 		itemExecute.addActionListener(new ActionListener() {
@@ -131,6 +136,7 @@ public class TaskTablePopupMenu extends JPopupMenu {
 		});
 		
 		add(itemExecute);
+		itemExecute.setFont(f);
 		
 	}
 	
