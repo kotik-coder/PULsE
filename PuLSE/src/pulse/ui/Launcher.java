@@ -12,6 +12,7 @@ import javax.management.ObjectName;
 import javax.management.ReflectionException;
 
 import javafx.application.Platform;
+import pulse.ui.charts.Chart;
 import pulse.ui.frames.ProblemStatementFrame;
 import pulse.ui.frames.SearchOptionsFrame;
 import pulse.ui.frames.TaskControlFrame;
@@ -34,7 +35,7 @@ public class Launcher {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					Platform.setImplicitExit(false);
+					Chart.setup();
 					TaskControlFrame.getInstance().setLocationRelativeTo(null);
 					TaskControlFrame.getInstance().setVisible(true);
 				} catch (Exception e) {

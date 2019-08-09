@@ -131,6 +131,10 @@ public class Chart extends JFXPanel {
         addMouseMotionListener(mouseHandler);
 	}
 	
+	public static void setup() {
+		Platform.setImplicitExit(false);
+	}
+	
 	public void plot(HeatingCurve curve, PlotType type) {
 		if(curve.realCount() < 1)
 			return;
