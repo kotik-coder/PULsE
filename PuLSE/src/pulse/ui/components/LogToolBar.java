@@ -4,10 +4,13 @@ import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JToolBar;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+
+import pulse.tasks.Log;
 
 public class LogToolBar extends JToolBar {
 
@@ -20,6 +23,12 @@ public class LogToolBar extends JToolBar {
 		super();
 		setLayout(new GridLayout());
 	
+		JCheckBox verboseCheckBox = new JCheckBox(Messages.getString("LogToolBar.Verbose")); //$NON-NLS-1$
+		verboseCheckBox.setSelected(Log.isVerbose());						
+		add(verboseCheckBox);
+		
+		verboseCheckBox.addActionListener( event -> Log.setVerbose(verboseCheckBox.isSelected()) ) ;
+		
 		ToolBarButton btnLogSave = new ToolBarButton(Messages.getString("LogToolBar.SaveButton")); //$NON-NLS-1$
 		btnLogSave.setEnabled(false);						
 		add(btnLogSave);

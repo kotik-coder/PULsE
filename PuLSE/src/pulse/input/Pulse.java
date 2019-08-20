@@ -160,7 +160,7 @@ public class Pulse extends PropertyHolder {
 		}	
 
 		@Override
-		public String getDescriptor() {
+		public String getDescriptor(boolean addHtmlTags) {
 			return "Pulse shape";
 		}
 

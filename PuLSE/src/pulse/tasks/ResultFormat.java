@@ -103,11 +103,11 @@ public class ResultFormat {
 	}
 	
 	public List<String> abbreviations() {
-		return nameMap.stream().map(property -> property.getAbbreviation()).collect(Collectors.toList());
+		return nameMap.stream().map(property -> property.getAbbreviation(true)).collect(Collectors.toList());
 	}
 	
 	public List<String> descriptors() {
-		return nameMap.stream().map(property -> property.getDescriptor()).collect(Collectors.toList());
+		return nameMap.stream().map(property -> property.getDescriptor(false)).collect(Collectors.toList());
 	}
 	
 	@Override

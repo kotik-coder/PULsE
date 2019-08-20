@@ -158,7 +158,7 @@ public class Baseline extends PropertyHolder {
 		}
 
 		@Override
-		public String getDescriptor() {
+		public String getDescriptor(boolean addHtmlTags) {
 			return "Baseline type";
 		}
 

@@ -132,8 +132,8 @@ public abstract class PathSolver extends PropertyHolder implements Reflexive {
 	}
 	
 	@Override
-	public List<Property> properties() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-		List<Property> original = super.properties();
+	public List<Property> genericProperties() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+		List<Property> original = super.genericProperties();
 		original.addAll(globalSearchFlags);
 		return original;
 	}

@@ -2,7 +2,10 @@ package pulse.tasks;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
@@ -11,48 +14,43 @@ import pulse.util.DataEntry;
 
 public class DataLogEntry extends LogEntry {
 
-	private List<DataEntry<String,String>> intermediate;
-
+	private List<NumericProperty> entry; 
+	private LogFormat fmt;
+	
 	public DataLogEntry(SearchTask task) {
 		super(task);
-		fill();							
+		fmt = LogFormat.DEFAULT_FORMAT;
+		try {
+			fill();
+		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}							
 	}	
 	
-	public void fill() {		
-		SearchTask task = TaskManager.getTask( getIdentifier() );
-		
-		LogFormat fmt = Log.getLogFormat();
-		List<NumericPropertyKeyword> keywords = fmt.types();
-		intermediate  = new ArrayList<DataEntry<String,String>>(keywords.size());
-
-			keywords.stream().forEach(keyword -> 
-			{
-				try {
-					NumericProperty num = task.numericProperty(keyword);
-					if(!PathSolver.getSearchFlags().stream()
-							.filter(flag -> flag.getType() == num.getType()).
-							anyMatch(flag -> !(boolean)flag.getValue()))						
-						intermediate.add(new DataEntry<String,String>
-						(num.getAbbreviation().replace("<html>", "").replace("</html>", ""),
-								num.formattedValue().replace("<html>", "").replace("</html>", "")));
-				} catch (NullPointerException | IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
-					System.err.println(Messages.getString("DataLogEntry.AccessError") + " " + keyword + " for task " + task); //$NON-NLS-1$ //$NON-NLS-2$
-					e.printStackTrace();
-				}
-			});			
-		
+	public void fill() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+		SearchTask task = TaskManager.getTask( getIdentifier() ); 
+		entry = task.numericProperties().
+				stream().filter(p -> 
+					fmt.types().stream().anyMatch(keyword -> p.getType() == keyword)
+						).collect(Collectors.toList());
+		Collections.sort(entry, (p1, p2) -> p1.getDescriptor(false).compareTo(p2.getDescriptor(false)));
+		entry.add(0, task.getPath().getIteration());
 	}
 	
-	public List<DataEntry<String,String>> getValues() {
-		return intermediate;
+	public List<NumericProperty> getData() {
+		return entry;
 	}
 	
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();		
 	
-		sb.append("<br>");
 		sb.append("<table>");
+		
+		List<DataEntry<String,String>> intermediate = 
+				entry.stream().map(property -> new DataEntry<String,String>(
+				property.getDescriptor(true), property.formattedValue())).collect(Collectors.toList());
 		
 		for(DataEntry<String,String> p : intermediate) {
 			sb.append("<tr>");

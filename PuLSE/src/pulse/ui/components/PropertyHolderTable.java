@@ -9,7 +9,9 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import javax.swing.AbstractButton;
 import javax.swing.AbstractCellEditor;
@@ -131,11 +133,11 @@ public class PropertyHolderTable extends JTable {
 		Object[][] dataArray = new Object[size + internalHolders.size()][2];
 		Property property;
 		
-		int i;
+		int i = 0;
 		
-		for(i = 0; i < size; i++) {
-			property = data.get(i);
-			dataArray[i][0] = property.getDescriptor();
+		for(Iterator<Property> it = data.iterator(); it.hasNext();i++) {
+			property = it.next();
+			dataArray[i][0] = property.getDescriptor(true);
 			dataArray[i][1] = property;
 		}
 		

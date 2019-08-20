@@ -16,7 +16,6 @@ public class LogFormat {
 	private static LogFormat format = new LogFormat(DEFAULT_FORMAT);
 	
 	/* Codes:
-	 * I - Iteration 
 	 * O - objective function
 	 * S - current sum of squares
 	 * R - current R^2 
@@ -31,8 +30,6 @@ public class LogFormat {
 		for(char c : charArray) {
 			
 			switch (c) {
-				case 'I' : add(NumericPropertyKeyword.ITERATION);
-						   break;
 				case 'O' : add(NumericPropertyKeyword.DIFFUSIVITY);
 						   add(NumericPropertyKeyword.MAXTEMP);
 						   add(NumericPropertyKeyword.HEAT_LOSS);

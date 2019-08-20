@@ -199,9 +199,9 @@ public class TaskTable extends JTable {
 				super( new Object[][] {},
 					   new String[] {
 							   Messages.getString("TaskTable.TaskID"),  //$NON-NLS-1$
-							   NumericProperty.TEST_TEMPERATURE.getAbbreviation(),
-							   Messages.getString("TaskTable.SS2"),  //$NON-NLS-1$
-							   Messages.getString("TaskTable.R2"),  //$NON-NLS-1$
+							   NumericProperty.TEST_TEMPERATURE.getAbbreviation(true),
+							   SearchTask.SUM_OF_SQUARES.getAbbreviation(true),  //$NON-NLS-1$
+							   SearchTask.RSQUARED.getAbbreviation(true),  //$NON-NLS-1$
 							   Messages.getString("TaskTable.Status") //$NON-NLS-1$
 					 });
 								

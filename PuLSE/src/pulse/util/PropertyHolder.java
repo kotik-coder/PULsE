@@ -3,7 +3,9 @@ package pulse.util;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import pulse.properties.EnumProperty;
@@ -64,10 +66,11 @@ public abstract class PropertyHolder implements Accessible {
 	
 	public List<Property> data() {	
 		
-		List<Property> properties = null;
+		List<Property> properties = new LinkedList<Property>();
 		
 		try {
-			properties = this.properties();
+			properties.addAll(this.numericProperties());
+			properties.addAll(this.genericProperties());
 		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

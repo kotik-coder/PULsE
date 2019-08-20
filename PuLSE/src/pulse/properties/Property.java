@@ -6,6 +6,6 @@ public interface Property {
 	public default String formattedValue() {
 		return getValue().toString();
 	};
-	public String getDescriptor();
+	public String getDescriptor(boolean addHtmlTags);
 
 }

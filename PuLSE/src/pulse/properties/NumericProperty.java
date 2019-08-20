@@ -1,9 +1,11 @@
 package pulse.properties;
 
+import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.Comparator;
 
-public class NumericProperty implements Property {
+public class NumericProperty implements Property, Comparable<NumericProperty> {
 
 	private Number value;
 	private Number minimum, maximum;
@@ -242,16 +244,16 @@ public class NumericProperty implements Property {
 	}
 
 	@Override
-	public String getDescriptor() {
-		return descriptor;
+	public String getDescriptor(boolean addHtmlTag) {
+		return addHtmlTag ? "<html>" + descriptor + "</html>" : descriptor;
 	}
 
 	public void setDescriptor(String descriptor) {
 		this.descriptor = descriptor;
 	}
 
-	public String getAbbreviation() {
-		return abbreviation;
+	public String getAbbreviation(boolean addHtmlTags) {
+		return addHtmlTags ? "<html>" + abbreviation + "</html>" : abbreviation;
 	}
 
 	public void setAbbreviation(String abbreviation) {
@@ -262,7 +264,7 @@ public class NumericProperty implements Property {
 	public boolean equals(Object o) {
 		if(! (o instanceof NumericProperty) )
 			return false;
-		
+
 		NumericProperty onp = (NumericProperty) o;
 		
 		if(onp.getType() != this.getType())
@@ -273,6 +275,11 @@ public class NumericProperty implements Property {
 		
 		return true;
 		
+	}
+
+	@Override
+	public int compareTo(NumericProperty arg0) {
+		return this.getType().compareTo(arg0.getType());
 	}
 	
 }

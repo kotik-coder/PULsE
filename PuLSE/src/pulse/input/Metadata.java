@@ -4,6 +4,8 @@ import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+
 import pulse.input.Pulse.PulseShape;
 import pulse.input.Messages;
 import pulse.properties.NumericProperty;
@@ -189,7 +191,8 @@ public class Metadata extends PropertyHolder implements Reflexive, Saveable {
 	
 		final String METADATA_LABEL = "Metadata"; //$NON-NLS-1$
 		final String VALUE_LABEL= "Value"; //$NON-NLS-1$
-		
+	
+		stream.print("<html>");
        	stream.print("<td>"); stream.print(METADATA_LABEL + "\t"); stream.print("</td>"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
        	stream.print("<td>");
        	stream.print(VALUE_LABEL + "\t"); 
@@ -205,7 +208,7 @@ public class Metadata extends PropertyHolder implements Reflexive, Saveable {
         	stream.print("<tr>"); //$NON-NLS-1$
             
     		stream.print("<td>"); //$NON-NLS-1$
-            stream.print(entry.getDescriptor()); //$NON-NLS-1$
+            stream.print(entry.getDescriptor(false)); //$NON-NLS-1$
             stream.print("</td><td>"); //$NON-NLS-1$
             stream.print(entry.formattedValue()); //$NON-NLS-1$
             //possible error typecast property -> object
@@ -215,6 +218,7 @@ public class Metadata extends PropertyHolder implements Reflexive, Saveable {
         });
         
         stream.print("</table>"); //$NON-NLS-1$
+		stream.print("</html>");
         stream.close();
         
 	}

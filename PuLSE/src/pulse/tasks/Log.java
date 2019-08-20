@@ -19,6 +19,7 @@ public class Log implements Saveable {
 	private static LogFormat logFormat = LogFormat.DEFAULT_FORMAT;
 	private Identifier id;
 	private List<LogEntryListener> listeners;
+	private static boolean verbose = false;
 	
 	public Log(SearchTask task) {
 		if(task == null)
@@ -34,6 +35,9 @@ public class Log implements Saveable {
 			@Override
 			public void onDataCollected(TaskStateEvent src) {
 				if(src.getState() == Status.INCOMPLETE) 
+					return;
+				
+				if(!Log.isVerbose())
 					return;
 				
 				LogEntry e = new DataLogEntry( task );
@@ -142,6 +146,14 @@ public class Log implements Saveable {
 	
 	public LogEntry lastEntry() {
 		return logEntries.stream().reduce( (first,second) -> second).get();
+	}
+
+	public static boolean isVerbose() {
+		return verbose;
+	}
+
+	public static void setVerbose(boolean verbose) {
+		Log.verbose = verbose;
 	}
 	
 }

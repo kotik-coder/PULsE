@@ -36,8 +36,9 @@ public class Flag implements Property {
 	}
 		
 	@Override
-	public String getDescriptor() {
-		return "<html><b>Search for </b>" + abbreviation + "</html>";
+	public String getDescriptor(boolean addHtmlTags) {
+		return addHtmlTags ? "<html><b>Search for </b>" + abbreviation + "</html>" :
+			"<b>Search for </b>" + abbreviation;
 	}
 
 	@Override
@@ -61,16 +62,16 @@ public class Flag implements Property {
 	
 	public static List<Flag> defaultList() {
 		List<Flag> flags = new ArrayList<Flag>();
-		flags.add(new Flag(NumericProperty.DIFFUSIVITY.getType(), NumericProperty.DIFFUSIVITY.getAbbreviation(), true));
-		flags.add(new Flag(Problem.HEAT_LOSS.getType(), Problem.HEAT_LOSS.getAbbreviation(), true));
-		flags.add(new Flag(NumericProperty.MAXTEMP.getType(), NumericProperty.MAXTEMP.getAbbreviation(), true));
-		flags.add(new Flag(NumericProperty.BASELINE_INTERCEPT.getType(), NumericProperty.BASELINE_INTERCEPT.getAbbreviation(), false));
-		flags.add(new Flag(NumericProperty.BASELINE_SLOPE.getType(), NumericProperty.BASELINE_SLOPE.getAbbreviation(), false));
+		flags.add(new Flag(NumericProperty.DIFFUSIVITY.getType(), NumericProperty.DIFFUSIVITY.getAbbreviation(true), true));
+		flags.add(new Flag(Problem.HEAT_LOSS.getType(), Problem.HEAT_LOSS.getAbbreviation(true), true));
+		flags.add(new Flag(NumericProperty.MAXTEMP.getType(), NumericProperty.MAXTEMP.getAbbreviation(true), true));
+		flags.add(new Flag(NumericProperty.BASELINE_INTERCEPT.getType(), NumericProperty.BASELINE_INTERCEPT.getAbbreviation(true), false));
+		flags.add(new Flag(NumericProperty.BASELINE_SLOPE.getType(), NumericProperty.BASELINE_SLOPE.getAbbreviation(true), false));
 		return flags;
 	}
 
-	public String getAbbreviation() {
-		return abbreviation;
+	public String getAbbreviation(boolean addHtmlTags) {
+		return addHtmlTags ? "<html>" + abbreviation + "</html>" : abbreviation;
 	}
 
 	public void setAbbreviation(String abbreviation) {

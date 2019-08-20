@@ -6,19 +6,57 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
-
+import java.util.Set;
+import java.util.TreeSet;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 
 public interface Accessible {
 	
+	public default Property property(Property similar) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+		if(similar instanceof NumericProperty)
+			return numericProperty(((NumericProperty)similar).getType());
+		else
+			return genericProperty(similar);
+	}
+	
 	/*
-	 * return objects via getter methods that are instances of the Property superclass
+	 * The same as for genericProperties() -- however, this returns a Set<NumericProperty>, meaning that 
+	 * it will contain only unique objects
 	 */
 	
-	public default List<Property> properties() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	public default Set<NumericProperty> numericProperties() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+		Set<NumericProperty> fields = new TreeSet<NumericProperty>();
+		
+		Method[] methods = this.getClass().getMethods();		
+		
+	    for(Method m : methods)
+	    {
+       
+	    	if(m.getParameterCount() > 0)
+	    		continue;
+	    	
+	        if( NumericProperty.class.isAssignableFrom(m.getReturnType()) )
+	        	fields.add((NumericProperty) m.invoke(this));   
+	        
+	    }
+	    
+    	/*
+    	 * Get access to the numeric properties of accessibles contained in this accessible
+    	 */
+    	
+        for(Accessible a : accessibles()) 
+        	fields.addAll(a.numericProperties());
+	    
+	    return fields;
+	}
+	
+	/*
+	 * This will return a List<Property> containing all properties except instances of NumericProperty
+	 */
+	
+	public default List<Property> genericProperties() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		List<Property> fields = new ArrayList<Property>();
 		
 		Method[] methods = this.getClass().getMethods();		
@@ -30,7 +68,8 @@ public interface Accessible {
 	    		continue;
 	    	
 	        if( Property.class.isAssignableFrom(m.getReturnType()) )
-	        	fields.add((Property) m.invoke(this));   
+	        	if(! NumericProperty.class.isAssignableFrom(m.getReturnType()) )
+	        		fields.add((Property) m.invoke(this));   
 	        
 	    }
 	    
@@ -39,28 +78,10 @@ public interface Accessible {
     	 */
     	
         for(Accessible a : accessibles()) 
-        	fields.addAll(a.properties());
+        	fields.addAll(a.genericProperties());
 	    
 	    return fields;
 		
-	}
-	
-	public default Property property(Property similar) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-		if(similar instanceof NumericProperty)
-			return numericProperty(((NumericProperty)similar).getType());
-		else
-			return genericProperty(similar);
-	}
-	
-	public default List<NumericProperty> numericProperties() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-		return properties().stream().filter(property -> property instanceof NumericProperty).
-				map(property -> (NumericProperty)property).collect(Collectors.toList());
-	}
-	
-	public default List<Property> genericProperties() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-		List<Property> properties = properties();
-		properties.removeAll(numericProperties());
-		return properties;
 	}
 	
 	/*
@@ -99,7 +120,7 @@ public interface Accessible {
 	
 	public default NumericProperty numericProperty(NumericPropertyKeyword type) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		
-		List<NumericProperty> properties = this.numericProperties();
+		Set<NumericProperty> properties = this.numericProperties();
 		
 		for(NumericProperty property : properties) {
 			NumericPropertyKeyword key = property.getType();
