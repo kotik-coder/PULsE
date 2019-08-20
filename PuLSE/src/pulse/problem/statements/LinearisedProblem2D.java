@@ -3,30 +3,29 @@
  */
 package pulse.problem.statements;
 
-import java.util.Map;
-
+import java.util.List;
 import pulse.input.ExperimentalData;
 import pulse.problem.schemes.ADIScheme;
 import pulse.problem.schemes.DifferenceScheme;
-import pulse.properties.BooleanProperty;
 import pulse.properties.NumericProperty;
+import pulse.properties.Property;
 
 /**
  * @author Artem V. Lunev
  *
  */
-public class LinearizedProblem2D extends LinearizedProblem implements TwoDimensional {
+public class LinearisedProblem2D extends LinearisedProblem implements TwoDimensional {
 	
 	private SecondDimensionData secondDimensionData = new SecondDimensionData();
 	
 	/**
 	 * 
 	 */
-	public LinearizedProblem2D() {
+	public LinearisedProblem2D() {
 		super();
 	}
 	
-	public LinearizedProblem2D(Problem lp2) {
+	public LinearisedProblem2D(Problem lp2) {
 		super(lp2);
 		
 		if(! (lp2 instanceof TwoDimensional) )
@@ -39,8 +38,8 @@ public class LinearizedProblem2D extends LinearizedProblem implements TwoDimensi
 	 * @param curvePoints
 	 * @param dimensionless
 	 */
-	public LinearizedProblem2D(NumericProperty curvePoints, BooleanProperty dimensionless) {
-		super(curvePoints, dimensionless);
+	public LinearisedProblem2D(NumericProperty curvePoints) {
+		super(curvePoints);
 		this.secondDimensionData = new SecondDimensionData();
 	}
 	
@@ -52,10 +51,10 @@ public class LinearizedProblem2D extends LinearizedProblem implements TwoDimensi
 	}
 	
 	@Override
-	public Map<String,String> propertyNames() {
-		Map<String,String> map = super.propertyNames();
-		map.putAll( (new SecondDimensionData()).propertyNames() );
-		return map;
+	public List<Property> listedParameters() {
+		List<Property> list = super.listedParameters();
+		list.addAll((new SecondDimensionData()).listedParameters());
+		return list;
 	}
 	
 	@Override

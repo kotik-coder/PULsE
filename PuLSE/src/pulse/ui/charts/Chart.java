@@ -135,14 +135,14 @@ public class Chart extends JFXPanel {
 		Platform.setImplicitExit(false);
 	}
 	
-	public void plot(HeatingCurve curve, PlotType type) {
-		if(curve.realCount() < 1)
+	public void plot(HeatingCurve curve, PlotType type, boolean extendedCurve) {
+		if(curve.arraySize() < 1)
 			return;
 		
 		Platform.runLater(() -> {
 			
 				if(type == PlotType.EXPERIMENTAL_DATA) {
-					int realCount = curve.realCount();
+					int realCount = curve.arraySize();
 					if(curve.timeAt(realCount - 1) < 0.1) 
 				    	timeAxisSpecs = TimeAxisSpecs.MILLIS;
 				    else
@@ -151,7 +151,7 @@ public class Chart extends JFXPanel {
 				    chart.getXAxis().setLabel(timeAxisSpecs.getTitle());
 				}
 			
-				chart.getData().add(series(curve));
+				chart.getData().add(series(curve, extendedCurve));
 												
 				Set<Node> nodes = chart.lookupAll(".series" + type.getChartIndex()); //$NON-NLS-1$               
 				
@@ -210,18 +210,24 @@ public class Chart extends JFXPanel {
 		});
 	}
 	
-	public Series<Number,Number> series(HeatingCurve curve) {
+	public Series<Number,Number> series(HeatingCurve curve, boolean extendedCurve) {
 		Series<Number,Number> series = new Series<Number, Number>();		
 		
 		series.setName(curve.toString());
 		
 	    ObservableList<Data<Number,Number>> data = series.getData();	    
 	    
-	    int realCount = curve.realCount();	    
+	    int realCount = curve.arraySize();	    
+	    double time = 0;
 	    
-	    for(int i = 0; i < realCount; i++) 
-	    	data.add(new Data<Number, Number>(curve.timeAt(i)*timeAxisSpecs.getFactor(), curve.temperatureAt(i)));	    
-	    
+	    for(int i = 0; i < realCount; i++) {
+	    	time = curve.timeAt(i);
+	    	if(time < 0) 
+	    		if(!extendedCurve)
+	    			continue;
+	    	data.add(new Data<Number, Number>(time*timeAxisSpecs.getFactor(), curve.temperatureAt(i)));	    
+	    }
+	    	
 	    return series;			
 	}
 	

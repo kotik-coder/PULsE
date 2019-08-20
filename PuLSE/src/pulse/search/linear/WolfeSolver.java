@@ -3,7 +3,10 @@ package pulse.search.linear;
 import static java.lang.Math.*;
 
 import pulse.problem.statements.Problem;
+import pulse.properties.NumericProperty;
+import pulse.properties.NumericPropertyKeyword;
 import pulse.search.direction.PathSolver;
+import pulse.search.math.IndexedVector;
 import pulse.search.math.Segment;
 import pulse.search.math.Vector;
 import pulse.tasks.Path;
@@ -32,8 +35,8 @@ public class WolfeSolver extends LinearSolver {
 		final double G1P 	 = g1.dot(direction);
 		final double G1P_ABS = abs(G1P);
 		
-		Vector params    = problem.objectiveFunction(task.getSearchFlags());
-		Segment segment  = boundaries(task.parameterTypes(), params, direction);
+		IndexedVector params	= problem.objectiveFunction( PathSolver.getSearchFlags() );
+		Segment segment			= boundaries(params, direction);
 			
 		double ss1 = task.calculateDeviation();
 		double ss2;
@@ -46,7 +49,7 @@ public class WolfeSolver extends LinearSolver {
 			randomConfinedValue = segment.randomValue();
 			
 			newParams = params.plus(direction.times(randomConfinedValue));
-			problem.assign(newParams, task.getSearchFlags());
+			problem.assign(new IndexedVector(newParams, params.getIndices()));
 			
 			ss2 	  = task.calculateDeviation();
 			
@@ -70,7 +73,7 @@ public class WolfeSolver extends LinearSolver {
 			
 		}
 		
-		problem.assign(params, task.getSearchFlags());
+		problem.assign(params);
 		p.setGradient(g1);
 		
 	    return randomConfinedValue;
@@ -85,5 +88,5 @@ public class WolfeSolver extends LinearSolver {
 	public static WolfeSolver getInstance() {
 		return instance;
 	}
-
+	
 }

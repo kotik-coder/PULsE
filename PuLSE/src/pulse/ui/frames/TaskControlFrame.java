@@ -12,6 +12,7 @@ import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 
 import pulse.HeatingCurve;
+import pulse.input.ExperimentalData;
 import pulse.input.Metadata;
 import pulse.io.readers.MetaFileReader;
 import pulse.io.readers.ReaderManager;
@@ -398,27 +399,26 @@ public class TaskControlFrame extends JFrame {
 			return;
 		
 		TaskManager.generateTasks(Arrays.asList(fileChooser.getSelectedFiles()));
-		TaskManager.selectTask(TaskManager.getTaskList().get(0).getIdentifier(), instance);				
-		
-		if(!TaskManager.dataNeedsTruncation())
-			return;				
-			
+		TaskManager.selectTask(TaskManager.getTaskList().get(0).getIdentifier(), instance);									
+				
+	}
+
+	public static void askToTruncate() {								
 		Object[] options = {"Truncate", "Do not change"}; //$NON-NLS-1$ //$NON-NLS-2$
 		Toolkit.getDefaultToolkit().beep();
 		int answer = JOptionPane.showOptionDialog(
 				instance,
-						("It appears that in some experiments the acquisition time was too long.\nThe model estimates will be biased if time resolution is low.\n\nIt is recommended to allow PULSE to truncate this data.\n\nWould you like to proceed? "), //$NON-NLS-1$
+						("The acquisition time for some experiments appears to be too long.\nIf time resolution is low, the model estimates will be biased.\n\nIt is recommended to allow PULSE to truncate this data.\n\nWould you like to proceed? "), //$NON-NLS-1$
 						"Potential Problem with Data", //$NON-NLS-1$
 						JOptionPane.YES_NO_OPTION,
 						JOptionPane.WARNING_MESSAGE,
 						null,
 						options,
-						options[1]);
+						options[0]);
 		if(answer == 0) 
 			TaskManager.truncateData();										
-		
-	}
 
+	}
 	
 	/*
 	 * Initiates the dialog to load metadata
@@ -444,15 +444,22 @@ public class TaskControlFrame extends JFrame {
 		
 		try {
 			
-			Metadata met;				
+			Metadata met;
+			ExperimentalData data;
 			File f = fileChooser.getSelectedFile();
 			
 			for(SearchTask task : TaskManager.getTaskList()) {
-				if(task.getExperimentalCurve() == null)
+				data = task.getExperimentalCurve();
+				
+				if(data == null)
 					continue;
 				
-				met = task.getExperimentalCurve().getMetadata();
+				met = data.getMetadata();
 				reader.populateMetadata(f, met);
+				data.updateFittingRange();
+				Problem p = task.getProblem();
+				if(p != null)
+					p.retrieveData(data);
  				
 			}
 			
@@ -467,6 +474,11 @@ public class TaskControlFrame extends JFrame {
 				    JOptionPane.ERROR_MESSAGE);
 			e.printStackTrace();
 		}
+		
+		if(TaskManager.dataNeedsTruncation())
+			askToTruncate();
+				
+		TaskManager.selectFirstTask();
 		
 	}
 
@@ -523,7 +535,7 @@ public class TaskControlFrame extends JFrame {
 		tabbedPane.setTabComponentAt(lastAdded, new ButtonTabComponent(tabbedPane));
 	}
 	
-	public static void plot(SearchTask task) {
+	public static void plot(SearchTask task, boolean extendedCurvePlotting) {
 
 		if(task == null) {
 			JOptionPane.showMessageDialog(instance,
@@ -535,8 +547,8 @@ public class TaskControlFrame extends JFrame {
 		
 		Chart chart = searchForPanel(task.getIdentifier());		
 		
-		chart.clear();
-		chart.plot(task.getExperimentalCurve(), PlotType.EXPERIMENTAL_DATA); //add exp data					
+		chart.clear();				
+		chart.plot(task.getExperimentalCurve(), PlotType.EXPERIMENTAL_DATA, extendedCurvePlotting); //add exp data					
 		
 		tabbedPane.setSelectedIndex(tabbedPane.indexOfComponent(chart));
 		
@@ -546,10 +558,12 @@ public class TaskControlFrame extends JFrame {
 		HeatingCurve solutionCurve = task.getProblem().getHeatingCurve();
 		
 		if(solutionCurve == null)
-			return;
+			return;				
 		
 		solutionCurve.setName(task.getProblem().shortName() +  " : " + task.getScheme().shortName());				
-		chart.plot(solutionCurve, PlotType.SOLUTION); //add solution (if it exists)		
+		chart.plot(extendedCurvePlotting ? 
+				solutionCurve.extendedTo(task.getExperimentalCurve()) : solutionCurve, 
+				PlotType.SOLUTION, extendedCurvePlotting); //add solution (if it exists)		
 		
 	}
 
@@ -619,7 +633,7 @@ public class TaskControlFrame extends JFrame {
 		 */
 		private static final long serialVersionUID = -6823289494869587461L;
 		
-		private ToolBarButton btnRemove, btnClr, btnReset, btnShowCurve, btnFitTask;
+		private ToolBarButton btnRemove, btnClr, btnReset, btnShowCurve;
 		private ExecutionButton controlButton;
 
 		public TaskToolBar() {
@@ -673,6 +687,8 @@ public class TaskControlFrame extends JFrame {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					TaskManager.reset();
+					logText.clear();
+					resultsTable.removeAll();
 				}
 				
 			});
@@ -687,7 +703,7 @@ public class TaskControlFrame extends JFrame {
 					if(rows.length > 1) 
 						return;				 
 																				
-					plot(TaskManager.getSelectedTask());
+					plot(TaskManager.getSelectedTask(), false);
 					
 				}
 					
@@ -846,8 +862,12 @@ public class TaskControlFrame extends JFrame {
 					
 					Problem problem = TaskManager.getSelectedTask().getProblem();
 					
-					if(problem != null)
-						chartPanel.plot( problem.classicSolution(), PlotType.CLASSIC_SOLUTION);
+					if(problem == null)
+						return;
+	
+					chartPanel.plot( HeatingCurve.classicSolution(problem, 
+							TaskManager.getSelectedTask().getExperimentalCurve().timeLimit()), PlotType.CLASSIC_SOLUTION, false);
+
 				}
 			});
 			
@@ -875,7 +895,7 @@ public class TaskControlFrame extends JFrame {
 			});
 			
 			JMenuItem mntmSaveAll = new JMenuItem(Messages.getString("TaskControlFrame.SaveAllButton")); //$NON-NLS-1$
-			mntmSaveAs.setFont(MENU_ITEM_FONT); //$NON-NLS-1$
+			mntmSaveAll.setFont(MENU_ITEM_FONT); //$NON-NLS-1$
 			mnChartControls.add(mntmSaveAll);
 			mntmSaveAll.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent arg0) {

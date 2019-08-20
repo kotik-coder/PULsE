@@ -5,14 +5,18 @@ package pulse.problem.schemes;
 
 import static java.lang.Math.pow;
 
+import java.util.List;
+
 import pulse.HeatingCurve;
 import pulse.input.Pulse;
-import pulse.problem.statements.LinearizedProblem2D;
+import pulse.problem.statements.LinearisedProblem2D;
 import pulse.problem.statements.NonlinearProblem2D;
 import pulse.problem.statements.Problem;
 import pulse.problem.statements.SecondDimensionData;
 import pulse.problem.statements.TwoDimensional;
 import pulse.properties.NumericProperty;
+import pulse.properties.NumericPropertyKeyword;
+import pulse.properties.Property;
 
 import static java.lang.Math.abs;
 import static java.lang.Math.PI;
@@ -25,8 +29,12 @@ import static java.lang.Math.max;
 public class ADIScheme extends DifferenceScheme {
 	
 	private double hy;
-	private final static NumericProperty DEFAULT_TAU_FACTOR = new NumericProperty(Messages.getString("ADIScheme.0"), 1.0, 1E-4, 1E0, 1.0, 1.0, true); //$NON-NLS-1$
-	private final static NumericProperty DEFAULT_N = new NumericProperty(Messages.getString("ADIScheme.1"), 30, 15, 500, 32, 1, true); //$NON-NLS-1$
+	private final static NumericProperty TAU_FACTOR 
+			= new NumericProperty(NumericPropertyKeyword.TAU_FACTOR,
+			Messages.getString("Tau.Descriptor"), Messages.getString("Tau.Abbreviation"), 1.0, 1E-4, 1E0, 1.0, 1.0, true);
+	private final static NumericProperty GRID_DENSITY 
+			= new NumericProperty(NumericPropertyKeyword.GRID_DENSITY, 
+			Messages.getString("N.Descriptor"), Messages.getString("N.Abbreviation"), 30, 15, 500, 32, 1, true);
 	
 	private final static long INCREASED_TIMEOUT = 60000;
 	
@@ -35,17 +43,17 @@ public class ADIScheme extends DifferenceScheme {
 	 */
 	
 	public ADIScheme() {
-		this(DEFAULT_N);
+		this(GRID_DENSITY);
 	}
 	
 	public ADIScheme(NumericProperty N) {
-		this(N, NumericProperty.DEFAULT_TIME_LIMIT);
+		this(N, NumericProperty.TIME_LIMIT);
 	}
 	
 	public ADIScheme(NumericProperty N, NumericProperty timeLimit) {
 		super(N);
 		this.hy		   = 1./this.N;				
-		this.tauFactor = (double)DEFAULT_TAU_FACTOR.getValue();
+		this.tauFactor = (double)TAU_FACTOR.getValue();
 		this.tau	   = tauFactor*(pow(hx, 2) + pow( hy, 2) );
 		this.timeLimit = (double) timeLimit.getValue();
 	}
@@ -60,7 +68,7 @@ public class ADIScheme extends DifferenceScheme {
 		
 		if(df instanceof ADIScheme) {
 			this.hy		   = ( (ADIScheme)df ).hy;
-			this.tauFactor = (double)DEFAULT_TAU_FACTOR.getValue();
+			this.tauFactor = (double)TAU_FACTOR.getValue();
 			this.tau	   = tau();
 		}
 	}
@@ -71,12 +79,12 @@ public class ADIScheme extends DifferenceScheme {
 	
 	@Override
 	public final NumericProperty getTimeStepFactor() {
-		return new NumericProperty(tauFactor, DEFAULT_TAU_FACTOR);
+		return new NumericProperty(tauFactor, TAU_FACTOR);
 	}
 	
 	@Override
 	public NumericProperty getGridDensity() {
-		return new NumericProperty(N, DEFAULT_N);
+		return new NumericProperty(N, GRID_DENSITY);
 	}
 	
 	@Override
@@ -93,8 +101,8 @@ public class ADIScheme extends DifferenceScheme {
 		final double dAv = (double) secondDimensionData.getPyrometerSpot().getValue();
 		
 		final double l = (double) problem.getSampleThickness().getValue();
-		final double Bi1 = (double) problem.getFrontLosses().getValue();
-		final double Bi2 = (double) problem.getRearLosses().getValue();
+		final double Bi1 = (double) problem.getFrontHeatLoss().getValue();
+		final double Bi2 = (double) problem.getHeatLossRear().getValue();
 		final double maxTemp = (double) problem.getMaximumTemperature().getValue();
 		
 		//end
@@ -157,7 +165,7 @@ public class ADIScheme extends DifferenceScheme {
 		int lastIndex = (int)(dAv/d/hx);
 		lastIndex 	  = lastIndex > N ? N : lastIndex;
 		
-		if(problem instanceof LinearizedProblem2D) {
+		if(problem instanceof LinearisedProblem2D) {
 			
 			//precalc coefs
 
@@ -319,8 +327,7 @@ public class ADIScheme extends DifferenceScheme {
 				
 			}					
 
-			if(!((boolean) ( (LinearizedProblem2D)problem ) .isDimensionless().getValue()))
-				curve.scale( maxTemp/maxVal );
+			curve.scale( maxTemp/maxVal );
 			
 			return;
 			
@@ -572,7 +579,7 @@ public class ADIScheme extends DifferenceScheme {
 				
 			}					
 
-			ref.setMaximumTemperature(new NumericProperty(maxVal, NumericProperty.DEFAULT_MAXTEMP));
+			ref.setMaximumTemperature(new NumericProperty(maxVal, NumericProperty.MAXTEMP));
 			
 			return;
 		}
@@ -600,6 +607,14 @@ public class ADIScheme extends DifferenceScheme {
 	@Override
 	public long getTimeoutAfterMillis() {
 		return INCREASED_TIMEOUT;
+	}
+	
+	@Override
+	public List<Property> listedParameters() {		
+		List<Property> list = super.listedParameters();
+		list.add(GRID_DENSITY);
+		list.add(TAU_FACTOR);
+		return list;
 	}
 
 }

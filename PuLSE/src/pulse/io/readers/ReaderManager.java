@@ -54,7 +54,7 @@ public final class ReaderManager {
 	
 	public static AbstractReader[] findAllReaders(String pckgname) {
         List<AbstractReader> readers = new LinkedList<AbstractReader>();
-        List<Reflexive> ref = ReflexiveFinder.findAllInstances(pckgname);       
+        List<Reflexive> ref = ReflexiveFinder.simpleInstances(pckgname);       
         
         for(Reflexive r : ref) {
         	if(r instanceof AbstractReader) 

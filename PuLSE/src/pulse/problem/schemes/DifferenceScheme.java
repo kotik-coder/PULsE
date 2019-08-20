@@ -6,12 +6,17 @@ package pulse.problem.schemes;
 import static java.lang.Math.pow;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import pulse.input.Pulse;
+import pulse.input.Pulse.PulseShape;
 import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
+import pulse.properties.NumericPropertyKeyword;
+import pulse.properties.Property;
 import pulse.util.PropertyHolder;
 
 /**
@@ -89,16 +94,28 @@ public abstract class DifferenceScheme extends PropertyHolder {
 	
 	public abstract void solve(Problem problem) throws IllegalArgumentException;
 	
-	public NumericProperty getTimeStep() {
-		return new NumericProperty(Messages.getString("DifferenceScheme.5"), tau); //$NON-NLS-1$
+	public double getTimeStep() {
+		return tau;
 	}
 	
 	public NumericProperty getTimeStepFactor() {
-		return new NumericProperty(Messages.getString("DifferenceScheme.6"), tauFactor); //$NON-NLS-1$
+		return new NumericProperty(
+				NumericPropertyKeyword.TAU_FACTOR, 
+				Messages.getString("Tau.Descriptor"), 
+				Messages.getString("Tau.Abbreviation"), tauFactor); //$NON-NLS-1$
+	}
+	
+	public void setTimeStepFactor(NumericProperty property) {
+		this.tauFactor = (double)property.getValue();
 	}
 	
 	public NumericProperty getGridDensity() {
-		return new NumericProperty(this.N, NumericProperty.DEFAULT_GRID_DENSITY);
+		return new NumericProperty(this.N, NumericProperty.GRID_DENSITY);
+	}
+	
+	public void setGridDensity(NumericProperty density) {
+		this.N = (int)density.getValue();
+		hx = 1./N;
 	}
 	
 	public final boolean isNormalized() {
@@ -109,16 +126,16 @@ public abstract class DifferenceScheme extends PropertyHolder {
 		this.normalized = normalized;
 	}
 
-	public NumericProperty getXStep() {
-		return new NumericProperty(Messages.getString("DifferenceScheme.7"), hx); //$NON-NLS-1$
+	public double getXStep() {
+		return hx;
 	}
 
-	public void setXStep(NumericProperty hx) {
-		this.hx = (double)hx.getValue();
+	public void setXStep(double hx) {
+		this.hx = hx;
 	}
 
 	public NumericProperty getTimeLimit() {
-		return new NumericProperty(timeLimit, NumericProperty.DEFAULT_TIME_LIMIT);
+		return new NumericProperty(timeLimit, NumericProperty.TIME_LIMIT);
 	}
 
 	public void setTimeLimit(NumericProperty timeLimit) {
@@ -126,12 +143,10 @@ public abstract class DifferenceScheme extends PropertyHolder {
 	}
 	
 	@Override
-	public Map<String,String> propertyNames() {
-		Map<String,String> map = new HashMap<String,String>(9);
-		map.put(Messages.getString("DifferenceScheme.8"), Messages.getString("DifferenceScheme.9")); //$NON-NLS-1$ //$NON-NLS-2$
-		map.put(Messages.getString("DifferenceScheme.10"), Messages.getString("DifferenceScheme.11")); //$NON-NLS-1$ //$NON-NLS-2$
-		map.put(Messages.getString("DifferenceScheme.12"), Messages.getString("DifferenceScheme.13"));		 //$NON-NLS-1$ //$NON-NLS-2$
-		return map;
+	public List<Property> listedParameters() {
+		List<Property> list = new ArrayList<Property>(9);
+		list.add(NumericProperty.TIME_LIMIT);
+		return list;
 	}
 	
 	@Override	
@@ -178,6 +193,15 @@ public abstract class DifferenceScheme extends PropertyHolder {
 	
 	public static void setDetailsHidden(boolean b) {
 		DifferenceScheme.hideDetailedAdjustment = b;
+	}
+	
+	@Override
+	public void set(NumericPropertyKeyword type, NumericProperty property) {
+		switch(type) {
+		case TIME_LIMIT : setTimeLimit(property); break;
+		case TAU_FACTOR : setTimeStepFactor(property); break;
+		case GRID_DENSITY : setGridDensity(property); break;
+		}
 	}
 	
 }

@@ -5,14 +5,14 @@ import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
 
-import javafx.scene.chart.XYChart.Data;
 import pulse.input.ExperimentalData;
+import pulse.Messages;
 import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
+import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 import pulse.tasks.SearchTask;
 import pulse.tasks.TaskManager;
@@ -21,13 +21,10 @@ import pulse.util.Saveable;
 
 public class HeatingCurve extends PropertyHolder implements Saveable {
 	
-	/**
-	 * 
-	 */
 	protected int count;
-	protected List<Double> temperature, correctedTemperature;
+	protected List<Double> temperature, baselineAdjustedTemperature;
 	protected List<Double> time;
-	protected double baseline;	
+	protected Baseline baseline;	
 	private String name;
 	
 	public boolean isEmpty() {
@@ -57,66 +54,57 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 	}
 	
 	public HeatingCurve() {
-		this(NumericProperty.DEFAULT_COUNT);
-		clear();
+		this(NumericProperty.COUNT);
 		reinit();
 	}
 	
 	public HeatingCurve(NumericProperty count) {
 		this.count 	   = (int)count.getValue();
 		temperature    = new ArrayList<Double>(this.count);
-		correctedTemperature = new ArrayList<Double>(this.count);
+		baselineAdjustedTemperature = new ArrayList<Double>(this.count);
 		time		   = new ArrayList<Double>(this.count);
+		baseline	   = new Baseline();
 		reinit();
 	}
 	
 	public void clear() {
 		this.time.clear();
 		this.temperature.clear();
-		this.correctedTemperature.clear();
+		this.baselineAdjustedTemperature.clear();
 	}
 	
 	public void reinit() {
-		clear();
+		clear();											
 		
 		for(int i = 0; i < getCount(); i++) {
 			this.time.add(0.0);
 			this.temperature.add(0.0);			
-			this.correctedTemperature.add(baseline);
+			this.baselineAdjustedTemperature.add(0.0);
 		}
 		
 	}
 	
-	public int realCount() {
-		return temperature.size();
+	public int arraySize() {
+		return baselineAdjustedTemperature.size();
 	}
 	
 	public NumericProperty getNumPoints() {
-		return new NumericProperty(count, NumericProperty.DEFAULT_COUNT);
+		return new NumericProperty(count, NumericProperty.COUNT);
 	}
 	
-	public NumericProperty getBaseline() {
-		return new NumericProperty(baseline, NumericProperty.DEFAULT_BASELINE);
-	}
-	
-	public void setBaselineValue(double baseline) {
-		this.baseline = baseline;
-		baselineCorrection();
-	}
-	
-	public void setBaseline(NumericProperty baseline) {
-		this.baseline = (double) baseline.getValue();
-		baselineCorrection();
-	}
-	
-	public double getBaselineValue() {
+	public Baseline getBaseline() {
 		return baseline;
+	}
+	
+	public void setBaseline(Baseline baseline) {
+		this.baseline = baseline;
+		apply(baseline);
 	}
 	
 	public void setNumPoints(NumericProperty c) {
 		this.count 	   = (int)c.getValue();
 		temperature    = new ArrayList<Double>(Collections.nCopies(this.count, 0.0));
-		correctedTemperature    = new ArrayList<Double>(Collections.nCopies(this.count, 0.0));
+		baselineAdjustedTemperature    = new ArrayList<Double>(Collections.nCopies(this.count, 0.0));
 		time		   = new ArrayList<Double>(Collections.nCopies(this.count, 0.0));
 	}
 	
@@ -125,13 +113,13 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 	}
 	
 	public double temperatureAt(int index) {
-		return correctedTemperature.get(index);
+		return baselineAdjustedTemperature.get(index);
 	}
 	
 	public void set(int i, double t, double T) {
 		time.set(i, t);
-		temperature.set(i, T);
-		correctedTemperature.set(i,T+baseline);
+		temperature.set(i, T);		
+		baselineAdjustedTemperature.set(i, T + baseline.valueAt(i));
 	}
 	
 	public void setTimeAt(int index, double t) {
@@ -140,7 +128,6 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 	
 	public void setTemperatureAt(int index, double t) {
 		temperature.set(index, t);
-		correctedTemperature.set(index, t + baseline);
 	}
 	
 	public void scale(double scale) {
@@ -148,16 +135,12 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 		for(int i = 0; i < count; i++) {
 			tmp = temperature.get(i);
 			temperature.set(i,  tmp*scale);
-			correctedTemperature.set(i, tmp*scale + baseline);
 		}
+		apply(baseline);
 	}
 	
 	public double maxTemperature() {
-		double max = -1;
-		for(Double t : correctedTemperature) 
-			if(t > max)
-				max = t;
-		return max;
+		return Collections.max(baselineAdjustedTemperature);
 	}
 	
 	public double timeLimit() {
@@ -169,21 +152,20 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 			return name;
 		
 		StringBuilder sb = new StringBuilder();
-		sb.append(getClass().getSimpleName() + " ("); //$NON-NLS-1$
+		sb.append(getClass().getSimpleName() + " (");
 		sb.append(getNumPoints());
 		sb.append(" ; ");
 		sb.append(getBaseline());
-		sb.append(")");		 //$NON-NLS-1$
+		sb.append(")");
 		return sb.toString();
 	}			
 	
 	@Override
-	public Map<String,String> propertyNames() {
-		Map<String,String> map = new HashMap<String,String>(1);
-		map.put("NumPoints", Messages.getString("HeatingCurve.3")); //$NON-NLS-1$ //$NON-NLS-2$
-		map.put("Baseline", Messages.getString("HeatingCurve.4")); //$NON-NLS-1$ //$NON-NLS-2$
-		return map;
-	}	
+	public List<Property> listedParameters() {
+		List<Property> list = new ArrayList<Property>();
+		list.add(getNumPoints());
+		return list;
+	}
 	
 	public double deviationSquares(ExperimentalData curve) {		
 		double timeInterval_1 = this.timeAt(1) - this.timeAt(0); 
@@ -227,23 +209,21 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 		return count;
 	}
 	
-	public void baselineCorrection() {
+	public void apply(Baseline baseline) {
 		
 		int size = time.size();
+		double t;
 		
 		for(int i = 0; i < size; i++) {
-			if(time.get(i) < 0)
-				continue;
-			
-			correctedTemperature.set(i, temperature.get(i) - baseline);
-			
+			t = time.get(i);			
+			baselineAdjustedTemperature.set(i, temperature.get(i) + baseline.valueAt(t));			
 		}
 		
 	}
-	
+	//TODO
 	@Override
-	public void updateProperty(Property property) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {	
-		super.updateProperty(property);
+	public void updateProperty(Object object, Property property) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {	
+		super.updateProperty(object, property);
 		if(!Problem.isSingleStatement())
 			return;
 		
@@ -255,14 +235,14 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 			if( hc.equals( this ) )
 				continue;
 
-			hc.superUpdateProperty(property);
+			hc.superUpdateProperty(object, property);
 			
 		}
 		
 	}
 	
-	private void superUpdateProperty(Property property) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-		super.updateProperty(property);
+	private void superUpdateProperty(Object object, Property property) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+		super.updateProperty(object, property);
 	}
 
 	@Override
@@ -314,6 +294,66 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+		
+	public final HeatingCurve extendedTo(ExperimentalData data) {
+		
+		int dataStartIndex = data.getFittingStartIndex();
+		
+		if(dataStartIndex < 1)
+			return this;
+		
+		List<Double> extendedTime		 = data.time.stream().filter(t -> t < 0).collect(Collectors.toList());
+		List<Double> extendedTemperature = new ArrayList<Double>(dataStartIndex + count);
+		
+		
+		for(double time : extendedTime) 
+			extendedTemperature.add(baseline.valueAt(time));						
+		
+		extendedTime.addAll(time);
+		extendedTemperature.addAll(baselineAdjustedTemperature);
+		
+		HeatingCurve newCurve = new HeatingCurve();
+		
+		newCurve.time		= extendedTime;
+		newCurve.baselineAdjustedTemperature = extendedTemperature;						
+		newCurve.count		= newCurve.baselineAdjustedTemperature.size();
+		newCurve.baseline	= baseline;
+		newCurve.name		= name;		
+		
+		return newCurve;
+		
+	}
+	
+	public static HeatingCurve classicSolution(Problem p, double timeLimit) {
+		 HeatingCurve curve = p.getHeatingCurve();
+		
+		 final int N		= 30;
+		 HeatingCurve classicCurve = new HeatingCurve(new NumericProperty(curve.count, NumericProperty.COUNT));
+		 classicCurve.setBaseline(curve.getBaseline());
+		 
+		 double time;
+		 double step = timeLimit/(curve.count-1);
+		 
+	     for(int i = 0; i < curve.count; i++) {
+	    	 	time = i*step;
+	    	 	classicCurve.set(i, time, p.classicSolutionAt(time, N));
+	     }
+	     
+	     classicCurve.setName("Classic solution");
+	     return classicCurve;
+	     
+	}
+	
+	public static HeatingCurve classicSolution(Problem p) {
+		 return classicSolution(p, p.getHeatingCurve().timeLimit());
+	}
+
+	@Override
+	public void set(NumericPropertyKeyword type, NumericProperty property) {
+		switch(type) {
+			case NUMPOINTS : setNumPoints(property); break;
+		}
 	}
 	
 }

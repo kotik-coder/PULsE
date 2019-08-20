@@ -7,7 +7,7 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JTable;
 import javax.swing.JToggleButton;
 
-import pulse.properties.BooleanProperty;
+import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.Property;
 import pulse.util.PropertyHolder;
@@ -30,8 +30,8 @@ public class AccesibleTableRenderer extends NumericPropertyRenderer {
 		if(value instanceof NumericProperty) 
 			return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 		
-		if(value instanceof BooleanProperty) {
-			JToggleButton btn = initToggleButton(value.toString());
+		if(value instanceof Flag) {
+			JToggleButton btn = initToggleButton(((Flag)value).getValue().toString());
 			return btn;
 		}
 		

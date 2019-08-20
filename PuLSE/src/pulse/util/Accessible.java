@@ -2,130 +2,233 @@ package pulse.util;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
+import pulse.properties.NumericProperty;
+import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 
 public interface Accessible {
 	
-	public default Map<String,Object> fieldMap() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-		Map<String,Object> fieldMap = new HashMap<String,Object>();
+	/*
+	 * return objects via getter methods that are instances of the Property superclass
+	 */
+	
+	public default List<Property> properties() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+		List<Property> fields = new ArrayList<Property>();
 		
 		Method[] methods = this.getClass().getMethods();		
 		
 	    for(Method m : methods)
 	    {
-	        if(m.getName().startsWith("get"))
-	        {	       
-	        	Object value = m.invoke(this);
-	        	if(! (value instanceof Accessible)) {
-	        		if( value instanceof Property[]) {
-	        			Property[] array = (Property[]) value;
-	        			for(Property p : array) {
-	        				fieldMap.put(p.getSimpleName(), p);	
-	        			}
-	        		}
-	        		else
-	        			fieldMap.put(m.getName().substring(3), value);		
-	        	} 
-	        	else if(value != this) {
-	        		Map<String,Object> innerMap = ((Accessible) value).fieldMap();
-	        		fieldMap.put(value.getClass().getSimpleName(), value);
-	        		fieldMap.putAll(innerMap);
-	        	}
-	        }
+       
+	    	if(m.getParameterCount() > 0)
+	    		continue;
+	    	
+	        if( Property.class.isAssignableFrom(m.getReturnType()) )
+	        	fields.add((Property) m.invoke(this));   
+	        
+	    }
+	    
+    	/*
+    	 * Get access to the properties of accessibles contained in this accessible
+    	 */
+    	
+        for(Accessible a : accessibles()) 
+        	fields.addAll(a.properties());
+	    
+	    return fields;
+		
+	}
+	
+	public default Property property(Property similar) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+		if(similar instanceof NumericProperty)
+			return numericProperty(((NumericProperty)similar).getType());
+		else
+			return genericProperty(similar);
+	}
+	
+	public default List<NumericProperty> numericProperties() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+		return properties().stream().filter(property -> property instanceof NumericProperty).
+				map(property -> (NumericProperty)property).collect(Collectors.toList());
+	}
+	
+	public default List<Property> genericProperties() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+		List<Property> properties = properties();
+		properties.removeAll(numericProperties());
+		return properties;
+	}
+	
+	/*
+	 * return objects via getter methods that are instances of the Accessible superclass
+	 */
+	
+	public default List<Accessible> accessibles() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+		List<Accessible> fields = new ArrayList<Accessible>();
+		
+		Method[] methods = this.getClass().getMethods();		
+		
+	    for(Method m : methods)
+	    {       
+	    	if(m.getParameterCount() > 0)
+	    		continue;
+	    	
+	    	if(!Accessible.class.isAssignableFrom(m.getReturnType()))
+	        	continue;
+	    	
+	        Accessible a = (Accessible) m.invoke(this);
+	        
+	        if(a == null)
+	        	continue;
+	        
+	        /* Ignore factor/instance methods returning objects of the same class */
+	        if(a.getClass().equals(getClass()))
+	        	continue;
+	        
+	        fields.add(a);
 
 	    }
 	    
-	    for(Method m : methods) 
-	    {
-	        if(m.getName().startsWith("is"))
-	        {
-	        	if(m.getParameterCount() > 0)
-	        		break;
-	        	Object value = m.invoke(this);
-	            fieldMap.put(m.getName().substring(2), value);
-	        }
-	    }
-	    
-	    return fieldMap;
+	    return fields;
 		
 	}
 	
-	public default Object objectByName(String simpleName) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	public default NumericProperty numericProperty(NumericPropertyKeyword type) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		
-		Map<String,Object> map = this.fieldMap();
+		List<NumericProperty> properties = this.numericProperties();
 		
-		Object o = null;
-		
-		for(String key : map.keySet()) {
-			if(key.equalsIgnoreCase(simpleName)) 
-				o = map.get(key);
+		for(NumericProperty property : properties) {
+			NumericPropertyKeyword key = property.getType();
+			if(key == type)
+				return property;
 		}
 		
-		return o;
+		NumericProperty property = null;
+		
+		for(Accessible accessible : accessibles()) {
+			property = accessible.numericProperty(type);
+			if(property != null) break; 
+		}
+		
+		return property;
 		
 	}
 	
-	public default Property propertyByName(String simpleName) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-		Object o = this.objectByName(simpleName);
-		if(o instanceof Property)
-			return (Property)o;
-		else
-			return null;
+	public default Property genericProperty(Property sameClass) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+		
+		Optional<Property> match = genericProperties().stream().
+				filter(p -> p.getClass().equals(sameClass.getClass())).findFirst();
+		
+		if(match.isPresent())
+			return match.get();
+		
+		Property p = null;
+		
+		for(Accessible accessible : accessibles()) {
+			p = accessible.genericProperty(sameClass);
+			if(p != null) break; 
+		}
+		
+		return p;
+		
 	}
 	
-	public default Object value(String propertyName) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	public default Accessible accessible(String simpleName) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		
-		Object o = this.objectByName(propertyName);
+		List<Accessible> accessibles = this.accessibles();
 		
-		if(o instanceof Property)
-			return ((Property) o).getValue();
-		else
-			return o;
+		for(Accessible accessible : accessibles) {
+			String key = accessible.getSimpleName();
+			if(key.equals(simpleName))
+				return accessible;
+		}
+		
+		return null;
 		
 	}
+	
+	public abstract void set(NumericPropertyKeyword type, NumericProperty property);
 	
 	/*
 	 * Finds a property in this Accessible object with the same name as the property parameter and sets its value to the value of property parameter
 	 */
 	
-	public static void updateProperty(Accessible accessible, Property property) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	public default void update(Property property) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {					
 		
-		Method[] methods = accessible.getClass().getMethods();
-		
-	    for(Method m : methods)	   
-	        if(m.getName().startsWith("set")) {        	        
-	        	if (m.getParameterCount() > 1) {
-	        		if(m.getParameterTypes()[0].equals(String.class)) {
-	        			if(property.getClass() == m.getParameterTypes()[1] ) {
-	        				m.invoke(accessible, property.getSimpleName(), property);
-	        				return;
-	        			}
-	        		} 
-	        	}
-	        	else if( (m.getName().substring(3)).
-	        			equals(property.getSimpleName()) ) {
-	        				m.invoke(accessible, property);
-	        				return;
-	        	}
-	        }
-	    
-	    for(Method m : methods)
-	    {
-	        if(m.getName().startsWith("get"))
-	        {        	
-	        	Object value = m.invoke(accessible);
-	        	if(value == accessible)
-	        		return;
-	        	if(value instanceof Accessible) {
-	        		Accessible.updateProperty((Accessible)value, property);
-	        	}
-	        }
+		if(property instanceof NumericProperty) {
+			NumericProperty p = (NumericProperty)property;
+			this.set( p.getType(), p);
+			for(Accessible a : accessibles())
+				a.set(p.getType(), p);
+			return;
+		}
 	        		
-	    }
-	          	
+		/*
+		* if there is a 'setter' method where first parameter is an Iterable containing Property objects
+		* and second parameter is the property contained in that Iterable, use that method
+		*/
+		
+		Method[] methods = this.getClass().getMethods();
+	    
+	    for(Method m : methods) {
+	    	
+	    	if (m.getParameterCount() == 2) {
+	    
+	    	if(Iterable.class.isAssignableFrom(m.getParameterTypes()[0])) {
+	    		if(property.getClass().equals(m.getParameterTypes()[1])) {
+	        				
+	    			for(Method met : methods)
+	    				if(met.getReturnType().
+	    						equals(m.getParameterTypes()[0]) ) {
+	        						Iterable returnType = (Iterable) met.invoke(this);
+	        						Iterator iterator = returnType.iterator();
+	        									
+	        						if(!iterator.hasNext())
+	        							continue;
+	        									
+	        						if(!iterator.next().getClass().equals(m.getParameterTypes()[1]))
+	        							continue;
+	        									
+	        						m.invoke(this, met.invoke(this), property);
+	        					}
+	        				
+	        		}
+	        			
+	        	}
+	    	
+	    	}
+	    	
+		    /*
+		     * For generic Properties: use a simple setter method with enum value as argument
+		     */
+		    
+	    	else if (m.getParameterCount() == 1)
+	    		if(m.getParameterTypes()[0].equals(property.getClass())) 	    			
+	    			m.invoke(this, property);
+	    			        		
+	        }	   	    
+	        	
+	    	/*
+	    	* if above doesn't work: check if there are getter methods in this class returning Accessible objects,
+	    	* use those methods to get access to those objects and call update(Property) recursively
+	    	*/
+	    
+	    	for(Accessible a : accessibles())
+	    		a.update(property);	    		    	
+	        		
+	}
+
+	
+	public default String getSimpleName() {
+		return getClass().getSimpleName();
+	}
+	
+	public default String getDescriptor() {
+		return getSimpleName();
 	}
 	
 }

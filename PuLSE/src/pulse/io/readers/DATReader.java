@@ -37,7 +37,7 @@ public class DATReader implements CurveReader {
 		
 		double T = Double.parseDouble(reader.readLine()) + CONVERSION_TO_KELVIN;
 		Metadata met = new Metadata(-1);
-		met.setTestTemperature( new NumericProperty(T, NumericProperty.DEFAULT_T) );
+		met.setTestTemperature( new NumericProperty(T, NumericProperty.TEST_TEMPERATURE) );
 		curve.setMetadata(met);
 		
 		double time, temp;	

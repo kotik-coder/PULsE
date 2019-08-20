@@ -1,13 +1,16 @@
 package pulse.problem.statements;
 
+import java.util.List;
 import java.util.Map;
 
 import pulse.input.ExperimentalData;
 import pulse.problem.schemes.ADIScheme;
 import pulse.problem.schemes.DifferenceScheme;
-import pulse.properties.BooleanProperty;
+import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
-import pulse.search.math.ObjectiveFunctionIndex;
+import pulse.properties.NumericPropertyKeyword;
+import pulse.properties.Property;
+import pulse.search.math.IndexedVector;
 import pulse.search.math.Vector;
 
 public class NonlinearProblem2D extends NonlinearProblem implements TwoDimensional {
@@ -36,10 +39,10 @@ public class NonlinearProblem2D extends NonlinearProblem implements TwoDimension
 	}
 	
 	@Override
-	public Map<String,String> propertyNames() {
-		Map<String,String> map = super.propertyNames();
-		map.putAll( (new SecondDimensionData()).propertyNames() );
-		return map;
+	public List<Property> listedParameters() {
+		List<Property> list = super.listedParameters();
+		list.addAll((new SecondDimensionData()).listedParameters());
+		return list;
 	}
 	
 	@Override
@@ -48,43 +51,35 @@ public class NonlinearProblem2D extends NonlinearProblem implements TwoDimension
 	}
 	
 	@Override
-	public Vector objectiveFunction(BooleanProperty[] flags) {
-		Vector v = super.objectiveFunction(flags);
-
-		for(int i = 0; i < flags.length; i++) {
-			if(! (boolean) flags[i].getValue() )
-				continue; 
-			
-			if( ObjectiveFunctionIndex.valueOf(flags[i].getSimpleName()).equals(ObjectiveFunctionIndex.MAX_TEMP)  ) {
-				v.set(i, qAbs);
-				break;
-			}
+	public IndexedVector objectiveFunction(List<Flag> flags) {	
+		IndexedVector objectiveFunction = super.objectiveFunction(flags);
+		int size = objectiveFunction.dimension(); 		
 		
+		for(int i = 0; i < size; i++) {
+
+			if( objectiveFunction.getIndex(i) == NumericPropertyKeyword.MAXTEMP ) {
+				objectiveFunction.set(i, qAbs);	
+				break;		
+			}
 		}
 		
-		return v;
-	}
+		return objectiveFunction;
+		
+	}	
 	
-	@Override 
-	public void assign(Vector params, BooleanProperty[] flags) {
-		super.assign(params, flags);
+	@Override
+	public void assign(IndexedVector params) {
+		super.assign(params);		
+		int size = params.dimension(); 		
+		
+		for(int i = 0; i < size; i++) {
 
-		for(int i = 0, realIndex = 0; i < flags.length; i++) {
-			if(! (boolean) flags[i].getValue() )
-				continue;
-			
-			realIndex = convert(i, flags);
-			
-			switch( ObjectiveFunctionIndex.valueOf(flags[i].getSimpleName()) ) {
-			case HEAT_LOSSES : 
-				secondDimensionData.setSideLosses( new NumericProperty(params.get(realIndex), NumericProperty.DEFAULT_BIOT) ); break;
-			case MAX_TEMP :
-				qAbs = params.get(realIndex); break;
-			default :
-				continue;
+			if( params.getIndex(i) == NumericPropertyKeyword.MAXTEMP ) {
+				qAbs = params.get(i);	
+				break;		
 			}
-
 		}
+		
 	}
 	
 	public SecondDimensionData getSecondDimensionData() {

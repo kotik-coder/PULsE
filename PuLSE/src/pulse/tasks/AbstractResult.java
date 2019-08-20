@@ -1,42 +1,25 @@
 package pulse.tasks;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import pulse.properties.NumericProperty;
+import pulse.util.PropertyHolder;
 
 public abstract class AbstractResult {
 
-	protected NumericProperty[] properties;
-	protected ResultFormat format;
-	protected AbstractResult parent;
+	private List<NumericProperty> properties;
+	private ResultFormat format;
+	private AbstractResult parent;
 	
 	public AbstractResult(ResultFormat format) {
 		this.format = format;
-		properties = new NumericProperty[format.labels().length];
+		properties = new ArrayList<NumericProperty>(format.abbreviations().size());
 	}
 	
 	public AbstractResult getParent() {
 		return parent;
-	}
-	
-	public NumericProperty[] properties() {
-		
-		String[] names = format.shortNames();
-		NumericProperty[] output = new NumericProperty[names.length];
-		
-		int i = 0;				
-		
-		outer : for(NumericProperty property : properties) {
-			
-			for(String name : names) {
-				if(name.equals(property.getSimpleName())) {
-					output[i++] = property;
-					continue outer;
-				}	
-			}
-			
-		}
-				
-		return output;
-		
 	}
 
 	public ResultFormat getFormat() {
@@ -59,5 +42,40 @@ public abstract class AbstractResult {
 		return sb.toString();
 	}
 
+	public List<NumericProperty> getProperties() {
+		return properties;
+	}
+	
+	public void addProperty(NumericProperty p) {
+		properties.add(p);
+	}
+	
+	public NumericProperty getProperty(int i) {
+		return properties.get(i);
+	}
+
+	public void setParent(AbstractResult parent) {
+		this.parent = parent;
+	}
+	
+	public static List<NumericProperty> filterProperties(AbstractResult result, ResultFormat format) {
+		return result.properties.stream().filter(property ->
+			format.getNameMap().stream().anyMatch(formatProperty 
+					-> property.getType().equals(formatProperty.getType()) )).
+				collect(Collectors.toList());
+	}
+	
+	public static List<NumericProperty> filterProperties(AbstractResult result) {
+		return filterProperties(result, result.format);
+	}
+	
+	public static List<NumericProperty> relevantProperties(AbstractResult result, PropertyHolder holder) {
+		List<NumericProperty> preliminary = AbstractResult.filterProperties(result);
+		return preliminary.stream().filter(property ->
+			holder.data().stream().filter(p -> p instanceof NumericProperty).
+			anyMatch(taskProperty -> property.getType()
+					.equals( ((NumericProperty)taskProperty).getType()) )).
+				collect(Collectors.toList());
+	}
 	
 }

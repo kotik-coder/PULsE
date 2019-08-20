@@ -1,104 +1,148 @@
 package pulse.util;
 
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.stream.Collectors;
 
+import pulse.properties.EnumProperty;
 import pulse.properties.NumericProperty;
 import pulse.properties.Property;
 
 public abstract class PropertyHolder implements Accessible {
 
-	protected Map<String,String> propertyNames = propertyNames();
+	private List<Property> parameters = listedParameters();
 	private List<PropertyHolderListener> listeners;
 
-	public abstract Map<String,String> propertyNames();
-	
-	private PropertyHolder parent;
+	public List<Property> listedParameters() {
+		
+		List<Property> properties = new ArrayList<Property>();
+		
+		try {
+			for(Accessible accessible : accessibles()) 
+				if(accessible instanceof PropertyHolder) 
+					properties.addAll( ((PropertyHolder) accessible).listedParameters());
+		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return properties;
+	}
 	
 	public PropertyHolder() {
 		this.listeners = new ArrayList<PropertyHolderListener>();
 	}
 	
-	public PropertyHolder(PropertyHolder parent) {
-		this();
+	private boolean isListedNumericParameter(NumericProperty p) {
+		if(p == null)
+			return false;
+		
+		return parameters.stream().filter(pr -> pr instanceof NumericProperty)
+				.map(prop -> (NumericProperty)prop).anyMatch(param -> 
+				param.getType() == p.getType() );		
+			
 	}
 	
-	public String paramName(String key) {
+	private boolean isListedGenericParameter(Property p) {
+		if(p == null)
+			return false;
 		
-		if(!propertyNames.containsKey(key)) 
-			return Messages.getString("PropertyHolder.0"); //$NON-NLS-1$
-		
-		return propertyNames.get(key);
+		return parameters.stream().anyMatch(param -> 
+				param.getClass().equals(p.getClass()) );		
 			
+	}
+	
+	private boolean isListedParameter(Property p) {
+		return p instanceof NumericProperty ? isListedNumericParameter((NumericProperty)p) : 
+											  isListedGenericParameter(p);
 	}
 	
 	/*
 	 * Provides a two-column (title - value) representation of properties contained in this PropertyHolder object
 	 */
 	
-	public Object[][] data() {	
+	public List<Property> data() {	
 		
-		Map<String,Object> map = null;
+		List<Property> properties = null;
 		
 		try {
-			map = this.fieldMap();
+			properties = this.properties();
 		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-			System.err.println(Messages.getString("PropertyHolder.FieldMapError")); //$NON-NLS-1$
+			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}	
+		}
 		
-		Set<String> keySet	= map.keySet();
-		Object[] keyArray	= keySet.toArray();
+		Property p = null;
 		
 		/*
 		 * remove unknown properties from key array
-		 */
+		 */				
 		
-		for(int i = 0; i < keyArray.length; i++) {
-			if( this.paramName(keyArray[i].toString() ).equals( Messages.getString("PropertyHolder.0") ))
-				map.remove(keyArray[i]); 
+		for(Iterator<Property> pIterator = properties.iterator(); pIterator.hasNext(); ) {					
 			
-			if(! areDetailsHidden() )
-				continue;
-			
-			Property p = null;
-			
-			try {
-				p = this.propertyByName( (String) keyArray[i]);
-			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
-			if( p instanceof NumericProperty )
-				if( ((NumericProperty)p).isAutoAdjustable() )
-					map.remove(keyArray[i]);
+			p = pIterator.next();
 					
+			/*
+			 * If property is not flagged as readable in this class, remove it
+			 */
+			
+			if( ! isListedParameter(p) ) {
+				pIterator.remove();
+				continue;
+			}
+						
+			/*
+			 * Hide auto-adjustable properties in simple mode
+			 */
+			
+			if( areDetailsHidden() )	
+				if( p instanceof NumericProperty )
+					if( ((NumericProperty)p).isAutoAdjustable() )
+						pIterator.remove();										
+		
 		}
-		
-		Object[][] data	= new Object[map.values().size()][2];
-		keyArray 		= keySet.toArray(); //updated key array		
-
-		for(int i = 0; i < keyArray.length; i++) {
-			data[i][0] = this.paramName(keyArray[i].toString());
-			data[i][1] = map.get(keyArray[i]);
-		}				
-		
-		return data;
+				
+		return properties;		
 		
 	}
 	
-	public void updateProperty(Property property) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {	
-		Accessible.updateProperty(this, property);
-		PropertyEvent event = new PropertyEvent(this, property);
+	public List<NumericProperty> numericData() {
+		return data().stream().filter(p -> p instanceof NumericProperty).
+				map(nP -> (NumericProperty)nP).collect(Collectors.toList());		
+	}
+	
+	public List<EnumProperty> enumData() {
+		return data().stream().filter(p -> p instanceof EnumProperty).
+				map(eP -> (EnumProperty)eP).collect(Collectors.toList());
+	}
+	
+	public void updateProperty(Object sourceComponent, Property updatedProperty) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {	
+		Property existing = property(updatedProperty);
 		
-		for(PropertyHolderListener l : listeners)
-			l.onPropertyChanged(event);
+		if(existing == null)
+			return;
 		
+		if(existing.equals(updatedProperty))
+			return;
+		
+		Accessible.super.update(updatedProperty);
+		PropertyEvent event = new PropertyEvent(sourceComponent, this, updatedProperty);
+		listeners.forEach(l -> l.onPropertyChanged(event));
+		
+	}
+	
+	public void updateProperties(Object sourceComponent, PropertyHolder propertyHolder) {
+		propertyHolder.data().stream().forEach( entry -> 
+		{ 
+				try {
+					this.updateProperty( sourceComponent, entry );
+				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+					System.err.println("Error when trying to update property " + entry.toString() + " in " + this);
+					e.printStackTrace();
+				} 
+			} 
+		);
 	}
 	
 	public void removeListeners() {
@@ -117,38 +161,12 @@ public abstract class PropertyHolder implements Accessible {
 		return false;
 	}
 
-	public List<PropertyHolder> getChildren() {
-		List<PropertyHolder> list = new ArrayList<PropertyHolder>();
-		Class<? extends PropertyHolder> thisClass = this.getClass();
-		Method[] methods = thisClass.getMethods();
-		Object o ;
-		for(Method method : methods) {
-			if(method.getName().startsWith("get")) { //$NON-NLS-1$
-				if(method.getName().substring(3).equalsIgnoreCase("Children")) //$NON-NLS-1$
-					continue;
-				if(method.getParameterCount() < 1) {
-					try {
-						o = method.invoke(this);
-						if(o instanceof PropertyHolder)
-							list.add((PropertyHolder) o);
-					} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-						System.err.println("Unable to call " + method + " from " + thisClass); //$NON-NLS-1$ //$NON-NLS-2$
-						e.printStackTrace();
-					}
-				}
-			}
-		}
-	
-		return list;
-		
+	public void parameterListChanged() {
+		this.parameters = listedParameters();
 	}
 	
-	public PropertyHolder getParent() {
-		return parent;
-	}
-	
-	public void updatePropertyNames() {
-		this.propertyNames = propertyNames();
+	public boolean internalHolderPolicy() {
+		return true;
 	}
 
 }

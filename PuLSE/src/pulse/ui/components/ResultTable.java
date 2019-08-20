@@ -1,6 +1,7 @@
 package pulse.ui.components;
 
 import java.awt.Font;
+import java.awt.event.MouseEvent;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -13,7 +14,9 @@ import javax.swing.RowSorter;
 import javax.swing.RowSorter.SortKey;
 import javax.swing.SortOrder;
 import javax.swing.SwingUtilities;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
@@ -39,7 +42,7 @@ public class ResultTable extends JTable implements Saveable  {
 	 */
 	private static final long serialVersionUID = 3448187918228094149L;
 	private ResultFormat fmt;
-	private final static Font font = new Font(Messages.getString("ResultTable.FontName"), Font.PLAIN, 12);  //$NON-NLS-1$
+	private final static Font font = new Font(Messages.getString("ResultTable.FontName"), Font.PLAIN, 16);  //$NON-NLS-1$
 	
 	private TableRowSorter<TableModel> sorter;
 	private NumericPropertyRenderer renderer;
@@ -290,7 +293,7 @@ public class ResultTable extends JTable implements Saveable  {
         List<AbstractResult> ir;
         AverageResult ar;
         Result rr;
-        NumericProperty[] props;
+        List<NumericProperty> props;
         
         for(AbstractResult r : results) {
         	if(r instanceof AverageResult) {
@@ -300,12 +303,11 @@ public class ResultTable extends JTable implements Saveable  {
         		for(AbstractResult aar : ir) {		
         			stream.print("<tr>"); //$NON-NLS-1$
         			rr = (Result)aar;
-        			props = rr.properties();
+        			props = AbstractResult.filterProperties(aar);
         			
         			for (int j = 0; j < getColumnCount(); j++) {
                     	stream.print("<td>"); //$NON-NLS-1$
-                    	tmp = (NumericProperty) props[j];
-                        stream.print(tmp.formattedValue());
+                        stream.print(props.get(j).formattedValue());
                         stream.print("</td>"); //$NON-NLS-1$
                     }
         			
@@ -405,6 +407,19 @@ public class ResultTable extends JTable implements Saveable  {
 		
 	}
 	
+	 //Implement table header tool tips.
+	@Override
+    protected JTableHeader createDefaultTableHeader() {
+        return new JTableHeader(columnModel) {
+            public String getToolTipText(MouseEvent e) {
+                int index = columnModel.getColumnIndexAtX(e.getPoint().x);
+                int realIndex = 
+                        columnModel.getColumn(index).getModelIndex();
+                return ((ResultTableModel)getModel()).getTooltips().get(realIndex);
+            }
+        };
+	}
+	
 	public class ResultTableModel extends DefaultTableModel {
 		
 		/**
@@ -413,11 +428,13 @@ public class ResultTable extends JTable implements Saveable  {
 		private static final long serialVersionUID = -6227212091613629835L;
 		private ResultFormat fmt;
 		private List<AbstractResult> results;
+		private List<String> tooltips;
 		
 		public ResultTableModel(ResultFormat fmt, int rowCount) {
-			super(fmt.labels(), rowCount);
+			super(fmt.abbreviations().toArray(), rowCount);
 			this.fmt = fmt;
 			results = new LinkedList<AbstractResult>();
+			tooltips = fmt.descriptors();
 		}		
 		
 	    @Override
@@ -433,32 +450,33 @@ public class ResultTable extends JTable implements Saveable  {
 	    		r.setFormat(fmt);
 	    	
 	    	if(this.getRowCount() < 1) {
-	    		this.setColumnIdentifiers(fmt.labels());
+	    		this.setColumnIdentifiers(fmt.abbreviations().toArray());
 	    		return;
 	    	}
 	    	
 	    	this.setRowCount(0);
 	    	List<AbstractResult> oldResults = new ArrayList<AbstractResult>(results);
     		
-	    	this.setColumnIdentifiers(fmt.labels());
+	    	this.setColumnIdentifiers(fmt.abbreviations().toArray());
 	    	results.clear();
 	    	
 	    	for(AbstractResult r : oldResults)
 	    		this.addRow(r);
 	    	
+	    	tooltips = fmt.descriptors();
 	    }
 	    
 		public void addRow(AbstractResult result) {
 			if(result == null)
 				return; 
 			
-			NumericProperty[] propertyList = result.properties();
+			List<NumericProperty> propertyList = AbstractResult.filterProperties(result);
 			
 			SwingUtilities.invokeLater(new Runnable() {
 
 				@Override
 				public void run() {
-					addRow(propertyList);
+					addRow(propertyList.toArray());
 					results.add(result);
 				    scrollRectToVisible(getCellRect(getRowCount(), getColumnCount(), true));	    	    
 				}
@@ -497,6 +515,10 @@ public class ResultTable extends JTable implements Saveable  {
 		
 		public ResultFormat getFormat() {
 			return fmt;
+		}
+
+		public List<String> getTooltips() {
+			return tooltips;
 		}				
 		
 	}

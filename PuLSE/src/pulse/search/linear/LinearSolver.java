@@ -1,18 +1,20 @@
 package pulse.search.linear;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import java.util.ArrayList;
+import java.util.List;
 import pulse.properties.NumericProperty;
-import pulse.search.math.ObjectiveFunctionIndex;
+import pulse.properties.NumericPropertyKeyword;
+import pulse.properties.Property;
+import pulse.search.math.IndexedVector;
 import pulse.search.math.Segment;
 import pulse.search.math.Vector;
 import pulse.tasks.SearchTask;
 import pulse.util.PropertyHolder;
+import pulse.util.Reflexive;
 
-public abstract class LinearSolver extends PropertyHolder {
+public abstract class LinearSolver extends PropertyHolder implements Reflexive {
 
-	protected static double searchResolution = (double) NumericProperty.DEFAULT_LINEAR_RESOLUTION.getValue();
+	protected static double searchResolution = (double) NumericProperty.LINEAR_RESOLUTION.getValue();
 	
 	protected LinearSolver() {	
 		super();
@@ -21,7 +23,7 @@ public abstract class LinearSolver extends PropertyHolder {
 	public abstract double minimum(SearchTask task);	
 	
 	public static NumericProperty getLinearResolution() {
-		return new NumericProperty(searchResolution, NumericProperty.DEFAULT_LINEAR_RESOLUTION);
+		return new NumericProperty(searchResolution, NumericProperty.LINEAR_RESOLUTION);
 	}
 
 	public static void setLinearResolution(NumericProperty searchError) {
@@ -33,28 +35,32 @@ public abstract class LinearSolver extends PropertyHolder {
 		return this.getClass().getSimpleName();	
 	}
 	
-	public static Segment boundaries(ObjectiveFunctionIndex[] types, Vector x, Vector p) {
-		double alpha = 0.5*x.get(0)/Math.abs(p.get(0)); //thermal diffusivity
+	public static Segment boundaries(IndexedVector x, Vector p) {
+		int diffusivityIndex = x.getDataIndex(NumericPropertyKeyword.DIFFUSIVITY);
+		double alpha = 0.5*x.get(diffusivityIndex)/Math.abs(p.get(diffusivityIndex));
 		
 		final double UPPER_LIMIT_LOSSES = 1.0;
+		int heatLossIndex = x.getDataIndex(NumericPropertyKeyword.HEAT_LOSS);
 		
-		for(int i = 0; i < types.length; i++) { 
-			if(types[i] != ObjectiveFunctionIndex.HEAT_LOSSES)
-				continue;
-			
-			while(Math.pow(x.get(i) + p.get(i)*alpha, 2) > UPPER_LIMIT_LOSSES)
+		if(heatLossIndex > -1)
+			while(Math.pow(x.get(heatLossIndex) + p.get(heatLossIndex)*alpha, 2) > UPPER_LIMIT_LOSSES)
 				alpha /= 2;
-			
-		}
 		
 		return new Segment(0, alpha);
 	}
 
 	@Override
-	public Map<String,String> propertyNames() {
-		Map<String,String> map = new HashMap<String,String>(3);
-		map.put(Messages.getString("LinearSolver.0"), Messages.getString("LinearSolver.1"));		 //$NON-NLS-1$ //$NON-NLS-2$
-		return map;
+	public List<Property> listedParameters() {
+		List<Property> list = new ArrayList<Property>();
+		list.add(NumericProperty.LINEAR_RESOLUTION);
+		return list;
+	}
+
+	@Override
+	public void set(NumericPropertyKeyword type, NumericProperty property) {
+		switch(type) {
+		case LINEAR_RESOLUTION : setLinearResolution(property); break;
+		}
 	}
 
 	

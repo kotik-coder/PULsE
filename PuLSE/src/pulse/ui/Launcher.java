@@ -12,6 +12,7 @@ import javax.management.ObjectName;
 import javax.management.ReflectionException;
 
 import javafx.application.Platform;
+import pulse.tasks.TaskManager;
 import pulse.ui.charts.Chart;
 import pulse.ui.frames.ProblemStatementFrame;
 import pulse.ui.frames.SearchOptionsFrame;
@@ -51,7 +52,9 @@ public class Launcher {
 				new ProblemStatementFrame();
 			directFrame.setLocationRelativeTo(controlFrame);
 		}
-		directFrame.setVisible(true);
+		else
+			directFrame.update();
+		directFrame.setVisible(true);			
 	}
 	
 	public static void showSearchOptionsFrame() {

@@ -7,23 +7,24 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
+import pulse.Baseline;
 import pulse.HeatingCurve;
 import pulse.input.ExperimentalData;
 import pulse.input.PropertyCurve;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.statements.Problem;
-import pulse.properties.BooleanProperty;
 import pulse.properties.NumericProperty;
+import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 import pulse.search.direction.PathSolver;
-import pulse.search.math.ObjectiveFunctionIndex;
-import pulse.search.math.Vector;
+import pulse.search.math.IndexedVector;
 import pulse.tasks.Status.Details;
 import pulse.tasks.listeners.DataCollectionListener;
 import pulse.tasks.listeners.StatusChangeListener;
 import pulse.tasks.listeners.TaskStateEvent;
 import pulse.util.Accessible;
+import pulse.util.PropertyEvent;
+import pulse.util.PropertyHolderListener;
 import pulse.util.SaveableDirectory;
 
 public class SearchTask implements Runnable, Accessible, SaveableDirectory {
@@ -51,9 +52,16 @@ public class SearchTask implements Runnable, Accessible, SaveableDirectory {
 	
 	private Identifier identifier;
 
-	private BooleanProperty[] searchFlags;
-	
 	private final static double SUCCESS_CUTOFF = 0.2;	
+	
+	public final static NumericProperty RSQUARED = 
+			new NumericProperty(NumericPropertyKeyword.RSQUARED, 
+			Messages.getString("RSquared.Descriptor"), 
+			Messages.getString("RSquared.Abbreviation"), Double.NEGATIVE_INFINITY);
+
+	public final static NumericProperty SUM_OF_SQUARES = new NumericProperty(NumericPropertyKeyword.SUM_OF_SQUARES, 
+			Messages.getString("SumOfSquares.Descriptor"), 
+			Messages.getString("SumOfSquares.Abbreviation"), Double.POSITIVE_INFINITY);
 	
 	@Override
 	public boolean equals(Object o) {		
@@ -71,17 +79,12 @@ public class SearchTask implements Runnable, Accessible, SaveableDirectory {
 	
 	public void updateTimeLimit() {
 		final double factor = 1.05;
-		timeLimit = factor*curve.timeLimit();
+		setTimeLimit(new NumericProperty(factor*curve.timeLimit(), NumericProperty.TIME_LIMIT));
 	}
 	
 	public void reset() {				
-		BooleanProperty[] dsFlags = PathSolver.getSearchFlags();
-		this.searchFlags		  = new BooleanProperty[dsFlags.length];
-		for(int i = 0; i < searchFlags.length; i++) 
-			searchFlags[i] = new BooleanProperty(dsFlags[i]);					
-		
-		rSquared		= Double.NEGATIVE_INFINITY;
-		sumOfSquares	= Double.POSITIVE_INFINITY;				
+		rSquared		= (double) RSQUARED.getValue();
+		sumOfSquares	= (double) SUM_OF_SQUARES.getValue();				
 		
 		buffer 			= new Buffer();		
 		log 			= new Log(this);
@@ -90,8 +93,7 @@ public class SearchTask implements Runnable, Accessible, SaveableDirectory {
 		this.problem	= null;
 		this.scheme		= null;				
 		
-		final double factor = 1.05;		
-		timeLimit =  factor*curve.timeLimit();
+		updateTimeLimit();
 		testTemperature = (double)curve.getMetadata().getTestTemperature().getValue();
 		
 		updateThermalProperties();
@@ -106,22 +108,15 @@ public class SearchTask implements Runnable, Accessible, SaveableDirectory {
 		this();
 		this.curve = curve;
 		
-		final double factor = 1.05;		
-		timeLimit =  factor*curve.timeLimit();
-		testTemperature = (double)curve.getMetadata().getTestTemperature().getValue();
-			
-		updateThermalProperties();		
+		updateTimeLimit();
+		testTemperature = (double)curve.getMetadata().getTestTemperature().getValue();			
+		updateThermalProperties();						
 	}
 	
-	public SearchTask() {
-		timeLimit 			= (double)NumericProperty.DEFAULT_TIME_LIMIT.getValue();
-		testTemperature	= (double)NumericProperty.DEFAULT_T.getValue();
-		
-		BooleanProperty[] dsFlags = PathSolver.getSearchFlags();
-		this.searchFlags		  = new BooleanProperty[dsFlags.length];
-		for(int i = 0; i < searchFlags.length; i++) 
-			searchFlags[i] = new BooleanProperty(dsFlags[i]);
-	
+	protected SearchTask() {
+		timeLimit 			= (double)NumericProperty.TIME_LIMIT.getValue();
+		testTemperature		= (double)NumericProperty.TEST_TEMPERATURE.getValue();
+
 		updateThermalProperties();
 		
 		rSquared		= Double.NEGATIVE_INFINITY;
@@ -131,28 +126,32 @@ public class SearchTask implements Runnable, Accessible, SaveableDirectory {
 		this.identifier = new Identifier();
 
 		log 			= new Log(this);
-		
+					
 	}	
 	
-	public Vector objectiveFunction() {
-		return this.getProblem().objectiveFunction(searchFlags);
+	public IndexedVector objectiveFunction() {
+		return problem.objectiveFunction(PathSolver.getSearchFlags());
 	}
 	
-	public void assign(Vector objectiveFunction) {
-		this.getProblem().assign(objectiveFunction, searchFlags);
+	public void assign(IndexedVector objectiveFunction) {
+		problem.assign(objectiveFunction);
 	}
 	
 	public void updateThermalProperties() {
 		PropertyCurve cvCurve = TaskManager.getSpecificHeatCurve();		
+		
+		if(problem == null)
+			return;
+		
 		if(cvCurve != null) {
-			evalSpecificHeat(cvCurve);
-			problem.setSpecificHeat(new NumericProperty(cp, NumericProperty.DEFAULT_CV));
+			cp = cvCurve.valueAt(testTemperature); 
+			problem.setSpecificHeat(new NumericProperty(cp, NumericProperty.SPECIFIC_HEAT));
 		}
 		
 		PropertyCurve rhoCurve = TaskManager.getDensityCurve();		
 		if(rhoCurve != null) { 
-			evalDensity(rhoCurve);
-			problem.setDensity(new NumericProperty(rho, NumericProperty.DEFAULT_RHO));
+			rho = rhoCurve.valueAt(testTemperature);
+			problem.set(NumericPropertyKeyword.DENSITY, new NumericProperty(rho, NumericProperty.DENSITY));
 		}
 		
 		if(rhoCurve != null && cvCurve != null) {
@@ -165,14 +164,6 @@ public class SearchTask implements Runnable, Accessible, SaveableDirectory {
 	public void solveProblem() {
 		scheme.adjustScheme(problem);
 		scheme.solve(problem);
-	}
-	
-	public void evalSpecificHeat(PropertyCurve specificHeatCurve) {	
-		cp = specificHeatCurve.valueAt(testTemperature); 
-	}
-
-	public void evalDensity(PropertyCurve densityCurve) {;		
-		rho = densityCurve.valueAt(testTemperature);
 	}
 
 	public void evalThermalConductivity() {
@@ -187,44 +178,6 @@ public class SearchTask implements Runnable, Accessible, SaveableDirectory {
 		final double sigma = 5.6703E-08; //Stephan-Boltzmann constant
 				
 		emissivity =  Bi*lambda/(4.*Math.pow(testTemperature, 3)*l*sigma);
-	}
-	
-	public ObjectiveFunctionIndex[] parameterTypes() {
-		List<ObjectiveFunctionIndex> indices = new ArrayList<ObjectiveFunctionIndex>();
-		
-		for(BooleanProperty flag : searchFlags) {
-			if(! (boolean) flag.getValue() )
-				continue; 
-			
-		indices.add( ObjectiveFunctionIndex.valueOf(flag.getSimpleName()) );
-		
-		}
-		
-		return indices.toArray(new ObjectiveFunctionIndex[indices.size()]);
-		
-	}
-	
-	public Vector parameterBoundaries() {
-		ObjectiveFunctionIndex[] types = this.parameterTypes();
-		Vector v = new Vector(types.length);
-		double x;
-		double lSq = Math.pow((double)problem.getSampleThickness().getValue(), 2);
-		
-		for(int i = 0; i < types.length; i++) { 
-		
-			switch(types[i]) {
-				case HEAT_LOSSES : x = (double) NumericProperty.DEFAULT_BIOT.getMaximum(); 
-				case DIFFUSIVITY : x = (double) NumericProperty.DEFAULT_DIFFUSIVITY.getMaximum()/lSq; break;
-				case BASELINE	 : x = (double) NumericProperty.DEFAULT_BASELINE.getMaximum(); break;
-				case MAX_TEMP	 : x = (double) NumericProperty.DEFAULT_MAXTEMP.getMaximum(); break;
-				default			 : throw new IllegalArgumentException("Type " + types[i] + " unknown"); //$NON-NLS-1$ //$NON-NLS-2$
-			}
-			
-			v.set(i, x);
-		}
-		
-		return v;
-			
 	}
 
 	public double calculateDeviation() {
@@ -253,14 +206,13 @@ public class SearchTask implements Runnable, Accessible, SaveableDirectory {
 	  sumOfSquares	   			 = solutionCurve.deviationSquares(curve);
 	  
 	  PathSolver pathSolver 	= TaskManager.getPathSolver();
-	  path 						= new Path(this);
+	  
+	  path 						= new Path(this);	  
 	   
 	  double errorTolerance		= (double)PathSolver.getErrorTolerance().getValue();
 	  int bufferSize			= (Integer)buffer.getSize().getValue();	  
 	  
-	  rSquared 					= solutionCurve.rSquared(this.getExperimentalCurve());
-	  
-	  final double NEGATIVE_LIMIT_MAX = -1E-3;
+	  rSquared 					= solutionCurve.rSquared(this.getExperimentalCurve());	  
 	  
 	  /* search cycle */
 	  
@@ -269,7 +221,6 @@ public class SearchTask implements Runnable, Accessible, SaveableDirectory {
 	  ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
 	  
 	  long start = System.currentTimeMillis();
-	  long elapsed = 0;
 	  final long TIMEOUT_AFTER = scheme.getTimeoutAfterMillis();
 	  
 	  do {				 
@@ -293,9 +244,6 @@ public class SearchTask implements Runnable, Accessible, SaveableDirectory {
 		
 		bufferFutures.forEach( future -> future.join());
 					 
-		if( buffer.average(ObjectiveFunctionIndex.HEAT_LOSSES) < NEGATIVE_LIMIT_MAX) 
-			  rollback();		
-		
 		if(System.currentTimeMillis() - start > TIMEOUT_AFTER) {
 			setStatus(Status.TIMEOUT);
 			break;
@@ -313,15 +261,7 @@ public class SearchTask implements Runnable, Accessible, SaveableDirectory {
 			 setStatus(Status.AMBIGUOUS);
 	  		
 	}
-	
-	public void rollback() {
-		  setSearchFlag(ObjectiveFunctionIndex.HEAT_LOSSES, false);
-		  status.setDetails(Details.LIMITED_HEAT_LOSSES);
-		  problem.reset(curve);
-		  adjustScheme();
-		  path.reset(this);
-	}
-	
+
 	public void addTaskListener(DataCollectionListener toAdd) {
 		listeners.add(toAdd);
 	}
@@ -356,11 +296,11 @@ public class SearchTask implements Runnable, Accessible, SaveableDirectory {
 	}
 	
 	public NumericProperty getTimeLimit() {
-		return new NumericProperty(timeLimit, NumericProperty.DEFAULT_TIME_LIMIT);
+		return new NumericProperty(timeLimit, NumericProperty.TIME_LIMIT);
 	}
 	
 	public NumericProperty getTestTemperature() {
-		return new NumericProperty(testTemperature, NumericProperty.DEFAULT_T);
+		return new NumericProperty(testTemperature, NumericProperty.TEST_TEMPERATURE);
 	}
 	
 	public Path getPath() {
@@ -368,11 +308,11 @@ public class SearchTask implements Runnable, Accessible, SaveableDirectory {
 	}
 	
 	public NumericProperty getSumOfSquares() {
-		return new NumericProperty(Messages.getString("SearchTask.SS"), sumOfSquares); //$NON-NLS-1$
+		return new NumericProperty(sumOfSquares, SUM_OF_SQUARES); //$NON-NLS-1$
 	}
 	
 	public NumericProperty getRSquared() {
-		return new NumericProperty(Messages.getString("SearchTask.R2"), rSquared); //$NON-NLS-1$
+		return new NumericProperty(rSquared, RSQUARED); //$NON-NLS-1$
 	}
 	
 	//setters
@@ -388,9 +328,69 @@ public class SearchTask implements Runnable, Accessible, SaveableDirectory {
 	public void setProblem(Problem problem) {
 		this.problem = problem;
 				
-		if(curve != null && problem != null)
-			problem.couple(curve);
+		if(curve == null)
+			return;
 		
+		if(problem == null)
+			return;
+			
+		problem.removeListeners(); 
+		problem.retrieveData(curve);
+		
+		problem.addListener(new PropertyHolderListener() {
+
+			@Override
+			public void onPropertyChanged(PropertyEvent event) {
+				Property property = event.getProperty();
+				
+				if(! (property instanceof NumericProperty) )
+					return;
+				
+				NumericProperty p = (NumericProperty) property;
+			
+				for(NumericProperty critical : problem.getCriticalParameters()) {
+
+					if(p.getType() == critical.getType()) {
+						
+						problem.estimateSignalRange(curve);
+						problem.useParkersSolution(curve);
+						
+					}
+				}
+			
+			}
+
+		});
+		
+		if(Problem.isSingleStatement())
+			synchroniseWithOthers();
+		
+		Baseline base = problem.getHeatingCurve().getBaseline();
+		base.addListener(event -> base.fitTo(curve) );		
+		
+	}
+	
+	private void synchroniseWithOthers() {
+		problem.addListener(propertyEvent -> {
+			Problem p;
+			for(SearchTask t : TaskManager.getTaskList()) {
+				p = t.getProblem();
+				
+				if(p == null)
+					continue;
+				
+				if(p.equals(problem))
+					continue;
+				
+				try {
+					p.update(propertyEvent.getProperty());
+				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+					
+			} 
+		});
 	}
 	
 	public void setScheme(DifferenceScheme scheme) {
@@ -400,86 +400,18 @@ public class SearchTask implements Runnable, Accessible, SaveableDirectory {
 		this.curve = curve;
 		
 		if(problem != null) 
-			problem.couple(curve);
+			problem.retrieveData(curve);		
 	}
 	
 	public void setTimeLimit(NumericProperty timeLimit) {
 		this.timeLimit = (double)timeLimit.getValue();
+		if(scheme != null)
+			scheme.setTimeLimit(timeLimit);
 	}
 	
 	public void setTestTemperature(NumericProperty testTemperature) {
 		this.testTemperature = (double)testTemperature.getValue();
 		updateThermalProperties();
-	}
-	
-	//override interface method
-	
-	@Override
-	public Property propertyByName(String simpleName) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-		
-		Property taskProperty = Accessible.super.propertyByName(simpleName);
-		if(taskProperty != null)
-			return taskProperty;
-		
-		Property problemProperty = problem.propertyByName(simpleName);
-		if(problemProperty != null)
-			return problemProperty;
-		
-		Property schemeProperty = scheme.propertyByName(simpleName);
-		if(schemeProperty != null)
-			return schemeProperty;
-
-		Property curveProperty = curve.propertyByName(simpleName);
-		if(curveProperty != null)
-			return curveProperty;
-		
-		Property searchProperty = TaskManager.getPathSolver().propertyByName(simpleName);
-		if(searchProperty != null)
-			return searchProperty;		
-	    
-	    return null;
-		
-	}
-	
-	//override interface method
-	
-	@Override
-	public Object value(String simpleName) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-
-
-		Object taskProperty = Accessible.super.value(simpleName);
-
-		if(taskProperty != null)
-			return taskProperty;
-	
-		Object problemProperty = problem.value(simpleName);
-		if(problemProperty != null)
-			return problemProperty;
-		
-		Object schemeProperty = scheme.value(simpleName);
-		if(schemeProperty != null)
-			return schemeProperty;
-		
-		Object curveProperty = curve.value(simpleName);
-		if(curveProperty != null)
-			return curveProperty;
-		
-		PathSolver pathSolver = TaskManager.getPathSolver();
-		
-		Object searchProperty = pathSolver.value(simpleName);
-		if(searchProperty != null)
-			return searchProperty;		
-	    
-		Object pathProperty = path.value(simpleName);
-		if(pathProperty != null)
-			return pathProperty;		
-	    
-		Object pathSolverProperty = pathSolver.value(simpleName);
-		if(pathSolverProperty != null)
-			return pathSolverProperty;	
-		
-	    return null;
-		
 	}
 	
 	public Status getStatus() {
@@ -534,31 +466,9 @@ public class SearchTask implements Runnable, Accessible, SaveableDirectory {
 	public Log getLog() {
 		return log;
 	}
-	
-	public void setSearchFlag(ObjectiveFunctionIndex id, boolean flag) {
-		for(BooleanProperty property : searchFlags)
-			if(property.getSimpleName().equals(id.name())) 
-				property.setValue(flag);
-	}
-	
-	public int activeFlags() {
-		int i = 0;
-		for(BooleanProperty bp : searchFlags) {
-			boolean b = (boolean) bp.getValue();
-			if(b)
-				i++;
-		}
-		
-		return i;
-		
-	}
-
-	public BooleanProperty[] getSearchFlags() {
-		return searchFlags;
-	}
 
 	public NumericProperty getThermalConductivity() {
-		return new NumericProperty(lambda, NumericProperty.DEFAULT_LAMBDA);
+		return new NumericProperty(lambda, NumericProperty.CONDUCTIVITY);
 	}
 
 	public void setThermalConductivity(NumericProperty lambda) {
@@ -566,7 +476,7 @@ public class SearchTask implements Runnable, Accessible, SaveableDirectory {
 	}	
 	
 	public NumericProperty getEmissivity() {
-		return new NumericProperty(emissivity, NumericProperty.DEFAULT_EMISSIVITY);
+		return new NumericProperty(emissivity, NumericProperty.EMISSIVITY);
 	}
 
 	public void setEmissivity(NumericProperty emissivity) {
@@ -609,6 +519,11 @@ public class SearchTask implements Runnable, Accessible, SaveableDirectory {
 			default :
 				return;
 			}
-	};
+	}
 
+	@Override
+	public void set(NumericPropertyKeyword type, NumericProperty property) {		
+		return;
+	}
+	
 }

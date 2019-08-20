@@ -5,11 +5,15 @@ package pulse.problem.schemes;
 
 import static java.lang.Math.pow;
 
+import java.util.List;
+
 import pulse.HeatingCurve;
-import pulse.problem.statements.LinearizedProblem;
+import pulse.problem.statements.LinearisedProblem;
 import pulse.problem.statements.NonlinearProblem;
 import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
+import pulse.properties.NumericPropertyKeyword;
+import pulse.properties.Property;
 
 import static java.lang.Math.PI;
 import static java.lang.Math.abs;
@@ -20,23 +24,25 @@ import static java.lang.Math.abs;
  */
 public class ImplicitScheme extends DifferenceScheme {
 	
-	private final static NumericProperty DEFAULT_TAU_FACTOR = new NumericProperty(Messages.getString("ImplicitScheme.0"), 0.25, 1E-4, 0.5, 0.25, 1.0, true); //$NON-NLS-1$
-	private final static NumericProperty DEFAULT_N		    = new NumericProperty(Messages.getString("ImplicitScheme.1"), 30, 15, 1000, 80, 1, true); //$NON-NLS-1$
+	private final static NumericProperty TAU_FACTOR = new NumericProperty(NumericPropertyKeyword.TAU_FACTOR, 
+			Messages.getString("Tau.Descriptor"), Messages.getString("Tau.Abbreviation"), 0.25, 1E-4, 0.5, 0.25, 1.0, true); //$NON-NLS-1$
+	private final static NumericProperty GRID_DENSITY = new NumericProperty(NumericPropertyKeyword.GRID_DENSITY, 
+			Messages.getString("N.Descriptor"), Messages.getString("N.Abbreviation"), 30, 15, 1000, 80, 1, true); //$NON-NLS-1$
 	
 	/**
 	 * 
 	 */
 	public ImplicitScheme() {
-		this(DEFAULT_N);
+		this(GRID_DENSITY);
 	}	
 	
 	public ImplicitScheme(NumericProperty N) {
-		this(N, NumericProperty.DEFAULT_TIME_LIMIT);	
+		this(N, NumericProperty.TIME_LIMIT);	
 	}
 	
 	public ImplicitScheme(NumericProperty N, NumericProperty timeLimit) {
 		super(N);
-		this.tauFactor = (double)DEFAULT_TAU_FACTOR.getValue();
+		this.tauFactor = (double)TAU_FACTOR.getValue();
 		this.tau	   = tauFactor*pow(hx, 2);
 		this.timeLimit = (double) timeLimit.getValue();		
 	}
@@ -47,12 +53,12 @@ public class ImplicitScheme extends DifferenceScheme {
 	
 	@Override
 	public final NumericProperty getTimeStepFactor() {
-		return new NumericProperty(tauFactor, DEFAULT_TAU_FACTOR);
+		return new NumericProperty(tauFactor, TAU_FACTOR);
 	}
 	
 	@Override
 	public NumericProperty getGridDensity() {
-		return new NumericProperty(N, DEFAULT_N);
+		return new NumericProperty(N, GRID_DENSITY);
 	}
 
 	/* (non-Javadoc)
@@ -65,8 +71,8 @@ public class ImplicitScheme extends DifferenceScheme {
 		//quick links
 		
 		final double l = (double) problem.getSampleThickness().getValue();
-		final double Bi1 = (double) problem.getFrontLosses().getValue();
-		final double Bi2 = (double) problem.getRearLosses().getValue();
+		final double Bi1 = (double) problem.getFrontHeatLoss().getValue();
+		final double Bi2 = (double) problem.getHeatLossRear().getValue();
 		final double maxTemp = (double) problem.getMaximumTemperature().getValue(); 
 		
 		//end
@@ -113,9 +119,7 @@ public class ImplicitScheme extends DifferenceScheme {
 		
 		double F;		
 		
-		if(problem instanceof LinearizedProblem) {
-			
-			LinearizedProblem ref = (LinearizedProblem)problem;
+		if(problem instanceof LinearisedProblem) {
 			
 			//precalculated constants
 
@@ -155,8 +159,7 @@ public class ImplicitScheme extends DifferenceScheme {
 				
 			}
 			
-			if(!((boolean)ref.isDimensionless().getValue()))
-				curve.scale( maxTemp/maxVal );
+			curve.scale( maxTemp/maxVal );
 			
 			return;
 			
@@ -224,7 +227,7 @@ public class ImplicitScheme extends DifferenceScheme {
 				
 			}			
 
-			ref.setMaximumTemperature(new NumericProperty(maxVal, NumericProperty.DEFAULT_MAXTEMP));
+			ref.setMaximumTemperature(new NumericProperty(maxVal, NumericProperty.MAXTEMP));
 			
 			return;
 		}
@@ -238,5 +241,13 @@ public class ImplicitScheme extends DifferenceScheme {
 	public String toString() {
 		return Messages.getString("ImplicitScheme.4"); //$NON-NLS-1$
 	}	
+	
+	@Override
+	public List<Property> listedParameters() {		
+		List<Property> list = super.listedParameters();
+		list.add(GRID_DENSITY);
+		list.add(TAU_FACTOR);
+		return list;
+	}
 
 }

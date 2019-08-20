@@ -1,8 +1,11 @@
 package pulse.search.linear;
 
+import java.util.List;
+
 import pulse.problem.statements.Problem;
-import pulse.properties.BooleanProperty;
+import pulse.properties.Flag;
 import pulse.search.direction.PathSolver;
+import pulse.search.math.IndexedVector;
 import pulse.search.math.Segment;
 import pulse.search.math.Vector;
 import pulse.tasks.SearchTask;
@@ -22,12 +25,11 @@ public class GoldenSectionSolver extends LinearSolver {
 		final double EPS = 1e-14;
 		
 		final Problem p = task.getProblem();
-		final BooleanProperty[] searchFlags = task.getSearchFlags();
 		
-		final Vector params    = p.objectiveFunction(searchFlags);
-		final Vector direction = task.getPath().getDirection();
+		final IndexedVector params	= p.objectiveFunction( PathSolver.getSearchFlags() );
+		final Vector direction		= task.getPath().getDirection();
 		
-		Segment segment    = boundaries(task.parameterTypes(), params, direction);
+		Segment segment    = boundaries(params, direction);
 		
 		final double squaredError = Math.pow(searchResolution*PHI*segment.length(), 2);
 		double ss2 = 0;
@@ -41,14 +43,14 @@ public class GoldenSectionSolver extends LinearSolver {
 			one_minus_alpha	= segment.getMaximum() - t;
 			
 			newParams = params.plus(direction.times(alpha)); //alpha
-			p.assign(newParams, searchFlags);
+			p.assign(new IndexedVector(newParams, params.getIndices()));
 			ss2 = task.calculateDeviation(); //f(alpha)
 			
 			newParams = params.plus(direction.times(one_minus_alpha)); //1 - alpha 
-			p.assign(newParams, searchFlags);
+			p.assign(new IndexedVector(newParams, params.getIndices()));
 			ss1 = task.calculateDeviation(); //f(1-alpha)
 			
-			p.assign(params, searchFlags); //return to old position
+			p.assign(new IndexedVector(newParams, params.getIndices())); //return to old position
 			
 			if(ss2 - ss1 > EPS)		
 				segment.setMaximum(alpha);

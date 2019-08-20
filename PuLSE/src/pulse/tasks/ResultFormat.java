@@ -1,18 +1,18 @@
 package pulse.tasks;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
 
+import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
+import pulse.properties.NumericPropertyKeyword;
 import pulse.tasks.listeners.ResultFormatEvent;
 import pulse.tasks.listeners.ResultFormatListener;
 
 public class ResultFormat {
 	
-	private Map<String,String> nameMap;
+	private List<NumericProperty> nameMap;
 	
 	public static final ResultFormat defaultFormat = new ResultFormat(Messages.getString("ResultFormat.DefaultFormat")); //$NON-NLS-1$
 	
@@ -40,42 +40,32 @@ public class ResultFormat {
 	
 	private ResultFormat(String formatString) {
 		ResultFormat.formatString = formatString;
-		nameMap = new HashMap<String,String>();
+		nameMap = new ArrayList<NumericProperty>();
 		
 		char[] charArray = formatString.toCharArray();
 		
 		for(char c : charArray) {
 			
 			switch (c) {
-				case 'D' : add(NumericProperty.DEFAULT_DIFFUSIVITY.getSimpleName(), 
-						       Messages.getString("ResultFormat.1")); //$NON-NLS-1$
+				case 'D' : nameMap.add(NumericProperty.DIFFUSIVITY); //$NON-NLS-1$
 						   break;
-				case 'S' : add(NumericProperty.DEFAULT_CV.getSimpleName(), 
-							   Messages.getString("ResultFormat.2")); //$NON-NLS-1$
+				case 'S' : nameMap.add(NumericProperty.SPECIFIC_HEAT); //$NON-NLS-1$
 						   break;
-				case 'T' : add(NumericProperty.DEFAULT_T.getSimpleName(),
-							   Messages.getString("ResultFormat.3")); //$NON-NLS-1$
+				case 'T' : nameMap.add(NumericProperty.TEST_TEMPERATURE); //$NON-NLS-1$
 						   break;
-				case 'B' : add(NumericProperty.DEFAULT_BIOT.getSimpleName(),
-							   Messages.getString("ResultFormat.4")); //$NON-NLS-1$
+				case 'B' : nameMap.add(Problem.HEAT_LOSS); //$NON-NLS-1$
 						   break;
-				case 'M' : add(NumericProperty.DEFAULT_MAXTEMP.getSimpleName(),
-							   Messages.getString("ResultFormat.5")); //$NON-NLS-1$
+				case 'M' : nameMap.add(NumericProperty.MAXTEMP); //$NON-NLS-1$
 						   break;
-				case 'R' : add(NumericProperty.DEFAULT_RHO.getSimpleName(), 
-							   Messages.getString("ResultFormat.6")); //$NON-NLS-1$
+				case 'R' : nameMap.add(NumericProperty.DENSITY); //$NON-NLS-1$
 						   break;
-				case 'C' : add(Messages.getString("ResultFormat.7"), //$NON-NLS-1$
-							   Messages.getString("ResultFormat.8")); //$NON-NLS-1$
+				case 'C' : nameMap.add(NumericProperty.CONDUCTIVITY);
 						   break;
-				case 'E' : add(Messages.getString("ResultFormat.9"), //$NON-NLS-1$
-							   Messages.getString("ResultFormat.10")); //$NON-NLS-1$
+				case 'E' : nameMap.add(NumericProperty.EMISSIVITY);
 						   break;
-				case 'Q' : add(NumericProperty.DEFAULT_QABS.getSimpleName(),
-							   Messages.getString("ResultFormat.11")); //$NON-NLS-1$
+				case 'Q' : nameMap.add(NumericProperty.ABSORBED_ENERGY); //$NON-NLS-1$
 						   break;
-				case 'A' : add(Messages.getString("ResultFormat.12"),  //$NON-NLS-1$
-						       Messages.getString("ResultFormat.13")); //$NON-NLS-1$
+				case 'A' : nameMap.add(SearchTask.RSQUARED);
 						   break;
 				default  : throw new IllegalArgumentException(Messages.getString("ResultFormat.UnknownFormatError") + c); //$NON-NLS-1$
 			}
@@ -85,8 +75,8 @@ public class ResultFormat {
 	}
 
 	private ResultFormat(ResultFormat fmt) {
-		nameMap = new HashMap<String,String>();
-		nameMap.putAll(fmt.nameMap);
+		nameMap = new ArrayList<NumericProperty>(fmt.nameMap.size());
+		nameMap.addAll(fmt.nameMap);
 	}
 	
 	public static void addResultFormatListener(ResultFormatListener rfl) {
@@ -108,23 +98,16 @@ public class ResultFormat {
 		return format;
 	}
 	
-	private void add(String shortName, String longName) {
-		nameMap.put(shortName, longName);
+	public List<NumericPropertyKeyword> shortNames() {
+		return nameMap.stream().map(property -> property.getType()).collect(Collectors.toList());
 	}
 	
-	public String[] shortNames() {
-		return nameMap.keySet().toArray(new String[nameMap.size()]);
+	public List<String> abbreviations() {
+		return nameMap.stream().map(property -> property.getAbbreviation()).collect(Collectors.toList());
 	}
 	
-	public String label(String shortName) {
-		return nameMap.get(shortName);
-	}
-	
-	public String[] labels() {
-		List<String> label = new LinkedList<String>();
-		for(String key : nameMap.keySet()) 
-			label.add(nameMap.get(key));
-		return label.toArray(new String[label.size()]);
+	public List<String> descriptors() {
+		return nameMap.stream().map(property -> property.getDescriptor()).collect(Collectors.toList());
 	}
 	
 	@Override
@@ -138,6 +121,10 @@ public class ResultFormat {
 
 	public static char[] getMinimumAllowedFormat() {
 		return minimumAllowed;
+	}
+
+	public List<NumericProperty> getNameMap() {
+		return nameMap;
 	}
 	
 }

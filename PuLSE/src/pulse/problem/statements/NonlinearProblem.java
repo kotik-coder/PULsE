@@ -3,17 +3,17 @@
  */
 package pulse.problem.statements;
 
-import java.util.Map;
-
+import java.util.List;
 import pulse.input.ExperimentalData;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.ExplicitScheme;
 import pulse.problem.schemes.ImplicitScheme;
 import pulse.problem.schemes.MixedScheme;
-import pulse.properties.BooleanProperty;
+import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
-import pulse.search.math.ObjectiveFunctionIndex;
-import pulse.search.math.Vector;
+import pulse.properties.NumericPropertyKeyword;
+import pulse.properties.Property;
+import pulse.search.math.IndexedVector;
 import pulse.tasks.TaskManager;
 
 /**
@@ -43,18 +43,18 @@ public class NonlinearProblem extends Problem {
 	
 	public NonlinearProblem() {
 		super();
-		nonlinearPrecision = (double)NumericProperty.DEFAULT_NONLINEAR_PRECISION.getValue();
-		this.a = (double)NumericProperty.DEFAULT_DIFFUSIVITY.getValue();		
-		this.qAbs = (double)NumericProperty.DEFAULT_QABS.getValue();
-		setTestTemperature(NumericProperty.DEFAULT_T);
+		nonlinearPrecision = (double)NumericProperty.NONLINEAR_PRECISION.getValue();
+		this.a = (double)NumericProperty.DIFFUSIVITY.getValue();		
+		this.qAbs = (double)NumericProperty.ABSORBED_ENERGY.getValue();
+		setTestTemperature(NumericProperty.TEST_TEMPERATURE);
 	}
 	
 	public NonlinearProblem(Problem p) {
 		super(p);
 		
 		if(! (p instanceof NonlinearProblem) ) {
-			this.qAbs = (double)NumericProperty.DEFAULT_QABS.getValue();
-			nonlinearPrecision = (double)NumericProperty.DEFAULT_NONLINEAR_PRECISION.getValue();	
+			this.qAbs = (double)NumericProperty.ABSORBED_ENERGY.getValue();
+			nonlinearPrecision = (double)NumericProperty.NONLINEAR_PRECISION.getValue();	
 			return;
 		}
 		
@@ -66,8 +66,8 @@ public class NonlinearProblem extends Problem {
 	}
 	
 	@Override
-	public void couple(ExperimentalData c) {
-		super.couple(c);
+	public void retrieveData(ExperimentalData c) {
+		super.retrieveData(c);
 		this.setTestTemperature(c.getMetadata().getTestTemperature());
 		
 		makeAdjustments();	
@@ -81,26 +81,26 @@ public class NonlinearProblem extends Problem {
 	}
 
 	@Override
-	public void setDensity(NumericProperty rho) {
-		super.setDensity(rho);
+	public void set(NumericPropertyKeyword type, NumericProperty rho) {
+		super.set(type, rho);
 		makeAdjustments();
 	}
 	
 	private void makeAdjustments() {
 		
-		final double tempError	= 5e-2*this.maximumTemperature;
+		final double tempError	= 5e-2*this.signalHeight;
 		final double error1 = 1e-5;
 
 		if(cV < error1 || rho < error1) 
 			return;
 			
-		if( Math.abs( estimateHeating() - this.maximumTemperature ) > tempError) 
+		if( Math.abs( estimateHeating() - this.signalHeight ) > tempError) 
 			adjustAbsorbedEnergy();
 		
 	}
 
 	public NumericProperty getAbsorbedEnergy() {
-		return new NumericProperty(qAbs, NumericProperty.DEFAULT_QABS);
+		return new NumericProperty(qAbs, NumericProperty.ABSORBED_ENERGY);
 	}
 
 	public void setAbsorbedEnergy(NumericProperty qAbs) {
@@ -108,7 +108,7 @@ public class NonlinearProblem extends Problem {
 	}
 
 	public NumericProperty getNonlinearPrecision() {
-		return new NumericProperty(nonlinearPrecision, NumericProperty.DEFAULT_NONLINEAR_PRECISION);
+		return new NumericProperty(nonlinearPrecision, NumericProperty.NONLINEAR_PRECISION);
 	}
 
 	public void setNonlinearPrecision(NumericProperty nonlinearPrecision) {
@@ -116,73 +116,68 @@ public class NonlinearProblem extends Problem {
 	}
 
 	public NumericProperty getTestTemperature() {
-		return new NumericProperty(T, NumericProperty.DEFAULT_T);
+		return new NumericProperty(T, NumericProperty.TEST_TEMPERATURE);
 	}
 
 	public void setTestTemperature(NumericProperty T) {
 		this.T  = (double)T.getValue();
 		
 		if(TaskManager.getSpecificHeatCurve() != null)
-			setSpecificHeat( 
-					new NumericProperty(TaskManager.getSpecificHeatCurve().valueAt(this.T), 
-							NumericProperty.DEFAULT_CV));
+			cV = TaskManager.getSpecificHeatCurve().valueAt(this.T);
 		
-		if(TaskManager.getDensityCurve() != null)
-			setDensity( 
-					new NumericProperty(TaskManager.getDensityCurve().valueAt(this.T), 
-							NumericProperty.DEFAULT_RHO));
+		if(TaskManager.getDensityCurve() != null) 
+			rho = TaskManager.getDensityCurve().valueAt(this.T);
+		
+		makeAdjustments();
+		
 	}		
 	
 	@Override
-	public Map<String,String> propertyNames() {
-		Map<String,String> map = super.propertyNames();
-		map.put(getAbsorbedEnergy().getSimpleName(), Messages.getString("NonlinearProblem.0")); //$NON-NLS-1$
-		map.put(getDensity().getSimpleName(), Messages.getString("NonlinearProblem.1")); //$NON-NLS-1$
-		map.put(getNonlinearPrecision().getSimpleName(), Messages.getString("NonlinearProblem.2")); //$NON-NLS-1$
-		map.put(getTestTemperature().getSimpleName(), Messages.getString("NonlinearProblem.3")); //$NON-NLS-1$
-		map.put(getSpecificHeat().getSimpleName(), Messages.getString("NonlinearProblem.4")); //$NON-NLS-1$
-		return map;
+	public List<Property> listedParameters() {
+		List<Property> list = super.listedParameters();
+		list.add(NumericProperty.ABSORBED_ENERGY);
+		list.add(NumericProperty.DENSITY);
+		list.add(NumericProperty.NONLINEAR_PRECISION);
+		list.add(NumericProperty.TEST_TEMPERATURE);
+		list.add(NumericProperty.SPECIFIC_HEAT);
+		return list;
 	}
 
 	@Override
 	public DifferenceScheme[] availableSolutions() {
 		return new DifferenceScheme[]{new ExplicitScheme(), new ImplicitScheme(), new MixedScheme()};
 	}
-
+	
 	@Override
-	public Vector objectiveFunction(BooleanProperty[] flags) {
-		Vector v = super.objectiveFunction(flags);
+	public IndexedVector objectiveFunction(List<Flag> flags) {	
+		IndexedVector objectiveFunction = super.objectiveFunction(flags);
+		int size = objectiveFunction.dimension(); 		
+		
+		for(int i = 0; i < size; i++) {
 
-		for(int i = 0; i < flags.length; i++) {
-			if(! (boolean) flags[i].getValue() )
-				continue; 
-			
-			if( ObjectiveFunctionIndex.valueOf(flags[i].getSimpleName()) .equals(ObjectiveFunctionIndex.MAX_TEMP)) {
-				v.set(i, qAbs);	
+			if( objectiveFunction.getIndex(i) == NumericPropertyKeyword.MAXTEMP ) {
+				objectiveFunction.set(i, qAbs);	
 				break;		
 			}
-			
 		}
 		
-		return v;
+		return objectiveFunction;
+		
 	}
 	
-	@Override 
-	public void assign(Vector params, BooleanProperty[] flags) {
-		super.assign(params, flags);
+	@Override
+	public void assign(IndexedVector params) {
+		super.assign(params);		
+		int size = params.dimension(); 		
 		
-		for(int i = 0, realIndex = 0; i < flags.length; i++) {
-			if(! (boolean) flags[i].getValue() )
-				continue;
-			
-			realIndex = convert(i, flags);
-			
-			if( ObjectiveFunctionIndex.valueOf(flags[i].getSimpleName()) .equals(ObjectiveFunctionIndex.MAX_TEMP)) {
-				qAbs = params.get(realIndex); 
-				break;
-			}
+		for(int i = 0; i < size; i++) {
 
+			if( params.getIndex(i) == NumericPropertyKeyword.MAXTEMP ) {
+				qAbs = params.get(i);	
+				break;		
+			}
 		}
+		
 	}
 	
 	public double estimateHeating() {
@@ -190,7 +185,7 @@ public class NonlinearProblem extends Problem {
 	}
 	
 	public void adjustAbsorbedEnergy() {
-		qAbs = maximumTemperature*cV*rho*Math.PI*Math.pow((double)pulse.getSpotDiameter().getValue(), 2)*l;
+		qAbs = signalHeight*cV*rho*Math.PI*Math.pow((double)pulse.getSpotDiameter().getValue(), 2)*l;
 	}
 	
 	@Override

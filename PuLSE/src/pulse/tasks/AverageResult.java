@@ -18,30 +18,24 @@ public class AverageResult extends AbstractResult {
 		
 		for(AbstractResult r : res) {
 			results.add(r);
-			r.parent = this;
+			r.setParent(this);
 		}
 		
-		double[] av 	= new double[resultFormat.labels().length];
+		double[] av 	= new double[resultFormat.abbreviations().size()];
 		double[] std 	= new double[av.length];
-		
-		properties = new NumericProperty[av.length];
 	
 		for(int j = 0; j < av.length; j++) 
-			properties[j] = new NumericProperty( 
+			addProperty(new NumericProperty( 
 					0.0,
-					(NumericProperty) results.get(0).properties()[j]
-					);
+					(NumericProperty) results.get(0).getProperty(j)
+					));
 		
 		
 		int size = results.size();
 		
-		NumericProperty[] p;
-		
-		for(AbstractResult r : results) {
-			p = r.properties();
+		for(AbstractResult r : results) 
 			for(int i = 0; i < av.length; i++)
-				av[i] += (double) p[i].getValue();
-		}
+				av[i] += (double) r.getProperty(i).getValue();
 		
 		BigDecimal[] avBig = new BigDecimal[av.length];
 		
@@ -54,11 +48,9 @@ public class AverageResult extends AbstractResult {
 		 * Calculate standard error std[j] for each column
 		 */
 		
-		for(AbstractResult r : results) {
-			p = r.properties();
+		for(AbstractResult r : results) 
 			for(int j = 0; j < av.length; j++) 
-				std[j] += Math.pow( (double) p[j].getValue() - av[j], 2);
-		}
+				std[j] += Math.pow( (double) r.getProperty(j).getValue() - av[j], 2);
 		
 		BigDecimal[] stdBig = new BigDecimal[av.length];
 		int numFigures		= 2;
@@ -76,8 +68,8 @@ public class AverageResult extends AbstractResult {
 			resultStd	= stdBig[j].divideToIntegralValue(unitStd).multiply(unitStd);
 			resultAv	= avBig[j].setScale(unitStd.scale(), RoundingMode.CEILING);
 			
-			properties[j].setValue(resultAv.doubleValue());
-			properties[j].setError(resultStd.doubleValue());		
+			getProperty(j).setValue(resultAv.doubleValue());
+			getProperty(j).setError(resultStd.doubleValue());		
 		}
 		
 	}

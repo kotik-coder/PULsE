@@ -12,12 +12,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import pulse.input.ExperimentalData;
 import pulse.input.PropertyCurve;
 import pulse.io.readers.ReaderManager;
+import pulse.problem.statements.Problem;
 import pulse.search.direction.PathSolver;
 import pulse.tasks.listeners.TaskRepositoryEvent;
 import pulse.tasks.listeners.TaskRepositoryListener;
@@ -52,9 +52,8 @@ public static TaskManager getInstance() {
 }
 
 public static void execute(SearchTask t) {
-	
 	removeResult(t); //remove old result	
-	t.setStatus(Status.QUEUED); //notify listeners computatation is about to start
+	t.setStatus(Status.QUEUED); //notify listeners computation is about to start
 	
 	//notify listeners
 	notifyListeners( new TaskRepositoryEvent(
@@ -90,7 +89,7 @@ public static void execute(SearchTask t) {
 			}
 					
 	);
-	
+
 }
 
 private static void notifyListeners(TaskRepositoryEvent e) {
@@ -141,7 +140,12 @@ public static void cancelAllTasks() {
 
 public static boolean dataNeedsTruncation() {
 	
-	return tasks.stream().anyMatch(t -> !t.getExperimentalCurve().isAcquisitionTimeSensible() );
+	return tasks.stream().anyMatch(
+			t -> 
+			
+			!t.getExperimentalCurve().isAcquisitionTimeSensible() 
+			
+			);
 		
 }
 
@@ -151,6 +155,12 @@ public static void truncateData() {
 		t.updateTimeLimit();
 	});
 	
+}
+
+public static void selectFirstTask() {
+	Optional<SearchTask> task = tasks.stream().filter(t -> t != null).findFirst();
+	if(task.isPresent())
+		selectTask(task.get().getIdentifier(), TaskManager.getInstance());
 }
 
 public static void clear() {
@@ -180,6 +190,8 @@ public static void reset() {
 		
 		notifyListeners(e);	
 	}
+	
+	PathSolver.reset();
 			
 }
 
@@ -214,7 +226,7 @@ public static void generateTask(File file) {
 		System.err.println("Error loading experimental data");
 		e.printStackTrace();
 	}
-	curves.stream().forEach(curve -> addTask(new SearchTask(curve)) );	
+	curves.stream().forEach(curve -> addTask(new SearchTask(curve)) );		
 }
 
 public static void generateTasks(List<File> files) {

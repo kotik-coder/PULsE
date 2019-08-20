@@ -58,10 +58,6 @@ public class Identifier {
 			
 		}
 		
-		public NumericProperty asNumericProperty() {
-			return new NumericProperty(null, id);
-		}
-		
 		@Override
 		public boolean equals(Object o) {
 			if(! (o instanceof Identifier))

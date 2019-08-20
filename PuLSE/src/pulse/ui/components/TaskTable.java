@@ -5,6 +5,7 @@ import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Vector;
 
 import javax.swing.DefaultRowSorter;
@@ -19,6 +20,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 
+import pulse.properties.NumericProperty;
 import pulse.tasks.Identifier;
 import pulse.tasks.SearchTask;
 import pulse.tasks.TaskManager;
@@ -43,6 +45,9 @@ public class TaskTable extends JTable {
 		
 		private final static Font f = new Font(Messages.getString("TaskTable.FontName"), Font.PLAIN, 14); //$NON-NLS-1$
 		
+		private Comparator<Identifier> identifierComparator = (i1, i2) -> Integer.valueOf(i1.getValue()).
+																	compareTo(Integer.valueOf(i2.getValue()));
+		
 		public TaskTable() {
 			super();
 			taskTableRenderer = new TaskTableRenderer();
@@ -64,7 +69,7 @@ public class TaskTable extends JTable {
 		    ArrayList<RowSorter.SortKey> list	= new ArrayList();
 		    
 			list.add( new RowSorter.SortKey(0, SortOrder.ASCENDING) );
-		    sorter.setComparator(0, new IdentifierComparator());
+		    sorter.setComparator(0, identifierComparator);
 		    
 		    for(int i = 1; i < 4; i++) {
 		    	list.add( new RowSorter.SortKey(i, SortOrder.ASCENDING) );
@@ -194,7 +199,7 @@ public class TaskTable extends JTable {
 				super( new Object[][] {},
 					   new String[] {
 							   Messages.getString("TaskTable.TaskID"),  //$NON-NLS-1$
-							   Messages.getString("TaskTable.Temperature"),  //$NON-NLS-1$
+							   NumericProperty.TEST_TEMPERATURE.getAbbreviation(),
 							   Messages.getString("TaskTable.SS2"),  //$NON-NLS-1$
 							   Messages.getString("TaskTable.R2"),  //$NON-NLS-1$
 							   Messages.getString("TaskTable.Status") //$NON-NLS-1$
@@ -209,12 +214,10 @@ public class TaskTable extends JTable {
 						t.getSumOfSquares(),
 						t.getRSquared(),
 						t.getStatus()
-				};
+				};	
 				
 				super.addRow(data);	
 				
-				int row = super.getRowCount() - 1;
-			
 				t.addStatusChangeListener(new StatusChangeListener() {
 
 					@Override

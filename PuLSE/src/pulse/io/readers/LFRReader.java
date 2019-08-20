@@ -56,7 +56,7 @@ public class LFRReader implements CurveReader {
 		
 			tokenizer.nextToken(delims); //sample id
 			NumericProperty temperature = new NumericProperty(Double.parseDouble(tokenizer.nextToken()) + CONVERSION_TO_KELVIN, 
-					NumericProperty.DEFAULT_T); //test temperature
+					NumericProperty.TEST_TEMPERATURE); //test temperature
 			
 			fileTempMap.put( tmp, new Metadata(temperature, id) ); //assign metadata object with external id and temperature
 			
@@ -115,8 +115,8 @@ public class LFRReader implements CurveReader {
 		}
 		
 		curve.updateCount();
-		curve.estimateBaseline();
-		curve.baselineCorrection();
+		//curve.estimateBaseline();
+		//curve.baselineCorrection();
 		
 		reader.close();
 	

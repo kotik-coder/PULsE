@@ -20,19 +20,17 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 
-import pulse.search.direction.ApproximatedHessianSolver;
 import pulse.search.direction.PathSolver;
-import pulse.search.direction.SteepestDescentSolver;
-import pulse.search.linear.GoldenSectionSolver;
 import pulse.search.linear.LinearSolver;
-import pulse.search.linear.WolfeSolver;
 import pulse.tasks.SearchTask;
 import pulse.tasks.TaskManager;
 import pulse.ui.components.PropertyHolderTable;
 import pulse.ui.components.WrapCellRenderer;
+import pulse.util.Reflexive;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.List;
 
 public class SearchOptionsFrame extends JFrame {
 
@@ -132,14 +130,15 @@ public class SearchOptionsFrame extends JFrame {
 				 * 
 				 */
 				private static final long serialVersionUID = -7683200230096704268L;
-				PathSolver[] values = new PathSolver[] 
-						{SteepestDescentSolver.getInstance(),
-						 ApproximatedHessianSolver.getInstance()};
+				List<PathSolver> pathSolvers = Reflexive.instancesOf(PathSolver.class);
+				
+				@Override
 				public int getSize() {
-					return values.length;
+					return pathSolvers.size();
 				}
+				@Override
 				public PathSolver getElementAt(int index) {
-					return values[index];
+					return pathSolvers.get(index);
 				}
 			});		
 			
@@ -193,15 +192,14 @@ public class SearchOptionsFrame extends JFrame {
 				 * 
 				 */
 				private static final long serialVersionUID = -3560305247730025830L;
-				LinearSolver[] values = new LinearSolver[] {
-						GoldenSectionSolver.getInstance(),
-						WolfeSolver.getInstance()
-						};
+				List<LinearSolver> linearSolvers = Reflexive.instancesOf(LinearSolver.class);
+				@Override
 				public int getSize() {
-					return values.length;
+					return linearSolvers.size();
 				}
+				@Override
 				public LinearSolver getElementAt(int index) {
-					return values[index];
+					return linearSolvers.get(index);
 				}
 			});
 			

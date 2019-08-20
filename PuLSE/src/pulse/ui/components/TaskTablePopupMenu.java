@@ -27,7 +27,7 @@ public class TaskTablePopupMenu extends JPopupMenu {
 	private final static Font f = new Font(Messages.getString("TaskTable.FontName"), Font.BOLD, 18); //$NON-NLS-1$ 
 
 	public TaskTablePopupMenu() {	
-		JMenuItem problemStatement, itemExecute, itemChart, itemShowMeta;
+		JMenuItem problemStatement, itemExecute, itemChart, itemShowMeta, itemReset;
 		
 		problemStatement = new JMenuItem(Messages.getString("TaskTablePopupMenu.ShowDetails")); //$NON-NLS-1$
 		
@@ -65,7 +65,7 @@ public class TaskTablePopupMenu extends JPopupMenu {
 					return;	
 				}
 				
-				TaskControlFrame.plot(t);
+				TaskControlFrame.plot(t, false);
 				
 			}
 			
@@ -137,6 +137,19 @@ public class TaskTablePopupMenu extends JPopupMenu {
 		
 		add(itemExecute);
 		itemExecute.setFont(f);
+		
+		itemReset = new JMenuItem(Messages.getString("TaskTablePopupMenu.Reset"));
+		add(itemReset);
+		itemReset.setFont(f);
+		
+		itemReset.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				TaskManager.getSelectedTask().reset();
+			}
+			
+		});
 		
 	}
 	

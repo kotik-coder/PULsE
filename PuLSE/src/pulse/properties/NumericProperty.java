@@ -7,9 +7,11 @@ public class NumericProperty implements Property {
 
 	private Number value;
 	private Number minimum, maximum;
-	private String simpleName;
+	private String descriptor;
+	private String abbreviation;
 	private Number dimensionFactor;
 	private Number error;
+	private NumericPropertyKeyword type;
 	private boolean autoAdjustable = true;
 	
 	public NumericProperty(Number value, NumericProperty pattern) {
@@ -17,26 +19,33 @@ public class NumericProperty implements Property {
 		this.value = value;
 	}
 	
-	public NumericProperty(String simpleName, Number value, NumericProperty pattern) {
+	public NumericProperty(NumericPropertyKeyword type, String descriptor, String abbreviation, Number value, NumericProperty pattern) {
 		this(pattern);
-		this.simpleName = simpleName;
+		this.type = type;
+		this.descriptor = descriptor;
+		this.abbreviation = abbreviation;
 		this.value = value;
 	}
 	
-	public NumericProperty(String shortName, Number value, Number minimum, Number maximum, Number defaultValue, Number dimensionFactor, boolean autoAdjustable) {
-		this.simpleName = shortName;
+	public NumericProperty(NumericPropertyKeyword type, String descriptor, String abbreviation, Number value, Number minimum, 
+			Number maximum, Number defaultValue, Number dimensionFactor, boolean autoAdjustable) {		
+		this.type = type;
+		this.descriptor = descriptor;
+		this.abbreviation = abbreviation;
 		this.value = value;
 		this.dimensionFactor = dimensionFactor; 
 		this.autoAdjustable = autoAdjustable;
 		setBounds(minimum, maximum);
 	}
 	
-	public NumericProperty(String shortName, Number value, Number minimum, Number maximum, boolean autoAdjustable) {
-		this(shortName, value, minimum, maximum, 0.0, 1.0, autoAdjustable);
+	public NumericProperty(NumericPropertyKeyword type, String descriptor, String abbreviation, Number value, Number minimum, Number maximum, boolean autoAdjustable) {
+		this(type, descriptor, abbreviation, value, minimum, maximum, 0.0, 1.0, autoAdjustable);
 	}
 	
-	public NumericProperty(String shortName, Number value) {
-		this.simpleName = shortName; 
+	public NumericProperty(NumericPropertyKeyword type, String descriptor, String abbreviation, Number value) {
+		this.type = type;
+		this.descriptor = descriptor;
+		this.abbreviation = abbreviation;
 		this.value = value;
 		if(value instanceof Integer) {
 			setBounds(Integer.MIN_VALUE, Integer.MAX_VALUE);
@@ -50,26 +59,33 @@ public class NumericProperty implements Property {
 	
 	public NumericProperty(NumericProperty num) {
 		this.value 	 = num.value;
+		this.descriptor = num.descriptor;
+		this.abbreviation = num.abbreviation;
 		this.minimum = num.minimum;
 		this.maximum = num.maximum;
-		this.simpleName = num.simpleName;
+		this.type = num.type;
 		this.dimensionFactor = num.dimensionFactor;
 		this.autoAdjustable = num.autoAdjustable;
 	}
 	
-	public String getSimpleName() {
-		return simpleName;
+	public NumericPropertyKeyword getType() {
+		return type;
 	}
 
 	public Object getValue() {
 		return value;
 	}
 	
-	public boolean isValueSensible(Number value) {
-		if( value.doubleValue() > maximum.doubleValue() ) 
+	public static boolean isValueSensible(NumericProperty property, Number val) {
+		double value = val.doubleValue();
+		double max = property.getMaximum().doubleValue();
+		
+		if( value > max ) 
 			return false;
 		
-		if( value.doubleValue() < minimum.doubleValue() )
+		double min = property.getMinimum().doubleValue();
+		
+		if( value < min )
 			return false;
 
 		return true;
@@ -77,8 +93,8 @@ public class NumericProperty implements Property {
 	}
 
 	public void setValue(Number value) {
-		if( ! isValueSensible(value) ) {
-			String msg = "Allowed range for " + simpleName + " : " + this.value.getClass().getSimpleName() 
+		if( ! NumericProperty.isValueSensible(this, value) ) {
+			String msg = "Allowed range for " + type + " : " + this.value.getClass().getSimpleName() 
 					+ " from " + minimum + " to " + maximum + ". Received value: " + value; 
 			throw new IllegalArgumentException(msg);
 		}
@@ -129,8 +145,8 @@ public class NumericProperty implements Property {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		if(simpleName != null) {
-			sb.append(simpleName);
+		if(type != null) {
+			sb.append(type);
 			sb.append(" = ");
 		}
 		sb.append(formattedValue(false));
@@ -139,7 +155,7 @@ public class NumericProperty implements Property {
 	
 	@Override
 	public String formattedValue() {
-		return formattedValue(true);
+		return this.formattedValue(true);
 	}
 	
 	public String formattedValue(boolean convertDimension) {
@@ -165,7 +181,7 @@ public class NumericProperty implements Property {
 			selectedFormat = new DecimalFormat(Messages.getString("NumericProperty.BigNumberFormat")); //$NON-NLS-1$
 		else
 			selectedFormat = new DecimalFormat(Messages.getString("NumericProperty.NumberFormat")); //$NON-NLS-1$
-				
+		
 		if(error != null)
 			return selectedFormat.format(adjustedValue) 
 				+ PLUS_MINUS 
@@ -176,29 +192,30 @@ public class NumericProperty implements Property {
 			
 	}
 	
-	public final static NumericProperty DEFAULT_DIFFUSIVITY 		= new NumericProperty(Messages.getString("NumericProperty.15"), 1E-6, 1E-10, 1E-3, 1E-6, 1E6, true); //$NON-NLS-1$
-	public final static NumericProperty DEFAULT_BASELINE	 		= new NumericProperty(Messages.getString("NumericProperty.16"), 0.0, -10.0, 10.0, 0.0, 1.0, true); //$NON-NLS-1$
-	public final static NumericProperty DEFAULT_THICKNESS 			= new NumericProperty(Messages.getString("NumericProperty.17"), 1E-3, 1E-6, 1E-1, 1E-3, 1E3, false); //$NON-NLS-1$
-	public final static NumericProperty DEFAULT_DIAMETER 			= new NumericProperty(Messages.getString("NumericProperty.18"), 10E-3, 1E-6, 1E-1, 10E-3, 1E3, false); //$NON-NLS-1$
-	public final static NumericProperty DEFAULT_BIOT				= new NumericProperty(Messages.getString("NumericProperty.19"), 0.0, 0.0, 10.0, 0.0, 1.0, true); //$NON-NLS-1$
-	public final static NumericProperty DEFAULT_MAXTEMP				= new NumericProperty(Messages.getString("NumericProperty.20"), 1.0, 0.01, 100.0, 1.0, 1.0, true); //$NON-NLS-1$
-	public final static NumericProperty DEFAULT_NONLINEAR_PRECISION	= new NumericProperty(Messages.getString("NumericProperty.21"), 1E-3, 1E-6, 1E-2, 1E-3, 1.0, false); //$NON-NLS-1$
-	public final static NumericProperty DEFAULT_COUNT				= new NumericProperty(Messages.getString("NumericProperty.22"), 100, 10, 1000, 100, 1, false); //$NON-NLS-1$
-	public final static NumericProperty DEFAULT_PULSE_WIDTH			= new NumericProperty(Messages.getString("NumericProperty.23"), 1.5E-3, 1E-4, 1.0, 1.5E-3, 1E3, false); //$NON-NLS-1$
-	public final static NumericProperty DEFAULT_SPOT_DIAMETER		= new NumericProperty(Messages.getString("NumericProperty.24"), 10.0E-3, 0.1E-3, 50E-3, 10.0E-3, 1E3, false); //$NON-NLS-1$
-	public final static NumericProperty DEFAULT_TIME_LIMIT			= new NumericProperty(Messages.getString("NumericProperty.25"), 1.0, 1E-6, 20.0, 1.0, 1.0, true); //$NON-NLS-1$
-	public final static NumericProperty DEFAULT_GRID_DENSITY		= new NumericProperty(Messages.getString("NumericProperty.26"), 30, 10, 200, 30, 1.0, true); //$NON-NLS-1$
-	public final static NumericProperty DEFAULT_CV					= new NumericProperty(Messages.getString("NumericProperty.27"), 0.0, 1.0, 10000.0, true); //$NON-NLS-1$
-	public final static NumericProperty DEFAULT_LAMBDA				= new NumericProperty(Messages.getString("NumericProperty.35"), 0.0, 1.0, 10000.0, true); //$NON-NLS-1$
-	public final static NumericProperty DEFAULT_EMISSIVITY			= new NumericProperty(Messages.getString("NumericProperty.36"), 0.0, 1.0, 2.0, true); //$NON-NLS-1$
-	public final static NumericProperty DEFAULT_RHO					= new NumericProperty(Messages.getString("NumericProperty.28"), 0.0, 10.0, 30000.0, true); //$NON-NLS-1$
-	public final static NumericProperty DEFAULT_QABS				= new NumericProperty(Messages.getString("NumericProperty.29"), 7.0, 0.1, 200.0, 7.0, 1.0, true); //$NON-NLS-1$
-	public final static NumericProperty DEFAULT_T					= new NumericProperty(Messages.getString("NumericProperty.30"), 298.0, 0.0, 10000.0, 298.0, 1.0, true); //$NON-NLS-1$
-	public final static NumericProperty DEFAULT_LINEAR_RESOLUTION 	= new NumericProperty(Messages.getString("NumericProperty.31"), 1E-7, 1E-8, 1E-1, 1E-7, 1.0, false); //$NON-NLS-1$
-	public final static NumericProperty DEFAULT_GRADIENT_RESOLUTION = new NumericProperty(Messages.getString("NumericProperty.32"), 1E-4, 1E-7, 1E-1, 1E-4, 1.0, false ); //$NON-NLS-1$
-	public final static NumericProperty DEFAULT_BUFFER_SIZE			= new NumericProperty(Messages.getString("NumericProperty.33"), 8, 1, 20, 4, 1, false); //$NON-NLS-1$
-	public final static NumericProperty DEFAULT_ERROR_TOLERANCE     = new NumericProperty(Messages.getString("NumericProperty.34"), 1E-3, 1E-5, 1E-1, 1E-3, 1.0, false); //$NON-NLS-1$
-	public final static NumericProperty DEFAULT_PYROMETER_SPOT		= new NumericProperty(Messages.getString("NumericProperty.37"), 10E-3, 1E-6, 1E-1, 10E-3, 1E3, false); //$NON-NLS-1$
+	public final static NumericProperty DIFFUSIVITY 		= new NumericProperty(NumericPropertyKeyword.DIFFUSIVITY, Messages.getString("Diffusivity.Descriptor"), Messages.getString("Diffusivity.Abbreviation"), 1E-6, 1E-10, 1E-3, 1E-6, 1E6, true); //$NON-NLS-1$
+	public final static NumericProperty THICKNESS 			= new NumericProperty(NumericPropertyKeyword.THICKNESS, Messages.getString("Thickness.Descriptor"), Messages.getString("Thickness.Abbreviation"), 1E-3, 1E-6, 1E-1, 1E-3, 1E3, false); //$NON-NLS-1$
+	public final static NumericProperty DIAMETER 			= new NumericProperty(NumericPropertyKeyword.DIAMETER, Messages.getString("Diameter.Descriptor"), Messages.getString("Diameter.Abbreviation"), 10E-3, 1E-6, 1E-1, 10E-3, 1E3, false); //$NON-NLS-1$
+	public final static NumericProperty MAXTEMP				= new NumericProperty(NumericPropertyKeyword.MAXTEMP, Messages.getString("MaxTemp.Descriptor"), Messages.getString("MaxTemp.Abbreviation"), 1.0, 0.01, 100.0, 1.0, 1.0, true); //$NON-NLS-1$
+	public final static NumericProperty NONLINEAR_PRECISION	= new NumericProperty(NumericPropertyKeyword.NONLINEAR_PRECISION, Messages.getString("NonlinearPrecision.Descriptor"), Messages.getString("NonlinearPrecision.Descriptor"), 1E-3, 1E-6, 1E-2, 1E-3, 1.0, false); //$NON-NLS-1$
+	public final static NumericProperty COUNT				= new NumericProperty(NumericPropertyKeyword.NUMPOINTS, Messages.getString("NumPoints.Descriptor"), Messages.getString("NumPoints.Abbreviation"), 100, 10, 1000, 100, 1, false); //$NON-NLS-1$
+	public final static NumericProperty ITERATION			= new NumericProperty(NumericPropertyKeyword.ITERATION, Messages.getString("Iteration.Descriptor"), Messages.getString("Iteration.Abbreviation"), 0, 0, 1000000, 0, 1, false); //$NON-NLS-1$
+	public final static NumericProperty PULSE_WIDTH			= new NumericProperty(NumericPropertyKeyword.PULSE_WIDTH, Messages.getString("PulseWidth.Descriptor"), Messages.getString("PulseWidth.Abbreviation"), 1.5E-3, 1E-4, 1.0, 1.5E-3, 1E3, false); //$NON-NLS-1$
+	public final static NumericProperty SPOT_DIAMETER		= new NumericProperty(NumericPropertyKeyword.SPOT_DIAMETER, Messages.getString("SpotDiameter.Descriptor"), Messages.getString("SpotDiameter.Abbreviation"), 10.0E-3, 0.1E-3, 50E-3, 10.0E-3, 1E3, false); //$NON-NLS-1$
+	public final static NumericProperty TIME_LIMIT			= new NumericProperty(NumericPropertyKeyword.TIME_LIMIT, Messages.getString("TimeLimit.Descriptor"), Messages.getString("TimeLimit.Abbreviation"), 1.0, 1E-6, 20.0, 1.0, 1.0, true); //$NON-NLS-1$
+	public final static NumericProperty GRID_DENSITY		= new NumericProperty(NumericPropertyKeyword.GRID_DENSITY, Messages.getString("GridDensity.Descriptor"), Messages.getString("GridDensity.Abbreviation"), 30, 10, 200, 30, 1.0, true); //$NON-NLS-1$
+	public final static NumericProperty SPECIFIC_HEAT		= new NumericProperty(NumericPropertyKeyword.SPECIFIC_HEAT, Messages.getString("SpecificHeat.Descriptor"), Messages.getString("SpecificHeat.Abbreviation"), 0.0, 1.0, 10000.0, true); //$NON-NLS-1$
+	public final static NumericProperty CONDUCTIVITY		= new NumericProperty(NumericPropertyKeyword.CONDUCTIVITY, Messages.getString("ThermalConductivity.Descriptor"), Messages.getString("ThermalConductivity.Abbreviation"), 0.0, 1.0, 10000.0, true); //$NON-NLS-1$
+	public final static NumericProperty EMISSIVITY			= new NumericProperty(NumericPropertyKeyword.EMISSIVITY, Messages.getString("Emissivity.Descriptor"), Messages.getString("Emissivity.Abbreviation"), 0.0, 1.0, 2.0, true); //$NON-NLS-1$
+	public final static NumericProperty DENSITY				= new NumericProperty(NumericPropertyKeyword.DENSITY, Messages.getString("Density.Descriptor"), Messages.getString("Density.Abbreviation"), 0.0, 10.0, 30000.0, true); //$NON-NLS-1$
+	public final static NumericProperty ABSORBED_ENERGY		= new NumericProperty(NumericPropertyKeyword.ABSORBED_ENERGY, Messages.getString("AbsorbedEnergy.Descriptor"), Messages.getString("AbsorbedEnergy.Abbreviation"), 7.0, 0.1, 200.0, 7.0, 1.0, true); //$NON-NLS-1$
+	public final static NumericProperty TEST_TEMPERATURE	= new NumericProperty(NumericPropertyKeyword.TEST_TEMPERATURE, Messages.getString("TestTemperature.Descriptor"), Messages.getString("TestTemperature.Abbreviation"), 298.0, 0.0, 10000.0, 298.0, 1.0, true); //$NON-NLS-1$
+	public final static NumericProperty LINEAR_RESOLUTION 	= new NumericProperty(NumericPropertyKeyword.LINEAR_RESOLUTION, Messages.getString("LinearResolution.Descriptor"), Messages.getString("LinearResolution.Abbreviation"), 1E-7, 1E-8, 1E-1, 1E-7, 1.0, false); //$NON-NLS-1$
+	public final static NumericProperty GRADIENT_RESOLUTION = new NumericProperty(NumericPropertyKeyword.GRADIENT_RESOLUTION, Messages.getString("GradientResolution.Descriptor"),Messages.getString("GradientResolution.Abbreviation"), 1E-4, 1E-7, 1E-1, 1E-4, 1.0, false ); //$NON-NLS-1$
+	public final static NumericProperty BUFFER_SIZE			= new NumericProperty(NumericPropertyKeyword.BUFFER_SIZE, Messages.getString("BufferSize.Descriptor"), Messages.getString("BufferSize.Abbreviation"), 8, 1, 20, 4, 1, false); //$NON-NLS-1$
+	public final static NumericProperty ERROR_TOLERANCE     = new NumericProperty(NumericPropertyKeyword.ERROR_TOLERANCE, Messages.getString("ErrorTolerance.Descriptor"), Messages.getString("ErrorTolerance.Abbreviation"), 1E-3, 1E-5, 1E-1, 1E-3, 1.0, false); //$NON-NLS-1$
+	public final static NumericProperty PYROMETER_SPOT		= new NumericProperty(NumericPropertyKeyword.PYROMETER_SPOT, Messages.getString("PyrometerSpot.Descriptor"), Messages.getString("PyrometerSpot.Abbreviation"), 10E-3, 1E-6, 1E-1, 10E-3, 1E3, false); //$NON-NLS-1$
+	public final static NumericProperty BASELINE_SLOPE 		= new NumericProperty(NumericPropertyKeyword.BASELINE_SLOPE, Messages.getString("BaselineSlope.Descriptor"), Messages.getString("BaselineSlope.Abbreviation"), 0.0, -10.0, 10.0, 0.0, 1.0, true);
+	public final static NumericProperty BASELINE_INTERCEPT	= new NumericProperty(NumericPropertyKeyword.BASELINE_INTERCEPT, Messages.getString("BaselineIntercept.Descriptor"), Messages.getString("BaselineIntercept.Abbreviation"), 0.0, -10.0, 10.0, 0.0, 1.0, true); //$NON-NLS-1$
 	
 	public Number getDimensionFactor() {
 		return dimensionFactor;
@@ -222,6 +239,40 @@ public class NumericProperty implements Property {
 
 	public void setError(Number error) {
 		this.error = error;
+	}
+
+	@Override
+	public String getDescriptor() {
+		return descriptor;
+	}
+
+	public void setDescriptor(String descriptor) {
+		this.descriptor = descriptor;
+	}
+
+	public String getAbbreviation() {
+		return abbreviation;
+	}
+
+	public void setAbbreviation(String abbreviation) {
+		this.abbreviation = abbreviation;
+	}
+	
+	@Override
+	public boolean equals(Object o) {
+		if(! (o instanceof NumericProperty) )
+			return false;
+		
+		NumericProperty onp = (NumericProperty) o;
+		
+		if(onp.getType() != this.getType())
+			return false;
+		
+		if(!onp.getValue().equals(this.getValue()))
+			return false;
+		
+		return true;
+		
 	}
 	
 }

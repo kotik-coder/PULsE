@@ -21,13 +21,13 @@ public class ReflexiveFinder {
 		
 	}
 
-	public static String[] packageDirectoryList(String pckgname) {		
+	public static List<Class<?>> classesIn(String pckgname) {		
         String name = new String(pckgname);
         if (!name.startsWith(File.separator))  
             name = File.separatorChar + name;
         name = name.replace('.',File.separatorChar);
        
-        List<String> classNames = new ArrayList<String>();
+        List<Class<?>> classes = new ArrayList<Class<?>>();
         
         String locationPath = null;
         
@@ -43,7 +43,14 @@ public class ReflexiveFinder {
        		String[] files = root.list(); 
        		for(String file : files) {
        			if(file.endsWith(".class"))
-       					classNames.add(pckgname + "." + file.substring(0, file.length() - 6));
+					try {
+						classes.add(
+       							Class.forName(
+       									pckgname + "." + file.substring(0, file.length() - 6)));
+					} catch (ClassNotFoundException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
        		}
 		}
        	
@@ -64,27 +71,33 @@ public class ReflexiveFinder {
 	                String className = entry.getName().replace('/', '.'); // including ".class"
 	                if(!className.contains(pckgname))
 	                	continue;
-	                classNames.add(className.substring(0, className.length() - ".class".length()));
+	                classes.add(
+	                		Class.forName(
+	                				className.substring(0, className.length() - ".class".length()))
+	                				);
 	            }
 	        } }
 			catch(IOException e) {
+				e.printStackTrace();
+			} catch (ClassNotFoundException e) {
+				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		
        	}
         
-       return classNames.toArray(new String[classNames.size()]);        
+       return classes;        
 	}	
 	
-	public static <V extends Reflexive> List<V> findAllInstances(String pckgname) {
+	public static <V extends Reflexive> List<V> simpleInstances(String pckgname) {
 		List<V> instances = new LinkedList<V>();
 		
-        for (String classname : ReflexiveFinder.packageDirectoryList(pckgname)) {        	
+        for (Class<?> aClass : ReflexiveFinder.classesIn(pckgname)) {        	
                  
                     try {
                         // Try to create an instance of the object                    	
                     	
-                    	Constructor<?>[] ctrs = Class.forName(classname).getDeclaredConstructors(); //$NON-NLS-1$);
+                    	Constructor<?>[] ctrs = aClass.getDeclaredConstructors(); //$NON-NLS-1$);
                     	V instance = null;
                     	                                   	
                     	for (Constructor<?> ctr : ctrs) {
@@ -111,7 +124,7 @@ public class ReflexiveFinder {
                         
                         //if the class has a getInstance() method                    	
                         
-                        Method[] methods = Class.forName(classname).getMethods(); //$NON-NLS-1$
+                        Method[] methods = aClass.getMethods(); //$NON-NLS-1$
                     	instance = null;
                     	
                     	for (Method method : methods) {
@@ -126,20 +139,17 @@ public class ReflexiveFinder {
                     	if(instance != null)                    	                    	                    	                    	
                     		instances.add(instance);         
                         
-                    } catch (ClassNotFoundException cnfex) {
-                    	System.err.println(Messages.getString("ReflexiveFinder.SearchError") + classname); //$NON-NLS-1$
-                        cnfex.printStackTrace();
                     } catch (IllegalAccessException iaex) {
-                    	System.err.println("Cannot access: " + classname); //$NON-NLS-1$
+                    	System.err.println("Cannot access: " + aClass); //$NON-NLS-1$
                     	iaex.printStackTrace();
                     } catch (SecurityException e) {
-                    	System.err.println("Cannot access: " + classname); //$NON-NLS-1$
+                    	System.err.println("Cannot access: " + aClass); //$NON-NLS-1$
 						e.printStackTrace();
 					} catch (IllegalArgumentException e) {
-						System.err.println(Messages.getString("ReflexiveFinder.getInstanceArgumentError") + classname); //$NON-NLS-1$
+						System.err.println(Messages.getString("ReflexiveFinder.getInstanceArgumentError") + aClass); //$NON-NLS-1$
 						e.printStackTrace();
 					} catch (InvocationTargetException e) {
-						System.err.println(Messages.getString("ReflexiveFinder.getInstanceError") + classname); //$NON-NLS-1$
+						System.err.println(Messages.getString("ReflexiveFinder.getInstanceError") + aClass); //$NON-NLS-1$
 						e.printStackTrace();
 					}
                 
@@ -147,10 +157,6 @@ public class ReflexiveFinder {
         
         return instances;
         
-	}
-	
-	public static <V extends Reflexive> List<V> findAllInstances(V v) {
-		return findAllInstances(v.getClass().getPackage().getName());
 	}
 	
 }

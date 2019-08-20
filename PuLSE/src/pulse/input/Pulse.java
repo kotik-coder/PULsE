@@ -7,15 +7,15 @@ import static java.lang.Math.pow;
 import static java.lang.Math.signum;
 import static java.lang.Math.sqrt;
 
-import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
-import java.util.HashMap;
-import java.util.Map;
-
+import java.util.ArrayList;
+import java.util.List;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.statements.Problem;
 import pulse.problem.statements.TwoDimensional;
+import pulse.properties.EnumProperty;
 import pulse.properties.NumericProperty;
+import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 import pulse.tasks.SearchTask;
 import pulse.tasks.TaskManager;
@@ -30,14 +30,14 @@ public class Pulse extends PropertyHolder {
 	
 	public Pulse() {
 		pulseShape  = PulseShape.RECTANGULAR;
-		pulseWidth  = (double) NumericProperty.DEFAULT_PULSE_WIDTH.getValue();
-		spotDiameter = (double) NumericProperty.DEFAULT_SPOT_DIAMETER.getValue();
+		pulseWidth  = (double) NumericProperty.PULSE_WIDTH.getValue();
+		spotDiameter = (double) NumericProperty.SPOT_DIAMETER.getValue();
 	}
 	
 	public Pulse(PulseShape pform) {
 		this.pulseShape = pform;
-		pulseWidth  = (double) NumericProperty.DEFAULT_PULSE_WIDTH.getValue();
-		spotDiameter = (double) NumericProperty.DEFAULT_SPOT_DIAMETER.getValue();
+		pulseWidth  = (double) NumericProperty.PULSE_WIDTH.getValue();
+		spotDiameter = (double) NumericProperty.SPOT_DIAMETER.getValue();
 	}
 	
 	public Pulse(PulseShape pform, NumericProperty pwidth, NumericProperty ptime) {
@@ -62,7 +62,7 @@ public class Pulse extends PropertyHolder {
 	}
 	
 	public double pWidth(Problem problem, DifferenceScheme scheme) {
-		double timeStep   = (double)scheme.getTimeStep().getValue();
+		double timeStep   = scheme.getTimeStep();
 		
 		pWidth = round(
 				pulseWidth/(problem.timeFactor()*
@@ -73,7 +73,7 @@ public class Pulse extends PropertyHolder {
 	}
 	
 	public double pSpotDiameter(Problem problem, DifferenceScheme scheme) {
-		double xStep = (double) scheme.getXStep().getValue();
+		double xStep = scheme.getXStep();
 		
 		if(problem instanceof TwoDimensional) {
 			double d		  = (double)( ( (TwoDimensional)problem ).getSecondDimensionData() ).getSampleDiameter().getValue();	
@@ -116,7 +116,7 @@ public class Pulse extends PropertyHolder {
 	}
 
 	public NumericProperty getPulseWidth() {
-		return new NumericProperty(pulseWidth, NumericProperty.DEFAULT_PULSE_WIDTH);
+		return new NumericProperty(pulseWidth, NumericProperty.PULSE_WIDTH);
 	}
 
 	public void setPulseWidth(NumericProperty pulseWidth) {
@@ -124,7 +124,7 @@ public class Pulse extends PropertyHolder {
 	}
 
 	public NumericProperty getSpotDiameter() {
-		return new NumericProperty(spotDiameter, NumericProperty.DEFAULT_SPOT_DIAMETER);
+		return new NumericProperty(spotDiameter, NumericProperty.SPOT_DIAMETER);
 	}
 
 	public void setSpotDiameter(NumericProperty spotDiameter) {
@@ -143,37 +143,41 @@ public class Pulse extends PropertyHolder {
 	}
 	
 	@Override
-	public Map<String,String> propertyNames() {
-		Map<String,String> map = new HashMap<String,String>(3);
-		map.put(PulseShape.class.getSimpleName(), Messages.getString("Pulse.4")); //pulse form
-		map.put(getPulseWidth().getSimpleName(),  Messages.getString("Pulse.5")); //pulse time
-		map.put(getSpotDiameter().getSimpleName(), Messages.getString("Pulse.6")); //pulse width
-		return map;
+	public List<Property> listedParameters() {
+		List<Property> list = new ArrayList<Property>();
+		list.add(PulseShape.RECTANGULAR);
+		list.add(NumericProperty.PULSE_WIDTH);
+		list.add(NumericProperty.SPOT_DIAMETER);
+		return list;				
 	}
 
-	public enum PulseShape implements Property, Serializable {
+	public enum PulseShape implements EnumProperty {
 		TRAPEZOIDAL, RECTANGULAR, TRIANGULAR, GAUSSIAN;
 
 		@Override
 		public Object getValue() {
 			return this;
-		}
-		
+		}	
+
 		@Override
-		public String toString() {
-			return getSimpleName() + " = " + super.toString();
+		public String getDescriptor() {
+			return "Pulse shape";
 		}
 
 		@Override
-		public String getSimpleName() {
-			return PulseShape.class.getSimpleName();
+		public EnumProperty evaluate(String string) {
+			return valueOf(string);
 		}
 
 	}
 	
+	/*
+	 * ERRORS TODO
+	 */
+	
 	@Override
-	public void updateProperty(Property property) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {	
-		super.updateProperty(property);
+	public void updateProperty(Object object, Property property) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {		
+		super.updateProperty(object, property);
 		if(!Problem.isSingleStatement())
 			return;
 		
@@ -185,14 +189,22 @@ public class Pulse extends PropertyHolder {
 			if( p .equals( this ) )
 				continue;
 
-			p.superUpdateProperty(property);
+			p.superUpdateProperty(object, property);
 			
 		}
 		
 	}
 	
-	private void superUpdateProperty(Property property) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-		super.updateProperty(property);
+	private void superUpdateProperty(Object object, Property property) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+		super.updateProperty(object, property);
+	}
+
+	@Override
+	public void set(NumericPropertyKeyword type, NumericProperty property) {
+		switch(type) {
+		case PULSE_WIDTH : setPulseWidth(property); break;
+		case SPOT_DIAMETER : setSpotDiameter(property); break;
+		}
 	}
 
 }

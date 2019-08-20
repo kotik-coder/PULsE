@@ -11,6 +11,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -32,7 +33,6 @@ import javax.swing.table.TableRowSorter;
 
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.statements.Problem;
-import pulse.properties.NumericProperty;
 import pulse.tasks.SearchTask;
 import pulse.tasks.Status;
 import pulse.tasks.TaskManager;
@@ -45,9 +45,7 @@ import pulse.ui.components.TaskSelectionToolBar;
 import pulse.ui.components.ToolBarButton;
 import pulse.ui.components.WrapCellRenderer;
 import pulse.ui.components.LoaderButton.DataType;
-import pulse.util.Accessible;
-import pulse.util.PropertyEvent;
-import pulse.util.PropertyHolderListener;
+import pulse.util.Reflexive;
 
 public class ProblemStatementFrame extends JFrame {
 
@@ -61,7 +59,7 @@ public class ProblemStatementFrame extends JFrame {
 	private ProblemList problemList;
 	private TaskSelectionToolBar taskToolBar;
 	
-	private final static int WIDTH	= 900;
+	private final static int WIDTH	= 1000;
 	private final static int HEIGHT = 600;
 	
 	private final static int LIST_FONT_SIZE = 16;
@@ -115,7 +113,7 @@ public class ProblemStatementFrame extends JFrame {
 				( (TableRowSorter<?>)getRowSorter() ).sort();
 			}
 			
-		};
+		};			
 		
 		problemDetailsScroller.setViewportView(problemTable);
 		
@@ -168,7 +166,7 @@ public class ProblemStatementFrame extends JFrame {
 				t.adjustScheme();
 				t.solveProblem();
 		
-				TaskControlFrame.plot(t);				
+				TaskControlFrame.plot(t, true);				
 
 			}
 		});
@@ -214,44 +212,13 @@ public class ProblemStatementFrame extends JFrame {
 				update(e.getSelection());
 			}
 			
-		});
-		
-		for(SearchTask t : TaskManager.getTaskList()) {
-			Problem p = t.getProblem();
-			
-			if(p == null)
-				continue;
-			
-			p.addListener(new PropertyHolderListener() {
-
-				@Override
-				public void onPropertyChanged(PropertyEvent event) {
-					if(! (event.getProperty() instanceof NumericProperty) )
-						return;
-					
-					NumericProperty p = (NumericProperty)event.getProperty();
-					
-					if(p.isAutoAdjustable())
-						return;
-					
-					for(SearchTask t1 : TaskManager.getTaskList()) {
-						
-						try {
-							Accessible.updateProperty(t1.getProblem(), event.getProperty());
-						} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-						
-					}
-					
-				}
-				
-			});
-			
-		}	
+		});		
 		
 	}	
+	
+	public void update() {
+		update(TaskManager.getSelectedTask());
+	}
 	
 	private void update(SearchTask selectedTask) {
 		
@@ -387,7 +354,7 @@ public class ProblemStatementFrame extends JFrame {
 			super();
 			setFont(LIST_FONT); //$NON-NLS-1$
 			
-			Problem[] knownProblems = Problem.findKnownProblems();
+			List<Problem> knownProblems = Reflexive.instancesOf(Problem.class);
 			
 			DefaultListModel<Problem> listModel = new DefaultListModel<Problem>();
 			for(Problem p : knownProblems)
@@ -410,9 +377,9 @@ public class ProblemStatementFrame extends JFrame {
 					
 					SearchTask selectedTask	= TaskManager.getSelectedTask();
 					
-					if( Problem.isSingleStatement() ) 
+					if( Problem.isSingleStatement() )  
 						for(SearchTask t : TaskManager.getTaskList()) 
-							changeProblem(t, newlySelectedProblem);
+							changeProblem(t, newlySelectedProblem);					
 					else 
 						changeProblem(selectedTask, newlySelectedProblem);
 					
@@ -466,7 +433,7 @@ public class ProblemStatementFrame extends JFrame {
 				    
 				}
 				
-			});
+			});		
 			
 		}
 		

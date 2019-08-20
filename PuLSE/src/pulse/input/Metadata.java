@@ -2,12 +2,12 @@ package pulse.input;
 
 import java.io.FileOutputStream;
 import java.io.PrintStream;
-import java.util.HashMap;
-import java.util.Map;
-
+import java.util.ArrayList;
+import java.util.List;
 import pulse.input.Pulse.PulseShape;
 import pulse.input.Messages;
 import pulse.properties.NumericProperty;
+import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 import pulse.util.PropertyHolder;
 import pulse.util.Reflexive;
@@ -21,10 +21,12 @@ public class Metadata extends PropertyHolder implements Reflexive, Saveable {
 	private int externalID;
 	private String sampleName = "UnnamedSample";
 	
-	public final static NumericProperty DEFAULT_DETECTOR_GAIN = new NumericProperty(Messages.getString("Metadata.6"), 10, 1, 200, 10, 1, false); //$NON-NLS-1$
-	public final static NumericProperty DEFAULT_DETECTOR_IRIS = new NumericProperty(Messages.getString("Metadata.7"), 1, 1, 64, 1, 1, false); //$NON-NLS-1$
-	
-	private final static String EXPORT_EXTENSION = ".html";
+	public final static NumericProperty DETECTOR_GAIN = 
+			new NumericProperty(NumericPropertyKeyword.DETECTOR_GAIN, 
+					Messages.getString("Gain.Descriptor"), Messages.getString("Gain.Abbreviation"), 10, 1, 200, 10, 1, false); //$NON-NLS-1$
+	public final static NumericProperty DETECTOR_IRIS = 
+			new NumericProperty(NumericPropertyKeyword.DETECTOR_IRIS, 
+					Messages.getString("Iris.Descriptor"), Messages.getString("Iris.Abbreviation"), 1, 1, 64, 1, 1, false); //$NON-NLS-1$
 	
 	@Override
 	public String toString() {
@@ -32,44 +34,37 @@ public class Metadata extends PropertyHolder implements Reflexive, Saveable {
 		sb.append("[Sample " + sampleName + " with external ID " + externalID + "]");
 		sb.append(System.lineSeparator());
 		
-		Object[][] data = this.data();		
+		List<Property> data = this.data();		
 		
-		for(int i = 0; i < data.length; i++) {
-			sb.append( 
-					data[i][1].toString() 
-							);
-			if(i+1 < data.length)
-				sb.append(";");
-			else
-				sb.append(".");
+		data.forEach(entry -> 
+		{					
+			
+			sb.append(entry.toString());
 			sb.append(System.lineSeparator());
-		}
-		
+			
+		});
+
 		return sb.toString();
 		
 	}
 	
 	public Metadata(int externalId) { 
-		this.externalID = externalId; 
+		this.externalID = externalId;
 	}
 	
-	/**
-	 * COMMENTED LINE _ DELETE!
-	 */
-	
 	@Override
-	public Map<String,String> propertyNames() {
-		Map<String,String> map = new HashMap<String,String>(9);
-		map.put(NumericProperty.DEFAULT_T.getSimpleName(), Messages.getString("Problem.0")); //$NON-NLS-1$
-		map.put(NumericProperty.DEFAULT_THICKNESS.getSimpleName(), Messages.getString("Problem.3")); //$NON-NLS-1$
-		map.put(NumericProperty.DEFAULT_DIAMETER.getSimpleName(), Messages.getString("SecondDimensionData.2")); //$NON-NLS-1$
-		map.put(NumericProperty.DEFAULT_PULSE_WIDTH.getSimpleName(), Messages.getString("Pulse.5")); //$NON-NLS-1$
-		map.put(NumericProperty.DEFAULT_SPOT_DIAMETER.getSimpleName(), Messages.getString("Pulse.6")); //$NON-NLS-1$
-		map.put(NumericProperty.DEFAULT_QABS.getSimpleName(), Messages.getString("NonlinearProblem.0")); //$NON-NLS-1$
-		map.put(DEFAULT_DETECTOR_GAIN.getSimpleName(), Messages.getString("Metadata.4")); //$NON-NLS-1$
-		map.put(DEFAULT_DETECTOR_IRIS.getSimpleName(), Messages.getString("Metadata.5")); //$NON-NLS-1$
-		map.put(PulseShape.RECTANGULAR.getSimpleName(), Messages.getString("Pulse.4")); //$NON-NLS-1$
-		return map;
+	public List<Property> listedParameters() {
+		List<Property> list = new ArrayList<Property>(9);
+		list.add(NumericProperty.TEST_TEMPERATURE);
+		list.add(NumericProperty.THICKNESS);
+		list.add(NumericProperty.DIAMETER);
+		list.add(NumericProperty.PULSE_WIDTH);
+		list.add(NumericProperty.SPOT_DIAMETER);
+		list.add(NumericProperty.ABSORBED_ENERGY);
+		list.add(DETECTOR_GAIN);
+		list.add(DETECTOR_IRIS);
+		list.add(PulseShape.RECTANGULAR);		
+		return list;
 	}
 	
 	public Metadata(NumericProperty temperature) {
@@ -82,13 +77,13 @@ public class Metadata extends PropertyHolder implements Reflexive, Saveable {
 	}
 
 	public NumericProperty getTestTemperature() {
-		if(NumericProperty.DEFAULT_T.isValueSensible(testTemperature))
-			return new NumericProperty(testTemperature, NumericProperty.DEFAULT_T);
+		if(NumericProperty.isValueSensible(NumericProperty.TEST_TEMPERATURE, testTemperature))
+			return new NumericProperty(testTemperature, NumericProperty.TEST_TEMPERATURE);
 		return null;
 	}
 
 	public void setTestTemperature(NumericProperty temperature) {
-		this.testTemperature = (double) temperature.getValue();
+		this.testTemperature = (double) temperature.getValue();					
 	}
 
 	public int getExternalID() {
@@ -100,9 +95,9 @@ public class Metadata extends PropertyHolder implements Reflexive, Saveable {
 	}
 
 	public NumericProperty getSampleThickness() {
-		if(NumericProperty.DEFAULT_THICKNESS.isValueSensible(sampleThickness))
-			return new NumericProperty(sampleThickness, NumericProperty.DEFAULT_THICKNESS); 
-		return NumericProperty.DEFAULT_THICKNESS;
+		if(NumericProperty.isValueSensible(NumericProperty.THICKNESS, sampleThickness))
+			return new NumericProperty(sampleThickness, NumericProperty.THICKNESS); 
+		return NumericProperty.THICKNESS;
 	}
 
 	public void setSampleThickness(NumericProperty thickness) {
@@ -110,9 +105,9 @@ public class Metadata extends PropertyHolder implements Reflexive, Saveable {
 	}
 
 	public NumericProperty getSampleDiameter() {
-		if(NumericProperty.DEFAULT_DIAMETER.isValueSensible(sampleDiameter))
-			return new NumericProperty(sampleDiameter, NumericProperty.DEFAULT_DIAMETER);
-		return NumericProperty.DEFAULT_DIAMETER;
+		if(NumericProperty.isValueSensible(NumericProperty.DIAMETER, sampleDiameter))
+			return new NumericProperty(sampleDiameter, NumericProperty.DIAMETER);
+		return NumericProperty.DIAMETER;
 	}
 
 	public void setSampleDiameter(NumericProperty diameter) {
@@ -120,9 +115,9 @@ public class Metadata extends PropertyHolder implements Reflexive, Saveable {
 	}
 
 	public NumericProperty getPulseWidth() {
-		if(NumericProperty.DEFAULT_PULSE_WIDTH.isValueSensible(pulseWidth))
-			return new NumericProperty(pulseWidth, NumericProperty.DEFAULT_PULSE_WIDTH);
-		return NumericProperty.DEFAULT_PULSE_WIDTH;
+		if(NumericProperty.isValueSensible(NumericProperty.PULSE_WIDTH, pulseWidth))
+			return new NumericProperty(pulseWidth, NumericProperty.PULSE_WIDTH);
+		return NumericProperty.PULSE_WIDTH;
 	}
 
 	public void setPulseWidth(NumericProperty pulseWidth) {
@@ -130,9 +125,9 @@ public class Metadata extends PropertyHolder implements Reflexive, Saveable {
 	}
 
 	public NumericProperty getSpotDiameter() {
-		if(NumericProperty.DEFAULT_SPOT_DIAMETER.isValueSensible(spotDiameter))
-			return new NumericProperty(spotDiameter, NumericProperty.DEFAULT_SPOT_DIAMETER);
-		return NumericProperty.DEFAULT_SPOT_DIAMETER;
+		if(NumericProperty.isValueSensible(NumericProperty.SPOT_DIAMETER, spotDiameter))
+			return new NumericProperty(spotDiameter, NumericProperty.SPOT_DIAMETER);
+		return NumericProperty.SPOT_DIAMETER;
 	}
 
 	public void setSpotDiameter(NumericProperty spotDiameter) {
@@ -140,9 +135,9 @@ public class Metadata extends PropertyHolder implements Reflexive, Saveable {
 	}
 
 	public NumericProperty getAbsorbedEnergy() {
-		if(NumericProperty.DEFAULT_QABS.isValueSensible(absorbedEnergy))
-			return new NumericProperty(absorbedEnergy, NumericProperty.DEFAULT_QABS);
-		return NumericProperty.DEFAULT_QABS;
+		if(NumericProperty.isValueSensible(NumericProperty.ABSORBED_ENERGY, absorbedEnergy))
+			return new NumericProperty(absorbedEnergy, NumericProperty.ABSORBED_ENERGY);
+		return NumericProperty.ABSORBED_ENERGY;
 	}
 
 	public void setAbsorbedEnergy(NumericProperty absorbedEnergy) {
@@ -150,19 +145,19 @@ public class Metadata extends PropertyHolder implements Reflexive, Saveable {
 	}
 
 	public NumericProperty getDetectorGain() {
-		if(DEFAULT_DETECTOR_GAIN.isValueSensible(detectorGain))
-			return new NumericProperty(detectorGain, DEFAULT_DETECTOR_GAIN);
-		return DEFAULT_DETECTOR_GAIN;
+		if(NumericProperty.isValueSensible(DETECTOR_GAIN, detectorGain))
+			return new NumericProperty(detectorGain, DETECTOR_GAIN);
+		return DETECTOR_GAIN;
 	}
 
 	public void setDetectorGain(NumericProperty detectorGain) {
-		this.detectorGain = (int) detectorGain.getValue();
+		this.detectorGain = ((Number) detectorGain.getValue()).intValue();
 	}
 
 	public NumericProperty getDetectorIris() {
-		if(DEFAULT_DETECTOR_IRIS.isValueSensible(detectorIris))
-			return new NumericProperty(detectorIris, DEFAULT_DETECTOR_IRIS);
-		return DEFAULT_DETECTOR_IRIS;
+		if(NumericProperty.isValueSensible(DETECTOR_IRIS, detectorIris))
+			return new NumericProperty(detectorIris, DETECTOR_IRIS);
+		return DETECTOR_IRIS;
 	}
 
 	public void setDetectorIris(NumericProperty detectorIris) {
@@ -204,23 +199,38 @@ public class Metadata extends PropertyHolder implements Reflexive, Saveable {
 
         stream.println(" "); //$NON-NLS-1$
 
-        Object[][] data = data();
+        List<Property> data = data();
         
-        for (int i = 0; i < data.length; i++) {
+        data.forEach(entry -> {
         	stream.print("<tr>"); //$NON-NLS-1$
             
-        		stream.print("<td>"); //$NON-NLS-1$
-                stream.print(data[i][0]); //$NON-NLS-1$
-                stream.print("</td><td>"); //$NON-NLS-1$
-                stream.print( ( (Property) data[i][1]).formattedValue()); //$NON-NLS-1$
-                stream.print("</td>"); //$NON-NLS-1$
-            
+    		stream.print("<td>"); //$NON-NLS-1$
+            stream.print(entry.getDescriptor()); //$NON-NLS-1$
+            stream.print("</td><td>"); //$NON-NLS-1$
+            stream.print(entry.formattedValue()); //$NON-NLS-1$
+            //possible error typecast property -> object
+            stream.print("</td>"); //$NON-NLS-1$
+        
             stream.println("</tr>"); //$NON-NLS-1$
-        }
+        });
         
         stream.print("</table>"); //$NON-NLS-1$
         stream.close();
         
+	}
+
+	@Override
+	public void set(NumericPropertyKeyword type, NumericProperty property) {
+		switch(type) {
+		case TEST_TEMPERATURE 	: setTestTemperature(property); break;
+		case THICKNESS 			: setSampleThickness(property); break;
+		case DIAMETER 			: setSampleDiameter(property);	break; 
+		case PULSE_WIDTH 		: setPulseWidth(property);		break;
+		case SPOT_DIAMETER 		: setSpotDiameter(property); 	break;
+		case ABSORBED_ENERGY 	: setAbsorbedEnergy(property); 	break;
+		case DETECTOR_GAIN 		: setDetectorGain(property); 	break;
+		case DETECTOR_IRIS 		: setDetectorIris(property); 	break;
+		}
 	}
 		
 }

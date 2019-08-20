@@ -5,16 +5,17 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
-
 import pulse.input.Metadata;
-import pulse.input.Pulse.PulseShape;
+import pulse.properties.EnumProperty;
 import pulse.properties.NumericProperty;
-import pulse.properties.Property;
+import pulse.properties.NumericPropertyKeyword;
+import pulse.util.DataEntry;
 
 public class MetaFileReader implements AbstractReader {	
 	
@@ -53,7 +54,9 @@ public class MetaFileReader implements AbstractReader {
 				
 				if(size == 2) {
 					
-					Object[][] val = new Object[][]{ {tokens.get(0), tokens.get(1) } };
+					List<DataEntry<String,String>> val = new ArrayList<DataEntry<String,String>>();
+					DataEntry<String,String> entry = new DataEntry<String,String>( tokens.get(0), tokens.get(1) );
+					val.add(entry);
 								
 					switch( tokens.get(0) ) {					
 					case "Sample" : 
@@ -84,14 +87,10 @@ public class MetaFileReader implements AbstractReader {
 						if( Math.abs( Integer.valueOf(tokens.get(0)) - met.getExternalID() ) > 0.5 ) 							
 							continue;												
 												
-						Object[][] values = new Object[size-1][2];
-						
-						for(int i = 1; i < size; i++) {
-							
-							values[i-1][0] = metaFormat.get(i);
-							values[i-1][1] = tokens.get(i);
-							
-						}
+						List<DataEntry<String,String>> values = new ArrayList<DataEntry<String,String>>(size);						
+												
+						for(int i = 1; i < size; i++) 						
+							values.add(new DataEntry<String,String>(metaFormat.get(i), tokens.get(i)));													
 						
 						try {
 							translate(values, met);
@@ -111,56 +110,63 @@ public class MetaFileReader implements AbstractReader {
 					
 	}	
 	
-	private void translate(Object[][] data, Metadata met) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	private void translate(List<DataEntry<String,String>> data, Metadata met) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+
+		double tmp;		
 		
-		Object[][] metaData = met.data();
-		double tmp, val; 
-		Property property;
-		NumericProperty numProperty;
+		for(NumericProperty metaEntry : met.numericData()) {
 		
-		for(int i = 0; i < metaData.length; i++) {
-			
-			for(int j = 0; j < data.length; j++) {
+			inner: for(DataEntry<String,String> dataEntry : data) {			
 				
-				if(! (metaData[i][1] instanceof Property) )
+				if(!metaEntry.getType().toString().
+				equalsIgnoreCase(dataEntry.getKey()))
 					continue;
-				
-				property = (Property) metaData[i][1];
-				
-				if( property.getSimpleName().equals( data[j][0] ) )  {
-				
-					if(property instanceof NumericProperty)  {								
-								
-							tmp = Double.valueOf( (String) data[j][1] );
-							if(property.getSimpleName().equals(
-									NumericProperty.DEFAULT_T.getSimpleName())
-									)
-								tmp += CELSIUS_TO_KELVIN;
-							numProperty = (NumericProperty) property;
-							val = tmp / (numProperty.getDimensionFactor() ).doubleValue();
-								
-							if(! numProperty.isValueSensible(val))
-								continue;
-								
-							numProperty.setValue( val );
-							met.updateProperty( property );										
+
+				tmp = Double.valueOf( dataEntry.getValue() );
+				if(metaEntry.getType() == NumericPropertyKeyword.TEST_TEMPERATURE)
+					tmp += CELSIUS_TO_KELVIN;
 							
+				tmp /= (metaEntry.getDimensionFactor() ).doubleValue();
+								
+				if( NumericProperty.isValueSensible(metaEntry, tmp)) {																
+					metaEntry.setValue( tmp );
+					try {						
+						met.updateProperty( instance, metaEntry );
+						break inner;
+					} catch (IllegalAccessException | IllegalArgumentException
+							| InvocationTargetException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
 					}
-					
-					else {
-						
-						if(property instanceof PulseShape)							
-							met.updateProperty( PulseShape.valueOf( (String) data[j][1]) );
-						
-						
-					}
-					
-				} 				
+							
+				}																	
 				
 			}
 			
 		}
+					
+		for(EnumProperty genericEntry : met.enumData())  
+		{			
+			inner: for(DataEntry<String,String> dataEntry : data) {
+				
+						if(dataEntry.getKey().equals(genericEntry.getClass().getSimpleName())) {
 		
+						try {
+							met.updateProperty( instance, genericEntry.evaluate(dataEntry.getValue()) );
+						}
+						catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+							//TODO Auto-generated catch block
+							e.printStackTrace();
+						}	
+						
+						break inner;
+						
+					}
+				
+				}
+		
+			}				
+								
 	}
 	
 	@Override

@@ -1,47 +1,42 @@
 package pulse.search.direction;
 
-import java.util.HashMap;
-import java.util.LinkedList;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
 
-import pulse.properties.BooleanProperty;
+import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
+import pulse.properties.NumericPropertyKeyword;
+import pulse.properties.Property;
 import pulse.search.linear.LinearSolver;
-import pulse.search.math.ObjectiveFunctionIndex;
+import pulse.search.math.IndexedVector;
 import pulse.search.math.Vector;
 import pulse.tasks.Path;
 import pulse.tasks.SearchTask;
-import pulse.tasks.TaskManager;
 import pulse.util.PropertyHolder;
 import pulse.util.Reflexive;
-import pulse.util.ReflexiveFinder;
 
 public abstract class PathSolver extends PropertyHolder implements Reflexive {
 	
-	private static double errorTolerance	 = (double)NumericProperty.DEFAULT_ERROR_TOLERANCE.getValue();
-	private static double gradientResolution = (double)NumericProperty.DEFAULT_GRADIENT_RESOLUTION.getValue();
-	private static BooleanProperty[] globalSearchFlags;
-	
+	private static double errorTolerance	 = (double)NumericProperty.ERROR_TOLERANCE.getValue();
+	private static double gradientResolution = (double)NumericProperty.GRADIENT_RESOLUTION.getValue();
+
 	private static LinearSolver linearSolver = null;
-	
-	static {
-	
-		ObjectiveFunctionIndex[] values = ObjectiveFunctionIndex.values();
-		globalSearchFlags = new BooleanProperty[values.length];
-		
-		for(int i = 0; i < values.length; i++) 
-			globalSearchFlags[i] = new BooleanProperty(values[i].name(), values[i].isActiveByDefault());
-		
-	}
+	private static List<Flag> globalSearchFlags = Flag.defaultList();
 	
 	protected PathSolver() {
 		super();				
 	}
 	
+	public static void reset() {
+		linearSolver = null;
+		globalSearchFlags = Flag.defaultList(); 
+	}
+	
 	public double iteration(SearchTask task) {
 		//get current parameters
-		Vector parameters	= task.objectiveFunction();
+		IndexedVector parameters = task.objectiveFunction();
 		
 		//find min direction
 		Path p			= task.getPath(); //info with previous grads, hesse, etc.
@@ -55,7 +50,7 @@ public abstract class PathSolver extends PropertyHolder implements Reflexive {
 		//assign new parameters
 		Vector newParams 			= parameters.plus(dir.times(minimumPoint));
 			
-		task.assign(newParams);
+		task.assign( new IndexedVector(newParams, parameters.getIndices()) );
 		
 		//compute gradients, hessians, etc. with new parameters
 		endOfStep(task);
@@ -71,7 +66,7 @@ public abstract class PathSolver extends PropertyHolder implements Reflexive {
 	
 	public static Vector gradient(SearchTask task) {
 		
-		final Vector params = task.objectiveFunction();
+		final IndexedVector params = task.objectiveFunction();
 		
 		Vector grad				= new Vector(params.dimension());
 		
@@ -85,18 +80,18 @@ public abstract class PathSolver extends PropertyHolder implements Reflexive {
 			shift.set(i, 0.5*dx);
 			
 			newParams	= params.plus(shift);
-			task.assign(newParams);
+			task.assign( new IndexedVector(newParams, params.getIndices()) );
 			ss2			= task.calculateDeviation();
 			
 			newParams	= params.minus(shift);
-			task.assign(newParams);
+			task.assign( new IndexedVector(newParams, params.getIndices()) );
 			ss1			= task.calculateDeviation();
 			
 			grad.set(i, ( ss2 - ss1 ) / dx );
 					
 		}			
 		
-		task.assign(params);
+		task.assign( params );
 		
 		return grad;
 		
@@ -108,12 +103,11 @@ public abstract class PathSolver extends PropertyHolder implements Reflexive {
 
 	public void setLinearSolver(LinearSolver linearSearch) {
 		PathSolver.linearSolver = linearSearch;
-		this.updatePropertyNames();
-		
+		super.parameterListChanged();
 	}
 
 	public static NumericProperty getErrorTolerance() {
-		return new NumericProperty(errorTolerance, NumericProperty.DEFAULT_ERROR_TOLERANCE);
+		return new NumericProperty(errorTolerance, NumericProperty.ERROR_TOLERANCE);
 	}
 
 	public static void setErrorTolerance(NumericProperty errorTolerance) {
@@ -125,7 +119,7 @@ public abstract class PathSolver extends PropertyHolder implements Reflexive {
 	}
 	
 	public static NumericProperty getGradientResolution() {
-		return new NumericProperty(gradientResolution, NumericProperty.DEFAULT_GRADIENT_RESOLUTION);
+		return new NumericProperty(gradientResolution, NumericProperty.GRADIENT_RESOLUTION);
 	}	
 	
 	@Override
@@ -133,59 +127,54 @@ public abstract class PathSolver extends PropertyHolder implements Reflexive {
 		return this.getClass().getSimpleName();
 	}
 	
-	public static PathSolver[] findAllDirectionSolvers(String pckgname) {		
-		List<Reflexive> ref = new LinkedList<Reflexive>();
-		List<PathSolver> p = new LinkedList<PathSolver>();
-		
-		ref.addAll(ReflexiveFinder.findAllInstances(pckgname));
-		
-		for(Reflexive r : ref) 
-			if(r instanceof PathSolver)
-				p.add((PathSolver) r);
-		
-		return (PathSolver[])p.toArray(new PathSolver[p.size()]);
-		
-	}
-	
-	public static PathSolver[] findAllDirectionSolvers() {		
-		return findAllDirectionSolvers(PathSolver.class.getPackage().getName());
-		
-	}
-	
-	public static void set(String id, BooleanProperty p) {
-		boolean flag = (boolean) p.getValue();
-		for(BooleanProperty property : globalSearchFlags)
-			if(property.getSimpleName().equals(id)) 
-				property.setValue(flag);
-		
-		ObjectiveFunctionIndex index = ObjectiveFunctionIndex.valueOf(id);
-		
-		for(SearchTask t : TaskManager.getTaskList())
-			t.setSearchFlag(index, flag);
-	}
-	
-	public static BooleanProperty[] getSearchFlags() {
+	public static List<Flag> getSearchFlags() {
 		return globalSearchFlags;
 	}
-
-	public Map<String,String> propertyNames() {
-		Map<String,String> map = new HashMap<String,String>(9);
-		map.put(Messages.getString("PathSolver.0"), Messages.getString("PathSolver.1")); //$NON-NLS-1$ //$NON-NLS-2$
-		map.put(Messages.getString("PathSolver.2"), Messages.getString("PathSolver.3")); //$NON-NLS-1$ //$NON-NLS-2$
-		map.put(Messages.getString("PathSolver.4"), Messages.getString("PathSolver.5")); //$NON-NLS-1$ //$NON-NLS-2$
-		map.put(Messages.getString("PathSolver.6"), Messages.getString("PathSolver.7")); //$NON-NLS-1$ //$NON-NLS-2$
-		for(BooleanProperty property : globalSearchFlags) 
-			map.put( property.getSimpleName(), Messages.getString("PathSolver.8") + property.getSimpleName() + Messages.getString("PathSolver.9") ); //$NON-NLS-1$ //$NON-NLS-2$
-		
-		if(linearSolver != null) {
-			Map<String,String> mapLinear = linearSolver.propertyNames();		
-			Map<String,String> mapComplete = new HashMap<String,String>(10);
-			mapComplete.putAll(map);
-			mapComplete.putAll(mapLinear);
-			return mapComplete;
+	
+	@Override
+	public List<Property> properties() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+		List<Property> original = super.properties();
+		original.addAll(globalSearchFlags);
+		return original;
+	}
+	
+	public static Flag getFlag(NumericPropertyKeyword index) {
+		return globalSearchFlags.stream().filter(flag -> flag.getType() == index).findFirst().get();
+	}
+	
+	public static void setSearchFlag(List<Flag> originalList, Flag flag) {
+		for(Flag f : originalList) 
+			if(f.getType() == flag.getType()) 
+				f.setValue(flag.getValue());		
+	}
+	
+	@Override
+	public List<Property> listedParameters() {
+		List<Property> list = super.listedParameters();
+		list.add(NumericProperty.GRADIENT_RESOLUTION);
+		list.add(NumericProperty.ERROR_TOLERANCE);
+		for(Flag property : globalSearchFlags) 
+			list.add( property );
+		return list;
+	}
+	
+	@Override
+	public void set(NumericPropertyKeyword type, NumericProperty property) {
+		switch(type) {
+		case GRADIENT_RESOLUTION : setGradientResolution(property); break;
+		case ERROR_TOLERANCE : setErrorTolerance(property); break;
 		}
-		return map;
-		
+	}
+	
+	@Override
+	public boolean internalHolderPolicy() {
+		return false;
+	}
+	
+	public static List<NumericPropertyKeyword> activeParameters() {
+		return PathSolver.getSearchFlags().stream()
+				.filter(flag -> (boolean)flag.getValue())
+				.map(flag -> flag.getType()).collect(Collectors.toList());
 	}
 		
 }

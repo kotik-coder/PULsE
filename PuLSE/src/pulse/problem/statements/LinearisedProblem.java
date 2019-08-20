@@ -5,36 +5,26 @@ import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.ExplicitScheme;
 import pulse.problem.schemes.ImplicitScheme;
 import pulse.problem.schemes.MixedScheme;
-import pulse.properties.BooleanProperty;
 import pulse.properties.NumericProperty;
 
-public class LinearizedProblem extends Problem {
+public class LinearisedProblem extends Problem {
 	
 	protected boolean dimensionless = false;
 	
-	public LinearizedProblem() {
+	public LinearisedProblem() {
 		super();
 	}
 	
-	public LinearizedProblem(Problem lp) {
+	public LinearisedProblem(Problem lp) {
 		super(lp);
 	}
 
 	/**
 	 * @param dimensionless
 	 */
-	public LinearizedProblem(NumericProperty curvePoints, BooleanProperty dimensionless) {
+	public LinearisedProblem(NumericProperty curvePoints) {
 		super();
-		this.dimensionless = (Boolean)dimensionless.getValue();
 		this.curve = new HeatingCurve(curvePoints);
-	}
-
-	public BooleanProperty isDimensionless() {
-		return new BooleanProperty(Messages.getString("LinearizedProblem.0"), dimensionless); //$NON-NLS-1$
-	}
-
-	public void setDimensionless(BooleanProperty dimensionless) {
-		this.dimensionless = (Boolean)dimensionless.getValue();
 	}
 	
 	public double timeFactor() {

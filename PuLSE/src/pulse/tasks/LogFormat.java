@@ -1,11 +1,15 @@
 package pulse.tasks;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import pulse.properties.NumericPropertyKeyword;
 
 public class LogFormat {
 	
-	private List<String> names, labels;
+	private List<NumericPropertyKeyword> types;
 	
 	public static final LogFormat DEFAULT_FORMAT = new LogFormat(Messages.getString("LogFormat.2")); //$NON-NLS-1$
 	
@@ -13,34 +17,31 @@ public class LogFormat {
 	
 	/* Codes:
 	 * I - Iteration 
-	 * D - current direction
-	 * G - current gradient
-	 * H - current hessian
+	 * O - objective function
 	 * S - current sum of squares
 	 * R - current R^2 
 	 */
 	
 	private	LogFormat(String formatString) {
 		
-		names		= new LinkedList<String>();
-		labels		= new LinkedList<String>();
+		types		= new ArrayList<NumericPropertyKeyword>();
 		
 		char[] charArray = formatString.toCharArray();
 		
 		for(char c : charArray) {
 			
 			switch (c) {
-				case 'I' : add("Iteration", Messages.getString("LogFormat.1")); //$NON-NLS-1$ //$NON-NLS-2$
+				case 'I' : add(NumericPropertyKeyword.ITERATION);
 						   break;
-				case 'D' : add("Direction", Messages.getString("LogFormat.0")); //$NON-NLS-1$ //$NON-NLS-2$
+				case 'O' : add(NumericPropertyKeyword.DIFFUSIVITY);
+						   add(NumericPropertyKeyword.MAXTEMP);
+						   add(NumericPropertyKeyword.HEAT_LOSS);
+						   add(NumericPropertyKeyword.BASELINE_INTERCEPT);
+						   add(NumericPropertyKeyword.BASELINE_SLOPE);
 						   break;
-				case 'H' : add("Hessian", Messages.getString("LogFormat.6")); //$NON-NLS-1$ //$NON-NLS-2$
+				case 'S' : add(NumericPropertyKeyword.SUM_OF_SQUARES); 
 						   break;
-				case 'G' : add("Gradient", Messages.getString("LogFormat.8")); //$NON-NLS-1$ //$NON-NLS-2$
-						   break;
-				case 'S' : add("SumOfSquares", Messages.getString("LogFormat.10")); //$NON-NLS-1$ //$NON-NLS-2$
-						   break;
-				case 'R' : add("RSquared", Messages.getString("LogFormat.12")); //$NON-NLS-1$ //$NON-NLS-2$
+				case 'R' : add(NumericPropertyKeyword.RSQUARED);
 						   break;
 				default  : throw new IllegalArgumentException(Messages.getString("LogFormat.UnknownFormatError") + c); //$NON-NLS-1$
 			}
@@ -50,7 +51,8 @@ public class LogFormat {
 	}
 
 	private LogFormat(LogFormat fmt) {
-		this.labels		 = new LinkedList<String>(fmt.labels);
+		this.types = new ArrayList<NumericPropertyKeyword>();
+		this.types.addAll(fmt.types);
 	}
 	
 	public static LogFormat generateFormat(String formatString) {
@@ -62,17 +64,12 @@ public class LogFormat {
 		return format;
 	}
 	
-	private void add(String name, String label) {
-		names.add(name);
-		labels.add(label);
+	private void add(NumericPropertyKeyword key) {
+		types.add(key);
 	}
 	
-	public String[] labels() {
-		return labels.toArray(new String[labels.size()]);
-	}
-	
-	public String[] names() {
-		return names.toArray(new String[labels.size()]);
+	public List<NumericPropertyKeyword> types() {
+		return types;
 	}
 	
 }
