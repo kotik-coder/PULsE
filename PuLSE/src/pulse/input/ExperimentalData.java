@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import pulse.Baseline;
 import pulse.HeatingCurve;
 import pulse.util.SaveableDirectory;
 import pulse.util.geom.Point2D;
@@ -25,6 +26,7 @@ public class ExperimentalData extends HeatingCurve implements SaveableDirectory 
 	
 	public ExperimentalData() {
 		super();
+		getBaseline().setParent(null);
 		this.clear();
 	}
 	
@@ -129,7 +131,7 @@ public class ExperimentalData extends HeatingCurve implements SaveableDirectory 
 	
 	public double halfRiseTime() {
 		List<Point2D> degraded = crudeAverage(REDUCTION_FACTOR);		
-		double max = (Collections.max(degraded, pointComparator)).getY();				
+		double max = (Collections.max(degraded, pointComparator)).getY();
 		baseline.fitTo(this);
 		
 		double halfMax = (max + baseline.valueAt(0))/2.0;

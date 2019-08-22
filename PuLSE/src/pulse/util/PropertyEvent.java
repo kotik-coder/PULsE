@@ -4,22 +4,16 @@ import pulse.properties.Property;
 
 public class PropertyEvent {
 
-	private PropertyHolder source;
-	private Property property;
-	private Object guiComponent;
+	private Object source;
+	private Property property;	
 	
-	public PropertyEvent(Object guiComponent, PropertyHolder source, Property property) {
+	public PropertyEvent(Object source, Property property) {
 		this.source = source;
 		this.property = property;
-		this.guiComponent = guiComponent;
 	}
 
-	public PropertyHolder getSource() {
+	public Object getSource() {
 		return source;
-	}
-	
-	public Object getSourceComponent() {
-		return guiComponent;
 	}
 
 	public Property getProperty() {

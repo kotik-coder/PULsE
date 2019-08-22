@@ -7,7 +7,7 @@ import pulse.search.math.Matrix;
 import pulse.search.math.Vector;
 import pulse.util.Accessible;
 
-public class Path implements Accessible {
+public class Path extends Accessible {
 	
 	private Vector    direction;
 	private Vector    gradient;
@@ -16,6 +16,7 @@ public class Path implements Accessible {
 	private int		  iteration;
 	
 	public Path(SearchTask t) {
+		setParent(t);
 		reset(t);
 	}
 	

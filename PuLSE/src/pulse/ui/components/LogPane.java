@@ -3,12 +3,14 @@ package pulse.ui.components;
 import java.awt.Dimension;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import javax.swing.JEditorPane;
+import javax.swing.SwingUtilities;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultCaret;
 import javax.swing.text.html.HTMLDocument;
@@ -35,7 +37,28 @@ public class LogPane extends JEditorPane implements Saveable {
 		setContentType("text/html"); //$NON-NLS-1$
 		setEditable(false);
 		DefaultCaret c = (DefaultCaret)getCaret();
-		c.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);	
+		c.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);	  
+		
+		OutputStream out = new OutputStream() {
+		      @Override
+		      public void write(final int b) throws IOException {
+		        post(String.valueOf((char) b));
+		      }
+
+		      @Override
+		      public void write(byte[] b, int off, int len) throws IOException {
+		        post(new String(b, off, len));
+		      }
+
+		      @Override
+		      public void write(byte[] b) throws IOException {
+		        write(b, 0, b.length);
+		      }
+		};
+
+		System.setOut(new java.io.PrintStream(out, true));
+		System.setErr(new java.io.PrintStream(out, true));
+		
 	}		
 	
 	private void post(LogEntry logEntry) {

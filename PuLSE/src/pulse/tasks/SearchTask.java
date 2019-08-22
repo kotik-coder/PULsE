@@ -1,6 +1,5 @@
 package pulse.tasks;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -27,7 +26,7 @@ import pulse.util.PropertyEvent;
 import pulse.util.PropertyHolderListener;
 import pulse.util.SaveableDirectory;
 
-public class SearchTask implements Runnable, Accessible, SaveableDirectory {
+public class SearchTask extends Accessible implements Runnable, SaveableDirectory {
 
 	private Problem problem;
 	private DifferenceScheme scheme;
@@ -86,7 +85,7 @@ public class SearchTask implements Runnable, Accessible, SaveableDirectory {
 		rSquared		= (double) RSQUARED.getValue();
 		sumOfSquares	= (double) SUM_OF_SQUARES.getValue();				
 		
-		buffer 			= new Buffer();		
+		buffer 			= new Buffer();
 		log 			= new Log(this);
 			
 		this.path		= null;
@@ -107,6 +106,7 @@ public class SearchTask implements Runnable, Accessible, SaveableDirectory {
 	public SearchTask(ExperimentalData curve) {
 		this();
 		this.curve = curve;
+		curve.setParent(this);
 		
 		updateTimeLimit();
 		testTemperature = (double)curve.getMetadata().getTestTemperature().getValue();			
@@ -207,7 +207,7 @@ public class SearchTask implements Runnable, Accessible, SaveableDirectory {
 	  
 	  PathSolver pathSolver 	= TaskManager.getPathSolver();
 	  
-	  path 						= new Path(this);	  
+	  path 						= new Path(this);
 	   
 	  double errorTolerance		= (double)PathSolver.getErrorTolerance().getValue();
 	  int bufferSize			= (Integer)buffer.getSize().getValue();	  
@@ -334,6 +334,7 @@ public class SearchTask implements Runnable, Accessible, SaveableDirectory {
 		if(problem == null)
 			return;
 			
+		problem.setParent(this);
 		problem.removeListeners(); 
 		problem.retrieveData(curve);
 		
@@ -362,42 +363,21 @@ public class SearchTask implements Runnable, Accessible, SaveableDirectory {
 
 		});
 		
-		if(Problem.isSingleStatement())
-			synchroniseWithOthers();
-		
 		Baseline base = problem.getHeatingCurve().getBaseline();
 		base.addListener(event -> base.fitTo(curve) );		
 		
 	}
 	
-	private void synchroniseWithOthers() {
-		problem.addListener(propertyEvent -> {
-			Problem p;
-			for(SearchTask t : TaskManager.getTaskList()) {
-				p = t.getProblem();
-				
-				if(p == null)
-					continue;
-				
-				if(p.equals(problem))
-					continue;
-				
-				try {
-					p.update(propertyEvent.getProperty());
-				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-					
-			} 
-		});
-	}
-	
 	public void setScheme(DifferenceScheme scheme) {
 		this.scheme = scheme;
+		if(scheme != null)
+			scheme.setParent(this);
 	}
 	public void setExperimentalCurve(ExperimentalData curve) {
 		this.curve = curve;
+		
+		if(curve != null)		
+			curve.setParent(this);
 		
 		if(problem != null) 
 			problem.retrieveData(curve);		

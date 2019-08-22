@@ -163,7 +163,7 @@ public class Metadata extends PropertyHolder implements Reflexive, Saveable {
 	}
 
 	public void setDetectorIris(NumericProperty detectorIris) {
-		this.detectorIris = (int) detectorIris.getValue();
+		this.detectorIris = ((Number)detectorIris.getValue()).intValue();
 	}
 
 	public PulseShape getPulseShape() {

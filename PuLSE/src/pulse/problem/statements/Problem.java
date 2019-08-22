@@ -71,6 +71,8 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 		singleStatement = true;
 		pulse = new Pulse();
 		curve = new HeatingCurve();
+		curve.setParent(this);
+		pulse.setParent(this);
 	}
 	
 	public Problem(Problem p) {	
@@ -192,6 +194,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 
 	public void setPulse(Pulse pulse) {
 		this.pulse = pulse;
+		pulse.setParent(this);
 	}
 	
 	public double timeFactor() {

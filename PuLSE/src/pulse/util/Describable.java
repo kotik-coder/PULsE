@@ -10,6 +10,6 @@ public interface Describable {
 		return getClass().getSimpleName() + "_" +
 				DateTimeFormatter.ISO_DATE.format( LocalDateTime.now() );
 		
-	};	
+	};
 	
 }

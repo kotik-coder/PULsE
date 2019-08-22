@@ -115,7 +115,7 @@ public class MetaFileReader implements AbstractReader {
 		double tmp;		
 		
 		for(NumericProperty metaEntry : met.numericData()) {
-		
+
 			inner: for(DataEntry<String,String> dataEntry : data) {			
 				
 				if(!metaEntry.getType().toString().
@@ -129,9 +129,8 @@ public class MetaFileReader implements AbstractReader {
 				tmp /= (metaEntry.getDimensionFactor() ).doubleValue();
 								
 				if( NumericProperty.isValueSensible(metaEntry, tmp)) {																
-					metaEntry.setValue( tmp );
-					try {						
-						met.updateProperty( instance, metaEntry );
+					try {
+						met.updateProperty( instance, new NumericProperty(tmp, metaEntry) );
 						break inner;
 					} catch (IllegalAccessException | IllegalArgumentException
 							| InvocationTargetException e) {

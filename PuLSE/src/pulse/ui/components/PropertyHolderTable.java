@@ -11,8 +11,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
-
 import javax.swing.AbstractButton;
 import javax.swing.AbstractCellEditor;
 import javax.swing.DefaultCellEditor;
@@ -71,6 +69,8 @@ public class PropertyHolderTable extends JTable {
 		 * Update properties of the PropertyHolder when table is changed by the user
 		 */
 		
+		final PropertyHolderTable reference = this;
+		
 		model.addTableModelListener(new TableModelListener() {
 
 			@Override
@@ -89,7 +89,7 @@ public class PropertyHolderTable extends JTable {
 				Property changedProperty = (Property)changedObject;
 				
 				try {
-					propertyHolder.updateProperty(null, changedProperty);
+					propertyHolder.updateProperty(reference, changedProperty);
 				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e1) {
 					System.err.println(Messages.getString("PropertyHolderTable.UpdateError") + propertyHolder); //$NON-NLS-1$
 					e1.printStackTrace();
@@ -99,16 +99,19 @@ public class PropertyHolderTable extends JTable {
 			
 		});
 		
-		addPropertyHolderListener();
+		addListeners();
 		
 	}
 	
-	private void addPropertyHolderListener() {
+	private void addListeners() {
 		if(propertyHolder == null)
 			return;
 		
-		propertyHolder.addListener( event ->
-		{	updateTable();});
+		propertyHolder.addListener( 
+					event -> { 
+						if(! (event.getSource() instanceof PropertyHolderTable))
+							updateTable(); } 
+				);		
 		
 	}
 	
@@ -156,7 +159,7 @@ public class PropertyHolderTable extends JTable {
 		this.propertyHolder = propertyHolder;
 		if(propertyHolder != null)
 			updateTable();
-		addPropertyHolderListener();
+		addListeners();
 	}
 	
 	public void updateTable() {				

@@ -1,15 +1,11 @@
 package pulse.tasks;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import pulse.properties.NumericProperty;
-import pulse.properties.NumericPropertyKeyword;
-import pulse.search.direction.PathSolver;
 import pulse.util.DataEntry;
 
 public class DataLogEntry extends LogEntry {

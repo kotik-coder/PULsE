@@ -170,34 +170,6 @@ public class Pulse extends PropertyHolder {
 		}
 
 	}
-	
-	/*
-	 * ERRORS TODO
-	 */
-	
-	@Override
-	public void updateProperty(Object object, Property property) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {		
-		super.updateProperty(object, property);
-		if(!Problem.isSingleStatement())
-			return;
-		
-		Pulse p;
-		
-		for(SearchTask task : TaskManager.getTaskList()) {
-			p = task.getProblem().getPulse();
-			
-			if( p .equals( this ) )
-				continue;
-
-			p.superUpdateProperty(object, property);
-			
-		}
-		
-	}
-	
-	private void superUpdateProperty(Object object, Property property) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-		super.updateProperty(object, property);
-	}
 
 	@Override
 	public void set(NumericPropertyKeyword type, NumericProperty property) {

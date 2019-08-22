@@ -11,8 +11,6 @@ import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import javax.management.ReflectionException;
 
-import javafx.application.Platform;
-import pulse.tasks.TaskManager;
 import pulse.ui.charts.Chart;
 import pulse.ui.frames.ProblemStatementFrame;
 import pulse.ui.frames.SearchOptionsFrame;

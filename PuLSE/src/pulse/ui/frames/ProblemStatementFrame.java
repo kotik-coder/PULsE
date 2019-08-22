@@ -212,7 +212,28 @@ public class ProblemStatementFrame extends JFrame {
 				update(e.getSelection());
 			}
 			
-		});		
+		});	
+		//TODO
+		
+		TaskManager.getInstance().addHierarchyListener( event -> 
+		{ 		
+			if(!(event.getSource() instanceof PropertyHolderTable))
+				return;
+			
+			if(!Problem.isSingleStatement())
+				return;
+			
+			for(SearchTask task : TaskManager.getTaskList()) {
+				try {
+					task.getProblem().updateProperty(event, event.getProperty());
+				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			
+		}
+		);
 		
 	}	
 	

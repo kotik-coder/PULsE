@@ -1,19 +1,16 @@
 package pulse;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
 import pulse.input.ExperimentalData;
-import pulse.input.Pulse;
-import pulse.problem.statements.Problem;
 import pulse.properties.EnumProperty;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 import pulse.tasks.SearchTask;
-import pulse.tasks.TaskManager;
 import pulse.util.PropertyHolder;
+import pulse.util.UpwardsNavigable;
 
 public class Baseline extends PropertyHolder {
 
@@ -54,8 +51,8 @@ public class Baseline extends PropertyHolder {
 	
 	public List<Property> listedParameters() {
 		List<Property> list = new ArrayList<Property>();
-		list.add(getSlope()); //$NON-NLS-1$ //$NON-NLS-2$
-		list.add(getIntercept()); //$NON-NLS-1$ //$NON-NLS-2$
+		list.add(getSlope()); 
+		list.add(getIntercept()); 
 		list.add(BaselineType.CONSTANT);
 		return list;
 	}
@@ -147,6 +144,12 @@ public class Baseline extends PropertyHolder {
 
 	public void setBaselineType(BaselineType baselineType) {
 		this.baselineType = baselineType;
+		
+		UpwardsNavigable ancestorTask = super.specificAncestor(SearchTask.class);
+		if(ancestorTask == null)
+			return;
+		
+		this.fitTo( ((SearchTask)ancestorTask).getExperimentalCurve() );		
 	} 
 
 	public enum BaselineType implements EnumProperty {
@@ -175,34 +178,6 @@ public class Baseline extends PropertyHolder {
 		case BASELINE_INTERCEPT : setIntercept(property); break;
 		case BASELINE_SLOPE : setSlope(property); break;
 		}
-	}
-	
-	/*
-	 * ERRORS TODO
-	 */
-	
-	@Override
-	public void updateProperty(Object object, Property property) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {		
-		super.updateProperty(object, property);
-		if(!Problem.isSingleStatement())
-			return;
-		
-		Baseline p;
-		
-		for(SearchTask task : TaskManager.getTaskList()) {
-			p = task.getProblem().getHeatingCurve().getBaseline();
-			
-			if( p .equals( this ) )
-				continue;
-
-			p.superUpdateProperty(object, property);
-			
-		}
-		
-	}
-	
-	private void superUpdateProperty(Object object, Property property) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-		super.updateProperty(object, property);
 	}
 		
 }

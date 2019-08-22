@@ -8,13 +8,15 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
+
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 
-public interface Accessible {
+public abstract class Accessible extends UpwardsNavigable {
 	
-	public default Property property(Property similar) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	public Property property(Property similar) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		if(similar instanceof NumericProperty)
 			return numericProperty(((NumericProperty)similar).getType());
 		else
@@ -26,7 +28,7 @@ public interface Accessible {
 	 * it will contain only unique objects
 	 */
 	
-	public default Set<NumericProperty> numericProperties() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	public Set<NumericProperty> numericProperties() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		Set<NumericProperty> fields = new TreeSet<NumericProperty>();
 		
 		Method[] methods = this.getClass().getMethods();		
@@ -46,17 +48,18 @@ public interface Accessible {
     	 * Get access to the numeric properties of accessibles contained in this accessible
     	 */
     	
-        for(Accessible a : accessibles()) 
+        for(Accessible a : children()) 
         	fields.addAll(a.numericProperties());
-	    
+        	
 	    return fields;
+	    
 	}
 	
 	/*
 	 * This will return a List<Property> containing all properties except instances of NumericProperty
 	 */
 	
-	public default List<Property> genericProperties() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	public List<Property> genericProperties() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		List<Property> fields = new ArrayList<Property>();
 		
 		Method[] methods = this.getClass().getMethods();		
@@ -77,7 +80,7 @@ public interface Accessible {
     	 * Get access to the properties of accessibles contained in this accessible
     	 */
     	
-        for(Accessible a : accessibles()) 
+        for(Accessible a : children()) 
         	fields.addAll(a.genericProperties());
 	    
 	    return fields;
@@ -88,7 +91,7 @@ public interface Accessible {
 	 * return objects via getter methods that are instances of the Accessible superclass
 	 */
 	
-	public default List<Accessible> accessibles() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	public List<Accessible> accessibles() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		List<Accessible> fields = new ArrayList<Accessible>();
 		
 		Method[] methods = this.getClass().getMethods();		
@@ -117,8 +120,8 @@ public interface Accessible {
 	    return fields;
 		
 	}
-	
-	public default NumericProperty numericProperty(NumericPropertyKeyword type) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+
+	public NumericProperty numericProperty(NumericPropertyKeyword type) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		
 		Set<NumericProperty> properties = this.numericProperties();
 		
@@ -130,7 +133,7 @@ public interface Accessible {
 		
 		NumericProperty property = null;
 		
-		for(Accessible accessible : accessibles()) {
+		for(Accessible accessible : children()) {
 			property = accessible.numericProperty(type);
 			if(property != null) break; 
 		}
@@ -139,7 +142,7 @@ public interface Accessible {
 		
 	}
 	
-	public default Property genericProperty(Property sameClass) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	public Property genericProperty(Property sameClass) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		
 		Optional<Property> match = genericProperties().stream().
 				filter(p -> p.getClass().equals(sameClass.getClass())).findFirst();
@@ -149,7 +152,7 @@ public interface Accessible {
 		
 		Property p = null;
 		
-		for(Accessible accessible : accessibles()) {
+		for(Accessible accessible : children()) {
 			p = accessible.genericProperty(sameClass);
 			if(p != null) break; 
 		}
@@ -158,7 +161,7 @@ public interface Accessible {
 		
 	}
 	
-	public default Accessible accessible(String simpleName) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	public  Accessible accessible(String simpleName) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		
 		List<Accessible> accessibles = this.accessibles();
 		
@@ -174,16 +177,22 @@ public interface Accessible {
 	
 	public abstract void set(NumericPropertyKeyword type, NumericProperty property);
 	
+	public List<Accessible> children() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+		return accessibles().stream().filter(a -> a.getParent() == this).collect(Collectors.toList());
+	}
+	
 	/*
 	 * Finds a property in this Accessible object with the same name as the property parameter and sets its value to the value of property parameter
 	 */
 	
-	public default void update(Property property) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {					
+	public void update(Property property) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+
+		List<Accessible> children = children();
 		
 		if(property instanceof NumericProperty) {
 			NumericProperty p = (NumericProperty)property;
-			this.set( p.getType(), p);
-			for(Accessible a : accessibles())
+			this.set( p.getType(), p);			
+			for(Accessible a : children)
 				a.set(p.getType(), p);
 			return;
 		}
@@ -234,21 +243,20 @@ public interface Accessible {
 	        }	   	    
 	        	
 	    	/*
-	    	* if above doesn't work: check if there are getter methods in this class returning Accessible objects,
-	    	* use those methods to get access to those objects and call update(Property) recursively
-	    	*/
+	    	* if above doesn't work: refer to children
+	    	*/	    
 	    
-	    	for(Accessible a : accessibles())
-	    		a.update(property);	    		    	
+	    	for(Accessible a : children)
+	    		a.update(property);	    	
 	        		
 	}
 
 	
-	public default String getSimpleName() {
+	public  String getSimpleName() {
 		return getClass().getSimpleName();
 	}
 	
-	public default String getDescriptor() {
+	public  String getDescriptor() {
 		return getSimpleName();
 	}
 	

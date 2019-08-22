@@ -17,17 +17,17 @@ import java.util.stream.Collectors;
 import pulse.input.ExperimentalData;
 import pulse.input.PropertyCurve;
 import pulse.io.readers.ReaderManager;
-import pulse.problem.statements.Problem;
 import pulse.search.direction.PathSolver;
 import pulse.tasks.listeners.TaskRepositoryEvent;
 import pulse.tasks.listeners.TaskRepositoryListener;
 import pulse.tasks.listeners.TaskSelectionEvent;
 import pulse.tasks.listeners.TaskSelectionListener;
 import pulse.ui.Launcher;
-import pulse.util.Describable;
+import pulse.util.UpwardsNavigable;
+import pulse.util.Accessible;
 import pulse.util.SaveableDirectory;
 
-public final class TaskManager implements Describable {	
+public final class TaskManager extends UpwardsNavigable {	
 	
 private static TaskManager instance = new TaskManager();	
 private static PathSolver pathSolver;
@@ -45,7 +45,9 @@ private static final int threadsAvailable = Launcher.threadsAvailable();
 private static List<TaskSelectionListener> selectionListeners = new CopyOnWriteArrayList<TaskSelectionListener>();
 private static List<TaskRepositoryListener> taskRepositoryListeners = new CopyOnWriteArrayList<TaskRepositoryListener>();
 
-private TaskManager() { }
+private TaskManager() {
+	
+}
 
 public static TaskManager getInstance() {
 	return instance;
@@ -249,6 +251,8 @@ public static SearchTask addTask(SearchTask t)  {
 	TaskRepositoryEvent e = new TaskRepositoryEvent(TaskRepositoryEvent.State.TASK_ADDED, t.getIdentifier());
 	
 	notifyListeners(e);
+	
+	t.setParent(getInstance());
 	
 	return t;
 }

@@ -5,14 +5,13 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import pulse.properties.EnumProperty;
 import pulse.properties.NumericProperty;
 import pulse.properties.Property;
 
-public abstract class PropertyHolder implements Accessible {
+public abstract class PropertyHolder extends Accessible {
 
 	private List<Property> parameters = listedParameters();
 	private List<PropertyHolderListener> listeners;
@@ -22,7 +21,7 @@ public abstract class PropertyHolder implements Accessible {
 		List<Property> properties = new ArrayList<Property>();
 		
 		try {
-			for(Accessible accessible : accessibles()) 
+			for(Accessible accessible : children()) 
 				if(accessible instanceof PropertyHolder) 
 					properties.addAll( ((PropertyHolder) accessible).listedParameters());
 		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
@@ -120,19 +119,26 @@ public abstract class PropertyHolder implements Accessible {
 				map(eP -> (EnumProperty)eP).collect(Collectors.toList());
 	}
 	
-	public void updateProperty(Object sourceComponent, Property updatedProperty) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {	
+	public void updateProperty(Object sourceComponent, Property updatedProperty) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {		
 		Property existing = property(updatedProperty);
 		
 		if(existing == null)
 			return;
 		
 		if(existing.equals(updatedProperty))
-			return;
+			return;	
 		
-		Accessible.super.update(updatedProperty);
-		PropertyEvent event = new PropertyEvent(sourceComponent, this, updatedProperty);
+		super.update(updatedProperty);		
+		PropertyEvent event = new PropertyEvent(sourceComponent, updatedProperty);
 		listeners.forEach(l -> l.onPropertyChanged(event));
 		
+		/*
+		 * If the changes are triggered by an external GUI component (such as PropertyHolderTable),
+		 * inform parents about this
+		 */
+		
+		if( sourceComponent != getParent() )
+			tellParent(event);		
 	}
 	
 	public void updateProperties(Object sourceComponent, PropertyHolder propertyHolder) {

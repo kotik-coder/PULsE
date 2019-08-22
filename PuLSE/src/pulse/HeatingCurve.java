@@ -2,7 +2,6 @@ package pulse;
 
 import java.io.FileOutputStream;
 import java.io.PrintStream;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -14,8 +13,6 @@ import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
-import pulse.tasks.SearchTask;
-import pulse.tasks.TaskManager;
 import pulse.util.PropertyHolder;
 import pulse.util.Saveable;
 
@@ -64,6 +61,7 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 		baselineAdjustedTemperature = new ArrayList<Double>(this.count);
 		time		   = new ArrayList<Double>(this.count);
 		baseline	   = new Baseline();
+		baseline.setParent(this);
 		reinit();
 	}
 	
@@ -99,6 +97,7 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 	public void setBaseline(Baseline baseline) {
 		this.baseline = baseline;
 		apply(baseline);
+		baseline.setParent(this);
 	}
 	
 	public void setNumPoints(NumericProperty c) {
@@ -220,31 +219,7 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 		}
 		
 	}
-	//TODO
-	@Override
-	public void updateProperty(Object object, Property property) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {	
-		super.updateProperty(object, property);
-		if(!Problem.isSingleStatement())
-			return;
-		
-		HeatingCurve hc;		
-		
-		for(SearchTask task : TaskManager.getTaskList()) {
-			hc = task.getProblem().getHeatingCurve();
-			
-			if( hc.equals( this ) )
-				continue;
-
-			hc.superUpdateProperty(object, property);
-			
-		}
-		
-	}
 	
-	private void superUpdateProperty(Object object, Property property) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-		super.updateProperty(object, property);
-	}
-
 	@Override
 	public void printData(FileOutputStream fos) {
 		PrintStream stream = new PrintStream(fos);
