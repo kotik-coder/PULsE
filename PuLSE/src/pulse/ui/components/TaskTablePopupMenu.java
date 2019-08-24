@@ -5,16 +5,23 @@ import java.awt.Font;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.lang.reflect.InvocationTargetException;
+
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
+import javax.swing.JSeparator;
 import javax.swing.SwingUtilities;
 
+import pulse.tasks.Result;
+import pulse.tasks.ResultFormat;
 import pulse.tasks.SearchTask;
 import pulse.tasks.Status;
 import pulse.tasks.Status.Details;
 import pulse.tasks.TaskManager;
+import pulse.tasks.listeners.TaskRepositoryEvent;
 import pulse.ui.Launcher;
+import pulse.ui.Messages;
 import pulse.ui.frames.TaskControlFrame;
 
 public class TaskTablePopupMenu extends JPopupMenu {
@@ -27,7 +34,7 @@ public class TaskTablePopupMenu extends JPopupMenu {
 	private final static Font f = new Font(Messages.getString("TaskTable.FontName"), Font.BOLD, 18); //$NON-NLS-1$ 
 
 	public TaskTablePopupMenu() {	
-		JMenuItem problemStatement, itemExecute, itemChart, itemShowMeta, itemReset;
+		JMenuItem problemStatement, itemExecute, itemChart, itemExtendedChart, itemShowMeta, itemReset, itemGenerateResult;
 		
 		problemStatement = new JMenuItem(Messages.getString("TaskTablePopupMenu.ShowDetails")); //$NON-NLS-1$
 		
@@ -39,7 +46,6 @@ public class TaskTablePopupMenu extends JPopupMenu {
 			}
 			
 		});
-		add(problemStatement);
 		problemStatement.setFont(f);
 	
 		Window referenceWindow = SwingUtilities.getWindowAncestor(this);
@@ -49,30 +55,24 @@ public class TaskTablePopupMenu extends JPopupMenu {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				SearchTask t = TaskManager.getSelectedTask();
-				
-				if(t == null) {
-					JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor((Component) e.getSource()), 
-							Messages.getString("TaskTablePopupMenu.EmptySelection2"), Messages.getString("TaskTablePopupMenu.11"), JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$ //$NON-NLS-2$
-					return;
-				}
-				
-				Details statusDetails = t.getStatus().getDetails();
-				
-				if(statusDetails == Details.MISSING_HEAT_CURVE) {
-					JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor((Component) e.getSource()), 
-							Messages.getString("TaskTablePopupMenu.12"), Messages.getString("TaskTablePopupMenu.13"), JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$ //$NON-NLS-2$
-					return;	
-				}
-				
-				TaskControlFrame.plot(t, false);
-				
+				plot(false);
 			}
 			
 		});
 		
-		add(itemChart);
 		itemChart.setFont(f);
+		
+		itemExtendedChart = new JMenuItem(Messages.getString("TaskTablePopupMenu.ShowExtendedHeatingCurve")); //$NON-NLS-1$
+		itemExtendedChart.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				plot(true);				
+			}
+			
+		});
+		
+		itemExtendedChart.setFont(f);
 		
 		itemShowMeta	= new JMenuItem("Show metadata");
 		itemShowMeta.addActionListener(new ActionListener() {
@@ -95,7 +95,6 @@ public class TaskTablePopupMenu extends JPopupMenu {
 			
 		});
 		
-		add(itemShowMeta);
 		itemShowMeta.setFont(f);
 		
 		itemExecute		= new JMenuItem(Messages.getString("TaskTablePopupMenu.Execute")); //$NON-NLS-1$
@@ -135,11 +134,9 @@ public class TaskTablePopupMenu extends JPopupMenu {
 			
 		});
 		
-		add(itemExecute);
 		itemExecute.setFont(f);
 		
 		itemReset = new JMenuItem(Messages.getString("TaskTablePopupMenu.Reset"));
-		add(itemReset);
 		itemReset.setFont(f);
 		
 		itemReset.addActionListener(new ActionListener() {
@@ -151,6 +148,74 @@ public class TaskTablePopupMenu extends JPopupMenu {
 			
 		});
 		
+		itemGenerateResult = new JMenuItem(Messages.getString("TaskTablePopupMenu.GenerateResult"));
+		itemGenerateResult.setFont(f);
+		
+		itemGenerateResult.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				Result r = null;
+				SearchTask t = TaskManager.getSelectedTask();
+				
+				if(t == null)
+					return;
+				
+				if(t.getProblem() == null)
+					return;
+				
+				try {
+					r = new Result(TaskManager.getSelectedTask(), ResultFormat.getFormat());
+				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				TaskManager.useResult(t, r);
+				TaskRepositoryEvent e = new TaskRepositoryEvent
+						(TaskRepositoryEvent.State.TASK_FINISHED, 
+								TaskManager.getSelectedTask().getIdentifier());
+				TaskManager.notifyListeners(e);
+			}
+			
+		});
+		
+
+		add(problemStatement);
+		add(itemShowMeta);
+		add(new JSeparator());
+		add(itemChart);
+		add(itemExtendedChart);
+		add(new JSeparator());
+		add(itemReset);
+		add(itemGenerateResult);
+		add(new JSeparator());
+		add(itemExecute);
+		
+	}
+	
+	public void plot(boolean extended) {
+		SearchTask t = TaskManager.getSelectedTask();
+		
+		if(t == null) {
+			JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor((Component) this), 
+					Messages.getString("TaskTablePopupMenu.EmptySelection2"), Messages.getString("TaskTablePopupMenu.11"), JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$ //$NON-NLS-2$
+			return;
+		}
+		
+		Details statusDetails = t.getStatus().getDetails();
+		
+		if(statusDetails == Details.MISSING_HEAT_CURVE) {
+			JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor((Component) this), 
+					Messages.getString("TaskTablePopupMenu.12"), Messages.getString("TaskTablePopupMenu.13"), JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$ //$NON-NLS-2$
+			return;	
+		}
+		
+		if(t.getScheme() != null) {
+			t.adjustScheme();
+			t.solveProblem();
+		}
+		
+		TaskControlFrame.plot(t, extended);
 	}
 	
 	

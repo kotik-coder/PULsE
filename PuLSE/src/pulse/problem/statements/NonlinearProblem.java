@@ -23,9 +23,9 @@ import pulse.tasks.TaskManager;
 public class NonlinearProblem extends Problem {
 	
 	protected double qAbs, T;
-	
 	protected double nonlinearPrecision;	
 
+	
 	/**
 	 * @param cV
 	 * @param rho
@@ -123,10 +123,10 @@ public class NonlinearProblem extends Problem {
 		this.T  = (double)T.getValue();
 		
 		if(TaskManager.getSpecificHeatCurve() != null)
-			cV = TaskManager.getSpecificHeatCurve().valueAt(this.T);
+			cV = TaskManager.getSpecificHeatCurve().interpolateAt(this.T);
 		
 		if(TaskManager.getDensityCurve() != null) 
-			rho = TaskManager.getDensityCurve().valueAt(this.T);
+			rho = TaskManager.getDensityCurve().interpolateAt(this.T);
 		
 		makeAdjustments();
 		
@@ -198,6 +198,11 @@ public class NonlinearProblem extends Problem {
 		if(TaskManager.getDensityCurve() == null || TaskManager.getSpecificHeatCurve() == null)
 			return false;
 		return super.isReady();
+	}
+	
+	@Override
+	public boolean isEnabled() {
+		return false;
 	}
 
 }

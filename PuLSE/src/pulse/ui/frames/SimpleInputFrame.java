@@ -26,6 +26,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.text.DefaultFormatterFactory;
 import javax.swing.text.NumberFormatter;
 
+import pulse.ui.Messages;
 import pulse.ui.components.ResultTable;
 
 import java.awt.event.ActionListener;

@@ -34,6 +34,7 @@ import javafx.scene.effect.Bloom;
 import javafx.scene.text.Font;
 import pulse.HeatingCurve;
 import pulse.tasks.Identifier;
+import pulse.ui.Messages;
 import pulse.ui.components.PlotType;
 import pulse.ui.frames.RangeSelectionFrame;
 

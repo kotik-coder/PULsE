@@ -15,6 +15,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 import pulse.io.readers.ReaderManager;
 import pulse.tasks.TaskManager;
+import pulse.ui.Messages;
 
 public class LoaderButton extends ToolBarButton {
 	
@@ -67,8 +68,8 @@ public class LoaderButton extends ToolBarButton {
 				int size = 0;
 				
 				switch(dataType) {
-				case SPECIFIC_HEAT : size = TaskManager.getSpecificHeatCurve().size(); break;
-				case DENSITY : size = TaskManager.getDensityCurve().size(); break;
+				case SPECIFIC_HEAT : size = TaskManager.getSpecificHeatCurve().getData().size(); break;
+				case DENSITY : size = TaskManager.getDensityCurve().getData().size(); break;
 				}
 				
 				String label = ""; //$NON-NLS-1$

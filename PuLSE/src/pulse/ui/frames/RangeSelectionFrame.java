@@ -11,6 +11,7 @@ import javax.swing.JLabel;
 import javax.swing.SwingConstants;
 import pulse.tasks.TaskManager;
 import pulse.ui.charts.PreviewPlot;
+import pulse.ui.Messages;
 import pulse.ui.charts.Chart;
 
 import javax.swing.BorderFactory;

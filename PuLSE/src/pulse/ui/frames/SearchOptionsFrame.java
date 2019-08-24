@@ -12,6 +12,7 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
@@ -20,16 +21,21 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 
+import pulse.problem.statements.Problem;
 import pulse.search.direction.PathSolver;
 import pulse.search.linear.LinearSolver;
 import pulse.tasks.SearchTask;
 import pulse.tasks.TaskManager;
+import pulse.ui.Messages;
 import pulse.ui.components.PropertyHolderTable;
 import pulse.ui.components.WrapCellRenderer;
+import pulse.util.PropertyEvent;
+import pulse.util.PropertyHolderListener;
 import pulse.util.Reflexive;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 public class SearchOptionsFrame extends JFrame {
@@ -41,10 +47,15 @@ public class SearchOptionsFrame extends JFrame {
 	private JPanel contentPane;
 	private PropertyHolderTable pathTable;
 	private JList<LinearSolver> linearList;
+	private PathSolversList pathList;
 
 	private final static int WIDTH = 750;
 	private final static int HEIGHT = 550;
 	private final static Font LIST_FONT = new Font(Messages.getString("SearchOptionsFrame.ListFont"), Font.PLAIN, 18);
+	
+	private final static List<PathSolver> pathSolvers		= Reflexive.instancesOf(PathSolver.class);
+	private final static List<LinearSolver> linearSolvers	= Reflexive.instancesOf(LinearSolver.class);
+	
 	
 	/**
 	 * Create the frame.
@@ -64,11 +75,20 @@ public class SearchOptionsFrame extends JFrame {
 		JPanel panel = new JPanel();
 		contentPane.add(panel);
 		panel.setLayout(new GridLayout(2, 1, 0, 0));
-		
 
-		PathSolversList pathList = new PathSolversList();
+		pathList = new PathSolversList();
 		
-		ListCellRenderer renderer = new WrapCellRenderer(this.getWidth()/2 - 150);
+		ListCellRenderer renderer = new WrapCellRenderer(this.getWidth()/2 - 150) {
+			
+	        @Override
+	        public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+	            Component comp = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+	            JPanel p = new JPanel();
+	            p.add(comp);
+	            return p;
+	        }
+			
+		};
 		
 		pathList.setCellRenderer(renderer);
 		panel.add(new JScrollPane(pathList));
@@ -113,6 +133,17 @@ public class SearchOptionsFrame extends JFrame {
 		
 	}
 	
+	public void update() {
+		if(TaskManager.getPathSolver() != null) {
+			pathList.setSelectedIndex(pathSolvers.indexOf(TaskManager.getPathSolver()));
+			linearList.setSelectedIndex(linearSolvers.indexOf(PathSolver.getLinearSolver()));	
+		}
+		else {
+			pathList.clearSelection();
+			linearList.clearSelection();
+			linearList.setEnabled(false);
+		}
+	}
 
 	class PathSolversList extends JList<PathSolver> {
 		
@@ -130,8 +161,7 @@ public class SearchOptionsFrame extends JFrame {
 				 * 
 				 */
 				private static final long serialVersionUID = -7683200230096704268L;
-				List<PathSolver> pathSolvers = Reflexive.instancesOf(PathSolver.class);
-				
+
 				@Override
 				public int getSize() {
 					return pathSolvers.size();
@@ -192,7 +222,6 @@ public class SearchOptionsFrame extends JFrame {
 				 * 
 				 */
 				private static final long serialVersionUID = -3560305247730025830L;
-				List<LinearSolver> linearSolvers = Reflexive.instancesOf(LinearSolver.class);
 				@Override
 				public int getSize() {
 					return linearSolvers.size();

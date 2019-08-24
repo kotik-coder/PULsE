@@ -12,6 +12,7 @@ import javax.swing.event.ChangeListener;
 
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.statements.Problem;
+import pulse.ui.Messages;
 
 
 public class TaskSelectionToolBar extends JToolBar {

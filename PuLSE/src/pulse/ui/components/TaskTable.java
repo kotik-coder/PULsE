@@ -31,6 +31,7 @@ import pulse.tasks.listeners.TaskRepositoryListener;
 import pulse.tasks.listeners.TaskSelectionEvent;
 import pulse.tasks.listeners.TaskSelectionListener;
 import pulse.tasks.listeners.TaskStateEvent;
+import pulse.ui.Messages;
 
 public class TaskTable extends JTable {
 	
@@ -45,8 +46,7 @@ public class TaskTable extends JTable {
 		
 		private final static Font f = new Font(Messages.getString("TaskTable.FontName"), Font.PLAIN, 14); //$NON-NLS-1$
 		
-		private Comparator<Identifier> identifierComparator = (i1, i2) -> Integer.valueOf(i1.getValue()).
-																	compareTo(Integer.valueOf(i2.getValue()));
+		private Comparator<NumericProperty> numericComparator = (i1, i2) -> i1.compareTo(i2);
 		
 		public TaskTable() {
 			super();
@@ -68,12 +68,9 @@ public class TaskTable extends JTable {
 			DefaultRowSorter sorter		= ((DefaultRowSorter) getRowSorter()); 
 		    ArrayList<RowSorter.SortKey> list	= new ArrayList();
 		    
-			list.add( new RowSorter.SortKey(0, SortOrder.ASCENDING) );
-		    sorter.setComparator(0, identifierComparator);
-		    
-		    for(int i = 1; i < 4; i++) {
+		    for(int i = 0; i < this.getModel().getColumnCount(); i++) {
 		    	list.add( new RowSorter.SortKey(i, SortOrder.ASCENDING) );
-		    	sorter.setComparator(1, new NumericPropertyComparator());
+		    	sorter.setComparator(i, numericComparator);
 		    }
 		    	
 		    sorter.setSortKeys(list);

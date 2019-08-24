@@ -13,6 +13,7 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import pulse.tasks.TaskManager;
+import pulse.ui.Messages;
 import pulse.ui.components.ResultTable.ResultTableModel;
 import pulse.ui.frames.PlotFrame;
 import pulse.ui.frames.SimpleInputFrame;

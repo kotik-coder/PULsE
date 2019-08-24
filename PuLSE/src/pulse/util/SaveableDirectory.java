@@ -1,42 +1,13 @@
 package pulse.util;
 
 import java.io.File;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 
 public interface SaveableDirectory extends Describable {	
 
-	public default List<Saveable> saveableContents() {	
-		
-		List<Saveable> contents = new ArrayList<Saveable>();
-		Method[] methods = this.getClass().getMethods();
-		
-	    for(Method m : methods)
-	    {
-	        if(m.getName().startsWith("get"))
-	        {	       
-	        	Object value;
-				try {
-					value = m.invoke(this);
-					if(value instanceof Saveable) 
-						contents.add( (Saveable) value);
-					if(value instanceof SaveableDirectory)
-						contents.addAll ( ( (SaveableDirectory) value ).saveableContents() );
-				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-					System.err.println("Cannot invoke getter method. Details: ");
-					e.printStackTrace();
-				}
-
-	        }
-	    }
-	    
-	    return contents;
-		
-	}
+	public List<Saveable> saveableContents();
 	
 	public default void askToSave(JFrame parent) {
 

@@ -8,6 +8,7 @@ import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 
 import pulse.properties.NumericProperty;
+import pulse.ui.Messages;
 
 public class NumericPropertyRenderer extends DefaultTableCellRenderer {
 	

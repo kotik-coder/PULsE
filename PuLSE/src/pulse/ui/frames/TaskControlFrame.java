@@ -31,6 +31,7 @@ import pulse.tasks.listeners.TaskRepositoryListener;
 import pulse.tasks.listeners.TaskSelectionEvent;
 import pulse.tasks.listeners.TaskSelectionListener;
 import pulse.ui.Launcher;
+import pulse.ui.Messages;
 import pulse.ui.charts.Chart;
 import pulse.ui.components.ButtonTabComponent;
 import pulse.ui.components.ExecutionButton;
@@ -866,7 +867,7 @@ public class TaskControlFrame extends JFrame {
 						return;
 	
 					chartPanel.plot( HeatingCurve.classicSolution(problem, 
-							TaskManager.getSelectedTask().getExperimentalCurve().timeLimit()), PlotType.CLASSIC_SOLUTION, false);
+							TaskManager.getSelectedTask().getExperimentalCurve().timeLimit(), 30), PlotType.CLASSIC_SOLUTION, false);
 
 				}
 			});

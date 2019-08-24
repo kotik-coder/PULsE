@@ -20,6 +20,7 @@ import pulse.properties.Property;
 import pulse.tasks.SearchTask;
 import pulse.tasks.TaskManager;
 import pulse.util.PropertyHolder;
+import pulse.ui.Messages;
 import static java.lang.Math.round;
 
 public class Pulse extends PropertyHolder {

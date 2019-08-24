@@ -4,9 +4,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import pulse.ui.Messages;
 
 import pulse.input.ExperimentalData;
-import pulse.input.PropertyCurve;
+import pulse.input.InterpolationDataset;
 import pulse.util.Reflexive;
 import pulse.util.ReflexiveFinder;
 
@@ -132,7 +133,7 @@ public final class ReaderManager {
 		
 	}
 	
-	public static PropertyCurve readPropertyTable(File file) throws IOException {
+	public static InterpolationDataset readPropertyTable(File file) throws IOException {
 		if(tableReaders == null)
 			tableReaders = findPropertyTableReaders();		
 		

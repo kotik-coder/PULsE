@@ -34,6 +34,7 @@ package pulse.ui.components;
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicButtonUI;
 
+import pulse.ui.Messages;
 import pulse.ui.charts.Chart;
 
 import java.awt.*;

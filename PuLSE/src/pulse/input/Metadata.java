@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Set;
 
 import pulse.input.Pulse.PulseShape;
-import pulse.input.Messages;
+import pulse.ui.Messages;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
@@ -35,12 +35,12 @@ public class Metadata extends PropertyHolder implements Reflexive, Saveable {
 		StringBuilder sb = new StringBuilder();
 		sb.append("[Sample " + sampleName + " with external ID " + externalID + "]");
 		sb.append(System.lineSeparator());
+		sb.append(System.lineSeparator());
 		
 		List<Property> data = this.data();		
 		
 		data.forEach(entry -> 
-		{					
-			
+		{								
 			sb.append(entry.toString());
 			sb.append(System.lineSeparator());
 			
@@ -183,7 +183,11 @@ public class Metadata extends PropertyHolder implements Reflexive, Saveable {
 	}
 	
 	@Override
-	public void printData(FileOutputStream fos) {
+	public void printData(FileOutputStream fos, Extension extension) {
+		printHTML(fos);
+	}
+	
+	private void printHTML(FileOutputStream fos) {
 		PrintStream stream = new PrintStream(fos);
 		
 		stream.print("<table>"); //$NON-NLS-1$
@@ -220,7 +224,6 @@ public class Metadata extends PropertyHolder implements Reflexive, Saveable {
         stream.print("</table>"); //$NON-NLS-1$
 		stream.print("</html>");
         stream.close();
-        
 	}
 
 	@Override

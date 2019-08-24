@@ -3,10 +3,12 @@ package pulse.ui.components;
 import javax.swing.AbstractListModel;
 import javax.swing.ComboBoxModel;
 
+import pulse.tasks.Identifier;
 import pulse.tasks.SearchTask;
 import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.TaskRepositoryEvent;
 import pulse.tasks.listeners.TaskRepositoryListener;
+import pulse.ui.Messages;
 
 /*
  * BASED ON DefaultComboBoxModel
@@ -28,9 +30,9 @@ public class TaskBoxModel extends AbstractListModel<SearchTask> implements Combo
 			@Override
 			public void onTaskListChanged(TaskRepositoryEvent e) {
 				if(e.getState() == TaskRepositoryEvent.State.TASK_ADDED)
-					notifyTaskAdded(e.getId().getValue());
+					notifyTaskAdded(e.getId());
 				if(e.getState() == TaskRepositoryEvent.State.TASK_REMOVED) 
-					notifyTaskRemoved(e.getId().getValue());
+					notifyTaskRemoved(e.getId());
 			}
 			
 		});
@@ -82,11 +84,13 @@ public class TaskBoxModel extends AbstractListModel<SearchTask> implements Combo
 		return selectedTask;
 	}
 
-	private void notifyTaskAdded(int index) {
+	private void notifyTaskAdded(Identifier id) {
+		int index = (int)id.getValue();
 		fireIntervalAdded(this, index, index);			
 	}
 	
-	private void notifyTaskRemoved(int index) {		
+	private void notifyTaskRemoved(Identifier id) {		
+		int index = (int)id.getValue();
 		fireIntervalRemoved(this, index, index);		
 	}
 	

@@ -15,7 +15,7 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 
 import pulse.input.ExperimentalData;
-import pulse.input.PropertyCurve;
+import pulse.input.InterpolationDataset;
 import pulse.io.readers.ReaderManager;
 import pulse.search.direction.PathSolver;
 import pulse.tasks.listeners.TaskRepositoryEvent;
@@ -24,14 +24,13 @@ import pulse.tasks.listeners.TaskSelectionEvent;
 import pulse.tasks.listeners.TaskSelectionListener;
 import pulse.ui.Launcher;
 import pulse.util.UpwardsNavigable;
-import pulse.util.Accessible;
 import pulse.util.SaveableDirectory;
 
 public final class TaskManager extends UpwardsNavigable {	
 	
 private static TaskManager instance = new TaskManager();	
 private static PathSolver pathSolver;
-private static PropertyCurve specificHeatCurve, densityCurve;
+private static InterpolationDataset specificHeatCurve, densityCurve;
 
 private static ForkJoinPool taskPool;
 
@@ -94,7 +93,7 @@ public static void execute(SearchTask t) {
 
 }
 
-private static void notifyListeners(TaskRepositoryEvent e) {
+public static void notifyListeners(TaskRepositoryEvent e) {
 	taskRepositoryListeners.stream().forEach(l -> l.onTaskListChanged(e));
 }
 
@@ -194,6 +193,7 @@ public static void reset() {
 	}
 	
 	PathSolver.reset();
+	pathSolver = null;
 			
 }
 
@@ -212,11 +212,11 @@ public static SearchTask getTask(Identifier id) {
 			findFirst().get();
 }
 
-public static PropertyCurve getSpecificHeatCurve() {
+public static InterpolationDataset getSpecificHeatCurve() {
 	return specificHeatCurve;
 }
 
-public static PropertyCurve getDensityCurve() {
+public static InterpolationDataset getDensityCurve() {
 	return densityCurve;
 }
 
@@ -339,6 +339,7 @@ public static PathSolver getPathSolver() {
 
 public static void setPathSolver(PathSolver pathSolver) {
 	TaskManager.pathSolver = pathSolver;
+	pathSolver.setParent(getInstance());
 }
 
 public static List<TaskRepositoryListener> getTaskRepositoryListeners() {
@@ -364,6 +365,10 @@ public static List<SaveableDirectory> saveableContents() {
 
 public static Result getResult(SearchTask t) {		
 	return results.get(t);
+}
+
+public static void useResult(SearchTask t, Result r) {
+	results.put(t,r);
 }
 
 public static Result getResult(Identifier id) {

@@ -3,6 +3,8 @@ package pulse.tasks;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
+import pulse.ui.Messages;
+
 public abstract class LogEntry {
 
 	private Identifier identifier;

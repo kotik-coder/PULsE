@@ -1,5 +1,6 @@
 package pulse.search.math;
 
+import pulse.ui.Messages;
 
 public final class Matrix {
     

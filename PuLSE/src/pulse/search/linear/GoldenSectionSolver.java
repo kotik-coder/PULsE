@@ -9,6 +9,7 @@ import pulse.search.math.IndexedVector;
 import pulse.search.math.Segment;
 import pulse.search.math.Vector;
 import pulse.tasks.SearchTask;
+import pulse.ui.Messages;
 
 public class GoldenSectionSolver extends LinearSolver {	
 	

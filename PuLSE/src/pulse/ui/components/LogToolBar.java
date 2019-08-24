@@ -11,6 +11,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import pulse.tasks.Log;
+import pulse.ui.Messages;
 
 public class LogToolBar extends JToolBar {
 

@@ -4,6 +4,7 @@ import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import pulse.properties.NumericProperty;
+import pulse.ui.Messages;
 import pulse.util.Saveable;
 
 public class Result extends AbstractResult implements Saveable {
@@ -33,7 +34,11 @@ public class Result extends AbstractResult implements Saveable {
 	}
 
 	@Override
-	public void printData(FileOutputStream fos) {
+	public void printData(FileOutputStream fos, Extension extension) {
+		printHTML(fos);
+	}
+	
+	private void printHTML(FileOutputStream fos) {
 		PrintStream stream = new PrintStream(fos);
         
 		stream.print("<table>"); //$NON-NLS-1$
@@ -57,7 +62,6 @@ public class Result extends AbstractResult implements Saveable {
 		stream.print("</table>"); //$NON-NLS-1$
         
         stream.close();
-        
 	}
 	
 }

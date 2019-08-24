@@ -12,6 +12,7 @@ import java.util.StringTokenizer;
 import pulse.input.ExperimentalData;
 import pulse.input.Metadata;
 import pulse.properties.NumericProperty;
+import pulse.ui.Messages;
 
 public class LFRReader implements CurveReader {
 	

@@ -8,13 +8,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import pulse.input.ExperimentalData;
-import pulse.Messages;
 import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
+import pulse.ui.Messages;
 import pulse.util.PropertyHolder;
 import pulse.util.Saveable;
+import pulse.util.Saveable.Extension;
 
 public class HeatingCurve extends PropertyHolder implements Saveable {
 	
@@ -221,7 +222,14 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 	}
 	
 	@Override
-	public void printData(FileOutputStream fos) {
+	public void printData(FileOutputStream fos, Extension extension) {
+		switch(extension) {
+			case HTML : printHTML(fos); break;
+			case CSV : printCSV(fos); break;
+		}		
+	}
+	
+	private void printHTML(FileOutputStream fos) {
 		PrintStream stream = new PrintStream(fos);
 		
 		stream.print("<table>"); //$NON-NLS-1$
@@ -262,6 +270,35 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
         stream.close();
         
 	}
+	
+	private void printCSV(FileOutputStream fos) {
+		PrintStream stream = new PrintStream(fos);
+		
+		final String TIME_LABEL = Messages.getString("HeatingCurve.6"); //$NON-NLS-1$
+		final String TEMPERATURE_LABEL = Messages.getString("HeatingCurve.7"); //$NON-NLS-1$
+		
+       	stream.print(TIME_LABEL + "\t");
+       	stream.print(TEMPERATURE_LABEL + "\t"); 
+       	stream.println();
+       	
+        double t, T;
+
+        int size = temperature.size();
+        int finalSize = size < count ? size : count;
+        
+        for (int i = 0; i < finalSize; i++) {
+           	t = time.get(i);
+            stream.printf("%.4f %n", t); //$NON-NLS-1$
+            stream.print("</td><td>"); //$NON-NLS-1$
+            T = temperature.get(i);
+            stream.printf("%.4f %n", T); //$NON-NLS-1$
+            stream.print("</td>"); //$NON-NLS-1$            
+            stream.println();
+        }
+        
+        stream.close();
+        
+	}	
 
 	public String getName() {
 		return name;
@@ -300,10 +337,9 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 		
 	}
 	
-	public static HeatingCurve classicSolution(Problem p, double timeLimit) {
+	public static HeatingCurve classicSolution(Problem p, double timeLimit, int precision) {
 		 HeatingCurve curve = p.getHeatingCurve();
 		
-		 final int N		= 30;
 		 HeatingCurve classicCurve = new HeatingCurve(new NumericProperty(curve.count, NumericProperty.COUNT));
 		 classicCurve.setBaseline(curve.getBaseline());
 		 
@@ -312,7 +348,7 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 		 
 	     for(int i = 0; i < curve.count; i++) {
 	    	 	time = i*step;
-	    	 	classicCurve.set(i, time, p.classicSolutionAt(time, N));
+	    	 	classicCurve.set(i, time, p.classicSolutionAt(time, precision));
 	     }
 	     
 	     classicCurve.setName("Classic solution");
@@ -321,7 +357,7 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 	}
 	
 	public static HeatingCurve classicSolution(Problem p) {
-		 return classicSolution(p, p.getHeatingCurve().timeLimit());
+		 return classicSolution(p, p.getHeatingCurve().timeLimit(), 30);
 	}
 
 	@Override
@@ -329,6 +365,11 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 		switch(type) {
 			case NUMPOINTS : setNumPoints(property); break;
 		}
+	}
+	
+	@Override
+	public Extension[] getSupportedExtensions() {
+		return new Extension[] {Saveable.Extension.HTML, Saveable.Extension.CSV};
 	}
 	
 }

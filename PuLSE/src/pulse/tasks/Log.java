@@ -10,6 +10,7 @@ import pulse.tasks.listeners.DataCollectionListener;
 import pulse.tasks.listeners.LogEntryListener;
 import pulse.tasks.listeners.StatusChangeListener;
 import pulse.tasks.listeners.TaskStateEvent;
+import pulse.ui.Messages;
 import pulse.util.Saveable;
 
 public class Log implements Saveable {
@@ -139,7 +140,7 @@ public class Log implements Saveable {
 	}
 
 	@Override
-	public void printData(FileOutputStream fos) {
+	public void printData(FileOutputStream fos, Extension extension) {
 		PrintStream stream = new PrintStream(fos);
 		stream.print(toString());
 	}

@@ -102,6 +102,7 @@ public abstract class PathSolver extends PropertyHolder implements Reflexive {
 
 	public void setLinearSolver(LinearSolver linearSearch) {
 		PathSolver.linearSolver = linearSearch;
+		linearSolver.setParent(this);
 		super.parameterListChanged();
 	}
 

@@ -13,6 +13,7 @@ import pulse.tasks.SearchTask;
 import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.TaskSelectionEvent;
 import pulse.tasks.listeners.TaskSelectionListener;
+import pulse.ui.Messages;
 
 public class TaskBox extends JComboBox<SearchTask> {
 

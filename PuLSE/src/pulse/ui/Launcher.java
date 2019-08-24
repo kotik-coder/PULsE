@@ -60,7 +60,8 @@ public class Launcher {
 			searchOptionsFrame = 
 				new SearchOptionsFrame(  );
 			searchOptionsFrame.setLocationRelativeTo(controlFrame);
-		}
+		} else
+			searchOptionsFrame.update();
 		searchOptionsFrame.setVisible(true);
 	}
 	

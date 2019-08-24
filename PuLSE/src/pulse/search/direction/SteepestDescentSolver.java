@@ -3,6 +3,7 @@ package pulse.search.direction;
 import pulse.search.math.Vector;
 import pulse.tasks.Path;
 import pulse.tasks.SearchTask;
+import pulse.ui.Messages;
 
 public class SteepestDescentSolver extends PathSolver {
 	

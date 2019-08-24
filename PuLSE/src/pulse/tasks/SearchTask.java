@@ -9,7 +9,7 @@ import java.util.concurrent.Executors;
 import pulse.Baseline;
 import pulse.HeatingCurve;
 import pulse.input.ExperimentalData;
-import pulse.input.PropertyCurve;
+import pulse.input.InterpolationDataset;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
@@ -21,6 +21,7 @@ import pulse.tasks.Status.Details;
 import pulse.tasks.listeners.DataCollectionListener;
 import pulse.tasks.listeners.StatusChangeListener;
 import pulse.tasks.listeners.TaskStateEvent;
+import pulse.ui.Messages;
 import pulse.util.Accessible;
 import pulse.util.PropertyEvent;
 import pulse.util.PropertyHolderListener;
@@ -138,19 +139,19 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 	}
 	
 	public void updateThermalProperties() {
-		PropertyCurve cvCurve = TaskManager.getSpecificHeatCurve();		
+		InterpolationDataset cvCurve = TaskManager.getSpecificHeatCurve();		
 		
 		if(problem == null)
 			return;
 		
 		if(cvCurve != null) {
-			cp = cvCurve.valueAt(testTemperature); 
+			cp = cvCurve.interpolateAt(testTemperature); 
 			problem.setSpecificHeat(new NumericProperty(cp, NumericProperty.SPECIFIC_HEAT));
 		}
 		
-		PropertyCurve rhoCurve = TaskManager.getDensityCurve();		
+		InterpolationDataset rhoCurve = TaskManager.getDensityCurve();		
 		if(rhoCurve != null) { 
-			rho = rhoCurve.valueAt(testTemperature);
+			rho = rhoCurve.interpolateAt(testTemperature);
 			problem.set(NumericPropertyKeyword.DENSITY, new NumericProperty(rho, NumericProperty.DENSITY));
 		}
 		

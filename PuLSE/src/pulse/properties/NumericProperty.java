@@ -1,9 +1,9 @@
 package pulse.properties;
 
-import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.Comparator;
+
+import pulse.ui.Messages;
 
 public class NumericProperty implements Property, Comparable<NumericProperty> {
 
@@ -279,7 +279,16 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
 
 	@Override
 	public int compareTo(NumericProperty arg0) {
-		return this.getType().compareTo(arg0.getType());
+		int result = this.getType().compareTo(arg0.getType());
+		
+		if(result != 0) 
+			return result;
+		
+		Double d1 = ((Number)value).doubleValue();
+		Double d2 = ((Number)arg0.getValue()).doubleValue(); 
+		
+		return d1.compareTo(d2);					
+		
 	}
 	
 }

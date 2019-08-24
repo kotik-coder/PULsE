@@ -30,6 +30,7 @@ import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
+import pulse.ui.Messages;
 import pulse.ui.frames.DataFrame;
 import pulse.util.Accessible;
 import pulse.util.PropertyHolder;

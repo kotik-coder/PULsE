@@ -9,6 +9,7 @@ import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.tasks.listeners.ResultFormatEvent;
 import pulse.tasks.listeners.ResultFormatListener;
+import pulse.ui.Messages;
 
 public class ResultFormat {
 	
@@ -20,7 +21,7 @@ public class ResultFormat {
 
 	private static String formatString;
 	
-	private final static char[] allowedCharacters = {'D', 'S', 'T', 'B', 'M', 'R', 'C', 'E', 'Q', 'A'};
+	private final static char[] allowedCharacters = {'D', 'S', 'T', 'B', 'M', 'R', 'C', 'E', 'Q', 'A', 'U', 'V', 'I'};
 	private final static char[] minimumAllowed = {'T', 'D'};
 	
 	private static List<ResultFormatListener> listeners = new ArrayList<ResultFormatListener>();
@@ -35,7 +36,10 @@ public class ResultFormat {
 	 * C - thermal conductivity
 	 * E - integral emissivity
 	 * Q - absorbed energy
-	 * A - accuracy or approximation 
+	 * A - accuracy or approximation
+	 * U - baseline intercept
+	 * V - baseline slope 
+	 * I - identifier
 	 */
 	
 	private ResultFormat(String formatString) {
@@ -67,6 +71,12 @@ public class ResultFormat {
 						   break;
 				case 'A' : nameMap.add(SearchTask.RSQUARED);
 						   break;
+				case 'U' : nameMap.add(NumericProperty.BASELINE_INTERCEPT);
+				   		   break;
+				case 'V' : nameMap.add(NumericProperty.BASELINE_SLOPE);
+		   		   		   break;
+				case 'I' : nameMap.add(Identifier.DEFAULT_IDENTIFIER);
+		   		   break;
 				default  : throw new IllegalArgumentException(Messages.getString("ResultFormat.UnknownFormatError") + c); //$NON-NLS-1$
 			}
 			
@@ -108,6 +118,13 @@ public class ResultFormat {
 	
 	public List<String> descriptors() {
 		return nameMap.stream().map(property -> property.getDescriptor(false)).collect(Collectors.toList());
+	}
+	
+	public NumericProperty fromAbbreviation(String descriptor) {
+		for(NumericProperty p : nameMap)
+			if(p.getAbbreviation(true).equals(descriptor))
+				return p;
+		return null;
 	}
 	
 	@Override

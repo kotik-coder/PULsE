@@ -15,7 +15,7 @@ import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
 
 import pulse.tasks.ResultFormat;
-import pulse.ui.components.Messages;
+import pulse.ui.Messages;
 
 import java.awt.Font;
 import javax.swing.JTextPane;

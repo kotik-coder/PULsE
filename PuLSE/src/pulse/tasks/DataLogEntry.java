@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import pulse.properties.NumericProperty;
+import pulse.ui.Messages;
 import pulse.util.DataEntry;
 
 public class DataLogEntry extends LogEntry {

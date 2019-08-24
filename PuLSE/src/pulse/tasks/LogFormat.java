@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import pulse.properties.NumericPropertyKeyword;
+import pulse.ui.Messages;
 
 public class LogFormat {
 	

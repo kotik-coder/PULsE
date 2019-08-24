@@ -1,6 +1,7 @@
 package pulse.ui.frames;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.GridLayout;
@@ -14,12 +15,15 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 import javax.swing.DefaultListModel;
+import javax.swing.DefaultListSelectionModel;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
 import javax.swing.ListSelectionModel;
@@ -39,6 +43,7 @@ import pulse.tasks.TaskManager;
 import pulse.tasks.Status.Details;
 import pulse.tasks.listeners.TaskSelectionEvent;
 import pulse.tasks.listeners.TaskSelectionListener;
+import pulse.ui.Messages;
 import pulse.ui.components.LoaderButton;
 import pulse.ui.components.PropertyHolderTable;
 import pulse.ui.components.TaskSelectionToolBar;
@@ -64,6 +69,9 @@ public class ProblemStatementFrame extends JFrame {
 	
 	private final static int LIST_FONT_SIZE = 16;
 	private final static Font LIST_FONT = new Font(Messages.getString("ProblemStatementFrame.LIST_FONT"), Font.PLAIN, LIST_FONT_SIZE);
+	
+	private final static List<Problem> knownProblems = Reflexive.instancesOf(Problem.class);
+	
 	
 	/**
 	 * Create the frame.
@@ -92,7 +100,37 @@ public class ProblemStatementFrame extends JFrame {
 		pane1.setLayout(new GridLayout(0, 1, 0, 0));
 
 		problemList = new ProblemList();		
-		problemList.setCellRenderer(new WrapCellRenderer(this.getWidth()/2 - 150));
+		problemList.setCellRenderer(new WrapCellRenderer(this.getWidth()/2 - 150) {
+	        @Override
+	        public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+	            Component comp = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+	            if(!knownProblems.get(index).isEnabled()) 
+	                comp.setForeground(Color.lightGray);
+	            JPanel p = new JPanel();
+	            p.add(comp);
+	            p.add(new JSeparator());
+	            return p;
+	        }
+			
+		});
+		
+		problemList.setSelectionModel(new DefaultListSelectionModel() {
+			
+			@Override
+	        public void setSelectionInterval(int index0, int index1) {
+				if(index0 != index1)
+					return;
+				
+				boolean enabledFlag = knownProblems.get(index0).isEnabled();
+				
+	            if (enabledFlag)
+	            	super.setSelectionInterval(index0, index0);
+	            else 
+	            	return;
+	            
+	        }
+	    
+		});
 		
 		JScrollPane problemScroller = new JScrollPane(problemList);
 		pane1.add(problemScroller);
@@ -126,7 +164,15 @@ public class ProblemStatementFrame extends JFrame {
 		pane2.add(schemeSroller);
 		schemeSelectionList = new SchemeSelectionList();
 		schemeSelectionList.setToolTipText(Messages.getString("ProblemStatementFrame.PleaseSelect")); //$NON-NLS-1$
-		schemeSelectionList.setCellRenderer(new WrapCellRenderer(this.getWidth()/2 - 150));
+		schemeSelectionList.setCellRenderer(new WrapCellRenderer(this.getWidth()/2 - 150) {
+	        @Override
+	        public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+	            Component comp = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+	            JPanel p = new JPanel();
+	            p.add(comp);
+	            return p;
+	        }
+		});
 		schemeSroller.setViewportView(schemeSelectionList);
 		
 		JScrollPane schemeDetailsScroller = new JScrollPane();
@@ -374,8 +420,6 @@ public class ProblemStatementFrame extends JFrame {
 		public ProblemList() {
 			super();
 			setFont(LIST_FONT); //$NON-NLS-1$
-			
-			List<Problem> knownProblems = Reflexive.instancesOf(Problem.class);
 			
 			DefaultListModel<Problem> listModel = new DefaultListModel<Problem>();
 			for(Problem p : knownProblems)

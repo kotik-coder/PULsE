@@ -9,17 +9,21 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 public interface Saveable extends Describable {
 	
-	public default String getExportExtension() {
-		return ".html";
+	public default Extension getDefaultExportExtension() {
+		return Extension.HTML;
+	}
+	
+	public default Extension[] getSupportedExtensions() {
+		return new Extension[] {getDefaultExportExtension()};
 	}
 	
 	public default void saveNow(File directory) {
 
 		try {
-				File newFile = new File(directory, describe() + getExportExtension());
+				File newFile = new File(directory, describe() + "." + getDefaultExportExtension());
 				newFile.createNewFile();
 	            FileOutputStream fos = new FileOutputStream(newFile);
-	            printData(fos);
+	            printData(fos, getDefaultExportExtension());
 	            
 		} catch (IOException e) {
 	            // TODO Auto-generated catch block
@@ -34,16 +38,30 @@ public interface Saveable extends Describable {
 		File workingDirectory = new File(System.getProperty("user.home"));
 		fileChooser.setCurrentDirectory(workingDirectory);
 		fileChooser.setMultiSelectionEnabled(true);
-		fileChooser.setSelectedFile(new File(describe() + ".html"));
-		fileChooser.setFileFilter(new FileNameExtensionFilter(fileTypeLabel,".html"));
-		 
+		fileChooser.setSelectedFile(new File(describe()));
+		
+		for(Extension s : getSupportedExtensions())
+			fileChooser.addChoosableFileFilter(
+					new FileNameExtensionFilter(fileTypeLabel + " (." + s + ")", 
+					s.toString().toLowerCase()));
+		
+		fileChooser.setAcceptAllFileFilterUsed(false);
+		
 	    int returnVal = fileChooser.showSaveDialog(parentWindow);
 	    if (returnVal == JFileChooser.APPROVE_OPTION) {
 	        try {
 	            File file = fileChooser.getSelectedFile();
+	            String path = file.getPath();	            
+	            
+	            FileNameExtensionFilter currentFilter = (FileNameExtensionFilter)fileChooser.getFileFilter();
+	            String ext = currentFilter.getExtensions()[0];
+	            
+	            if(!path.contains(".")) 	            
+	            	file = new File(path + "." + ext);	             
+	            
 	            FileOutputStream fos = new FileOutputStream(file);
 	            
-	            printData(fos);
+	            printData(fos, Extension.valueOf(ext.toUpperCase()));
 	            
 	        } catch (IOException e) {
 	            // TODO Auto-generated catch block
@@ -52,6 +70,16 @@ public interface Saveable extends Describable {
 	    }
 	}
 	
-	public void printData(FileOutputStream fos);
+	public void printData(FileOutputStream fos, Extension extension);
+	
+	public enum Extension {
+		HTML, CSV;
+		
+		@Override
+		public String toString() {
+			return super.toString().toLowerCase();
+		}
+		
+	}
 	
 }

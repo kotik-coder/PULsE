@@ -7,6 +7,8 @@ import java.awt.Font;
 import javax.swing.JButton;
 import javax.swing.border.EtchedBorder;
 
+import pulse.ui.Messages;
+
 public class ToolBarButton extends JButton {
 	
 	/**

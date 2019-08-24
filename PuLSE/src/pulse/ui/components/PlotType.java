@@ -1,5 +1,7 @@
 package pulse.ui.components;
 
+import pulse.ui.Messages;
+
 public enum PlotType {
 
 	EXPERIMENTAL_DATA(0, Messages.getString("Charting.0")), 

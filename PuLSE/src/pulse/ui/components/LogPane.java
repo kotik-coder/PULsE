@@ -1,6 +1,7 @@
 package pulse.ui.components;
 
 import java.awt.Dimension;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -10,7 +11,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import javax.swing.JEditorPane;
-import javax.swing.SwingUtilities;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultCaret;
 import javax.swing.text.html.HTMLDocument;
@@ -21,6 +21,7 @@ import pulse.tasks.LogEntry;
 import pulse.tasks.SearchTask;
 import pulse.tasks.Status;
 import pulse.tasks.TaskManager;
+import pulse.ui.Messages;
 import pulse.util.Saveable;
 
 public class LogPane extends JEditorPane implements Saveable {
@@ -52,20 +53,19 @@ public class LogPane extends JEditorPane implements Saveable {
 
 		      @Override
 		      public void write(byte[] b) throws IOException {
-		        write(b, 0, b.length);
+		        write(b, 0, b.length);		        
 		      }
 		};
 
 		System.setOut(new java.io.PrintStream(out, true));
-		System.setErr(new java.io.PrintStream(out, true));
-		
+		System.setErr(new java.io.PrintStream(out, true));		
 	}		
 	
 	private void post(LogEntry logEntry) {
 		post(logEntry.toString());
 	}
 
-	private void post(String text) {
+	private void post(String text) {		
 		
 		final HTMLDocument doc	= (HTMLDocument) getDocument();
 		final HTMLEditorKit kit = (HTMLEditorKit) this.getEditorKit();
@@ -125,7 +125,7 @@ public class LogPane extends JEditorPane implements Saveable {
 			
 	}
 	
-	private void update() {				
+	private void update() {
 		SearchTask task = TaskManager.getSelectedTask();
 		
 		if(task == null)
@@ -148,7 +148,7 @@ public class LogPane extends JEditorPane implements Saveable {
 	}
 	
 	@Override 
-	public void printData(FileOutputStream fos) {
+	public void printData(FileOutputStream fos, Extension extension) {
 		HTMLEditorKit kit = (HTMLEditorKit) this.getEditorKit();
 		try {
 			kit.write(fos, this.getDocument(), 0, this.getDocument().getLength());

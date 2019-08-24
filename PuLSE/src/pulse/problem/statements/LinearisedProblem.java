@@ -10,7 +10,7 @@ import pulse.properties.NumericProperty;
 public class LinearisedProblem extends Problem {
 	
 	protected boolean dimensionless = false;
-	
+
 	public LinearisedProblem() {
 		super();
 	}

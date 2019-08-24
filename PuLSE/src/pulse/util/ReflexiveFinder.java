@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import pulse.ui.Messages;
+
 public class ReflexiveFinder {
 	
 	private ReflexiveFinder() {

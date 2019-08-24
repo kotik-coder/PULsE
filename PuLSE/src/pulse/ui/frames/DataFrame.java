@@ -8,6 +8,7 @@ import java.awt.Component;
 
 import javax.swing.JScrollPane;
 
+import pulse.ui.Messages;
 import pulse.ui.components.PropertyHolderTable;
 import pulse.util.PropertyHolder;
 

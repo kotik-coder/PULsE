@@ -5,8 +5,10 @@ import java.awt.event.MouseEvent;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
@@ -14,7 +16,6 @@ import javax.swing.RowSorter;
 import javax.swing.RowSorter.SortKey;
 import javax.swing.SortOrder;
 import javax.swing.SwingUtilities;
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
@@ -33,6 +34,7 @@ import pulse.tasks.listeners.TaskRepositoryEvent;
 import pulse.tasks.listeners.TaskRepositoryListener;
 import pulse.tasks.listeners.TaskSelectionEvent;
 import pulse.tasks.listeners.TaskSelectionListener;
+import pulse.ui.Messages;
 import pulse.util.Saveable;
 
 public class ResultTable extends JTable implements Saveable  {		
@@ -46,6 +48,8 @@ public class ResultTable extends JTable implements Saveable  {
 	
 	private TableRowSorter<TableModel> sorter;
 	private NumericPropertyRenderer renderer;
+	
+	private Comparator<NumericProperty> numericComparator = (i1, i2) -> i1.compareTo(i2);
 	
 	public ResultTable(ResultFormat fmt) {
 		super();
@@ -62,9 +66,10 @@ public class ResultTable extends JTable implements Saveable  {
 		
 		sorter = new TableRowSorter<TableModel>(getModel()); 
 	    ArrayList<RowSorter.SortKey> list	= new ArrayList<SortKey>();
+
 	    for(int i = 0; i < this.getModel().getColumnCount(); i++) {
 		    list.add( new RowSorter.SortKey(i, SortOrder.ASCENDING) );
-	    	sorter.setComparator(i, new NumericPropertyComparator());
+		    sorter.setComparator(i, numericComparator);
 	    }
 	    
 	    sorter.setSortKeys(list);
@@ -124,7 +129,6 @@ public class ResultTable extends JTable implements Saveable  {
 				switch(e.getState()) {
 				
 					case TASK_FINISHED :
-					
 						SearchTask t = TaskManager.getTask(e.getId());
 						Result r = TaskManager.getResult(t);
 						
@@ -154,6 +158,11 @@ public class ResultTable extends JTable implements Saveable  {
 			
 		});
 	    
+	}
+	
+	@Override
+	public Extension[] getSupportedExtensions() {
+		return new Extension[] {Saveable.Extension.HTML, Saveable.Extension.CSV};
 	}
 	
 	private void selectMatchingResult(AverageResult ar, Identifier id) {
@@ -190,7 +199,7 @@ public class ResultTable extends JTable implements Saveable  {
 		for(int i = 0; i < data.length; i++) 
 			for(int j = 0; j < data[0][0].length; j++) {
 				property = (NumericProperty)getValueAt(j, i);
-				data[i][0][j] = (double) property.getValue() * (double) property.getDimensionFactor();
+				data[i][0][j] = ((Number) property.getValue()).doubleValue() * ((Number) property.getDimensionFactor()).doubleValue();
 				if(property.getError() != null)
 					data[i][1][j] = (double) property.getError() * (double) property.getDimensionFactor();
 				else
@@ -231,7 +240,88 @@ public class ResultTable extends JTable implements Saveable  {
 	}
 	
 	@Override
-	public void printData(FileOutputStream fos) {
+	public void printData(FileOutputStream fos, Extension extension) {
+		switch(extension) {
+			case HTML : printHTML(fos); break;
+			case CSV : printCSV(fos); break;
+		}		
+	}
+	
+	private void printCSV(FileOutputStream fos) {
+		PrintStream stream = new PrintStream(fos);
+		NumericProperty p = null;
+		
+        for (int col = 0; col < getColumnCount(); col++) {
+        	p = fmt.fromAbbreviation(getColumnName(col));
+            stream.print(p.getType() + "\t");
+            stream.print("STD. DEV" + "\t");
+        }
+        
+        stream.println(""); 
+
+        NumericProperty tmp;
+        
+        for (int i = 0; i < getRowCount(); i++) {
+            for (int j = 0; j < getColumnCount(); j++) {
+            	tmp = (NumericProperty) getValueAt(i,j);
+                stream.print(tmp.formattedValue() + "\t");
+                if(tmp.getError() != null)
+                	stream.print(tmp.getError() + "\t");
+                else
+                	stream.print("0.0\t");
+            }
+            stream.println();
+        }        
+        
+        List<AbstractResult> results = ( (ResultTableModel)getModel() ).getResults();
+        
+        boolean printMore = false;
+        
+        for(AbstractResult ar : results) {
+        	if(ar instanceof AverageResult)
+        		printMore = true;
+        }
+        
+        if(! printMore) {
+        	stream.close();
+        	return;
+        }
+        
+        stream.print(Messages.getString("ResultTable.IndividualResults")); //$NON-NLS-1$
+        
+        for (int col = 0; col < getColumnCount(); col++) 
+            stream.print(getColumnName(col) + "\t");        
+
+        stream.println(""); //$NON-NLS-1$
+
+        List<AbstractResult> ir;
+        AverageResult ar;
+        Result rr;
+        List<NumericProperty> props;
+        
+        for(AbstractResult r : results) {
+        	if(r instanceof AverageResult) {
+        		ar = (AverageResult) r;
+        		ir = ar.getIndividualResults();
+        		
+        		for(AbstractResult aar : ir) {		
+        			rr = (Result)aar;
+        			props = AbstractResult.filterProperties(aar);
+        			
+        			for (int j = 0; j < getColumnCount(); j++) 
+                        stream.print(props.get(j).formattedValue() + "\t");
+        			
+        			stream.println();
+                            			
+        		}
+        		
+        	}
+        }
+               
+        stream.close();
+	}
+	
+	private void printHTML(FileOutputStream fos) {		
 		PrintStream stream = new PrintStream(fos);
 		
 		stream.print("<table>"); //$NON-NLS-1$
@@ -318,8 +408,7 @@ public class ResultTable extends JTable implements Saveable  {
         }
                 
         stream.print("</table>"); //$NON-NLS-1$
-        
-        
+               
         stream.close();
 	}
 	
@@ -434,7 +523,7 @@ public class ResultTable extends JTable implements Saveable  {
 			super(fmt.abbreviations().toArray(), rowCount);
 			this.fmt = fmt;
 			results = new LinkedList<AbstractResult>();
-			tooltips = fmt.descriptors();
+			tooltips = fmt.descriptors().stream().map(d -> "<html>" + d + "</html>").collect(Collectors.toList());			
 		}		
 		
 	    @Override
@@ -463,7 +552,7 @@ public class ResultTable extends JTable implements Saveable  {
 	    	for(AbstractResult r : oldResults)
 	    		this.addRow(r);
 	    	
-	    	tooltips = fmt.descriptors();
+	    	tooltips = fmt.descriptors().stream().map(d -> "<html>" + d + "</html>").collect(Collectors.toList());
 	    }
 	    
 		public void addRow(AbstractResult result) {
@@ -517,7 +606,7 @@ public class ResultTable extends JTable implements Saveable  {
 			return fmt;
 		}
 
-		public List<String> getTooltips() {
+		public List<String> getTooltips() {			
 			return tooltips;
 		}				
 		

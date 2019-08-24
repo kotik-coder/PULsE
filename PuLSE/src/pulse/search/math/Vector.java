@@ -1,5 +1,7 @@
 package pulse.search.math;
 
+import pulse.ui.Messages;
+
 public class Vector { 
     
     private double[] x;

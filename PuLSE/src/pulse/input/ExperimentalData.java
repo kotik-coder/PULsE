@@ -5,12 +5,10 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import pulse.Baseline;
 import pulse.HeatingCurve;
-import pulse.util.SaveableDirectory;
 import pulse.util.geom.Point2D;
 
-public class ExperimentalData extends HeatingCurve implements SaveableDirectory {
+public class ExperimentalData extends HeatingCurve {
 	
 	private Metadata metadata;
 	
@@ -20,6 +18,7 @@ public class ExperimentalData extends HeatingCurve implements SaveableDirectory 
 	private final static double CUTOFF_FACTOR = 6;
 	private final static int REDUCTION_FACTOR = 16;
 	private final static double POSITIVE_ZERO = 1E-7;
+	private final static int PULSE_INDEX_MARGIN = 10;
 	
 	private Comparator<Point2D> pointComparator = 
 			(p1, p2) -> Double.valueOf(p1.getY()).compareTo(Double.valueOf(p2.getY()));
@@ -158,7 +157,7 @@ public class ExperimentalData extends HeatingCurve implements SaveableDirectory 
 	
 	public void updateFittingRange() {
 		double pulseWidth = (double) metadata.getPulseWidth().getValue();
-		int t = closestIndexOf(pulseWidth, time);		
+		int t = closestIndexOf(pulseWidth, time) + PULSE_INDEX_MARGIN;
 		fittingStartIndex = t > fittingStartIndex ? t : fittingStartIndex;
 	}
 	

@@ -76,5 +76,10 @@ public class LinearisedProblem2D extends LinearisedProblem implements TwoDimensi
 	public String toString() {
 		return Messages.getString("LinearizedProblem2D.Descriptor"); //$NON-NLS-1$
 	}
+	
+	@Override
+	public boolean isEnabled() {
+		return false;
+	}
 
 }

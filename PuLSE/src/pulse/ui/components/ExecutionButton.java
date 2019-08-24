@@ -11,7 +11,7 @@ import pulse.tasks.SearchTask;
 import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.TaskRepositoryEvent;
 import pulse.tasks.listeners.TaskRepositoryListener;
-import pulse.ui.frames.Messages;
+import pulse.ui.Messages;
 
 public class ExecutionButton extends ToolBarButton {
 	/**

@@ -102,10 +102,10 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 		
 		double sum = 0;
 
-		for (int i = 1; i < precision; i++)
+		for (int i = 1; i <= precision; i++)
 			sum += pow(-1, i)*exp(-pow(i*PI, 2)*Fo);
 		
-		return (1 + 2. * sum)*signalHeight;
+		return (1. + 2. * sum)*signalHeight;
 		
 	}
 		
@@ -299,6 +299,10 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 	
 	public NumericProperty[] getCriticalParameters() {
 		return criticalParameters;
+	}
+	
+	public boolean isEnabled() {
+		return true;
 	}
 	
 }

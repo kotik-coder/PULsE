@@ -16,6 +16,31 @@ import pulse.properties.Property;
 
 public abstract class Accessible extends UpwardsNavigable {
 	
+	public List<Saveable> saveableContents() {
+		List<Saveable> contents = new ArrayList<Saveable>();
+
+	    try {
+			contents.addAll(numericProperties().stream().filter(p -> p instanceof Saveable).
+					map(p -> (Saveable)p).collect(Collectors.toList()));
+			accessibles().stream().forEach(c -> 						
+				{
+				 if(this.getParent() != c) {										
+					 if(c instanceof SaveableDirectory) 
+						contents.addAll(c.saveableContents() );				
+					 if(c instanceof Saveable) {
+						contents.add((Saveable)c);
+						contents.addAll(c.saveableContents());
+					 }
+					 }
+				 });
+		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	    
+	    return contents;
+	}
+	
 	public Property property(Property similar) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		if(similar instanceof NumericProperty)
 			return numericProperty(((NumericProperty)similar).getType());

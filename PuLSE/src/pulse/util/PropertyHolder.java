@@ -1,6 +1,7 @@
 package pulse.util;
 
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -15,7 +16,7 @@ public abstract class PropertyHolder extends Accessible {
 
 	private List<Property> parameters = listedParameters();
 	private List<PropertyHolderListener> listeners;
-
+	
 	public List<Property> listedParameters() {
 		
 		List<Property> properties = new ArrayList<Property>();

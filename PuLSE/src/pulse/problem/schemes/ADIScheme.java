@@ -17,6 +17,7 @@ import pulse.problem.statements.TwoDimensional;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
+import pulse.ui.Messages;
 
 import static java.lang.Math.abs;
 import static java.lang.Math.PI;
