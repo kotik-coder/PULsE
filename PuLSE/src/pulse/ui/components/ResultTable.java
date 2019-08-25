@@ -425,11 +425,17 @@ public class ResultTable extends JTable implements Saveable  {
 		
 		ResultTableModel model = (ResultTableModel) this.getModel();
 		
+		Number val;
+		
 		for(int i = 0; i < this.getRowCount(); i++) {
 			if(skipList.contains(i))
 				continue;
 				
-			temp	= (double) ( (NumericProperty) this.getValueAt(i, 0) ).getValue();
+			val		= ((Number) (  (NumericProperty) this.getValueAt(i, 0) ).getValue());
+			if(val instanceof Double)
+				temp	= val.doubleValue();
+			else
+				temp	= val.intValue();
 			g		= group(temp, precision); 
 			gModel	= new int[g.length];
 			
@@ -478,12 +484,13 @@ public class ResultTable extends JTable implements Saveable  {
 	public int[] group(double val, double precision) {
 		
 		List<Integer> selection = new LinkedList<Integer>();
+		Number valNumber;
 		
 		for(int i = 0; i < this.getRowCount(); i++) {
 			
-			if( Math.abs( 
-					(double) ((NumericProperty) this.getValueAt(i, 0)).getValue()
-					- val) < precision)
+			valNumber = (Number) ((NumericProperty) this.getValueAt(i, 0)).getValue();
+			
+			if( Math.abs( valNumber.doubleValue()	- val) < precision)
 				selection.add(i);
 		}
 		

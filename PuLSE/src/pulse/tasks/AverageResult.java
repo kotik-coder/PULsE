@@ -35,7 +35,7 @@ public class AverageResult extends AbstractResult {
 		
 		for(AbstractResult r : results) 
 			for(int i = 0; i < av.length; i++)
-				av[i] += (double) r.getProperty(i).getValue();
+				av[i] += ((Number)r.getProperty(i).getValue()).doubleValue();
 		
 		BigDecimal[] avBig = new BigDecimal[av.length];
 		
@@ -49,8 +49,10 @@ public class AverageResult extends AbstractResult {
 		 */
 		
 		for(AbstractResult r : results) 
-			for(int j = 0; j < av.length; j++) 
-				std[j] += Math.pow( (double) r.getProperty(j).getValue() - av[j], 2);
+			for(int j = 0; j < av.length; j++)  
+				std[j] += Math.pow( 
+						((Number) r.getProperty(j).getValue()).doubleValue() 
+						- av[j], 2);
 		
 		BigDecimal[] stdBig = new BigDecimal[av.length];
 		int numFigures		= 2;
