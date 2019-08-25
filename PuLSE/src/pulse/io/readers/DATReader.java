@@ -13,6 +13,7 @@ import pulse.ui.Messages;
 import pulse.input.ExperimentalData;
 import pulse.input.Metadata;
 import pulse.properties.NumericProperty;
+import pulse.properties.NumericPropertyKeyword;
 
 public class DATReader implements CurveReader {
 	
@@ -38,7 +39,7 @@ public class DATReader implements CurveReader {
 		
 		double T = Double.parseDouble(reader.readLine()) + CONVERSION_TO_KELVIN;
 		Metadata met = new Metadata(-1);
-		met.setTestTemperature( new NumericProperty(T, NumericProperty.TEST_TEMPERATURE) );
+		met.setTestTemperature( NumericProperty.derive(NumericPropertyKeyword.TEST_TEMPERATURE, T) );
 		curve.setMetadata(met);
 		
 		double time, temp;	

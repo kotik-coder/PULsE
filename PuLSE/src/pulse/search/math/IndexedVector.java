@@ -9,6 +9,8 @@ import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 
+import static pulse.properties.NumericPropertyKeyword.*;
+
 public class IndexedVector extends Vector {
 
 	private List<NumericPropertyKeyword> indices;
@@ -54,16 +56,16 @@ public class IndexedVector extends Vector {
 	 
 	public static IndexedVector parameterBoundaries(List<NumericPropertyKeyword> activeParameters) {
 			IndexedVector v = new IndexedVector(activeParameters);
-			double lSq = Math.pow((double)NumericProperty.THICKNESS.getValue(), 2);
+			double lSq = Math.pow((double)NumericProperty.def(THICKNESS).getValue(), 2);
 			
 			for(NumericPropertyKeyword activeIndex : activeParameters) { 
 			
 				switch(activeIndex) {
-					case HEAT_LOSS			: v.set(activeIndex, (double) Problem.HEAT_LOSS.getMaximum()); break; 
-					case DIFFUSIVITY		: v.set(activeIndex, (double) NumericProperty.DIFFUSIVITY.getMaximum()/lSq); break;
-					case BASELINE_INTERCEPT	: v.set(activeIndex, (double) NumericProperty.BASELINE_INTERCEPT.getMaximum()); break;
-					case BASELINE_SLOPE		: v.set(activeIndex, (double) NumericProperty.BASELINE_SLOPE.getMaximum()); break;
-					case MAXTEMP	 		: v.set(activeIndex, (double) NumericProperty.MAXTEMP.getMaximum()); break;
+					case HEAT_LOSS			: v.set(activeIndex, (double) NumericProperty.def(HEAT_LOSS).getMaximum()); break; 
+					case DIFFUSIVITY		: v.set(activeIndex, (double) NumericProperty.def(DIFFUSIVITY).getMaximum()/lSq); break;
+					case BASELINE_INTERCEPT	: v.set(activeIndex, (double) NumericProperty.def(BASELINE_INTERCEPT).getMaximum()); break;
+					case BASELINE_SLOPE		: v.set(activeIndex, (double) NumericProperty.def(BASELINE_SLOPE).getMaximum()); break;
+					case MAXTEMP	 		: v.set(activeIndex, (double) NumericProperty.def(MAXTEMP).getMaximum()); break;
 					default			 		: throw new IllegalArgumentException("Type " + activeIndex + " unknown"); //$NON-NLS-1$ //$NON-NLS-2$
 				}
 				

@@ -24,11 +24,11 @@ import static java.lang.Math.PI;
  */
 public class ExplicitScheme extends DifferenceScheme {
 	
-	private final static NumericProperty TAU_FACTOR = new NumericProperty(NumericPropertyKeyword.TAU_FACTOR, 
-			Messages.getString("Tau.Descriptor"), Messages.getString("Tau.Abbreviation"), 0.5, 1E-4, 0.5, 0.5, 1, true); //$NON-NLS-1$
-	private final static NumericProperty GRID_DENSITY = new NumericProperty(NumericPropertyKeyword.GRID_DENSITY, 
-			Messages.getString("N.Descriptor"), Messages.getString("N.Abbreviation"), 80, 15, 1000, 80, 1, true); //$NON-NLS-1$
-
+	private final static NumericProperty TAU_FACTOR = 
+			NumericProperty.derive(NumericPropertyKeyword.TAU_FACTOR, 0.5);
+	private final static NumericProperty GRID_DENSITY = 
+			NumericProperty.derive(NumericPropertyKeyword.GRID_DENSITY, 80);
+	
 	/**
 	 * 
 	 */
@@ -37,7 +37,7 @@ public class ExplicitScheme extends DifferenceScheme {
 	}	
 	
 	public ExplicitScheme(NumericProperty N) {
-		this(N, NumericProperty.TIME_LIMIT);		
+		this(N, NumericProperty.def(NumericPropertyKeyword.TIME_LIMIT));		
 	}
 	
 	public ExplicitScheme(NumericProperty N, NumericProperty timeLimit) {
@@ -182,7 +182,7 @@ public class ExplicitScheme extends DifferenceScheme {
 				curve.setTemperatureAt(w, V[N]);
 				maxVal = Math.max(maxVal, V[N]);
 				curve.setTimeAt( w,	(w*timeInterval)*tau*problem.timeFactor() );
-				ref.setMaximumTemperature(new NumericProperty(maxVal, NumericProperty.MAXTEMP));
+				ref.setMaximumTemperature(NumericProperty.derive(NumericPropertyKeyword.MAXTEMP, maxVal));
 				
 			}			
 			

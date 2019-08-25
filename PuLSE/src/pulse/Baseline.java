@@ -34,7 +34,7 @@ public class Baseline extends PropertyHolder {
 	}
 
 	public NumericProperty getSlope() {
-		return new NumericProperty(slope, NumericProperty.BASELINE_SLOPE);
+		return NumericProperty.derive(NumericPropertyKeyword.BASELINE_SLOPE, slope);
 	}
 
 	public void setSlope(NumericProperty slope) {
@@ -42,7 +42,7 @@ public class Baseline extends PropertyHolder {
 	}
 
 	public NumericProperty getIntercept() {
-		return new NumericProperty(intercept, NumericProperty.BASELINE_INTERCEPT);
+		return NumericProperty.derive(NumericPropertyKeyword.BASELINE_INTERCEPT, intercept); 
 	}
 
 	public void setIntercept(NumericProperty intercept) {
@@ -63,6 +63,9 @@ public class Baseline extends PropertyHolder {
 	}
 
 	public void fitTo(ExperimentalData data, double rangeMin, double rangeMax) {
+		if(data.getFittingStartIndex() < 1)
+			return;
+		
 		List<Double> x = new ArrayList<Double>();
 		List<Double> y = new ArrayList<Double>();
 		
@@ -112,8 +115,8 @@ public class Baseline extends PropertyHolder {
         x.clear(); x = null;
         y.clear(); y = null;
         
-        setIntercept(new NumericProperty(intercept, NumericProperty.BASELINE_INTERCEPT));
-        setSlope(new NumericProperty(slope, NumericProperty.BASELINE_SLOPE));
+        setIntercept(NumericProperty.derive(NumericPropertyKeyword.BASELINE_INTERCEPT, intercept));
+        setSlope(NumericProperty.derive(NumericPropertyKeyword.BASELINE_SLOPE, slope));
         
 	}
 	

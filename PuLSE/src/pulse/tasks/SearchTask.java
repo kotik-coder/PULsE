@@ -26,6 +26,7 @@ import pulse.util.Accessible;
 import pulse.util.PropertyEvent;
 import pulse.util.PropertyHolderListener;
 import pulse.util.SaveableDirectory;
+import static pulse.properties.NumericPropertyKeyword.*;
 
 public class SearchTask extends Accessible implements Runnable, SaveableDirectory {
 
@@ -53,16 +54,7 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 	private Identifier identifier;
 
 	private final static double SUCCESS_CUTOFF = 0.2;	
-	
-	public final static NumericProperty RSQUARED = 
-			new NumericProperty(NumericPropertyKeyword.RSQUARED, 
-			Messages.getString("RSquared.Descriptor"), 
-			Messages.getString("RSquared.Abbreviation"), Double.NEGATIVE_INFINITY);
 
-	public final static NumericProperty SUM_OF_SQUARES = new NumericProperty(NumericPropertyKeyword.SUM_OF_SQUARES, 
-			Messages.getString("SumOfSquares.Descriptor"), 
-			Messages.getString("SumOfSquares.Abbreviation"), Double.POSITIVE_INFINITY);
-	
 	@Override
 	public boolean equals(Object o) {		
 		if(! (o instanceof SearchTask))
@@ -79,12 +71,14 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 	
 	public void updateTimeLimit() {
 		final double factor = 1.05;
-		setTimeLimit(new NumericProperty(factor*curve.timeLimit(), NumericProperty.TIME_LIMIT));
+		setTimeLimit(NumericProperty.derive(TIME_LIMIT, factor*curve.timeLimit()));
 	}
 	
 	public void reset() {				
-		rSquared		= (double) RSQUARED.getValue();
-		sumOfSquares	= (double) SUM_OF_SQUARES.getValue();				
+		rSquared		= (double) NumericProperty.def
+				(NumericPropertyKeyword.RSQUARED).getValue();
+		sumOfSquares	= (double) NumericProperty.def
+				(NumericPropertyKeyword.SUM_OF_SQUARES).getValue();				
 		
 		buffer 			= new Buffer();
 		log 			= new Log(this);
@@ -115,8 +109,8 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 	}
 	
 	protected SearchTask() {
-		timeLimit 			= (double)NumericProperty.TIME_LIMIT.getValue();
-		testTemperature		= (double)NumericProperty.TEST_TEMPERATURE.getValue();
+		timeLimit 			= (double)NumericProperty.def(TIME_LIMIT).getValue();
+		testTemperature		= (double)NumericProperty.def(TEST_TEMPERATURE).getValue();
 
 		updateThermalProperties();
 		
@@ -146,13 +140,13 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 		
 		if(cvCurve != null) {
 			cp = cvCurve.interpolateAt(testTemperature); 
-			problem.setSpecificHeat(new NumericProperty(cp, NumericProperty.SPECIFIC_HEAT));
+			problem.set(SPECIFIC_HEAT, NumericProperty.derive(SPECIFIC_HEAT, cp));
 		}
 		
 		InterpolationDataset rhoCurve = TaskManager.getDensityCurve();		
 		if(rhoCurve != null) { 
 			rho = rhoCurve.interpolateAt(testTemperature);
-			problem.set(NumericPropertyKeyword.DENSITY, new NumericProperty(rho, NumericProperty.DENSITY));
+			problem.set(DENSITY, NumericProperty.derive(DENSITY, rho));
 		}
 		
 		if(rhoCurve != null && cvCurve != null) {
@@ -297,11 +291,11 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 	}
 	
 	public NumericProperty getTimeLimit() {
-		return new NumericProperty(timeLimit, NumericProperty.TIME_LIMIT);
+		return NumericProperty.derive(TIME_LIMIT, timeLimit);
 	}
 	
 	public NumericProperty getTestTemperature() {
-		return new NumericProperty(testTemperature, NumericProperty.TEST_TEMPERATURE);
+		return NumericProperty.derive(TEST_TEMPERATURE, testTemperature);
 	}
 	
 	public Path getPath() {
@@ -309,11 +303,11 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 	}
 	
 	public NumericProperty getSumOfSquares() {
-		return new NumericProperty(sumOfSquares, SUM_OF_SQUARES); //$NON-NLS-1$
+		return NumericProperty.derive(SUM_OF_SQUARES, sumOfSquares); //$NON-NLS-1$
 	}
 	
 	public NumericProperty getRSquared() {
-		return new NumericProperty(rSquared, RSQUARED); //$NON-NLS-1$
+		return NumericProperty.derive(RSQUARED, rSquared); //$NON-NLS-1$
 	}
 	
 	//setters
@@ -350,9 +344,9 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 				
 				NumericProperty p = (NumericProperty) property;
 			
-				for(NumericProperty critical : problem.getCriticalParameters()) {
+				for(NumericPropertyKeyword critical : problem.getCriticalParameters()) {
 
-					if(p.getType() == critical.getType()) {
+					if(p.getType() == critical) {
 						
 						problem.estimateSignalRange(curve);
 						problem.useParkersSolution(curve);
@@ -449,7 +443,7 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 	}
 
 	public NumericProperty getThermalConductivity() {
-		return new NumericProperty(lambda, NumericProperty.CONDUCTIVITY);
+		return NumericProperty.derive(CONDUCTIVITY, lambda);
 	}
 
 	public void setThermalConductivity(NumericProperty lambda) {
@@ -457,7 +451,7 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 	}	
 	
 	public NumericProperty getEmissivity() {
-		return new NumericProperty(emissivity, NumericProperty.EMISSIVITY);
+		return NumericProperty.derive(EMISSIVITY, emissivity);
 	}
 
 	public void setEmissivity(NumericProperty emissivity) {

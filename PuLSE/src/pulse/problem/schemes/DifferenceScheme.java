@@ -100,10 +100,8 @@ public abstract class DifferenceScheme extends PropertyHolder {
 	}
 	
 	public NumericProperty getTimeStepFactor() {
-		return new NumericProperty(
-				NumericPropertyKeyword.TAU_FACTOR, 
-				Messages.getString("Tau.Descriptor"), 
-				Messages.getString("Tau.Abbreviation"), tauFactor); //$NON-NLS-1$
+		return NumericProperty.derive(NumericPropertyKeyword.TAU_FACTOR, 
+				tauFactor);
 	}
 	
 	public void setTimeStepFactor(NumericProperty property) {
@@ -111,7 +109,7 @@ public abstract class DifferenceScheme extends PropertyHolder {
 	}
 	
 	public NumericProperty getGridDensity() {
-		return new NumericProperty(this.N, NumericProperty.GRID_DENSITY);
+		return NumericProperty.derive(NumericPropertyKeyword.GRID_DENSITY, this.N);
 	}
 	
 	public void setGridDensity(NumericProperty density) {
@@ -136,7 +134,7 @@ public abstract class DifferenceScheme extends PropertyHolder {
 	}
 
 	public NumericProperty getTimeLimit() {
-		return new NumericProperty(timeLimit, NumericProperty.TIME_LIMIT);
+		return NumericProperty.derive(NumericPropertyKeyword.TIME_LIMIT, timeLimit);
 	}
 
 	public void setTimeLimit(NumericProperty timeLimit) {
@@ -146,7 +144,7 @@ public abstract class DifferenceScheme extends PropertyHolder {
 	@Override
 	public List<Property> listedParameters() {
 		List<Property> list = new ArrayList<Property>(9);
-		list.add(NumericProperty.TIME_LIMIT);
+		list.add(NumericProperty.def(NumericPropertyKeyword.TIME_LIMIT));
 		return list;
 	}
 	

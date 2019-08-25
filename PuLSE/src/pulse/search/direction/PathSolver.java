@@ -16,10 +16,12 @@ import pulse.tasks.SearchTask;
 import pulse.util.PropertyHolder;
 import pulse.util.Reflexive;
 
+import static pulse.properties.NumericPropertyKeyword.*;
+
 public abstract class PathSolver extends PropertyHolder implements Reflexive {
 	
-	private static double errorTolerance	 = (double)NumericProperty.ERROR_TOLERANCE.getValue();
-	private static double gradientResolution = (double)NumericProperty.GRADIENT_RESOLUTION.getValue();
+	private static double errorTolerance	 = (double)NumericProperty.def(ERROR_TOLERANCE).getValue();
+	private static double gradientResolution = (double)NumericProperty.def(GRADIENT_RESOLUTION).getValue();
 
 	private static LinearSolver linearSolver = null;
 	private static List<Flag> globalSearchFlags = Flag.defaultList();
@@ -107,7 +109,7 @@ public abstract class PathSolver extends PropertyHolder implements Reflexive {
 	}
 
 	public static NumericProperty getErrorTolerance() {
-		return new NumericProperty(errorTolerance, NumericProperty.ERROR_TOLERANCE);
+		return NumericProperty.derive(ERROR_TOLERANCE, errorTolerance);
 	}
 
 	public static void setErrorTolerance(NumericProperty errorTolerance) {
@@ -119,7 +121,7 @@ public abstract class PathSolver extends PropertyHolder implements Reflexive {
 	}
 	
 	public static NumericProperty getGradientResolution() {
-		return new NumericProperty(gradientResolution, NumericProperty.GRADIENT_RESOLUTION);
+		return NumericProperty.derive(GRADIENT_RESOLUTION, gradientResolution);
 	}	
 	
 	@Override
@@ -151,8 +153,8 @@ public abstract class PathSolver extends PropertyHolder implements Reflexive {
 	@Override
 	public List<Property> listedParameters() {
 		List<Property> list = super.listedParameters();
-		list.add(NumericProperty.GRADIENT_RESOLUTION);
-		list.add(NumericProperty.ERROR_TOLERANCE);
+		list.add(NumericProperty.def(GRADIENT_RESOLUTION));
+		list.add(NumericProperty.def(ERROR_TOLERANCE));
 		for(Flag property : globalSearchFlags) 
 			list.add( property );
 		return list;

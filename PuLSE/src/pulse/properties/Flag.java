@@ -6,6 +6,8 @@ import java.util.stream.Collectors;
 
 import pulse.problem.statements.Problem;
 
+import static pulse.properties.NumericPropertyKeyword.*;
+
 public class Flag implements Property {
 
 	private NumericPropertyKeyword index;
@@ -62,11 +64,11 @@ public class Flag implements Property {
 	
 	public static List<Flag> defaultList() {
 		List<Flag> flags = new ArrayList<Flag>();
-		flags.add(new Flag(NumericProperty.DIFFUSIVITY.getType(), NumericProperty.DIFFUSIVITY.getAbbreviation(true), true));
-		flags.add(new Flag(Problem.HEAT_LOSS.getType(), Problem.HEAT_LOSS.getAbbreviation(true), true));
-		flags.add(new Flag(NumericProperty.MAXTEMP.getType(), NumericProperty.MAXTEMP.getAbbreviation(true), true));
-		flags.add(new Flag(NumericProperty.BASELINE_INTERCEPT.getType(), NumericProperty.BASELINE_INTERCEPT.getAbbreviation(true), false));
-		flags.add(new Flag(NumericProperty.BASELINE_SLOPE.getType(), NumericProperty.BASELINE_SLOPE.getAbbreviation(true), false));
+		flags.add(new Flag(NumericPropertyKeyword.DIFFUSIVITY, NumericProperty.def(DIFFUSIVITY).getAbbreviation(true), true));
+		flags.add(new Flag(NumericPropertyKeyword.HEAT_LOSS, NumericProperty.def(HEAT_LOSS).getAbbreviation(true), true));
+		flags.add(new Flag(NumericPropertyKeyword.MAXTEMP, NumericProperty.def(MAXTEMP).getAbbreviation(true), true));
+		flags.add(new Flag(NumericPropertyKeyword.BASELINE_INTERCEPT, NumericProperty.def(BASELINE_INTERCEPT).getAbbreviation(true), false));
+		flags.add(new Flag(NumericPropertyKeyword.BASELINE_SLOPE, NumericProperty.def(BASELINE_SLOPE).getAbbreviation(true), false));
 		return flags;
 	}
 

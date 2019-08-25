@@ -24,6 +24,8 @@ import pulse.util.SaveableDirectory;
 import static java.lang.Math.PI;
 import static java.lang.Math.exp;
 
+import static pulse.properties.NumericPropertyKeyword.*;
+
 /**
  * @author Artem V. Lunev
  *
@@ -39,35 +41,31 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 	
 	private static boolean singleStatement;
 	private static boolean hideDetailedAdjustment = true;
-	private static NumericProperty[] criticalParameters = new NumericProperty[]{ NumericProperty.THICKNESS, NumericProperty.DIAMETER,
-			NumericProperty.PULSE_WIDTH, NumericProperty.SPOT_DIAMETER, NumericProperty.PYROMETER_SPOT
-	};
+	private static NumericPropertyKeyword[] 
+			criticalParameters = new NumericPropertyKeyword[]{ THICKNESS, DIAMETER,
+			PULSE_WIDTH, SPOT_DIAMETER, PYROMETER_SPOT};
 	
 	private final double PARKERS_COEFFICIENT = 0.1388; //in mm
-	
-	public final static NumericProperty HEAT_LOSS		= new NumericProperty(NumericPropertyKeyword.HEAT_LOSS, Messages.getString("HeatLoss.Descriptor"), Messages.getString("HeatLoss.Abbreviation"), 0.0, 0.0, 10.0, 0.0, 1.0, true);
-	public final static NumericProperty HEAT_LOSS_FRONT	= new NumericProperty(NumericPropertyKeyword.HEAT_LOSS_FRONT, Messages.getString("HeatLossFront.Descriptor"), Messages.getString("HeatLossFront.Abbreviation"), 0.0, 0.0, 10.0, 0.0, 1.0, true);
-	public final static NumericProperty HEAT_LOSS_REAR	= new NumericProperty(NumericPropertyKeyword.HEAT_LOSS_REAR, Messages.getString("HeatLossRear.Descriptor"), Messages.getString("HeatLossRear.Abbreviation"), 0.0, 0.0, 10.0, 0.0, 1.0, true);
 		
 	@Override
 	public List<Property> listedParameters() {
 		List<Property> list = new ArrayList<Property>();
-		list.add(NumericProperty.MAXTEMP);
-		list.add(NumericProperty.DIFFUSIVITY);
-		list.add(NumericProperty.THICKNESS);
-		list.add(HEAT_LOSS_FRONT);
-		list.add(HEAT_LOSS_REAR);
+		list.add(NumericProperty.def(MAXTEMP));
+		list.add(NumericProperty.def(DIFFUSIVITY));
+		list.add(NumericProperty.def(THICKNESS));
+		list.add(NumericProperty.def(HEAT_LOSS_FRONT));
+		list.add(NumericProperty.def(HEAT_LOSS_REAR));
 		//heating curve				
 		return list;
 	}
 	
 	protected Problem() {
 		super();
-		a = (double)NumericProperty.DIFFUSIVITY.getValue();
-		l = (double)NumericProperty.THICKNESS.getValue();
-		Bi1 = (double)HEAT_LOSS_FRONT.getValue();
-		Bi2 = (double)HEAT_LOSS_REAR.getValue();
-		signalHeight = (double)NumericProperty.MAXTEMP.getValue();
+		a = (double)NumericProperty.def(DIFFUSIVITY).getValue();
+		l = (double)NumericProperty.def(THICKNESS).getValue();
+		Bi1 = (double)NumericProperty.def(HEAT_LOSS_FRONT).getValue();
+		Bi2 = (double)NumericProperty.def(HEAT_LOSS_REAR).getValue();
+		signalHeight = (double)NumericProperty.def(MAXTEMP).getValue();
 		singleStatement = true;
 		pulse = new Pulse();
 		curve = new HeatingCurve();
@@ -112,7 +110,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 	public abstract DifferenceScheme[] availableSolutions();
 
 	public NumericProperty getDiffusivity() {
-		return new NumericProperty(a, NumericProperty.DIFFUSIVITY);
+		return NumericProperty.derive(DIFFUSIVITY, a);
 	}
 	
 	public void set(NumericPropertyKeyword type, NumericProperty value) {
@@ -144,7 +142,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 	}
 	
 	public NumericProperty getMaximumTemperature() {
-		return new NumericProperty(signalHeight, NumericProperty.MAXTEMP);
+		return NumericProperty.derive(MAXTEMP, signalHeight);
 	}
 	
 	public void setMaximumTemperature(NumericProperty maxTemp) {
@@ -152,7 +150,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 	}
 
 	public NumericProperty getSampleThickness() {
-		return new NumericProperty(l, NumericProperty.THICKNESS);
+		return NumericProperty.derive(THICKNESS, l);
 	}
 
 	public void setSampleThickness(NumericProperty l) {
@@ -165,11 +163,11 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 		if(Math.abs(Bi1 - Bi2) > eps)
 			throw new IllegalStateException("Bi1 = " + Bi1 + " is not equal to " + " Bi2 = " + Bi2); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		
-		return new NumericProperty(Bi1, HEAT_LOSS); //$NON-NLS-1$
+		return NumericProperty.derive(HEAT_LOSS, Bi1); //$NON-NLS-1$
 	}
 	
 	public NumericProperty getFrontHeatLoss() {
-		return new NumericProperty(Bi1, HEAT_LOSS_FRONT); //$NON-NLS-1$
+		return NumericProperty.derive(HEAT_LOSS_FRONT, Bi1); //$NON-NLS-1$
 	}
 
 	public void setFrontHeatLoss(NumericProperty bi1) {
@@ -177,7 +175,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 	}
 	
 	public NumericProperty getHeatLossRear() {
-		return new NumericProperty(Bi2, HEAT_LOSS_REAR);
+		return NumericProperty.derive(HEAT_LOSS_REAR, Bi2);
 	}
 
 	public void setHeatLossRear(NumericProperty bi2) {
@@ -282,7 +280,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 	}
 	
 	public NumericProperty getSpecificHeat() {
-		return new NumericProperty(cV, NumericProperty.SPECIFIC_HEAT);
+		return NumericProperty.derive(SPECIFIC_HEAT, cV);
 	}
 
 	public void setSpecificHeat(NumericProperty cV) {
@@ -290,14 +288,14 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 	}
 
 	public NumericProperty getDensity() {
-		return new NumericProperty(rho, NumericProperty.DENSITY);
+		return NumericProperty.derive(DENSITY, rho);
 	}
 
 	public String shortName() {
 		return getClass().getSimpleName();
 	}
 	
-	public NumericProperty[] getCriticalParameters() {
+	public NumericPropertyKeyword[] getCriticalParameters() {
 		return criticalParameters;
 	}
 	

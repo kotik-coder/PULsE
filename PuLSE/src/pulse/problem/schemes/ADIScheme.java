@@ -30,12 +30,10 @@ import static java.lang.Math.max;
 public class ADIScheme extends DifferenceScheme {
 	
 	private double hy;
-	private final static NumericProperty TAU_FACTOR 
-			= new NumericProperty(NumericPropertyKeyword.TAU_FACTOR,
-			Messages.getString("Tau.Descriptor"), Messages.getString("Tau.Abbreviation"), 1.0, 1E-4, 1E0, 1.0, 1.0, true);
-	private final static NumericProperty GRID_DENSITY 
-			= new NumericProperty(NumericPropertyKeyword.GRID_DENSITY, 
-			Messages.getString("N.Descriptor"), Messages.getString("N.Abbreviation"), 30, 15, 500, 32, 1, true);
+	private final static NumericProperty TAU_FACTOR = 
+			NumericProperty.derive(NumericPropertyKeyword.TAU_FACTOR, 1.0);
+	private final static NumericProperty GRID_DENSITY = 
+			NumericProperty.derive(NumericPropertyKeyword.GRID_DENSITY, 30);
 	
 	private final static long INCREASED_TIMEOUT = 60000;
 	
@@ -48,7 +46,7 @@ public class ADIScheme extends DifferenceScheme {
 	}
 	
 	public ADIScheme(NumericProperty N) {
-		this(N, NumericProperty.TIME_LIMIT);
+		this(N, NumericProperty.def(NumericPropertyKeyword.TIME_LIMIT));
 	}
 	
 	public ADIScheme(NumericProperty N, NumericProperty timeLimit) {
@@ -580,7 +578,7 @@ public class ADIScheme extends DifferenceScheme {
 				
 			}					
 
-			ref.setMaximumTemperature(new NumericProperty(maxVal, NumericProperty.MAXTEMP));
+			ref.setMaximumTemperature(NumericProperty.derive(NumericPropertyKeyword.MAXTEMP, maxVal));
 			
 			return;
 		}

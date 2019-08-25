@@ -14,26 +14,20 @@ public interface AbstractReader extends Reflexive {
 		
 		String name = file.getName();  
 
-		if( endsWithIgnoreCase(name, extension) )
-			return true;
+		/**
+		 * String helper functions.
+		 *
+		 * @author Gili Tzabari
+		 */
 		
-		return false;		
+		int suffixLength = extension.length();
+        return name.regionMatches(true, name.length() - suffixLength, 
+        		extension, 0, suffixLength);
+		
 	}
 	
 	public default boolean isExtensionSupported(File file) {
 		return checkExtensionSupported(file, getSupportedExtension());		
 	}		
-	
-	/**
-	 * String helper functions.
-	 *
-	 * @author Gili Tzabari
-	 */
-	
-    private static boolean endsWithIgnoreCase(String str, String suffix)
-    {
-        int suffixLength = suffix.length();
-        return str.regionMatches(true, str.length() - suffixLength, suffix, 0, suffixLength);
-    }
 	
 }

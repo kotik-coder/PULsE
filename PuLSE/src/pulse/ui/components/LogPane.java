@@ -43,12 +43,12 @@ public class LogPane extends JEditorPane implements Saveable {
 		OutputStream out = new OutputStream() {
 		      @Override
 		      public void write(final int b) throws IOException {
-		        post(String.valueOf((char) b));
+		        postError(String.valueOf((char) b));
 		      }
 
 		      @Override
 		      public void write(byte[] b, int off, int len) throws IOException {
-		        post(new String(b, off, len));
+		        postError(new String(b, off, len));
 		      }
 
 		      @Override
@@ -63,6 +63,14 @@ public class LogPane extends JEditorPane implements Saveable {
 	
 	private void post(LogEntry logEntry) {
 		post(logEntry.toString());
+	}
+	
+	private void postError(String text) {
+		 StringBuilder sb = new StringBuilder();
+		 sb.append(Messages.getString("DataLogEntry.FontTagError"));
+		 sb.append(text);
+		 sb.append(Messages.getString("DataLogEntry.FontTagClose"));
+		 post(sb.toString());
 	}
 
 	private void post(String text) {		

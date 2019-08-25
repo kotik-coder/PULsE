@@ -12,6 +12,7 @@ import java.util.StringTokenizer;
 import pulse.input.ExperimentalData;
 import pulse.input.Metadata;
 import pulse.properties.NumericProperty;
+import pulse.properties.NumericPropertyKeyword;
 import pulse.ui.Messages;
 
 public class LFRReader implements CurveReader {
@@ -56,8 +57,8 @@ public class LFRReader implements CurveReader {
 			fileNames.add(tmp); //fileName
 		
 			tokenizer.nextToken(delims); //sample id
-			NumericProperty temperature = new NumericProperty(Double.parseDouble(tokenizer.nextToken()) + CONVERSION_TO_KELVIN, 
-					NumericProperty.TEST_TEMPERATURE); //test temperature
+			NumericProperty temperature = NumericProperty.derive(NumericPropertyKeyword.TEST_TEMPERATURE, 
+					Double.parseDouble(tokenizer.nextToken()) + CONVERSION_TO_KELVIN); //test temperature
 			
 			fileTempMap.put( tmp, new Metadata(temperature, id) ); //assign metadata object with external id and temperature
 			

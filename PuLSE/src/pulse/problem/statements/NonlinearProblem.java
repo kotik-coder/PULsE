@@ -16,6 +16,8 @@ import pulse.properties.Property;
 import pulse.search.math.IndexedVector;
 import pulse.tasks.TaskManager;
 
+import static pulse.properties.NumericPropertyKeyword.*;
+
 /**
  * @author Artem V. Lunev
  *
@@ -43,18 +45,18 @@ public class NonlinearProblem extends Problem {
 	
 	public NonlinearProblem() {
 		super();
-		nonlinearPrecision = (double)NumericProperty.NONLINEAR_PRECISION.getValue();
-		this.a = (double)NumericProperty.DIFFUSIVITY.getValue();		
-		this.qAbs = (double)NumericProperty.ABSORBED_ENERGY.getValue();
-		setTestTemperature(NumericProperty.TEST_TEMPERATURE);
+		nonlinearPrecision = (double)NumericProperty.def(NONLINEAR_PRECISION).getValue();
+		this.a = (double)NumericProperty.def(DIFFUSIVITY).getValue();		
+		this.qAbs = (double)NumericProperty.def(ABSORBED_ENERGY).getValue();
+		setTestTemperature(NumericProperty.def(TEST_TEMPERATURE));
 	}
 	
 	public NonlinearProblem(Problem p) {
 		super(p);
 		
 		if(! (p instanceof NonlinearProblem) ) {
-			this.qAbs = (double)NumericProperty.ABSORBED_ENERGY.getValue();
-			nonlinearPrecision = (double)NumericProperty.NONLINEAR_PRECISION.getValue();	
+			this.qAbs = (double)NumericProperty.def(ABSORBED_ENERGY).getValue();
+			nonlinearPrecision = (double)NumericProperty.def(NONLINEAR_PRECISION).getValue();	
 			return;
 		}
 		
@@ -100,7 +102,7 @@ public class NonlinearProblem extends Problem {
 	}
 
 	public NumericProperty getAbsorbedEnergy() {
-		return new NumericProperty(qAbs, NumericProperty.ABSORBED_ENERGY);
+		return NumericProperty.derive(ABSORBED_ENERGY, qAbs);
 	}
 
 	public void setAbsorbedEnergy(NumericProperty qAbs) {
@@ -108,7 +110,7 @@ public class NonlinearProblem extends Problem {
 	}
 
 	public NumericProperty getNonlinearPrecision() {
-		return new NumericProperty(nonlinearPrecision, NumericProperty.NONLINEAR_PRECISION);
+		return NumericProperty.derive(NONLINEAR_PRECISION, nonlinearPrecision);
 	}
 
 	public void setNonlinearPrecision(NumericProperty nonlinearPrecision) {
@@ -116,7 +118,7 @@ public class NonlinearProblem extends Problem {
 	}
 
 	public NumericProperty getTestTemperature() {
-		return new NumericProperty(T, NumericProperty.TEST_TEMPERATURE);
+		return NumericProperty.derive(TEST_TEMPERATURE, T);
 	}
 
 	public void setTestTemperature(NumericProperty T) {
@@ -135,11 +137,11 @@ public class NonlinearProblem extends Problem {
 	@Override
 	public List<Property> listedParameters() {
 		List<Property> list = super.listedParameters();
-		list.add(NumericProperty.ABSORBED_ENERGY);
-		list.add(NumericProperty.DENSITY);
-		list.add(NumericProperty.NONLINEAR_PRECISION);
-		list.add(NumericProperty.TEST_TEMPERATURE);
-		list.add(NumericProperty.SPECIFIC_HEAT);
+		list.add(NumericProperty.def(ABSORBED_ENERGY));
+		list.add(NumericProperty.def(DENSITY));
+		list.add(NumericProperty.def(NONLINEAR_PRECISION));
+		list.add(NumericProperty.def(TEST_TEMPERATURE));
+		list.add(NumericProperty.def(SPECIFIC_HEAT));
 		return list;
 	}
 

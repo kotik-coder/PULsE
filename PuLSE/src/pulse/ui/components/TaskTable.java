@@ -21,6 +21,7 @@ import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 
 import pulse.properties.NumericProperty;
+import pulse.properties.NumericPropertyKeyword;
 import pulse.tasks.Identifier;
 import pulse.tasks.SearchTask;
 import pulse.tasks.TaskManager;
@@ -196,9 +197,9 @@ public class TaskTable extends JTable {
 				super( new Object[][] {},
 					   new String[] {
 							   Messages.getString("TaskTable.TaskID"),  //$NON-NLS-1$
-							   NumericProperty.TEST_TEMPERATURE.getAbbreviation(true),
-							   SearchTask.SUM_OF_SQUARES.getAbbreviation(true),  //$NON-NLS-1$
-							   SearchTask.RSQUARED.getAbbreviation(true),  //$NON-NLS-1$
+							   NumericProperty.def(NumericPropertyKeyword.TEST_TEMPERATURE).getAbbreviation(true),
+							   NumericProperty.def(NumericPropertyKeyword.SUM_OF_SQUARES).getAbbreviation(true),  //$NON-NLS-1$
+							   NumericProperty.def(NumericPropertyKeyword.RSQUARED).getAbbreviation(true),  //$NON-NLS-1$
 							   Messages.getString("TaskTable.Status") //$NON-NLS-1$
 					 });
 								

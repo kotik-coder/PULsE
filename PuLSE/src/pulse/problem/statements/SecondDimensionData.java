@@ -7,6 +7,8 @@ import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 import pulse.util.PropertyHolder;
 
+import static pulse.properties.NumericPropertyKeyword.*;
+
 /*
  * A class for specifying parameters of the second dimension of the problem
  */
@@ -14,17 +16,11 @@ import pulse.util.PropertyHolder;
 public class SecondDimensionData extends PropertyHolder {
 	
 	private double d, Bi3, dAv;
-	
-	public final static NumericProperty HEAT_LOSS_SIDE	
-	= new NumericProperty(NumericPropertyKeyword.HEAT_LOSS_SIDE, 
-			Messages.getString("HeatLossSide.Descriptor"), 
-			Messages.getString("HeatLossSide.Abbreviation"),
-			0.0, 0.0, 10.0, 0.0, 1.0, true);
-			
+
 	protected SecondDimensionData() {
-		Bi3 = (double)HEAT_LOSS_SIDE.getValue();
-		d 	= (double)NumericProperty.DIAMETER.getValue();
-		dAv = (double)NumericProperty.PYROMETER_SPOT.getValue();
+		Bi3 = (double)NumericProperty.def(HEAT_LOSS_SIDE).getValue();
+		d 	= (double)NumericProperty.def(DIAMETER).getValue();
+		dAv = (double)NumericProperty.def(PYROMETER_SPOT).getValue();
 	}
 
 	protected SecondDimensionData(double d, double Bi3, double dAv) {
@@ -39,7 +35,7 @@ public class SecondDimensionData extends PropertyHolder {
 	}
 	
 	public NumericProperty getSampleDiameter() {
-		return new NumericProperty(d, NumericProperty.DIAMETER);
+		return NumericProperty.derive(DIAMETER, d);
 	}
 
 	public void setSampleDiameter(NumericProperty d) {
@@ -47,7 +43,7 @@ public class SecondDimensionData extends PropertyHolder {
 	}
 
 	public NumericProperty getSideLosses() {
-		return new NumericProperty(Bi3, HEAT_LOSS_SIDE);
+		return NumericProperty.derive(HEAT_LOSS_SIDE, Bi3);
 	}
 
 	public void setSideLosses(NumericProperty bi3) {
@@ -59,7 +55,7 @@ public class SecondDimensionData extends PropertyHolder {
 	}
 	
 	public NumericProperty getPyrometerSpot() {
-		return new NumericProperty(dAv, NumericProperty.PYROMETER_SPOT); //$NON-NLS-1$
+		return NumericProperty.derive(PYROMETER_SPOT, dAv); //$NON-NLS-1$
 	}
 
 	public void setPyrometerSpot(NumericProperty dAv) {
@@ -69,9 +65,9 @@ public class SecondDimensionData extends PropertyHolder {
 	@Override
 	public List<Property> listedParameters() {
 		List<Property> list = new ArrayList<Property>();
-		list.add(HEAT_LOSS_SIDE);
-		list.add(NumericProperty.DIAMETER);
-		list.add(NumericProperty.PYROMETER_SPOT);
+		list.add(NumericProperty.def(HEAT_LOSS_SIDE));
+		list.add(NumericProperty.def(DIAMETER));
+		list.add(NumericProperty.def(PYROMETER_SPOT));
 		return list;
 	}
 

@@ -25,13 +25,11 @@ import static java.lang.Math.PI;
  */
 public class MixedScheme extends DifferenceScheme {
 	
-	private final static NumericProperty TAU_FACTOR		
-	= new NumericProperty(NumericPropertyKeyword.TAU_FACTOR, 
-			Messages.getString("Tau.Descriptor"), Messages.getString("Tau.Abbreviation"), 0.25, 1E-4, 0.5, 0.25, 1.0, true); //$NON-NLS-1$
-	private final static NumericProperty GRID_DENSITY	
-	= new NumericProperty(NumericPropertyKeyword.GRID_DENSITY, 
-			Messages.getString("N.Descriptor"), Messages.getString("N.Abbreviation"), 80, 15, 1000, 80, 1, true); //$NON-NLS-1$
-	
+	private final static NumericProperty TAU_FACTOR = 
+			NumericProperty.derive(NumericPropertyKeyword.TAU_FACTOR, 0.25);
+	private final static NumericProperty GRID_DENSITY = 
+			NumericProperty.derive(NumericPropertyKeyword.GRID_DENSITY, 80);
+		
 	/**
 	 * 
 	 */
@@ -41,7 +39,7 @@ public class MixedScheme extends DifferenceScheme {
 	}
 	
 	public MixedScheme(NumericProperty N) {
-		this(N, NumericProperty.TIME_LIMIT);	
+		this(N, NumericProperty.def(NumericPropertyKeyword.TIME_LIMIT));	
 	}
 	
 	public MixedScheme(NumericProperty N, NumericProperty timeLimit) {
@@ -240,7 +238,8 @@ public class MixedScheme extends DifferenceScheme {
 				
 			}
 			
-			ref.setMaximumTemperature(new NumericProperty(maxVal, NumericProperty.MAXTEMP));
+			ref.setMaximumTemperature(new NumericProperty(maxVal, 
+					NumericProperty.def(NumericPropertyKeyword.MAXTEMP)));
 			
 			return;
 		}

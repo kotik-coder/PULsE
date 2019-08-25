@@ -60,7 +60,7 @@ public class Path extends Accessible {
 	}
 	
 	public NumericProperty getIteration() {
-		return new NumericProperty(iteration, NumericProperty.ITERATION);
+		return NumericProperty.derive(NumericPropertyKeyword.ITERATION, iteration);
 	}
 	
 	public void incrementStep() {

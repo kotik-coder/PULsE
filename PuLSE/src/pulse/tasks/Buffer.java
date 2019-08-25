@@ -9,7 +9,8 @@ public class Buffer {
 	
 	private IndexedVector[] data;
 	private double[] sumOfSquares;
-	private static int defaultSize = (int)NumericProperty.BUFFER_SIZE.getValue();
+	private static int defaultSize = (int)NumericProperty.
+			def(NumericPropertyKeyword.BUFFER_SIZE).getValue();
 	
 	public Buffer() {
 		this(defaultSize);
@@ -78,7 +79,7 @@ public class Buffer {
 	}
 	
 	public NumericProperty getSize() {
-		return new NumericProperty(data.length, NumericProperty.BUFFER_SIZE);
+		return NumericProperty.derive(NumericPropertyKeyword.BUFFER_SIZE, data.length);
 	}
 	
 	public void clear() {

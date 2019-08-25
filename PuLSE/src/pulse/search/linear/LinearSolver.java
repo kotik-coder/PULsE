@@ -11,10 +11,11 @@ import pulse.search.math.Vector;
 import pulse.tasks.SearchTask;
 import pulse.util.PropertyHolder;
 import pulse.util.Reflexive;
+import static pulse.properties.NumericPropertyKeyword.*;
 
 public abstract class LinearSolver extends PropertyHolder implements Reflexive {
 
-	protected static double searchResolution = (double) NumericProperty.LINEAR_RESOLUTION.getValue();
+	protected static double searchResolution = (double) NumericProperty.def(LINEAR_RESOLUTION).getValue();
 	
 	protected LinearSolver() {	
 		super();
@@ -23,7 +24,7 @@ public abstract class LinearSolver extends PropertyHolder implements Reflexive {
 	public abstract double minimum(SearchTask task);	
 	
 	public static NumericProperty getLinearResolution() {
-		return new NumericProperty(searchResolution, NumericProperty.LINEAR_RESOLUTION);
+		return NumericProperty.derive(LINEAR_RESOLUTION, searchResolution);
 	}
 
 	public static void setLinearResolution(NumericProperty searchError) {
@@ -52,7 +53,7 @@ public abstract class LinearSolver extends PropertyHolder implements Reflexive {
 	@Override
 	public List<Property> listedParameters() {
 		List<Property> list = new ArrayList<Property>();
-		list.add(NumericProperty.LINEAR_RESOLUTION);
+		list.add(NumericProperty.def(LINEAR_RESOLUTION));
 		return list;
 	}
 

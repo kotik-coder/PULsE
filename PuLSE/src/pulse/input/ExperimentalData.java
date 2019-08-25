@@ -17,7 +17,7 @@ public class ExperimentalData extends HeatingCurve {
 	
 	private final static double CUTOFF_FACTOR = 6;
 	private final static int REDUCTION_FACTOR = 16;
-	private final static double POSITIVE_ZERO = 1E-7;
+	private final static double NEGATIVE_ZERO = -1E-7;
 	private final static int PULSE_INDEX_MARGIN = 10;
 	
 	private Comparator<Point2D> pointComparator = 
@@ -87,7 +87,7 @@ public class ExperimentalData extends HeatingCurve {
 		
 		int start = getFittingStartIndex();
 		int end = getFittingEndIndex();
-		
+
 		int step = (end - start)/(count/reductionFactor);
 		double tmp = 0;
 		
@@ -180,7 +180,7 @@ public class ExperimentalData extends HeatingCurve {
 	 */
 
 	public int getFittingStartIndex() {
-		return fittingStartIndex > 0 ? fittingStartIndex : closestIndexOf(POSITIVE_ZERO, time);
+		return fittingStartIndex > 0 ? fittingStartIndex : closestIndexOf(NEGATIVE_ZERO, time);
 	}
 
 	public int getFittingEndIndex() {
@@ -207,10 +207,12 @@ public class ExperimentalData extends HeatingCurve {
 	
 	private static int closestIndexOf(double t, List<Double> list) {
 		int size = list.size();
-		for(int i = 0; i < size-1; i++) 
-			if(t > list.get(i))
-				if(t <= list.get(i+1))
-					return i;
+		double prev;
+		for(int i = 0; i < size-1; i++) {
+			prev = list.get(i);
+			if(t < prev)
+				return i;
+		}
 		return -1;
 	}
 	

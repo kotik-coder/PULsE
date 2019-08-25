@@ -52,7 +52,7 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 	}
 	
 	public HeatingCurve() {
-		this(NumericProperty.COUNT);
+		this(NumericProperty.def(NumericPropertyKeyword.NUMPOINTS));
 		reinit();
 	}
 	
@@ -88,7 +88,7 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 	}
 	
 	public NumericProperty getNumPoints() {
-		return new NumericProperty(count, NumericProperty.COUNT);
+		return NumericProperty.derive(NumericPropertyKeyword.NUMPOINTS, count);
 	}
 	
 	public Baseline getBaseline() {
@@ -340,7 +340,9 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 	public static HeatingCurve classicSolution(Problem p, double timeLimit, int precision) {
 		 HeatingCurve curve = p.getHeatingCurve();
 		
-		 HeatingCurve classicCurve = new HeatingCurve(new NumericProperty(curve.count, NumericProperty.COUNT));
+		 HeatingCurve classicCurve = new 
+				 HeatingCurve(NumericProperty.derive
+						 (NumericPropertyKeyword.NUMPOINTS, curve.count));
 		 classicCurve.setBaseline(curve.getBaseline());
 		 
 		 double time;

@@ -2,8 +2,32 @@ package pulse.properties;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.List;
 
 import pulse.ui.Messages;
+
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import org.w3c.dom.Attr;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 
 public class NumericProperty implements Property, Comparable<NumericProperty> {
 
@@ -15,6 +39,8 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
 	private Number error;
 	private NumericPropertyKeyword type;
 	private boolean autoAdjustable = true;
+	
+	private final static List<NumericProperty> DEFAULT = readDefaultXML();
 	
 	public NumericProperty(Number value, NumericProperty pattern) {
 		this(pattern);
@@ -30,7 +56,7 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
 	}
 	
 	public NumericProperty(NumericPropertyKeyword type, String descriptor, String abbreviation, Number value, Number minimum, 
-			Number maximum, Number defaultValue, Number dimensionFactor, boolean autoAdjustable) {		
+			Number maximum, Number dimensionFactor, boolean autoAdjustable) {		
 		this.type = type;
 		this.descriptor = descriptor;
 		this.abbreviation = abbreviation;
@@ -41,7 +67,7 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
 	}
 	
 	public NumericProperty(NumericPropertyKeyword type, String descriptor, String abbreviation, Number value, Number minimum, Number maximum, boolean autoAdjustable) {
-		this(type, descriptor, abbreviation, value, minimum, maximum, 0.0, 1.0, autoAdjustable);
+		this(type, descriptor, abbreviation, value, minimum, maximum, 1.0, autoAdjustable);
 	}
 	
 	public NumericProperty(NumericPropertyKeyword type, String descriptor, String abbreviation, Number value) {
@@ -163,7 +189,7 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
 	public String formattedValue(boolean convertDimension) {
 		
 		if(value instanceof Integer) { 
-			Number val = (int)value * (int)dimensionFactor;
+			Number val = ((Number)value).intValue() * ((Number)dimensionFactor).intValue();
 			return (NumberFormat.getIntegerInstance()).format(val);
 		}
 		
@@ -193,31 +219,6 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
 			return selectedFormat.format(adjustedValue);
 			
 	}
-	
-	public final static NumericProperty DIFFUSIVITY 		= new NumericProperty(NumericPropertyKeyword.DIFFUSIVITY, Messages.getString("Diffusivity.Descriptor"), Messages.getString("Diffusivity.Abbreviation"), 1E-6, 1E-10, 1E-3, 1E-6, 1E6, true); //$NON-NLS-1$
-	public final static NumericProperty THICKNESS 			= new NumericProperty(NumericPropertyKeyword.THICKNESS, Messages.getString("Thickness.Descriptor"), Messages.getString("Thickness.Abbreviation"), 1E-3, 1E-6, 1E-1, 1E-3, 1E3, false); //$NON-NLS-1$
-	public final static NumericProperty DIAMETER 			= new NumericProperty(NumericPropertyKeyword.DIAMETER, Messages.getString("Diameter.Descriptor"), Messages.getString("Diameter.Abbreviation"), 10E-3, 1E-6, 1E-1, 10E-3, 1E3, false); //$NON-NLS-1$
-	public final static NumericProperty MAXTEMP				= new NumericProperty(NumericPropertyKeyword.MAXTEMP, Messages.getString("MaxTemp.Descriptor"), Messages.getString("MaxTemp.Abbreviation"), 1.0, 0.01, 100.0, 1.0, 1.0, true); //$NON-NLS-1$
-	public final static NumericProperty NONLINEAR_PRECISION	= new NumericProperty(NumericPropertyKeyword.NONLINEAR_PRECISION, Messages.getString("NonlinearPrecision.Descriptor"), Messages.getString("NonlinearPrecision.Descriptor"), 1E-3, 1E-6, 1E-2, 1E-3, 1.0, false); //$NON-NLS-1$
-	public final static NumericProperty COUNT				= new NumericProperty(NumericPropertyKeyword.NUMPOINTS, Messages.getString("NumPoints.Descriptor"), Messages.getString("NumPoints.Abbreviation"), 100, 10, 1000, 100, 1, false); //$NON-NLS-1$
-	public final static NumericProperty ITERATION			= new NumericProperty(NumericPropertyKeyword.ITERATION, Messages.getString("Iteration.Descriptor"), Messages.getString("Iteration.Abbreviation"), 0, 0, 1000000, 0, 1, false); //$NON-NLS-1$
-	public final static NumericProperty PULSE_WIDTH			= new NumericProperty(NumericPropertyKeyword.PULSE_WIDTH, Messages.getString("PulseWidth.Descriptor"), Messages.getString("PulseWidth.Abbreviation"), 1.5E-3, 1E-4, 1.0, 1.5E-3, 1E3, false); //$NON-NLS-1$
-	public final static NumericProperty SPOT_DIAMETER		= new NumericProperty(NumericPropertyKeyword.SPOT_DIAMETER, Messages.getString("SpotDiameter.Descriptor"), Messages.getString("SpotDiameter.Abbreviation"), 10.0E-3, 0.1E-3, 50E-3, 10.0E-3, 1E3, false); //$NON-NLS-1$
-	public final static NumericProperty TIME_LIMIT			= new NumericProperty(NumericPropertyKeyword.TIME_LIMIT, Messages.getString("TimeLimit.Descriptor"), Messages.getString("TimeLimit.Abbreviation"), 1.0, 1E-6, 20.0, 1.0, 1.0, true); //$NON-NLS-1$
-	public final static NumericProperty GRID_DENSITY		= new NumericProperty(NumericPropertyKeyword.GRID_DENSITY, Messages.getString("GridDensity.Descriptor"), Messages.getString("GridDensity.Abbreviation"), 30, 10, 200, 30, 1.0, true); //$NON-NLS-1$
-	public final static NumericProperty SPECIFIC_HEAT		= new NumericProperty(NumericPropertyKeyword.SPECIFIC_HEAT, Messages.getString("SpecificHeat.Descriptor"), Messages.getString("SpecificHeat.Abbreviation"), 0.0, 1.0, 10000.0, true); //$NON-NLS-1$
-	public final static NumericProperty CONDUCTIVITY		= new NumericProperty(NumericPropertyKeyword.CONDUCTIVITY, Messages.getString("ThermalConductivity.Descriptor"), Messages.getString("ThermalConductivity.Abbreviation"), 0.0, 1.0, 10000.0, true); //$NON-NLS-1$
-	public final static NumericProperty EMISSIVITY			= new NumericProperty(NumericPropertyKeyword.EMISSIVITY, Messages.getString("Emissivity.Descriptor"), Messages.getString("Emissivity.Abbreviation"), 0.0, 1.0, 2.0, true); //$NON-NLS-1$
-	public final static NumericProperty DENSITY				= new NumericProperty(NumericPropertyKeyword.DENSITY, Messages.getString("Density.Descriptor"), Messages.getString("Density.Abbreviation"), 0.0, 10.0, 30000.0, true); //$NON-NLS-1$
-	public final static NumericProperty ABSORBED_ENERGY		= new NumericProperty(NumericPropertyKeyword.ABSORBED_ENERGY, Messages.getString("AbsorbedEnergy.Descriptor"), Messages.getString("AbsorbedEnergy.Abbreviation"), 7.0, 0.1, 200.0, 7.0, 1.0, true); //$NON-NLS-1$
-	public final static NumericProperty TEST_TEMPERATURE	= new NumericProperty(NumericPropertyKeyword.TEST_TEMPERATURE, Messages.getString("TestTemperature.Descriptor"), Messages.getString("TestTemperature.Abbreviation"), 298.0, 0.0, 10000.0, 298.0, 1.0, true); //$NON-NLS-1$
-	public final static NumericProperty LINEAR_RESOLUTION 	= new NumericProperty(NumericPropertyKeyword.LINEAR_RESOLUTION, Messages.getString("LinearResolution.Descriptor"), Messages.getString("LinearResolution.Abbreviation"), 1E-7, 1E-8, 1E-1, 1E-7, 1.0, false); //$NON-NLS-1$
-	public final static NumericProperty GRADIENT_RESOLUTION = new NumericProperty(NumericPropertyKeyword.GRADIENT_RESOLUTION, Messages.getString("GradientResolution.Descriptor"),Messages.getString("GradientResolution.Abbreviation"), 1E-4, 1E-7, 1E-1, 1E-4, 1.0, false ); //$NON-NLS-1$
-	public final static NumericProperty BUFFER_SIZE			= new NumericProperty(NumericPropertyKeyword.BUFFER_SIZE, Messages.getString("BufferSize.Descriptor"), Messages.getString("BufferSize.Abbreviation"), 8, 1, 20, 4, 1, false); //$NON-NLS-1$
-	public final static NumericProperty ERROR_TOLERANCE     = new NumericProperty(NumericPropertyKeyword.ERROR_TOLERANCE, Messages.getString("ErrorTolerance.Descriptor"), Messages.getString("ErrorTolerance.Abbreviation"), 1E-3, 1E-5, 1E-1, 1E-3, 1.0, false); //$NON-NLS-1$
-	public final static NumericProperty PYROMETER_SPOT		= new NumericProperty(NumericPropertyKeyword.PYROMETER_SPOT, Messages.getString("PyrometerSpot.Descriptor"), Messages.getString("PyrometerSpot.Abbreviation"), 10E-3, 1E-6, 1E-1, 10E-3, 1E3, false); //$NON-NLS-1$
-	public final static NumericProperty BASELINE_SLOPE 		= new NumericProperty(NumericPropertyKeyword.BASELINE_SLOPE, Messages.getString("BaselineSlope.Descriptor"), Messages.getString("BaselineSlope.Abbreviation"), 0.0, -10.0, 10.0, 0.0, 1.0, true);
-	public final static NumericProperty BASELINE_INTERCEPT	= new NumericProperty(NumericPropertyKeyword.BASELINE_INTERCEPT, Messages.getString("BaselineIntercept.Descriptor"), Messages.getString("BaselineIntercept.Abbreviation"), 0.0, -10.0, 10.0, 0.0, 1.0, true); //$NON-NLS-1$
 	
 	public Number getDimensionFactor() {
 		return dimensionFactor;
@@ -260,6 +261,16 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
 		this.abbreviation = abbreviation;
 	}
 	
+	public static NumericProperty derive(NumericPropertyKeyword keyword, Number value) {
+		return new NumericProperty(
+				value, DEFAULT.stream().filter(p -> p.getType() == keyword).findFirst().get());
+	}
+	
+	public static NumericProperty def(NumericPropertyKeyword keyword) {
+		return new NumericProperty(
+				DEFAULT.stream().filter(p -> p.getType() == keyword).findFirst().get());
+	}
+	
 	@Override
 	public boolean equals(Object o) {
 		if(! (o instanceof NumericProperty) )
@@ -289,6 +300,173 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
 		
 		return d1.compareTo(d2);					
 		
+	}
+	
+	public void toXML(Document doc, Element rootElement) {
+        Element property = doc.createElement(getClass().getSimpleName());
+        rootElement.appendChild(property);
+
+        Attr keyword = doc.createAttribute("keyword");
+        keyword.setValue(type.toString());
+        property.setAttributeNode(keyword);
+        
+        Attr descriptor = doc.createAttribute("descriptor");
+        descriptor.setValue(this.descriptor);
+        property.setAttributeNode(descriptor);
+
+        Attr abbreviation = doc.createAttribute("abbreviation");
+        abbreviation.setValue(this.abbreviation);
+        property.setAttributeNode(abbreviation);
+        
+        Attr value = doc.createAttribute("value");
+        value.setValue(this.value+"");
+        property.setAttributeNode(value);
+        
+        Attr minimum = doc.createAttribute("minimum");
+        minimum.setValue(this.minimum+"");
+        property.setAttributeNode(minimum);
+        
+        Attr maximum = doc.createAttribute("maximum");
+        maximum.setValue(this.maximum+"");
+        property.setAttributeNode(maximum);
+        
+        Attr dim = doc.createAttribute("dimensionfactor");
+        dim.setValue(this.dimensionFactor+"");
+        property.setAttributeNode(dim);
+        
+        Attr autoAdj = doc.createAttribute("auto-adjustable");
+        autoAdj.setValue(this.autoAdjustable+"");
+        property.setAttributeNode(autoAdj);
+        
+        Attr primitiveType = doc.createAttribute("primitive-type");
+        primitiveType.setValue(this.value instanceof Double ? "double" : "int");
+        property.setAttributeNode(primitiveType);
+        
+        
+	}
+	
+	/*
+	 * Utility method that creates an .xml file listing all public final static numeric properties
+	 * found in this class
+	 */
+	
+	public static void saveXML() throws ParserConfigurationException, TransformerException {
+        DocumentBuilderFactory dbFactory =
+        DocumentBuilderFactory.newInstance();
+        DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+        Document doc = dBuilder.newDocument();
+
+        Element rootElement = doc.createElement("NumericProperties");
+        doc.appendChild(rootElement);
+        
+        List<NumericProperty> properties = new ArrayList<NumericProperty>();
+        
+        int modifiers; 
+        
+        for (Field field : NumericProperty.class.getDeclaredFields()) {
+        		
+        	 modifiers = field.getModifiers();
+
+        	 if(!(Modifier.isPublic(modifiers) 
+        			 && Modifier.isStatic(modifiers) 
+        			 && Modifier
+        	        .isFinal(modifiers)))
+        		 continue;
+        	
+            if(!field.getType().equals(NumericProperty.class))
+            	continue;
+            NumericProperty value = null;
+			try {
+				value = (NumericProperty)field.get(null);
+			} catch (IllegalArgumentException | IllegalAccessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			if(value != null)
+				properties.add(value);
+        }
+        
+        properties.stream().forEach(p -> p.toXML(doc, rootElement));
+        
+        // write the content into xml file
+        TransformerFactory transformerFactory = TransformerFactory.newInstance();
+        Transformer transformer = transformerFactory.newTransformer();
+        transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+        DOMSource source = new DOMSource(doc);
+        StreamResult result = new StreamResult(
+        		new File(NumericProperty.class.getSimpleName()+".xml"));
+        transformer.transform(source, result);
+        
+        // Output to console for testing
+        StreamResult consoleResult = new StreamResult(System.out);
+        transformer.transform(source, consoleResult);
+        
+	}
+	
+	/*
+	 * Utility method used to read constants from XML file
+	 */
+	
+	public static List<NumericProperty> readXML(InputStream inputStream) throws ParserConfigurationException, SAXException, IOException {
+		
+		List<NumericProperty> properties = new ArrayList<NumericProperty>();
+		
+		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+        Document doc = dBuilder.parse(inputStream);
+        
+        doc.getDocumentElement().normalize();
+        NodeList nList = doc.getElementsByTagName(NumericProperty.class.getSimpleName());
+
+        for (int temp = 0; temp < nList.getLength(); temp++) {
+           Node nNode = nList.item(temp);
+   
+           if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+              Element eElement = (Element) nNode;
+              NumericPropertyKeyword keyword = NumericPropertyKeyword.valueOf(
+            		  eElement.getAttribute("keyword"));
+              boolean autoAdjustable = Boolean.valueOf(
+            		  eElement.getAttribute("auto-adjustable"));
+              String descriptor = eElement.getAttribute("descriptor");
+              String abbreviation = eElement.getAttribute("abbreviation");
+              
+              Number value, minimum, maximum, dimensionFactor;
+              
+              if(eElement.getAttribute("primitive-type").equalsIgnoreCase("double")) {
+	              value = Double.valueOf(eElement.getAttribute("value"));
+	              minimum = Double.valueOf(eElement.getAttribute("minimum"));
+	              maximum = Double.valueOf(eElement.getAttribute("maximum"));
+	              dimensionFactor = Double.valueOf(eElement.getAttribute("dimensionfactor"));
+              } else {
+	              value   = Integer.valueOf(eElement.getAttribute("value"));
+	              minimum = Integer.valueOf(eElement.getAttribute("minimum"));
+	              maximum = Integer.valueOf(eElement.getAttribute("maximum"));	  
+	              dimensionFactor = Integer.valueOf(eElement.getAttribute("dimensionfactor"));
+              }
+              
+              properties.add(new NumericProperty(keyword, descriptor, abbreviation, 
+            		  value, minimum, maximum, dimensionFactor, autoAdjustable));
+           }
+        }
+ 
+        return properties;
+        
+	}
+	
+	public static List<NumericProperty> readDefaultXML() {
+		try {
+			return readXML(NumericProperty.class.getResourceAsStream
+					(Messages.getString("NumericProperty.XMLFile")));
+		} catch (ParserConfigurationException | SAXException | IOException e) {
+			System.err.println("Unable to read list of default numeric properties");
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	public static NumericProperty theDefault(NumericPropertyKeyword keyword) {
+		return DEFAULT.stream().filter(p -> p.getType() == keyword).findFirst().get();
 	}
 	
 }

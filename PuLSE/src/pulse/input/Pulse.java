@@ -23,6 +23,8 @@ import pulse.util.PropertyHolder;
 import pulse.ui.Messages;
 import static java.lang.Math.round;
 
+import static pulse.properties.NumericPropertyKeyword.*;
+
 public class Pulse extends PropertyHolder {
 	
 	private PulseShape pulseShape;
@@ -30,15 +32,13 @@ public class Pulse extends PropertyHolder {
 	private double pWidth, pSpotDiameter;
 	
 	public Pulse() {
-		pulseShape  = PulseShape.RECTANGULAR;
-		pulseWidth  = (double) NumericProperty.PULSE_WIDTH.getValue();
-		spotDiameter = (double) NumericProperty.SPOT_DIAMETER.getValue();
+		this(PulseShape.RECTANGULAR);
 	}
 	
 	public Pulse(PulseShape pform) {
 		this.pulseShape = pform;
-		pulseWidth  = (double) NumericProperty.PULSE_WIDTH.getValue();
-		spotDiameter = (double) NumericProperty.SPOT_DIAMETER.getValue();
+		pulseWidth  = (double) NumericProperty.def(PULSE_WIDTH).getValue();
+		spotDiameter = (double) NumericProperty.def(SPOT_DIAMETER).getValue();
 	}
 	
 	public Pulse(PulseShape pform, NumericProperty pwidth, NumericProperty ptime) {
@@ -117,7 +117,7 @@ public class Pulse extends PropertyHolder {
 	}
 
 	public NumericProperty getPulseWidth() {
-		return new NumericProperty(pulseWidth, NumericProperty.PULSE_WIDTH);
+		return NumericProperty.derive(PULSE_WIDTH, pulseWidth);
 	}
 
 	public void setPulseWidth(NumericProperty pulseWidth) {
@@ -125,7 +125,7 @@ public class Pulse extends PropertyHolder {
 	}
 
 	public NumericProperty getSpotDiameter() {
-		return new NumericProperty(spotDiameter, NumericProperty.SPOT_DIAMETER);
+		return NumericProperty.derive(SPOT_DIAMETER, spotDiameter);
 	}
 
 	public void setSpotDiameter(NumericProperty spotDiameter) {
@@ -147,8 +147,8 @@ public class Pulse extends PropertyHolder {
 	public List<Property> listedParameters() {
 		List<Property> list = new ArrayList<Property>();
 		list.add(PulseShape.RECTANGULAR);
-		list.add(NumericProperty.PULSE_WIDTH);
-		list.add(NumericProperty.SPOT_DIAMETER);
+		list.add(NumericProperty.def(PULSE_WIDTH));
+		list.add(NumericProperty.def(SPOT_DIAMETER));
 		return list;				
 	}
 
