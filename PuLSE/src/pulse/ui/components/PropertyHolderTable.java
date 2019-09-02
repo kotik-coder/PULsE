@@ -166,7 +166,7 @@ public class PropertyHolderTable extends JTable {
 	public void updateTable() {				
 		if(propertyHolder == null)
 			return;
-		
+				
 		this.editCellAt(-1, -1);
 		this.clearSelection();		
 			

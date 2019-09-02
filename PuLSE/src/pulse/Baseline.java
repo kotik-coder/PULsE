@@ -59,7 +59,7 @@ public class Baseline extends PropertyHolder {
 	
 	@Override
 	public String toString() {
-		return getClass().getSimpleName() + " = " + String.format("%3.2f", intercept) + " t * " + String.format("%3.2f", slope);
+		return getClass().getSimpleName() + " = " + String.format("%3.2f", intercept) + " + t * " + String.format("%3.2f", slope);
 	}
 
 	public void fitTo(ExperimentalData data, double rangeMin, double rangeMax) {

@@ -440,13 +440,16 @@ public class ProblemStatementFrame extends JFrame {
 						return;
 					}
 					
-					SearchTask selectedTask	= TaskManager.getSelectedTask();
+					if(TaskManager.getSelectedTask() == null)
+						TaskManager.selectFirstTask();
+					
+					SearchTask selectedTask	= TaskManager.getSelectedTask();				
 					
 					if( Problem.isSingleStatement() )  
 						for(SearchTask t : TaskManager.getTaskList()) 
 							changeProblem(t, newlySelectedProblem);					
 					else 
-						changeProblem(selectedTask, newlySelectedProblem);
+						changeProblem(selectedTask, newlySelectedProblem);					
 					
 					listModel.set(
 							listModel.indexOf(newlySelectedProblem), 
