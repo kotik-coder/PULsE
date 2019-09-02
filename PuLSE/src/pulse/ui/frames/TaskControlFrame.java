@@ -564,7 +564,10 @@ public class TaskControlFrame extends JFrame {
 		HeatingCurve solutionCurve = task.getProblem().getHeatingCurve();
 		
 		if(solutionCurve == null)
-			return;				
+			return;
+		
+		if(task.getScheme() == null)
+			return;
 		
 		solutionCurve.setName(task.getProblem().shortName() +  " : " + task.getScheme().shortName());				
 		chart.plot(extendedCurvePlotting ? 

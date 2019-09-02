@@ -30,11 +30,11 @@
     	dimensionfactor="1" keyword="ITERATION" maximum="1000000"
     	minimum="0" value="0" primitive-type="int" />
     <NumericProperty
-    	abbreviation="&lt;i&gt;d&lt;/i&gt;&lt;sub&gt;las&lt;/sub&gt; (mm)"
+    	abbreviation="&lt;i&gt;t&lt;/i&gt;&lt;sub&gt;las&lt;/sub&gt; (ms)"
     	auto-adjustable="false"
-    	descriptor="Pulse width, &lt;i&gt;d&lt;/i&gt;&lt;sub&gt;las&lt;/sub&gt; (mm)"
-    	dimensionfactor="1000.0" keyword="PULSE_WIDTH" maximum="1.0"
-    	minimum="1.0E-4" value="0.0015" primitive-type="double" />
+    	descriptor="Pulse width, &lt;i&gt;t&lt;/i&gt;&lt;sub&gt;las&lt;/sub&gt; (ms)"
+    	dimensionfactor="1000.0" keyword="PULSE_WIDTH" maximum="10"
+    	minimum="1E-5" value="0.0015" primitive-type="double" />
     <NumericProperty abbreviation="&lt;i&gt;d&lt;/i&gt;&lt;sub&gt;las&lt;/sub&gt; (mm)"
     	auto-adjustable="false"
     	descriptor="Laser spot diameter, &lt;i&gt;d&lt;/i&gt;&lt;sub&gt;las&lt;/sub&gt; (mm)"
@@ -133,7 +133,7 @@
     	auto-adjustable="true"
     	descriptor="Goodness of fit, &lt;i&gt;R&lt;/i&gt;&lt;sup&gt;2&lt;/sup&gt;"
     	dimensionfactor="1.0" keyword="RSQUARED"
-    	maximum="1.7976931348623157E308" minimum="4.9E-324"
+    	maximum="Infinity" minimum="-Infinity"
     	value="-Infinity" primitive-type="double" />
     <NumericProperty
     	abbreviation="&amp;#8721&lt;sub&gt;i&lt;/sub&gt;(&lt;i&gt;T&lt;/i&gt;&lt;sub&gt;i&lt;/sub&gt;&lt;sup&gt;exp&lt;/sup&gt; - &lt;i&gt;T&lt;/i&gt;&lt;sub&gt;i&lt;/sub&gt;)&lt;sup&gt;2&lt;/sup&gt;"

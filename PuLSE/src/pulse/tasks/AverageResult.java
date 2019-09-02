@@ -1,15 +1,19 @@
 package pulse.tasks;
 
 import java.math.BigDecimal;
+import java.math.MathContext;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
 import pulse.properties.NumericProperty;
+import pulse.properties.NumericPropertyKeyword;
 
 public class AverageResult extends AbstractResult {
 	
 	private List<AbstractResult> results;
+	
+	public final static int SIGNIFICANT_FIGURES	= 1;
 
 	public AverageResult(List<AbstractResult> res, ResultFormat resultFormat) {
 		super(resultFormat);
@@ -21,57 +25,72 @@ public class AverageResult extends AbstractResult {
 			r.setParent(this);
 		}
 		
-		double[] av 	= new double[resultFormat.abbreviations().size()];
-		double[] std 	= new double[av.length];
-	
-		for(int j = 0; j < av.length; j++) 
-			addProperty(new NumericProperty( 
-					0.0,
-					(NumericProperty) results.get(0).getProperty(j)
-					));
+		average();
 		
+	}
+	
+	private void average() {
+		/*
+		 * Calculate average
+		 */
+		
+		double[] av			= new double[getFormat().abbreviations().size()]; 
 		
 		int size = results.size();
-		
-		for(AbstractResult r : results) 
-			for(int i = 0; i < av.length; i++)
-				av[i] += ((Number)r.getProperty(i).getValue()).doubleValue();
-		
-		BigDecimal[] avBig = new BigDecimal[av.length];
-		
-		for(int j = 0; j < av.length; j++) { 
-			av[j]	/= size;
-			avBig[j] = new BigDecimal(av[j]);
+				  
+		for(int i = 0; i < av.length; i++) {
+			for(AbstractResult r : results) 
+				av[i] += ((Number)r.getProperty(i).getValue()).doubleValue();			
+			av[i] 	/= size;
 		}
 		
 		/*
 		 * Calculate standard error std[j] for each column
 		 */
 		
-		for(AbstractResult r : results) 
-			for(int j = 0; j < av.length; j++)  
+		double[] std 		= new double[av.length];
+		 
+		for(int j = 0; j < av.length; j++) {
+			for(AbstractResult r : results) 
 				std[j] += Math.pow( 
 						((Number) r.getProperty(j).getValue()).doubleValue() 
 						- av[j], 2);
+			std[j] /= size;
+		}
 		
-		BigDecimal[] stdBig = new BigDecimal[av.length];
-		int numFigures		= 2;
-		int power 			= 0;
+		/*
+		 * Round up
+		 */
+
+		BigDecimal resultAv, resultStd, stdBig, avBig;
 		
-		BigDecimal resultAv, unitStd, resultStd;
+		NumericProperty p;
+		NumericPropertyKeyword key;
 		
-		for(int j = 0; j < stdBig.length; j++) {
-			std[j] 		= Math.sqrt( std[j] / ( (av.length - 1)*av.length ) );
-			stdBig[j]	= new BigDecimal(std[j]);
+		for(int j = 0; j < av.length; j++) {
+			key = getFormat().shortNames().get(j);
 			
-			power		= stdBig[j].precision() - numFigures;
+			if(!Double.isFinite(std[j])) 
+				p = NumericProperty.derive(key, av[j]); //ignore error as the value is not finite			
+			else {
+				stdBig  = (new BigDecimal(std[j])).sqrt(MathContext.DECIMAL64);
+				avBig	= new BigDecimal(av[j]);
+				
+				resultStd	= stdBig.setScale(SIGNIFICANT_FIGURES 
+						- stdBig.precision() + stdBig.scale(), RoundingMode.HALF_UP);
+				
+				if(stdBig.precision() > 1)
+					resultAv	= avBig.setScale(resultStd.scale(), RoundingMode.CEILING);
+				else
+					resultAv	= avBig; 
+				
+				p = NumericProperty.derive(	key, resultAv.doubleValue() );
+				p.setError(resultStd.doubleValue());
+				
+			}
 			
-			unitStd		= stdBig[j].ulp().scaleByPowerOfTen(power);
-			resultStd	= stdBig[j].divideToIntegralValue(unitStd).multiply(unitStd);
-			resultAv	= avBig[j].setScale(unitStd.scale(), RoundingMode.CEILING);
-			
-			getProperty(j).setValue(resultAv.doubleValue());
-			getProperty(j).setError(resultStd.doubleValue());		
+			addProperty(p);
+				
 		}
 		
 	}

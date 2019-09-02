@@ -6,6 +6,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import pulse.HeatingCurve;
+import pulse.ui.Messages;
 import pulse.util.geom.Point2D;
 
 public class ExperimentalData extends HeatingCurve {
@@ -19,6 +20,7 @@ public class ExperimentalData extends HeatingCurve {
 	private final static int REDUCTION_FACTOR = 16;
 	private final static double NEGATIVE_ZERO = -1E-7;
 	private final static int PULSE_INDEX_MARGIN = 10;
+	private final static double FAIL_SAFE_FACTOR = 3.0;
 	
 	private Comparator<Point2D> pointComparator = 
 			(p1, p2) -> Double.valueOf(p1.getY()).compareTo(Double.valueOf(p2.getY()));
@@ -142,6 +144,11 @@ public class ExperimentalData extends HeatingCurve {
 			if(halfMax > degraded.get(i).getY())
 				if(halfMax <= degraded.get(i+1).getY())
 					index = i;
+		
+		if(index < 0) {
+			System.err.println(Messages.getString("ExperimentalData.HalfRiseError"));
+			return Collections.max(time)/FAIL_SAFE_FACTOR;			
+		}
 		
 		return degraded.get(index).getX();				
 		

@@ -23,6 +23,7 @@ import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 
 import pulse.properties.NumericProperty;
+import pulse.properties.NumericPropertyKeyword;
 import pulse.tasks.AbstractResult;
 import pulse.tasks.AverageResult;
 import pulse.tasks.Identifier;
@@ -201,7 +202,8 @@ public class ResultTable extends JTable implements Saveable  {
 				property = (NumericProperty)getValueAt(j, i);
 				data[i][0][j] = ((Number) property.getValue()).doubleValue() * ((Number) property.getDimensionFactor()).doubleValue();
 				if(property.getError() != null)
-					data[i][1][j] = (double) property.getError() * (double) property.getDimensionFactor();
+					data[i][1][j] = property.getError().doubleValue() * 
+									property.getDimensionFactor().doubleValue();
 				else
 					data[i][1][j] = 0;
 			}	
@@ -412,50 +414,39 @@ public class ResultTable extends JTable implements Saveable  {
         stream.close();
 	}
 	
-	public void autoAverage(double precision) {
-		
-		double temp = 0;
-		int[] g, gModel;
-		
-		List<AbstractResult> newRows 			= new LinkedList<AbstractResult>();
-		List<AbstractResult> oldRows			= new LinkedList<AbstractResult>();
-		List<AbstractResult> toAverage			= new ArrayList<AbstractResult>();
-		
-		List<Integer> skipList					= new LinkedList<Integer>();
+	public void merge(double temperatureDelta) {
 		
 		ResultTableModel model = (ResultTableModel) this.getModel();
+		int temperatureIndex = model.getFormat().shortNames().
+				indexOf(NumericPropertyKeyword.TEST_TEMPERATURE);
 		
+		if(temperatureIndex < 0)
+			return;
+
 		Number val;
 		
+		List<Integer> indices;
+		
+		List<AbstractResult> newRows	= new LinkedList<AbstractResult>();
+		List<Integer> skipList			= new ArrayList<Integer>();
+		
 		for(int i = 0; i < this.getRowCount(); i++) {
-			if(skipList.contains(i))
-				continue;
+			if(skipList.contains(convertRowIndexToModel(i)))
+				continue; //check if value is independent (does not belong to a group)
 				
-			val		= ((Number) (  (NumericProperty) this.getValueAt(i, 0) ).getValue());
-			if(val instanceof Double)
-				temp	= val.doubleValue();
-			else
-				temp	= val.intValue();
-			g		= group(temp, precision); 
-			gModel	= new int[g.length];
+			val		= ((Number) (  (NumericProperty) this.
+					getValueAt(i, temperatureIndex) ).getValue());
 			
-			toAverage.clear();
-			
-			for(int j = 0; j < g.length; j++) {
-				gModel[j] = this.convertRowIndexToModel(g[j]);
-				toAverage.add( model.getResults().get( gModel[j] ) );
-			}
-				
-			if(g.length < 2) {
-				oldRows.add( model.getResults().get( gModel[0] ) );
-				continue;
-			}
-			
-			newRows.add( new AverageResult(toAverage, model.getFormat() ) );
-			
-			for(int j = 0; j < g.length; j++) 
-				skipList.add(g[j]);
-			
+			indices	= group(val.doubleValue(), temperatureIndex, temperatureDelta); //get indices of results in table
+			skipList.addAll(indices); //skip those indices if they refer to the same group
+
+			if(indices.size() < 2) 
+				newRows.add( model.getResults().get( indices.get(0) ) );
+			else	
+				newRows.add( new AverageResult(
+						indices.stream().map(model.getResults()::get).
+						collect(Collectors.toList())
+						, model.getFormat() ) );
 			
 		}
 		
@@ -466,10 +457,7 @@ public class ResultTable extends JTable implements Saveable  {
 				
 				model.setRowCount(0);
 				model.getResults().clear();
-				
-				for(AbstractResult row : oldRows) 
-					model.addRow( row );
-				
+
 				for(AbstractResult row : newRows) 
 					model.addRow( row );
 			
@@ -481,25 +469,21 @@ public class ResultTable extends JTable implements Saveable  {
 		
 	}
 	
-	public int[] group(double val, double precision) {
+	public List<Integer> group(double val, int index, double precision) {
 		
-		List<Integer> selection = new LinkedList<Integer>();
+		List<Integer> selection = new ArrayList<Integer>();
 		Number valNumber;
 		
-		for(int i = 0; i < this.getRowCount(); i++) {
+		for(int i = 0; i < getRowCount(); i++) {
 			
-			valNumber = (Number) ((NumericProperty) this.getValueAt(i, 0)).getValue();
+			valNumber = (Number) ((NumericProperty) getValueAt(i, index)).getValue();
 			
-			if( Math.abs( valNumber.doubleValue()	- val) < precision)
-				selection.add(i);
+			if( Math.abs( valNumber.doubleValue() - val) < precision)
+				selection.add(convertRowIndexToModel(i));
+			
 		}
 		
-		int[] result = new int[selection.size()];
-	
-		for(int i = 0; i < result.length; i++)
-			result[i] = selection.get(i);
-		
-		return result;
+		return selection;
 		
 	}
 	

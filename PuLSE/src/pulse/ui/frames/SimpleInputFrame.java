@@ -118,7 +118,7 @@ public class SimpleInputFrame extends JFrame {
 		groupButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				setVisible(false);
-				linkedTable.autoAverage(Double.parseDouble(inputTextField.getText()) );
+				linkedTable.merge(Double.parseDouble(inputTextField.getText()) );
 			}
 		});
 		groupButton.setFont(FONT); //$NON-NLS-1$
