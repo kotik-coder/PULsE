@@ -46,9 +46,9 @@
     	descriptor="End time, &lt;i&gt;t&lt;/i&gt;&lt;sub&gt;lim&lt;/sub&gt; (s)"
     	dimensionfactor="1.0" keyword="TIME_LIMIT" maximum="20.0"
     	minimum="1.0E-6" value="1.0" primitive-type="double" />
-    <NumericProperty abbreviation="&lt;i&gt;C&lt;/i&gt;&lt;sub&gt;p&lt;/sub&gt; (J/kg K)"
+    <NumericProperty abbreviation="&lt;i&gt;C&lt;/i&gt;&lt;sub&gt;p&lt;/sub&gt; (J&amp;times;kg&lt;sup&gt;-1&lt;/sup&gt;&amp;times;K&lt;sup&gt;-1&lt;/sup&gt;)"
     	auto-adjustable="true"
-    	descriptor="Specific heat, &lt;i&gt;C&lt;/i&gt;&lt;sub&gt;p&lt;/sub&gt; (J/kg K)"
+    	descriptor="Specific heat, &lt;i&gt;C&lt;/i&gt;&lt;sub&gt;p&lt;/sub&gt; (J&amp;times;kg&lt;sup&gt;-1&lt;/sup&gt;&amp;times;K&lt;sup&gt;-1&lt;/sup&gt;)"
     	dimensionfactor="1.0" keyword="SPECIFIC_HEAT" maximum="10000.0"
     	minimum="1.0" value="0.0" primitive-type="double" />
     <NumericProperty
