@@ -40,7 +40,7 @@ import pulse.ui.components.LogPane;
 import pulse.ui.components.LogToolBar;
 import pulse.ui.components.PlotType;
 import pulse.ui.components.ResultTable;
-import pulse.ui.components.ResultTable.ResultTableModel;
+import pulse.ui.components.ResultTableModel;
 import pulse.ui.components.ResultsToolBar;
 import pulse.ui.components.TaskTable;
 import pulse.ui.components.TaskTable.TaskTableModel;
@@ -401,7 +401,7 @@ public class TaskControlFrame extends JFrame {
 			return;
 		
 		TaskManager.generateTasks(Arrays.asList(fileChooser.getSelectedFiles()));
-		TaskManager.selectTask(TaskManager.getTaskList().get(0).getIdentifier(), instance);									
+		TaskManager.selectFirstTask();									
 				
 	}
 
@@ -678,7 +678,8 @@ public class TaskControlFrame extends JFrame {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					TaskManager.clear();
-					resultsTable.removeAll();
+					logText.clear();
+					resultsTable.clear();
 				}
 				
 			});

@@ -14,7 +14,7 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import pulse.tasks.TaskManager;
 import pulse.ui.Messages;
-import pulse.ui.components.ResultTable.ResultTableModel;
+import pulse.ui.components.ResultTableModel;
 import pulse.ui.frames.PlotFrame;
 import pulse.ui.frames.SimpleInputFrame;
 
@@ -170,9 +170,13 @@ public class ResultsToolBar extends JToolBar {
 	
 	private void showPlotFrame(ResultTable resultsTable) {
 		if(plotFrame == null) 			
-			plotFrame = new PlotFrame( resultsTable.getColumnNames(), resultsTable.data() );		
+			plotFrame = new PlotFrame( 
+					((ResultTableModel)resultsTable.getModel()).getFormat(), 
+					resultsTable.data() );		
 		else
-		    plotFrame.update(resultsTable.getColumnNames(), resultsTable.data());
+		    plotFrame.update(
+		    		((ResultTableModel)resultsTable.getModel()).getFormat()
+		    		, resultsTable.data());
 		
 		plotFrame.setLocationRelativeTo(SwingUtilities.getWindowAncestor(this));
 		plotFrame.setVisible(true);

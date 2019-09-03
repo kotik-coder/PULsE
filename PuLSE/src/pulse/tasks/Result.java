@@ -19,7 +19,7 @@ public class Result extends AbstractResult implements Saveable {
 		
 		this.identifier = task.getIdentifier();
 		
-		for(NumericProperty name : format.getNameMap()) {
+		for(NumericProperty name : format.getNameList()) {
 			NumericProperty current = task.numericProperty(name.getType());
 			if(current != null) 
 				addProperty((NumericProperty)current);

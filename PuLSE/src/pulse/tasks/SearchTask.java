@@ -415,7 +415,7 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 		else if(scheme == null) 
 			s.setDetails(Details.MISSING_DIFFERENCE_SCHEME);
 		else if(curve == null)
-			s.setDetails(Details.MISSING_HEAT_CURVE);
+			s.setDetails(Details.MISSING_HEATING_CURVE);
 		else if(pathSolver == null)
 			s.setDetails(Details.MISSING_PATH_SOLVER);
 		else if(PathSolver.getLinearSolver() == null)

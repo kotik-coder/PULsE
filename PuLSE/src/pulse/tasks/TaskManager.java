@@ -165,12 +165,12 @@ public static void selectFirstTask() {
 }
 
 public static void clear() {
-	for(SearchTask task : tasks) {
+	tasks.stream().forEach(task -> {
 		TaskRepositoryEvent e = new TaskRepositoryEvent(
 				TaskRepositoryEvent.State.TASK_REMOVED, task.getIdentifier());
 		
 		notifyListeners(e);
-	}
+	});
 	
 	tasks.clear();
 	selectTask(null, null);

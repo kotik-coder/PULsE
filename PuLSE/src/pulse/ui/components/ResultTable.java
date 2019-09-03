@@ -17,10 +17,8 @@ import javax.swing.RowSorter.SortKey;
 import javax.swing.SortOrder;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
-import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 
 import pulse.properties.NumericProperty;
@@ -41,48 +39,37 @@ import pulse.util.Saveable;
 
 public class ResultTable extends JTable implements Saveable  {		
 	
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 3448187918228094149L;
-	private ResultFormat fmt;
-	private final static Font font = new Font(Messages.getString("ResultTable.FontName"), Font.PLAIN, 16);  //$NON-NLS-1$
+	private final static Font font = new Font(
+			Messages.getString("ResultTable.FontName"), Font.PLAIN, 16);  //$NON-NLS-1$
 	
-	private TableRowSorter<TableModel> sorter;
+	private final static int ROW_HEIGHT = 30;
+	
 	private NumericPropertyRenderer renderer;
-	
-	private Comparator<NumericProperty> numericComparator = (i1, i2) -> i1.compareTo(i2);
 	
 	public ResultTable(ResultFormat fmt) {
 		super();
 		renderer = new NumericPropertyRenderer();		
 		renderer.setVerticalAlignment( SwingConstants.TOP );
-		this.fmt = fmt;
 		
-		this.setModel(new ResultTableModel(fmt, 0));
+		ResultTableModel model = new ResultTableModel(fmt);
+		setModel(model);
+		setRowSorter(sorter());
 		
-		this.setRowHeight(30);
+		model.addListener(event -> setRowSorter(sorter()) );
+		
+		this.setRowHeight(ROW_HEIGHT);
 		setShowHorizontalLines(false);
 		setFillsViewportHeight(true);
 		
 		getTableHeader().setFont(font);
-		
-		sorter = new TableRowSorter<TableModel>(getModel()); 
-	    ArrayList<RowSorter.SortKey> list	= new ArrayList<SortKey>();
-
-	    for(int i = 0; i < this.getModel().getColumnCount(); i++) {
-		    list.add( new RowSorter.SortKey(i, SortOrder.ASCENDING) );
-		    sorter.setComparator(i, numericComparator);
-	    }
-	    
-	    sorter.setSortKeys(list);
-
-	    this.setRowSorter(sorter);
-	    sorter.sort();
 	    
 		setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
 	    setRowSelectionAllowed(false);
 	    setColumnSelectionAllowed(true);
+	    
+	    /*
+	     * Listen to TaskTable and select appropriate results when task selection changes
+	     */
 	    
 	    TaskManager.addSelectionListener(new TaskSelectionListener() {
 
@@ -97,102 +84,82 @@ public class ResultTable extends JTable implements Saveable  {
 				
 				for(AbstractResult r : results) {
 					
-					if(r instanceof AverageResult) 
-						selectMatchingResult( (AverageResult) r, id);
-				
-					else {
-					
-						if(! ((Result)r).getIdentifier().equals(id) )
-							continue;
+					if(! (r instanceof Result) ) 
+						continue;
+
+					if(! ((Result)r).getIdentifier().equals(id) )
+						continue;
 						
-						jj = convertRowIndexToView(results.indexOf(r));
+					jj = results.indexOf(r);
 						
-						if(jj < -1)
-							break;
+					if(jj < -1)
+						continue;
 						
-						getSelectionModel().setSelectionInterval(jj, jj);
-						scrollToSelection(jj);	
-						return;
-					
-					}
+					getSelectionModel().addSelectionInterval(jj, jj);
+					scrollToSelection(jj);					
 					
 				}
-								
-			}
+					
+			}											
 	    	
 	    });
+	    
+	    /*
+	     * Automatically add finished tasks to this result table
+	     * Automatically remove results if corresponding task is removed
+	     */
 	    
 		TaskManager.addTaskRepositoryListener(new TaskRepositoryListener() {
 
 			@Override
 			public void onTaskListChanged(TaskRepositoryEvent e) {
-					
-				//task added
 				
 				switch(e.getState()) {
 				
 					case TASK_FINISHED :
 						SearchTask t = TaskManager.getTask(e.getId());
-						Result r = TaskManager.getResult(t);
-						
-						SwingUtilities.invokeLater( new Runnable() {
-	
-							@Override
-							public void run() {
-								((ResultTableModel)getModel()).addRow( r );
-								List<AbstractResult> results = ((ResultTableModel)getModel()).getResults();
-								scrollToSelection(
-										convertColumnIndexToView(results.indexOf(r)) 
-										);
-							}
-								
-						});
-						
+						Result r = TaskManager.getResult(t);						
+						SwingUtilities.invokeLater( () -> 
+							((ResultTableModel)getModel()).addRow( r ));	
 					break;
 					case TASK_REMOVED :
 					case TASK_RESET :
 						((ResultTableModel)getModel()).removeRow( e.getId() );
 						getSelectionModel().clearSelection();						
-					break;				
+					break;	
 				}				
 				
 				}
-
 			
 		});
 	    
 	}
 	
+	public void clear() {
+		((ResultTableModel)getModel()).setRowCount(0);
+	}
+	
+	private TableRowSorter<ResultTableModel> sorter() {
+		TableRowSorter<ResultTableModel> sorter = 
+				new TableRowSorter<ResultTableModel>((ResultTableModel)getModel()); 
+	    ArrayList<RowSorter.SortKey> list = new ArrayList<SortKey>();
+		Comparator<NumericProperty> numericComparator = (i1, i2) -> i1.compareTo(i2);
+
+	    for(int i = 0; i < getColumnCount(); i++) {
+		    list.add( 
+		    		new RowSorter.SortKey(i, SortOrder.ASCENDING) 
+		    		);
+		    sorter.setComparator(i, numericComparator);
+	    }
+	    
+	    sorter.setSortKeys(list);
+	    sorter.sort();
+	    return sorter;
+	}
+	
 	@Override
 	public Extension[] getSupportedExtensions() {
 		return new Extension[] {Saveable.Extension.HTML, Saveable.Extension.CSV};
-	}
-	
-	private void selectMatchingResult(AverageResult ar, Identifier id) {
-		List<AbstractResult> ir = ar.getIndividualResults();
-		List<AbstractResult> results = ( (ResultTableModel)this.getModel() ).getResults();
-		Result rr;
-		int jj;
-		
-		for(AbstractResult aar : ir){
-			if(aar instanceof AverageResult) {
-				selectMatchingResult((AverageResult)aar, id);
-				return;
-			}
-			
-			rr = (Result)aar;
-			
-			if(! (rr.getIdentifier()).equals(id) )
-				continue;
-			
-			AbstractResult selection = ar.getParent() != null ? ar.getParent() : ar;
-			jj = convertRowIndexToView( results.indexOf( selection) ); 
-		
-			getSelectionModel().setSelectionInterval(jj, jj);
-			scrollToSelection(jj);	
-			return;
-			
-		}
 	}
 	
 	public double[][][] data() {
@@ -212,15 +179,8 @@ public class ResultTable extends JTable implements Saveable  {
 		return data;
 	}
 	
-	public String[] getColumnNames() {
-		String[] names = new String[getColumnCount()];
-		for(int i = 0; i < getColumnCount(); i++)
-			names[i] = getColumnName(i);
-		return names;
-	}
-	
 	private void scrollToSelection(int rowIndex) {
-		scrollRectToVisible(getCellRect(rowIndex,0, true));
+		scrollRectToVisible(getCellRect(rowIndex, rowIndex, true));
 	}
 	
 	@Override
@@ -234,14 +194,6 @@ public class ResultTable extends JTable implements Saveable  {
 		   return super.getCellRenderer(row, column);
 		   
 	}
-
-	public ResultFormat getFormat() {
-		return fmt;
-	}
-
-	public void setFmt(ResultFormat fmt) {
-		this.fmt = fmt;
-	}
 	
 	@Override
 	public void printData(FileOutputStream fos, Extension extension) {
@@ -251,12 +203,101 @@ public class ResultTable extends JTable implements Saveable  {
 		}		
 	}
 	
+	/*
+	 * Merges data withing a temperature interval
+	 */
+	
+	public void merge(double temperatureDelta) {
+		
+		ResultTableModel model = (ResultTableModel) this.getModel();
+		int temperatureIndex = model.getFormat().keywords().
+				indexOf(NumericPropertyKeyword.TEST_TEMPERATURE);
+		
+		if(temperatureIndex < 0)
+			return;
+
+		Number val;
+		
+		List<Integer> indices;
+		
+		List<AbstractResult> newRows	= new LinkedList<AbstractResult>();
+		List<Integer> skipList			= new ArrayList<Integer>();
+		
+		for(int i = 0; i < this.getRowCount(); i++) {
+			if(skipList.contains(convertRowIndexToModel(i)))
+				continue; //check if value is independent (does not belong to a group)
+				
+			val		= ((Number) (  (NumericProperty) this.
+					getValueAt(i, temperatureIndex) ).getValue());
+			
+			indices	= group(val.doubleValue(), temperatureIndex, temperatureDelta); //get indices of results in table
+			skipList.addAll(indices); //skip those indices if they refer to the same group
+
+			if(indices.size() < 2) 
+				newRows.add( model.getResults().get( indices.get(0) ) );
+			else	
+				newRows.add( new AverageResult(
+						indices.stream().map(model.getResults()::get).
+						collect(Collectors.toList())
+						, model.getFormat() ) );
+			
+		}
+		
+		SwingUtilities.invokeLater( () -> 
+			{				
+				model.setRowCount(0);
+				model.getResults().clear();
+				
+				for(AbstractResult row : newRows) 
+					model.addRow( row );
+				
+			}			
+		);
+		
+	}
+	
+	public List<Integer> group(double val, int index, double precision) {
+		
+		List<Integer> selection = new ArrayList<Integer>();
+		Number valNumber;
+		
+		for(int i = 0; i < getRowCount(); i++) {
+			
+			valNumber = (Number) ((NumericProperty) getValueAt(i, index)).getValue();
+			
+			if( Math.abs( valNumber.doubleValue() - val) < precision)
+				selection.add(convertRowIndexToModel(i));
+			
+		}
+		
+		return selection;
+		
+	}
+	
+	 //Implement table header tool tips.
+	@Override
+    protected JTableHeader createDefaultTableHeader() {
+        return new JTableHeader(columnModel) {
+            public String getToolTipText(MouseEvent e) {
+                int index = columnModel.getColumnIndexAtX(e.getPoint().x);
+                int realIndex = 
+                        columnModel.getColumn(index).getModelIndex();
+                return ((ResultTableModel)getModel()).getTooltips().get(realIndex);
+            }
+        };
+	}
+	
+	/*
+	 * PRINTING METHODS
+	 */
+	
 	private void printCSV(FileOutputStream fos) {
 		PrintStream stream = new PrintStream(fos);
 		NumericProperty p = null;
 		
         for (int col = 0; col < getColumnCount(); col++) {
-        	p = fmt.fromAbbreviation(getColumnName(col));
+        	p = ( (ResultTableModel)getModel() ).getFormat().
+        			fromAbbreviation(getColumnName(col));
             stream.print(p.getType() + "\t");
             stream.print("STD. DEV" + "\t");
         }
@@ -414,195 +455,6 @@ public class ResultTable extends JTable implements Saveable  {
         stream.print("</table>"); //$NON-NLS-1$
                
         stream.close();
-	}
-	
-	public void merge(double temperatureDelta) {
-		
-		ResultTableModel model = (ResultTableModel) this.getModel();
-		int temperatureIndex = model.getFormat().shortNames().
-				indexOf(NumericPropertyKeyword.TEST_TEMPERATURE);
-		
-		if(temperatureIndex < 0)
-			return;
-
-		Number val;
-		
-		List<Integer> indices;
-		
-		List<AbstractResult> newRows	= new LinkedList<AbstractResult>();
-		List<Integer> skipList			= new ArrayList<Integer>();
-		
-		for(int i = 0; i < this.getRowCount(); i++) {
-			if(skipList.contains(convertRowIndexToModel(i)))
-				continue; //check if value is independent (does not belong to a group)
-				
-			val		= ((Number) (  (NumericProperty) this.
-					getValueAt(i, temperatureIndex) ).getValue());
-			
-			indices	= group(val.doubleValue(), temperatureIndex, temperatureDelta); //get indices of results in table
-			skipList.addAll(indices); //skip those indices if they refer to the same group
-
-			if(indices.size() < 2) 
-				newRows.add( model.getResults().get( indices.get(0) ) );
-			else	
-				newRows.add( new AverageResult(
-						indices.stream().map(model.getResults()::get).
-						collect(Collectors.toList())
-						, model.getFormat() ) );
-			
-		}
-		
-		SwingUtilities.invokeLater(new Runnable() {
-
-			@Override
-			public void run() {
-				
-				model.setRowCount(0);
-				model.getResults().clear();
-
-				for(AbstractResult row : newRows) 
-					model.addRow( row );
-			
-				scrollToSelection(getModel().getRowCount() - 1);	
-				
-			}
-			
-		});
-		
-	}
-	
-	public List<Integer> group(double val, int index, double precision) {
-		
-		List<Integer> selection = new ArrayList<Integer>();
-		Number valNumber;
-		
-		for(int i = 0; i < getRowCount(); i++) {
-			
-			valNumber = (Number) ((NumericProperty) getValueAt(i, index)).getValue();
-			
-			if( Math.abs( valNumber.doubleValue() - val) < precision)
-				selection.add(convertRowIndexToModel(i));
-			
-		}
-		
-		return selection;
-		
-	}
-	
-	 //Implement table header tool tips.
-	@Override
-    protected JTableHeader createDefaultTableHeader() {
-        return new JTableHeader(columnModel) {
-            public String getToolTipText(MouseEvent e) {
-                int index = columnModel.getColumnIndexAtX(e.getPoint().x);
-                int realIndex = 
-                        columnModel.getColumn(index).getModelIndex();
-                return ((ResultTableModel)getModel()).getTooltips().get(realIndex);
-            }
-        };
-	}
-	
-	public class ResultTableModel extends DefaultTableModel {
-		
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = -6227212091613629835L;
-		private ResultFormat fmt;
-		private List<AbstractResult> results;
-		private List<String> tooltips;
-		
-		public ResultTableModel(ResultFormat fmt, int rowCount) {
-			super(fmt.abbreviations().toArray(), rowCount);
-			this.fmt = fmt;
-			results = new LinkedList<AbstractResult>();
-			tooltips = fmt.descriptors().stream().map(d -> "<html>" + d + "</html>").collect(Collectors.toList());			
-		}		
-		
-	    @Override
-	    public boolean isCellEditable(int row, int column) {
-	       //all cells false
-	       return false;
-	    }
-	    
-	    public void changeFormat(ResultFormat fmt) {
-	    	this.fmt = fmt;
-	    	
-	    	for(AbstractResult r : results)
-	    		r.setFormat(fmt);
-	    	
-	    	if(this.getRowCount() < 1) {
-	    		this.setColumnIdentifiers(fmt.abbreviations().toArray());
-	    		return;
-	    	}
-	    	
-	    	this.setRowCount(0);
-	    	List<AbstractResult> oldResults = new ArrayList<AbstractResult>(results);
-    		
-	    	this.setColumnIdentifiers(fmt.abbreviations().toArray());
-	    	results.clear();
-	    	
-	    	for(AbstractResult r : oldResults)
-	    		this.addRow(r);
-	    	
-	    	tooltips = fmt.descriptors().stream().map(d -> "<html>" + d + "</html>").collect(Collectors.toList());
-	    }
-	    
-		public void addRow(AbstractResult result) {
-			if(result == null)
-				return; 
-			
-			List<NumericProperty> propertyList = AbstractResult.filterProperties(result);
-			
-			SwingUtilities.invokeLater(new Runnable() {
-
-				@Override
-				public void run() {
-					addRow(propertyList.toArray());
-					results.add(result);
-				    scrollRectToVisible(getCellRect(getRowCount(), getColumnCount(), true));	    	    
-				}
-				
-			});
-	    
-		}
-		
-		public void removeRow(Identifier id) {
-			Result res = null;
-			for(AbstractResult r : results) {
-				if(! (r instanceof Result) )
-					continue;
-				if( ((Result)r).getIdentifier().equals(id)) {
-					res = (Result)r;
-					break;
-				}
-			}
-			
-			if(res == null)
-				return;
-			
-			this.removeRow(results.indexOf(res));
-		}
-		
-		@Override
-		public void removeRow(int index) {
-			AbstractResult r = results.get(index);
-			super.removeRow(index);
-			results.remove(r);
-		}
-		
-		public List<AbstractResult> getResults() {
-			return results;
-		}
-		
-		public ResultFormat getFormat() {
-			return fmt;
-		}
-
-		public List<String> getTooltips() {			
-			return tooltips;
-		}				
-		
 	}
 	
 }

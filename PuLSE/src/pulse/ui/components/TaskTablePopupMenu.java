@@ -34,7 +34,7 @@ public class TaskTablePopupMenu extends JPopupMenu {
 	private final static Font f = new Font(Messages.getString("TaskTable.FontName"), Font.BOLD, 18); //$NON-NLS-1$ 
 
 	public TaskTablePopupMenu() {	
-		JMenuItem problemStatement, itemExecute, itemChart, itemExtendedChart, itemShowMeta, itemReset, itemGenerateResult;
+		JMenuItem problemStatement, itemExecute, itemChart, itemExtendedChart, itemShowMeta, itemReset, itemGenerateResult, itemShowStatus;
 		
 		problemStatement = new JMenuItem(Messages.getString("TaskTablePopupMenu.ShowDetails")); //$NON-NLS-1$
 		
@@ -96,6 +96,39 @@ public class TaskTablePopupMenu extends JPopupMenu {
 		});
 		
 		itemShowMeta.setFont(f);
+		
+		itemShowStatus	= new JMenuItem("What is missing?");
+		
+		TaskManager.addSelectionListener(event -> {
+			if(TaskManager.getSelectedTask().getStatus().getDetails() == null)
+				itemShowStatus.setEnabled(false);
+			else
+				itemShowStatus.setEnabled(true);
+		});
+		
+		itemShowStatus.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				SearchTask t = TaskManager.getSelectedTask();
+				
+				if(t == null) 
+					return;								
+				
+				Details d = t.getStatus().getDetails();
+				
+				if(d == null)
+					return;
+				
+				JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor((Component) e.getSource()), 
+							d.toString(), 
+							t + " status", JOptionPane.INFORMATION_MESSAGE);
+				
+			}
+			
+		});
+		
+		itemShowStatus.setFont(f);
 		
 		itemExecute		= new JMenuItem(Messages.getString("TaskTablePopupMenu.Execute")); //$NON-NLS-1$
 		itemExecute.addActionListener(new ActionListener() {
@@ -182,6 +215,7 @@ public class TaskTablePopupMenu extends JPopupMenu {
 
 		add(problemStatement);
 		add(itemShowMeta);
+		add(itemShowStatus);
 		add(new JSeparator());
 		add(itemChart);
 		add(itemExtendedChart);
@@ -204,7 +238,7 @@ public class TaskTablePopupMenu extends JPopupMenu {
 		
 		Details statusDetails = t.getStatus().getDetails();
 		
-		if(statusDetails == Details.MISSING_HEAT_CURVE) {
+		if(statusDetails == Details.MISSING_HEATING_CURVE) {
 			JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor((Component) this), 
 					Messages.getString("TaskTablePopupMenu.12"), Messages.getString("TaskTablePopupMenu.13"), JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$ //$NON-NLS-2$
 			return;	

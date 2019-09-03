@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -11,6 +12,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import pulse.tasks.ResultFormat;
 import pulse.ui.charts.PreviewPlot;
 
 public class PlotFrame extends JFrame {
@@ -21,22 +23,22 @@ public class PlotFrame extends JFrame {
 	private final static int FRAME_HEIGHT = 180;
 	
 	private double data[][][];
-	private String[] propertyNames;
+	private List<String> propertyNames;
 	
 	private JComboBox<String> selectXBox, selectYBox;
 		
-	public PlotFrame(String[] propertyNames, double[][][] data) {
+	public PlotFrame(ResultFormat fmt, double[][][] data) {
 		super();
 		
 		this.data = data;
-		this.propertyNames = propertyNames;				
+		this.propertyNames = fmt.abbreviations();				
 		
 		init();							
 	}
 	
-	public void update(String[] propertyNames, double[][][] data) {
+	public void update(ResultFormat fmt, double[][][] data) {
 		this.data = data;
-		this.propertyNames = propertyNames;
+		this.propertyNames = fmt.abbreviations();
 		selectXBox.removeAllItems();
 		
 		for(String s : propertyNames)
@@ -68,7 +70,7 @@ public class PlotFrame extends JFrame {
 		JLabel selectX = new JLabel("Select Horizontal Axis:");
 		topPanel.add(selectX);
 		
-		selectXBox = new JComboBox<String>(propertyNames);
+		selectXBox = new JComboBox<String>( propertyNames.toArray(new String[propertyNames.size()]) );
 		selectXBox.setSelectedIndex(0);
 		topPanel.add(selectXBox);
 		
@@ -79,7 +81,7 @@ public class PlotFrame extends JFrame {
 		JLabel selectY = new JLabel("Select Vertical Axis:");
 		bottomPanel.add(selectY);
 		
-		selectYBox = new JComboBox<String>(propertyNames);
+		selectYBox = new JComboBox<String>( propertyNames.toArray(new String[propertyNames.size()]) );
 		selectYBox.setSelectedIndex(1);
 		bottomPanel.add(selectYBox);	
 		

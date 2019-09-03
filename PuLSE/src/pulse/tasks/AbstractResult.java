@@ -2,6 +2,7 @@ package pulse.tasks;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import pulse.properties.NumericProperty;
@@ -59,10 +60,16 @@ public abstract class AbstractResult {
 	}
 	
 	public static List<NumericProperty> filterProperties(AbstractResult result, ResultFormat format) {
-		return result.properties.stream().filter(property ->
-			format.getNameMap().stream().anyMatch(formatProperty 
-					-> property.getType().equals(formatProperty.getType()) )).
-				collect(Collectors.toList());
+		return format.keywords().stream().map( keyword ->
+			   		{ Optional<NumericProperty> p = result.properties.stream()
+			   		  .filter(property-> property.getType().equals(keyword) )
+			   		  .findFirst();
+			   		  if(p.isPresent())
+			   			  return p.get();
+			   		  else
+			   			  return NumericProperty.theDefault(keyword);
+			   		} ).
+						collect(Collectors.toList());
 	}
 	
 	public static List<NumericProperty> filterProperties(AbstractResult result) {

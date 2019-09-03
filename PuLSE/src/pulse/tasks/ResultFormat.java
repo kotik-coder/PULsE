@@ -99,7 +99,7 @@ public class ResultFormat {
 		format = new ResultFormat(formatString);
 		
 		ResultFormatEvent rfe = new ResultFormatEvent(format);
-		
+
 		for(ResultFormatListener rfl : listeners)
 			rfl.resultFormatChanged( rfe );
 		
@@ -110,7 +110,7 @@ public class ResultFormat {
 		return format;
 	}
 	
-	public List<NumericPropertyKeyword> shortNames() {
+	public List<NumericPropertyKeyword> keywords() {
 		return nameMap.stream().map(property -> property.getType()).collect(Collectors.toList());
 	}
 	
@@ -142,7 +142,7 @@ public class ResultFormat {
 		return minimumAllowed;
 	}
 
-	public List<NumericProperty> getNameMap() {
+	public List<NumericProperty> getNameList() {
 		return nameMap;
 	}
 	

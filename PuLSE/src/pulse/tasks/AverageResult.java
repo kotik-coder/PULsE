@@ -68,7 +68,7 @@ public class AverageResult extends AbstractResult {
 		NumericPropertyKeyword key;
 		
 		for(int j = 0; j < av.length; j++) {
-			key = getFormat().shortNames().get(j);
+			key = getFormat().keywords().get(j);
 			
 			if(!Double.isFinite(std[j])) 
 				p = NumericProperty.derive(key, av[j]); //ignore error as the value is not finite			

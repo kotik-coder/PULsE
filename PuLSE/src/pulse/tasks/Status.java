@@ -8,7 +8,7 @@ public enum Status {
 	EXECUTION_ERROR(Color.red), TERMINATED(Color.DARK_GRAY), QUEUED(Color.GREEN), AMBIGUOUS(Color.GRAY), TIMEOUT(Color.RED); 
 	
 	private final Color clr;
-	private Details details = null;
+	private Details details = Details.MISSING_PROBLEM_STATEMENT;
 	
 	Status(Color clr) {
 		this.clr = clr;
@@ -19,7 +19,7 @@ public enum Status {
 	}
 	
 	public Details getDetails() {
-		return details;
+		return this == INCOMPLETE ? details : null;
 	}
 	
 	public void setDetails(Details details) {
@@ -45,14 +45,22 @@ public enum Status {
 	}
 	
 	public String getMessage() {
-		if(details != null)
-			return parse(super.toString() + " : " + details.toString());
-		else return toString();
+		StringBuilder sb = new StringBuilder();
+		sb.append(toString());
+		if(details != null) 
+			 sb.append(" : ").append(details.toString());
+		return sb.toString();
 	}
 	
 	public enum Details {
-		MISSING_PROBLEM_STATEMENT, MISSING_DIFFERENCE_SCHEME, MISSING_HEAT_CURVE, MISSING_LINEAR_SOLVER, 
-		MISSING_PATH_SOLVER, MISSING_BUFFER, INSUFFICIENT_DATA_IN_PROBLEM_STATEMENT, LIMITED_HEAT_LOSSES; 		
+		MISSING_PROBLEM_STATEMENT, MISSING_DIFFERENCE_SCHEME, MISSING_HEATING_CURVE, MISSING_LINEAR_SOLVER, 
+		MISSING_PATH_SOLVER, MISSING_BUFFER, INSUFFICIENT_DATA_IN_PROBLEM_STATEMENT, LIMITED_HEAT_LOSSES;
+		
+		@Override
+		public String toString() {
+			return parse(super.toString());
+		}
+		
 	}
 	
 }
