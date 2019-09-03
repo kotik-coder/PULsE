@@ -40,6 +40,12 @@ public class ResultTableModel extends DefaultTableModel {
 		listeners.clear();
 	}
 	
+	public void clear() {
+		results.clear();
+		listeners.clear();
+		setRowCount(0);
+	}
+	
     @Override
     public boolean isCellEditable(int row, int column) {
        return false;        //all cells false

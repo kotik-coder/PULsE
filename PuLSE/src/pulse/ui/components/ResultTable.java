@@ -136,7 +136,8 @@ public class ResultTable extends JTable implements Saveable  {
 	}
 	
 	public void clear() {
-		((ResultTableModel)getModel()).setRowCount(0);
+		ResultTableModel model = (ResultTableModel) getModel();
+		model.clear();
 	}
 	
 	private TableRowSorter<ResultTableModel> sorter() {
