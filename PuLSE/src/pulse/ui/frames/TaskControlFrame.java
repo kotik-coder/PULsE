@@ -4,9 +4,6 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerException;
-
 import java.awt.GridLayout;
 import java.awt.Toolkit;
 import javax.imageio.ImageIO;
@@ -21,7 +18,6 @@ import pulse.input.Metadata;
 import pulse.io.readers.MetaFileReader;
 import pulse.io.readers.ReaderManager;
 import pulse.problem.statements.Problem;
-import pulse.properties.NumericProperty;
 import pulse.tasks.Identifier;
 import pulse.tasks.Log;
 import pulse.tasks.LogEntry;
@@ -930,7 +926,6 @@ public class TaskControlFrame extends JFrame {
 				public void actionPerformed(ActionEvent e) {
 					String info = Messages.getString("TaskControlFrame.SoftwareDescription"); //$NON-NLS-1$
 					JLabel label = new JLabel(info);
-					//JOptionPane.showMessageDialog(instance, label, Messages.getString("TaskControlFrame.AboutTitle"), JOptionPane.PLAIN_MESSAGE); //$NON-NLS-1$
 					JDialog aboutDialog = new AboutDialog();
 					aboutDialog.setLocationRelativeTo(instance);
 					aboutDialog.setAlwaysOnTop(true);

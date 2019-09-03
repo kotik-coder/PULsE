@@ -15,7 +15,6 @@ import pulse.properties.Property;
 import pulse.ui.Messages;
 import pulse.util.PropertyHolder;
 import pulse.util.Saveable;
-import pulse.util.Saveable.Extension;
 
 public class HeatingCurve extends PropertyHolder implements Saveable {
 	

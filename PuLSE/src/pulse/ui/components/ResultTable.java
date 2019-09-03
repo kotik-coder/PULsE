@@ -15,6 +15,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.RowSorter;
 import javax.swing.RowSorter.SortKey;
 import javax.swing.SortOrder;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
@@ -54,7 +55,8 @@ public class ResultTable extends JTable implements Saveable  {
 	
 	public ResultTable(ResultFormat fmt) {
 		super();
-		renderer = new NumericPropertyRenderer();
+		renderer = new NumericPropertyRenderer();		
+		renderer.setVerticalAlignment( SwingConstants.TOP );
 		this.fmt = fmt;
 		
 		this.setModel(new ResultTableModel(fmt, 0));

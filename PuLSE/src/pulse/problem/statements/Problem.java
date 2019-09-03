@@ -161,13 +161,13 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 		final double eps = 1e-5;
 		
 		if(Math.abs(Bi1 - Bi2) > eps)
-			throw new IllegalStateException("Bi1 = " + Bi1 + " is not equal to " + " Bi2 = " + Bi2); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+			System.err.println("Bi1 = " + Bi1 + " is not equal to " + " Bi2 = " + Bi2);
 		
-		return NumericProperty.derive(HEAT_LOSS, Bi1); //$NON-NLS-1$
+		return NumericProperty.derive(HEAT_LOSS, Bi1);
 	}
 	
 	public NumericProperty getFrontHeatLoss() {
-		return NumericProperty.derive(HEAT_LOSS_FRONT, Bi1); //$NON-NLS-1$
+		return NumericProperty.derive(HEAT_LOSS_FRONT, Bi1);
 	}
 
 	public void setFrontHeatLoss(NumericProperty bi1) {

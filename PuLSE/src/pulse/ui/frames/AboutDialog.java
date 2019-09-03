@@ -1,7 +1,6 @@
 package pulse.ui.frames;
 
 import java.awt.BorderLayout;
-import java.awt.Font;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -18,10 +17,14 @@ import pulse.ui.Messages;
 
 public class AboutDialog extends JDialog {
 
+	private final static int WIDTH = 570;
+	private final static int HEIGHT = 370;
+	
 	public AboutDialog() {
 		
 		setTitle(Messages.getString("TaskControlFrame.AboutDialog"));
-		setSize(600, 450);
+		setAlwaysOnTop(true);
+		setSize(WIDTH, HEIGHT);
 		
 		BufferedReader reader = new BufferedReader( new InputStreamReader(
 				getClass().getResourceAsStream("/About.html"))

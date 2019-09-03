@@ -1,13 +1,11 @@
 package pulse.ui.frames;
 
 import javax.swing.JDialog;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 
-import javax.swing.SwingConstants;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
@@ -21,6 +19,7 @@ import java.awt.Font;
 import javax.swing.JTextPane;
 import javax.swing.JTextField;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JButton;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
@@ -37,19 +36,18 @@ public class ResultChangeDialog extends JDialog {
 	 */
 	private static final long serialVersionUID = 1L;
 	private JTextField textField;
+	
+	private final static int WIDTH = 500;
+	private final static int HEIGHT = 500;
+	
 	public ResultChangeDialog() {
 		
 		JDialog reference = this;
 		
 		setTitle("Change of Output Format");
 		
-		setSize(400, 400);
-		
-		JLabel lblNewLabel = new JLabel("Please select output format");
-		lblNewLabel.setFont(new Font("Noto Sans", Font.BOLD, 18));
-		lblNewLabel.setHorizontalAlignment(SwingConstants.CENTER);
-		getContentPane().add(lblNewLabel, BorderLayout.NORTH);
-		
+		setSize(WIDTH, HEIGHT);
+				
 		BufferedReader reader = new BufferedReader( new InputStreamReader(
 				getClass().getResourceAsStream("/ResultFormatDescription.html"))
 				);
@@ -83,7 +81,7 @@ public class ResultChangeDialog extends JDialog {
 			e.printStackTrace();
 		}
 		
-		getContentPane().add(textPane, BorderLayout.CENTER);
+		getContentPane().add(new JScrollPane(textPane), BorderLayout.CENTER);
 		
 		JPanel panel = new JPanel();
 		panel.setPreferredSize(new Dimension(this.getWidth(), 35));
@@ -179,7 +177,7 @@ public class ResultChangeDialog extends JDialog {
 				
 				if(formatError) {
 					JOptionPane.showMessageDialog(reference, "The following characters are required: " + 
-							new String(ResultFormat.getMinimumAllowedFormat()), "Duplicate Symbol", JOptionPane.WARNING_MESSAGE);
+							new String(ResultFormat.getMinimumAllowedFormat()), "Wrong Format", JOptionPane.WARNING_MESSAGE);
 					textField.setText(ResultFormat.getFormat().toString());
 					return;
 				}
