@@ -12,6 +12,7 @@ import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 import pulse.search.math.IndexedVector;
 import pulse.search.math.Vector;
+import pulse.ui.Messages;
 
 public class NonlinearProblem2D extends NonlinearProblem implements TwoDimensional {
 	
