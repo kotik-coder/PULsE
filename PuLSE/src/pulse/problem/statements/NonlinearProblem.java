@@ -15,6 +15,7 @@ import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 import pulse.search.math.IndexedVector;
 import pulse.tasks.TaskManager;
+import pulse.ui.Messages;
 
 import static pulse.properties.NumericPropertyKeyword.*;
 

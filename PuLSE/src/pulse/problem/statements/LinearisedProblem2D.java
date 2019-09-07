@@ -9,6 +9,7 @@ import pulse.problem.schemes.ADIScheme;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.properties.NumericProperty;
 import pulse.properties.Property;
+import pulse.ui.Messages;
 
 /**
  * @author Artem V. Lunev

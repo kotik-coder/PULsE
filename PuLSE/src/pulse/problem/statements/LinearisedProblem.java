@@ -6,6 +6,7 @@ import pulse.problem.schemes.ExplicitScheme;
 import pulse.problem.schemes.ImplicitScheme;
 import pulse.problem.schemes.MixedScheme;
 import pulse.properties.NumericProperty;
+import pulse.ui.Messages;
 
 public class LinearisedProblem extends Problem {
 	
