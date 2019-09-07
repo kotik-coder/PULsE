@@ -153,7 +153,7 @@ public static boolean dataNeedsTruncation() {
 public static void truncateData() {
 	tasks.stream().forEach(t -> {
 		t.getExperimentalCurve().truncate();
-		t.updateTimeLimit();
+		//t.updateTimeLimit(); -- check if its' ok
 	});
 	
 }

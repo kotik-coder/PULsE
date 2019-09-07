@@ -357,7 +357,7 @@ public class ProblemStatementFrame extends JFrame {
 		    
 		if(task.getScheme() == null) {
 			task.setScheme(DifferenceScheme.copy(newScheme));
-			task.getScheme().setTimeLimit( task.getTimeLimit() );
+			//task.getScheme().setTimeLimit( task.getTimeLimit() );
 		} 
 		
 		else {
@@ -370,8 +370,8 @@ public class ProblemStatementFrame extends JFrame {
 				oldScheme.getClass().getSimpleName()) 
 		  )
 			task.getScheme().copyEverythingFrom(oldScheme);						  //copies information from old problem to new problem type
-		else
-			task.getScheme().setTimeLimit( task.getTimeLimit() );
+		//else
+			//task.getScheme().setTimeLimit( task.getTimeLimit() );
 		
 		oldScheme = null;													  //deletes reference to old problem
 		

@@ -28,7 +28,7 @@ public class ExplicitScheme extends DifferenceScheme {
 			NumericProperty.derive(NumericPropertyKeyword.TAU_FACTOR, 0.5);
 	private final static NumericProperty GRID_DENSITY = 
 			NumericProperty.derive(NumericPropertyKeyword.GRID_DENSITY, 80);
-	
+
 	/**
 	 * 
 	 */

@@ -35,8 +35,6 @@ public class ADIScheme extends DifferenceScheme {
 	private final static NumericProperty GRID_DENSITY = 
 			NumericProperty.derive(NumericPropertyKeyword.GRID_DENSITY, 30);
 	
-	private final static long INCREASED_TIMEOUT = 60000;
-	
 	/**
 	 * 
 	 */
@@ -601,11 +599,6 @@ public class ADIScheme extends DifferenceScheme {
 	@Override
 	protected double tau() {
 		return tauFactor*(pow(hx, 2) + pow( hy, 2) );
-	}
-	
-	@Override
-	public long getTimeoutAfterMillis() {
-		return INCREASED_TIMEOUT;
 	}
 	
 	@Override

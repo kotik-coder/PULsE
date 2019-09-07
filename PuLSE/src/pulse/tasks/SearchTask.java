@@ -34,7 +34,6 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 	private DifferenceScheme scheme;
 	private ExperimentalData curve;
 
-	private double timeLimit;
 	private double testTemperature;
 	private double cp, rho, emissivity, lambda;
 	
@@ -68,12 +67,7 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 		return true;
 	
 	}
-	
-	public void updateTimeLimit() {
-		final double factor = 1.05;
-		setTimeLimit(NumericProperty.derive(TIME_LIMIT, factor*curve.timeLimit()));
-	}
-	
+
 	public void reset() {				
 		rSquared		= (double) NumericProperty.def
 				(NumericPropertyKeyword.RSQUARED).getValue();
@@ -87,7 +81,6 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 		this.problem	= null;
 		this.scheme		= null;				
 		
-		updateTimeLimit();
 		testTemperature = (double)curve.getMetadata().getTestTemperature().getValue();
 		
 		updateThermalProperties();
@@ -103,13 +96,22 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 		this.curve = curve;
 		curve.setParent(this);
 		
-		updateTimeLimit();
 		testTemperature = (double)curve.getMetadata().getTestTemperature().getValue();			
-		updateThermalProperties();						
+		updateThermalProperties();	
+		
+		final double factor = 1.05;
+		
+		curve.addDataListener( dataEvent -> {
+					if(scheme != null) {
+						scheme.setTimeLimit
+						(NumericProperty.derive(TIME_LIMIT, factor*curve.timeLimit()));
+					}
+				}
+			);
+		
 	}
 	
 	protected SearchTask() {
-		timeLimit 			= (double)NumericProperty.def(TIME_LIMIT).getValue();
 		testTemperature		= (double)NumericProperty.def(TEST_TEMPERATURE).getValue();
 
 		updateThermalProperties();
@@ -214,15 +216,15 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 	  TaskStateEvent dataCollected = new TaskStateEvent(this, null);
 	  List<CompletableFuture<Void>> bufferFutures = new ArrayList<CompletableFuture<Void>>(bufferSize);
 	  ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
-	  
-	  long start = System.currentTimeMillis();
-	  final long TIMEOUT_AFTER = scheme.getTimeoutAfterMillis();
-	  
-	  do {				 
+  
+	  outer: do {				 
 		  
 		bufferFutures.clear();
 		  
-		for (int i = 0; (i < bufferSize) && (status == Status.IN_PROGRESS); i++) {			
+		for (int i = 0; i < bufferSize; i++) {	
+			
+				if(status != Status.IN_PROGRESS)
+					break outer;
 					
 				sumOfSquares = pathSolver.iteration(this);
 				
@@ -238,11 +240,6 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 		}
 		
 		bufferFutures.forEach( future -> future.join());
-					 
-		if(System.currentTimeMillis() - start > TIMEOUT_AFTER) {
-			setStatus(Status.TIMEOUT);
-			break;
-		}
 	  
 	  }  while( buffer.isErrorHigh(errorTolerance) );
 	  
@@ -288,10 +285,6 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 	}
 	public ExperimentalData getExperimentalCurve() {
 		return curve;
-	}
-	
-	public NumericProperty getTimeLimit() {
-		return NumericProperty.derive(TIME_LIMIT, timeLimit);
 	}
 	
 	public NumericProperty getTestTemperature() {
@@ -365,8 +358,12 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 	
 	public void setScheme(DifferenceScheme scheme) {
 		this.scheme = scheme;
-		if(scheme != null)
+		if(scheme != null) {
 			scheme.setParent(this);
+			final double factor = 1.05;
+			scheme.setTimeLimit
+			(NumericProperty.derive(TIME_LIMIT, factor*curve.timeLimit()));
+		}
 	}
 	public void setExperimentalCurve(ExperimentalData curve) {
 		this.curve = curve;
@@ -376,12 +373,6 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 		
 		if(problem != null) 
 			problem.retrieveData(curve);		
-	}
-	
-	public void setTimeLimit(NumericProperty timeLimit) {
-		this.timeLimit = (double)timeLimit.getValue();
-		if(scheme != null)
-			scheme.setTimeLimit(timeLimit);
 	}
 	
 	public void setTestTemperature(NumericProperty testTemperature) {

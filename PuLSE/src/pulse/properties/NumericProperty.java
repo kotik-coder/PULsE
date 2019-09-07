@@ -295,11 +295,15 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
 		if(result != 0) 
 			return result;
 		
+		return compareValues(arg0);					
+		
+	}
+	
+	public int compareValues(NumericProperty arg0) {
 		Double d1 = ((Number)value).doubleValue();
 		Double d2 = ((Number)arg0.getValue()).doubleValue(); 
 		
-		return d1.compareTo(d2);					
-		
+		return d1.compareTo(d2);
 	}
 	
 	public void toXML(Document doc, Element rootElement) {

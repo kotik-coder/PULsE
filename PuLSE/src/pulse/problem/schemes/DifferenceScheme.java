@@ -34,7 +34,6 @@ public abstract class DifferenceScheme extends PropertyHolder {
 	protected int	  timeInterval;	
 	
 	private static boolean hideDetailedAdjustment = true;
-	private final static long STANDARDT_TIMEOUT = 20000; //milliseconds
 	
 	protected DifferenceScheme(NumericProperty N) {
 		this.N  = (int)N.getValue();
@@ -43,10 +42,6 @@ public abstract class DifferenceScheme extends PropertyHolder {
 	
 	public DifferenceScheme(DifferenceScheme df) {
 		copyEverythingFrom(df);
-	}
-	
-	public long getTimeoutAfterMillis() {
-		return STANDARDT_TIMEOUT;
 	}
 	
 	public void copyEverythingFrom(DifferenceScheme df) {

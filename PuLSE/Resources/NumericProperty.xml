@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <NumericProperties>
+    <NumericProperty keyword="ITERATION_LIMIT"
+    	abbreviation="Iteration limit" auto-adjustable="true"
+    	descriptor="Iteration limit" dimensionfactor="1" maximum="1000"
+    	minimum="1" primitive-type="int" value="64">
+    </NumericProperty>
     <NumericProperty abbreviation="&lt;i&gt;a&lt;/i&gt; (mm&lt;sup&gt;2&lt;/sup&gt;s&lt;sup&gt;-1&lt;/sup&gt;) " auto-adjustable="true" descriptor="Thermal diffusivity, &lt;i&gt;a&lt;/i&gt; (mm&lt;sup&gt;2&lt;/sup&gt;s&lt;sup&gt;-1&lt;/sup&gt;) " dimensionfactor="1000000.0" keyword="DIFFUSIVITY" maximum="0.001" minimum="1.0E-10" value="1.0E-6" primitive-type="double"/>
     <NumericProperty abbreviation="&lt;i&gt;l&lt;/i&gt; (mm)"
     	auto-adjustable="false"
@@ -16,7 +21,7 @@
     	auto-adjustable="true"
     	descriptor="Rear-side heating, &amp;Delta;&lt;i&gt;T&lt;/i&gt;&lt;sub&gt;max&lt;/sub&gt; (a.u. or degrees)"
     	dimensionfactor="1.0" keyword="MAXTEMP" maximum="100.0"
-    	minimum="0.01" value="1.0" primitive-type="double" />
+    	minimum="0.01" value="1.0" primitive-type="double" ></NumericProperty>
     <NumericProperty abbreviation="Solver error"
     	auto-adjustable="false" descriptor="Iteration solver error tolerance"
     	dimensionfactor="1.0" keyword="NONLINEAR_PRECISION" maximum="0.01"

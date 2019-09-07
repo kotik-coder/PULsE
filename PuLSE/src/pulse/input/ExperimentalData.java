@@ -1,11 +1,17 @@
 package pulse.input;
 
+import static pulse.properties.NumericPropertyKeyword.TIME_LIMIT;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
 import pulse.HeatingCurve;
+import pulse.input.listeners.DataEvent;
+import pulse.input.listeners.DataEventType;
+import pulse.input.listeners.DataListener;
+import pulse.properties.NumericProperty;
 import pulse.ui.Messages;
 import pulse.util.geom.Point2D;
 
@@ -24,11 +30,14 @@ public class ExperimentalData extends HeatingCurve {
 	
 	private Comparator<Point2D> pointComparator = 
 			(p1, p2) -> Double.valueOf(p1.getY()).compareTo(Double.valueOf(p2.getY()));
-	
+			
+	private List<DataListener> dataListeners;
+
 	public ExperimentalData() {
 		super();
 		getBaseline().setParent(null);
 		this.clear();
+		dataListeners = new ArrayList<DataListener>();
 	}
 	
 	public String toString() {
@@ -38,6 +47,14 @@ public class ExperimentalData extends HeatingCurve {
 			sb.append("for " + metadata.getSampleName() + " "); //$NON-NLS-1$
 		sb.append("(" + metadata.getTestTemperature().formattedValue(false) + ")");
 		return sb.toString();
+	}
+	
+	public void addDataListener(DataListener listener) {
+		dataListeners.add(listener);
+	}
+	
+	public void clearDataListener() {
+		dataListeners.clear();
 	}
 	
 	public void add(double time, double temperature) {
@@ -206,6 +223,10 @@ public class ExperimentalData extends HeatingCurve {
 			remove(i);		
 		
 		updateCount();		
+		
+		DataEvent dataEvent = new DataEvent(DataEventType.TRUNCATED, this);
+		dataListeners.stream().forEach(l -> l.onExperimentalDataChanged(dataEvent));
+		
 	}
 	
 	/*

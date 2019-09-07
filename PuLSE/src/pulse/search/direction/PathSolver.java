@@ -13,6 +13,7 @@ import pulse.search.math.IndexedVector;
 import pulse.search.math.Vector;
 import pulse.tasks.Path;
 import pulse.tasks.SearchTask;
+import pulse.tasks.Status;
 import pulse.util.PropertyHolder;
 import pulse.util.Reflexive;
 
@@ -26,6 +27,8 @@ public abstract class PathSolver extends PropertyHolder implements Reflexive {
 	private static LinearSolver linearSolver = null;
 	private static List<Flag> globalSearchFlags = Flag.defaultList();
 	
+	private static int maxIterations = (int)NumericProperty.def(ITERATION_LIMIT).getValue();
+	
 	protected PathSolver() {
 		super();				
 	}
@@ -36,11 +39,15 @@ public abstract class PathSolver extends PropertyHolder implements Reflexive {
 	}
 	
 	public double iteration(SearchTask task) {
+		Path p			= task.getPath(); //info with previous grads, hesse, etc.
+		
+		if( p.getIteration().compareValues(PathSolver.getMaxIterations()) > 0 ) 
+			task.setStatus(Status.TIMEOUT);
+		
 		//get current parameters
 		IndexedVector parameters = task.objectiveFunction();
 		
 		//find min direction
-		Path p			= task.getPath(); //info with previous grads, hesse, etc.
 		Vector dir		= direction(p);
 		p.setDirection( dir );
 		
@@ -155,6 +162,7 @@ public abstract class PathSolver extends PropertyHolder implements Reflexive {
 		List<Property> list = super.listedParameters();
 		list.add(NumericProperty.def(GRADIENT_RESOLUTION));
 		list.add(NumericProperty.def(ERROR_TOLERANCE));
+		list.add(NumericProperty.def(ITERATION_LIMIT));
 		for(Flag property : globalSearchFlags) 
 			list.add( property );
 		return list;
@@ -165,6 +173,7 @@ public abstract class PathSolver extends PropertyHolder implements Reflexive {
 		switch(type) {
 		case GRADIENT_RESOLUTION : setGradientResolution(property); break;
 		case ERROR_TOLERANCE : setErrorTolerance(property); break;
+		case ITERATION_LIMIT : setMaxIterations(property); break;
 		}
 	}
 	
@@ -177,6 +186,14 @@ public abstract class PathSolver extends PropertyHolder implements Reflexive {
 		return PathSolver.getSearchFlags().stream()
 				.filter(flag -> (boolean)flag.getValue())
 				.map(flag -> flag.getType()).collect(Collectors.toList());
+	}
+
+	public static NumericProperty getMaxIterations() {
+		return NumericProperty.derive(NumericPropertyKeyword.ITERATION_LIMIT, maxIterations);
+	}
+
+	public static void setMaxIterations(NumericProperty maxIterations) {
+		PathSolver.maxIterations = (int)maxIterations.getValue();
 	}
 		
 }
