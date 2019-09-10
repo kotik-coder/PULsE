@@ -8,7 +8,10 @@ import java.awt.Dimension;
 
 import javax.swing.JTextField;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.SwingConstants;
+
+import pulse.input.ExperimentalData;
 import pulse.tasks.TaskManager;
 import pulse.ui.charts.PreviewPlot;
 import pulse.ui.Messages;
@@ -62,11 +65,36 @@ public class RangeSelectionFrame extends JFrame {
 		
 		btnNewButton_1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				ExperimentalData dat = TaskManager.getSelectedTask().getExperimentalCurve();
+				
 				int factor = chartPanel.getTimeAxisSpecs().getFactor();
-				TaskManager.getSelectedTask().getExperimentalCurve().setFittingRange(
-						Double.parseDouble(minRangeTextField.getText())/factor,
-						Double.parseDouble(maxRangeTextField.getText())/factor 
-						);
+				
+				double a = Double.parseDouble(minRangeTextField.getText())/factor;
+				double b = Double.parseDouble(maxRangeTextField.getText())/factor;
+				
+				StringBuilder sb = new StringBuilder();
+				
+				sb.append("<html><p>");
+				sb.append(Messages.getString("RangeSelectionFrame.ConfirmationMessage1"));
+				sb.append("</p><br>");
+				sb.append(Messages.getString("RangeSelectionFrame.ConfirmationMessage2"));
+				sb.append(String.format("%3.4f", dat.timeAt(dat.getFittingStartIndex())));
+				sb.append(" to ");
+				sb.append(String.format("%3.4f", dat.timeAt(dat.getFittingEndIndex())));
+				sb.append("<br><br>");
+				sb.append(Messages.getString("RangeSelectionFrame.ConfirmationMessage3"));
+				sb.append(String.format("%3.4f", a) + " to " + String.format("%3.4f", b));
+				sb.append("</html>");
+				
+				int dialogResult = JOptionPane.showConfirmDialog 
+						(reference, 
+								sb.toString(), 
+								"Confirm chocie", JOptionPane.YES_NO_OPTION);
+
+				if(dialogResult != JOptionPane.YES_OPTION)
+					return;
+				
+				dat.setFittingRange(a, b);
 				reference.setVisible(false);
 			}
 		});
