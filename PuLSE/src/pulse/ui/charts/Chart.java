@@ -415,7 +415,7 @@ public class Chart extends JFXPanel {
     		super();
     		JMenuItem zoomItem = new JMenuItem("Zoom to Selection");
     		zoomItem.setFont(MENU_FONT);
-    		JMenuItem fittingLimits = new JMenuItem("Limit Fitting Range");
+    		JMenuItem fittingLimits = new JMenuItem("Change Fitting Range");
     		fittingLimits.setFont(MENU_FONT);
     		this.add(zoomItem);
     		this.add(fittingLimits);

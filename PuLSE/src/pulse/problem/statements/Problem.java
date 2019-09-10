@@ -207,7 +207,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 	}
 	
 	public void estimateSignalRange(ExperimentalData c) {
-		signalHeight = c.crudeMaximum() - curve.getBaseline().valueAt(0);
+		signalHeight = c.maxTemperature() - curve.getBaseline().valueAt(0);
 	}
 	
 	public void useParkersSolution(ExperimentalData c) {

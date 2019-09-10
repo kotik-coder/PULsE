@@ -458,7 +458,7 @@ public class TaskControlFrame extends JFrame {
 				
 				met = data.getMetadata();
 				reader.populateMetadata(f, met);
-				data.updateFittingRange();
+				
 				Problem p = task.getProblem();
 				if(p != null)
 					p.retrieveData(data);

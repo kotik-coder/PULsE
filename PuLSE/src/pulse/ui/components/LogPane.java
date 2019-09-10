@@ -30,7 +30,9 @@ public class LogPane extends JEditorPane implements Saveable {
 	 * 
 	 */
 	private static final long serialVersionUID = -8464602356332804481L;
-	private ExecutorService updateExecutor = Executors.newSingleThreadExecutor();	
+	private ExecutorService updateExecutor = Executors.newSingleThreadExecutor();
+	
+	private final static boolean DEBUG = true;
 
 	public LogPane() {
 		super();	
@@ -57,8 +59,11 @@ public class LogPane extends JEditorPane implements Saveable {
 		      }
 		};
 
-		System.setOut(new java.io.PrintStream(out, true));
-		System.setErr(new java.io.PrintStream(out, true));		
+		if(!DEBUG) {
+			System.setOut(new java.io.PrintStream(out, true));
+			System.setErr(new java.io.PrintStream(out, true));		
+		}
+		
 	}		
 	
 	private void post(LogEntry logEntry) {

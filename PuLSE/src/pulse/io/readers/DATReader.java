@@ -54,9 +54,7 @@ public class DATReader implements CurveReader {
 			curve.add(time, temp);
 			tokenizer = null;
 		}
-		
-		curve.updateCount();
-		
+				
 		reader.close();
 		
 		return new ArrayList<ExperimentalData>(Arrays.asList(curve));		

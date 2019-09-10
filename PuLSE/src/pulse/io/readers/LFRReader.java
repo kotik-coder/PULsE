@@ -116,10 +116,6 @@ public class LFRReader implements CurveReader {
 			
 		}
 		
-		curve.updateCount();
-		//curve.estimateBaseline();
-		//curve.baselineCorrection();
-		
 		reader.close();
 	
 		return curve;	
