@@ -1,115 +1,65 @@
-/**
- * 
- */
 package pulse.problem.schemes;
 
-import static java.lang.Math.pow;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
-import pulse.input.Pulse;
-import pulse.input.Pulse.PulseShape;
 import pulse.problem.statements.Problem;
+import pulse.problem.statements.TwoDimensional;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 import pulse.ui.Messages;
 import pulse.util.PropertyHolder;
 
-/**
- * @author Artem V. Lunev
- *
- */
 public abstract class DifferenceScheme extends PropertyHolder {
 
-	protected double  tau, tauFactor;
-	protected int 	  N;
-	protected double  hx;
-	protected double  timeLimit;
-	private   boolean normalized;
-	protected int	  timeInterval;	
+	protected DiscretePulse	discretePulse;	
+	protected Grid 			grid;
 	
-	private static boolean hideDetailedAdjustment = true;
+	protected double		timeLimit;
+	protected int	 		timeInterval;
 	
-	protected DifferenceScheme(NumericProperty N) {
-		this.N  = (int)N.getValue();
-		this.hx = 1./this.N;						
+	private boolean normalized 						= true;	
+	private static boolean hideDetailedAdjustment	= true;
+	
+	public DifferenceScheme(NumericProperty N, NumericProperty timeFactor) {
+		grid = new Grid(N, timeFactor);	
+		grid.setParent(this);
+		setTimeLimit(NumericProperty.def(NumericPropertyKeyword.TIME_LIMIT));
 	}
 	
-	public DifferenceScheme(DifferenceScheme df) {
-		copyEverythingFrom(df);
+	public DifferenceScheme(NumericProperty N, NumericProperty timeFactor, NumericProperty timeLimit) {
+		this(N, timeFactor);
+		setTimeLimit(timeLimit);
 	}
 	
-	public void copyEverythingFrom(DifferenceScheme df) {
-		this.N			= df.N;
-		this.tau		= df.tau;
-		this.tauFactor	= df.tauFactor;
-		
-		this.timeInterval = df.timeInterval;
-		this.timeLimit	  = df.timeLimit;
-		this.normalized	  = df.normalized;
-		
-		this.hx			  = df.hx;
+	public abstract DifferenceScheme copy();
+	
+	public void copyFrom(DifferenceScheme df) {
+		this.grid = df.getGrid().copy();
+		discretePulse = null;
+		timeLimit = df.timeLimit;
+		normalized = df.normalized;
 	}
 	
-	public static DifferenceScheme copy(DifferenceScheme df) {
-		
-		Class<?> schemeClass = df.getClass();
-		Constructor<?> c = null;
-		
-		try {
-			c = schemeClass.getConstructor(df.getClass());
-		} catch (NoSuchMethodException | SecurityException e) {
-			System.err.println(Messages.getString("DifferenceScheme.0") + df.getClass()); //$NON-NLS-1$
-			e.printStackTrace();
+	public void solve(Problem problem) {
+		if(problem instanceof TwoDimensional) {
+			if(grid instanceof Grid2D)
+				discretePulse = new DiscretePulse2D(
+						(Problem&TwoDimensional)problem, problem.getPulse(), (Grid2D)grid);
 		}
+		else
+			discretePulse = new DiscretePulse(
+					problem, problem.getPulse(), grid);	
 		
-		try {
-			return (DifferenceScheme) c.newInstance(df);
-		} catch (InstantiationException e) {
-			System.err.println(Messages.getString("DifferenceScheme.1") + df.getClass()); //$NON-NLS-1$
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			System.err.println(Messages.getString("DifferenceScheme.2") + df.getClass()); //$NON-NLS-1$
-			e.printStackTrace();
-		} catch (IllegalArgumentException e) {
-			System.err.println(Messages.getString("DifferenceScheme.3") + c); //$NON-NLS-1$
-			e.printStackTrace();
-		} catch (InvocationTargetException e) {
-			System.err.println(Messages.getString("DifferenceScheme.4") + df.getClass()); //$NON-NLS-1$
-			e.printStackTrace();
-		}
+		discretePulse.optimise(grid);
 		
-		return null;
+		timeInterval = (int) ( timeLimit / 
+				 ( grid.tau*problem.timeFactor() * 
+				   (int) problem.getHeatingCurve().getNumPoints().getValue() ) 
+				 + 1 );
 		
-	}
-	
-	public abstract void solve(Problem problem) throws IllegalArgumentException;
-	
-	public double getTimeStep() {
-		return tau;
-	}
-	
-	public NumericProperty getTimeStepFactor() {
-		return NumericProperty.derive(NumericPropertyKeyword.TAU_FACTOR, 
-				tauFactor);
-	}
-	
-	public void setTimeStepFactor(NumericProperty property) {
-		this.tauFactor = (double)property.getValue();
-	}
-	
-	public NumericProperty getGridDensity() {
-		return NumericProperty.derive(NumericPropertyKeyword.GRID_DENSITY, this.N);
-	}
-	
-	public void setGridDensity(NumericProperty density) {
-		this.N = (int)density.getValue();
-		hx = 1./N;
+		if(timeInterval < 1)
+			throw new IllegalStateException(Messages.getString("ExplicitScheme.2") + timeInterval);
 	}
 	
 	public final boolean isNormalized() {
@@ -120,19 +70,13 @@ public abstract class DifferenceScheme extends PropertyHolder {
 		this.normalized = normalized;
 	}
 
-	public double getXStep() {
-		return hx;
-	}
-
-	public void setXStep(double hx) {
-		this.hx = hx;
-	}
-
 	public NumericProperty getTimeLimit() {
 		return NumericProperty.derive(NumericPropertyKeyword.TIME_LIMIT, timeLimit);
 	}
 
 	public void setTimeLimit(NumericProperty timeLimit) {
+		if(timeLimit.getType() != NumericPropertyKeyword.TIME_LIMIT)
+			throw new IllegalArgumentException("Wrong type passed to method: " + timeLimit.getType());
 		this.timeLimit = (double)timeLimit.getValue();
 	}
 	
@@ -152,34 +96,6 @@ public abstract class DifferenceScheme extends PropertyHolder {
 		return this.getClass().getSimpleName();
 	}
 	
-	public void adjustScheme(Problem problem) {
-		
-		/* first, adjust N and hx  */
-		
-		Pulse pulse = problem.getPulse();
-		double pWidth = pulse.pSpotDiameter(problem, this);
-				
-		for(final double factor = 1.05; factor*hx > pWidth ; hx = 1./N, pWidth = pulse.pSpotDiameter(problem, this)) {
-			N += 5;			
-		}
-		
-		/* second, adjust tau */
-		
-		double pTime = pulse.pWidth(problem, this);
-		
-		for(final double factor = 1.05; 
-				factor*tau > pTime ; 
-				pTime = pulse.pWidth(problem, this)) {
-			tauFactor	/= 1.5;						
-			tau			 = tau();
-		}
-		
-	}
-	
-	protected double tau() {
-		return tauFactor*pow(hx,2);
-	}
-	
 	@Override
 	public boolean areDetailsHidden() {
 		return DifferenceScheme.hideDetailedAdjustment;
@@ -193,9 +109,16 @@ public abstract class DifferenceScheme extends PropertyHolder {
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
 		switch(type) {
 		case TIME_LIMIT : setTimeLimit(property); break;
-		case TAU_FACTOR : setTimeStepFactor(property); break;
-		case GRID_DENSITY : setGridDensity(property); break;
+		default : throw new IllegalArgumentException("Property not recognised: " + property);
 		}
+	}
+	
+	public Grid getGrid() {
+		return grid;
+	}
+	
+	public DiscretePulse getDiscretePulse() {
+		return discretePulse;
 	}
 	
 }

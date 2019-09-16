@@ -244,10 +244,8 @@ public class TaskTablePopupMenu extends JPopupMenu {
 			return;	
 		}
 		
-		if(t.getScheme() != null) {
-			t.adjustScheme();
-			t.solveProblem();
-		}
+		if(t.getScheme() != null) 
+			t.getScheme().solve(t.getProblem());		
 		
 		TaskControlFrame.plot(t, extended);
 	}

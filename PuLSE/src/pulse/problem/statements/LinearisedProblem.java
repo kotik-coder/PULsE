@@ -10,8 +10,6 @@ import pulse.ui.Messages;
 
 public class LinearisedProblem extends Problem {
 	
-	protected boolean dimensionless = false;
-
 	public LinearisedProblem() {
 		super();
 	}
@@ -20,18 +18,11 @@ public class LinearisedProblem extends Problem {
 		super(lp);
 	}
 
-	/**
-	 * @param dimensionless
-	 */
 	public LinearisedProblem(NumericProperty curvePoints) {
 		super();
 		this.curve = new HeatingCurve(curvePoints);
 	}
-	
-	public double timeFactor() {
-		return dimensionless ? 1.0 : super.timeFactor();
-	}
-	
+		
 	@Override
 	public DifferenceScheme[] availableSolutions() {
 		return new DifferenceScheme[]{new ExplicitScheme(), new ImplicitScheme(), new MixedScheme()};

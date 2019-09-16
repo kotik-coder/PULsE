@@ -558,6 +558,8 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
 		switch(type) {
 			case NUMPOINTS : setNumPoints(property); break;
+		default: 
+			throw new IllegalArgumentException("Illegal type passed to method: " + property);
 		}
 	}
 	

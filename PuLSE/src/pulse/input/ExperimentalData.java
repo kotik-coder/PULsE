@@ -19,7 +19,6 @@ import pulse.util.geom.Point2D;
  * adjustable fitting range and linked {@code Metadata}. It is used to store
  * experimental data points loaded using one of the available {@code CurveReader}s.
  * Any manipulation (e.g. truncation) of the data triggers an event associated with 
- * the added {@code DataListener}s.</p>
  *
  */
 
@@ -47,8 +46,9 @@ public class ExperimentalData extends HeatingCurve {
 	
 	public ExperimentalData() {
 		super();
-		getBaseline().setParent(null);
 		this.clear();
+		count = 0;
+		getBaseline().setParent(null);
 		dataListeners = new ArrayList<DataListener>();
 	}
 	
@@ -148,8 +148,8 @@ public class ExperimentalData extends HeatingCurve {
 		
 		List<Point2D> crudeAverage = new ArrayList<Point2D>(count/reductionFactor);	
 		
-		int start = getFittingStartIndex();
-		int end = getFittingEndIndex();
+		int start	= getFittingStartIndex();
+		int end 	= getFittingEndIndex();		
 
 		int step = (end - start)/(count/reductionFactor);
 		double tmp = 0;
@@ -159,10 +159,11 @@ public class ExperimentalData extends HeatingCurve {
 		for(int i = 0; i < (count/reductionFactor)-1; i++) {										
 			i1 = start+step*i;
 			i2 = i1 + step;			
-			tmp = 0;		
+			tmp = 0;					
 			
-			for(int j = i1; j < i2; j++) 
+			for(int j = i1; j < i2; j++) {
 				tmp += temperature.get(j);			
+			}
 						
 			tmp *= 1.0/step;
 			
