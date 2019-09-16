@@ -42,7 +42,7 @@ public class LoaderButton extends ToolBarButton {
 				JFileChooser fileChooser = new JFileChooser();
 				fileChooser.setCurrentDirectory(dir);
 
-				List<String> extensions = ReaderManager.getThermalDataExtensions();							
+				List<String> extensions = ReaderManager.getDatasetExtensions();							
 				String[] extArray = extensions.toArray(new String[extensions.size()]);							
 				fileChooser.setFileFilter(new FileNameExtensionFilter(Messages.getString("LoaderButton.SupportedExtensionsDescriptor"), extArray)); //$NON-NLS-1$
 

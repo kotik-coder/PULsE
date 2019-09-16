@@ -4,6 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import pulse.input.ExperimentalData;
+import pulse.problem.schemes.DiscretePulse;
+import pulse.problem.schemes.DiscretePulse2D;
+import pulse.problem.schemes.Grid;
+import pulse.problem.schemes.Grid2D;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
@@ -103,6 +107,13 @@ public abstract class Problem2D extends Problem implements TwoDimensional {
 	@Override
 	public boolean isEnabled() {
 		return !DEBUG;
+	}
+	
+	@Override
+	public DiscretePulse discretePulseOn(Grid grid) {
+		return grid instanceof Grid2D ? 
+				new DiscretePulse2D(this, pulse, (Grid2D)grid) : 
+				super.discretePulseOn(grid);
 	}
 	
 }

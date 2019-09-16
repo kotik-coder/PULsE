@@ -235,7 +235,9 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 	 * This method is used in the DifferenceScheme classes when a dimensionless solution needs to be re-scaled to the given maximum temperature
 	 * (usually matching the {@code ExperimentalData}, but also used as a search variable by the {@code SearchTask}.
 	 * @param scale the scale
-	 * @see DifferenceScheme Problem SearchTask 
+	 * @see DifferenceScheme 
+	 * @see Problem 
+	 * @see SearchTask 
 	 */
 	
 	public void scale(double scale) {
@@ -558,8 +560,6 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
 		switch(type) {
 			case NUMPOINTS : setNumPoints(property); break;
-		default: 
-			throw new IllegalArgumentException("Illegal type passed to method: " + property);
 		}
 	}
 	

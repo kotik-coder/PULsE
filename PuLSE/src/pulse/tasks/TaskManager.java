@@ -223,7 +223,7 @@ public static InterpolationDataset getDensityCurve() {
 public static void generateTask(File file) {
 	List<ExperimentalData> curves = null;
 	try {
-		curves = ReaderManager.extractData(file);
+		curves = ReaderManager.extract(file);
 	} catch (IOException e) {
 		System.err.println("Error loading experimental data");
 		e.printStackTrace();
@@ -278,13 +278,13 @@ public static int numberOfTasks() {
 }
 
 public static void loadSpecificHeatData(File f) throws IOException {
-	specificHeatCurve = ReaderManager.readPropertyTable(f);
+	specificHeatCurve = ReaderManager.readDataset(f);
 	for(SearchTask t : tasks) 
 		t.updateThermalProperties();
 }
 
 public static void loadDensityData(File f) throws IOException {
-	densityCurve = ReaderManager.readPropertyTable(f);
+	densityCurve = ReaderManager.readDataset(f);
 	for(SearchTask t : tasks)
 		t.updateThermalProperties();
 }
