@@ -209,8 +209,7 @@ public class ProblemStatementFrame extends JFrame {
 					}
 				}						
 
-				t.adjustScheme();
-				t.solveProblem();
+				t.getScheme().solve(t.getProblem());
 		
 				TaskControlFrame.plot(t, true);				
 
@@ -356,20 +355,20 @@ public class ProblemStatementFrame extends JFrame {
 		//TODO
 		    
 		if(task.getScheme() == null) {
-			task.setScheme(DifferenceScheme.copy(newScheme));
+			task.setScheme(newScheme.copy());
 			//task.getScheme().setTimeLimit( task.getTimeLimit() );
 		} 
 		
 		else {
 			
-		DifferenceScheme oldScheme = DifferenceScheme.copy(task.getScheme()); //stores previous information
+		DifferenceScheme oldScheme = task.getScheme().copy(); //stores previous information
 		task.setScheme(null);
-		task.setScheme(DifferenceScheme.copy(newScheme));					  //assigns new problem type
+		task.setScheme(newScheme.copy());					  //assigns new problem type
 		
 		if(		newScheme.getClass().getSimpleName().equals(
 				oldScheme.getClass().getSimpleName()) 
 		  )
-			task.getScheme().copyEverythingFrom(oldScheme);						  //copies information from old problem to new problem type
+			task.getScheme().copyFrom(oldScheme);						  //copies information from old problem to new problem type
 		//else
 			//task.getScheme().setTimeLimit( task.getTimeLimit() );
 		

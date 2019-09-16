@@ -1,7 +1,10 @@
 package pulse.problem.statements;
 
+import pulse.properties.NumericProperty;
+
 public interface TwoDimensional {
 
-	public SecondDimensionData getSecondDimensionData();
+	public NumericProperty getSampleDiameter();
+	public NumericProperty getPyrometerSpot();
 	
 }

@@ -1,48 +1,56 @@
 package pulse.problem.statements;
 
-import java.util.List;
-import java.util.Map;
+import static pulse.properties.NumericPropertyKeyword.DIAMETER;
+import static pulse.properties.NumericPropertyKeyword.HEAT_LOSS_SIDE;
+import static pulse.properties.NumericPropertyKeyword.PYROMETER_SPOT;
 
-import pulse.input.ExperimentalData;
+import java.util.List;
 import pulse.problem.schemes.ADIScheme;
 import pulse.problem.schemes.DifferenceScheme;
-import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
-import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 import pulse.search.math.IndexedVector;
-import pulse.search.math.Vector;
 import pulse.ui.Messages;
 
 public class NonlinearProblem2D extends NonlinearProblem implements TwoDimensional {
 	
-	private SecondDimensionData secondDimensionData = new SecondDimensionData();
+	private double d, Bi3, dAv;
 	
-	/**
-	 * 
-	 */
 	public NonlinearProblem2D() {
 		super();
+		Bi3 = (double)NumericProperty.def(HEAT_LOSS_SIDE).getValue();
+		d 	= (double)NumericProperty.def(DIAMETER).getValue();
+		dAv = (double)NumericProperty.def(PYROMETER_SPOT).getValue();
 	}
 	
 	public NonlinearProblem2D(Problem p) {
 		super(p);
-		if(! (p instanceof TwoDimensional) )
-			this.secondDimensionData = new SecondDimensionData();
-		else 
-			this.secondDimensionData = new SecondDimensionData( ((TwoDimensional)p).getSecondDimensionData());
-
+		Bi3 = (double)NumericProperty.def(HEAT_LOSS_SIDE).getValue();
+		d 	= (double)NumericProperty.def(DIAMETER).getValue();
+		dAv = (double)NumericProperty.def(PYROMETER_SPOT).getValue();
+	}
+	
+	public NonlinearProblem2D(Problem2D p) {
+		super(p);
+		Bi3 = p.Bi3;
+		d 	= p.d;
+		dAv = p.dAv;
 	}
 
 	public NonlinearProblem2D(NumericProperty a, NumericProperty cV, NumericProperty rho, NumericProperty qAbs, NumericProperty T) {
 		super(a, cV, rho, qAbs, T);
-		this.secondDimensionData = new SecondDimensionData();
+		Bi3 = (double)NumericProperty.def(HEAT_LOSS_SIDE).getValue();
+		d 	= (double)NumericProperty.def(DIAMETER).getValue();
+		dAv = (double)NumericProperty.def(PYROMETER_SPOT).getValue();
 	}
 	
 	@Override
 	public List<Property> listedParameters() {
 		List<Property> list = super.listedParameters();
-		list.addAll((new SecondDimensionData()).listedParameters());
+		list.addAll(super.listedParameters());
+		list.add(NumericProperty.def(HEAT_LOSS_SIDE));
+		list.add(NumericProperty.def(DIAMETER));
+		list.add(NumericProperty.def(PYROMETER_SPOT));
 		return list;
 	}
 	
@@ -51,51 +59,48 @@ public class NonlinearProblem2D extends NonlinearProblem implements TwoDimension
 		return new DifferenceScheme[]{new ADIScheme()};
 	}
 	
-	@Override
-	public IndexedVector objectiveFunction(List<Flag> flags) {	
-		IndexedVector objectiveFunction = super.objectiveFunction(flags);
-		int size = objectiveFunction.dimension(); 		
-		
-		for(int i = 0; i < size; i++) {
-
-			if( objectiveFunction.getIndex(i) == NumericPropertyKeyword.MAXTEMP ) {
-				objectiveFunction.set(i, qAbs);	
-				break;		
-			}
-		}
-		
-		return objectiveFunction;
-		
-	}	
-	
-	@Override
 	public void assign(IndexedVector params) {
-		super.assign(params);		
-		int size = params.dimension(); 		
+		super.assign(params);
 		
-		for(int i = 0; i < size; i++) {
-
-			if( params.getIndex(i) == NumericPropertyKeyword.MAXTEMP ) {
-				qAbs = params.get(i);	
-				break;		
+		for(int i = 0, size = params.dimension(); i < size; i++) {
+			
+			switch( params.getIndex(i) ) {
+				case HEAT_LOSS			:	Bi3 = params.get(i); break;
+				default 				: 	continue;
 			}
 		}
 		
-	}
-	
-	public SecondDimensionData getSecondDimensionData() {
-		return secondDimensionData;
-	}
-	
-	@Override
-	public void reset(ExperimentalData c) {
-		super.reset(c);
-		secondDimensionData.resetHeatLosses();
 	}
 	
 	@Override
 	public String toString() {
 		return Messages.getString("NonlinearProblem2D.Descriptor"); //$NON-NLS-1$
+	}
+	
+	@Override
+	public NumericProperty getPyrometerSpot() {
+		return NumericProperty.derive(PYROMETER_SPOT, dAv); //$NON-NLS-1$
+	}
+
+	public void setPyrometerSpot(NumericProperty dAv) {
+		this.dAv = (double)dAv.getValue();
+	}
+	
+	public NumericProperty getSideLosses() {
+		return NumericProperty.derive(HEAT_LOSS_SIDE, Bi3);
+	}
+
+	public void setSideLosses(NumericProperty bi3) {
+		this.Bi3 = (double)bi3.getValue();
+	}
+	
+	@Override
+	public NumericProperty getSampleDiameter() {
+		return NumericProperty.derive(DIAMETER, d);
+	}
+
+	public void setSampleDiameter(NumericProperty d) {
+		this.d = (double)d.getValue();
 	}
 	
 }

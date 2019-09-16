@@ -10,7 +10,6 @@ import java.util.List;
 import pulse.Baseline;
 import pulse.HeatingCurve;
 import pulse.input.ExperimentalData;
-import pulse.input.Pulse;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;

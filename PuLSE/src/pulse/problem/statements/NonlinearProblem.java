@@ -19,62 +19,48 @@ import pulse.ui.Messages;
 
 import static pulse.properties.NumericPropertyKeyword.*;
 
-/**
- * @author Artem V. Lunev
- *
- */
 public class NonlinearProblem extends Problem {
 	
 	protected double qAbs, T;
 	protected double nonlinearPrecision;	
-
 	
-	/**
-	 * @param cV
-	 * @param rho
-	 * @param qAbs
-	 */
+	private final static boolean DEBUG = true;	
 	
 	public NonlinearProblem(NumericProperty a, NumericProperty cV, NumericProperty rho, NumericProperty qAbs, NumericProperty T) {
 		this();
-		this.a = (double)a.getValue();
-		this.cV = (double)cV.getValue();
-		this.rho = (double)rho.getValue();
-		this.qAbs = (double)qAbs.getValue();
-		this.T = (double)T.getValue();
+		this.a		= (double)a.getValue();
+		this.cV		= (double)cV.getValue();
+		this.rho	= (double)rho.getValue();
+		this.qAbs	= (double)qAbs.getValue();
+		this.T		= (double)T.getValue();
 	}
 	
 	public NonlinearProblem() {
 		super();
-		nonlinearPrecision = (double)NumericProperty.def(NONLINEAR_PRECISION).getValue();
-		this.a = (double)NumericProperty.def(DIFFUSIVITY).getValue();		
-		this.qAbs = (double)NumericProperty.def(ABSORBED_ENERGY).getValue();
-		setTestTemperature(NumericProperty.def(TEST_TEMPERATURE));
+		nonlinearPrecision	= (double)NumericProperty.def(NONLINEAR_PRECISION).getValue();
+		this.a 				= (double)NumericProperty.def(DIFFUSIVITY).getValue();		
+		this.qAbs			= (double)NumericProperty.def(ABSORBED_ENERGY).getValue();
+		this.T				= (double)NumericProperty.def(TEST_TEMPERATURE).getValue();
 	}
 	
 	public NonlinearProblem(Problem p) {
+		super(p);		
+		this.qAbs 			= (double)NumericProperty.def(ABSORBED_ENERGY).getValue();
+		nonlinearPrecision	= (double)NumericProperty.def(NONLINEAR_PRECISION).getValue();			
+	}
+	
+	public NonlinearProblem(NonlinearProblem p) {
 		super(p);
-		
-		if(! (p instanceof NonlinearProblem) ) {
-			this.qAbs = (double)NumericProperty.def(ABSORBED_ENERGY).getValue();
-			nonlinearPrecision = (double)NumericProperty.def(NONLINEAR_PRECISION).getValue();	
-			return;
-		}
-		
-		NonlinearProblem np = (NonlinearProblem) p;
-		
-		this.qAbs 				= np.qAbs;
-		this.T 					= np.T;
-		this.nonlinearPrecision = np.nonlinearPrecision;
+		this.qAbs 				= p.qAbs;
+		this.T 					= p.T;
+		this.nonlinearPrecision = p.nonlinearPrecision;
 	}
 	
 	@Override
 	public void retrieveData(ExperimentalData c) {
 		super.retrieveData(c);
-		this.setTestTemperature(c.getMetadata().getTestTemperature());
-		
-		makeAdjustments();	
-		
+		this.setTestTemperature(c.getMetadata().getTestTemperature());		
+		makeAdjustments();			
 	}
 	
 	@Override
@@ -205,7 +191,7 @@ public class NonlinearProblem extends Problem {
 	
 	@Override
 	public boolean isEnabled() {
-		return false;
+		return !DEBUG;
 	}
 
 }

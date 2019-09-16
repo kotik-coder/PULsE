@@ -158,11 +158,6 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 		
 	}
 	
-	public void solveProblem() {
-		scheme.adjustScheme(problem);
-		scheme.solve(problem);
-	}
-
 	public void evalThermalConductivity() {
 		double a   = (double)problem.getDiffusivity().getValue();			
 		lambda = a * cp * rho;
@@ -178,12 +173,8 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 	}
 
 	public double calculateDeviation() {
-		solveProblem();
+		scheme.solve(problem);
 		return problem.getHeatingCurve().deviationSquares(getExperimentalCurve()); 
-	}
-
-	public void adjustScheme() {
-		scheme.adjustScheme(problem);
 	}
 	
 	@Override
@@ -197,7 +188,7 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 	  		return;
 	  }		
 	  
-	  solveProblem();	  
+	  scheme.solve(problem);	  
 	  
 	  HeatingCurve solutionCurve = this.getProblem().getHeatingCurve();
 	  sumOfSquares	   			 = solutionCurve.deviationSquares(curve);
@@ -226,9 +217,7 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 				if(status != Status.IN_PROGRESS)
 					break outer;
 					
-				sumOfSquares = pathSolver.iteration(this);
-				
-				adjustScheme();
+				sumOfSquares = pathSolver.iteration(this);				
 		  		rSquared = solutionCurve.rSquared(getExperimentalCurve());		  				  	
 		  		
 		  		final int j = i;
