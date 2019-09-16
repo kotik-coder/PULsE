@@ -389,7 +389,7 @@ public class TaskControlFrame extends JFrame {
 		
 		fileChooser.setMultiSelectionEnabled(true);
 		
-		List<String> extensions = ReaderManager.getHeatingCurveExtensions();							
+		List<String> extensions = ReaderManager.getCurveExtensions();							
 		String[] extArray = extensions.toArray(new String[extensions.size()]);			
 		
 		fileChooser.setFileFilter(new FileNameExtensionFilter(Messages.getString("TaskControlFrame.ExtensionDescriptor"), extArray)); //$NON-NLS-1$

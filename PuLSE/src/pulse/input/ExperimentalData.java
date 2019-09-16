@@ -113,7 +113,8 @@ public class ExperimentalData extends HeatingCurve {
 	/**
 	 * Retrieves the {@code time} corresponding to the {@code fittingStartIndex}.
 	 * @return start time, which is the lower time limit
-	 * @see getFittingStartIndex() setFittingRange
+	 * @see getFittingStartIndex
+	 * @see setFittingRange
 	 */
 	
 	public double startTime() {
@@ -123,7 +124,8 @@ public class ExperimentalData extends HeatingCurve {
 	/**
 	 * Retrieves the {@code time} corresponding to the {@code fittingEndIndex}.
 	 * @return end time, which is the upper time limit
-	 * @see getFittingEndIndex() setFittingRange
+	 * @see getFittingEndIndex
+	 * @see setFittingRange
 	 */
 	
 	public double endTime() {
@@ -141,7 +143,8 @@ public class ExperimentalData extends HeatingCurve {
 	 * </p>
 	 * @param reductionFactor the factor, by which the number of points {@code count} will be reduced for this {@code ExperimentalData}.
 	 * @return a {@code List<Point2D>}, representing the degraded {@code ExperimentalData}.
-	 * @see halfRiseTime maxTemperature
+	 * @see halfRiseTime 
+	 * @see maxTemperature
 	 */
 	
 	public List<Point2D> crudeAverage(int reductionFactor) {
@@ -326,7 +329,8 @@ public class ExperimentalData extends HeatingCurve {
 	 * A {@code DataEvent} will be created and passed to the {@code dataListeners} (if any)
 	 * with the {@code DataEventType.TRUNCATED} as argument.
 	 * </p>
-	 * @see halfRiseTime DataEvent
+	 * @see halfRiseTime 
+	 * @see DataEvent
 	 */
 	
 	public void truncate() {			

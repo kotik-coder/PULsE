@@ -18,6 +18,41 @@ import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.util.DataEntry;
 
+/**
+ * An {@code AbstractReader} capable of reading metafiles. 
+ * <p>Metafiles are ASCII files storing various experimental parameters for
+ * different instances of {@code ExperimentalData}. The {@code Metadata (.met)} file 
+ * should be formatted to include a header of arbitrary length, which defines global parameters,
+ * and a table where a series of metaproperties is defined for each laser shot.</p>
+ * <p>Metadata for each shot should be recorded during the experiment in a tab delimited ASCII format, with a {@code .met} file suffix. Constant data should be recorded in tab-separated pairs at the top of the file, such as {@code Sample_Name}, {@code Thickness} (of the sample, in mm), {@code Diameter} (of the sample, in mm), {@code Spot_Diameter} (diameter of laser spot, in mm), {@code PulseShape} (in capitals; e.g. {@code TRAPEZOIDAL}, {@code RECTANGULAR}) and {@code Detector_Iris}.
+ * Two line breaks below, a tab-delimited table with headers for variables should contain variable data for each shot. These variables should include ID (which should relate to the final number of the file name for each shot), Test_Temperature (in deg. C), Pulse_Width (the time width of the laser pulse, in ms), {@code Absorbed_Energy} (the energy transmitted by the laser, in J), and Detector_Gain (gain of the detector). 
+ * If any of the “constants” listed above are variable, then they should be included in the variable table, and vice versa.</p>
+ * The full list of keywords for the {@code .met} files are listed in the {@code NumericPropertyKeyword} enum.
+ * 
+ * <p>An example of a valid {@code .met} file is provided below.</p>
+ * 
+ * <pre><code>
+ * Thickness	2.034 						
+ * Diameter	9.88 			
+ * Spot_Diameter	2 						
+ *							
+ * ID	Test_Temperature	Pulse_Width	Spot_Diameter	Absorbed_Energy	Detector_Gain	PulseShape	Detector_Iris
+ * 200	200	5	2	31.81	50	TRAPEZOIDAL	1
+ * 201	196	5	2	31.81	100	TRAPEZOIDAL	1
+ * 202	198	5	2	31.81	100	TRAPEZOIDAL	1
+ * 203	199	5	2	31.81	50	TRAPEZOIDAL	1
+ * 204	199	5	2	31.81	50	TRAPEZOIDAL	1
+ * 205	199	5	2	31.81	50	TRAPEZOIDAL	1
+ * 206	200	5	2	31.81	50	TRAPEZOIDAL	1
+ * 207	200	5	2	31.81	50	TRAPEZOIDAL	1
+ * 208	400	5	2	31.81	50	TRAPEZOIDAL	1
+ * 209	400	5	2	31.81	20	TRAPEZOIDAL	1
+ * 210	400	5	2	31.81	10	TRAPEZOIDAL	1
+ * </code></pre>
+ * @see pulse.properties.NumericPropertyKeyword
+ * @see pulse.problem.statements.PulseShape
+ */
+
 public class MetaFileReader implements AbstractReader {	
 	
 	private static MetaFileReader instance = new MetaFileReader();

@@ -11,6 +11,10 @@ import pulse.Baseline;
 import pulse.HeatingCurve;
 import pulse.input.ExperimentalData;
 import pulse.problem.schemes.DifferenceScheme;
+import pulse.problem.schemes.DiscretePulse;
+import pulse.problem.schemes.DiscretePulse2D;
+import pulse.problem.schemes.Grid;
+import pulse.problem.schemes.Grid2D;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
@@ -300,6 +304,10 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 	
 	public boolean isEnabled() {
 		return true;
+	}
+	
+	public DiscretePulse discretePulseOn(Grid grid) {
+		return new DiscretePulse(this, getPulse(), grid);	
 	}
 	
 }
