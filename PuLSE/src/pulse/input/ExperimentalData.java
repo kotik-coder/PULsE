@@ -184,7 +184,7 @@ public class ExperimentalData extends HeatingCurve {
 	 * Instead of returning the absolute maximum (which can be an outlier!) of the temperature,
 	 * this overriden method calculates the (absolute) maximum of the degraded curve by calling {@code crudeAverage}
 	 * using the default reduction factor {@value REDUCTION_FACTOR}.   
-	 * @see Problem.estimateSignalRange
+	 * @see pulse.problem.statements.Problem.estimateSignalRange(ExperimentalData)
 	 */
 	
 	@Override

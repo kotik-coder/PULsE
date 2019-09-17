@@ -107,7 +107,7 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 	/**
 	 * Calls {@code clear()}, and then iterates over the three {@code List} objects
 	 * containing data, only to fill them with zeroes, stopping at {@code getCount() - 1}
-	 * @see getCount 
+	 * @see getNumPoints() 
 	 * @see clear()
 	 */
 	
@@ -235,9 +235,9 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 	 * This method is used in the DifferenceScheme classes when a dimensionless solution needs to be re-scaled to the given maximum temperature
 	 * (usually matching the {@code ExperimentalData}, but also used as a search variable by the {@code SearchTask}.
 	 * @param scale the scale
-	 * @see DifferenceScheme 
-	 * @see Problem 
-	 * @see SearchTask 
+	 * @see pulse.problem.schemes.DifferenceScheme 
+	 * @see pulse.problem.statements.Problem 
+	 * @see pulse.tasks.SearchTask 
 	 */
 	
 	public void scale(double scale) {
@@ -261,7 +261,7 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 	/**
 	 * Retrieves the last element of the {@code time List}. This is used e.g. by the {@code DifferenceScheme} to set 
 	 * the calculation limit for the finite-difference scheme.
-	 * @see DifferenceScheme 
+	 * @see pulse.problem.schemes.DifferenceScheme 
 	 * @return a double, equal to the last element of the {@code time List}.
 	 */
 	
@@ -514,7 +514,7 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 	 * @param precision The second argument passed to the {@code classicSolutionAt}
 	 * @return a {@code HeatingCurve} representing the analytical solution.
 	 * @see <a href="https://doi.org/10.1063/1.1728417">Parker <i>et al.</i> Journal of Applied Physics <b>32</b> (1961) 1679</a>
-	 * @see Problem.classicSolutionAt 
+	 * @see Problem.classicSolutionAt(double,int) 
 	 */
 	
 	public static HeatingCurve classicSolution(Problem p, double timeLimit, int precision) {

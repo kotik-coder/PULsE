@@ -17,7 +17,7 @@ import pulse.util.DataEntry;
  * <p>Specific heat capacity and density at different temperatures can be read as 
  * ASCII files with a .tbl suffix, where the first column is temperature 
  * (in degrees Celsius) and the second column is the specific heat capacity 
- * (in J kg<sup>-1</sup> K<sup>-1</sup>) or density (in kg m<sup-3</sup>).
+ * (in J kg<sup>-1</sup> K<sup>-1</sup>) or density (in kg m<sup>-3</sup>).
  * </p>
  * <p>Below is an example of a valid {@code .tbl} file:</p>
  * <pre><code>

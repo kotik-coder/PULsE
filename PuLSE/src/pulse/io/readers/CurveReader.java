@@ -34,7 +34,7 @@ public interface CurveReader extends AbstractReader {
 	 * Sorts the {@code List} of {@code ExperimentalData} according to their external IDs (if any).
 	 * @param array an unsorted list of {@code ExperimentalData}
 	 * @return the same list after sorting
-	 * @see pulse.input.Metadata.getExternalID
+	 * @see pulse.input.Metadata.getExternalID()
 	 */
 	
 	public static List<ExperimentalData> sort(List<ExperimentalData> array) {

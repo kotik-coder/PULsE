@@ -54,11 +54,6 @@ public class NonlinearProblem2D extends NonlinearProblem implements TwoDimension
 		return list;
 	}
 	
-	@Override
-	public DifferenceScheme[] availableSolutions() {
-		return new DifferenceScheme[]{new ADIScheme()};
-	}
-	
 	public void assign(IndexedVector params) {
 		super.assign(params);
 		

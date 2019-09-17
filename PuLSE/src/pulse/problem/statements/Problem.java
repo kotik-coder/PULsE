@@ -1,20 +1,20 @@
-/**
- * 
- */
 package pulse.problem.statements;
 
 import static java.lang.Math.pow;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+
 import pulse.Baseline;
 import pulse.HeatingCurve;
 import pulse.input.ExperimentalData;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.DiscretePulse;
-import pulse.problem.schemes.DiscretePulse2D;
+import pulse.problem.schemes.ExplicitScheme;
 import pulse.problem.schemes.Grid;
-import pulse.problem.schemes.Grid2D;
+import pulse.problem.schemes.ImplicitScheme;
+import pulse.problem.schemes.MixedScheme;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
@@ -29,10 +29,6 @@ import static java.lang.Math.exp;
 
 import static pulse.properties.NumericPropertyKeyword.*;
 
-/**
- * @author Artem V. Lunev
- *
- */
 public abstract class Problem extends PropertyHolder implements Reflexive, SaveableDirectory {		
 	
 	protected HeatingCurve curve;
@@ -45,22 +41,22 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 	private static boolean singleStatement;
 	private static boolean hideDetailedAdjustment = true;
 	private static NumericPropertyKeyword[] 
-			criticalParameters = new NumericPropertyKeyword[]{ THICKNESS, DIAMETER,
-			PULSE_WIDTH, SPOT_DIAMETER, PYROMETER_SPOT};
+			criticalParameters = new NumericPropertyKeyword[]{ 
+			THICKNESS, DIAMETER, PULSE_WIDTH, SPOT_DIAMETER, PYROMETER_SPOT};
 	
-	private final double PARKERS_COEFFICIENT = 0.1388; //in mm
-		
-	@Override
-	public List<Property> listedParameters() {
-		List<Property> list = new ArrayList<Property>();
-		list.add(NumericProperty.def(MAXTEMP));
-		list.add(NumericProperty.def(DIFFUSIVITY));
-		list.add(NumericProperty.def(THICKNESS));
-		list.add(NumericProperty.def(HEAT_LOSS_FRONT));
-		list.add(NumericProperty.def(HEAT_LOSS_REAR));
-		//heating curve				
-		return list;
-	}
+	/**
+	 * Used for the calculation of the classic solution by Parker et al.
+	 */
+	
+	public final double PARKERS_COEFFICIENT = 0.1388; //in mm
+	
+	/**
+	 * Creates a {@code Problem} with default parameters (as found in the .XML file).
+	 * <p>First, invokes the {@code super()} constructor of {@code PropertyHolder} to
+	 * initialise {@code PropertyHolderListener}s, then initialises the variables 
+	 * and creates default {@code Pulse} and {@code HeatingCurve}, setting this object
+	 * as their parent.</p>
+	 */
 	
 	protected Problem() {
 		super();
@@ -76,6 +72,12 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 		pulse.setParent(this);
 	}
 	
+	/**
+	 * Copies all essential parameters from {@code p}, excluding the heating curve,
+	 * which is created anew.  
+	 * @param p the {@code Problem} to replicate
+	 */
+	
 	public Problem(Problem p) {	
 		super();
 		this.l			= p.l;
@@ -88,11 +90,16 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 		this.Bi1 		= p.Bi1;
 		this.Bi2 		= p.Bi2;
 	}
-
-	public void copyMainDetailsFrom(Problem p) {
-		this.l 	   = p.l;
-		this.pulse = new Pulse(p.pulse);
-	}
+	
+	/**
+	 * <p>Calculates the classic analytical solution <math><i>T(x=l</i>,<code>time</code>)</math> of Parker et al. at the specified {@code time}
+	 * using the first {@code precision} terms of the solution series. The results is then scaled
+	 * by a factor of {@code signalHeight}.</p>   
+	 * @param time The calculation time
+	 * @param precision The number of terms in the approximated solution
+	 * @return a double, representing <math><i>T(x=l</i>,<code>time</code>)</math> 
+	 * @see <a href="https://doi.org/10.1063/1.1728417">Parker <i>et al.</i> Journal of Applied Physics <b>32</b> (1961) 1679</a> 
+	 */
 	
 	public final double classicSolutionAt(double time, int precision) {
 		
@@ -109,8 +116,11 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 		return (1. + 2. * sum)*signalHeight;
 		
 	}
-		
-	public abstract DifferenceScheme[] availableSolutions();
+	
+	public List<DifferenceScheme> availableSolutions() {
+		List<DifferenceScheme> allSchemes = Reflexive.instancesOf(DifferenceScheme.class);
+		return allSchemes.stream().filter(scheme -> scheme.solver(this) != null).collect(Collectors.toList());
+	}
 
 	public NumericProperty getDiffusivity() {
 		return NumericProperty.derive(DIFFUSIVITY, a);
@@ -308,6 +318,21 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 	
 	public DiscretePulse discretePulseOn(Grid grid) {
 		return new DiscretePulse(this, getPulse(), grid);	
+	}
+	
+	/**
+	 * Listed parameters include: <code>MAXTEMP, DIFFUSIVITY, THICKNESS, HEAT_LOSS_FRONT, HEAT_LOSS_REAR</code>.
+	 */
+	
+	@Override
+	public List<Property> listedParameters() {
+		List<Property> list = new ArrayList<Property>();
+		list.add(NumericProperty.def(MAXTEMP));
+		list.add(NumericProperty.def(DIFFUSIVITY));
+		list.add(NumericProperty.def(THICKNESS));
+		list.add(NumericProperty.def(HEAT_LOSS_FRONT));
+		list.add(NumericProperty.def(HEAT_LOSS_REAR));	
+		return list;
 	}
 	
 }

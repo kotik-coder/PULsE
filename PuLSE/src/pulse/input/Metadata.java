@@ -55,7 +55,7 @@ public class Metadata extends PropertyHolder implements Reflexive, Saveable {
 	 * Retrieves the test temperature from this {@code Metadata}. 
 	 * If the value is not deemed sensible, it will return the default test temperature value (as per the XML specification).
 	 * @return a {@code NumericProperty} of the type {@code NumericPropertyKeyword.TEST_TEMPERATURE}, the value of which is deemed sensible.
-	 * @see NumericProperty.isValueSensible 
+	 * @see pulse.properties.NumericProperty.isValueSensible(NumericProperty,Number) 
 	 */
 
 	public NumericProperty getTestTemperature() {
@@ -101,7 +101,7 @@ public class Metadata extends PropertyHolder implements Reflexive, Saveable {
 	 * Retrieves the sample thickness from this {@code Metadata}. 
 	 * If the value is not deemed sensible, it will return the default thickness value (as per the XML specification).
 	 * @return a {@code NumericProperty} of the type {@code NumericPropertyKeyword.THICKNESS}, the value of which is deemed sensible.
-	 * @see NumericProperty.isValueSensible 
+	 * @see pulse.properties.NumericProperty.isValueSensible(NumericProperty,Number) 
 	 */
 
 	public NumericProperty getSampleThickness() {
@@ -127,7 +127,7 @@ public class Metadata extends PropertyHolder implements Reflexive, Saveable {
 	 * Retrieves the sample diameter from this {@code Metadata}. 
 	 * If the value is not deemed sensible, it will return the default diameter value (as per the XML specification).
 	 * @return a {@code NumericProperty} of the type {@code NumericPropertyKeyword.DIAMETER}, the value of which is deemed sensible.
-	 * @see NumericProperty.isValueSensible 
+	 * @see pulse.properties.NumericProperty.isValueSensible(NumericProperty,Number) 
 	 */
 
 	public NumericProperty getSampleDiameter() {
@@ -153,7 +153,7 @@ public class Metadata extends PropertyHolder implements Reflexive, Saveable {
 	 * Retrieves the pulse width from this {@code Metadata}. 
 	 * If the value is not deemed sensible, it will return the default diameter value (as per the XML specification).
 	 * @return a {@code NumericProperty} of the type {@code NumericPropertyKeyword.PULSE_WIDTH}, the value of which is deemed sensible.
-	 * @see NumericProperty.isValueSensible 
+	 * @see pulse.properties.NumericProperty.isValueSensible(NumericProperty,Number) 
 	 */
 
 	public NumericProperty getPulseWidth() {
@@ -179,7 +179,7 @@ public class Metadata extends PropertyHolder implements Reflexive, Saveable {
 	 * Retrieves the spot diameter from this {@code Metadata}. 
 	 * If the value is not deemed sensible, it will return the default spot diameter value (as per the XML specification).
 	 * @return a {@code NumericProperty} of the type {@code NumericPropertyKeyword.SPOT_DIAMETER}, the value of which is deemed sensible.
-	 * @see NumericProperty.isValueSensible 
+	 * @see pulse.properties.NumericProperty.isValueSensible(NumericProperty,Number) 
 	 */
 
 	public NumericProperty getSpotDiameter() {
@@ -205,7 +205,7 @@ public class Metadata extends PropertyHolder implements Reflexive, Saveable {
 	 * Retrieves the absorbed energy from this {@code Metadata}. 
 	 * If the value is not deemed sensible, it will return the default absorbed energy value (as per the XML specification).
 	 * @return a {@code NumericProperty} of the type {@code NumericPropertyKeyword.ABSORBED_ENERGY}, the value of which is deemed sensible.
-	 * @see NumericProperty.isValueSensible 
+	 * @see pulse.properties.NumericProperty.isValueSensible(NumericProperty,Number) 
 	 */
 
 	public NumericProperty getAbsorbedEnergy() {
@@ -232,7 +232,7 @@ public class Metadata extends PropertyHolder implements Reflexive, Saveable {
 	 * Retrieves the detector gain from this {@code Metadata}. 
 	 * If the value is not deemed sensible, it will return the default detector gain value (as per the XML specification).
 	 * @return a {@code NumericProperty} of the type {@code NumericPropertyKeyword.DETECTOR_GAIN}, the value of which is deemed sensible.
-	 * @see NumericProperty.isValueSensible 
+	 * @see pulse.properties.NumericProperty.isValueSensible(NumericProperty,Number) 
 	 */
 
 	public NumericProperty getDetectorGain() {
@@ -259,7 +259,7 @@ public class Metadata extends PropertyHolder implements Reflexive, Saveable {
 	 * Retrieves the detector iris (aperture) from this {@code Metadata}. 
 	 * If the value is not deemed sensible, it will return the default detector iris value (as per the XML specification).
 	 * @return a {@code NumericProperty} of the type {@code NumericPropertyKeyword.DETECTOR_IRIS}, the value of which is deemed sensible.
-	 * @see NumericProperty.isValueSensible 
+	 * @see pulse.properties.NumericProperty.isValueSensible(NumericProperty,Number) 
 	 */
 
 	public NumericProperty getDetectorIris() {

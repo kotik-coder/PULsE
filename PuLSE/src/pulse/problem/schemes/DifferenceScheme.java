@@ -7,6 +7,7 @@ import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 import pulse.util.PropertyHolder;
+import pulse.util.Reflexive;
 
 /**
  * A {@code DifferenceScheme} is defined as a sequence of algebraic operations
@@ -20,7 +21,7 @@ import pulse.util.PropertyHolder;
  * @see pulse.problem.schemes.DiscretePulse
  */
 
-public abstract class DifferenceScheme extends PropertyHolder {
+public abstract class DifferenceScheme extends PropertyHolder implements Reflexive {
 
 	protected DiscretePulse	discretePulse;	
 	protected Grid 			grid;
@@ -31,9 +32,9 @@ public abstract class DifferenceScheme extends PropertyHolder {
 	private static boolean hideDetailedAdjustment	= true;
 	
 	/**
-	 * Constructs a {@code DifferenceScheme} with a custom {@code Grid}
+	 * Subclasses use this constructor to create a {@code DifferenceScheme} on a custom {@code Grid}
 	 * specified by the {@code N} and {@code timeFactor} parameters. 
-	 * <p>The parent of the {@code Grid} object is set to this {@code DifferenceScheme}.
+	 * <p>The parent of the {@code Grid} object should be set to this {@code DifferenceScheme}.
 	 * Time limit for calculation is set to default value (as specified in the XML file).</p> 
 	 * @param N a {@code NumericProperty} with the {@code GRID_DENSITY} type 
 	 * @param timeFactor a {@code NumericProperty} with the {@code TIME_FACTOR} type
@@ -42,8 +43,6 @@ public abstract class DifferenceScheme extends PropertyHolder {
 	 */
 	
 	public DifferenceScheme(NumericProperty N, NumericProperty timeFactor) {
-		grid = new Grid(N, timeFactor);	
-		grid.setParent(this);
 		setTimeLimit(NumericProperty.def(NumericPropertyKeyword.TIME_LIMIT));
 	}
 	
@@ -92,7 +91,7 @@ public abstract class DifferenceScheme extends PropertyHolder {
 	 * @param problem the heat problem to be solved
 	 */
 	
-	public void solve(Problem problem) {
+	protected void prepare(Problem problem) {
 		discretePulse = problem.discretePulseOn(grid);		
 		discretePulse.optimise(grid);
 		
@@ -181,5 +180,15 @@ public abstract class DifferenceScheme extends PropertyHolder {
 	public DiscretePulse getDiscretePulse() {
 		return discretePulse;
 	}
+	
+	/**
+	 * Selects the appropriate {@code Solver} within this {@code DifferenceScheme}
+	 * for the selected {@code problem}.
+	 * @param T a {@code Problem} to be solved by this {@code DifferenceScheme}
+	 * @return a {@code Solver} object that can be used to solve {@code problem},
+	 * or {@code null} if the solver cannot be found in this class.   
+	 */
+	
+	public abstract <T extends Problem> Solver<T> solver(T t);
 	
 }
