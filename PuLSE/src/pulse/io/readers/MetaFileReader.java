@@ -50,7 +50,7 @@ import pulse.util.DataEntry;
  * 210	400	5	2	31.81	10	TRAPEZOIDAL	1
  * </code></pre>
  * @see pulse.properties.NumericPropertyKeyword
- * @see pulse.problem.statements.PulseShape
+ * @see pulse.problem.statements.Pulse.PulseShape
  */
 
 public class MetaFileReader implements AbstractReader {	

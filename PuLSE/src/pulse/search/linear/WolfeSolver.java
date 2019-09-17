@@ -36,7 +36,7 @@ public class WolfeSolver extends LinearSolver {
 		final double G1P 	 = g1.dot(direction);
 		final double G1P_ABS = abs(G1P);
 		
-		IndexedVector params	= problem.objectiveFunction( PathSolver.getSearchFlags() );
+		IndexedVector params	= problem.optimisationVector( PathSolver.getSearchFlags() );
 		Segment segment			= boundaries(params, direction);
 			
 		double ss1 = task.calculateDeviation();

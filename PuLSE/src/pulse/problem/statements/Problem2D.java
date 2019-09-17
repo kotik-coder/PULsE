@@ -3,7 +3,6 @@ package pulse.problem.statements;
 import java.util.ArrayList;
 import java.util.List;
 
-import pulse.input.ExperimentalData;
 import pulse.problem.schemes.DiscretePulse;
 import pulse.problem.schemes.DiscretePulse2D;
 import pulse.problem.schemes.Grid;
@@ -60,12 +59,6 @@ public abstract class Problem2D extends Problem implements TwoDimensional {
 
 	public void setSideLosses(NumericProperty bi3) {
 		this.Bi3 = (double)bi3.getValue();
-	}
-	
-	@Override
-	public void reset(ExperimentalData data) {
-		super.reset(data);
-		Bi3 = 0;
 	}
 	
 	@Override

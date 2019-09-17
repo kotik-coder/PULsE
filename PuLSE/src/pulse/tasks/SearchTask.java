@@ -10,6 +10,7 @@ import pulse.Baseline;
 import pulse.HeatingCurve;
 import pulse.input.ExperimentalData;
 import pulse.input.InterpolationDataset;
+import pulse.input.Metadata;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
@@ -22,6 +23,7 @@ import pulse.tasks.listeners.DataCollectionListener;
 import pulse.tasks.listeners.StatusChangeListener;
 import pulse.tasks.listeners.TaskStateEvent;
 import pulse.ui.Messages;
+import pulse.ui.components.PropertyHolderTable;
 import pulse.util.Accessible;
 import pulse.util.PropertyEvent;
 import pulse.util.PropertyHolderListener;
@@ -127,7 +129,7 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 	}	
 	
 	public IndexedVector objectiveFunction() {
-		return problem.objectiveFunction(PathSolver.getSearchFlags());
+		return problem.optimisationVector(PathSolver.getSearchFlags());
 	}
 	
 	public void assign(IndexedVector objectiveFunction) {
@@ -319,22 +321,12 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 
 			@Override
 			public void onPropertyChanged(PropertyEvent event) {
-				Property property = event.getProperty();
+				if(!(event.getSource() instanceof Metadata))
+					if(!(event.getSource() instanceof PropertyHolderTable))
+						return;
 				
-				if(! (property instanceof NumericProperty) )
-					return;
-				
-				NumericProperty p = (NumericProperty) property;
-			
-				for(NumericPropertyKeyword critical : problem.getCriticalParameters()) {
-
-					if(p.getType() == critical) {
-						
-						problem.estimateSignalRange(curve);
-						problem.useParkersSolution(curve);
-						
-					}
-				}
+				problem.estimateSignalRange(curve);
+				problem.useParkersSolution(curve);
 			
 			}
 
@@ -390,7 +382,7 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 		
 		if(problem == null) 
 			s.setDetails(Details.MISSING_PROBLEM_STATEMENT);
-		else if(! problem.isReady())
+		else if(! problem.allDetailsPresent())
 			s.setDetails(Details.INSUFFICIENT_DATA_IN_PROBLEM_STATEMENT);
 		else if(scheme == null) 
 			s.setDetails(Details.MISSING_DIFFERENCE_SCHEME);

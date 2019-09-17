@@ -8,12 +8,15 @@ import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 import pulse.util.PropertyHolder;
 import pulse.ui.Messages;
+
+import static java.lang.Math.signum;
 import static pulse.properties.NumericPropertyKeyword.*;
 
 /**
- * A {@code Pulse} describes the parameters of the laser pulse 
- * and provides means of calculating the pulse power as a function of time.
- *
+ * A {@code Pulse} stores the parameters of the laser pulse,
+ * but does not provide the calculation facilities.
+ * @see pulse.problem.schemes.DiscretePulse 
+ * 
  */
 
 public class Pulse extends PropertyHolder {
@@ -51,24 +54,11 @@ public class Pulse extends PropertyHolder {
 		this.spotDiameter = p.spotDiameter;
 		this.pulseWidth	= p.pulseWidth;
 	}
-		
-	/*
 	
-	public double evaluateAt(Problem problem, DifferenceScheme scheme, double time) throws IllegalArgumentException {		
-		double pWidth = scheme.pWidth(problem);
-		double pSpotDiameter = scheme.pSpotDiameter(problem);
-		
-		final double PTIME = 1./pWidth;
-
-		switch (pulseShape) {		
-			case RECTANGULAR : return 0.5*PTIME*(1 + signum(pWidth - time));
-			case TRAPEZOIDAL : return 0.5*PTIME*(1 + signum(pWidth - time)); //needs correction!
-			case TRIANGULAR	 : return PTIME*(1 + signum(pWidth - time))*(1 - abs(2.*time - pWidth)*PTIME);
-			case GAUSSIAN		 : return PTIME*5./sqrt(PI)*exp(-25.*pow(time*PTIME - 0.5, 2));
-			default			 : throw new IllegalArgumentException("Unknown pulse form received: " + pulseShape.toString()); //$NON-NLS-1$
-		}
-	    
-	}*/
+	/**
+	 * Retrieves the {code PulseShape} enum constant.
+	 * @return the {@code} PulseShape
+	 */
 	
 	public PulseShape getPulseShape() {
 		return pulseShape;
@@ -97,13 +87,17 @@ public class Pulse extends PropertyHolder {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(getPulseShape());
-		sb.append(" "); //$NON-NLS-1$
+		sb.append(" ");
 		sb.append(pulseWidth*1E3);
-		sb.append(Messages.getString("Pulse.2")); //$NON-NLS-1$
+		sb.append(Messages.getString("Pulse.2"));
 		sb.append(spotDiameter*1E3);
-		sb.append(Messages.getString("Pulse.3")); //$NON-NLS-1$
+		sb.append(Messages.getString("Pulse.3"));
 		return sb.toString();
 	}
+	
+	/**
+	 * The listed parameters for {@code Pulse} are: <code>PulseShape, PULSE_WIDTH, SPOT_DIAMETER</code>.
+	 */
 	
 	@Override
 	public List<Property> listedParameters() {
@@ -122,8 +116,41 @@ public class Pulse extends PropertyHolder {
 		}
 	}
 	
-	public enum PulseShape implements EnumProperty {
-		TRAPEZOIDAL, RECTANGULAR, TRIANGULAR, GAUSSIAN;
+	/**
+	 * The {@code PulseShape}, an instance of {@code EnumProperty}, defines 
+	 * a few simple pulse shapes usually encountered in a laser flash experiment.  
+	 *
+	 */
+	
+	public enum PulseShape implements EnumProperty {	
+		
+		/**
+		 * Currently not supported (redirects to {@code RECTANGULAR})
+		 */
+		
+		TRAPEZOIDAL,
+		
+		/**
+		 * The simplest pulse shape defined as 
+		 * <math>0.5*(1 + sgn(<i>t</i><sub>pulse</sub> - <i>t</i>))</math>,
+		 * where <math>sgn(...)</math> is the signum function, 
+		 * <sub>pulse</sub> is the pulse width.
+		 * @see java.lang.Math.signum(double) 
+		 */
+		
+		RECTANGULAR, 
+		
+		/**
+		 * A pulse shape defined as an isosceles triangle. 
+		 */
+		
+		TRIANGULAR,
+		
+		/**
+		 * A bell-shaped laser pulse centered at {@code pulseWidth}/2.0. 
+		 */
+		
+		GAUSSIAN;
 
 		@Override
 		public Object getValue() {

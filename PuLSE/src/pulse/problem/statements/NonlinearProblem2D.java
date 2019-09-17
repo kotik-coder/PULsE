@@ -5,11 +5,10 @@ import static pulse.properties.NumericPropertyKeyword.HEAT_LOSS_SIDE;
 import static pulse.properties.NumericPropertyKeyword.PYROMETER_SPOT;
 
 import java.util.List;
-import pulse.problem.schemes.ADIScheme;
-import pulse.problem.schemes.DifferenceScheme;
 import pulse.properties.NumericProperty;
 import pulse.properties.Property;
 import pulse.search.math.IndexedVector;
+import pulse.tasks.TaskManager;
 import pulse.ui.Messages;
 
 public class NonlinearProblem2D extends NonlinearProblem implements TwoDimensional {
@@ -96,6 +95,13 @@ public class NonlinearProblem2D extends NonlinearProblem implements TwoDimension
 
 	public void setSampleDiameter(NumericProperty d) {
 		this.d = (double)d.getValue();
+	}
+	
+	@Override
+	public boolean allDetailsPresent() {
+		if(TaskManager.getDensityCurve() == null || TaskManager.getSpecificHeatCurve() == null)
+			return false;
+		return super.allDetailsPresent();
 	}
 	
 }
