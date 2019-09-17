@@ -26,11 +26,6 @@ public class LinearisedProblem2D extends Problem2D {
 	}
 	
 	@Override
-	public DifferenceScheme[] availableSolutions() {
-		return new DifferenceScheme[]{new ADIScheme()};
-	}
-	
-	@Override
 	public String toString() {
 		return Messages.getString("LinearizedProblem2D.Descriptor"); //$NON-NLS-1$
 	}

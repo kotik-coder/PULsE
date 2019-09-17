@@ -12,23 +12,234 @@ import pulse.ui.Messages;
 
 import static java.lang.Math.PI;
 
+/**
+ * This class implements the simple explicit finite-difference scheme 
+ * (also called the forward-time centered space scheme) for solving 
+ * the one-dimensional heat conduction problem. 
+ * <p>The explicit scheme uses a standard 4-point template on a one-dimensional grid
+ * that utilises the following grid-function values on each step: <math><i>&Theta;(x<sub>i</sub>,t<sub>m</sub>), 
+ * &Theta;(x<sub>i</sub>,t<sub>m+1</sub>), 
+ * &Theta;(x<sub>i-1</sub>,t<sub>m</sub>), &Theta;(x<sub>i+1</sub>,t<sub>m</sub>)</i></math>. 
+ * Hence, the calculation of the grid-function at the timestep <math><i>m</i>+1</math> 
+ * can be done <i>explicitly</i>. The derivative in the boundary conditions is approximated using a simple forward difference. 
+ * </p> 
+ * <p>The explicit scheme is stable only if <math><i>&tau; &le; h<sup>2</sup></i></math> and has an order of 
+ * approximation of <math><i>O(&tau; + h)</i></math>. Note that this scheme is only used for validating more complex
+ * schemes and does not give accurate results due to the lower order of approximation. When calculations using this 
+ * scheme are performed, the <code>gridDensity</code> is chosen to be at least 80, which ensures that the error 
+ * is not too high (typically a {@code 1.5E-2} relative error).</p>    
+ * @see pulse.problem.statements.LinearisedProblem
+ * @see pulse.problem.statements.NonlinearProblem
+ *
+ */
+
 public class ExplicitScheme extends DifferenceScheme {
 	
-	private final static NumericProperty TAU_FACTOR = 
+	/**
+	 * The default value of {@code tauFactor}, which is set to {@code 0.5} 
+	 * for this scheme.
+	 */
+	
+	public final static NumericProperty TAU_FACTOR = 
 			NumericProperty.derive(NumericPropertyKeyword.TAU_FACTOR, 0.5);
-	private final static NumericProperty GRID_DENSITY = 
+	
+	/**
+	 * The default value of {@code gridDensity}, which is set to {@code 80} 
+	 * for this scheme.
+	 */
+	
+	public final static NumericProperty GRID_DENSITY = 
 			NumericProperty.derive(NumericPropertyKeyword.GRID_DENSITY, 80);
+	
+	/**
+	 * Performs a fully-dimensionless calculation for the {@code LinearisedProblem}.
+	 * <p>Calls {@code super.solve(Problem)}. Relies on using the heat equation
+	 * to calculate the value of the grid-function at the next timestep. Fills
+	 * the {@code grid} completely at each specified spatial point. The heating curve is updated with the rear-side temperature <math><i>&Theta;(x<sub>N</sub>,t<sub>i</sub></i></math>) 
+	 * (here <math><i>N</i></math> is the grid density) at the end of 
+	 * {@code timeLimit} intervals, which comprise of {@code timeLimit/tau} time steps.
+	 * The {@code HeatingCurve} is scaled (re-normalised) by a factor of {@code maxTemp/maxVal},
+	 * where {@code maxVal} is the absolute maximum of the calculated solution (with respect to time),
+	 * and {@code maxTemp} is the {@code maximumTemperature} {@code NumericProperty} of {@code problem}.</p>    
+	 * @see super.solve(Problem)
+	 */
+	
+	public Solver<LinearisedProblem> explicitLinearisedSolver = ( problem -> 
+	{
+			super.prepare(problem);
+			
+			final double Bi1 = (double) problem.getFrontHeatLoss().getValue();
+			final double Bi2 = (double) problem.getHeatLossRear().getValue();
+			final double maxTemp = (double) problem.getMaximumTemperature().getValue(); 
+					
+			final double EPS = 1e-5;
+			
+			double[] U 	   = new double[grid.N + 1];
+			double[] V     = new double[grid.N + 1];
+			
+			HeatingCurve curve = problem.getHeatingCurve();
+			curve.reinit();
+			final int counts = (int) curve.getNumPoints().getValue();
+			
+			double maxVal = 0;		
+			int i, m, w;
+			double pls;
+			
+			/*
+			 * Constants used in the calculation loop
+			 */
+			
+			double TAU_HH = grid.tau/pow(grid.hx,2);		
+			double a = 1./(1. + Bi1*grid.hx);
+			double b = 1./(1. + Bi2*grid.hx);			
+			
+			/*
+			 * The outer cycle iterates over the number of points of the HeatingCurve
+			 */
 
+			for (w = 1; w < counts; w++) {
+				
+				/*
+				 * Two adjacent points of the heating curves are 
+				 * separated by timeInterval on the time grid. Thus, to calculate
+				 * the next point on the heating curve, timeInterval/tau time steps
+				 * have to be made first.
+				 */
+				
+				for (m = (w - 1)*timeInterval + 1; m < w*timeInterval + 1; m++) {
+					
+					/*
+					 * Uses the heat equation explicitly to calculate the 
+					 * grid-function everywhere except the boundaries
+					 */
+					
+					for(i = 1; i < grid.N; i++)
+						V[i] =	U[i] +  TAU_HH*( U[i+1] - 2.*U[i] + U[i-1] ) ;
+					
+					/*
+					 * Calculates boundary values
+					 */
+					
+					pls  = discretePulse.evaluateAt( (m - EPS)*grid.tau );
+					V[0] = (V[1] + grid.hx*pls)*a ;
+					V[grid.N] =	V[grid.N-1]*b;
+					
+					System.arraycopy(V, 0, U, 0, grid.N + 1);
+								
+				}
+				
+				curve.setTemperatureAt(w, V[grid.N]); //the temperature of the rear face
+				maxVal = Math.max(maxVal, V[grid.N]);
+				curve.setTimeAt( w,	(w*timeInterval)*grid.tau*problem.timeFactor() );
+				
+			}			
+
+			curve.scale( maxTemp/maxVal );
+					
+	});
+	
+	public Solver<NonlinearProblem> explicitNonlinearSolver = (ref -> {
+			super.prepare(ref);
+			
+			final double T   				= (double) ref.getTestTemperature().getValue();
+			final double rho 				= (double) ref.getDensity().getValue();
+			final double cV  				= (double) ref.getSpecificHeat().getValue();
+			final double qAbs 				= (double) ref.getAbsorbedEnergy().getValue();
+			final double nonlinearPrecision = (double) ref.getNonlinearPrecision().getValue(); 	
+			
+			final double l 			= (double) ref.getSampleThickness().getValue();
+			final double Bi1 		= (double) ref.getFrontHeatLoss().getValue();
+			final double Bi2 		= (double) ref.getHeatLossRear().getValue();
+			final double maxTemp 	= (double) ref.getMaximumTemperature().getValue(); 
+			
+			double pulseWidth = (double)ref.getPulse().getSpotDiameter().getValue();
+			double c = qAbs/(cV*rho*PI*l*pow(pulseWidth, 2));
+			
+			double TAU_HH = grid.tau/pow(grid.hx,2);
+			
+			double[] U 	   = new double[grid.N + 1];
+			double[] V     = new double[grid.N + 1];
+			
+			final double EPS = 1e-5;
+			
+			double maxVal = 0;
+			
+			int i, m, w;
+			double pls;
+			
+			HeatingCurve curve = ref.getHeatingCurve();
+			curve.reinit();
+			final int counts = (int) curve.getNumPoints().getValue();
+
+			for (w = 1; w < counts; w++) {
+				
+				for (m = (w - 1)*timeInterval + 1; m < w*timeInterval + 1; m++) {
+					
+					for(i = 1; i < grid.N; i++)
+						V[i] =	U[i] +  TAU_HH*( U[i+1] - 2.*U[i] + U[i-1] ) ;
+					
+					pls  = discretePulse.evaluateAt( (m - EPS)*grid.tau );
+					
+				    for(double diff = 100, tmp = 0; diff/maxTemp > nonlinearPrecision; ) {
+				    	tmp = V[1] + c*grid.hx*pls - 0.25*grid.hx*Bi1*T*( pow(V[0]/T + 1, 4) - 1); //bc1
+				    	diff = tmp - V[0];
+				    	V[0] = tmp;
+				    }
+				    
+				    for(double diff = 100, tmp = 0; diff/maxTemp > nonlinearPrecision; ) {
+				    	tmp = V[grid.N-1] - 0.25*grid.hx*Bi2*T*( pow(V[grid.N]/T + 1, 4) - 1); //bc1
+				    	diff = tmp - V[grid.N];
+				    	V[grid.N] = tmp;
+				    }					
+					
+					System.arraycopy(V, 0, U, 0, grid.N + 1);
+								
+				}
+				
+				curve.setTemperatureAt(w, V[grid.N]);
+				maxVal = Math.max(maxVal, V[grid.N]);
+				curve.setTimeAt( w,	(w*timeInterval)*grid.tau*ref.timeFactor() );
+				ref.setMaximumTemperature(NumericProperty.derive(NumericPropertyKeyword.MAXTEMP, maxVal));
+				
+			}		
+	});
+
+	/**
+	 * Constructs a default explicit scheme using the default 
+	 * values of {@code GRID_DENSITY} and {@code TAU_FACTOR}. 
+	 */
+	
 	public ExplicitScheme() {
-		super(GRID_DENSITY, TAU_FACTOR);
+		this(GRID_DENSITY, TAU_FACTOR);
 	}	
+	
+	/**
+	 * Constructs an explicit scheme on a one-dimensional grid
+	 * that is specified by the values {@code N} and {@code timeFactor}.
+	 * @see pulse.problem.schemes.DifferenceScheme
+	 * @param N the {@code NumericProperty} with the type {@code GRID_DENSITY}
+	 * @param timeFactor the {@code NumericProperty} with the type {@code TAU_FACTOR}
+	 */
 	
 	public ExplicitScheme(NumericProperty N, NumericProperty timeFactor) {
 		super(N, timeFactor);	
+		grid = new Grid(N, timeFactor);	
+		grid.setParent(this);
 	}
 	
+	/**
+	 * <p>Constructs an explicit scheme on a one-dimensional grid
+	 * that is specified by the values {@code N} and {@code timeFactor}. 
+	 * Sets the time limit of this scheme to {@code timeLimit}  
+	 * @param N the {@code NumericProperty} with the type {@code GRID_DENSITY}
+	 * @param timeFactor the {@code NumericProperty} with the type {@code TAU_FACTOR}
+	 * @param timeLimit the {@code NumericProperty} with the type {@code TIME_LIMIT}
+	 * @see pulse.problem.schemes.DifferenceScheme
+	 */
+	
 	public ExplicitScheme(NumericProperty N, NumericProperty timeFactor, NumericProperty timeLimit) {
-		super(N, timeFactor, timeLimit);
+		this(N, timeFactor);
+		setTimeLimit(timeLimit);
 	}
 	
 	@Override
@@ -39,140 +250,17 @@ public class ExplicitScheme extends DifferenceScheme {
 
 	@Override
 	public String toString() {
-		return Messages.getString("ExplicitScheme.4");		 //$NON-NLS-1$
+		return Messages.getString("ExplicitScheme.4");
 	}
 	
 	@Override
-	public void solve(Problem p) {
-		if(p instanceof LinearisedProblem)
-			solve((LinearisedProblem) p);
-		else if(p instanceof NonlinearProblem)
-			solve((NonlinearProblem) p);
-	}
-	
-	public void solve(LinearisedProblem problem) {
-		super.solve(problem);
-		
-		//quick links
-		
-		final double Bi1 = (double) problem.getFrontHeatLoss().getValue();
-		final double Bi2 = (double) problem.getHeatLossRear().getValue();
-		final double maxTemp = (double) problem.getMaximumTemperature().getValue(); 
-		
-		//end
-				
-		final double EPS = 1e-5;
-		
-		double[] U 	   = new double[grid.N + 1];
-		double[] V     = new double[grid.N + 1];
-		
-		HeatingCurve curve = problem.getHeatingCurve();
-		curve.reinit();
-		final int counts = (int) curve.getNumPoints().getValue();
-		
-		double maxVal = 0;
-		
-		double TAU_HH = grid.tau/pow(grid.hx,2);
-		
-		int i, m, w;
-		double pls;
-		
-		//solution of linearized problem with explicit scheme
-		
-		double a = 1./(1. + Bi1*grid.hx);
-		double b = 1./(1. + Bi2*grid.hx);			
-		
-		//time cycle
-
-		for (w = 1; w < counts; w++) {
-			
-			for (m = (w - 1)*timeInterval + 1; m < w*timeInterval + 1; m++) {
-				
-				for(i = 1; i < grid.N; i++)
-					V[i] =	U[i] +  TAU_HH*( U[i+1] - 2.*U[i] + U[i-1] ) ;
-				
-				pls  = discretePulse.evaluateAt( (m - EPS)*grid.tau );
-				V[0] = (V[1] + grid.hx*pls)*a ;
-				V[grid.N] =	V[grid.N-1]*b;
-				
-				System.arraycopy(V, 0, U, 0, grid.N + 1);
-							
-			}
-			
-			curve.setTemperatureAt(w, V[grid.N]);
-			maxVal = Math.max(maxVal, V[grid.N]);
-			curve.setTimeAt( w,	(w*timeInterval)*grid.tau*problem.timeFactor() );
-			
-		}			
-
-		curve.scale( maxTemp/maxVal );
-		
-	}
-	
-	public void solve(NonlinearProblem ref) {
-		super.solve(ref);
-		
-		final double T   				= (double) ref.getTestTemperature().getValue();
-		final double rho 				= (double) ref.getDensity().getValue();
-		final double cV  				= (double) ref.getSpecificHeat().getValue();
-		final double qAbs 				= (double) ref.getAbsorbedEnergy().getValue();
-		final double nonlinearPrecision = (double) ref.getNonlinearPrecision().getValue(); 	
-		
-		final double l 			= (double) ref.getSampleThickness().getValue();
-		final double Bi1 		= (double) ref.getFrontHeatLoss().getValue();
-		final double Bi2 		= (double) ref.getHeatLossRear().getValue();
-		final double maxTemp 	= (double) ref.getMaximumTemperature().getValue(); 
-		
-		double pulseWidth = (double)ref.getPulse().getSpotDiameter().getValue();
-		double c = qAbs/(cV*rho*PI*l*pow(pulseWidth, 2));
-		
-		double TAU_HH = grid.tau/pow(grid.hx,2);
-		
-		double[] U 	   = new double[grid.N + 1];
-		double[] V     = new double[grid.N + 1];
-		
-		final double EPS = 1e-5;
-		
-		double maxVal = 0;
-		
-		int i, m, w;
-		double pls;
-		
-		HeatingCurve curve = ref.getHeatingCurve();
-		curve.reinit();
-		final int counts = (int) curve.getNumPoints().getValue();
-
-		for (w = 1; w < counts; w++) {
-			
-			for (m = (w - 1)*timeInterval + 1; m < w*timeInterval + 1; m++) {
-				
-				for(i = 1; i < grid.N; i++)
-					V[i] =	U[i] +  TAU_HH*( U[i+1] - 2.*U[i] + U[i-1] ) ;
-				
-				pls  = discretePulse.evaluateAt( (m - EPS)*grid.tau );
-				
-			    for(double diff = 100, tmp = 0; diff/maxTemp > nonlinearPrecision; ) {
-			    	tmp = V[1] + c*grid.hx*pls - 0.25*grid.hx*Bi1*T*( pow(V[0]/T + 1, 4) - 1); //bc1
-			    	diff = tmp - V[0];
-			    	V[0] = tmp;
-			    }
-			    
-			    for(double diff = 100, tmp = 0; diff/maxTemp > nonlinearPrecision; ) {
-			    	tmp = V[grid.N-1] - 0.25*grid.hx*Bi2*T*( pow(V[grid.N]/T + 1, 4) - 1); //bc1
-			    	diff = tmp - V[grid.N];
-			    	V[grid.N] = tmp;
-			    }					
-				
-				System.arraycopy(V, 0, U, 0, grid.N + 1);
-							
-			}
-			
-			curve.setTemperatureAt(w, V[grid.N]);
-			maxVal = Math.max(maxVal, V[grid.N]);
-			curve.setTimeAt( w,	(w*timeInterval)*grid.tau*ref.timeFactor() );
-			ref.setMaximumTemperature(NumericProperty.derive(NumericPropertyKeyword.MAXTEMP, maxVal));
-			
-		}		
+	public Solver<? extends Problem> solver(Problem problem) {
+		if(problem instanceof LinearisedProblem)
+			return explicitLinearisedSolver;
+		else if(problem instanceof NonlinearProblem)
+			return explicitNonlinearSolver;
+		else 
+			return null;
 	}
 	
 }

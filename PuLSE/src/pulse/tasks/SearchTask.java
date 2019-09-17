@@ -173,7 +173,7 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 	}
 
 	public double calculateDeviation() {
-		scheme.solve(problem);
+		scheme.solver(problem).solve(problem);
 		return problem.getHeatingCurve().deviationSquares(getExperimentalCurve()); 
 	}
 	
@@ -188,7 +188,7 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 	  		return;
 	  }		
 	  
-	  scheme.solve(problem);	  
+	  scheme.solver(problem).solve(problem);	  
 	  
 	  HeatingCurve solutionCurve = this.getProblem().getHeatingCurve();
 	  sumOfSquares	   			 = solutionCurve.deviationSquares(curve);

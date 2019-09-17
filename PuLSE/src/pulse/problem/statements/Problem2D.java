@@ -77,13 +77,6 @@ public abstract class Problem2D extends Problem implements TwoDimensional {
 		this.dAv = (double)dAv.getValue();
 	}
 	
-	public void copyMainDetailsFrom(Problem2D p) {
-		super.copyMainDetailsFrom(p);
-		this.d = p.d;
-		this.dAv = p.dAv;
-		this.Bi3 = p.Bi3;
-	}
-	
 	@Override
 	public List<Property> listedParameters() {
 		List<Property> list = new ArrayList<Property>();

@@ -22,15 +22,10 @@ public class LinearisedProblem extends Problem {
 		super();
 		this.curve = new HeatingCurve(curvePoints);
 	}
-		
-	@Override
-	public DifferenceScheme[] availableSolutions() {
-		return new DifferenceScheme[]{new ExplicitScheme(), new ImplicitScheme(), new MixedScheme()};
-	}
 	
 	@Override
 	public String toString() {
-		return Messages.getString("LinearizedProblem.Descriptor"); //$NON-NLS-1$
+		return Messages.getString("LinearizedProblem.Descriptor"); 
 	}
 
 }

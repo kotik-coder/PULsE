@@ -18,9 +18,9 @@ import pulse.util.UpwardsNavigable;
  * {@code NumericPropertyKeyword} associated with the {@code intercept} and {@code slope} parameters 
  * can be used as fitting variables for {@code SearchTask}, if included in the appropriate 
  * {@code IndexedVector}, the latter representing an objective function of the current search.</p>
- * @see HeatingCurve
- * @see SearchTask
- * @see IndexedVector
+ * @see pulse.HeatingCurve
+ * @see pulse.tasks.SearchTask
+ * @see pulse.search.math.IndexedVector
  */
 public class Baseline extends PropertyHolder {
 
@@ -178,7 +178,7 @@ public class Baseline extends PropertyHolder {
 	 * <p>Creates a double array with a size 2 with the following elements and in the following order: {@code intercept} and {@code slope}.
 	 * This method is used when the baseline is flagged as belonging to the objective function of the corresponding {@code Problem}.</p>
 	 * @return an array of size two with the numeric parameters of the baseline
-	 * @see Problem
+	 * @see pulse.problem.statements.Problem
 	 */
 	
 	public double[] parameters() {
@@ -189,8 +189,8 @@ public class Baseline extends PropertyHolder {
 	 * <p>A method called by the {@code Problem} to assign {@code intercept} and/or {@code slope} parameters, 
 	 * which have been calculated when running the {@code SearchTask}.</p>
 	 * @param parameters an array of size 2, the elements of which are the intercept and the slope.
-	 * @see Problem
-	 * @see SearchTask
+	 * @see pulse.problem.statements.Problem
+	 * @see pulse.tasks.SearchTask
 	 */
 	
 	public void setParameters(double[] parameters) {
@@ -203,8 +203,8 @@ public class Baseline extends PropertyHolder {
 	 * which have been calculated when running the associated {@code SearchTask}.
 	 * @param index 0 for the {@code intercept} and 1 for the {@code slope}. 
 	 * @param parameter the value of either intercept or slope to be assigned for this baseline
-	 * @see Problem
-	 * @see SearchTask
+	 * @see pulse.problem.statements.Problem
+	 * @see pulse.tasks.SearchTask
 	 */
 
 	public void setParameter(int index, double parameter) {

@@ -90,7 +90,7 @@ public class ResultTable extends JTable implements Saveable  {
 					if(! ((Result)r).getIdentifier().equals(id) )
 						continue;
 						
-					jj = results.indexOf(r);
+					jj = convertRowIndexToView(results.indexOf(r));
 						
 					if(jj < -1)
 						continue;

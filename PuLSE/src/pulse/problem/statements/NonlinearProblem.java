@@ -131,11 +131,6 @@ public class NonlinearProblem extends Problem {
 		list.add(NumericProperty.def(SPECIFIC_HEAT));
 		return list;
 	}
-
-	@Override
-	public DifferenceScheme[] availableSolutions() {
-		return new DifferenceScheme[]{new ExplicitScheme(), new ImplicitScheme(), new MixedScheme()};
-	}
 	
 	@Override
 	public IndexedVector objectiveFunction(List<Flag> flags) {	

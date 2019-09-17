@@ -21,271 +21,240 @@ public class ADIScheme extends DifferenceScheme {
 	private final static NumericProperty GRID_DENSITY = 
 			NumericProperty.derive(NumericPropertyKeyword.GRID_DENSITY, 30);
 	
-	public ADIScheme() {
-		super(GRID_DENSITY, TAU_FACTOR);
-	}	
-	
-	public ADIScheme(NumericProperty N, NumericProperty timeFactor) {
-		super(N, timeFactor);
-	}
-	
-	public ADIScheme(NumericProperty N, NumericProperty timeFactor, NumericProperty timeLimit) {
-		super(N, timeFactor, timeLimit);
-	}
-	
-	@Override
-	public DifferenceScheme copy() {
-		return new ADIScheme(grid.getGridDensity(),
-				grid.getTimeFactor(), getTimeLimit());
-	}
-	
-	@Override
-	public String toString() {
-		return Messages.getString("ADIScheme.4");
-	}
-	
-	@Override
-	public void solve(Problem p) {
-		if(p instanceof LinearisedProblem2D)
-			solve((LinearisedProblem2D) p);
-		else if(p instanceof NonlinearProblem2D)
-			solve((NonlinearProblem2D) p);
-	}
-	
-	public void solve(LinearisedProblem2D problem) {
-		super.solve(problem);
+	public Solver<LinearisedProblem2D> linearisedSolver2D = 
+			(problem -> {
+				super.prepare(problem);
 
-		DiscretePulse2D discretePulse2D = (DiscretePulse2D)discretePulse;
-		
-		//quick links
-
-		final double Bi3	= (double) problem.getSideLosses().getValue();
-		final double d		= (double) problem.getSampleDiameter().getValue();
-		final double dAv	= (double) problem.getPyrometerSpot().getValue();
-		
-		final double l			= (double) problem.getSampleThickness().getValue();
-		final double Bi1		= (double) problem.getFrontHeatLoss().getValue();
-		final double Bi2 		= (double) problem.getHeatLossRear().getValue();
-		final double maxTemp 	= (double) problem.getMaximumTemperature().getValue();
-		
-		//end
-
-		double[][] U1	= new double[grid.N + 1][grid.N + 1];
-		double[][] U2	= new double[grid.N + 1][grid.N + 1];
-		double[] alpha  = new double[grid.N + 2];
-		double[] beta   = new double[grid.N + 2];
-		double[] beta1  = new double[grid.N + 2];
-		double[] beta2  = new double[grid.N + 2];
-		
-		double[] a1 = new double[grid.N + 1];
-		double[] b1 = new double[grid.N + 1];
-		double[] c1 = new double[grid.N + 1];
-		
-		final double EPS = 1e-8;
-		
-		HeatingCurve curve = problem.getHeatingCurve();
-		curve.reinit();
-		
-		final int counts = (int) curve.getNumPoints().getValue();
-		
-		double maxVal = 0;
-		int i, j, m, w;
-		double pls;
-
-		double hy = ((Grid2D)getGrid()).hy;
-		double hx = grid.hx;
-		
-		//precalculated constants				
-
-		double D2    = pow(d,2); 
-		double L2    = pow(l,2); 
-		double HX2   = pow(hx,2); 
-		double HY2   = pow(hy,2);
-		double D2HX2 = D2*HX2; 
-		double L2TAU = L2*grid.tau;
-		
-		//a[i]*u[i-1] - b[i]*u[i] + c[i]*u[i+1] = F[i]
-
-		for(i = 1; i < grid.N + 1; i++) {
-			a1[i] = (L2/D2)*(4.*i - 2)/HX2/i;
-		    b1[i] = 2./grid.tau + 8.*(L2/D2)/HX2;
-		    c1[i] = (L2/D2)*(4.*i + 2)/HX2/i;	
-		}
-		
-		double a2 = 1./HY2;
-		double b2 = 2./HY2 + 2./grid.tau;
-		double c2 = 1./HY2;
-		
-		double F, F1, F2;
-		
-		int lastIndex = (int)(dAv/d/hx);
-		lastIndex 	  = lastIndex > grid.N ? grid.N : lastIndex;
-		
-		//precalc coefs
-
-		double a11 = 4.*L2TAU/(D2HX2 + 4.*L2TAU);
-		double b11 = 0.5*grid.tau*D2HX2/(D2HX2 + 4.*L2TAU);
-		double c11 = Bi3*hx*d*grid.tau*l*(2.*grid.N + 1)/grid.N;
-		double b21 = grid.tau*D2HX2/(D2HX2 + 4.*L2TAU);
-		double b22 = 1./grid.tau - ( 1 + Bi1*hy )/HY2;
-		double b31 = grid.tau*D2HX2/(D2HX2 + 4.*L2TAU);
-		double b32 = 1./grid.tau - ( 1 + Bi2*hy )/HY2;
-		double f11 = 1./grid.tau - ( 1 + Bi1*hy )/HY2;
-		double f21 = 1./grid.tau - ( 1 + Bi2*hy )/HY2;
-		double c21 = Bi3*hx*d*grid.tau*l*(2.*grid.N + 1)/grid.N;
-		double c22 = 1./grid.tau - (1 + Bi1*hy)/HY2;
-		double c31 = Bi3*hx*d*grid.tau*l*(2.*grid.N + 1)/grid.N;
-		double c32 = 1./grid.tau - (1 + Bi2*hy)/HY2 ;
-
-		double _a11 = grid.tau/(Bi1*hy*grid.tau + HY2 + grid.tau);
-		double _b11 = 1./((1 + hy*Bi1)*grid.tau + HY2);
-		double _b12 = 2.*HY2*grid.tau/((1 + hy*Bi1)*grid.tau + HY2)*pow(l/d/hx,2);
-		double _c11 = 2.*grid.tau*pow(hy*l/d/hx,2);
-		double _b21 = 1./((1 + hy*Bi1)*grid.tau + HY2);
-		double _b22 = HY2*grid.tau/((1 + hy*Bi1)*grid.tau + HY2)*pow(2.*l/d/hx,2);
-		double _b31 = 1./((1 + hy*Bi1)*grid.tau + HY2);
-		double _b32 = - HY2*grid.tau/((1 + hy*Bi1)*grid.tau + HY2)*pow(2.*l/d/hx,2);
-		double _b33 = 1 + hx*d/2./l*Bi3*(2.*grid.N + 1)/2./grid.N;
-		double _f21 = 1./grid.tau - 4.*L2/D2HX2;
-		double _f22 = 4.*L2/D2HX2;
-		double _f31 = 1./grid.tau - pow(2.*l/d/hx, 2)*(hx*d/2./l*Bi3*(2.*grid.N + 1)/2./grid.N + 1);
-		double _f32 = pow(2.*l/d/hx, 2);
-		double _c21 = HY2*grid.tau*pow(2.*l/d/hx, 2);
-		double _c31 = - grid.tau*pow(2.*l*hy/d/hx, 2);
-		double _c32 = hx*d/2./l*(2.*grid.N + 1)/2./grid.N*Bi3 + 1;
-		double _c33;
-
-		//end of coefs			
-		
-		//begin time cycle
-		
-		for (w = 1; w < counts; w++) {
-			
-			for (m = (w - 1)*timeInterval; m < w*timeInterval; m++) {
+				DiscretePulse2D discretePulse2D = (DiscretePulse2D)discretePulse;
 				
-				//first equation, i -> x (radius), j -> y (thickness)
+				//quick links
+
+				final double Bi3	= (double) problem.getSideLosses().getValue();
+				final double d		= (double) problem.getSampleDiameter().getValue();
+				final double dAv	= (double) problem.getPyrometerSpot().getValue();
 				
-				alpha[1] = a11;
+				final double l			= (double) problem.getSampleThickness().getValue();
+				final double Bi1		= (double) problem.getFrontHeatLoss().getValue();
+				final double Bi2 		= (double) problem.getHeatLossRear().getValue();
+				final double maxTemp 	= (double) problem.getMaximumTemperature().getValue();
 				
-				for (j = 1; j < grid.N; j++) {
+				//end
+
+				double[][] U1	= new double[grid.N + 1][grid.N + 1];
+				double[][] U2	= new double[grid.N + 1][grid.N + 1];
+				double[] alpha  = new double[grid.N + 2];
+				double[] beta   = new double[grid.N + 2];
+				double[] beta1  = new double[grid.N + 2];
+				double[] beta2  = new double[grid.N + 2];
+				
+				double[] a1 = new double[grid.N + 1];
+				double[] b1 = new double[grid.N + 1];
+				double[] c1 = new double[grid.N + 1];
+				
+				final double EPS = 1e-8;
+				
+				HeatingCurve curve = problem.getHeatingCurve();
+				curve.reinit();
+				
+				final int counts = (int) curve.getNumPoints().getValue();
+				
+				double maxVal = 0;
+				int i, j, m, w;
+				double pls;
+
+				double hy = ((Grid2D)getGrid()).hy;
+				double hx = grid.hx;
+				
+				//precalculated constants				
+
+				double D2    = pow(d,2); 
+				double L2    = pow(l,2); 
+				double HX2   = pow(hx,2); 
+				double HY2   = pow(hy,2);
+				double D2HX2 = D2*HX2; 
+				double L2TAU = L2*grid.tau;
+				
+				//a[i]*u[i-1] - b[i]*u[i] + c[i]*u[i+1] = F[i]
+
+				for(i = 1; i < grid.N + 1; i++) {
+					a1[i] = (L2/D2)*(4.*i - 2)/HX2/i;
+				    b1[i] = 2./grid.tau + 8.*(L2/D2)/HX2;
+				    c1[i] = (L2/D2)*(4.*i + 2)/HX2/i;	
+				}
+				
+				double a2 = 1./HY2;
+				double b2 = 2./HY2 + 2./grid.tau;
+				double c2 = 1./HY2;
+				
+				double F, F1, F2;
+				
+				int lastIndex = (int)(dAv/d/hx);
+				lastIndex 	  = lastIndex > grid.N ? grid.N : lastIndex;
+				
+				//precalc coefs
+
+				double a11 = 4.*L2TAU/(D2HX2 + 4.*L2TAU);
+				double b11 = 0.5*grid.tau*D2HX2/(D2HX2 + 4.*L2TAU);
+				double c11 = Bi3*hx*d*grid.tau*l*(2.*grid.N + 1)/grid.N;
+				double b21 = grid.tau*D2HX2/(D2HX2 + 4.*L2TAU);
+				double b22 = 1./grid.tau - ( 1 + Bi1*hy )/HY2;
+				double b31 = grid.tau*D2HX2/(D2HX2 + 4.*L2TAU);
+				double b32 = 1./grid.tau - ( 1 + Bi2*hy )/HY2;
+				double f11 = 1./grid.tau - ( 1 + Bi1*hy )/HY2;
+				double f21 = 1./grid.tau - ( 1 + Bi2*hy )/HY2;
+				double c21 = Bi3*hx*d*grid.tau*l*(2.*grid.N + 1)/grid.N;
+				double c22 = 1./grid.tau - (1 + Bi1*hy)/HY2;
+				double c31 = Bi3*hx*d*grid.tau*l*(2.*grid.N + 1)/grid.N;
+				double c32 = 1./grid.tau - (1 + Bi2*hy)/HY2 ;
+
+				double _a11 = grid.tau/(Bi1*hy*grid.tau + HY2 + grid.tau);
+				double _b11 = 1./((1 + hy*Bi1)*grid.tau + HY2);
+				double _b12 = 2.*HY2*grid.tau/((1 + hy*Bi1)*grid.tau + HY2)*pow(l/d/hx,2);
+				double _c11 = 2.*grid.tau*pow(hy*l/d/hx,2);
+				double _b21 = 1./((1 + hy*Bi1)*grid.tau + HY2);
+				double _b22 = HY2*grid.tau/((1 + hy*Bi1)*grid.tau + HY2)*pow(2.*l/d/hx,2);
+				double _b31 = 1./((1 + hy*Bi1)*grid.tau + HY2);
+				double _b32 = - HY2*grid.tau/((1 + hy*Bi1)*grid.tau + HY2)*pow(2.*l/d/hx,2);
+				double _b33 = 1 + hx*d/2./l*Bi3*(2.*grid.N + 1)/2./grid.N;
+				double _f21 = 1./grid.tau - 4.*L2/D2HX2;
+				double _f22 = 4.*L2/D2HX2;
+				double _f31 = 1./grid.tau - pow(2.*l/d/hx, 2)*(hx*d/2./l*Bi3*(2.*grid.N + 1)/2./grid.N + 1);
+				double _f32 = pow(2.*l/d/hx, 2);
+				double _c21 = HY2*grid.tau*pow(2.*l/d/hx, 2);
+				double _c31 = - grid.tau*pow(2.*l*hy/d/hx, 2);
+				double _c32 = hx*d/2./l*(2.*grid.N + 1)/2./grid.N*Bi3 + 1;
+				double _c33;
+
+				//end of coefs			
+				
+				//begin time cycle
+				
+				for (w = 1; w < counts; w++) {
 					
-					beta[1]  = b11*(2.*U1[0][j]/grid.tau + (U1[0][j+1] - 2.*U1[0][j] + U1[0][j-1])/HY2);
+					for (m = (w - 1)*timeInterval; m < w*timeInterval; m++) {
+						
+						//first equation, i -> x (radius), j -> y (thickness)
+						
+						alpha[1] = a11;
+						
+						for (j = 1; j < grid.N; j++) {
+							
+							beta[1]  = b11*(2.*U1[0][j]/grid.tau + (U1[0][j+1] - 2.*U1[0][j] + U1[0][j-1])/HY2);
 
-					for (i = 1; i < grid.N; i++) {
-						F  		   = -(2./grid.tau*U1[i][j] + (U1[i][j-1] - 2.0*U1[i][j] + U1[i][j+1])/HY2);
-					    alpha[i+1] = c1[i]/(b1[i]-a1[i]*alpha[i]);
-					    beta[i+1]  = (F - a1[i]*beta[i])/(a1[i]*alpha[i] - b1[i]);	
+							for (i = 1; i < grid.N; i++) {
+								F  		   = -(2./grid.tau*U1[i][j] + (U1[i][j-1] - 2.0*U1[i][j] + U1[i][j+1])/HY2);
+							    alpha[i+1] = c1[i]/(b1[i]-a1[i]*alpha[i]);
+							    beta[i+1]  = (F - a1[i]*beta[i])/(a1[i]*alpha[i] - b1[i]);	
+							}
+
+						    U2[grid.N][j] = grid.tau/(4.*L2TAU*(1 - alpha[grid.N]) + D2HX2 + c11)*
+						    (4.*L2*beta[grid.N] + 0.5*D2HX2*( 2./grid.tau*U1[grid.N][j] + (U1[grid.N][j+1] - 2.*U1[grid.N][j] + U1[grid.N][j-1])/HY2 ) );
+
+						    for (i = grid.N - 1; i >= 0; i--)
+						    	U2[i][j] = alpha[i+1]*U2[i+1][j] + beta[i+1];
+							
+						}
+						    
+						//boundary : j = 0 (j = grid.N), m = 1/2, i = 1 to grid.N-1
+
+						pls = discretePulse2D.evaluateAt( (m - EPS)*grid.tau );
+
+						beta1[1] = b21*( b22*U1[0][0] + U1[0][1]/HY2 + pls/hy );
+						beta2[1] = b31*( b32*U1[0][grid.N] + U1[0][grid.N-1]/HY2 );
+						
+						for (i = 1; i < grid.N; i++) {
+							pls = discretePulse2D.evaluateAt( (m - EPS)*grid.tau, i*hx );	
+							F1  = -2.*( f11*U1[i][0] + U1[i][1]/HY2 + pls/hy);
+					    	F2  = -2.*( f21*U1[i][grid.N] + U1[i][grid.N-1]/HY2);
+					    	beta1[i+1] = (F1 - a1[i]*beta1[i])/(a1[i]*alpha[i] - b1[i]);
+					    	beta2[i+1] = (F2 - a1[i]*beta2[i])/(a1[i]*alpha[i] - b1[i]);	
+						}
+
+						pls = discretePulse2D.evaluateAt( (m - EPS)*grid.tau, (grid.N - EPS)*hx );		
+
+						U2[grid.N][0] = grid.tau/(4.*L2TAU*(1 - alpha[grid.N]) + D2HX2 + c21 )*(4.*L2*beta1[grid.N] + D2HX2*( c22*U1[grid.N][0] + U1[grid.N][1]/HY2 + pls/hy ));
+						U2[grid.N][grid.N] = grid.tau/(4.*L2TAU*(1 - alpha[grid.N]) + D2HX2 + c31 )*(4.*L2*beta2[grid.N] + D2HX2*( c32*U1[grid.N][grid.N] + U1[grid.N][grid.N-1]/HY2 ));
+
+						for (i = grid.N - 1; i >= 0; i--) {
+							U2[i][0] = alpha[i+1]*U2[i+1][0] + beta1[i+1];
+						    U2[i][grid.N] = alpha[i+1]*U2[i+1][grid.N] + beta2[i+1];						
+						}
+						
+						//second equation
+						
+						alpha[1] = _a11;
+
+						for (i = 1; i < grid.N; i++) {
+							
+							pls = discretePulse2D.evaluateAt( (m + 1 + EPS)*grid.tau, i*hx );
+							beta[1] = (grid.tau*hy*pls + HY2*U2[i][0])*_b11 + _b12*(U2[i+1][0]*(1 + 0.5/i) - 2.*U2[i][0] + (1 - 0.5/i)*U2[i-1][0]);
+							
+							for (j = 1; j < grid.N; j++) {
+								F          = -2./grid.tau*U2[i][j] - 4.*L2/D2HX2*( (1 + 0.5/i)*U2[i+1][j] - 2.*U2[i][j] + (1 - 0.5/i)*U2[i-1][j] );
+						      	alpha[j+1] = c2/(b2-a2*alpha[j]);
+						      	beta [j+1] = (F - a2*beta[j])/(a2*alpha[j] - b2);							
+							}
+												  
+						    U1[i][grid.N] = (grid.tau*beta[grid.N] + HY2*U2[i][grid.N] + _c11*((1 + 0.5/i)*U2[i+1][grid.N] - 2.*U2[i][grid.N] + (1 - 0.5/i)*U2[i-1][grid.N]))
+						    /((1 - alpha[grid.N] + hy*Bi2)*grid.tau + HY2);
+
+						    for (j = grid.N - 1; j >= 0; j--)
+						    	U1[i][j] = alpha[j+1]*U1[i][j+1] + beta[j+1];
+						      
+						}										
+
+						//boundary : i = 0 (i = grid.N), m = 1/2, j = 1 to grid.N-1
+
+						// i = 0, j = 0
+
+						pls 	 = discretePulse2D.evaluateAt( (m + 1 + EPS)*grid.tau);
+						beta1[1] = _b21*(grid.tau*hy*pls + HY2*U2[0][0]) + _b22*(U2[1][0] - U2[0][0]);
+
+						// i = grid.N, j = 1
+
+						pls 	 = discretePulse2D.evaluateAt( (m + 1 + EPS)*grid.tau, (grid.N - EPS)*hx );
+						beta2[1] = _b31*(grid.tau*hy*pls + HY2*U2[grid.N][0]) + _b32*(U2[grid.N][0]*_b33 - U2[grid.N-1][0]);
+						
+						for (j = 1; j < grid.N; j++) {
+							F1		   = -2.*( _f21*U2[0][j] + _f22*U2[1][j] );
+						    F2		   = -2.*( _f31*U2[grid.N][j] + _f32*U2[grid.N-1][j] );
+						    beta1[j+1] = (F1 - a2*beta1[j])/(a2*alpha[j] - b2);
+						    beta2[j+1] = (F2 - a2*beta2[j])/(a2*alpha[j] - b2);						
+						}
+
+						_c33 = 1./((1 - alpha[grid.N] + hy*Bi2)*grid.tau + HY2);
+
+						U1[0][grid.N] = (grid.tau*beta1[grid.N] + HY2*U2[0][grid.N] + _c21*(U2[1][grid.N] - U2[0][grid.N]))*_c33;
+						U1[grid.N][grid.N] = (grid.tau*beta2[grid.N] + HY2*U2[grid.N][grid.N] + _c31*(_c32*U2[grid.N][grid.N] - U2[grid.N-1][grid.N]))*_c33;
+
+						for (j = grid.N - 1; j >= 0; j--) {
+							U1[0][j] = alpha[j+1]*U1[0][j+1] + beta1[j+1];
+						    U1[grid.N][j] = alpha[j+1]*U1[grid.N][j+1] + beta2[j+1];	
+						}				
+						
+						
 					}
-
-				    U2[grid.N][j] = grid.tau/(4.*L2TAU*(1 - alpha[grid.N]) + D2HX2 + c11)*
-				    (4.*L2*beta[grid.N] + 0.5*D2HX2*( 2./grid.tau*U1[grid.N][j] + (U1[grid.N][j+1] - 2.*U1[grid.N][j] + U1[grid.N][j-1])/HY2 ) );
-
-				    for (i = grid.N - 1; i >= 0; i--)
-				    	U2[i][j] = alpha[i+1]*U2[i+1][j] + beta[i+1];
 					
-				}
-				    
-				//boundary : j = 0 (j = grid.N), m = 1/2, i = 1 to grid.N-1
+					//calc average value
 
-				pls = discretePulse2D.evaluateAt( (m - EPS)*grid.tau );
-
-				beta1[1] = b21*( b22*U1[0][0] + U1[0][1]/HY2 + pls/hy );
-				beta2[1] = b31*( b32*U1[0][grid.N] + U1[0][grid.N-1]/HY2 );
-				
-				for (i = 1; i < grid.N; i++) {
-					pls = discretePulse2D.evaluateAt( (m - EPS)*grid.tau, i*hx );	
-					F1  = -2.*( f11*U1[i][0] + U1[i][1]/HY2 + pls/hy);
-			    	F2  = -2.*( f21*U1[i][grid.N] + U1[i][grid.N-1]/HY2);
-			    	beta1[i+1] = (F1 - a1[i]*beta1[i])/(a1[i]*alpha[i] - b1[i]);
-			    	beta2[i+1] = (F2 - a1[i]*beta2[i])/(a1[i]*alpha[i] - b1[i]);	
-				}
-
-				pls = discretePulse2D.evaluateAt( (m - EPS)*grid.tau, (grid.N - EPS)*hx );		
-
-				U2[grid.N][0] = grid.tau/(4.*L2TAU*(1 - alpha[grid.N]) + D2HX2 + c21 )*(4.*L2*beta1[grid.N] + D2HX2*( c22*U1[grid.N][0] + U1[grid.N][1]/HY2 + pls/hy ));
-				U2[grid.N][grid.N] = grid.tau/(4.*L2TAU*(1 - alpha[grid.N]) + D2HX2 + c31 )*(4.*L2*beta2[grid.N] + D2HX2*( c32*U1[grid.N][grid.N] + U1[grid.N][grid.N-1]/HY2 ));
-
-				for (i = grid.N - 1; i >= 0; i--) {
-					U2[i][0] = alpha[i+1]*U2[i+1][0] + beta1[i+1];
-				    U2[i][grid.N] = alpha[i+1]*U2[i+1][grid.N] + beta2[i+1];						
-				}
-				
-				//second equation
-				
-				alpha[1] = _a11;
-
-				for (i = 1; i < grid.N; i++) {
+					double sum = 0;
 					
-					pls = discretePulse2D.evaluateAt( (m + 1 + EPS)*grid.tau, i*hx );
-					beta[1] = (grid.tau*hy*pls + HY2*U2[i][0])*_b11 + _b12*(U2[i+1][0]*(1 + 0.5/i) - 2.*U2[i][0] + (1 - 0.5/i)*U2[i-1][0]);
+					for (i = 0; i <= lastIndex; i++)
+						sum += U1[i][grid.N];
 					
-					for (j = 1; j < grid.N; j++) {
-						F          = -2./grid.tau*U2[i][j] - 4.*L2/D2HX2*( (1 + 0.5/i)*U2[i+1][j] - 2.*U2[i][j] + (1 - 0.5/i)*U2[i-1][j] );
-				      	alpha[j+1] = c2/(b2-a2*alpha[j]);
-				      	beta [j+1] = (F - a2*beta[j])/(a2*alpha[j] - b2);							
-					}
-										  
-				    U1[i][grid.N] = (grid.tau*beta[grid.N] + HY2*U2[i][grid.N] + _c11*((1 + 0.5/i)*U2[i+1][grid.N] - 2.*U2[i][grid.N] + (1 - 0.5/i)*U2[i-1][grid.N]))
-				    /((1 - alpha[grid.N] + hy*Bi2)*grid.tau + HY2);
+					sum /= (lastIndex + 1);
+					curve.setTemperatureAt(w, sum);
+					curve.setTimeAt(w, w*timeInterval*grid.tau*problem.timeFactor());
 
-				    for (j = grid.N - 1; j >= 0; j--)
-				    	U1[i][j] = alpha[j+1]*U1[i][j+1] + beta[j+1];
-				      
-				}										
+					maxVal = max(maxVal, sum);			
+					
+				}					
 
-				//boundary : i = 0 (i = grid.N), m = 1/2, j = 1 to grid.N-1
-
-				// i = 0, j = 0
-
-				pls 	 = discretePulse2D.evaluateAt( (m + 1 + EPS)*grid.tau);
-				beta1[1] = _b21*(grid.tau*hy*pls + HY2*U2[0][0]) + _b22*(U2[1][0] - U2[0][0]);
-
-				// i = grid.N, j = 1
-
-				pls 	 = discretePulse2D.evaluateAt( (m + 1 + EPS)*grid.tau, (grid.N - EPS)*hx );
-				beta2[1] = _b31*(grid.tau*hy*pls + HY2*U2[grid.N][0]) + _b32*(U2[grid.N][0]*_b33 - U2[grid.N-1][0]);
-				
-				for (j = 1; j < grid.N; j++) {
-					F1		   = -2.*( _f21*U2[0][j] + _f22*U2[1][j] );
-				    F2		   = -2.*( _f31*U2[grid.N][j] + _f32*U2[grid.N-1][j] );
-				    beta1[j+1] = (F1 - a2*beta1[j])/(a2*alpha[j] - b2);
-				    beta2[j+1] = (F2 - a2*beta2[j])/(a2*alpha[j] - b2);						
-				}
-
-				_c33 = 1./((1 - alpha[grid.N] + hy*Bi2)*grid.tau + HY2);
-
-				U1[0][grid.N] = (grid.tau*beta1[grid.N] + HY2*U2[0][grid.N] + _c21*(U2[1][grid.N] - U2[0][grid.N]))*_c33;
-				U1[grid.N][grid.N] = (grid.tau*beta2[grid.N] + HY2*U2[grid.N][grid.N] + _c31*(_c32*U2[grid.N][grid.N] - U2[grid.N-1][grid.N]))*_c33;
-
-				for (j = grid.N - 1; j >= 0; j--) {
-					U1[0][j] = alpha[j+1]*U1[0][j+1] + beta1[j+1];
-				    U1[grid.N][j] = alpha[j+1]*U1[grid.N][j+1] + beta2[j+1];	
-				}				
-				
-				
-			}
-			
-			//calc average value
-
-			double sum = 0;
-			
-			for (i = 0; i <= lastIndex; i++)
-				sum += U1[i][grid.N];
-			
-			sum /= (lastIndex + 1);
-			curve.setTemperatureAt(w, sum);
-			curve.setTimeAt(w, w*timeInterval*grid.tau*problem.timeFactor());
-
-			maxVal = max(maxVal, curve.temperatureAt(w));	
-			
-			
-		}					
-
-		curve.scale( maxTemp/maxVal );
-	}
+				curve.scale( maxTemp/maxVal );
+			});
 	
-	public void solve(NonlinearProblem2D problem) {
-		super.solve(problem);
+	public Solver<NonlinearProblem2D> nonlinearSolver2D = (problem -> {
+		super.prepare(problem);
 		
 		//quick links
 
@@ -595,12 +564,49 @@ public class ADIScheme extends DifferenceScheme {
 			curve.setTemperatureAt(w, sum);
 			curve.setTimeAt(w, w*timeInterval*grid.tau*problem.timeFactor());
 
-			maxVal = max(maxVal, curve.temperatureAt(w));	
+			maxVal = max(maxVal, sum);	
 			
 			
 		}					
 
 		problem.setMaximumTemperature(NumericProperty.derive(NumericPropertyKeyword.MAXTEMP, maxVal));
-	}
 
+	});
+	
+	public ADIScheme() {
+		this(GRID_DENSITY, TAU_FACTOR);
+	}	
+	
+	public ADIScheme(NumericProperty N, NumericProperty timeFactor) {
+		super(N, timeFactor);
+		grid = new Grid2D(N, timeFactor);	
+		grid.setParent(this);
+	}
+	
+	public ADIScheme(NumericProperty N, NumericProperty timeFactor, NumericProperty timeLimit) {
+		this(N, timeFactor);
+		setTimeLimit(timeLimit);
+	}
+	
+	@Override
+	public DifferenceScheme copy() {
+		return new ADIScheme(grid.getGridDensity(),
+				grid.getTimeFactor(), getTimeLimit());
+	}
+	
+	@Override
+	public String toString() {
+		return Messages.getString("ADIScheme.4");
+	}
+	
+	@Override
+	public Solver<? extends Problem> solver(Problem problem) {
+		if(problem instanceof LinearisedProblem2D)
+			return linearisedSolver2D;
+		else if(problem instanceof NonlinearProblem2D)
+			return nonlinearSolver2D;
+		else 
+			return null;
+	}
+	
 }

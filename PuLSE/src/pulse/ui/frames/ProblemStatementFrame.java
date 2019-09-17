@@ -36,6 +36,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 
 import pulse.problem.schemes.DifferenceScheme;
+import pulse.problem.schemes.Solver;
 import pulse.problem.statements.Problem;
 import pulse.tasks.SearchTask;
 import pulse.tasks.Status;
@@ -209,7 +210,7 @@ public class ProblemStatementFrame extends JFrame {
 					}
 				}						
 
-				t.getScheme().solve(t.getProblem());
+				t.getScheme().solver(t.getProblem()).solve(t.getProblem());				
 		
 				TaskControlFrame.plot(t, true);				
 
@@ -461,10 +462,9 @@ public class ProblemStatementFrame extends JFrame {
 					DefaultListModel<DifferenceScheme> defaultModel = (DefaultListModel<DifferenceScheme>)(schemeSelectionList.getModel());
 					defaultModel.clear();
 					
-					DifferenceScheme[] schemes = newlySelectedProblem.availableSolutions();
+					List<DifferenceScheme> schemes = newlySelectedProblem.availableSolutions();
 					
-					for(DifferenceScheme s : schemes)
-						defaultModel.addElement(s);
+					schemes.forEach(s -> defaultModel.addElement(s));
 					
 					schemeSelectionList.setToolTipText(null);
 										

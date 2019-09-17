@@ -12,7 +12,7 @@ public enum DataEventType {
 	 * a part of the {@code ExperimentalData} has been truncated,
 	 * i.e. permanently removed from the respective {@code time} and
 	 * {@code temperature} {@code List}s.
-	 * @see pulse.input.ExperimentalData.truncate 
+	 * @see pulse.input.ExperimentalData.truncate() 
 	 */
 	
 	TRUNCATED;
