@@ -11,10 +11,7 @@ import pulse.HeatingCurve;
 import pulse.input.ExperimentalData;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.DiscretePulse;
-import pulse.problem.schemes.ExplicitScheme;
 import pulse.problem.schemes.Grid;
-import pulse.problem.schemes.ImplicitScheme;
-import pulse.problem.schemes.MixedScheme;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
@@ -29,6 +26,15 @@ import static java.lang.Math.exp;
 
 import static pulse.properties.NumericPropertyKeyword.*;
 
+/**
+ * A {@code Problem} is an abstract class defining the general rules for handling
+ * heat conduction problems, and also providing access to the basic properties 
+ * used in the calculation with one of the {@code DifferenceScheme}s. Most importantly,
+ * this class sets out the procedures for reading and writing the vector argument of the 
+ * objective function for solving the optimisation problem.
+ * @see pulse.problem.schemes.DifferenceScheme
+ */
+
 public abstract class Problem extends PropertyHolder implements Reflexive, SaveableDirectory {		
 	
 	protected HeatingCurve curve;
@@ -36,16 +42,16 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 	protected double a, l;
 	protected double Bi1, Bi2;
 	protected double signalHeight;
-	protected double cV, rho;
+	protected double cP, rho;
 	
 	private static boolean singleStatement;
 	private static boolean hideDetailedAdjustment = true;
-	private static NumericPropertyKeyword[] 
-			criticalParameters = new NumericPropertyKeyword[]{ 
-			THICKNESS, DIAMETER, PULSE_WIDTH, SPOT_DIAMETER, PYROMETER_SPOT};
 	
 	/**
-	 * Used for the calculation of the classic solution by Parker et al.
+	 * The <b>corrected</b> proportionality factor setting out the relation between
+	 * the thermal diffusivity and the half-rise time of an {@code ExperimentalData}
+	 * curve. 
+	 * @see <a href="https://doi.org/10.1063/1.1728417">Parker <i>et al.</i> Journal of Applied Physics <b>32</b> (1961) 1679</a>
 	 */
 	
 	public final double PARKERS_COEFFICIENT = 0.1388; //in mm
@@ -93,8 +99,8 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 	
 	/**
 	 * <p>Calculates the classic analytical solution <math><i>T(x=l</i>,<code>time</code>)</math> of Parker et al. at the specified {@code time}
-	 * using the first {@code precision} terms of the solution series. The results is then scaled
-	 * by a factor of {@code signalHeight}.</p>   
+	 * using the first {@code n = precision} terms of the solution series. The results is then scaled
+	 * by a factor of {@code signalHeight} and returned.</p>   
 	 * @param time The calculation time
 	 * @param precision The number of terms in the approximated solution
 	 * @return a double, representing <math><i>T(x=l</i>,<code>time</code>)</math> 
@@ -117,14 +123,26 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 		
 	}
 	
+	/**
+	 * Lists the available {@code DifferenceScheme}s for this {@code Problem}.
+	 * <p>This is done utilising the {@code Reflexive} interface implemented by the
+	 * class {@code DifferenceSheme}. This method dynamically locates any subclasses
+	 * of the {@code DifferenceScheme} in the associated package (note this can be 
+	 * extended to include plugins) and checks whether any of the instances of those schemes
+	 * return a non-{@code null} result when calling the {@code solver(Problem)} method.</p>
+	 * @return a {@code List} of available {@code DifferenceScheme}s for solving this {@code Problem}.
+	 */
+	
 	public List<DifferenceScheme> availableSolutions() {
 		List<DifferenceScheme> allSchemes = Reflexive.instancesOf(DifferenceScheme.class);
 		return allSchemes.stream().filter(scheme -> scheme.solver(this) != null).collect(Collectors.toList());
 	}
-
-	public NumericProperty getDiffusivity() {
-		return NumericProperty.derive(DIFFUSIVITY, a);
-	}
+	
+	/**
+	 * Used to change the parameter values of this {@code Problem}. It is only allowed
+	 * to use those types of {@code NumericPropery} that are listed by the {@code listedParameters()}.
+	 * @see listedParameters()  
+	 */
 	
 	public void set(NumericPropertyKeyword type, NumericProperty value) {
 		NumericPropertyKeyword prop = (NumericPropertyKeyword)type;
@@ -136,7 +154,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 			case THICKNESS 			: 	l = newVal; 			return;
 			case HEAT_LOSS_FRONT 	: 	Bi1 = newVal; 			return;
 			case HEAT_LOSS_REAR 	: 	Bi2 = newVal; 			return;
-			case SPECIFIC_HEAT 		: 	cV = newVal; 			return;
+			case SPECIFIC_HEAT 		: 	cP = newVal; 			return;
 			case DENSITY 			: 	rho = newVal; 			return;
 		}
 		
@@ -144,14 +162,12 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 		
 	}
 
-	public void setDiffusivity(NumericProperty a) {
-		this.a = (double)a.getValue();
+	public NumericProperty getDiffusivity() {
+		return NumericProperty.derive(DIFFUSIVITY, a);
 	}
 	
-	public void reset(ExperimentalData curve) {
-		Bi1 = 0;
-		Bi2 = 0;
-	  	this.retrieveData(curve);
+	public void setDiffusivity(NumericProperty a) {
+		this.a = (double)a.getValue();
 	}
 	
 	public NumericProperty getMaximumTemperature() {
@@ -169,11 +185,15 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 	public void setSampleThickness(NumericProperty l) {
 		this.l = (double)l.getValue();
 	}
+	
+	/**
+	 * <p>Assuming that <code>Bi<sub>1</sub> = Bi<sub>2</sub></code>, returns the value of <code>Bi<sub>1</sub></code>.
+	 * If <code>Bi<sub>1</sub> = Bi<sub>2</sub></code>, this will print a warning message (but will not throw an exception)</p> 
+	 * @return Bi<sub>1</sub> as a {@code NumericProperty}
+	 */
 
 	public NumericProperty getHeatLoss() {
-		final double eps = 1e-5;
-		
-		if(Math.abs(Bi1 - Bi2) > eps)
+		if(((Double)Bi1).compareTo((Double)Bi2) != 0)
 			System.err.println("Bi1 = " + Bi1 + " is not equal to " + " Bi2 = " + Bi2);
 		
 		return NumericProperty.derive(HEAT_LOSS, Bi1);
@@ -202,58 +222,107 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 	public Pulse getPulse() {
 		return pulse;
 	}
+	
+	/**
+	 * Sets the {@code pulse} of this {@code Problem} and assigns this {@code Problem} as its parent. 
+	 * @param pulse a {@code Pulse} object 
+	 */
 
 	public void setPulse(Pulse pulse) {
 		this.pulse = pulse;
 		pulse.setParent(this);
 	}
 	
+	/**
+	 * Performs simple calculation of the <math><i>l<sup>2</sup>/a</i></math> factor 
+	 * that is commonly used to evaluate the dimensionless time {@code t/timeFactor}.
+	 * @return the time factor
+	 */
+	
 	public double timeFactor() {
 		return pow(l,2)/a;
 	}
 	
+	/**
+	 * This will use the data contained in {@code c} to estimate the detector signal span
+	 * and the thermal diffusivity for this {@code Problem}. Note these estimates may be very rough. 
+	 * @param c the {@code ExperimentalData} object
+	 */
+	
 	public void retrieveData(ExperimentalData c) {		
-		curve.getBaseline().fitTo(c);				
-		estimateSignalRange(c);
+		curve.getBaseline().fitTo(c); //used to estimate the floor of the signal range 				
+		estimateSignalRange(c); 
 		updateProperties(this, c.getMetadata());
 		useParkersSolution(c);		
 	}
 	
+	/**
+	 * The signal range is defined as <math>max{ <i>T(t)</i> } - min{ <i>T(t)</i> }</math>,
+	 * where <math>max{...}</math> and <math>min{...}</math> are robust to outliers. This calls
+	 * the {@code maxTemperature} method of {@code c} and uses the baseline value at {@code 0} 
+	 * as the <math>min{...}</math> value.   	 
+	 * @param c the {@code ExperimentalData} object
+	 * @see pulse.input.ExperimentalData.maxTemperature()
+	 */
+	
 	public void estimateSignalRange(ExperimentalData c) {
 		signalHeight = c.maxTemperature() - curve.getBaseline().valueAt(0);
 	}
+	
+	/**
+	 * Calculates the half-rise time <i>t</i><sub>1/2</sub> of {@code c} and uses it to estimate 
+	 * the thermal diffusivity of this problem: <code><i>a</i>={@value PARKERS_COEFFICIENT}*<i>l</i><sup>2</sup>/<i>t</i><sub>1/2</sub></code>.
+	 * @param c the {@code ExperimentalData} used to estimate the thermal diffusivity value
+	 * @see pulse.input.ExperimentalData.halfRiseTime()
+	 */
 	
 	public void useParkersSolution(ExperimentalData c) {
 		double t0 = c.halfRiseTime();	
 		this.a = PARKERS_COEFFICIENT*l*l/t0;
 	}
 	
-	@Override
-	public String toString() {
-		return this.getClass().getSimpleName();
-	}
+	/**
+	 * Calculates the vector argument defined on <math><b>R</b><sup>n</sup></math> to the 
+	 * scalar objective function for this {@code Problem}.
+	 * <p>This arguments is represented by an {@code IndexedVector}.The indices in this {@code IndexedVector} are 
+	 * determined based on the respective {@code NumericPropertyKeyword} of each 
+	 * {@code Flag} contained in the {@code flags}. To fill the vector with data, only
+	 * those parameters from this {@code Problem} will be used which are defined by the {@code flags}, 
+	 * e.g. if the flag associated with the {@code HEAT_LOSS} keyword
+	 * is set to false, its value will be skipped when creating the vector.</p>
+	 * @param flags a list of {@code Flag} objects, which determine the basis of the search
+	 * @return an {@code IndexedVector} object, representing the objective function.
+	 * @see listedParameters()
+	 */
 	
-	public IndexedVector objectiveFunction(List<Flag> flags) {	
-		IndexedVector objectiveFunction = new IndexedVector(Flag.convert(flags));
-		int size = objectiveFunction.dimension(); 		
+	public IndexedVector optimisationVector(List<Flag> flags) {	
+		IndexedVector optimisationVector = new IndexedVector(Flag.convert(flags));
+		int size = optimisationVector.dimension(); 		
 		
 		Baseline baseline = curve.getBaseline();
 		
 		for(int i = 0; i < size; i++) {
 			
-			switch( objectiveFunction.getIndex(i) ) {
-				case DIFFUSIVITY		:	objectiveFunction.set(i, a/(l*l)); break;
-				case MAXTEMP			:	objectiveFunction.set(i, signalHeight); break;
-				case BASELINE_INTERCEPT	: objectiveFunction.set(i, baseline.parameters()[0]); break; 
-				case BASELINE_SLOPE		: objectiveFunction.set(i, baseline.parameters()[1]); break;	
-				case HEAT_LOSS			:	objectiveFunction.set(i, Bi1 ); break;
+			switch( optimisationVector.getIndex(i) ) {
+				case DIFFUSIVITY		:	optimisationVector.set(i, a/(l*l)); break;
+				case MAXTEMP			:	optimisationVector.set(i, signalHeight); break;
+				case BASELINE_INTERCEPT	:   optimisationVector.set(i, baseline.parameters()[0]); break; 
+				case BASELINE_SLOPE		:   optimisationVector.set(i, baseline.parameters()[1]); break;	
+				case HEAT_LOSS			:	optimisationVector.set(i, Bi1 ); break;
 				default 				: 	continue;
 			}
 		}
 		
-		return objectiveFunction;
+		return optimisationVector;
 		
 	}
+	
+	/**
+	 * Assigns parameter values of this {@code Problem} using the optimisation vector {@code params}.
+	 * Only those parameters will be updated, the types of which are listed as indices in the {@code params} vector.   
+	 * @param params the optimisation vector, containing a similar set of parameters to this {@code Problem}
+	 * @see listedParameters()
+	 */
 	
 	public void assign(IndexedVector params) {
 		for(int i = 0, size = params.dimension(); i < size; i++) {
@@ -271,33 +340,62 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 		}
 	}
 	
-	public boolean isReady() {
+	/**
+	 * Checks if all the details necessary to calculate the solution of this {@code Problem} are specified.
+	 * May only return {@code false} in instances of {@code NonlinearProblem} or {@code NonlinearProblem2D} 
+	 * if the specific heat or density data have not been loaded.
+	 * @return {@code true} if the calculation can proceed, {@code false} if something is missing
+	 */
+	
+	public boolean allDetailsPresent() {
 		return true;
 	}
+	
+	/**
+	 * Checks whether changes in this {@code Problem} should automatically be 
+	 * accounted for by other instances of this class. 
+	 * @return {@code true} if the user has specified so (set by default), {@code false} otherwise
+	 */
 
 	public static boolean isSingleStatement() {
 		return singleStatement;
 	}
+	
+	/**
+	 * Sets the flag to isolate or inter-connects changes in all instances of {@code Problem} 
+	 * @param singleStatement {@code false} if other {@code Problem}s should disregard changes, which happened to this instances.
+	 * {@code true} otherwise.
+	 */
 
 	public static void setSingleStatement(boolean singleStatement) {
 		Problem.singleStatement = singleStatement;
 	}
+	
+	/**
+	 * Checks whether some 'advanced' details should stay hidden by the GUI when customising the {@code Problem} statement. 
+	 * @return {@code true} if the user does not want to see the details (by default), {@code false} otherwise. 
+	 */
 	
 	@Override
 	public boolean areDetailsHidden() {
 		return Problem.hideDetailedAdjustment;
 	}
 	
+	/**
+	 * Allows to either hide or display all 'advanced' settings for this {@code Problem}. 
+	 * @param b {@code true} if the user does not want to see the details, {@code false} otherwise. 
+	 */
+
 	public static void setDetailsHidden(boolean b) {
 		Problem.hideDetailedAdjustment = b;
 	}
 	
 	public NumericProperty getSpecificHeat() {
-		return NumericProperty.derive(SPECIFIC_HEAT, cV);
+		return NumericProperty.derive(SPECIFIC_HEAT, cP);
 	}
 
 	public void setSpecificHeat(NumericProperty cV) {
-		this.cV = (double)cV.getValue();
+		this.cP = (double)cV.getValue();
 	}
 
 	public NumericProperty getDensity() {
@@ -308,13 +406,23 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 		return getClass().getSimpleName();
 	}
 	
-	public NumericPropertyKeyword[] getCriticalParameters() {
-		return criticalParameters;
-	}
+	/**
+	 * Used for debugging. Initially, the nonlinear and two-dimensional
+	 * problem statements are disabled, since they have not yet been
+	 * thoroughly tested
+	 * @return {@code true} if this problem statement has been enabled, {@code false} otherwise
+	 */
 	
 	public boolean isEnabled() {
 		return true;
 	}
+	
+	/**
+	 * Constructs a {@code DiscretePulse} on the specified {@code grid} using
+	 * the {@code Pulse} corresponding to this {@code Problem}.
+	 * @param grid the grid
+	 * @return a {@code DiscretePulse} objects constructed for this {@code Problem} and the {@code grid}
+	 */
 	
 	public DiscretePulse discretePulseOn(Grid grid) {
 		return new DiscretePulse(this, getPulse(), grid);	
@@ -333,6 +441,11 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 		list.add(NumericProperty.def(HEAT_LOSS_FRONT));
 		list.add(NumericProperty.def(HEAT_LOSS_REAR));	
 		return list;
+	}
+	
+	@Override
+	public String toString() {
+		return this.getClass().getSimpleName();
 	}
 	
 }

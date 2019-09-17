@@ -27,7 +27,7 @@ public class GoldenSectionSolver extends LinearSolver {
 		
 		final Problem p = task.getProblem();
 		
-		final IndexedVector params	= p.objectiveFunction( PathSolver.getSearchFlags() );
+		final IndexedVector params	= p.optimisationVector( PathSolver.getSearchFlags() );
 		final Vector direction		= task.getPath().getDirection();
 		
 		Segment segment    = boundaries(params, direction);

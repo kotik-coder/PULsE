@@ -141,7 +141,7 @@ public class Grid extends PropertyHolder {
 	 * @param time the time
 	 * @param dimensionFactor a factor which has the dimension of time
 	 * @return a double representing the time on the finite grid
-	 * @see pulse.problem.statements.Problem.timeFactor
+	 * @see pulse.problem.statements.Problem.timeFactor()
 	 */
 	
 	public double gridTime(double time, double dimensionFactor) {		

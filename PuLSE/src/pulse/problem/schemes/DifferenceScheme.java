@@ -184,7 +184,7 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 	/**
 	 * Selects the appropriate {@code Solver} within this {@code DifferenceScheme}
 	 * for the selected {@code problem}.
-	 * @param T a {@code Problem} to be solved by this {@code DifferenceScheme}
+	 * @param t a {@code Problem} to be solved by this {@code DifferenceScheme}
 	 * @return a {@code Solver} object that can be used to solve {@code problem},
 	 * or {@code null} if the solver cannot be found in this class.   
 	 */

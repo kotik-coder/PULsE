@@ -1,14 +1,7 @@
-/**
- * 
- */
 package pulse.problem.statements;
 
 import java.util.List;
 import pulse.input.ExperimentalData;
-import pulse.problem.schemes.DifferenceScheme;
-import pulse.problem.schemes.ExplicitScheme;
-import pulse.problem.schemes.ImplicitScheme;
-import pulse.problem.schemes.MixedScheme;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
@@ -29,7 +22,7 @@ public class NonlinearProblem extends Problem {
 	public NonlinearProblem(NumericProperty a, NumericProperty cV, NumericProperty rho, NumericProperty qAbs, NumericProperty T) {
 		this();
 		this.a		= (double)a.getValue();
-		this.cV		= (double)cV.getValue();
+		this.cP		= (double)cV.getValue();
 		this.rho	= (double)rho.getValue();
 		this.qAbs	= (double)qAbs.getValue();
 		this.T		= (double)T.getValue();
@@ -80,7 +73,7 @@ public class NonlinearProblem extends Problem {
 		final double tempError	= 5e-2*this.signalHeight;
 		final double error1 = 1e-5;
 
-		if(cV < error1 || rho < error1) 
+		if(cP < error1 || rho < error1) 
 			return;
 			
 		if( Math.abs( estimateHeating() - this.signalHeight ) > tempError) 
@@ -112,7 +105,7 @@ public class NonlinearProblem extends Problem {
 		this.T  = (double)T.getValue();
 		
 		if(TaskManager.getSpecificHeatCurve() != null)
-			cV = TaskManager.getSpecificHeatCurve().interpolateAt(this.T);
+			cP = TaskManager.getSpecificHeatCurve().interpolateAt(this.T);
 		
 		if(TaskManager.getDensityCurve() != null) 
 			rho = TaskManager.getDensityCurve().interpolateAt(this.T);
@@ -133,8 +126,8 @@ public class NonlinearProblem extends Problem {
 	}
 	
 	@Override
-	public IndexedVector objectiveFunction(List<Flag> flags) {	
-		IndexedVector objectiveFunction = super.objectiveFunction(flags);
+	public IndexedVector optimisationVector(List<Flag> flags) {	
+		IndexedVector objectiveFunction = super.optimisationVector(flags);
 		int size = objectiveFunction.dimension(); 		
 		
 		for(int i = 0; i < size; i++) {
@@ -165,11 +158,11 @@ public class NonlinearProblem extends Problem {
 	}
 	
 	public double estimateHeating() {
-		return qAbs/(cV*rho*Math.PI*Math.pow((double)pulse.getSpotDiameter().getValue(), 2)*l);
+		return qAbs/(cP*rho*Math.PI*Math.pow((double)pulse.getSpotDiameter().getValue(), 2)*l);
 	}
 	
 	public void adjustAbsorbedEnergy() {
-		qAbs = signalHeight*cV*rho*Math.PI*Math.pow((double)pulse.getSpotDiameter().getValue(), 2)*l;
+		qAbs = signalHeight*cP*rho*Math.PI*Math.pow((double)pulse.getSpotDiameter().getValue(), 2)*l;
 	}
 	
 	@Override
@@ -178,10 +171,10 @@ public class NonlinearProblem extends Problem {
 	}
 
 	@Override
-	public boolean isReady() {
+	public boolean allDetailsPresent() {
 		if(TaskManager.getDensityCurve() == null || TaskManager.getSpecificHeatCurve() == null)
 			return false;
-		return super.isReady();
+		return super.allDetailsPresent();
 	}
 	
 	@Override
