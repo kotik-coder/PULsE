@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 import pulse.properties.NumericProperty;
 import pulse.tasks.AbstractResult;
@@ -92,7 +91,7 @@ public class ResultTableModel extends DefaultTableModel {
 		
 	}
 	
-	public void removeRow(Identifier id) {
+	public void removeAll(Identifier id) {
 		AbstractResult result = null;
 		
 		for(int i = results.size()-1; i >= 0; i--) {
@@ -104,7 +103,21 @@ public class ResultTableModel extends DefaultTableModel {
 			if( ((Result)result).getIdentifier().equals(id) ) {
 				results.remove(result);
 				super.removeRow(i);
-				break;
+			}
+				
+		}
+		
+	}
+	
+	public void remove(AbstractResult r) {
+		AbstractResult result = null;
+		
+		for(int i = results.size()-1; i >= 0; i--) {
+			result = results.get(i);
+			
+			if( result.equals(r) ) {
+				results.remove(result);
+				super.removeRow(i);
 			}
 				
 		}

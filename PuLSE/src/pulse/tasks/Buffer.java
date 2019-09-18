@@ -27,7 +27,7 @@ public class Buffer {
 
 	public void fill(SearchTask t, int bufferElement) {		
 		sumOfSquares[bufferElement] = (double)t.getSumOfSquares().getValue();
-		data[bufferElement] = t.objectiveFunction();		
+		data[bufferElement] = t.searchVector();		
 	}
 
 	public boolean isErrorHigh(double errorTolerance) {				

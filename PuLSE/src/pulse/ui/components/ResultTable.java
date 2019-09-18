@@ -124,7 +124,7 @@ public class ResultTable extends JTable implements Saveable  {
 					break;
 					case TASK_REMOVED :
 					case TASK_RESET :
-						((ResultTableModel)getModel()).removeRow( e.getId() );
+						((ResultTableModel)getModel()).removeAll( e.getId() );
 						getSelectionModel().clearSelection();						
 					break;	
 				}				
