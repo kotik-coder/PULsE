@@ -47,7 +47,7 @@ public class Path extends Accessible {
 		return minimumPoint;
 	}
 	
-	public void setMinimumPoint(double min) {
+	public void setLinearStep(double min) {
 		minimumPoint = min;
 	}
 	

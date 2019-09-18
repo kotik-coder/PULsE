@@ -2,6 +2,7 @@ package pulse.search.direction;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import pulse.properties.Flag;
@@ -19,64 +20,129 @@ import pulse.util.Reflexive;
 
 import static pulse.properties.NumericPropertyKeyword.*;
 
+/**
+ * An abstract class that defines the mathematical basis of solving the reverse heat conduction problem.
+ * <p>Defines the method for calculating the gradient of the target function (the sum of squared residuals, SSR) 
+ * and a search iteration method, which is used in the main loop of the {@code SearchTask}'s {@code run} method. 
+ * Declares (but not defines!) the methods for finding the direction of the minimum. This class
+ * is closely linked with another abstract search class, the {@code LinearSolver}.</p>
+ * @see pulse.search.tasks.SearchTask.run()
+ * @see pulse.search.linear.LinearSolver
+ */
+
 public abstract class PathSolver extends PropertyHolder implements Reflexive {
 	
-	private static double errorTolerance	 = (double)NumericProperty.def(ERROR_TOLERANCE).getValue();
-	private static double gradientResolution = (double)NumericProperty.def(GRADIENT_RESOLUTION).getValue();
+	private static int		maxIterations;
+	private static double	errorTolerance;
+	private static double	gradientResolution;
 
-	private static LinearSolver linearSolver = null;
-	private static List<Flag> globalSearchFlags = Flag.defaultList();
+	private static LinearSolver linearSolver;
+	private static List<Flag>	globalSearchFlags = Flag.defaultList();
 	
-	private static int maxIterations = (int)NumericProperty.def(ITERATION_LIMIT).getValue();
+	/**
+	 * Abstract constructor that sets up the default {@code ITERATION_LIMIT, ERROR_TOLERANCE} and {@code GRADIENT_RESOLUTION}
+	 * for this {@code PathSolver}. In addition, sets up a list of search flags defined by the {@code Flag.defaultList} method.
+	 * @see pulse.properties.Flag.defaultList() 
+	 */
 	
 	protected PathSolver() {
-		super();				
+		super();
+		reset();
 	}
+	
+	/**
+	 * Resets the default {@code ITERATION_LIMIT, ERROR_TOLERANCE} and {@code GRADIENT_RESOLUTION} values
+	 * for this {@code PathSolver}. In addition, sets up a list of search flags defined by the {@code Flag.defaultList} method.
+	 * @see pulse.properties.Flag.defaultList() 
+	 */
 	
 	public static void reset() {
-		linearSolver = null;
-		globalSearchFlags = Flag.defaultList(); 
+		maxIterations		= (int)NumericProperty.theDefault(ITERATION_LIMIT).getValue();
+		errorTolerance	  	= (double)NumericProperty.theDefault(ERROR_TOLERANCE).getValue();
+		gradientResolution 	= (double)NumericProperty.theDefault(GRADIENT_RESOLUTION).getValue(); 
 	}
 	
+	/**
+	 * <p>This method sets out the basic algorithm for estimating the minimum of 
+	 * the target function, which is defined as the sum of squared residuals (SSR),
+	 * or the deviations of the model solution (a {@code DifferenceScheme} used to solve
+	 * the {@code Problem} for this {@code task}) from the empirical values (the {@code ExperimentalData}).
+	 * The algorithm will go through the following steps: (1) find the direction, which points to the minimum, using the concrete 
+	 * {@code direction} method; (2) estimate the magnitude of the step to reach the minimum using the {@code LinearSolver};
+	 * (3) assign a new set of parameters to the {@code SearchTask}; (4) calculate the new SSR value.</p>  
+	 * </p>  
+	 * @param task a {@code SearchTask} that needs to be driven to a minimum of SSR.
+	 * @return the SSR value with the newly found parameters.
+	 * @see direction(Path)
+	 * @see pulse.search.linear.LinearSolver
+	 */
+	
 	public double iteration(SearchTask task) {
-		Path p			= task.getPath(); //info with previous grads, hesse, etc.
+		Path p = task.getPath(); //the previous path of the task
+		
+		/*
+		 * Checks whether an iteration limit has been already reached 		
+		 */
 		
 		if( p.getIteration().compareValues(PathSolver.getMaxIterations()) > 0 ) 
 			task.setStatus(Status.TIMEOUT);
 		
-		//get current parameters
-		IndexedVector parameters = task.objectiveFunction();
+		IndexedVector parameters = task.searchVector(); //get current search vector
 		
-		//find min direction
-		Vector dir		= direction(p);
-		p.setDirection( dir );
+		Vector dir = direction(p); //find the direction to the global minimum 
+		p.setDirection( dir ); //tell the Path this is a new direction
 		
-		//find step magnitude
-		double   minimumPoint = linearSolver.minimum(task);
-		p.setMinimumPoint(minimumPoint);
+		double step = linearSolver.linearStep(task); //find how big the step needs to be to reach the minimum
+		p.setLinearStep(step);
 		
-		//assign new parameters
-		Vector newParams 			= parameters.plus(dir.times(minimumPoint));
-			
-		task.assign( new IndexedVector(newParams, parameters.getIndices()) );
+		Vector newParams = parameters.plus(dir.times(step)); //this set of parameters supposedly corresponds to the minimum 		
+		task.assign( new IndexedVector(newParams, parameters.getIndices()) ); //assign new parameters to this task
 		
-		//compute gradients, hessians, etc. with new parameters
-		endOfStep(task);
+		endOfStep(task); //compute gradients, Hessians, etc. with new parameters
 		
-		p.incrementStep();
+		p.incrementStep(); //increment the counter of successful steps
 		
-		//cals SS
-		return task.calculateDeviation();
+		return task.calculateDeviation(); //calculate the sum of squared residuals
 	} 
 	
+	/**
+	 * Finds the direction of the minimum using the previously calculated values
+	 * stored in {@code p}.
+	 * @param p a {@code Path} object
+	 * @return a {@code Vector} pointing to the minimum direction for this {@code Path}
+	 * @see pulse.problem.statements.Problem.optimisationVector(List<Flag>)  
+	 */
+	
 	public abstract Vector direction(Path p);
+	
+	/**
+	 * Defines a set of procedures to be run at the end of the search iteration.
+	 * @param task the {@code SearchTask} undergoing optimisation
+	 */
+	
 	public abstract void endOfStep(SearchTask task);
+	
+	/**
+	 * Calculates the {@code Vector} gradient of the target function (the sum
+	 * of squared residuals, SSR, for this {@code task}.
+	 * <p>If <math><i>&Delta;f(&Delta;x<sub>i</sub>)</i></math> is the change in the 
+	 * target function associated with the change of the parameter <math><i>x<sub>i</sub></i></math>,
+	 * the <i>i</i>-th component of the gradient is equal to <math><i>g<sub>i</sub> = (&Delta;f(&Delta;x<sub>i</sub>)/&Delta;x<sub>i</sub>)</i></math>.
+	 * The accuracy of this calculation depends on the <math><i>&Delta;x<sub>i</sub></i></math> value, which is
+	 * roughly the {@code GRADIENT_RESOLUTION}. Note however that instead of using a 
+	 * forward-difference scheme to calculate the gradient, this method utilises the central-difference calculation of the 
+	 * gradient, which significantly increases the overall accuracy of calculation. This means 
+	 * that to evaluate each component of this vector, the {@code Problem} associated with this {@code task}
+	 * is solved twice (for <math><i>x<sub>i</sub> &pm; &Delta;x<sub>i</sub></i></math>).
+	 * </p>   
+	 * @param task a {@code SearchTask} that is being driven to the minimum of SSR
+	 * @return the gradient of the target function
+	 */
 	
 	public static Vector gradient(SearchTask task) {
 		
-		final IndexedVector params = task.objectiveFunction();
-		
-		Vector grad				= new Vector(params.dimension());
+		final IndexedVector params	= task.searchVector();		
+		Vector grad					= new Vector(params.dimension());
 		
 		Vector newParams, shift;
 		double ss1, ss2;
@@ -108,6 +174,12 @@ public abstract class PathSolver extends PropertyHolder implements Reflexive {
 	public static LinearSolver getLinearSolver() {
 		return linearSolver;
 	}
+	
+	/**
+	 * Assigns a {@code LinearSolver} to this {@code PathSolver} and sets 
+	 * this object as its parent.
+	 * @param linearSearch a {@code LinearSolver}
+	 */
 
 	public void setLinearSolver(LinearSolver linearSearch) {
 		PathSolver.linearSolver = linearSearch;
@@ -131,6 +203,14 @@ public abstract class PathSolver extends PropertyHolder implements Reflexive {
 		return NumericProperty.derive(GRADIENT_RESOLUTION, gradientResolution);
 	}	
 	
+	public static NumericProperty getMaxIterations() {
+		return NumericProperty.derive(NumericPropertyKeyword.ITERATION_LIMIT, maxIterations);
+	}
+
+	public static void setMaxIterations(NumericProperty maxIterations) {
+		PathSolver.maxIterations = (int)maxIterations.getValue();
+	}
+	
 	@Override
 	public String toString() {
 		return this.getClass().getSimpleName();
@@ -140,6 +220,11 @@ public abstract class PathSolver extends PropertyHolder implements Reflexive {
 		return globalSearchFlags;
 	}
 	
+	/**
+	 * This method has been overriden to account for each individual
+	 * flag in the {@code List<Flag>} set out by this class. 
+	 */
+	
 	@Override
 	public List<Property> genericProperties() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		List<Property> original = super.genericProperties();
@@ -147,15 +232,12 @@ public abstract class PathSolver extends PropertyHolder implements Reflexive {
 		return original;
 	}
 	
-	public static Flag getFlag(NumericPropertyKeyword index) {
-		return globalSearchFlags.stream().filter(flag -> flag.getType() == index).findFirst().get();
-	}
-	
-	public static void setSearchFlag(List<Flag> originalList, Flag flag) {
-		for(Flag f : originalList) 
-			if(f.getType() == flag.getType()) 
-				f.setValue(flag.getValue());		
-	}
+	/**
+	 * <p>The types of the listed parameters for this class include: <code> GRADIENT_RESOLUTION,
+	 * ERROR_TOLERANCE, ITERATION_LIMIT</code>. Also, all the flags in this class are treated as 
+	 * separate listed parameters.</p>
+	 * @see pulse.properties.NumericPropertyKeyword
+	 */
 	
 	@Override
 	public List<Property> listedParameters() {
@@ -168,6 +250,10 @@ public abstract class PathSolver extends PropertyHolder implements Reflexive {
 		return list;
 	}
 	
+	/**
+	 * The accepted types are: <code> GRADIENT_RESOLUTION, ERROR_TOLERANCE, ITERATION_LIMIT</code>.
+	 */
+	
 	@Override
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
 		switch(type) {
@@ -177,23 +263,41 @@ public abstract class PathSolver extends PropertyHolder implements Reflexive {
 		}
 	}
 	
+	/**
+	 * @return {@code false} for {@code PathSolver}
+	 */
+	
 	@Override
 	public boolean internalHolderPolicy() {
 		return false;
 	}
+	
+	/**
+	 * Finds what properties are being altered in the search
+	 * @return a {@code List} of property types represented by {@code NumericPropertyKeyword}s
+	 */
 	
 	public static List<NumericPropertyKeyword> activeParameters() {
 		return PathSolver.getSearchFlags().stream()
 				.filter(flag -> (boolean)flag.getValue())
 				.map(flag -> flag.getType()).collect(Collectors.toList());
 	}
-
-	public static NumericProperty getMaxIterations() {
-		return NumericProperty.derive(NumericPropertyKeyword.ITERATION_LIMIT, maxIterations);
-	}
-
-	public static void setMaxIterations(NumericProperty maxIterations) {
-		PathSolver.maxIterations = (int)maxIterations.getValue();
+	
+	/**
+	 * Finds a {@code Flag} equivalent to {@code flag} in the {@code originalList}
+	 * and substitutes its value with {@code flag.getValue}.
+	 * @param originalList the list where a flag with a type {@code flag.getType()} can be found
+	 * @param flag the flag which will be set
+	 */
+	
+	public static void setSearchFlag(List<Flag> originalList, Flag flag) {
+		Optional<Flag> optional = originalList.stream().
+		filter(f -> f.getType() == flag.getType()).findFirst();
+		
+		if(!optional.isPresent())
+			return;
+		
+		optional.get().setValue(flag.getValue());		
 	}
 		
 }

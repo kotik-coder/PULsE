@@ -128,7 +128,7 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 					
 	}	
 	
-	public IndexedVector objectiveFunction() {
+	public IndexedVector searchVector() {
 		return problem.optimisationVector(PathSolver.getSearchFlags());
 	}
 	

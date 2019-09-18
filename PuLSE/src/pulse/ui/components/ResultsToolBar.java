@@ -54,8 +54,8 @@ public class ResultsToolBar extends JToolBar {
 					return;
 			
 				for(int i = selection.length - 1; i >= 0; i--) 
-					rtm.removeRow( 
-							resultsTable.convertRowIndexToModel(selection[i]) );
+					rtm.remove( 
+							rtm.getResults().get(resultsTable.convertRowIndexToModel(selection[i])) );
 				
 			}
 			
@@ -88,8 +88,8 @@ public class ResultsToolBar extends JToolBar {
 				ResultTableModel dtm = (ResultTableModel) resultsTable.getModel();
 				
 				for(int i = dtm.getRowCount()-1; i >= 0; i--) 
-					dtm.removeRow( 
-							resultsTable.convertRowIndexToModel(i) );
+					dtm.remove( 
+							dtm.getResults().get(resultsTable.convertRowIndexToModel(i)) );
 				
 				TaskManager.getTaskList().stream().map(t -> TaskManager.getResult(t)).forEach(r -> dtm.addRow(r));				
 			}

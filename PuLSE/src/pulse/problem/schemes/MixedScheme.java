@@ -266,8 +266,8 @@ public class MixedScheme extends DifferenceScheme {
 			
 		}
 		
-		ref.setMaximumTemperature(new NumericProperty(maxVal, 
-				NumericProperty.def(NumericPropertyKeyword.MAXTEMP)));
+		ref.setMaximumTemperature( 
+				NumericProperty.derive(NumericPropertyKeyword.MAXTEMP, maxVal) );
 	});
 	
 	/**

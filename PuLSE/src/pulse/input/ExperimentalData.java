@@ -19,7 +19,7 @@ import pulse.util.geom.Point2D;
  * adjustable fitting range and linked {@code Metadata}. It is used to store
  * experimental data points loaded using one of the available {@code CurveReader}s.
  * Any manipulation (e.g. truncation) of the data triggers an event associated with 
- *
+ * this {@code ExperimentalData}.
  */
 
 public class ExperimentalData extends HeatingCurve {

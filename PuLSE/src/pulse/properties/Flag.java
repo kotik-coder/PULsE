@@ -4,9 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import pulse.problem.statements.Problem;
-
 import static pulse.properties.NumericPropertyKeyword.*;
+
+/**
+ * A {@code Flag} is a {@code Property} that has a {@code type} represented by 
+ * a {@code NumericPropertyKeyword}, a {@code boolean value}, and a {@code String}
+ * with a short abbreviation describing the type of this flag (this is usually defined by the corresponding 
+ * {@code NumericProperty}).
+ */
 
 public class Flag implements Property {
 
@@ -14,53 +19,47 @@ public class Flag implements Property {
 	private boolean value;
 	private String abbreviation;
 	
+	/**
+	 * Creates a {@code Flag} with the type {@code type}. The default {@code value} is set to {@code false}. 
+	 * @param type the {@code NumericPropertyKeyword} associated with this {@code Flag} 
+	 */
+	
 	public Flag(NumericPropertyKeyword type) {
 		this.index = type;
 		value = false;
 	}
+	
+	/**
+	 * Creates a {@code Flag} with the following pre-specified parameters: type {@code type}, short description {@code abbreviations},
+	 * and {@code value}. 
+	 * @param type the {@code NumericPropertyKeyword} associated with this {@code Flag} 
+	 * @param abbreviation an abbreviation (short description, usually symbolic only) associated with this {@code type}
+	 * @param value the {@code boolean} value of this {@code flag}
+	 */
 	
 	public Flag(NumericPropertyKeyword type, String abbreviation, boolean value) {
 		this.index = type;
 		this.abbreviation = abbreviation;
 		this.value = value;
 	}
+	
+	/**
+	 * A static method for converting enabled flags to a {@code List} of {@code NumericPropertyKeyword}s. 
+	 * Each keyword in this list corresponds to an enabled flag in the {@code flags} {@code List}.
+	 * @param flags the list of flags that needs to be analysed
+	 * @return a list of {@code NumericPropertyKeyword}s corresponding to enabled {@code flag}s.
+	 */
 
-	public NumericPropertyKeyword getType() {
-		return index;
-	}
-	
-	public Flag derive(boolean value) {
-		return new Flag(this.index, this.abbreviation, value);
-	}
-	
-	public Flag derive() {
-		return derive(this.value);
-	}
-		
-	@Override
-	public String getDescriptor(boolean addHtmlTags) {
-		return addHtmlTags ? "<html><b>Search for </b>" + abbreviation + "</html>" :
-			"<b>Search for </b>" + abbreviation;
-	}
-
-	@Override
-	public Object getValue() {
-		return value;
-	}
-
-	public void setValue(Object value) {
-		this.value = (boolean) value;
-	}
-	
-	@Override
-	public String toString() {
-		return getClass().getSimpleName() + ": " + index.name();
-	}
-	
 	public static List<NumericPropertyKeyword> convert(List<Flag> flags) {
 		List<Flag> filtered = flags.stream().filter(flag -> (boolean) flag.getValue() ).collect(Collectors.toList());
 		return filtered.stream().map(flag -> flag.getType()).collect(Collectors.toList());
 	}
+	
+	/**
+	 * The default list of {@code Flag}s used in finding the reverse solution of the heat conduction problem contains:
+	 * <code>DIFFUSIVITY (true), HEAT_LOSS (true), MAXTEMP (true), BASELINE_INTERCEPT (false), BASELINE_SLOPE (false) </code>.
+	 * @return a {@code List} of default {@code Flag}s
+	 */
 	
 	public static List<Flag> defaultList() {
 		List<Flag> flags = new ArrayList<Flag>();
@@ -71,8 +70,63 @@ public class Flag implements Property {
 		flags.add(new Flag(NumericPropertyKeyword.BASELINE_SLOPE, NumericProperty.def(BASELINE_SLOPE).getAbbreviation(true), false));
 		return flags;
 	}
+	
+	/**
+	 * Returns the type of this {@code Flag}.
+	 * @return a {@code NumericPropertyKeyword} representing the type of this {@code Flag}.
+	 */
 
-	public String getAbbreviation(boolean addHtmlTags) {
+	public NumericPropertyKeyword getType() {
+		return index;
+	}
+	
+	/**
+	 * Creates a new {@code Flag} object based on this {@code Flag}, but with a different {@code value}.
+	 * @param value either {@code true} or {@code false}
+	 * @return a {@code Flag} that replicates the {@code type} and {@code abbreviation} of this {@code Flag}, but sets a new {@code value}
+	 */
+	
+	public Flag derive(boolean value) {
+		return new Flag(this.index, this.abbreviation, value);
+	}
+		
+	/**
+	 * Creates a short description for the GUI.
+	 */
+	
+	@Override
+	public String getDescriptor(boolean addHtmlTags) {
+		return addHtmlTags ? "<html><b>Search for </b>" + abbreviation + "</html>" :
+			"<b>Search for </b>" + abbreviation;
+	}
+
+	/**
+	 * The value for this {@code Property} is a {@code boolean}. 
+	 */
+	
+	@Override
+	public Object getValue() {
+		return value;
+	}
+
+	/**
+	 * Attempts to set the value of this {@code flag} to {@code value}. 
+	 * @param value a {@code boolean}
+	 * @throws IllegalArgumentException If the {@code value} is not a {@code boolean}
+	 */
+	
+	public void setValue(Object value) throws IllegalArgumentException {
+		if(! (value instanceof Boolean))
+			throw new IllegalArgumentException("Illegal argument: " + value);
+		this.value = (boolean) value;
+	}
+	
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + ": " + index.name();
+	}
+
+	public String abbreviation(boolean addHtmlTags) {
 		return addHtmlTags ? "<html>" + abbreviation + "</html>" : abbreviation;
 	}
 

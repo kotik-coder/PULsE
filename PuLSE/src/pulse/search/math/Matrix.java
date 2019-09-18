@@ -5,8 +5,7 @@ import pulse.ui.Messages;
 public final class Matrix {
     
     private final double[][] x;
-    
-    
+        
     public Matrix(int n) {
     	this(n, n);
     }
