@@ -1,30 +1,22 @@
 package pulse.tasks.listeners;
 
-import java.time.LocalDateTime;
-
+import pulse.tasks.LogEntry;
 import pulse.tasks.SearchTask;
 import pulse.tasks.Status;
+import pulse.tasks.TaskManager;
 
-public class TaskStateEvent {
+public class TaskStateEvent extends LogEntry {
 	
-	private SearchTask task;
-	private LocalDateTime time;
 	private Status status;
 	
 	public TaskStateEvent(SearchTask task, Status status) {
-		this.setTask(task);
+		super(task);
 		this.setStatus(status);
-		this.time = LocalDateTime.now();
 	}
 
 	public SearchTask getTask() {
-		return task;
+		return TaskManager.getTask(getIdentifier());
 	}
-
-	public void setTask(SearchTask task) {
-		this.task = task;
-	}
-
 	public Status getStatus() {
 		return status;
 	}
@@ -34,21 +26,17 @@ public class TaskStateEvent {
 	}
 	
 	public Status getState() {
-		return task.getStatus();
-	}
-	
-	public LocalDateTime getTime() {
-		return time;
+		return status;
 	}
 	
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("<br>");
-		sb.append(task.toString() + " changed status to ");
+		sb.append(getIdentifier().toString() + " changed status to ");
 		sb.append(status.toString());
 		sb.append(" at ");
-		sb.append(time.toLocalTime());
+		sb.append(getTime());
 		return sb.toString();
 	}
 

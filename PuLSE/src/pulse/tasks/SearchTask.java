@@ -6,7 +6,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import pulse.Baseline;
 import pulse.HeatingCurve;
 import pulse.input.ExperimentalData;
 import pulse.input.InterpolationDataset;
@@ -15,14 +14,13 @@ import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
-import pulse.properties.Property;
+import pulse.search.direction.Path;
 import pulse.search.direction.PathSolver;
 import pulse.search.math.IndexedVector;
 import pulse.tasks.Status.Details;
 import pulse.tasks.listeners.DataCollectionListener;
 import pulse.tasks.listeners.StatusChangeListener;
 import pulse.tasks.listeners.TaskStateEvent;
-import pulse.ui.Messages;
 import pulse.ui.components.PropertyHolderTable;
 import pulse.util.Accessible;
 import pulse.util.PropertyEvent;
@@ -30,120 +28,130 @@ import pulse.util.PropertyHolderListener;
 import pulse.util.SaveableDirectory;
 import static pulse.properties.NumericPropertyKeyword.*;
 
+/**
+ * A {@code SearchTask} is the most important class in {@code PULsE}. It combines access to all 
+ * other bits and can be executed by the {@code TaskManager}. The execution consists in solving the reverse problem
+ * of heat conduction, which is done using the {@code PathSolver}. A {@code SearchTask} has an associated
+ * {@code ExperimentalData} object linked to it. 
+ * @see pulse.tasks.TaskManager
+ */
+
 public class SearchTask extends Accessible implements Runnable, SaveableDirectory {
 
 	private Problem problem;
 	private DifferenceScheme scheme;
 	private ExperimentalData curve;
 
-	private double testTemperature;
-	private double cp, rho, emissivity, lambda;
-	
 	private Path   path;
-			
-	private double rSquared, sumOfSquares;
-	
 	private Buffer buffer;
-	
-	private List<DataCollectionListener> listeners = new CopyOnWriteArrayList<DataCollectionListener>();
-	private List<StatusChangeListener> statusChangeListeners = new CopyOnWriteArrayList<StatusChangeListener>();
-	
-	private Status status = Status.INCOMPLETE;
-	
 	private Log log;
 	
 	private Identifier identifier;
-
-	private final static double SUCCESS_CUTOFF = 0.2;	
-
-	@Override
-	public boolean equals(Object o) {		
-		if(! (o instanceof SearchTask))
-			return false;
-		
-		SearchTask other = (SearchTask)o;
-		
-		if( ! curve.equals(other.getExperimentalCurve()))
-			return false;
-		
-		return true;
+	private Status status = Status.INCOMPLETE;
+			
+	private double testTemperature;
+	private double cp, rho, emissivity, lambda;
+	private double rSq, ssr;
 	
-	}
+	private final static double RELATIVE_TIME_MARGIN = 1.025;
 
-	public void reset() {				
-		rSquared		= (double) NumericProperty.def
+	/**
+	 * If {@code SearchTask} finishes, and its <i>R<sup>2</sup></i> value is lower than this constant,
+	 * the result will be considered {@code AMBIGUOUS}. 
+	 */
+	
+	public final static double SUCCESS_CUTOFF = 0.2;
+		
+	private List<DataCollectionListener> listeners			 = new CopyOnWriteArrayList<DataCollectionListener>();
+	private List<StatusChangeListener> statusChangeListeners = new CopyOnWriteArrayList<StatusChangeListener>();
+
+	/**
+	 * <p>Creates a new {@code SearchTask} from {@code curve}. Generates a new {@code Identifier}, sets the parent of {@code curve} to {@code this}, 
+	 * and invokes clear(). If any changes to the {@code ExperimentalData} occur, a listener will ensure the {@code DifferenceScheme} is modified accordingly.</p>
+	 * @param curve the {@code ExperimentalData}
+	 */
+	
+	public SearchTask(ExperimentalData curve) {
+		this.identifier = new Identifier();		
+		this.curve = curve;
+		curve.setParent(this);		
+						
+		clear();	
+	}
+	
+	/**
+	 * <p>Resets everything to default values (for a list of default values please see the {@code .xml} document.
+	 * Sets the status of this task to {@code INCOMPLETE}.</p>
+	 */
+	
+	public void clear() {				
+		rSq	= (double) NumericProperty.def
 				(NumericPropertyKeyword.RSQUARED).getValue();
-		sumOfSquares	= (double) NumericProperty.def
+		ssr	= (double) NumericProperty.def
 				(NumericPropertyKeyword.SUM_OF_SQUARES).getValue();				
 		
 		buffer 			= new Buffer();
+		buffer.setParent(this);		
 		log 			= new Log(this);
-			
+					
+		testTemperature = (double)curve.getMetadata().getTestTemperature().getValue();
+		
+		calculateThermalProperties();
+		
 		this.path		= null;
 		this.problem	= null;
 		this.scheme		= null;				
-		
-		testTemperature = (double)curve.getMetadata().getTestTemperature().getValue();
-		
-		updateThermalProperties();
-		setStatus(Status.INCOMPLETE);
-		
+				
+		setStatus(Status.INCOMPLETE);		
 		TaskStateEvent e = new TaskStateEvent(this, status);
 		notifyStatusListeners(e);
 		notifyDataListeners(e);
-	}
-	
-	public SearchTask(ExperimentalData curve) {
-		this();
-		this.curve = curve;
-		curve.setParent(this);
-		
-		testTemperature = (double)curve.getMetadata().getTestTemperature().getValue();			
-		updateThermalProperties();	
-		
-		final double factor = 1.05;
 		
 		curve.addDataListener( dataEvent -> {
-					if(scheme != null) {
-						scheme.setTimeLimit
-						(NumericProperty.derive(TIME_LIMIT, factor*curve.timeLimit()));
-					}
-				}
-			);
+			if(scheme != null) {
+				scheme.setTimeLimit
+				(NumericProperty.derive(TIME_LIMIT, RELATIVE_TIME_MARGIN*curve.timeLimit()));
+			}
+		}
+		);
 		
 	}
 	
-	protected SearchTask() {
-		testTemperature		= (double)NumericProperty.def(TEST_TEMPERATURE).getValue();
-
-		updateThermalProperties();
-		
-		rSquared		= Double.NEGATIVE_INFINITY;
-		sumOfSquares	= Double.POSITIVE_INFINITY;
-		buffer 			= new Buffer();
-		
-		this.identifier = new Identifier();
-
-		log 			= new Log(this);
-					
-	}	
+	/**
+	 * Generates a search vector (= optimisation vector) using the search flags 
+	 * set by the {@code PathSolver}.
+	 * @return an {@code IndexedVector} with search parameters of this {@code SearchTaks}
+	 * @see pulse.search.direction.PathSolver.getSearchFlags()
+	 * @see pulse.problem.statements.Problem.optimisationVector(List<Flag>)
+	 */
 	
 	public IndexedVector searchVector() {
 		return problem.optimisationVector(PathSolver.getSearchFlags());
 	}
 	
-	public void assign(IndexedVector objectiveFunction) {
-		problem.assign(objectiveFunction);
+	/**
+	 * Assigns the values of the parameters of this {@code SearchTask} to {@code searchParameters}.
+	 * @param searchParameters an {@code IndexedVector} with relevant search parameters
+	 * @see pulse.problem.statements.Problem.assign(IndexedVector)
+	 */
+	
+	public void assign(IndexedVector searchParameters) {
+		problem.assign(searchParameters);
 	}
 	
-	public void updateThermalProperties() {
-		InterpolationDataset cvCurve = TaskManager.getSpecificHeatCurve();		
-		
+	/**
+	 * Calculates some or all of the following properties: <math><i>C</i><sub>p</sub>, <i>&rho;</i>, <i>&labmda;</i>, <i>&epsilon;</i></math>.
+	 * <p>These properties will be calculated only if the necessary {@code InterpolationDataset}s were previously loaded by the {@code TaskManager}.</p>   
+	 */
+	
+	public void calculateThermalProperties() {
 		if(problem == null)
 			return;
 		
-		if(cvCurve != null) {
-			cp = cvCurve.interpolateAt(testTemperature); 
+		InterpolationDataset cpCurve = TaskManager.getSpecificHeatCurve();				
+		
+		if(cpCurve != null) {
+			cp = cpCurve.interpolateAt(testTemperature); 
 			problem.set(SPECIFIC_HEAT, NumericProperty.derive(SPECIFIC_HEAT, cp));
 		}
 		
@@ -153,19 +161,19 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 			problem.set(DENSITY, NumericProperty.derive(DENSITY, rho));
 		}
 		
-		if(rhoCurve != null && cvCurve != null) {
+		if(rhoCurve != null && cpCurve != null) {
 			evalThermalConductivity();
 			evalEmissivity();
 		}
 		
 	}
 	
-	public void evalThermalConductivity() {
+	private void evalThermalConductivity() {
 		double a   = (double)problem.getDiffusivity().getValue();			
 		lambda = a * cp * rho;
 	}
 
-	public void evalEmissivity() {				
+	private void evalEmissivity() {				
 		double Bi     = (double)problem.getHeatLoss().getValue();
 		double l      = (double)problem.getSampleThickness().getValue();		
 			
@@ -174,13 +182,32 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 		emissivity =  Bi*lambda/(4.*Math.pow(testTemperature, 3)*l*sigma);
 	}
 
-	public double calculateDeviation() {
+	/**
+	 * This will use the current {@code DifferenceScheme} to solve the {@code Problem} for this
+	 * {@code SearchTask} and calculate the SSR value showing how well (or bad) the calculated solution
+	 * describes the {@code ExperimentalData}.
+	 * @return the value of SSR (sum of squared residuals).
+	 */
+	
+	public double solveProblemAndCalculateDeviation() {
 		scheme.solver(problem).solve(problem);
 		return problem.getHeatingCurve().deviationSquares(getExperimentalCurve()); 
 	}
 	
+	/**
+	 * <p>Runs this task if is either {@code READY} or {@code QUEUED}. Otherwise, will do nothing.
+	 * After making some preparatory steps, will initiate a loop with successive calls to 
+	 * {@code PathSolver.iteration(this)}, filling the buffer and notifying any data change listeners
+	 * in parallel. This loop will go on until either converging results are obtained, or a timeout is
+	 * reached, or if an execution error happens. Whether the run has been successful will be determined 
+	 * by comparing the associated <i>R</i><sup>2</sup> value with the {@code SUCCESS_CUTOFF}.</p>
+	 */
+	
 	@Override
 	public void run() {
+	
+	  /* check of status */
+		
 	  switch(status) {
 	  	case READY :
 	  	case QUEUED : 
@@ -190,23 +217,27 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 	  		return;
 	  }		
 	  
+	  /* preparatory steps */
+	  
 	  scheme.solver(problem).solve(problem);	  
 	  
 	  HeatingCurve solutionCurve = this.getProblem().getHeatingCurve();
-	  sumOfSquares	   			 = solutionCurve.deviationSquares(curve);
+	  ssr	   			 		 = solutionCurve.deviationSquares(curve);
 	  
-	  PathSolver pathSolver 	= TaskManager.getPathSolver();
-	  
-	  path 						= new Path(this);
+	  PathSolver pathSolver 	= TaskManager.getPathSolver();	  
+	  path 						= pathSolver.createPath(this);
 	   
 	  double errorTolerance		= (double)PathSolver.getErrorTolerance().getValue();
 	  int bufferSize			= (Integer)buffer.getSize().getValue();	  
 	  
-	  rSquared 					= solutionCurve.rSquared(this.getExperimentalCurve());	  
+	  rSq 						= solutionCurve.rSquared(this.getExperimentalCurve());	  
 	  
 	  /* search cycle */
 	  
 	  TaskStateEvent dataCollected = new TaskStateEvent(this, null);
+	  
+	  /* sets an independent thread for manipulating the buffer */
+	  
 	  List<CompletableFuture<Void>> bufferFutures = new ArrayList<CompletableFuture<Void>>(bufferSize);
 	  ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
   
@@ -219,8 +250,8 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 				if(status != Status.IN_PROGRESS)
 					break outer;
 					
-				sumOfSquares = pathSolver.iteration(this);				
-		  		rSquared = solutionCurve.rSquared(getExperimentalCurve());		  				  	
+				ssr = pathSolver.iteration(this);				
+		  		rSq = solutionCurve.rSquared(getExperimentalCurve());		  				  	
 		  		
 		  		final int j = i;
 		  		
@@ -232,13 +263,14 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 		
 		bufferFutures.forEach( future -> future.join());
 	  
-	  }  while( buffer.isErrorHigh(errorTolerance) );
+	  }  while( buffer.isErrorTooHigh(errorTolerance) );
 	  
-	  updateThermalProperties();
+	  calculateThermalProperties();
+	  
 	  singleThreadExecutor.shutdown();
 	 	  	  
 	  if( status == Status.IN_PROGRESS )
-		 if(rSquared > SUCCESS_CUTOFF)
+		 if(rSq > SUCCESS_CUTOFF)
 			 setStatus(Status.DONE);
 		 else
 			 setStatus(Status.AMBIGUOUS);
@@ -266,8 +298,6 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 		return getIdentifier().toString();
 	}
 
-	//getters
-	
 	public Problem getProblem() {
 		return problem;
 	}
@@ -287,22 +317,30 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 	}
 	
 	public NumericProperty getSumOfSquares() {
-		return NumericProperty.derive(SUM_OF_SQUARES, sumOfSquares); //$NON-NLS-1$
+		return NumericProperty.derive(SUM_OF_SQUARES, ssr); 
 	}
 	
 	public NumericProperty getRSquared() {
-		return NumericProperty.derive(RSQUARED, rSquared); //$NON-NLS-1$
+		return NumericProperty.derive(RSQUARED, rSq);
 	}
 	
-	//setters
-
 	public void setRSquared(double rSquared) {
-		this.rSquared = rSquared;
+		this.rSq = rSquared;
 	}
 
 	public void setSumOfSquares(double sumOfSquares) {
-		this.sumOfSquares = sumOfSquares;
+		this.ssr = sumOfSquares;
 	}
+	
+	/**
+	 * <p>After setting and adopting the {@code problem} by this {@code SearchTask},  
+	 * this will attempt to change the parameters of that {@code problem} in accordance with the loaded
+	 * {@code ExperimentalData} for this {@code SearchTask} (if not null). Later, if any changes to the 
+	 * properties of that {@code Problem} occur and if the source of that event is either the {@code Metadata}
+	 *  or the {@code PropertyHolderTable}, they will be accounted for by altering the parameters of the {@code problem}
+	 * accordingly -- immediately after the former take place.</p>
+	 * @param problem a {@code Problem}
+	 */
 	
 	public void setProblem(Problem problem) {
 		this.problem = problem;
@@ -332,38 +370,55 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 
 		});
 		
-		Baseline base = problem.getHeatingCurve().getBaseline();
-		base.addListener(event -> base.fitTo(curve) );		
-		
 	}
+	
+	/**
+	 * Adopts the {@code scheme} by this {@code SearchTask} and updates the time limit of {@scheme}
+	 * to match {@code ExperimentalData}.
+	 * @param scheme the {@code DiffenceScheme}.
+	 */
 	
 	public void setScheme(DifferenceScheme scheme) {
 		this.scheme = scheme;
 		if(scheme != null) {
 			scheme.setParent(this);
-			final double factor = 1.05;
 			scheme.setTimeLimit
-			(NumericProperty.derive(TIME_LIMIT, factor*curve.timeLimit()));
+			(NumericProperty.derive(TIME_LIMIT, RELATIVE_TIME_MARGIN*curve.timeLimit()));
 		}
 	}
+	
+	/**
+	 * Adopts the {@code curve} by this {@code SearchTask}.
+	 * @param curve the {@code ExperimentalData}.
+	 */
+	
 	public void setExperimentalCurve(ExperimentalData curve) {
 		this.curve = curve;
 		
 		if(curve != null)		
 			curve.setParent(this);
-		
-		if(problem != null) 
-			problem.retrieveData(curve);		
+	
 	}
+	
+	/**
+	 * Sets the test temperature and modifies, if needed, any of the thermal properties
+	 * that depend on this parameter.
+	 * @param testTemperature the test temperature
+	 */
 	
 	public void setTestTemperature(NumericProperty testTemperature) {
 		this.testTemperature = (double)testTemperature.getValue();
-		updateThermalProperties();
+		calculateThermalProperties();
 	}
 	
 	public Status getStatus() {
 		return status;
 	}
+	
+	/**
+	 * Sets a new {@code status} to this {@code SearchTask} and informs the listeners.
+	 * @param status the new status
+	 */
 	
 	public void setStatus(Status status) {
 		if(this.status == status)
@@ -373,6 +428,16 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 		notifyStatusListeners(new TaskStateEvent(this, status));
 	}
 		
+	/**
+	 * <p>Checks if this {@code SearchTask} is ready to be run. Performs basic check to see
+	 * whether the user has uploaded all necessary data. If not, will create a status update
+	 * with information about the missing data.</p>
+	 * @return {@code READY} if the task is ready to be run, {@code DONE} if has already been 
+	 * done previously, {@code INCOMPLETE} if some problems exist. For the latter, additional
+	 * details will be available using the {@code status.getDetails()} method.</p>
+	 * @return the current status
+	 */
+	
 	public Status checkProblems() {
 		if(status == Status.DONE)
 			return status;		
@@ -404,10 +469,6 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 
 	public Identifier getIdentifier() {
 		return identifier;
-	}
-	
-	public static boolean compareIds(SearchTask t1, SearchTask t2) {
-		return t1.getIdentifier().equals(t2.getIdentifier());
 	}
 	
 	public Log getLog() {
@@ -456,6 +517,12 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 		
 	}
 	
+	/**
+	 * If the current task is either {@code IN_PROGRESS}, {@code QUEUED}, or {@code READY}, terminates 
+	 * it by setting its status to {@code TERMINATED}. This change of status will then force the {@code run()}
+	 * loop to stop (if running).
+	 */
+	
 	public void terminate() {
 		switch(status) {
 			case IN_PROGRESS :
@@ -471,6 +538,28 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 	@Override
 	public void set(NumericPropertyKeyword type, NumericProperty property) {		
 		return;
+	}
+	
+	/**
+	 * A {@code SearchTask} is deemed equal to another one if it has the 
+	 * same {@code ExperimentalData}. 
+	 */
+	
+	@Override
+	public boolean equals(Object o) {		
+		if(o == this)
+			return true;
+		
+		if(! (o instanceof SearchTask))
+			return false;
+		
+		SearchTask other = (SearchTask)o;
+		
+		if( ! curve.equals(other.getExperimentalCurve()))
+			return false;
+		
+		return true;
+	
 	}
 	
 }

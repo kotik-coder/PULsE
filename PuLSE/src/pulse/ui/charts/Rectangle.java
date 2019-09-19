@@ -1,4 +1,4 @@
-package pulse.util.geom;
+package pulse.ui.charts;
 
 public class Rectangle {
 	private double xLower, xUpper, yLower, yUpper;

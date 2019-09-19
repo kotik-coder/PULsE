@@ -60,13 +60,13 @@ public class GoldenSectionSolver extends LinearSolver {
 			alpha 			= segment.getMinimum() + t;
 			one_minus_alpha	= segment.getMaximum() - t;
 			
-			newParams = params.plus(direction.times(alpha)); //alpha
+			newParams = params.sum(direction.multiply(alpha)); //alpha
 			p.assign(new IndexedVector(newParams, params.getIndices()));
-			ss2 = task.calculateDeviation(); //f(alpha)
+			ss2 = task.solveProblemAndCalculateDeviation(); //f(alpha)
 			
-			newParams = params.plus(direction.times(one_minus_alpha)); //1 - alpha 
+			newParams = params.sum(direction.multiply(one_minus_alpha)); //1 - alpha 
 			p.assign(new IndexedVector(newParams, params.getIndices()));
-			ss1 = task.calculateDeviation(); //f(1-alpha)
+			ss1 = task.solveProblemAndCalculateDeviation(); //f(1-alpha)
 			
 			p.assign(new IndexedVector(newParams, params.getIndices())); //return to old position
 			

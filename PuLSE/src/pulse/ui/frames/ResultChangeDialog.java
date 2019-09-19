@@ -129,7 +129,7 @@ public class ResultChangeDialog extends JDialog {
 			
 		});
 		
-		textField.setText(ResultFormat.getFormat().toString());
+		textField.setText(ResultFormat.getInstance().toString());
 		panel.add(textField);
 		textField.setColumns(10);
 		
@@ -162,7 +162,7 @@ public class ResultChangeDialog extends JDialog {
 				
 				if(duplicateFound) {
 					JOptionPane.showMessageDialog(reference, "Duplicate symbol found in format string. Please correct!", "Duplicate Symbol", JOptionPane.WARNING_MESSAGE);
-					textField.setText(ResultFormat.getFormat().toString());
+					textField.setText(ResultFormat.getInstance().toString());
 					return;
 				}
 			
@@ -178,7 +178,7 @@ public class ResultChangeDialog extends JDialog {
 				if(formatError) {
 					JOptionPane.showMessageDialog(reference, "The following characters are required: " + 
 							new String(ResultFormat.getMinimumAllowedFormat()), "Wrong Format", JOptionPane.WARNING_MESSAGE);
-					textField.setText(ResultFormat.getFormat().toString());
+					textField.setText(ResultFormat.getInstance().toString());
 					return;
 				}
 				

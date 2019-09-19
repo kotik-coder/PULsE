@@ -3,11 +3,11 @@ package pulse.search.linear;
 import static java.lang.Math.*;
 
 import pulse.problem.statements.Problem;
+import pulse.search.direction.Path;
 import pulse.search.direction.PathSolver;
 import pulse.search.math.IndexedVector;
 import pulse.search.math.Segment;
 import pulse.search.math.Vector;
-import pulse.tasks.Path;
 import pulse.tasks.SearchTask;
 import pulse.ui.Messages;
 
@@ -66,7 +66,7 @@ public class WolfeSolver extends LinearSolver {
 		IndexedVector params	= problem.optimisationVector( PathSolver.getSearchFlags() );
 		Segment segment			= domain(params, direction);
 			
-		double ss1 = task.calculateDeviation();
+		double ss1 = task.solveProblemAndCalculateDeviation();
 		double ss2;
 		
 		double randomConfinedValue = 0;
@@ -78,10 +78,10 @@ public class WolfeSolver extends LinearSolver {
 			
 			randomConfinedValue = segment.randomValue();
 			
-			newParams = params.plus(direction.times(randomConfinedValue));
+			newParams = params.sum(direction.multiply(randomConfinedValue));
 			problem.assign(new IndexedVector(newParams, params.getIndices()));
 			
-			ss2 	  = task.calculateDeviation();
+			ss2 	  = task.solveProblemAndCalculateDeviation();
 			
 			/**
 			 * Checks if the first Armijo inequality is not satisfied.

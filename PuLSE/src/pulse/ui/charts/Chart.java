@@ -102,7 +102,7 @@ public class Chart extends JFXPanel {
             	double minYChart = converToChartY(bounds.getMinY() );
             	double maxYChart = converToChartY(bounds.getMaxY() );
             	
-            	selection.setLocalCoordinatesSelection(new pulse.util.geom.Rectangle(minXChart, maxXChart, maxYChart, minYChart));
+            	selection.setLocalCoordinatesSelection(new pulse.ui.charts.Rectangle(minXChart, maxXChart, maxYChart, minYChart));
             	
             	choiceMenu.setLocation(e.getLocationOnScreen());
             	choiceMenu.show(e.getComponent(), (int)bounds.getCenterX(), (int)bounds.getCenterY() );
@@ -257,7 +257,7 @@ public class Chart extends JFXPanel {
 		
 	}
 	
-	public void highlightPoints(pulse.util.geom.Rectangle rectangle) {		
+	public void highlightPoints(pulse.ui.charts.Rectangle rectangle) {		
 		Series<Number,Number> expSeries = chart.getData().get(PlotType.EXPERIMENTAL_DATA.getChartIndex());
 		
 		Bloom effect = new Bloom(0.1);
@@ -283,7 +283,7 @@ public class Chart extends JFXPanel {
 		
 	}
 	
-	public void zoomTo(pulse.util.geom.Rectangle rectangle) {
+	public void zoomTo(pulse.ui.charts.Rectangle rectangle) {
 		
 		NumberAxis xAxis = (NumberAxis) chart.getXAxis();
 		NumberAxis yAxis = (NumberAxis) chart.getYAxis();
@@ -349,7 +349,7 @@ public class Chart extends JFXPanel {
 		 */
 		private static final long serialVersionUID = 6195826661405922987L;
 		private Rectangle selectionBounds;
-		private pulse.util.geom.Rectangle localCoordinatesSelection;		
+		private pulse.ui.charts.Rectangle localCoordinatesSelection;		
         private Point clickPoint;
         private Stroke dashed;
 
@@ -394,11 +394,11 @@ public class Chart extends JFXPanel {
     		this.selectionBounds = selectionBounds;
     	}
 
-		public pulse.util.geom.Rectangle getLocalCoordinatesSelection() {
+		public pulse.ui.charts.Rectangle getLocalCoordinatesSelection() {
 			return localCoordinatesSelection;
 		}
 
-		public void setLocalCoordinatesSelection(pulse.util.geom.Rectangle fxRectangleBounds) {
+		public void setLocalCoordinatesSelection(pulse.ui.charts.Rectangle fxRectangleBounds) {
 			this.localCoordinatesSelection = fxRectangleBounds;
 		}
         
@@ -439,7 +439,7 @@ public class Chart extends JFXPanel {
 
     			@Override
     			public void actionPerformed(ActionEvent e) {
-    				pulse.util.geom.Rectangle local = selection.getLocalCoordinatesSelection();
+    				pulse.ui.charts.Rectangle local = selection.getLocalCoordinatesSelection();
     				highlightPoints(local);
                 	rangeSelectionFrame.setRangeFields(local.getXLower(), local.getXUpper());
                 	rangeSelectionFrame.setLocationRelativeTo(panel);

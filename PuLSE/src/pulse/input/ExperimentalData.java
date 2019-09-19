@@ -12,7 +12,7 @@ import pulse.input.listeners.DataListener;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.ui.Messages;
-import pulse.util.geom.Point2D;
+import pulse.ui.charts.Point2D;
 
 /**
  * <p> An {@code ExperimentalData} object is essentially a {@code HeatingCurve} with

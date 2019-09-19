@@ -1,26 +1,21 @@
 package pulse.tasks;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.stream.Collectors;
-
 import pulse.properties.NumericPropertyKeyword;
 import pulse.ui.Messages;
+
+/**
+ * The {@code LogFormat} determines what data should be visible in the {@code DataLogEntr}ies used for the {@code Log}.
+ *
+ */
 
 public class LogFormat {
 	
 	private List<NumericPropertyKeyword> types;
 	
-	public static final LogFormat DEFAULT_FORMAT = new LogFormat(Messages.getString("LogFormat.2")); //$NON-NLS-1$
-	
+	private static final LogFormat DEFAULT_FORMAT = new LogFormat(Messages.getString("LogFormat.2"));	
 	private static LogFormat format = new LogFormat(DEFAULT_FORMAT);
-	
-	/* Codes:
-	 * O - objective function
-	 * S - current sum of squares
-	 * R - current R^2 
-	 */
 	
 	private	LogFormat(String formatString) {
 		
@@ -53,12 +48,25 @@ public class LogFormat {
 		this.types.addAll(fmt.types);
 	}
 	
+	/**
+	 * <p>Generates a new {@code LogFormat} from the {@code formatString}. Only the following characters are 
+	 * currently allowed (all characters must be unique): </p>
+	 * <pre>
+	 * O - search vector (contains multiple properties).
+	 * S - current sum of squared residuals.
+	 * R - current <i>R</i><sup>2</sup>.
+	 * </pre>
+	 * @param formatString the {@code} String containing some or all of these characters.
+	 * @return a {@code LogFormat} constructed based on this {@code formatString}.
+	 * @see pulse.tasks.ResultFormat.generateFormat(String)
+	 */
+	
 	public static LogFormat generateFormat(String formatString) {
 		format = new LogFormat(formatString);
 		return format;
 	}
 	
-	public static LogFormat getFormat() {
+	public static LogFormat getInstance() {
 		return format;
 	}
 	
