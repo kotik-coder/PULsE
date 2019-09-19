@@ -327,12 +327,15 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
 	
 	/**
 	 * The {@code Object} o is considered to be equal to this {@code NumericProperty} 
-	 * if it is of the class, if its value is the same as for this {@code NumericProperty},
-	 * and if it is specified by the same {@code NumericPropertyKeyword}
+	 * if (a) it is of the same class; (b) its value is the same as for this {@code NumericProperty},
+	 * and (c) if it is specified by the same {@code NumericPropertyKeyword}. 
 	 */
 	
 	@Override
 	public boolean equals(Object o) {
+		if(o == this)
+	        return true;
+		
 		if(! (o instanceof NumericProperty) )
 			return false;
 

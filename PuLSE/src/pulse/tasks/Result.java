@@ -3,29 +3,45 @@ package pulse.tasks;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
+
 import pulse.properties.NumericProperty;
+import pulse.properties.NumericPropertyKeyword;
 import pulse.ui.Messages;
 import pulse.util.Saveable;
+
+/**
+ * The individual {@code Result} that is associated with a {@code SearchTask}.
+ * The {@code Identifier} of the task is stored as a field value.
+ * @see pulse.task.SearchTask
+ * @see pulse.task.Identifier
+ */
 
 public class Result extends AbstractResult implements Saveable {
 	
 	private Identifier identifier;
 	
-	public Result(SearchTask task, ResultFormat format) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	/**
+	 * Creates an individual {@code Result} related to the current state of 
+	 * {@code task} using the specified {@code format}.
+	 * @param task a {@code SearchTask}, the properties of which that conform to {@code ResultFormat} will form this {@code Result}
+	 * @param format a {@code ResultFormat}
+	 * @throws IllegalArgumentException if {@code task} is null
+	 */
+	
+	public Result(SearchTask task, ResultFormat format) throws IllegalArgumentException {
 		super(format);
 		
 		if(task == null)
-			throw new IllegalArgumentException(Messages.getString("Result.NullTaskError")); //$NON-NLS-1$
+			throw new IllegalArgumentException(Messages.getString("Result.NullTaskError"));
 		
 		this.identifier = task.getIdentifier();
 		
-		for(NumericProperty name : format.getNameList()) {
-			NumericProperty current = task.numericProperty(name.getType());
-			if(current != null) 
-				addProperty((NumericProperty)current);
-			else 
-				throw new IllegalArgumentException("Property " + name.getType() + " not found"); //$NON-NLS-1$ //$NON-NLS-2$
-		}						
+		for(NumericPropertyKeyword name : format.getKeywords())
+			try {
+				addProperty( task.numericProperty(name) );
+			} catch (IllegalAccessException | InvocationTargetException e) {
+				System.out.println("Failed to use reflection when getting " + name + " from the SearchTask.");
+			}											
 
 	}	
 	
@@ -33,6 +49,10 @@ public class Result extends AbstractResult implements Saveable {
 		return identifier;
 	}
 
+	/**
+	 * Prints the data of this Result with {@code fos} in an html-format.
+	 */
+	
 	@Override
 	public void printData(FileOutputStream fos, Extension extension) {
 		printHTML(fos);
@@ -41,25 +61,25 @@ public class Result extends AbstractResult implements Saveable {
 	private void printHTML(FileOutputStream fos) {
 		PrintStream stream = new PrintStream(fos);
         
-		stream.print("<table>"); //$NON-NLS-1$
+		stream.print("<table>"); 
         
         for (NumericProperty p : getProperties()) {
-        	stream.print("<tr>"); //$NON-NLS-1$            
-    		stream.print("<td>"); //$NON-NLS-1$
+        	stream.print("<tr>");             
+    		stream.print("<td>"); 
     		
             stream.print(
             		p.getType()
-            		); //$NON-NLS-1$
-            stream.print("</td><td>"); //$NON-NLS-1$
+            		); 
+            stream.print("</td><td>"); 
             stream.print(
             		p.formattedValue(true)
-            		); //$NON-NLS-1$
+            		); 
             
-            stream.print("</td>"); //$NON-NLS-1$            
-            stream.println("</tr>"); //$NON-NLS-1$
+            stream.print("</td>");             
+            stream.println("</tr>"); 
         }
         
-		stream.print("</table>"); //$NON-NLS-1$
+		stream.print("</table>"); 
         
         stream.close();
 	}

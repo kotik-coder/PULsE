@@ -2,17 +2,30 @@ package pulse.search.math;
 
 import pulse.ui.Messages;
 
+/**
+ * <p>This is a general class for {@code Vector} operations useful for 
+ * optimisation. Note it does not currently include cross or mixed products, as this
+ * is not needed in {@code PULsE}.</p> 
+ */
+
 public class Vector { 
     
     private double[] x;
      
-    public Vector(double... args) {
-    	x = new double[args.length];
-    	
-    	for(int i = 0; i < x.length; i++) 
-    		x[i] = args[i];
-    	
+    /**
+     * Creates a zero {@code Vector}.
+     * @param n the dimension of the {@code Vector}.
+     */
+    
+    public Vector(int n) {
+    	x = new double[n];
     }
+    
+    /**
+     * Creates a {@code Vector} consisting of {@code n} elements, each equal to {@code fill}.
+     * @param n the dimension of this {@code Vector}
+     * @param fill a fill value
+     */
     
     public Vector(int n, double fill) {
     	x = new double[n];
@@ -20,24 +33,22 @@ public class Vector {
     		x[i] = fill;
     }
     
-    /** Constructs a default Vector3D. 
-    The vector's components value are set to zero.
-    */
-    
-    public Vector(int n) { 
-    	x = new double[n];
-    }
-    
-    /** Copy constructor.
+    /** Copy constructor. Uses {@code System.arraycopy()}.
     @param v The vector to be copied.
     */
     
     public Vector(Vector v) {
     	x = new double[v.x.length];
         System.arraycopy(v.x, 0, x, 0, v.x.length);
-    }    
+    }  
+    
+    /**
+     * Creates a new {@code Vector} based on {@code this} one, all elements of 
+     * which are inverted, i.e. <math><i>b</i><sub>i</sub> = -<i>a</i><sub>i</sub></math>. 
+     * @return a generalised inversion of {@code this Vector}.
+     */
    
-    public Vector invert() {
+    public Vector inverted() {
     	Vector v = new Vector(this);
     	
     	for(int i = 0; i < v.x.length; i++)
@@ -45,19 +56,43 @@ public class Vector {
     	
         return v;
     }
+    
+	/**
+	 * The dimension is simply the number of elements in a {@code Vector}
+	 * @return the integer dimension
+	 */
+	
+	public int dimension() {
+		return x.length;
+	}
+    
+    /**
+     * Performs an element-wise summation of {@code this} and {@code v}.  
+     * @param v another {@code Vector} with the same number of elements. 
+     * @return the result of the summation.
+     * @throws IllegalArgumentException f the dimension of {@code this} and {@code v} are different. 
+     */
         
-    public Vector plus(Vector v) {
+    public Vector sum(Vector v) throws IllegalArgumentException {
     	if(v.x.length != x.length)
-    		throw new IllegalArgumentException(Messages.getString("Vector.DimensionError1") + x.length + " != " + v.x.length); //$NON-NLS-1$ //$NON-NLS-2$
+    		throw new IllegalArgumentException(Messages.getString("Vector.DimensionError1") + x.length + " != " + v.x.length);
+    	
         Vector sum = new Vector(this);
         
         for(int i = 0; i < v.x.length; i++)
         	sum.x[i] += v.x[i];
         
         return sum; 
-    }  
+    }
     
-    public Vector minus(Vector v) {
+    /**
+     * Performs an element-wise subtraction of {@code v} from  {@code this}.  
+     * @param v another {@code Vector} with the same number of elements. 
+     * @return the result of subtracting {@code v} from {@code this}.
+     * @throws IllegalArgumentException f the dimension of {@code this} and {@code v} are different. 
+     */
+    
+    public Vector subtract(Vector v) throws IllegalArgumentException {
     	if(v.x.length != x.length)
     		throw new IllegalArgumentException(Messages.getString("Vector.DimensionError1") + x.length + " != " + v.x.length); //$NON-NLS-1$ //$NON-NLS-2$
         Vector diff = new Vector(this);
@@ -67,9 +102,15 @@ public class Vector {
         
         return diff; 
     
-    }    
+    }   
     
-    public Vector times(double f) {
+    /**
+     * Performs an element-wise multiplication by {@code f}.  
+     * @param f a double value.
+     * @return a new {@code Vector}, all elements of which will be multiplied by {@code f}. 
+     */
+    
+    public Vector multiply(double f) {
         Vector factor = new Vector(this);
         
         for(int i = 0; i < x.length; i++)
@@ -78,72 +119,99 @@ public class Vector {
         return factor; 
     }    
     
-    public double dot(Vector v) {
+    /**
+     * Calculates the scalar product of {@code this} and {@code v}.
+     * @param v another {@code Vector} with the same dimension.
+     * @return the dot product of {@code this} and {@code v}.
+     * @throws IllegalArgumentException f the dimension of {@code this} and {@code v} are different.
+     */
+    
+    public double dot(Vector v) throws IllegalArgumentException {
     	if(v.x.length != x.length)
     		throw new IllegalArgumentException(Messages.getString("Vector.DimensionError1") + x.length + " != " + v.x.length); //$NON-NLS-1$ //$NON-NLS-2$
 
     	double dotProduct = 0;
-       	for(int i = 0; i < v.x.length; i++) {
+       	for(int i = 0; i < v.x.length; i++) 
        		dotProduct += this.x[i]*v.x[i];
-       	}
+       	
        	return dotProduct;
     }
  
-    /** Calculates the length of a vector.
-    @return the calculated length.
+    /** Calculates the length, which is represented by the square-root of the 
+     * squared length.
+     * @return the calculated length.
+     * @see lengthSq()
     */
     
     public double length() {
        return Math.sqrt( lengthSq() );
     }
     
-    /** Calculates the squared length of a vector
+    /** The squared length of this vector is the dot product of this vector by itself.
     @return the squared length.
     */
     
     public double lengthSq() {
        	return this.dot(this);
-    }    
+    }           
     
-    public Vector normalize() {
+    /**
+     * Performs normalisation, e.g. scalar multiplication of {@code this} by 
+     * the multiplicative inverse of {@code this Vector}'s length.
+     * @return a normalised {@code Vector} obtained from {@code this}.
+     */
+    
+    public Vector normalise() {
         double l = length(); 
-        return this.times(1.0/l);
-    }    
+        return this.multiply(1.0/l);
+    }      
     
-    public double maxComponent() {
-    	double max = -1;
-    	
-    	double cAbs, maxAbs;
-    	
-    	for(double c : x) {
-    		cAbs	= Math.abs(c);
-    		maxAbs	= Math.abs(max);
-    		max = cAbs > maxAbs ? cAbs : maxAbs;
-    	}
-    	
-        return max;
-    }    
+    /**
+     * Calculates the squared distance from {@code this Vector} to {@code v} (which is the squared length of the connecting {@code Vector}).
+     * @param v another {@code Vector}.
+     * @return the squared length of the connecting {@code Vector}.
+     * @throws IllegalArgumentException f the dimension of {@code this} and {@code v} are different.
+     */
     
-    public double sqDistanceTo(Vector v) {
+    public double distanceToSq(Vector v) throws IllegalArgumentException {
        	if(v.x.length != x.length)
     		throw new IllegalArgumentException(Messages.getString("Vector.DimensionError1") + x.length + " != " + v.x.length); //$NON-NLS-1$ //$NON-NLS-2$
 
     	double distSq = 0;
     	
     	for(int i = 0; i < v.x.length; i++) 
-    		distSq += Math.pow(this.x[i] - v.x[i], 2);
-    	
+    		distSq += Math.pow(this.x[i] - v.x[i], 2);    	
     	
         return distSq;
     }
+    
+    /**
+     * Calculates distance from {@code this Vector} to {@code p} using square-root on the squared distance.
+     * @param p another {@code Vector}.
+     * @return the length of the connecting {@code Vector}.
+     * @see distanceToSq(Vector)
+     * @throws IllegalArgumentException f the dimension of {@code this} and {@code v} are different.
+     */
         
     public double distanceTo(Vector p) {
-    	return Math.sqrt(this.sqDistanceTo(p));
+    	return Math.sqrt(this.distanceToSq(p));
     }    
+    
+    /**
+     * Gets the component of {@code this Vector} specified by {@code index}
+     * @param index the index of the component
+     * @return a double value, representing the value of the component 
+     */
     
     public double get(int index) {
     	return x[index];
     }
+    
+    /**
+     * Sets the component of {@code this Vector} specified by {@code index} to {@code value}.
+     * @param index the index of the component.
+     * @param value a new value that will replace the old one. 
+     */
     
     public void set(int index, double value) {
     	x[index] = value;
@@ -170,8 +238,10 @@ public class Vector {
 	public boolean equals(Object o) {
 	    if(o == this)
 	        return true;
+	    
 	    if(!(o instanceof Vector))
 	        return false;
+	    
 	    Vector v = (Vector)o;
 	    
 	    if(v.x.length != x.length)
@@ -185,26 +255,6 @@ public class Vector {
 
 	    return true;
 	    
-	}
-	
-	public boolean outOfBounds(Vector min, Vector max) {
-		if((min.x.length != x.length) || (max.x.length != x.length))
-			throw new IllegalArgumentException(Messages.getString("Vector.DimensionError2") + x + " ; " + min + " ; " + max); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-		
-		
-		for(int i = 0; i < x.length; i++) {
-			if(x[i] < min.x[i]) 
-				return true;
-			if(x[i] > max.x[i])
-				return true;
-		}
-		
-		return false;
-	
-	}
-	
-	public int dimension() {
-		return x.length;
 	}
 
 }

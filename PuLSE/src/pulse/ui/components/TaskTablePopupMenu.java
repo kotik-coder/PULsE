@@ -176,7 +176,7 @@ public class TaskTablePopupMenu extends JPopupMenu {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				TaskManager.getSelectedTask().reset();
+				TaskManager.getSelectedTask().clear();
 			}
 			
 		});
@@ -197,12 +197,7 @@ public class TaskTablePopupMenu extends JPopupMenu {
 				if(t.getProblem() == null)
 					return;
 				
-				try {
-					r = new Result(TaskManager.getSelectedTask(), ResultFormat.getFormat());
-				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
+				r = new Result(TaskManager.getSelectedTask(), ResultFormat.getInstance());				
 				TaskManager.useResult(t, r);
 				TaskRepositoryEvent e = new TaskRepositoryEvent
 						(TaskRepositoryEvent.State.TASK_FINISHED, 

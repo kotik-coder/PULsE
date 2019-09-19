@@ -1,4 +1,4 @@
-package pulse.util.geom;
+package pulse.ui.charts;
 
 public class Point2D {
 	private double x,y;

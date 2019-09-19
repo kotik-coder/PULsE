@@ -2,7 +2,6 @@ package pulse.tasks;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -26,6 +25,13 @@ import pulse.ui.Launcher;
 import pulse.util.UpwardsNavigable;
 import pulse.util.SaveableDirectory;
 
+/**
+ * <p>The {@code TaskManager} is a high-level class for dealing with operations of creation, removal, storage,
+ * and execution of {@code SearchTask}s, as well as with the associated {@code Result}s and {@code InterpolationDataset}s.
+ * Note that {@code TaskManager} adopts a {@code PathSolver}.</p>
+ *
+ */
+
 public final class TaskManager extends UpwardsNavigable {	
 	
 private static TaskManager instance = new TaskManager();	
@@ -48,9 +54,20 @@ private TaskManager() {
 	
 }
 
+/**
+ * This class uses a singleton pattern, meaning there is only instance of this class.
+ * @return the single (static) instance of this class
+ */
+
 public static TaskManager getInstance() {
 	return instance;
 }
+
+/**
+ * <t>Executes {@code t} asynchronously using a {@code CompletableFuture}. When done, 
+ * creates a {@code Result} and puts it into the {@code Map<SearchTask,Result> in this {@code TaskManager}.</t> 
+ * @param t a {@code SearchTask} that will be executed
+ */
 
 public static void execute(SearchTask t) {
 	removeResult(t); //remove old result	
@@ -69,16 +86,9 @@ public static void execute(SearchTask t) {
 						@Override
 						public void run() {
 							
-							if(t.getStatus() == Status.DONE) {
-							
-							try {
-								results.put( t, new Result(t, ResultFormat.getFormat() ) );
-							} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-								System.err.println("Error retrieving result of task " + t);
-								e.printStackTrace();
-							}
-							
-							}
+							if(t.getStatus() == Status.DONE) 							
+								results.put( t, new Result(t, 
+										ResultFormat.getInstance() ) );
 							
 							TaskRepositoryEvent e = new TaskRepositoryEvent(
 									TaskRepositoryEvent.State.TASK_FINISHED, t.getIdentifier());
@@ -93,9 +103,21 @@ public static void execute(SearchTask t) {
 
 }
 
+/**
+ * Notifies the {@code TaskRepositoryListener}s of the {@code e}
+ * @param e an event 
+ */
+
 public static void notifyListeners(TaskRepositoryEvent e) {
 	taskRepositoryListeners.stream().forEach(l -> l.onTaskListChanged(e));
 }
+
+/**
+ * <p>Creates a queue of {@code SearchTask}s based on their readiness and 
+ * feeds that queue to a {@code ForkJoinPool} using a parallel stream. The size of 
+ * the pool is usually limited by hardware, e.g. for a 4 core system with 2 independent
+ * threads on each core, the limitation will be <math>4*2 - 1 = 7</math>, etc. 
+ */
 
 public static void executeAll() {
 	
@@ -122,11 +144,24 @@ public static void executeAll() {
 		
 }
 
+/**
+ * Checks if any of the tasks that this {@code TaskManager} manages is either 
+ * {@code QUEUED} or {@code IN_PROGRESS}.
+ * @return {@code false} if the status of the {@code SearchTask} is any of the above;
+ * {@code false} otherwise.
+ */
+
 public static boolean isTaskQueueEmpty() {
 	return ! tasks.stream().anyMatch( t -> 
 		t.getStatus() == Status.QUEUED || t.getStatus() == Status.IN_PROGRESS
 	);	
 }
+
+/**
+ * This will terminate all tasks in this {@code TaskManager} and
+ * trigger a {@code SHUTDOWN} {@code TaskRepositoryEvent}. 
+ * @see pulse.tasks.Task.terminate()
+ */
 
 public static void cancelAllTasks() {
 
@@ -139,6 +174,14 @@ public static void cancelAllTasks() {
 	
 }
 
+/**
+ * Checks whether the acquisition time recorded by the experimental setup has been chosen 
+ * appropriately. 
+ * @return {@code false} if the acquisition time seems sensible for the {@code ExperimentalData}
+ * in each of the tasks; {@code true} otherwise.
+ * @see pulse.input.ExperimentalData.isAcquisitionTimeSensible()
+ */
+
 public static boolean dataNeedsTruncation() {
 	
 	return tasks.stream().anyMatch(
@@ -150,19 +193,30 @@ public static boolean dataNeedsTruncation() {
 		
 }
 
+/**
+ * Calls {@code truncate()} on {@code ExperimentalData} for each {@code SearchTask}.
+ * @see pulse.input.ExperimentalData.truncate()
+ */
+
 public static void truncateData() {
-	tasks.stream().forEach(t -> {
-		t.getExperimentalCurve().truncate();
-		//t.updateTimeLimit(); -- check if its' ok
-	});
-	
+	tasks.stream().forEach(t -> t.getExperimentalCurve().truncate());	
 }
+
+/**
+ * <p>Selects the first non-{@code null} task that is within the reach of this {@code TaskManager}.
+ * If all tasks are null, will do nothing.</p>
+ */
 
 public static void selectFirstTask() {
 	Optional<SearchTask> task = tasks.stream().filter(t -> t != null).findFirst();
 	if(task.isPresent())
 		selectTask(task.get().getIdentifier(), TaskManager.getInstance());
 }
+
+/**
+ * <p>Purges all tasks from this {@code TaskManager}. Generates a {@code TASK_REMOVED} 
+ * {@code TaskRepositoryEvent} for each of the removed tasks. Clears task selection.</p> 
+ */
 
 public static void clear() {
 	tasks.stream().forEach(task -> {
@@ -176,9 +230,28 @@ public static void clear() {
 	selectTask(null, null);
 }
 
+/**
+ * Uses the first non-{@code null} {@code SearchTask} to retrieve the sample name from the {@code Metadata} associated
+ * with its {@code ExperimentalData}. 
+ * @return a {@code String} with the sample name, or {@code null} if no suitable task can be found.
+ */
+
 public static String getSampleName() {
-	return tasks.size() < 1 ? null : tasks.get(0).getExperimentalCurve().getMetadata().getSampleName();
+	if(tasks.size() < 1)
+		return null;
+	
+	Optional<SearchTask> optional = tasks.stream().filter(t -> t != null).findFirst();
+	
+	if(!optional.isPresent())
+		return null;
+	
+	return optional.get().
+		getExperimentalCurve().getMetadata().getSampleName();
 }
+
+/**
+ * <p>Clears any progress for all the tasks and resets everything. Triggers a {@code TASK_RESET} event.</p> 
+ */
 
 public static void reset() {
 	if(tasks.size() < 1)
@@ -187,7 +260,7 @@ public static void reset() {
 	for(SearchTask task : tasks) {
 		TaskRepositoryEvent e = new TaskRepositoryEvent(TaskRepositoryEvent.State.TASK_RESET, task.getIdentifier());
 		
-		task.reset();
+		task.clear();
 		
 		notifyListeners(e);	
 	}
@@ -197,14 +270,11 @@ public static void reset() {
 			
 }
 
-public static SearchTask retrieveTask(double initialTemperature) {
-	final double ZERO = 1E-10;
-	
-	return tasks.stream().filter( t -> 
-		Math.abs((double)t.getTestTemperature().getValue() - initialTemperature) < ZERO ).
-		findFirst().get();
-	
-}
+/**
+ * Finds a {@code SearchTask} whose {@code Identifier} matches {@code id}.
+ * @param id the {@code Identifier} of the task.
+ * @return the {@code SearchTask} associated with this {@code Identifier}.
+ */
 
 public static SearchTask getTask(Identifier id) {
 	return tasks.stream().filter( t -> 
@@ -220,6 +290,15 @@ public static InterpolationDataset getDensityCurve() {
 	return densityCurve;
 }
 
+/**
+ * <p>Generates a {@code SearchTask} assuming that the {@code ExperimentalData} is stored in the
+ * {@code file}. This will make the {@code ReaderManager} attempt to read that {@code file}. 
+ * If successful, invokes {@code addTask(...)} on the created {@code SearchTask}.</p>  
+ * @param file
+ * @see addTask(SearchTask)
+ * @see pulse.io.readers.ReaderManager.extract(File)
+ */
+
 public static void generateTask(File file) {
 	List<ExperimentalData> curves = null;
 	try {
@@ -231,6 +310,11 @@ public static void generateTask(File file) {
 	curves.stream().forEach(curve -> addTask(new SearchTask(curve)) );		
 }
 
+/**
+ * Generates multiple tasks from multiple {@code files}.
+ * @param files a list of {@code File}s that can be parsed down to {@code ExperimentalData}.
+ */
+
 public static void generateTasks(List<File> files) {
 	if(files.size() == 1) {
 		generateTask(files.get(0));
@@ -240,6 +324,14 @@ public static void generateTasks(List<File> files) {
 	files.stream().forEach( f -> generateTask(f));
 
 }
+
+/**
+ * <p>If a task {@code equal} to {@code t} has already been previously loaded, does nothing.
+ * Otherwise, adds this {@code t} to the task repository and triggers a {@code TASK_ADDED} event.</p>
+ * @param t the {@code SearchTask} that needs to be added to the internal repository
+ * @return {@code null} if a task like {@code t} has already been added previously, {@code t} otherwise.
+ * @see pulse.tasks.SearchTask.equals(SearchTask)
+ */
 
 public static SearchTask addTask(SearchTask t)  {		
 
@@ -257,6 +349,12 @@ public static SearchTask addTask(SearchTask t)  {
 	return t;
 }
 
+/**
+ * If {@code t} is found in the local repository, removes it and triggers a {@code TASK_REMOVED} event. 
+ * @param t a {@code SearchTask} that has been previously loaded to this repository.
+ * @return {@code true} if the operation is successful, {@code false} otherwise.
+ */
+
 public static boolean removeTask(SearchTask t)  {			
 	if(tasks.stream().filter(task -> task.equals(t)).count() < 1)
 		return false;
@@ -271,23 +369,51 @@ public static boolean removeTask(SearchTask t)  {
 	selectedTask = null;
 	
 	return true;
-}	
+}
+
+/**
+ * Gets the current number of tasks in the repository.
+ * @return the number of available tasks.
+ */
 
 public static int numberOfTasks() {
 	return tasks.size();
 }
 
+/**
+ * Uses the {@code ReaderManager} to create an {@code InterpolationDataset} from {@code f} 
+ * and updates the thermal properties of each task.
+ * @param f a {@code File} containing the specific heat (or the heat capacity) data [J/kg/K].
+ * @throws IOException if file cannot be read
+ * @see pulse.tasks.SearchTask.calculateThermalProperties()
+ */
+
 public static void loadSpecificHeatData(File f) throws IOException {
 	specificHeatCurve = ReaderManager.readDataset(f);
 	for(SearchTask t : tasks) 
-		t.updateThermalProperties();
+		t.calculateThermalProperties();
 }
+
+/**
+ * Uses the {@code ReaderManager} to create an {@code InterpolationDataset} from {@code f} 
+ * and updates the thermal properties of each task.
+ * @param f a {@code File} containing the density (or the heat capacity) data [kg/m<sup>3</sup>].
+ * @throws IOException if file cannot be read
+ * @see pulse.tasks.SearchTask.calculateThermalProperties()
+ */
 
 public static void loadDensityData(File f) throws IOException {
 	densityCurve = ReaderManager.readDataset(f);
 	for(SearchTask t : tasks)
-		t.updateThermalProperties();
+		t.calculateThermalProperties();
 }
+
+/**
+ * <p>Selects a {@code SearchTask} within this repository with the specified {@code id} (if present). Informs
+ * the listeners this selection has been triggered by {@code src}. </p>
+ * @param id the {@code Identifier} of a task within this repository.
+ * @param src the source of the selection.
+ */
 
 public static void selectTask(Identifier id, Object src) {
 	selectedTask = null;
@@ -346,6 +472,10 @@ public static List<TaskRepositoryListener> getTaskRepositoryListeners() {
 	return taskRepositoryListeners;
 }
 
+/**
+ * This {@code TaskManager} will be described by the sample name for the experiment.
+ */
+
 @Override
 public String describe() {
 	return getSampleName();
@@ -367,9 +497,21 @@ public static Result getResult(SearchTask t) {
 	return results.get(t);
 }
 
+/**
+ * Assigns {@code r} as the {@code Result} for {@code t}.
+ * @param t the {@code Result}
+ * @param r the {@code SearchTask}.
+ */
+
 public static void useResult(SearchTask t, Result r) {
 	results.put(t,r);
 }
+
+/**
+ * Searches for a {@code Result} for a {@code SearchTask} with a specific {@code id}. 
+ * @param id the {@code Identifier} of a {@code SearchTask} 
+ * @return {@code null} if such {@code Result} cannot be found. Otherwise, returns the found {@code Result}.
+ */
 
 public static Result getResult(Identifier id) {
 	Optional<SearchTask> optional = tasks.stream().filter(t -> t.getIdentifier().equals(id)).findFirst();
@@ -379,6 +521,11 @@ public static Result getResult(Identifier id) {
 	
 	return results.get(optional.get());
 }
+
+/**
+ * Removes the results of the task {@code t} and sets its status to {@code READY}. 
+ * @param t a {@code SearchTask} contained in the repository
+ */
 
 public static void removeResult(SearchTask t) {
 	if(! results.containsKey(t) )

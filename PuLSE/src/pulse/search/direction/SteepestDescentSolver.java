@@ -1,7 +1,6 @@
 package pulse.search.direction;
 
 import pulse.search.math.Vector;
-import pulse.tasks.Path;
 import pulse.tasks.SearchTask;
 import pulse.ui.Messages;
 
@@ -20,14 +19,17 @@ public class SteepestDescentSolver extends PathSolver {
 	private SteepestDescentSolver() { super(); }
 
 	/**
-	 * The direction of the minimum at the iteration <math><i>k</i></math> 
+	 * <p>The direction of the minimum at the iteration <math><i>k</i></math> 
 	 * is calculated simply as the the inverted gradient vector:
 	 * <math><b>p</b><sub><i>k</sub> = -<b>g</b><sub><i>k</sub></math>.
+	 * Invokes {@code p.setDirection()}.</p>
 	 */
 	
 	@Override
 	public Vector direction(Path p) {
-	    return p.getGradient().invert();   //p_k = -g
+	    Vector dir = p.getGradient().inverted();   //p_k = -g
+	    p.setDirection(dir);
+	    return dir;
 	}
 	
 	/**
@@ -41,7 +43,7 @@ public class SteepestDescentSolver extends PathSolver {
 	
 	@Override
 	public String toString() {
-		return Messages.getString("SteepestDescentSolver.Descriptor"); //$NON-NLS-1$
+		return Messages.getString("SteepestDescentSolver.Descriptor");
 	}	
 	
 	/**
@@ -51,6 +53,17 @@ public class SteepestDescentSolver extends PathSolver {
 	
 	public static SteepestDescentSolver getInstance() {
 		return instance;
+	}
+	
+	/**
+	 * Creates a new {@code Path} instance for storing the gradient, direction, and minimum point for 
+	 * this {@code PathSolver}.
+	 * @param t the search task   
+	 * @return a {@code Path} instance
+	 */
+	
+	public Path createPath(SearchTask t) {
+		return new Path(t);
 	}
 
 }

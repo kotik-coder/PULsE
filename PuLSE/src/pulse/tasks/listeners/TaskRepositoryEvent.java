@@ -21,7 +21,43 @@ public class TaskRepositoryEvent {
 	}
 	
 	public enum State {
-		TASK_ADDED, TASK_REMOVED, TASK_SUBMITTED, TASK_FINISHED, TASK_RESET, SHUTDOWN;
+		
+		/**
+		 * Indicates a task has been added to the repository.
+		 */
+		
+		TASK_ADDED, 
+		
+		/**
+		 * A task has been removed from the repository.
+		 */
+		
+		TASK_REMOVED,
+		
+		/**
+		 * A task has been submitted for execution.
+		 */
+		
+		TASK_SUBMITTED, 
+		
+		/**
+		 * A task has finished executing.
+		 */
+		
+		TASK_FINISHED, 
+		
+		/**
+		 * A task has been reset.
+		 */
+		
+		TASK_RESET, 
+		
+		/**
+		 * The repository has been shut down/
+		 */
+		
+		SHUTDOWN;
+		
 	}
 	
 }

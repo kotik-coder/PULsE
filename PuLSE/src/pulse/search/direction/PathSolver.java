@@ -12,7 +12,6 @@ import pulse.properties.Property;
 import pulse.search.linear.LinearSolver;
 import pulse.search.math.IndexedVector;
 import pulse.search.math.Vector;
-import pulse.tasks.Path;
 import pulse.tasks.SearchTask;
 import pulse.tasks.Status;
 import pulse.util.PropertyHolder;
@@ -59,7 +58,8 @@ public abstract class PathSolver extends PropertyHolder implements Reflexive {
 	public static void reset() {
 		maxIterations		= (int)NumericProperty.theDefault(ITERATION_LIMIT).getValue();
 		errorTolerance	  	= (double)NumericProperty.theDefault(ERROR_TOLERANCE).getValue();
-		gradientResolution 	= (double)NumericProperty.theDefault(GRADIENT_RESOLUTION).getValue(); 
+		gradientResolution 	= (double)NumericProperty.theDefault(GRADIENT_RESOLUTION).getValue();
+		globalSearchFlags   = Flag.defaultList();
 	}
 	
 	/**
@@ -90,19 +90,18 @@ public abstract class PathSolver extends PropertyHolder implements Reflexive {
 		IndexedVector parameters = task.searchVector(); //get current search vector
 		
 		Vector dir = direction(p); //find the direction to the global minimum 
-		p.setDirection( dir ); //tell the Path this is a new direction
 		
 		double step = linearSolver.linearStep(task); //find how big the step needs to be to reach the minimum
 		p.setLinearStep(step);
 		
-		Vector newParams = parameters.plus(dir.times(step)); //this set of parameters supposedly corresponds to the minimum 		
+		Vector newParams = parameters.sum(dir.multiply(step)); //this set of parameters supposedly corresponds to the minimum 		
 		task.assign( new IndexedVector(newParams, parameters.getIndices()) ); //assign new parameters to this task
 		
 		endOfStep(task); //compute gradients, Hessians, etc. with new parameters
 		
 		p.incrementStep(); //increment the counter of successful steps
 		
-		return task.calculateDeviation(); //calculate the sum of squared residuals
+		return task.solveProblemAndCalculateDeviation(); //calculate the sum of squared residuals
 	} 
 	
 	/**
@@ -153,13 +152,13 @@ public abstract class PathSolver extends PropertyHolder implements Reflexive {
 			shift = new Vector(params.dimension());
 			shift.set(i, 0.5*dx);
 			
-			newParams	= params.plus(shift);
+			newParams	= params.sum(shift);
 			task.assign( new IndexedVector(newParams, params.getIndices()) );
-			ss2			= task.calculateDeviation();
+			ss2			= task.solveProblemAndCalculateDeviation();
 			
-			newParams	= params.minus(shift);
+			newParams	= params.subtract(shift);
 			task.assign( new IndexedVector(newParams, params.getIndices()) );
-			ss1			= task.calculateDeviation();
+			ss1			= task.solveProblemAndCalculateDeviation();
 			
 			grad.set(i, ( ss2 - ss1 ) / dx );
 					
@@ -299,5 +298,13 @@ public abstract class PathSolver extends PropertyHolder implements Reflexive {
 		
 		optional.get().setValue(flag.getValue());		
 	}
-		
+	
+	/**
+	 * Creates a new {@code Path} suitable for this {@code PathSolver}
+	 * @param t the task, the optimisation path of which will be tracked  
+	 * @return a {@code Path} instance
+	 */
+	
+	public abstract Path createPath(SearchTask t);
+	
 }

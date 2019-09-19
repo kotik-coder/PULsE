@@ -1,62 +1,55 @@
 package pulse.tasks;
 
 import pulse.properties.NumericProperty;
+import pulse.ui.Messages;
+
 import static pulse.properties.NumericPropertyKeyword.*;
+
+import java.util.Optional;
+
+/**
+ * <p>An {@code Identifier} is used to identify {@code SearchTask}s. 
+ * It stores the internal task ID as its integer value and the last recorded ID.</p>
+ *
+ */
 
 public class Identifier extends NumericProperty {
 		private static int lastId = -1;
 		
-		private final static String TASK_TAG = "Task";
-		
-		public final static Identifier DEFAULT_IDENTIFIER = new Identifier();
-		
 		private Identifier(int value) {
-			super(NumericProperty.def(IDENTIFIER));
+			super(NumericProperty.theDefault(IDENTIFIER));
 			setValue(value);
 			Identifier.lastId = value;		
 		}
+		
+		/**
+		 * Creates an {@code Identifier} by incrementing the previously recorded ID.
+		 */
 		
 		public Identifier() {
 			this(Identifier.lastId + 1);
 		}
 		
-		public static Identifier identifier(int id) {
-			int val;
-			for(SearchTask t : TaskManager.getTaskList()) {
-				val = ((Number)t.getIdentifier().getValue()).intValue();
-				if( val > id )
-					continue;
-				if( val < id )
-					continue;
-				return t.getIdentifier();
-			}
-			
-			return null;	
-		}
-		
-		public static Identifier identify(String string) {
-			String[] tokens = string.split(" ");
-			
-			if(! tokens[0].equals(TASK_TAG))
+		/**
+		 * Seeks an {@code Identifier} from the list of available tasks in {@code TaskManager}
+		 * that matches this {@code string}.  
+		 * @param string the string describing the identifier.
+		 * @return a matching {@code Identifier}.
+		 */
+
+		public static Identifier parse(String string) {
+			Optional<Identifier> i = TaskManager.getTaskList().stream().
+			map(t -> t.getIdentifier()).filter(id -> id.toString().equals(string))
+			.findFirst();
+			if(i.isPresent())
+				return i.get();
+			else 
 				return null;
-			if(tokens.length != 2)
-				return null;
-			
-			int id;
-			
-			try {					
-				id = Integer.parseInt(tokens[1]);
-			} catch(NumberFormatException e) {
-				return null;
-			}
-			
-			return identifier(id);
-			
 		}
 
 		@Override
 		public String toString() {
-			return TASK_TAG + " " + getValue();
+			return Messages.getString("Identifier.Tag") + " " + getValue();
 		}
 
 }

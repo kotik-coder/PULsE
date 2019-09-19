@@ -4,7 +4,6 @@ import static pulse.search.math.Matrix.*;
 
 import pulse.search.math.Matrix;
 import pulse.search.math.Vector;
-import pulse.tasks.Path;
 import pulse.tasks.SearchTask;
 import pulse.ui.Messages;
 
@@ -34,12 +33,14 @@ public class ApproximatedHessianSolver extends PathSolver {
 	 * Uses an approximation of the Hessian matrix, containing the information
 	 * on second derivatives, calculated with the 
 	 * BFGS formula in combination with the local value of the gradient 
-	 * to evaluate the direction of the minimum on {@code p}. 
+	 * to evaluate the direction of the minimum on {@code p}. Invokes {@code p.setDirection()}.
 	 */
 	
 	@Override
 	public Vector direction(Path p) {
-		return (p.getHessian().invert()).multiply(p.getGradient()).invert();
+		Vector dir = ( ( (ComplexPath)p ).getHessian().inverse()).multiply(p.getGradient()).inverted();
+		p.setDirection(dir);
+		return dir;
 	}
 	
 	/**
@@ -52,13 +53,13 @@ public class ApproximatedHessianSolver extends PathSolver {
 	
 	@Override
 	public void endOfStep(SearchTask task) {
-		Path p		= task.getPath();
-		Vector dir	= p.getDirection();
+		ComplexPath p	= (ComplexPath)task.getPath();
+		Vector dir		= p.getDirection();
 		
-		final double minimumPoint = p.getMinimumPoint();
-		final Matrix prevHessian = p.getHessian();
-		final Vector g0			 = p.getGradient();	//g0
-		Vector g1				 = gradient(task);	//g1
+		final double minimumPoint	= p.getMinimumPoint();
+		final Matrix prevHessian	= p.getHessian();
+		final Vector g0			 	= p.getGradient();	//g0
+		Vector g1				 	= gradient(task);	//g1
 		
 		p.setHessian(
 				hessian(g0, g1, dir, prevHessian, minimumPoint)
@@ -79,10 +80,10 @@ public class ApproximatedHessianSolver extends PathSolver {
 	 */
 	
 	private Matrix hessian(Vector g1, Vector g2, Vector dir, Matrix prevHessian, double alpha) {
-	    Vector y  = g2.minus(g1);                                      //g[k+1] - g[k]
+	    Vector y  = g2.subtract(g1);                                      //g[k+1] - g[k]
 	    return prevHessian.
-	    			  plus( (multiplyAsMatrices(g1, g1)).multiply(1./g1.dot(dir)) ) .
-	    			  plus( (multiplyAsMatrices(y, y)  ).multiply(1./(alpha*y.dot(dir)) ) ) ; //BFGS for Ge[k+1]	    
+	    			  sum( (outerProduct(g1, g1)).multiply(1./g1.dot(dir)) ) .
+	    			  sum( (outerProduct(y, y)  ).multiply(1./(alpha*y.dot(dir)) ) ) ; //BFGS for Ge[k+1]	    
 	}
 	
 	@Override
@@ -97,6 +98,17 @@ public class ApproximatedHessianSolver extends PathSolver {
 		
 	public static ApproximatedHessianSolver getInstance() {
 		return instance;
+	}
+	
+	/**
+	 * Creates a new {@code Path} instance for storing the gradient, direction, and minimum point for 
+	 * this {@code PathSolver}.
+	 * @param t the search task   
+	 * @return a {@code Path} instance
+	 */
+	
+	public Path createPath(SearchTask t) {
+		return new ComplexPath(t);
 	}
 	
 }

@@ -163,7 +163,7 @@ public class TaskControlFrame extends JFrame {
 		outputPane.setResizeWeight(0.6);
 		outputPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
 		
-		resultsTable = new ResultTable(ResultFormat.defaultFormat);
+		resultsTable = new ResultTable(ResultFormat.DEFAULT_FORMAT);
 		
 		adjustEnabledControls();
 		
@@ -616,7 +616,7 @@ public class TaskControlFrame extends JFrame {
 				if(taskTabbedPane.getSelectedIndex() < 0)
 					return;
 				String title = taskTabbedPane.getTitleAt(taskTabbedPane.getSelectedIndex());
-				Identifier id = Identifier.identify(title);
+				Identifier id = Identifier.parse(title);
 				if(id != null)
 					TaskManager.selectTask(id, taskTabbedPane);
 			}

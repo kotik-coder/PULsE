@@ -211,7 +211,7 @@ public class ResultTable extends JTable implements Saveable  {
 	public void merge(double temperatureDelta) {
 		
 		ResultTableModel model = (ResultTableModel) this.getModel();
-		int temperatureIndex = model.getFormat().keywords().
+		int temperatureIndex = model.getFormat().getKeywords().
 				indexOf(NumericPropertyKeyword.TEST_TEMPERATURE);
 		
 		if(temperatureIndex < 0)
@@ -294,12 +294,12 @@ public class ResultTable extends JTable implements Saveable  {
 	
 	private void printCSV(FileOutputStream fos) {
 		PrintStream stream = new PrintStream(fos);
-		NumericProperty p = null;
+		NumericPropertyKeyword p = null;
 		
         for (int col = 0; col < getColumnCount(); col++) {
         	p = ( (ResultTableModel)getModel() ).getFormat().
         			fromAbbreviation(getColumnName(col));
-            stream.print(p.getType() + "\t");
+            stream.print(p + "\t");
             stream.print("STD. DEV" + "\t");
         }
         

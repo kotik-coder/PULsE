@@ -9,27 +9,45 @@ import pulse.properties.NumericProperty;
 import pulse.ui.Messages;
 import pulse.util.DataEntry;
 
+/**
+ * <p>A {@code LogEntry} with a list of {@code NumericPropert}ies. Can be created
+ * from a {@code SearchTask}. The output is accessible via the {@code toString()} method.</p>
+ * 
+ */
+
 public class DataLogEntry extends LogEntry {
 
 	private List<NumericProperty> entry; 
-	private LogFormat fmt;
+	
+	/**
+	 * Creates a new {@code DataLogEntry} based on the current values of the properties 
+	 * from {@code task} which match the currently selected {@code LogFormat}. 
+	 * @param task a task, which will be used to build the {@code DataLogEntry}
+	 */
 	
 	public DataLogEntry(SearchTask task) {
 		super(task);
-		fmt = LogFormat.DEFAULT_FORMAT;
 		try {
 			fill();
 		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-			// TODO Auto-generated catch block
+			System.err.println("Failed to fill this log entry with data. Details below.");
 			e.printStackTrace();
 		}							
 	}	
 	
-	public void fill() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	/**
+	 * Fills this {@code DataLogEtnry} with properties from the {@code SearchTask},
+	 * which have types matching to those listed in the {@code LogFormat}.
+	 * @throws IllegalAccessException if the call to {@code task.numericProperties() fails}
+	 * @throws IllegalArgumentException if the call to {@code task.numericProperties() fails}
+	 * @throws InvocationTargetException if the call to {@code task.numericProperties() fails}
+	 */
+	
+	private void fill() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		SearchTask task = TaskManager.getTask( getIdentifier() ); 
 		entry = task.numericProperties().
 				stream().filter(p -> 
-					fmt.types().stream().anyMatch(keyword -> p.getType() == keyword)
+					LogFormat.getInstance().types().stream().anyMatch(keyword -> p.getType() == keyword)
 						).collect(Collectors.toList());
 		Collections.sort(entry, (p1, p2) -> p1.getDescriptor(false).compareTo(p2.getDescriptor(false)));
 		entry.add(0, task.getPath().getIteration());
@@ -38,6 +56,12 @@ public class DataLogEntry extends LogEntry {
 	public List<NumericProperty> getData() {
 		return entry;
 	}
+	
+	/**
+	 * This {@code String} will be displayed by the {@code LogPane} if the 
+	 * verbose log option is enabled.
+	 * @see pulse.ui.components.LogPane
+	 */
 	
 	@Override
 	public String toString() {

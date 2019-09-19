@@ -16,18 +16,24 @@ import pulse.ui.frames.ProblemStatementFrame;
 import pulse.ui.frames.SearchOptionsFrame;
 import pulse.ui.frames.TaskControlFrame;
 
+/**
+ * <p>This is the main class used to launch {@code PULsE} and start the GUI. 
+ * In addition to providing the launcher methods, it also provides some functionality
+ * for accessing the System CPU and memory usage, as well as the number of available
+ * threads that can be used in calculation.</p>
+ *
+ */
+
 public class Launcher {
 
 	private static TaskControlFrame controlFrame;
 	private static ProblemStatementFrame directFrame;
 	private static SearchOptionsFrame searchOptionsFrame; 
 	
-	private Launcher() {
-		
-	}
+	private Launcher() { }
 	
 	/**
-	 * Launch the application.
+	 * Launches the application and creates a GUI.
 	 */
 	
 	public static void main(String[] args) {
@@ -42,7 +48,11 @@ public class Launcher {
 				}
 			}
 		});
-	}	
+	}
+	
+	/**
+	 * Invoked when the respective frame component needs to be shown on screen.
+	 */
 
 	public static void showProblemStatementFrame() {
 		if(directFrame == null) {
@@ -55,6 +65,10 @@ public class Launcher {
 		directFrame.setVisible(true);			
 	}
 	
+	/**
+	 * Invoked when the respective frame component needs to be shown on screen.
+	 */
+	
 	public static void showSearchOptionsFrame() {
 		if(searchOptionsFrame == null) {
 			searchOptionsFrame = 
@@ -65,11 +79,24 @@ public class Launcher {
 		searchOptionsFrame.setVisible(true);
 	}
 	
+	/**
+	 * <p>This will calculate the ratio {@code totalMemory/maxMemory} using the standard {@code Runtime}.
+	 * Note this memory usage depends on heap allocation for the JVM.</p>
+	 * @return a value depicting the memory usage
+	 */
+	
 	public static double getMemoryUsage() {
 		double totalMemory = Runtime.getRuntime().totalMemory();
 		double maxMemory = Runtime.getRuntime().maxMemory();
 		return ( totalMemory/maxMemory * 100 );
 	}
+	
+	/**
+	 * <p>This will calculate the CPU load for the machine running {@code PULsE}.
+	 * Note this is rather code-intensive, so it is recommende to use only at certain
+	 * time intervals.</p>
+	 * @return a value depicting the CPU usage
+	 */
 	
 	public static double CPUUsage() {
 
@@ -101,6 +128,14 @@ public class Launcher {
 	    
 	    return (value * 100);
 	}
+	
+	/**
+	 * Finds the number of threads available for calculation. This will be used
+	 * by the {@code TaskManager} when allocating the {@code ForkJoinPool} for 
+	 * running several tasks in parallel.  
+	 * @return the number of threads, which is greater or equal to the number of cores
+	 * @see pulse.tasks.TaskManager
+	 */
 	
 	public static int threadsAvailable() {
 		int number = Runtime.getRuntime().availableProcessors();
