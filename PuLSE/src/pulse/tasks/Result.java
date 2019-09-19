@@ -12,8 +12,8 @@ import pulse.util.Saveable;
 /**
  * The individual {@code Result} that is associated with a {@code SearchTask}.
  * The {@code Identifier} of the task is stored as a field value.
- * @see pulse.task.SearchTask
- * @see pulse.task.Identifier
+ * @see pulse.tasks.SearchTask
+ * @see pulse.tasks.Identifier
  */
 
 public class Result extends AbstractResult implements Saveable {
