@@ -65,7 +65,7 @@ public static TaskManager getInstance() {
 
 /**
  * <t>Executes {@code t} asynchronously using a {@code CompletableFuture}. When done, 
- * creates a {@code Result} and puts it into the {@code Map(SearchTask,Result) in this {@code TaskManager}.</t> 
+ * creates a {@code Result} and puts it into the {@code Map(SearchTask,Result)} in this {@code TaskManager}.</t> 
  * @param t a {@code SearchTask} that will be executed
  */
 

@@ -141,7 +141,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 	/**
 	 * Used to change the parameter values of this {@code Problem}. It is only allowed
 	 * to use those types of {@code NumericPropery} that are listed by the {@code listedParameters()}.
-	 * @see listedParameters()  
+	 * @see listedTypes()  
 	 */
 	
 	public void set(NumericPropertyKeyword type, NumericProperty value) {
@@ -292,7 +292,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 	 * is set to false, its value will be skipped when creating the vector.</p>
 	 * @param flags a list of {@code Flag} objects, which determine the basis of the search
 	 * @return an {@code IndexedVector} object, representing the objective function.
-	 * @see listedParameters()
+	 * @see listedTypes()
 	 */
 	
 	public IndexedVector optimisationVector(List<Flag> flags) {	
@@ -321,7 +321,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 	 * Assigns parameter values of this {@code Problem} using the optimisation vector {@code params}.
 	 * Only those parameters will be updated, the types of which are listed as indices in the {@code params} vector.   
 	 * @param params the optimisation vector, containing a similar set of parameters to this {@code Problem}
-	 * @see listedParameters()
+	 * @see listedTypes()
 	 */
 	
 	public void assign(IndexedVector params) {

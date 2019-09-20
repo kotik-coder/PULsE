@@ -258,7 +258,7 @@ public abstract class Accessible extends UpwardsNavigable {
 	 * Searches for a specific {@code Accessible} with a {@code simpleName}. 
 	 * @see accessibles()
 	 * @param simpleName the name of the {@code Accessible},
-	 * @return the {@code Accessible object.
+	 * @return the {@code Accessible} object.
 	 */
 	
 	public  Accessible accessible(String simpleName) {
