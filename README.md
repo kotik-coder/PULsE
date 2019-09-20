@@ -5,3 +5,5 @@ PULsE (Processing Unit for Laser flaSh Experiments)  is an advanced analysis pro
 PULsE is written by Dr. Artem Lunev, contactable via email: artem.lunev@ukaea.uk.
 
 Beta testing, validation studies and User Manual by Rob Heymer.
+
+Licensed under Apache 2.0 Permissive License.
