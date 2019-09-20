@@ -32,7 +32,7 @@ public class LogPane extends JEditorPane implements Saveable {
 	private static final long serialVersionUID = -8464602356332804481L;
 	private ExecutorService updateExecutor = Executors.newSingleThreadExecutor();
 	
-	private final static boolean DEBUG = true;
+	private final static boolean DEBUG = false;
 
 	public LogPane() {
 		super();	
