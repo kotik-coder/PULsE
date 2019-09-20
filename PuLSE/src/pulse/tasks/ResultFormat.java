@@ -29,8 +29,8 @@ public class ResultFormat {
 		{'T', 'D'};
 	
 	/**
-	 * The default format specified by the {@code Messages.getString("ResultFormat.DefaultFormat")}.
-	 * @see pulse.ui.messages.properties
+	 * <p>The default format specified by the {@code Messages.getString("ResultFormat.DefaultFormat")}.
+	 * See file messages.properties in {@code pulse.ui}.</p>
 	 */
 	
 	public static final ResultFormat DEFAULT_FORMAT = new ResultFormat(Messages.getString("ResultFormat.DefaultFormat"));
