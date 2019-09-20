@@ -19,7 +19,7 @@ public class AverageResult extends AbstractResult {
 	
 	private List<AbstractResult> results;
 	
-	public final static int SIGNIFICANT_FIGURES	= 1;
+	public final static int SIGNIFICANT_FIGURES	= 2;
 
 	/**
 	 * This will create an {@code AverageResult} based on the {@code AbstractResult}

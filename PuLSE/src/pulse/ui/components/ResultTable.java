@@ -40,7 +40,7 @@ import pulse.util.Saveable;
 public class ResultTable extends JTable implements Saveable  {		
 	
 	private final static Font font = new Font(
-			Messages.getString("ResultTable.FontName"), Font.PLAIN, 16);  //$NON-NLS-1$
+			Messages.getString("ResultTable.FontName"), Font.PLAIN, 16);  
 	
 	private final static int ROW_HEIGHT = 30;
 	
@@ -306,14 +306,14 @@ public class ResultTable extends JTable implements Saveable  {
         stream.println(""); 
 
         NumericProperty tmp;
+        String output;
         
         for (int i = 0; i < getRowCount(); i++) {
             for (int j = 0; j < getColumnCount(); j++) {
             	tmp = (NumericProperty) getValueAt(i,j);
-                stream.print(tmp.formattedValue() + "\t");
-                if(tmp.getError() != null)
-                	stream.print(tmp.getError() + "\t");
-                else
+            	output = tmp.formattedValue().replaceAll("[^a-zA-Z0-9.E+-]", "\t");
+                stream.print(output + "\t");
+                if(tmp.getError() == null)                	
                 	stream.print("0.0\t");
             }
             stream.println();
@@ -333,12 +333,18 @@ public class ResultTable extends JTable implements Saveable  {
         	return;
         }
         
-        stream.print(Messages.getString("ResultTable.IndividualResults")); //$NON-NLS-1$
+        stream.println("");
+        stream.print(Messages.getString("ResultTable.SeparatorCSV"));
+        stream.println("");
         
-        for (int col = 0; col < getColumnCount(); col++) 
-            stream.print(getColumnName(col) + "\t");        
+        for (int col = 0; col < getColumnCount(); col++) {
+        	p = ( (ResultTableModel)getModel() ).getFormat().
+        			fromAbbreviation(getColumnName(col));
+            stream.print(p + "\t");
+            stream.print("STD. DEV" + "\t");
+        }              
 
-        stream.println(""); //$NON-NLS-1$
+        stream.println();
 
         List<AbstractResult> ir;
         AverageResult ar;
@@ -354,8 +360,12 @@ public class ResultTable extends JTable implements Saveable  {
         			rr = (Result)aar;
         			props = AbstractResult.filterProperties(aar);
         			
-        			for (int j = 0; j < getColumnCount(); j++) 
-                        stream.print(props.get(j).formattedValue() + "\t");
+        			for (int j = 0; j < getColumnCount(); j++) {
+                    	output = props.get(j).formattedValue().replaceAll("[^a-zA-Z0-9.E+-]", "\t");
+                        stream.print(output + "\t");
+                        if(props.get(j).getError() == null)                	
+                        	stream.print("0.0\t");
+        			}
         			
         			stream.println();
                             			
@@ -370,33 +380,33 @@ public class ResultTable extends JTable implements Saveable  {
 	private void printHTML(FileOutputStream fos) {		
 		PrintStream stream = new PrintStream(fos);
 		
-		stream.print("<table>"); //$NON-NLS-1$
-		stream.print("<tr>"); //$NON-NLS-1$
+		stream.print("<table>"); 
+		stream.print("<tr>"); 
 		
         for (int col = 0; col < getColumnCount(); col++) {
-        	stream.print("<td>"); //$NON-NLS-1$
-            stream.print(getColumnName(col) + "\t"); //$NON-NLS-1$
-            stream.print("</td>"); //$NON-NLS-1$
+        	stream.print("<td>"); 
+            stream.print(getColumnName(col) + "\t"); 
+            stream.print("</td>"); 
         }
         
-        stream.print("</tr>"); //$NON-NLS-1$
+        stream.print("</tr>"); 
 
-        stream.println(""); //$NON-NLS-1$
+        stream.println(""); 
 
         NumericProperty tmp;
 
         for (int i = 0; i < getRowCount(); i++) {
-        	stream.print("<tr>"); //$NON-NLS-1$
+        	stream.print("<tr>"); 
             for (int j = 0; j < getColumnCount(); j++) {
-            	stream.print("<td>"); //$NON-NLS-1$
+            	stream.print("<td>"); 
             	tmp = (NumericProperty) getValueAt(i,j);
                 stream.print(tmp.formattedValue());
-                stream.print("</td>"); //$NON-NLS-1$
+                stream.print("</td>"); 
             }
-            stream.println("</tr>"); //$NON-NLS-1$
+            stream.println("</tr>"); 
         }
         
-        stream.print("</table>"); //$NON-NLS-1$
+        stream.print("</table>"); 
         
         List<AbstractResult> results = ( (ResultTableModel)getModel() ).getResults();
         
@@ -412,19 +422,19 @@ public class ResultTable extends JTable implements Saveable  {
         	return;
         }
         
-        stream.print(Messages.getString("ResultTable.IndividualResults")); //$NON-NLS-1$
-        stream.print("<table>"); //$NON-NLS-1$
-        stream.print("<tr>"); //$NON-NLS-1$
+        stream.print(Messages.getString("ResultTable.IndividualResults")); 
+        stream.print("<table>"); 
+        stream.print("<tr>"); 
         
         for (int col = 0; col < getColumnCount(); col++) {
-        	stream.print("<td>"); //$NON-NLS-1$
-            stream.print(getColumnName(col) + "\t"); //$NON-NLS-1$
-            stream.print("</td>"); //$NON-NLS-1$
+        	stream.print("<td>"); 
+            stream.print(getColumnName(col) + "\t"); 
+            stream.print("</td>"); 
         }
         
-        stream.print("</tr>"); //$NON-NLS-1$
+        stream.print("</tr>"); 
 
-        stream.println(""); //$NON-NLS-1$
+        stream.println(""); 
 
         List<AbstractResult> ir;
         AverageResult ar;
@@ -437,23 +447,23 @@ public class ResultTable extends JTable implements Saveable  {
         		ir = ar.getIndividualResults();
         		
         		for(AbstractResult aar : ir) {		
-        			stream.print("<tr>"); //$NON-NLS-1$
+        			stream.print("<tr>"); 
         			rr = (Result)aar;
         			props = AbstractResult.filterProperties(aar);
         			
         			for (int j = 0; j < getColumnCount(); j++) {
-                    	stream.print("<td>"); //$NON-NLS-1$
+                    	stream.print("<td>"); 
                         stream.print(props.get(j).formattedValue());
-                        stream.print("</td>"); //$NON-NLS-1$
+                        stream.print("</td>"); 
                     }
         			
-        			stream.print("</tr>"); //$NON-NLS-1$
+        			stream.print("</tr>"); 
         		}
         		
         	}
         }
                 
-        stream.print("</table>"); //$NON-NLS-1$
+        stream.print("</table>"); 
                
         stream.close();
 	}

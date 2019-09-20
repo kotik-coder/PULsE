@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import pulse.util.DataEntry;
+import pulse.util.ImmutableDataEntry;
 
 /**
  * An {@code InterpolationDataset} stores data in a {@code List} of {@code DataEntry<Double,Double>} objects (each containing a 'key' and a 'value')
@@ -14,14 +14,14 @@ import pulse.util.DataEntry;
 
 public class InterpolationDataset {
 
-	private List<DataEntry<Double,Double>> dataset;
+	private List<ImmutableDataEntry<Double,Double>> dataset;
 
 	/**
 	 * Creates an empty {@code InterpolationDataset}. 
 	 */
 	
 	public InterpolationDataset() {				
-		dataset = new ArrayList<DataEntry<Double,Double>>();
+		dataset = new ArrayList<ImmutableDataEntry<Double,Double>>();
 	}
 	
 	/**
@@ -31,10 +31,10 @@ public class InterpolationDataset {
 	 * @return a {@code DataEntry} object, satisfying the conditions above.
 	 */
 	
-	public DataEntry<Double,Double> previousTo(double key) {
-		DataEntry<Double,Double> entry = null;
-		DataEntry<Double,Double> next = null;
-		for(Iterator<DataEntry<Double,Double>> it = dataset.iterator(); it.hasNext(); ) {
+	public ImmutableDataEntry<Double,Double> previousTo(double key) {
+		ImmutableDataEntry<Double,Double> entry = null;
+		ImmutableDataEntry<Double,Double> next = null;
+		for(Iterator<ImmutableDataEntry<Double,Double>> it = dataset.iterator(); it.hasNext(); ) {
 			next = it.next();
 			if(key > next.getKey()) 
 				entry = next;
@@ -57,8 +57,8 @@ public class InterpolationDataset {
 	 */
 	
 	public double interpolateAt(double key) {
-		DataEntry<Double,Double> entry = previousTo(key);
-		DataEntry<Double,Double> next = dataset.get(dataset.indexOf(entry)+1);
+		ImmutableDataEntry<Double,Double> entry = previousTo(key);
+		ImmutableDataEntry<Double,Double> next = dataset.get(dataset.indexOf(entry)+1);
 		
 		double k = ( next.getValue() - entry.getValue() ) /
 				   ( next.getKey() - entry.getKey() );
@@ -75,7 +75,7 @@ public class InterpolationDataset {
 	 * @param entry the entry to be added
 	 */
 
-	public void add(DataEntry<Double,Double> entry) {
+	public void add(ImmutableDataEntry<Double,Double> entry) {
 		dataset.add(entry);
 	}
 	
@@ -84,7 +84,7 @@ public class InterpolationDataset {
 	 * @return the {@code List} of data.
 	 */
 	
-	public List<DataEntry<Double,Double>> getData() {
+	public List<ImmutableDataEntry<Double,Double>> getData() {
 		return dataset;			
 	}
 	

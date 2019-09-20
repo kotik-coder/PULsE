@@ -87,14 +87,8 @@ public class PropertyHolderTable extends JTable {
 				if(! (changedObject instanceof Property))  
 					return;
 				
-				Property changedProperty = (Property)changedObject;
-				
-				try {
-					propertyHolder.updateProperty(reference, changedProperty);
-				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e1) {
-					System.err.println(Messages.getString("PropertyHolderTable.UpdateError") + propertyHolder); //$NON-NLS-1$
-					e1.printStackTrace();
-				}
+				Property changedProperty = (Property)changedObject;				
+				propertyHolder.updateProperty(reference, changedProperty);
 				
 			}
 			
@@ -124,10 +118,10 @@ public class PropertyHolderTable extends JTable {
 
 		List<Accessible> internalHolders = new ArrayList<Accessible>(0);
 		
-		if(p.internalHolderPolicy()) {
+		if(p.ignoreSiblings()) {
 			try {
 				internalHolders = p.accessibles();
-			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			} catch (IllegalArgumentException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} 

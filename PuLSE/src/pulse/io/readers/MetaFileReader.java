@@ -16,7 +16,7 @@ import pulse.input.Metadata;
 import pulse.properties.EnumProperty;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
-import pulse.util.DataEntry;
+import pulse.util.ImmutableDataEntry;
 
 /**
  * An {@code AbstractReader} capable of reading metafiles. 
@@ -90,8 +90,8 @@ public class MetaFileReader implements AbstractReader {
 				
 				if(size == 2) {
 					
-					List<DataEntry<String,String>> val = new ArrayList<DataEntry<String,String>>();
-					DataEntry<String,String> entry = new DataEntry<String,String>( tokens.get(0), tokens.get(1) );
+					List<ImmutableDataEntry<String,String>> val = new ArrayList<ImmutableDataEntry<String,String>>();
+					ImmutableDataEntry<String,String> entry = new ImmutableDataEntry<String,String>( tokens.get(0), tokens.get(1) );
 					val.add(entry);
 								
 					switch( tokens.get(0) ) {					
@@ -123,10 +123,10 @@ public class MetaFileReader implements AbstractReader {
 						if( Math.abs( Integer.valueOf(tokens.get(0)) - met.getExternalID() ) > 0.5 ) 							
 							continue;												
 												
-						List<DataEntry<String,String>> values = new ArrayList<DataEntry<String,String>>(size);						
+						List<ImmutableDataEntry<String,String>> values = new ArrayList<ImmutableDataEntry<String,String>>(size);						
 												
 						for(int i = 1; i < size; i++) 						
-							values.add(new DataEntry<String,String>(metaFormat.get(i), tokens.get(i)));													
+							values.add(new ImmutableDataEntry<String,String>(metaFormat.get(i), tokens.get(i)));													
 						
 						try {
 							translate(values, met);
@@ -146,13 +146,13 @@ public class MetaFileReader implements AbstractReader {
 					
 	}	
 	
-	private void translate(List<DataEntry<String,String>> data, Metadata met) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	private void translate(List<ImmutableDataEntry<String,String>> data, Metadata met) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 
 		double tmp;		
 		
 		for(NumericProperty metaEntry : met.numericData()) {
 
-			inner: for(DataEntry<String,String> dataEntry : data) {			
+			inner: for(ImmutableDataEntry<String,String> dataEntry : data) {			
 				
 				if(!metaEntry.getType().toString().
 				equalsIgnoreCase(dataEntry.getKey()))
@@ -165,15 +165,8 @@ public class MetaFileReader implements AbstractReader {
 				tmp /= (metaEntry.getDimensionFactor() ).doubleValue();
 								
 				if( NumericProperty.isValueSensible(metaEntry, tmp)) {																
-					try {
-						met.updateProperty( instance, new NumericProperty(tmp, metaEntry) );
-						break inner;
-					} catch (IllegalAccessException | IllegalArgumentException
-							| InvocationTargetException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-							
+					met.updateProperty( instance, new NumericProperty(tmp, metaEntry) );
+					break inner;												
 				}																	
 				
 			}
@@ -182,20 +175,11 @@ public class MetaFileReader implements AbstractReader {
 					
 		for(EnumProperty genericEntry : met.enumData())  
 		{			
-			inner: for(DataEntry<String,String> dataEntry : data) {
+			inner: for(ImmutableDataEntry<String,String> dataEntry : data) {
 				
-						if(dataEntry.getKey().equals(genericEntry.getClass().getSimpleName())) {
-		
-						try {
-							met.updateProperty( instance, genericEntry.evaluate(dataEntry.getValue()) );
-						}
-						catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-							//TODO Auto-generated catch block
-							e.printStackTrace();
-						}	
-						
-						break inner;
-						
+						if(dataEntry.getKey().equals(genericEntry.getClass().getSimpleName())) {		
+							met.updateProperty( instance, genericEntry.evaluate(dataEntry.getValue()) );						
+							break inner;						
 					}
 				
 				}

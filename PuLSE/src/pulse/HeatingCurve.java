@@ -287,7 +287,7 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 	 */
 	
 	@Override
-	public List<Property> listedParameters() {
+	public List<Property> listedTypes() {
 		List<Property> list = new ArrayList<Property>();
 		list.add(getNumPoints());
 		return list;
@@ -299,7 +299,8 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 	 * where <math><msubsup><mi>T</mi><mi>i</mi><mrow><mi>r</mi><mi>e</mi><mi>f</mi></mrow></msubsup></math> is the temperature value corresponding to the {@code time} at index {@code i} for the reference {@code curve}.
 	 * Note that the time <math><msub><mi>t</mi><mi>i</mi></msub></math> corresponds to the <b>reference's</b> time list, which generally does not match to that of this heating curve.
 	 * The <math><mover><mi>T</mi><mo>&#x23DE;</mo></mover><mo>(</mo><msub><mi>t</mi><mi>i</mi></msub><mo>)</mo></math> is the interpolated value for this heating curve at the reference time. 
-     * The temperature value is interpolated using two nearest elements of the <b>baseline-subtracted</b> temperature list.
+     * The temperature value is interpolated using two nearest elements of the <b>baseline-subtracted</b> temperature list. The value is interpolated using the experimental time <math><i>t</i><sub>i</sub></math>
+     * and the nearest solution points to that time. 
      * The accuracy of this interpolation depends on the number of points.  
 	 * The boundaries of the summation are set by the {@code curve.getFittingStartIndex()} and {@code curve.getFittingEndIndex()} methods.        
 	 * @param curve The reference heating curve
@@ -310,15 +311,26 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 		double timeInterval_1 = this.timeAt(1) - this.timeAt(0); 
 		
 		int cur;
-		double b, interpolated, diff;	
+		double b1, b2, interpolated, diff;	
 		
 		double sum = 0;
 		
+		/*Linear interpolation for the **solution**: 
+		 * y* = y1*(x2-x*)/dx + y2*(x*-x1)/dx, 
+		 * where y1,x1,y2,x2 are the calculated heating curve points, and 
+		 * y* is the interpolated value.  
+		*/ 
+		
 		for (int i = curve.getFittingStartIndex(); i <= curve.getFittingEndIndex(); i++) {
-			cur 		 = (int) (curve.timeAt(i)/timeInterval_1); //find index corresponding to this curve time interval
-			b  			 = ( curve.timeAt(i) - this.timeAt(cur) ) / timeInterval_1;
-			interpolated = (1 - b)*this.temperatureAt(cur) + b*this.temperatureAt(cur + 1);
-			diff		 = curve.temperatureAt(i) - interpolated;
+			/*find the point on the calculated heating curve 
+			which has the closest time value smaller than the experimental points' time value*/
+			cur 		 = (int) (curve.timeAt(i)/timeInterval_1);  
+			
+			b1			 = ( this.timeAt(cur + 1) - curve.timeAt(i)  ) / timeInterval_1; //(x2 -x*)/dx
+			b2  		 = ( curve.timeAt(i) 	  - this.timeAt(cur) ) / timeInterval_1; //(x* -x1)/dx
+			interpolated = b1*this.temperatureAt(cur) + b2*this.temperatureAt(cur + 1);
+			
+			diff		 = curve.temperatureAt(i) - interpolated; //y_exp - y*
 			sum			+= diff*diff; 
 		}		
 		

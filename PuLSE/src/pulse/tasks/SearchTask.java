@@ -53,7 +53,7 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 	private double cp, rho, emissivity, lambda;
 	private double rSq, ssr;
 	
-	private final static double RELATIVE_TIME_MARGIN = 1.025;
+	private final static double RELATIVE_TIME_MARGIN = 1.05;
 
 	/**
 	 * If {@code SearchTask} finishes, and its <i>R<sup>2</sup></i> value is lower than this constant,

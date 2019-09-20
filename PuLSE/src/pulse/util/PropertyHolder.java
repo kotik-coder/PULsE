@@ -1,10 +1,6 @@
 package pulse.util;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -12,23 +8,33 @@ import pulse.properties.EnumProperty;
 import pulse.properties.NumericProperty;
 import pulse.properties.Property;
 
+/**
+ * An {@code Accessible} that has a list of parameters it accepts as its own and a list
+ * of {@code PropertyHolderListener} that track changes with all properties of the 
+ * {@code Accessible}.  
+ *
+ */
+
 public abstract class PropertyHolder extends Accessible {
 
-	private List<Property> parameters = listedParameters();
+	private List<Property> parameters = listedTypes();
 	private List<PropertyHolderListener> listeners;
 	
-	public List<Property> listedParameters() {
+	/**
+	 * <p>By default, this will search the children of this {@code PropertyHolder} to collect
+	 * the types of their listed parameters recursively. Note this method is used only to 
+	 * retrieve the type and not the data!</p>
+	 * @return a list of {@code Property} instances, which have been explicitly marked as a listed parameter for this {@code PropertyHolder}.
+	 */
+	
+	public List<Property> listedTypes() {
 		
 		List<Property> properties = new ArrayList<Property>();
 		
-		try {
-			for(Accessible accessible : children()) 
-				if(accessible instanceof PropertyHolder) 
-					properties.addAll( ((PropertyHolder) accessible).listedParameters());
-		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		for(Accessible accessible : children()) 
+			if(accessible instanceof PropertyHolder) 
+				properties.addAll( ((PropertyHolder) accessible).listedTypes());
+		
 		return properties;
 	}
 	
@@ -36,7 +42,15 @@ public abstract class PropertyHolder extends Accessible {
 		this.listeners = new ArrayList<PropertyHolderListener>();
 	}
 	
-	private boolean isListedNumericParameter(NumericProperty p) {
+	/**
+	 * Checks whether {@code p} belongs to the list of parameters for this {@code PropertyHolder},
+	 * i.e. if the associated {@code NumericPropertyKeyword}s match.
+	 * @param p the {@code NumericProperty} of a certain type.
+	 * @return {@code true} if {@code p} is listed.
+	 * @see listedParameters()
+	 */
+	
+	private boolean isListedNumericType(NumericProperty p) {
 		if(p == null)
 			return false;
 		
@@ -46,7 +60,15 @@ public abstract class PropertyHolder extends Accessible {
 			
 	}
 	
-	private boolean isListedGenericParameter(Property p) {
+	/**
+	 * Checks whether {@code p} belongs to the list of parameters for this {@code PropertyHolder},
+	 * i.e. if the properties are of the same class.
+	 * @param p the {@code Property}.
+	 * @return {@code true} if {@code p} is listed.
+	 * @see listedParameters()
+	 */
+	
+	private boolean isListedGenericType(Property p) {
 		if(p == null)
 			return false;
 		
@@ -55,72 +77,75 @@ public abstract class PropertyHolder extends Accessible {
 			
 	}
 	
-	private boolean isListedParameter(Property p) {
-		return p instanceof NumericProperty ? isListedNumericParameter((NumericProperty)p) : 
-											  isListedGenericParameter(p);
-	}
-	
-	/*
-	 * Provides a two-column (title - value) representation of properties contained in this PropertyHolder object
+	/**
+	 * Checks whether {@code p}, which is either a generic or a numeric property, is listed as 
+	 * as parameter for this {@code PropertyHolder}.
+	 * @param p the {@code Property}
+	 * @return {@code true} if {@code p} is listed, {@code false} otherwise.
 	 */
 	
-	public List<Property> data() {	
-		
-		List<Property> properties = new LinkedList<Property>();
-		
-		try {
-			properties.addAll(this.numericProperties());
-			properties.addAll(this.genericProperties());
-		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		Property p = null;
-		
-		/*
-		 * remove unknown properties from key array
-		 */				
-		
-		for(Iterator<Property> pIterator = properties.iterator(); pIterator.hasNext(); ) {					
-			
-			p = pIterator.next();
-					
-			/*
-			 * If property is not flagged as readable in this class, remove it
-			 */
-			
-			if( ! isListedParameter(p) ) {
-				pIterator.remove();
-				continue;
-			}
-						
-			/*
-			 * Hide auto-adjustable properties in simple mode
-			 */
-			
-			if( areDetailsHidden() )	
-				if( p instanceof NumericProperty )
-					if( ((NumericProperty)p).isAutoAdjustable() )
-						pIterator.remove();										
-		
-		}
-				
-		return properties;		
-		
+	public boolean isListedParameter(Property p) {
+		return p instanceof NumericProperty ? isListedNumericType((NumericProperty)p) : 
+											  isListedGenericType(p);
 	}
 	
-	public List<NumericProperty> numericData() {
-		return data().stream().filter(p -> p instanceof NumericProperty).
-				map(nP -> (NumericProperty)nP).collect(Collectors.toList());		
+	/**
+	 * Lists all data contained in this {@code PropertyHolder}. The data objects must satisfy the following conditions:
+	 * (a) they must be explicitly listed; 
+	 * (b) the corresponding property must not be auto-adjustable if the details need to remain hidden.
+	 * @return a list of data, which combines generic and numeric properties.
+	 */
+	
+	public List<Property> data() {			
+		List<NumericProperty> numeric = numericData();				
+		List<Property> all = genericProperties().stream().filter(p -> isListedGenericType(p) ).collect(Collectors.toList());
+		
+		all.addAll(numeric);		
+		return all;		
 	}
+	
+	/**
+	 * Lists all numeric data contained in this {@code PropertyHolder}. The data objects must satisfy the following conditions:
+	 * (a) they must be explicitly listed; 
+	 * (b) the corresponding property must not be auto-adjustable if the details need to remain hidden.
+	 * @return a list of {@code Property} data.
+	 * @see areDetailsHidden() 
+	 * @see pulse.properties.NumericProperty.isAutoAdjustable()
+	 * @see isListedNumericType(NumericProperty)
+	 */
+	
+	public List<NumericProperty> numericData() {
+		return numericProperties().stream().
+				filter(p -> ( 
+						isListedNumericType(p) && 								 
+								(areDetailsHidden() ? !p.isAutoAdjustable() : true )
+						) )
+		.collect(Collectors.toList());			
+	}
+	
+	/**
+	 * Lists all instances of {@code EnumProperty} contained in this {@code PropertyHolder}. The data objects must be explicitly listed.
+	 * @return a list of {@code Property} data.
+	 * @see isListedGenericType(Property)
+	 */
 	
 	public List<EnumProperty> enumData() {
 		return data().stream().filter(p -> p instanceof EnumProperty).
 				map(eP -> (EnumProperty)eP).collect(Collectors.toList());
 	}
 	
-	public void updateProperty(Object sourceComponent, Property updatedProperty) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {		
+	/**
+	 * <p>Attempts to update an {@code updatedProperty} similar to one found in this {@code PropertyHolder}. The call originator
+	 * is declared to be the {@code sourceComponent}. If the originator is not the parent of this {@code UpwardsNavigable}, 
+	 * this object will tell their parent about this behavior. The update is done by calling the superclass method {@code update(Property}
+	 * -- if and only if a property similar to {@code updatedProperty} exists and its value is not equal to the {@code updatedProperty}.
+	 * When the update happens, this will pass the corresponding {@code PropertyEvent} to the available listeners.</p>
+	 * @param sourceComponent the originator of the change.
+	 * @param updatedProperty the updated property that will be assigned to this {@code PropertyHolder}.
+	 * @see pulse.util.Accessible.update(Property)
+	 */
+	
+	public void updateProperty(Object sourceComponent, Property updatedProperty) {		
 		Property existing = property(updatedProperty);
 		
 		if(existing == null)
@@ -130,6 +155,7 @@ public abstract class PropertyHolder extends Accessible {
 			return;	
 		
 		super.update(updatedProperty);		
+		
 		PropertyEvent event = new PropertyEvent(sourceComponent, updatedProperty);
 		listeners.forEach(l -> l.onPropertyChanged(event));
 		
@@ -140,19 +166,19 @@ public abstract class PropertyHolder extends Accessible {
 		
 		if( sourceComponent != getParent() )
 			tellParent(event);		
+		
 	}
 	
+	/**
+	 * This method will update this {@code PropertyHolder} with all properties that are contained in a different {@code propertyHolder},
+	 * if they also are present in the former.  
+	 * @param sourceComponent the source of the change
+	 * @param propertyHolder another {@code PropertyHolder}
+	 * @see updateProperty(Object, Property)
+	 */
+	
 	public void updateProperties(Object sourceComponent, PropertyHolder propertyHolder) {
-		propertyHolder.data().stream().forEach( entry -> 
-		{ 
-				try {
-					this.updateProperty( sourceComponent, entry );
-				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-					System.err.println("Error when trying to update property " + entry.toString() + " in " + this);
-					e.printStackTrace();
-				} 
-			} 
-		);
+		propertyHolder.data().stream().forEach( entry -> this.updateProperty( sourceComponent, entry ) );			
 	}
 	
 	public void removeListeners() {
@@ -167,15 +193,30 @@ public abstract class PropertyHolder extends Accessible {
 		return listeners;
 	}
 	
+	/**
+	 * By default, this is set to {@code false}. If the overriding subclass sets this to {@code true},
+	 * only those {@code NumericPropert}ies that have the {@code autoAdjustable} flag set {@code false}
+	 * will be shown.
+	 * @return {@code true} if the auto-adjustable numeric properties need to stay hidden, {@code false} otherwise.
+	 * @see pulse.properties.NumericProperty.isAutoAdjustable()
+	 */
+	
 	public boolean areDetailsHidden() {
 		return false;
 	}
 
 	public void parameterListChanged() {
-		this.parameters = listedParameters();
+		this.parameters = listedTypes();
 	}
 	
-	public boolean internalHolderPolicy() {
+	/**
+	 * Should {@code Accessible}s that belong to this {@code PropertyHolder} be 
+	 * ignored when this {@code PropertyHolder} is displayed in a table?  
+	 * @return {@code true} by default
+	 * @see pulse.ui.components.PropertyHolderTable
+	 */
+	
+	public boolean ignoreSiblings() {
 		return true;
 	}
 

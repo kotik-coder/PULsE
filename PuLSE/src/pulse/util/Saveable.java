@@ -7,15 +7,35 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+/**
+ * A {@code Saveable} is any individual {@code PULsE} entity that can be saved using a {@code FileOutputStream}.
+ *
+ */
+
 public interface Saveable extends Describable {
+	
+	/**
+	 * Gets the default export extension for this {@code Saveable}.
+	 * @return {@code .html}, if not stated otherwise by overriding this method.
+	 */
 	
 	public default Extension getDefaultExportExtension() {
 		return Extension.HTML;
 	}
 	
+	/**
+	 * Returns an array of supported extensions, which by default contains only the default extension.
+	 * @return an array with {@code Extension} type objects. 
+	 */
+	
 	public default Extension[] getSupportedExtensions() {
 		return new Extension[] {getDefaultExportExtension()};
 	}
+	
+	/**
+	 * Saves the contents to {@code directory} without asking a confirmation from the user. 
+	 * @param directory the directory where this {@code Saveable} needs to be saved.
+	 */
 	
 	public default void saveNow(File directory) {
 
@@ -31,6 +51,12 @@ public interface Saveable extends Describable {
 		}
 		
 	}
+	
+	/**
+	 * Provides a {@code JFileChooser} for the user to select the export destiation for this {@code Saveable}.
+	 * @param parentWindow the parent frame.
+	 * @param fileTypeLabel the label describing the specific type of files that will be saved.
+	 */
 	
 	public default void askToSave(JFrame parentWindow, String fileTypeLabel) {
 		JFileChooser fileChooser = new JFileChooser();
@@ -73,7 +99,24 @@ public interface Saveable extends Describable {
 	public void printData(FileOutputStream fos, Extension extension);
 	
 	public enum Extension {
-		HTML, CSV;
+		
+		/**
+		 * The result will be an html-document with tags that can be opened with any web browser.
+		 * Useful for complex formatting, but not for data manipulation, as it contains tags
+		 * and special symbols.
+		 */
+		
+		HTML, 
+		
+		/**
+		 * The result will be a tab-delimited CSV document. Usefult for data manipulations and plotting.
+		 */
+		
+		CSV;
+		
+		/**
+		 * This will return the lower-case characters for the extension. 
+		 */
 		
 		@Override
 		public String toString() {

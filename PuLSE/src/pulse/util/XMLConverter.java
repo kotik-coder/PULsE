@@ -29,11 +29,17 @@ import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.ui.Messages;
 
+/**
+ * Used to read and write XML files containing information about the default 
+ * {@code NumericPropert}ies.
+ *
+ */
+
 public class XMLConverter {
 
 	private XMLConverter() {}
 	
-	public static void toXML(NumericProperty np, Document doc, Element rootElement) {
+	private static void toXML(NumericProperty np, Document doc, Element rootElement) {
         Element property = doc.createElement(np.getClass().getSimpleName());
         rootElement.appendChild(property);
 
@@ -75,9 +81,9 @@ public class XMLConverter {
         
 	}
 	
-	/*
-	 * Utility method that creates an .xml file listing all public final static numeric properties
-	 * found in this class
+	/**
+	 * Utility method that creates an .xml file listing all public final static instances of {@code NumericProperty}
+	 * found in the {@code NumericProperty} class.
 	 */
 	
 	public static void writeXML() throws ParserConfigurationException, TransformerException {
@@ -139,8 +145,8 @@ public class XMLConverter {
         
 	}
 	
-	/*
-	 * Utility method used to read constants from XML file
+	/**
+	 * Utility method used to read {@code NumericProperty} constants from XML files.
 	 */
 	
 	public static List<NumericProperty> readXML(InputStream inputStream) throws ParserConfigurationException, SAXException, IOException {
@@ -188,6 +194,12 @@ public class XMLConverter {
         return properties;
         
 	}
+	
+	/**
+	 * The default XML file is specific in the 'messages.properties' text file in the 
+	 * {@code pulse.ui} package
+	 * @return a list of default instances of {@code NumericProperty}.
+	 */
 	
 	public static List<NumericProperty> readDefaultXML() {
 		try {

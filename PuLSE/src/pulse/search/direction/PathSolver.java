@@ -1,6 +1,5 @@
 package pulse.search.direction;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -225,7 +224,7 @@ public abstract class PathSolver extends PropertyHolder implements Reflexive {
 	 */
 	
 	@Override
-	public List<Property> genericProperties() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	public List<Property> genericProperties() {
 		List<Property> original = super.genericProperties();
 		original.addAll(globalSearchFlags);
 		return original;
@@ -239,8 +238,8 @@ public abstract class PathSolver extends PropertyHolder implements Reflexive {
 	 */
 	
 	@Override
-	public List<Property> listedParameters() {
-		List<Property> list = super.listedParameters();
+	public List<Property> listedTypes() {
+		List<Property> list = super.listedTypes();
 		list.add(NumericProperty.def(GRADIENT_RESOLUTION));
 		list.add(NumericProperty.def(ERROR_TOLERANCE));
 		list.add(NumericProperty.def(ITERATION_LIMIT));
@@ -267,7 +266,7 @@ public abstract class PathSolver extends PropertyHolder implements Reflexive {
 	 */
 	
 	@Override
-	public boolean internalHolderPolicy() {
+	public boolean ignoreSiblings() {
 		return false;
 	}
 	

@@ -433,7 +433,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 	 */
 	
 	@Override
-	public List<Property> listedParameters() {
+	public List<Property> listedTypes() {
 		List<Property> list = new ArrayList<Property>();
 		list.add(NumericProperty.def(MAXTEMP));
 		list.add(NumericProperty.def(DIFFUSIVITY));

@@ -115,8 +115,8 @@ public class NonlinearProblem extends Problem {
 	}		
 	
 	@Override
-	public List<Property> listedParameters() {
-		List<Property> list = super.listedParameters();
+	public List<Property> listedTypes() {
+		List<Property> list = super.listedTypes();
 		list.add(NumericProperty.def(ABSORBED_ENERGY));
 		list.add(NumericProperty.def(DENSITY));
 		list.add(NumericProperty.def(NONLINEAR_PRECISION));

@@ -380,7 +380,7 @@ public class Metadata extends PropertyHolder implements Reflexive, Saveable {
 	}
 
 	@Override
-	public List<Property> listedParameters() {
+	public List<Property> listedTypes() {
 		List<Property> list = new ArrayList<Property>(9);
 		list.add(NumericProperty.def(TEST_TEMPERATURE));
 		list.add(NumericProperty.def(THICKNESS));

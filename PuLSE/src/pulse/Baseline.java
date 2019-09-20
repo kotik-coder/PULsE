@@ -84,7 +84,7 @@ public class Baseline extends PropertyHolder {
 	 */
 	
 	@Override
-	public List<Property> listedParameters() {
+	public List<Property> listedTypes() {
 		List<Property> list = new ArrayList<Property>();
 		list.add(getSlope()); 
 		list.add(getIntercept()); 
