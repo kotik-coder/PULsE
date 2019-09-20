@@ -17,7 +17,6 @@ import java.util.List;
 import javax.swing.DefaultListModel;
 import javax.swing.DefaultListSelectionModel;
 import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
@@ -36,7 +35,6 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 
 import pulse.problem.schemes.DifferenceScheme;
-import pulse.problem.schemes.Solver;
 import pulse.problem.statements.Problem;
 import pulse.tasks.SearchTask;
 import pulse.tasks.Status;
@@ -269,14 +267,8 @@ public class ProblemStatementFrame extends JFrame {
 			if(!Problem.isSingleStatement())
 				return;
 			
-			for(SearchTask task : TaskManager.getTaskList()) {
-				try {
-					task.getProblem().updateProperty(event, event.getProperty());
-				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
+			for(SearchTask task : TaskManager.getTaskList()) 				
+					task.getProblem().updateProperty(event, event.getProperty());							
 			
 		}
 		);

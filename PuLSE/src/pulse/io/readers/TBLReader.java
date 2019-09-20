@@ -8,7 +8,7 @@ import java.util.StringTokenizer;
 
 import pulse.input.InterpolationDataset;
 import pulse.ui.Messages;
-import pulse.util.DataEntry;
+import pulse.util.ImmutableDataEntry;
 
 /**
  * A {@code DatasetReader} capable of reading {@code .tbl} files.
@@ -75,7 +75,7 @@ public class TBLReader implements DatasetReader {
 			for(String line = reader.readLine(); line != null; line = reader.readLine()) {
 				tokenizer = new StringTokenizer(line);
 				curve.add(
-						new DataEntry<Double,Double>(
+						new ImmutableDataEntry<Double,Double>(
 						Double.parseDouble(tokenizer.nextToken(delims)), 
 						Double.parseDouble(tokenizer.nextToken(delims)))
 						);

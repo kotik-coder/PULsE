@@ -190,7 +190,7 @@ public class Buffer extends PropertyHolder {
 	 */
 	
 	@Override
-	public List<Property> listedParameters() {
+	public List<Property> listedTypes() {
 		List<Property> list = new ArrayList<Property>();
 		list.add(NumericProperty.def(NumericPropertyKeyword.BUFFER_SIZE));
 		return list;

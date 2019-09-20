@@ -17,12 +17,22 @@ import java.util.zip.ZipInputStream;
 
 import pulse.ui.Messages;
 
+/**
+ * Provides utility methods for finding classes and instances of {@code Reflexive} in a {@code PULsE} package.
+ *
+ */
+
 public class ReflexiveFinder {
 	
-	private ReflexiveFinder() {
-		
-	}
+	private ReflexiveFinder() { }
 
+	/**
+	 * Uses Java Reflection API to find all classes within the package named {@code pckgname}. Works well with .jar
+	 * files.
+	 * @param pckgname the name of the package.
+ 	 * @return a list of {@code Class} objects.
+	 */
+	
 	public static List<Class<?>> classesIn(String pckgname) {		
         String name = new String(pckgname);
         if (!name.startsWith(File.separator))  
@@ -36,7 +46,7 @@ public class ReflexiveFinder {
         try {
         	locationPath = new Object() {}. getClass().getProtectionDomain().getCodeSource().getLocation().toURI().getPath();
     	} catch (URISyntaxException e) {
-			// TODO Auto-generated catch block
+			System.err.println("Failed to initialise the path to the package " + pckgname);
 			e.printStackTrace();
 		}
      
@@ -50,7 +60,7 @@ public class ReflexiveFinder {
        							Class.forName(
        									pckgname + "." + file.substring(0, file.length() - 6)));
 					} catch (ClassNotFoundException e) {
-						// TODO Auto-generated catch block
+						System.err.println("Failed to find the .class file");
 						e.printStackTrace();
 					}
        		}
@@ -91,6 +101,14 @@ public class ReflexiveFinder {
        return classes;        
 	}	
 	
+	/**
+	 * <p>Finds simple instances of {@code Reflexive} subclasses within {@code pckgname}. 
+	 * A simple instance is either one that results from invoking a no-argument constructor or a {@code getInstance()} method.</p> 
+	 * @param <V> a class implementing {@code Reflexive}
+ 	 * @param pckgname the name of the package for the search
+	 * @return a list of classes implementing {@code Reflexive} that are found in {@code pckgname}.
+	 */
+	
 	public static <V extends Reflexive> List<V> simpleInstances(String pckgname) {
 		List<V> instances = new LinkedList<V>();
 		
@@ -99,7 +117,7 @@ public class ReflexiveFinder {
                     try {
                         // Try to create an instance of the object                    	
                     	
-                    	Constructor<?>[] ctrs = aClass.getDeclaredConstructors(); //$NON-NLS-1$);
+                    	Constructor<?>[] ctrs = aClass.getDeclaredConstructors();
                     	V instance = null;
                     	                                   	
                     	for (Constructor<?> ctr : ctrs) {
@@ -111,7 +129,7 @@ public class ReflexiveFinder {
 									if(o instanceof Reflexive)
                     	    			instance = (V) o;
 								} catch (InstantiationException e) {
-									System.err.println(Messages.getString("ReflexiveFinder.ConstructorAccessError") + ctr); //$NON-NLS-1$
+									System.err.println(Messages.getString("ReflexiveFinder.ConstructorAccessError") + ctr); 
 									e.printStackTrace();
 								}    
                     	    	break;
@@ -126,11 +144,11 @@ public class ReflexiveFinder {
                         
                         //if the class has a getInstance() method                    	
                         
-                        Method[] methods = aClass.getMethods(); //$NON-NLS-1$
+                        Method[] methods = aClass.getMethods(); 
                     	instance = null;
                     	
                     	for (Method method : methods) {
-                    	  if (method.getName().equals("getInstance")) { //$NON-NLS-1$
+                    	  if (method.getName().equals("getInstance")) { 
                     		Object o = method.invoke(null, new Object[0]);
                     		if(o instanceof Reflexive)
                     			instance = (V) o;
@@ -142,16 +160,16 @@ public class ReflexiveFinder {
                     		instances.add(instance);         
                         
                     } catch (IllegalAccessException iaex) {
-                    	System.err.println("Cannot access: " + aClass); //$NON-NLS-1$
+                    	System.err.println("Cannot access: " + aClass); 
                     	iaex.printStackTrace();
                     } catch (SecurityException e) {
-                    	System.err.println("Cannot access: " + aClass); //$NON-NLS-1$
+                    	System.err.println("Cannot access: " + aClass); 
 						e.printStackTrace();
 					} catch (IllegalArgumentException e) {
-						System.err.println(Messages.getString("ReflexiveFinder.getInstanceArgumentError") + aClass); //$NON-NLS-1$
+						System.err.println(Messages.getString("ReflexiveFinder.getInstanceArgumentError") + aClass); 
 						e.printStackTrace();
 					} catch (InvocationTargetException e) {
-						System.err.println(Messages.getString("ReflexiveFinder.getInstanceError") + aClass); //$NON-NLS-1$
+						System.err.println(Messages.getString("ReflexiveFinder.getInstanceError") + aClass); 
 						e.printStackTrace();
 					}
                 

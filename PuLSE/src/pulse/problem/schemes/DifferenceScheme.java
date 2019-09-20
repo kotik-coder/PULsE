@@ -125,7 +125,7 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 	}
 	
 	@Override
-	public List<Property> listedParameters() {
+	public List<Property> listedTypes() {
 		List<Property> list = new ArrayList<Property>(9);
 		list.add(NumericProperty.def(NumericPropertyKeyword.TIME_LIMIT));
 		return list;

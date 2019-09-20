@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 
 import pulse.properties.NumericProperty;
 import pulse.ui.Messages;
-import pulse.util.DataEntry;
+import pulse.util.ImmutableDataEntry;
 
 /**
  * <p>A {@code LogEntry} with a list of {@code NumericPropert}ies. Can be created
@@ -69,11 +69,11 @@ public class DataLogEntry extends LogEntry {
 	
 		sb.append("<table>");
 		
-		List<DataEntry<String,String>> intermediate = 
-				entry.stream().map(property -> new DataEntry<String,String>(
+		List<ImmutableDataEntry<String,String>> intermediate = 
+				entry.stream().map(property -> new ImmutableDataEntry<String,String>(
 				property.getDescriptor(true), property.formattedValue())).collect(Collectors.toList());
 		
-		for(DataEntry<String,String> p : intermediate) {
+		for(ImmutableDataEntry<String,String> p : intermediate) {
 			sb.append("<tr>");
 			sb.append("<td>");
 			sb.append(p.getKey());

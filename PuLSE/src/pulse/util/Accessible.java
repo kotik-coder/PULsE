@@ -14,16 +14,33 @@ import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 
+/**
+ * <p>An {@Accessible} provides Reflection-based read- and write-access to the underlying (usually declared
+ * as its own fields - but not necessarily) instances of {@code Property} and a recursive access to other {@code Accessible}, which
+ * may have a family relationship with {@code this} {@code Accessible} via the {@code UpwardsNavigable}
+ * implementation. It also defines its own list of {@code Saveable}s.</p>
+ *
+ */
+
 public abstract class Accessible extends UpwardsNavigable {
+	
+	/**
+	 * <p>Recursively analyses all {@code Accessible}s that this object owns
+	 * (including only children) and chooses those that are {@code Saveable}.</p>
+	 * @return a full list of {@code Saveable}s.
+	 */
 	
 	public List<Saveable> saveableContents() {
 		List<Saveable> contents = new ArrayList<Saveable>();
 
 	    try {
-			contents.addAll(numericProperties().stream().filter(p -> p instanceof Saveable).
-					map(p -> (Saveable)p).collect(Collectors.toList()));
+			//contents.addAll(numericProperties());
 			accessibles().stream().forEach(c -> 						
 				{
+					/*
+					 * Filter only children, not parents! 
+					 */
+					
 				 if(this.getParent() != c) {										
 					 if(c instanceof SaveableDirectory) 
 						contents.addAll(c.saveableContents() );				
@@ -31,29 +48,41 @@ public abstract class Accessible extends UpwardsNavigable {
 						contents.add((Saveable)c);
 						contents.addAll(c.saveableContents());
 					 }
-					 }
+				 }
+				 
 				 });
-		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-			// TODO Auto-generated catch block
+		} catch (IllegalArgumentException e) {
+			System.err.println("Unable to generate saveable contents for " + this.getClass());
 			e.printStackTrace();
 		}
 	    
 	    return contents;
 	}
 	
-	public Property property(Property similar) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	/**
+	 * <p>Searches for a {@code Property} in this {@code Accessible} that looks {@code similar} to the argument.
+	 * Determines whether the {@code similar} is a {@code NumericProperty} or a generic property and calls the suitable 
+	 * method in this class.</p>    
+	 * @param similar a generic or a numeric {@code Property}
+	 * @return the matching property of this {@code Accessible}
+	 */
+	
+	public Property property(Property similar) {
 		if(similar instanceof NumericProperty)
 			return numericProperty(((NumericProperty)similar).getType());
 		else
 			return genericProperty(similar);
 	}
 	
-	/*
-	 * The same as for genericProperties() -- however, this returns a Set<NumericProperty>, meaning that 
-	 * it will contain only unique objects
+	/**
+	 * Tries to access the property getter methods in this {@code Accessible}, which should be declared as no-argument methods 
+	 * with a specific return type. 
+	 * @return This will return a unique {@code Set<NumericProperty>} containing all instances of {@code NumericProperty} 
+	 * belonging to this {@code Accessible}. This set will not contain any duplicate elements by definition.
+	 * @see pulse.properties.NumericProperty.equal(Object)
 	 */
 	
-	public Set<NumericProperty> numericProperties() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	public Set<NumericProperty> numericProperties() {
 		Set<NumericProperty> fields = new TreeSet<NumericProperty>();
 		
 		Method[] methods = this.getClass().getMethods();		
@@ -65,7 +94,12 @@ public abstract class Accessible extends UpwardsNavigable {
 	    		continue;
 	    	
 	        if( NumericProperty.class.isAssignableFrom(m.getReturnType()) )
-	        	fields.add((NumericProperty) m.invoke(this));   
+				try {
+					fields.add((NumericProperty) m.invoke(this));
+				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+					System.err.println("Error invoking method " + m);
+					e.printStackTrace();
+				}   
 	        
 	    }
 	    
@@ -80,11 +114,14 @@ public abstract class Accessible extends UpwardsNavigable {
 	    
 	}
 	
-	/*
-	 * This will return a List<Property> containing all properties except instances of NumericProperty
+	/**
+	 * Tries to access the property getter methods in this {@code Accessible}, which should be declared as no-argument methods 
+	 * with a specific return type. 
+	 * @return This will return a {@code List<Property>} containing all properties belonging to this {@code Accessible},
+	 * which are not assignable from the {@code NumericProperty} class.
 	 */
 	
-	public List<Property> genericProperties() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	public List<Property> genericProperties() {
 		List<Property> fields = new ArrayList<Property>();
 		
 		Method[] methods = this.getClass().getMethods();		
@@ -97,7 +134,12 @@ public abstract class Accessible extends UpwardsNavigable {
 	    	
 	        if( Property.class.isAssignableFrom(m.getReturnType()) )
 	        	if(! NumericProperty.class.isAssignableFrom(m.getReturnType()) )
-	        		fields.add((Property) m.invoke(this));   
+					try {
+						fields.add((Property) m.invoke(this));
+					} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+						System.err.println("Error invoking method " + m);
+						e.printStackTrace();
+					}   
 	        
 	    }
 	    
@@ -112,11 +154,14 @@ public abstract class Accessible extends UpwardsNavigable {
 		
 	}
 	
-	/*
-	 * return objects via getter methods that are instances of the Accessible superclass
+	/**
+	 * <p>Tries to access getter methods to retrieve all {@code Accessible} instances belonging to this object.
+	 * Ignores any methods that return instances of the same class as {@code this} one.</p>
+	 * @return a {@code List} containing {@code Accessibles} objects which could be accessed by the declared
+	 * getter methods.
 	 */
 	
-	public List<Accessible> accessibles() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	public List<Accessible> accessibles() {
 		List<Accessible> fields = new ArrayList<Accessible>();
 		
 		Method[] methods = this.getClass().getMethods();		
@@ -129,7 +174,14 @@ public abstract class Accessible extends UpwardsNavigable {
 	    	if(!Accessible.class.isAssignableFrom(m.getReturnType()))
 	        	continue;
 	    	
-	        Accessible a = (Accessible) m.invoke(this);
+	        Accessible a = null;
+	        
+			try {
+				a = (Accessible) m.invoke(this);
+			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+				System.err.println("Failed to invoke " + m);
+				e.printStackTrace();
+			}
 	        
 	        if(a == null)
 	        	continue;
@@ -145,16 +197,23 @@ public abstract class Accessible extends UpwardsNavigable {
 	    return fields;
 		
 	}
+	
+	/**
+	 * <p>Recursively searches for a {@code NumericProperty} from the unique set of numeric properties in this 
+	 * {@code Accessible} by comparing its {@code NumericPropertyKeyword} to {@code type}. This will search
+	 * for this property through the children of this object, through the children of their children, etc.</p>
+	 * @param type the type of the {@code NumericProperty}.
+	 * @return the respective {@code NumericProperty}, or {@code null} if nothing is found.
+	 * @see numericProperties()
+	 */
 
-	public NumericProperty numericProperty(NumericPropertyKeyword type) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	public NumericProperty numericProperty(NumericPropertyKeyword type) {
 		
-		Set<NumericProperty> properties = this.numericProperties();
+		Optional<NumericProperty> match = numericProperties().stream().
+				filter(p -> p.getType() == type).findFirst();
 		
-		for(NumericProperty property : properties) {
-			NumericPropertyKeyword key = property.getType();
-			if(key == type)
-				return property;
-		}
+		if(match.isPresent())
+			return match.get();		
 		
 		NumericProperty property = null;
 		
@@ -167,7 +226,16 @@ public abstract class Accessible extends UpwardsNavigable {
 		
 	}
 	
-	public Property genericProperty(Property sameClass) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	/**
+	 * <p>Recursively searches for a {@code Property} from the non-unique list of generic properties in this 
+	 * {@code Accessible} by comparing its class to {@code sameClass.getClass()}. This will search
+	 * for this property through the children of this object, through the children of their children, etc.</p>
+	 * @param sameClass the class identifying this {@code Property}.
+	 * @return the respective {@code Property}, or {@code null} if nothing is found.
+	 * @see genericProperties()
+	 */
+	
+	public Property genericProperty(Property sameClass) {
 		
 		Optional<Property> match = genericProperties().stream().
 				filter(p -> p.getClass().equals(sameClass.getClass())).findFirst();
@@ -186,31 +254,60 @@ public abstract class Accessible extends UpwardsNavigable {
 		
 	}
 	
-	public  Accessible accessible(String simpleName) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	/**
+	 * Searches for a specific {@code Accessible} with a {@code simpleName}. 
+	 * @see accessibles()
+	 * @param simpleName the name of the {@code Accessible},
+	 * @return the {@code Accessible object.
+	 */
+	
+	public  Accessible accessible(String simpleName) {
 		
-		List<Accessible> accessibles = this.accessibles();
+		Optional<Accessible> match = accessibles().stream().
+				filter(a -> a.getSimpleName().equals(simpleName)).findFirst();
 		
-		for(Accessible accessible : accessibles) {
-			String key = accessible.getSimpleName();
-			if(key.equals(simpleName))
-				return accessible;
-		}
-		
+		if(match.isPresent())
+			return match.get();
+
 		return null;
 		
 	}
 	
+	/**
+	 * <p>An abstract method, which must be overriden to gain access over setting the values of all relevant
+	 * (selected by the programmer) {@code NumericPropert}ies in subclasses of {@code Accessible}. Typically this involves 
+	 * a {@code switch} statement that goes through the different options for the {@code type} and invokes 
+	 * different {@code set(...)} methods to update the matching {@code NumericProperty} with {@code property}.</p> 
+	 * @param type the type, which must be equal by definition to {@code property.getType()}.
+	 * @param property the property, which contains new information.
+	 */
+	
 	public abstract void set(NumericPropertyKeyword type, NumericProperty property);
 	
-	public List<Accessible> children() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	/**
+	 * <p>Selects only those {@code Accessible}s, the parent of which is {@code this}. Note that all {@code Accessible}s
+	 * are required to explicitly adopt children by calling the {@code setParent()} method.</p> 
+	 * @return a {@code List} of children that this {@code Accessible} has adopted.
+	 * @see accessibles()
+	 */
+	
+	public List<Accessible> children() {
 		return accessibles().stream().filter(a -> a.getParent() == this).collect(Collectors.toList());
 	}
 	
-	/*
-	 * Finds a property in this Accessible object with the same name as the property parameter and sets its value to the value of property parameter
+	/**
+	 * Runs recursive search for a property in this {@code Accessible} object with the same identifier as {@code property} 
+	 * and sets its value to the value of the {@code property} parameter.
+	 * <p>If {@code property} is a {@code NumericProperty}, uses its {@code NumericPropertyKeyword} for identification. 
+	 * If the property is part of an {@code Iterable}, such as {@code List},
+	 * will search for a setter-type method that accepts both an {@code Iterable} argument, the generic type of which is the
+	 * same as that for {@code property}, and a similar {@code property}. For generic properties, will simply search for a 
+	 * setter method that accepts an instance of {@code Property} as its parameter. If nothing is found, will recursively
+	 * search for the property that belongs to the children, the children of their children, etc.</p>.
+	 * @param property the {@code Property}, which will update a similar property of this {@code Accessible}.  
 	 */
 	
-	public void update(Property property) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	public void update(Property property) {
 
 		List<Accessible> children = children();
 		
@@ -220,18 +317,18 @@ public abstract class Accessible extends UpwardsNavigable {
 			for(Accessible a : children)
 				a.set(p.getType(), p);
 			return;
-		}
-	        		
-		/*
-		* if there is a 'setter' method where first parameter is an Iterable containing Property objects
-		* and second parameter is the property contained in that Iterable, use that method
-		*/
+		}	        	
 		
 		Method[] methods = this.getClass().getMethods();
 	    
-	    for(Method m : methods) {
+	    for(Method m : methods) {	    	
 	    	
 	    	if (m.getParameterCount() == 2) {
+	    		
+	    	/*
+			* if there is a 'setter' method where first parameter is an Iterable containing Property objects
+			* and second parameter is the property contained in that Iterable, use that method
+			*/
 	    
 	    	if(Iterable.class.isAssignableFrom(m.getParameterTypes()[0])) {
 	    		if(property.getClass().equals(m.getParameterTypes()[1])) {
@@ -239,8 +336,15 @@ public abstract class Accessible extends UpwardsNavigable {
 	    			for(Method met : methods)
 	    				if(met.getReturnType().
 	    						equals(m.getParameterTypes()[0]) ) {
-	        						Iterable returnType = (Iterable) met.invoke(this);
-	        						Iterator iterator = returnType.iterator();
+	        						Iterable<Property> returnType = null;
+									try {
+										returnType = (Iterable<Property>) met.invoke(this);
+									} catch (IllegalAccessException | IllegalArgumentException
+											| InvocationTargetException e) {
+										System.err.println("Cannot invoke method: " + met);
+										e.printStackTrace();
+									}
+	        						Iterator<Property> iterator = returnType.iterator();
 	        									
 	        						if(!iterator.hasNext())
 	        							continue;
@@ -248,7 +352,13 @@ public abstract class Accessible extends UpwardsNavigable {
 	        						if(!iterator.next().getClass().equals(m.getParameterTypes()[1]))
 	        							continue;
 	        									
-	        						m.invoke(this, met.invoke(this), property);
+	        						try {
+										m.invoke(this, met.invoke(this), property);
+									} catch (IllegalAccessException | IllegalArgumentException
+											| InvocationTargetException e) {
+										System.err.println("Cannot invoked method " + m);
+										e.printStackTrace();
+									}
 	        					}
 	        				
 	        		}
@@ -262,8 +372,13 @@ public abstract class Accessible extends UpwardsNavigable {
 		     */
 		    
 	    	else if (m.getParameterCount() == 1)
-	    		if(m.getParameterTypes()[0].equals(property.getClass())) 	    			
-	    			m.invoke(this, property);
+	    		if(m.getParameterTypes()[0].equals(property.getClass()))
+					try {
+						m.invoke(this, property);
+					} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+						System.err.println("Cannot invoked method " + m);
+						e.printStackTrace();
+					}
 	    			        		
 	        }	   	    
 	        	
@@ -277,9 +392,20 @@ public abstract class Accessible extends UpwardsNavigable {
 	}
 
 	
-	public  String getSimpleName() {
+	/**
+	 * This will generate a simple name for identifying this {@code Accessible}.
+	 * @return the simple name of the declaring class.
+	 */
+	
+	public String getSimpleName() {
 		return getClass().getSimpleName();
 	}
+	
+	/**
+	 * The same as {@code getSimpleName} in this implementation.
+	 * @return the simple name of the declaring class.
+	 * @see getSimpleName()
+	 */
 	
 	public  String getDescriptor() {
 		return getSimpleName();

@@ -2,10 +2,7 @@ package pulse.tasks;
 
 import java.io.FileOutputStream;
 import java.io.PrintStream;
-import java.lang.reflect.InvocationTargetException;
-
 import pulse.properties.NumericProperty;
-import pulse.properties.NumericPropertyKeyword;
 import pulse.ui.Messages;
 import pulse.util.Saveable;
 
@@ -36,12 +33,7 @@ public class Result extends AbstractResult implements Saveable {
 		
 		this.identifier = task.getIdentifier();
 		
-		for(NumericPropertyKeyword name : format.getKeywords())
-			try {
-				addProperty( task.numericProperty(name) );
-			} catch (IllegalAccessException | InvocationTargetException e) {
-				System.out.println("Failed to use reflection when getting " + name + " from the SearchTask.");
-			}											
+		format.getKeywords().stream().forEach(key -> addProperty(task.numericProperty(key)));
 
 	}	
 	

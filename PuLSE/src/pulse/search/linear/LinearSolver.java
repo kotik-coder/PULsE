@@ -99,7 +99,7 @@ public abstract class LinearSolver extends PropertyHolder implements Reflexive {
 	 */
 	
 	@Override
-	public List<Property> listedParameters() {
+	public List<Property> listedTypes() {
 		List<Property> list = new ArrayList<Property>();
 		list.add(NumericProperty.def(LINEAR_RESOLUTION));
 		return list;

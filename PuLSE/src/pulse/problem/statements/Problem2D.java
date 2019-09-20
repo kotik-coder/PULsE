@@ -71,9 +71,9 @@ public abstract class Problem2D extends Problem implements TwoDimensional {
 	}
 	
 	@Override
-	public List<Property> listedParameters() {
+	public List<Property> listedTypes() {
 		List<Property> list = new ArrayList<Property>();
-		list.addAll(super.listedParameters());
+		list.addAll(super.listedTypes());
 		list.add(NumericProperty.def(HEAT_LOSS_SIDE));
 		list.add(NumericProperty.def(DIAMETER));
 		list.add(NumericProperty.def(PYROMETER_SPOT));

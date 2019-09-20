@@ -44,9 +44,9 @@ public class NonlinearProblem2D extends NonlinearProblem implements TwoDimension
 	}
 	
 	@Override
-	public List<Property> listedParameters() {
-		List<Property> list = super.listedParameters();
-		list.addAll(super.listedParameters());
+	public List<Property> listedTypes() {
+		List<Property> list = super.listedTypes();
+		list.addAll(super.listedTypes());
 		list.add(NumericProperty.def(HEAT_LOSS_SIDE));
 		list.add(NumericProperty.def(DIAMETER));
 		list.add(NumericProperty.def(PYROMETER_SPOT));
