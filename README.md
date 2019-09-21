@@ -7,3 +7,5 @@ PULsE is written by Dr. Artem Lunev, contactable via email: artem.lunev@ukaea.uk
 Beta testing, validation studies and User Manual by Rob Heymer.
 
 Licensed under Apache 2.0 Permissive License.
+
+FOR MORE INFORMATION PLEASE SEE https://kotik-coder.github.io/
