@@ -39,7 +39,7 @@
     	auto-adjustable="false"
     	descriptor="Pulse width, &lt;i&gt;t&lt;/i&gt;&lt;sub&gt;las&lt;/sub&gt; (ms)"
     	dimensionfactor="1000.0" keyword="PULSE_WIDTH" maximum="10"
-    	minimum="1E-5" value="0.0015" primitive-type="double" />
+    	minimum="1E-7" value="0.0015" primitive-type="double" />
     <NumericProperty abbreviation="&lt;i&gt;d&lt;/i&gt;&lt;sub&gt;las&lt;/sub&gt; (mm)"
     	auto-adjustable="false"
     	descriptor="Laser spot diameter, &lt;i&gt;d&lt;/i&gt;&lt;sub&gt;las&lt;/sub&gt; (mm)"
