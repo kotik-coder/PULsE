@@ -52,9 +52,10 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 	 * the thermal diffusivity and the half-rise time of an {@code ExperimentalData}
 	 * curve. 
 	 * @see <a href="https://doi.org/10.1063/1.1728417">Parker <i>et al.</i> Journal of Applied Physics <b>32</b> (1961) 1679</a>
+	 * @see <a href="https://doi.org/10.1016/j.ces.2019.01.014">Parker <i>et al.</i> Chem. Eng. Sci. <b>199</b> (2019) 546-551</a>
 	 */
 	
-	public final double PARKERS_COEFFICIENT = 0.1388; //in mm
+	public final double PARKERS_COEFFICIENT = 0.1370; //in mm
 	
 	/**
 	 * Creates a {@code Problem} with default parameters (as found in the .XML file).

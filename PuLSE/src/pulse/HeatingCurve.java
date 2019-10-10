@@ -12,6 +12,7 @@ import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
+import pulse.tasks.TaskManager;
 import pulse.ui.Messages;
 import pulse.util.PropertyHolder;
 import pulse.util.Saveable;
@@ -35,7 +36,7 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 	protected Baseline baseline;	
 	private String name;
 	
-	private final static int DEFAULT_CLASSIC_PRECISION = 30;
+	private final static int DEFAULT_CLASSIC_PRECISION = 200;
 	
 	/**
 	 * Checks if the {@code temperature} list is empty. 	
@@ -425,10 +426,10 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
             
         		stream.print("<td>"); //$NON-NLS-1$
             	t = time.get(i);
-                stream.printf("%.4f %n", t); //$NON-NLS-1$
+                stream.printf("%.6f %n", t); //$NON-NLS-1$
                 stream.print("</td><td>"); //$NON-NLS-1$
                 T = temperature.get(i);
-                stream.printf("%.4f %n", T); //$NON-NLS-1$
+                stream.printf("%.6f %n", T); //$NON-NLS-1$
                 stream.print("</td>"); //$NON-NLS-1$
             
             stream.println("</tr>"); //$NON-NLS-1$
@@ -456,10 +457,10 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
         
         for (int i = 0; i < finalSize; i++) {
            	t = time.get(i);
-            stream.printf("%.4f %n", t); //$NON-NLS-1$
+            stream.printf("%.6f %n", t); //$NON-NLS-1$
             stream.print("</td><td>"); //$NON-NLS-1$
             T = temperature.get(i);
-            stream.printf("%.4f %n", T); //$NON-NLS-1$
+            stream.printf("%.6f %n", T); //$NON-NLS-1$
             stream.print("</td>"); //$NON-NLS-1$            
             stream.println();
         }
@@ -538,7 +539,7 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 		 classicCurve.setBaseline(curve.getBaseline());
 		 
 		 double time;
-		 double step = timeLimit/(curve.count-1);
+		 double step = TaskManager.getSelectedTask().getProblem().getHeatingCurve().timeAt(1) - TaskManager.getSelectedTask().getProblem().getHeatingCurve().timeAt(0);
 		 
 	     for(int i = 0; i < curve.count; i++) {
 	    	 	time = i*step;
@@ -546,6 +547,7 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 	     }
 	     
 	     classicCurve.setName("Classic solution");
+	     
 	     return classicCurve;
 	     
 	}

@@ -15,7 +15,7 @@ import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 
 /**
- * <p>An {@Accessible} provides Reflection-based read- and write-access to the underlying (usually declared
+ * <p>An {@code Accessible} provides Reflection-based read- and write-access to the underlying (usually declared
  * as its own fields - but not necessarily) instances of {@code Property} and a recursive access to other {@code Accessible}, which
  * may have a family relationship with {@code this} {@code Accessible} via the {@code UpwardsNavigable}
  * implementation. It also defines its own list of {@code Saveable}s.</p>
@@ -344,7 +344,7 @@ public abstract class Accessible extends UpwardsNavigable {
 										System.err.println("Cannot invoke method: " + met);
 										e.printStackTrace();
 									}
-	        						Iterator<Property> iterator = returnType.iterator();
+	        						Iterator<?> iterator = returnType.iterator();
 	        									
 	        						if(!iterator.hasNext())
 	        							continue;

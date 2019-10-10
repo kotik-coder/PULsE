@@ -64,9 +64,22 @@ public class DataLogEntry extends LogEntry {
 	 */
 	
 	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder();		
-	
+	public String toString() {				
+		StringBuilder sb = new StringBuilder();
+		
+	/*
+	// UNCOMMENT THIS TO PRODUCE EASY-TO-READ DATA ENTRIES		
+	  	sb.append("\n");
+		
+		for(NumericProperty p : entry) {
+			sb.append((p.getValue() instanceof Double ? String.format("%2.3e",p.getValue()) : p.getValue()));
+			sb.append("\t");
+			sb.append("\n");
+		}
+		
+		return sb.toString();
+	*/
+		
 		sb.append("<table>");
 		
 		List<ImmutableDataEntry<String,String>> intermediate = 

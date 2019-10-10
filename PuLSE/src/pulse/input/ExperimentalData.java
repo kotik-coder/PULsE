@@ -29,7 +29,7 @@ public class ExperimentalData extends HeatingCurve {
 	private	int fittingStartIndex, fittingEndIndex;
 	
 	private final static double CUTOFF_FACTOR = 6;
-	private final static int REDUCTION_FACTOR = 16;
+	private final static int	REDUCTION_FACTOR = 32;
 	private final static double FAIL_SAFE_FACTOR = 3.0;
 	
 	private static Comparator<Point2D> pointComparator = 
@@ -172,10 +172,10 @@ public class ExperimentalData extends HeatingCurve {
 			
 			crudeAverage.add(new Point2D( 
 					time.get((i1+i2)/2), 
-					tmp));	
-						
+					tmp));
+			
 		}
-								
+						
 		return crudeAverage;
 		
 	}
