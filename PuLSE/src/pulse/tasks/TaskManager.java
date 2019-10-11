@@ -266,7 +266,6 @@ public static void reset() {
 	}
 	
 	PathSolver.reset();
-	pathSolver = null;
 			
 }
 
