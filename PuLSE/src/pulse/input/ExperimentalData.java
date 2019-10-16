@@ -28,7 +28,7 @@ public class ExperimentalData extends HeatingCurve {
 	
 	private	int fittingStartIndex, fittingEndIndex;
 	
-	private final static double CUTOFF_FACTOR = 6;
+	private final static double CUTOFF_FACTOR = 7.2;
 	private final static int	REDUCTION_FACTOR = 32;
 	private final static double FAIL_SAFE_FACTOR = 3.0;
 	
