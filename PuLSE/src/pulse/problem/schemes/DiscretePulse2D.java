@@ -61,7 +61,7 @@ public class DiscretePulse2D extends DiscretePulse {
 		
 		discretePulseSpot = ((Grid2D)getGrid()).gridRadialDistance( 
 				(double) getPulse().getSpotDiameter().getValue() / 2.0,
-				coordFactor );	
+				coordFactor );		
 	}
 	
 	/**

@@ -64,12 +64,12 @@ public class TBLReader implements DatasetReader {
 	@Override
 	public InterpolationDataset read(File file) throws IOException {
 			if(file == null)
-				throw new NullPointerException(Messages.getString("TBLReader.1")); //$NON-NLS-1$
+				throw new NullPointerException(Messages.getString("TBLReader.1")); 
 			
 			InterpolationDataset curve = new InterpolationDataset();
 			
 			BufferedReader reader = new BufferedReader(new FileReader(file));
-			String delims = Messages.getString("TBLReader.2"); //$NON-NLS-1$
+			String delims = Messages.getString("TBLReader.2"); 
 			StringTokenizer tokenizer;
 			
 			for(String line = reader.readLine(); line != null; line = reader.readLine()) {

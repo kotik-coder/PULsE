@@ -92,7 +92,7 @@ public enum NumericPropertyKeyword {
 	 * Absorbed energy (nonlinear problems).
 	 */
 	
-	ABSORBED_ENERGY,
+	LASER_ENERGY,
 	
 	/**
 	 * Test temperature, at which the laser was fired at the sample.
@@ -212,6 +212,12 @@ public enum NumericPropertyKeyword {
 	 * Iteration limit for reverse problem solution.
 	 */
 	
-	ITERATION_LIMIT;
+	ITERATION_LIMIT,
+	
+	/**
+	 * Coefficient of laser energy absorption (0 < A <= 1).
+	 */
+	
+	ABSORPTION;
 	
 }

@@ -63,7 +63,7 @@ public class ResultFormat {
 						   break;
 				case 'E' : nameMap.add(EMISSIVITY);
 						   break;
-				case 'Q' : nameMap.add(ABSORBED_ENERGY);
+				case 'Q' : nameMap.add(ABSORPTION);
 						   break;
 				case 'A' : nameMap.add(RSQUARED);
 						   break;
@@ -103,7 +103,7 @@ public class ResultFormat {
 	 * R - density
 	 * C - thermal conductivity
 	 * E - integral emissivity
-	 * Q - absorbed energy
+	 * Q - coefficient of absorption
 	 * A - accuracy or approximation
 	 * U - baseline intercept
 	 * V - baseline slope 

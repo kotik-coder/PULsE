@@ -156,7 +156,12 @@ public abstract class PropertyHolder extends Accessible {
 		
 		super.update(updatedProperty);		
 		
-		PropertyEvent event = new PropertyEvent(sourceComponent, updatedProperty);
+		notifyListeners(sourceComponent, updatedProperty);				
+		
+	}
+	
+	public void notifyListeners(Object source, Property property) {
+		PropertyEvent event = new PropertyEvent(source, property);
 		listeners.forEach(l -> l.onPropertyChanged(event));
 		
 		/*
@@ -164,7 +169,7 @@ public abstract class PropertyHolder extends Accessible {
 		 * inform parents about this
 		 */
 		
-		if( sourceComponent != getParent() )
+		if( source != getParent() )
 			tellParent(event);		
 		
 	}

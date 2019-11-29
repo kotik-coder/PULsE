@@ -40,6 +40,9 @@ public class DiscretePulse {
 				timeFactor);
 		this.grid = grid;
 		this.pulse = pulse;
+		pulse.addListener( e -> {
+			recalculate();
+		});
 	}
 	
 	/**

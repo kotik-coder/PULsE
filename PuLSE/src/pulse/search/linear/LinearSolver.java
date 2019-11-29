@@ -58,7 +58,7 @@ public abstract class LinearSolver extends PropertyHolder implements Reflexive {
 		int diffusivityIndex = x.getDataIndex(NumericPropertyKeyword.DIFFUSIVITY);
 		double alpha = 0.5*x.get(diffusivityIndex)/Math.abs(p.get(diffusivityIndex));
 		
-		final double UPPER_LIMIT_LOSSES = 1.0;
+		final double UPPER_LIMIT_LOSSES = 2.0;
 		int heatLossIndex = x.getDataIndex(NumericPropertyKeyword.HEAT_LOSS);
 		
 		if(heatLossIndex > -1)

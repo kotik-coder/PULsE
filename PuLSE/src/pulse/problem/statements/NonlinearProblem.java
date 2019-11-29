@@ -1,6 +1,7 @@
 package pulse.problem.statements;
 
 import java.util.List;
+
 import pulse.input.ExperimentalData;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
@@ -14,79 +15,44 @@ import static pulse.properties.NumericPropertyKeyword.*;
 
 public class NonlinearProblem extends Problem {
 	
-	protected double qAbs, T;
-	protected double nonlinearPrecision;	
+	protected double T, alpha;
+	protected double nonlinearPrecision = (double)NumericProperty.def(NONLINEAR_PRECISION).getValue();	
 	
-	private final static boolean DEBUG = true;	
-	
-	public NonlinearProblem(NumericProperty a, NumericProperty cV, NumericProperty rho, NumericProperty qAbs, NumericProperty T) {
-		this();
-		this.a		= (double)a.getValue();
-		this.cP		= (double)cV.getValue();
-		this.rho	= (double)rho.getValue();
-		this.qAbs	= (double)qAbs.getValue();
-		this.T		= (double)T.getValue();
-	}
-	
+	private final static boolean DEBUG = false;	
+		
 	public NonlinearProblem() {
-		super();
-		nonlinearPrecision	= (double)NumericProperty.def(NONLINEAR_PRECISION).getValue();
-		this.a 				= (double)NumericProperty.def(DIFFUSIVITY).getValue();		
-		this.qAbs			= (double)NumericProperty.def(ABSORBED_ENERGY).getValue();
-		this.T				= (double)NumericProperty.def(TEST_TEMPERATURE).getValue();
+		super();		
+		this.T		= (double)NumericProperty.def(TEST_TEMPERATURE).getValue();
+		this.alpha	= (double)NumericProperty.def(ABSORPTION).getValue();
 	}
 	
 	public NonlinearProblem(Problem p) {
-		super(p);		
-		this.qAbs 			= (double)NumericProperty.def(ABSORBED_ENERGY).getValue();
-		nonlinearPrecision	= (double)NumericProperty.def(NONLINEAR_PRECISION).getValue();			
+		super(p);
+		alpha = 1.0;
 	}
 	
 	public NonlinearProblem(NonlinearProblem p) {
 		super(p);
-		this.qAbs 				= p.qAbs;
-		this.T 					= p.T;
 		this.nonlinearPrecision = p.nonlinearPrecision;
+		this.T		= p.T;
+		
+		final double EPS = 1E-5;
+		
+		if(p.alpha > EPS) 
+			this.alpha = p.alpha;
+		else
+			this.alpha = 1.0;
 	}
 	
 	@Override
-	public void retrieveData(ExperimentalData c) {
+	public void retrieveData(ExperimentalData c) {		
 		super.retrieveData(c);
 		this.setTestTemperature(c.getMetadata().getTestTemperature());		
-		makeAdjustments();			
 	}
 	
 	@Override
 	public void setSpecificHeat(NumericProperty cV) {
 		super.setSpecificHeat(cV);
-		makeAdjustments();
-	}
-
-	@Override
-	public void set(NumericPropertyKeyword type, NumericProperty rho) {
-		super.set(type, rho);
-		makeAdjustments();
-	}
-	
-	private void makeAdjustments() {
-		
-		final double tempError	= 5e-2*this.signalHeight;
-		final double error1 = 1e-5;
-
-		if(cP < error1 || rho < error1) 
-			return;
-			
-		if( Math.abs( estimateHeating() - this.signalHeight ) > tempError) 
-			adjustAbsorbedEnergy();
-		
-	}
-
-	public NumericProperty getAbsorbedEnergy() {
-		return NumericProperty.derive(ABSORBED_ENERGY, qAbs);
-	}
-
-	public void setAbsorbedEnergy(NumericProperty qAbs) {
-		this.qAbs = (double)qAbs.getValue(); 
 	}
 
 	public NumericProperty getNonlinearPrecision() {
@@ -100,86 +66,96 @@ public class NonlinearProblem extends Problem {
 	public NumericProperty getTestTemperature() {
 		return NumericProperty.derive(TEST_TEMPERATURE, T);
 	}
+	
+	public NumericProperty getAbsorptionCoefficient() {
+		return NumericProperty.derive(ABSORPTION, alpha);
+	}
+	
+	public void setAbsorptionCoefficient(NumericProperty alpha) {
+		this.alpha = (double)alpha.getValue();
+	}
 
 	public void setTestTemperature(NumericProperty T) {
 		this.T  = (double)T.getValue();
 		
 		if(TaskManager.getSpecificHeatCurve() != null)
-			cP = TaskManager.getSpecificHeatCurve().interpolateAt(this.T);
+			super.cP = TaskManager.getSpecificHeatCurve().interpolateAt(this.T);
 		
 		if(TaskManager.getDensityCurve() != null) 
-			rho = TaskManager.getDensityCurve().interpolateAt(this.T);
-		
-		makeAdjustments();
+			super.rho = TaskManager.getDensityCurve().interpolateAt(this.T);
 		
 	}		
 	
 	@Override
 	public List<Property> listedTypes() {
 		List<Property> list = super.listedTypes();
-		list.add(NumericProperty.def(ABSORBED_ENERGY));
-		list.add(NumericProperty.def(DENSITY));
 		list.add(NumericProperty.def(NONLINEAR_PRECISION));
 		list.add(NumericProperty.def(TEST_TEMPERATURE));
-		list.add(NumericProperty.def(SPECIFIC_HEAT));
+		list.add(NumericProperty.def(ABSORPTION));
 		return list;
 	}
-	
-	@Override
-	public IndexedVector optimisationVector(List<Flag> flags) {	
-		IndexedVector objectiveFunction = super.optimisationVector(flags);
-		int size = objectiveFunction.dimension(); 		
-		
-		for(int i = 0; i < size; i++) {
 
-			if( objectiveFunction.getIndex(i) == NumericPropertyKeyword.MAXTEMP ) {
-				objectiveFunction.set(i, qAbs);	
-				break;		
-			}
-		}
-		
-		return objectiveFunction;
-		
-	}
-	
-	@Override
-	public void assign(IndexedVector params) {
-		super.assign(params);		
-		int size = params.dimension(); 		
-		
-		for(int i = 0; i < size; i++) {
-
-			if( params.getIndex(i) == NumericPropertyKeyword.MAXTEMP ) {
-				qAbs = params.get(i);	
-				break;		
-			}
-		}
-		
-	}
-	
-	public double estimateHeating() {
-		return qAbs/(cP*rho*Math.PI*Math.pow((double)pulse.getSpotDiameter().getValue(), 2)*l);
-	}
-	
-	public void adjustAbsorbedEnergy() {
-		qAbs = signalHeight*cP*rho*Math.PI*Math.pow((double)pulse.getSpotDiameter().getValue(), 2)*l;
-	}
-	
 	@Override
 	public String toString() {
-		return Messages.getString("NonlinearProblem.Descriptor"); //$NON-NLS-1$
+		return Messages.getString("NonlinearProblem.Descriptor"); 
 	}
 
-	@Override
-	public boolean allDetailsPresent() {
-		if(TaskManager.getDensityCurve() == null || TaskManager.getSpecificHeatCurve() == null)
-			return false;
-		return super.allDetailsPresent();
-	}
-	
 	@Override
 	public boolean isEnabled() {
 		return !DEBUG;
+	}
+	
+	public void assign(IndexedVector params) {
+		super.assign(params);
+		
+		for(int i = 0, size = params.dimension(); i < size; i++) {
+			
+			switch( params.getIndex(i) ) {
+				case ABSORPTION			:	alpha = params.get(i); break;
+				default 				: 	continue;
+			}
+		}
+		
+	}
+	
+	public IndexedVector optimisationVector(List<Flag> flags) {	
+		IndexedVector optimisationVector = super.optimisationVector(flags);
+		
+		for(int i = 0, size = optimisationVector.dimension(); i < size; i++) {
+			
+			switch( optimisationVector.getIndex(i) ) {
+				case ABSORPTION			:	optimisationVector.set(i, alpha); break;
+				default 				: 	continue;
+			}
+		}
+		
+		return optimisationVector;
+		
+	}
+	
+	@Override
+	public void set(NumericPropertyKeyword type, NumericProperty value) {
+		super.set(type, value);
+		double newVal = ((Number)value.getValue()).doubleValue();
+		
+		switch(type) {
+			case TEST_TEMPERATURE	 :	T = newVal; return; 
+			case ABSORPTION 		 : 	alpha = newVal; 	return;
+			case NONLINEAR_PRECISION : nonlinearPrecision = newVal; return;
+		}				
+		
+	}
+	
+	public double maximumHeating() {
+		double Q	= (double)pulse.getLaserEnergy().getValue();
+		double dLas = (double)pulse.getSpotDiameter().getValue();
+		
+		return alpha*Q/(Math.PI*dLas*dLas*l*cP*rho);
+	}
+	
+	@Override
+	public boolean allDetailsPresent() {
+		return cP != 0 && rho !=0;
 	}
 
 }

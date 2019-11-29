@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <NumericProperties>
+    <NumericProperty abbreviation="&amp;alpha;" descriptor="Coefficient of absorption, &amp;alpha;" keyword="ABSORPTION"
+    	auto-adjustable="false" maximum="1" dimensionfactor="1" minimum="0.001"
+    	primitive-type="double" value="1">
+    </NumericProperty>
     <NumericProperty keyword="ITERATION_LIMIT"
     	abbreviation="Iteration limit" auto-adjustable="true"
     	descriptor="Iteration limit" dimensionfactor="1" maximum="1000"
@@ -22,10 +26,10 @@
     	descriptor="Rear-side heating, &amp;Delta;&lt;i&gt;T&lt;/i&gt;&lt;sub&gt;max&lt;/sub&gt; (a.u. or degrees)"
     	dimensionfactor="1.0" keyword="MAXTEMP" maximum="100.0"
     	minimum="0.01" value="1.0" primitive-type="double" ></NumericProperty>
-    <NumericProperty abbreviation="Solver error"
-    	auto-adjustable="false" descriptor="Iteration solver error tolerance"
-    	dimensionfactor="1.0" keyword="NONLINEAR_PRECISION" maximum="0.01"
-    	minimum="1.0E-6" value="0.001" primitive-type="double" ></NumericProperty>
+    <NumericProperty abbreviation="Fixed-point error"
+    	auto-adjustable="false" descriptor="Fixed-point iteration solver error"
+    	dimensionfactor="1.0" keyword="NONLINEAR_PRECISION" maximum="1e-2"
+    	minimum="1.0E-12" value="1e-8" primitive-type="double" ></NumericProperty>
     <NumericProperty abbreviation="&lt;i&gt;N&lt;/i&gt;" auto-adjustable="false"
     	descriptor="Number of points" dimensionfactor="1"
     	keyword="NUMPOINTS" maximum="1000" minimum="10" value="100"
@@ -74,11 +78,11 @@
     	dimensionfactor="1.0" keyword="DENSITY" maximum="30000.0"
     	minimum="10.0" value="0.0" primitive-type="double" />
     <NumericProperty
-    	abbreviation="&lt;i&gt;Q&lt;/i&gt;&lt;sub&gt;abs&lt;/sub&gt; (J)"
-    	auto-adjustable="true"
-    	descriptor="Absorbed energy, &lt;i&gt;Q&lt;/i&gt;&lt;sub&gt;abs&lt;/sub&gt; (J)"
-    	dimensionfactor="1.0" keyword="ABSORBED_ENERGY" maximum="200.0"
-    	minimum="0.1" value="7.0" primitive-type="double" />
+    	abbreviation="&lt;i&gt;Q&lt;/i&gt;&lt;sub&gt;las&lt;/sub&gt; (J)"
+    	auto-adjustable="false"
+    	descriptor="Pulse energy, &lt;i&gt;Q&lt;/i&gt;&lt;sub&gt;las&lt;/sub&gt; (J)"
+    	dimensionfactor="1.0" keyword="LASER_ENERGY" maximum="100.0"
+    	minimum="0.01" value="5.0" primitive-type="double" />
     <NumericProperty
     	abbreviation="&lt;i&gt;T&lt;/i&gt;&lt;sub&gt;0&lt;/sub&gt; (K)"
     	auto-adjustable="true"

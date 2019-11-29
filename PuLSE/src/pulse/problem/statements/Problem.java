@@ -252,7 +252,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 	
 	public void retrieveData(ExperimentalData c) {		
 		curve.getBaseline().fitTo(c); //used to estimate the floor of the signal range 				
-		estimateSignalRange(c); 
+		estimateSignalRange(c); 		
 		updateProperties(this, c.getMetadata());
 		useParkersSolution(c);		
 	}

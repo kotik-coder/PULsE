@@ -6,6 +6,7 @@ import pulse.HeatingCurve;
 import pulse.problem.statements.LinearisedProblem;
 import pulse.problem.statements.NonlinearProblem;
 import pulse.problem.statements.Problem;
+import pulse.problem.statements.TwoDimensional;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.ui.Messages;
@@ -155,120 +156,10 @@ public class MixedScheme extends DifferenceScheme {
 			}			
 
 			curve.scale( maxTemp/maxVal );
+			curve.scale(1.0);
 			
 	}
 	);
-	
-	/**
-	 * Nonlinear solver
-	 */
-	
-	public Solver<NonlinearProblem> mixedNonlinearSolver = (ref -> {
-		super.prepare(ref);
-		
-		//quick links
-		
-		final double l			= (double) ref.getSampleThickness().getValue();
-		final double Bi1		= (double) ref.getFrontHeatLoss().getValue();
-		final double Bi2 		= (double) ref.getHeatLossRear().getValue();
-		final double maxTemp	= (double) ref.getMaximumTemperature().getValue(); 
-		
-		//end
-		
-		final double EPS = 1e-5;
-		
-		double[] U 	   = new double[grid.N + 1];
-		double[] V     = new double[grid.N + 1];
-		double[] alpha = new double[grid.N + 2];
-		double[] beta  = new double[grid.N + 2];
-		
-		//coefficients for difference equation
-
-		double a = 1./pow(grid.hx,2);
-		double b = 2./grid.tau + 2./pow(grid.hx,2);
-		double c = 1./pow(grid.hx,2);
-			
-		HeatingCurve curve = ref.getHeatingCurve();
-		curve.reinit();
-		
-		final int counts = (int) curve.getNumPoints().getValue();		
-		
-		double maxVal = 0;
-		int i, j, m, w;
-		double pls;
-		
-		//precalculated constants
-
-		double HH      = pow(grid.hx,2);
-		double F;			
-		
-		//precalculated constants
-		
-		final double T   = (double) ref.getTestTemperature().getValue();
-		final double rho = (double) ref.getDensity().getValue();
-		final double cV  = (double) ref.getSpecificHeat().getValue();
-		final double qAbs = (double) ref.getAbsorbedEnergy().getValue();
-		final double nonlinearPrecision = (double) ref.getNonlinearPrecision().getValue(); 			
-		
-		//constants for bc calc
-
-		double a1 = grid.tau/(HH + grid.tau);
-		double b1 = -0.25*grid.hx*grid.tau/(HH + grid.tau)*Bi1*T;
-		double pulseWidth = (double)ref.getPulse().getSpotDiameter().getValue();
-		double b2 = grid.hx*grid.tau/(HH + grid.tau)*qAbs
-				  /(cV*rho*PI*l*pow(pulseWidth, 2));
-		double b3 = grid.tau/(HH + grid.tau);
-		double b4 = (HH - grid.tau)/(HH + grid.tau);
-		double c1 = 0.25*grid.hx*grid.tau*Bi2*T;
-		double c2;
-		
-		//time cycle
-
-		for (w = 1; w < counts; w++) {
-			
-			for (m = (w - 1)*timeInterval + 1; m < w*timeInterval + 1; m++) {
-							
-				alpha[1] = a1;
-				pls 	 = discretePulse.evaluateAt( (m - EPS)*grid.tau ) 
-						 + discretePulse.evaluateAt( (m + 1 - EPS)*grid.tau ); //changed to m + 1 - eps					
-				
-				for(double diff = 100; abs(diff)/maxTemp > nonlinearPrecision; ) {
-				
-					beta[1]  = b1*(pow(V[0]/T + 1, 4) 
-							 - pow(U[0]/T + 1, 4)) + b2*pls + b3*U[1] + b4*U[0];
-
-					for (i = 1; i < grid.N; i++) {
-						alpha[i+1] = c/(b - a*alpha[i]);
-						F          =  - 2.*U[i]/grid.tau - (U[i+1] - 2.*U[i] + U[i-1])/HH;
-						beta[i+1]  = (F - a*beta[i])/(a*alpha[i] - b);	
-					}
-
-					diff = -0.5*V[0] - 0.5*V[grid.N];
-					
-					c2   = 1./(HH + grid.tau - alpha[grid.N]*grid.tau);
-					V[grid.N] = c2*( grid.tau*beta[grid.N] - c1*(pow(V[grid.N]/T + 1, 4) 
-						 + pow(U[grid.N]/T + 1, 4) - 2) + grid.tau*U[grid.N-1] - grid.tau*U[grid.N] + HH*U[grid.N] );
-
-					for (j = grid.N-1; j >= 0; j--)
-						V[j] = alpha[j+1]*V[j+1] + beta[j+1];
-					
-					diff += 0.5*V[0] + 0.5*V[grid.N];
-				
-				}
-									
-				System.arraycopy(V, 0, U, 0, grid.N + 1);
-							
-			}
-			
-			curve.setTemperatureAt(w, V[grid.N]);
-			maxVal = Math.max(maxVal, V[grid.N]);
-			curve.setTimeAt( w,	(w*timeInterval)*grid.tau*ref.timeFactor() );
-			
-		}
-		
-		ref.setMaximumTemperature( 
-				NumericProperty.derive(NumericPropertyKeyword.MAXTEMP, maxVal) );
-	});
 	
 	/**
 	 * Constructs a default semi-implicit scheme using the default 
@@ -315,15 +206,16 @@ public class MixedScheme extends DifferenceScheme {
 	}
 	
 	public String toString() {
-		return Messages.getString("MixedScheme.4"); //$NON-NLS-1$
+		return Messages.getString("MixedScheme.4");
 	}
 	
 	@Override
 	public Solver<? extends Problem> solver(Problem problem) {
+		if(problem instanceof TwoDimensional)
+			return null;
+		
 		if(problem instanceof LinearisedProblem)
 			return mixedLinearisedSolver;
-		else if(problem instanceof NonlinearProblem)
-			return mixedNonlinearSolver;
 		else 
 			return null;
 	}

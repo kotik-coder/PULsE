@@ -6,6 +6,7 @@ import pulse.HeatingCurve;
 import pulse.problem.statements.LinearisedProblem;
 import pulse.problem.statements.NonlinearProblem;
 import pulse.problem.statements.Problem;
+import pulse.problem.statements.TwoDimensional;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.ui.Messages;
@@ -141,19 +142,12 @@ public class ExplicitScheme extends DifferenceScheme {
 	public Solver<NonlinearProblem> explicitNonlinearSolver = (ref -> {
 			super.prepare(ref);
 			
-			final double T   				= (double) ref.getTestTemperature().getValue();
-			final double rho 				= (double) ref.getDensity().getValue();
-			final double cV  				= (double) ref.getSpecificHeat().getValue();
-			final double qAbs 				= (double) ref.getAbsorbedEnergy().getValue();
-			final double nonlinearPrecision = (double) ref.getNonlinearPrecision().getValue(); 	
+			final double T   					= (double) ref.getTestTemperature().getValue();
+			final double dT   					= ref.maximumHeating();
+			final double fixedPointPrecisionSq  = Math.pow( (double) ref.getNonlinearPrecision().getValue(), 2);
 			
-			final double l 			= (double) ref.getSampleThickness().getValue();
 			final double Bi1 		= (double) ref.getFrontHeatLoss().getValue();
-			final double Bi2 		= (double) ref.getHeatLossRear().getValue();
-			final double maxTemp 	= (double) ref.getMaximumTemperature().getValue(); 
-			
-			double pulseWidth = (double)ref.getPulse().getSpotDiameter().getValue();
-			double c = qAbs/(cV*rho*PI*l*pow(pulseWidth, 2));
+			final double Bi2 		= (double) ref.getHeatLossRear().getValue(); 
 			
 			double TAU_HH = grid.tau/pow(grid.hx,2);
 			
@@ -170,6 +164,12 @@ public class ExplicitScheme extends DifferenceScheme {
 			HeatingCurve curve = ref.getHeatingCurve();
 			curve.reinit();
 			final int counts = (int) curve.getNumPoints().getValue();
+			
+			double a00 = 2*grid.tau/(grid.hx*grid.hx + 2*grid.tau);
+			double a11 = grid.hx*grid.hx/(2.0*grid.tau); 
+			double f01 = 0.25*Bi1*T/dT;
+			double fN1 = 0.25*Bi2*T/dT;
+			double f0, fN;
 
 			for (w = 1; w < counts; w++) {
 				
@@ -179,17 +179,29 @@ public class ExplicitScheme extends DifferenceScheme {
 						V[i] =	U[i] +  TAU_HH*( U[i+1] - 2.*U[i] + U[i-1] ) ;
 					
 					pls  = discretePulse.evaluateAt( (m - EPS)*grid.tau );
+
+					/**
+					 * y = 0
+					 */
 					
-				    for(double diff = 100, tmp = 0; diff/maxTemp > nonlinearPrecision; ) {
-				    	tmp = V[1] + c*grid.hx*pls - 0.25*grid.hx*Bi1*T*( pow(V[0]/T + 1, 4) - 1); //bc1
-				    	diff = tmp - V[0];
-				    	V[0] = tmp;
-				    }
-				    
-				    for(double diff = 100, tmp = 0; diff/maxTemp > nonlinearPrecision; ) {
-				    	tmp = V[grid.N-1] - 0.25*grid.hx*Bi2*T*( pow(V[grid.N]/T + 1, 4) - 1); //bc1
-				    	diff = tmp - V[grid.N];
-				    	V[grid.N] = tmp;
+					for(double lastIteration = Double.POSITIVE_INFINITY; 
+							pow((V[0] - lastIteration), 2) > fixedPointPrecisionSq; 
+							) {
+						lastIteration = V[0]; 
+						f0 	 = f01*( pow(lastIteration*dT/T + 1, 4) - 1);
+				    	V[0] = a00*( V[1] + a11*U[0] + grid.hx*( pls - f0) );
+				    }										
+					
+					/**
+					 * y = 1
+					 */
+					
+					for(double lastIteration = Double.POSITIVE_INFINITY; 
+							pow((V[grid.N] - lastIteration), 2) > fixedPointPrecisionSq; 
+							) {
+						lastIteration	= V[grid.N];
+						fN				= fN1*( pow(lastIteration*dT/T + 1, 4) - 1);
+				    	V[grid.N]		= a00*( V[grid.N-1] + a11*U[grid.N] - grid.hx*fN );
 				    }					
 					
 					System.arraycopy(V, 0, U, 0, grid.N + 1);
@@ -197,11 +209,12 @@ public class ExplicitScheme extends DifferenceScheme {
 				}
 				
 				curve.setTemperatureAt(w, V[grid.N]);
-				maxVal = Math.max(maxVal, V[grid.N]);
 				curve.setTimeAt( w,	(w*timeInterval)*grid.tau*ref.timeFactor() );
-				ref.setMaximumTemperature(NumericProperty.derive(NumericPropertyKeyword.MAXTEMP, maxVal));
 				
 			}		
+			
+			curve.scale( dT );			
+			
 	});
 
 	/**
@@ -255,6 +268,9 @@ public class ExplicitScheme extends DifferenceScheme {
 	
 	@Override
 	public Solver<? extends Problem> solver(Problem problem) {
+		if(problem instanceof TwoDimensional)
+			return null;
+		
 		if(problem instanceof LinearisedProblem)
 			return explicitLinearisedSolver;
 		else if(problem instanceof NonlinearProblem)

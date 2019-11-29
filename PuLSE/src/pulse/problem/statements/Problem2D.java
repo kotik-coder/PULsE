@@ -7,15 +7,17 @@ import pulse.problem.schemes.DiscretePulse;
 import pulse.problem.schemes.DiscretePulse2D;
 import pulse.problem.schemes.Grid;
 import pulse.problem.schemes.Grid2D;
+import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
+import pulse.search.math.IndexedVector;
 import static pulse.properties.NumericPropertyKeyword.*;
 
 public abstract class Problem2D extends Problem implements TwoDimensional {
 	
 	protected double d, Bi3, dAv;
-	private final static boolean DEBUG = true;	
+	private final static boolean DEBUG = false;	
 
 	protected Problem2D() {
 		super();
@@ -100,6 +102,48 @@ public abstract class Problem2D extends Problem implements TwoDimensional {
 		return grid instanceof Grid2D ? 
 				new DiscretePulse2D(this, pulse, (Grid2D)grid) : 
 				super.discretePulseOn(grid);
+	}
+	
+	@Override
+	public IndexedVector optimisationVector(List<Flag> flags) {
+		IndexedVector optimisationVector = super.optimisationVector(flags);		 				
+				
+		for(int i = 0, size = optimisationVector.dimension(); i < size; i++) {
+			switch( optimisationVector.getIndex(i) ) {
+				case PYROMETER_SPOT		:	
+					optimisationVector.set(i, dAv);
+					break;
+				case SPOT_DIAMETER		:	
+					optimisationVector.set(i, (double)pulse.getSpotDiameter().getValue());
+					break;					
+				default 				: 	continue;
+			}
+		}
+		
+		return optimisationVector;
+		
+	}
+		
+	@Override
+	public void assign(IndexedVector params) {
+		super.assign(params);
+		
+		for(int i = 0, size = params.dimension(); i < size; i++) {
+			switch( params.getIndex(i) ) {
+				case PYROMETER_SPOT		:	
+					dAv = params.get(i);
+					break;
+				case SPOT_DIAMETER		:
+					NumericProperty spotDiameter = NumericProperty.derive(SPOT_DIAMETER, params.get(i)); 
+					pulse.setSpotDiameter(spotDiameter);
+					pulse.notifyListeners(this, spotDiameter);
+					break;					
+				case HEAT_LOSS		:	
+					Bi3 = params.get(i);
+					break;
+				default 				: 	continue;
+			}
+		}
 	}
 	
 }

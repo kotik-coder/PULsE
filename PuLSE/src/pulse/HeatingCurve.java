@@ -390,6 +390,10 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 		
 	}
 	
+	public void applyBaseline() {
+		apply(baseline);
+	}
+	
 	@Override
 	public void printData(FileOutputStream fos, Extension extension) {
 		switch(extension) {

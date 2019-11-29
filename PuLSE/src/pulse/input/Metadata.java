@@ -25,7 +25,7 @@ import static pulse.properties.NumericPropertyKeyword.*;
 
 public class Metadata extends PropertyHolder implements Reflexive, Saveable {
 	
-	private double testTemperature, sampleThickness, sampleDiameter, pulseWidth, spotDiameter, absorbedEnergy;
+	private double testTemperature, sampleThickness, sampleDiameter, pulseWidth, spotDiameter, laserEnergy;
 	private int detectorGain, detectorIris;
 	private PulseShape pulseShape = PulseShape.RECTANGULAR;
 	private int externalID;
@@ -209,9 +209,9 @@ public class Metadata extends PropertyHolder implements Reflexive, Saveable {
 	 */
 
 	public NumericProperty getAbsorbedEnergy() {
-		NumericProperty defAbsEnergy = NumericProperty.def(ABSORBED_ENERGY);
-		if(NumericProperty.isValueSensible(defAbsEnergy, absorbedEnergy))
-			return new NumericProperty(absorbedEnergy, defAbsEnergy);
+		NumericProperty defAbsEnergy = NumericProperty.def(LASER_ENERGY);
+		if(NumericProperty.isValueSensible(defAbsEnergy, laserEnergy))
+			return new NumericProperty(laserEnergy, defAbsEnergy);
 		return defAbsEnergy;
 	}
 	
@@ -221,11 +221,11 @@ public class Metadata extends PropertyHolder implements Reflexive, Saveable {
 	 */
 
 	public void setAbsorbedEnergy(NumericProperty absorbedEnergy) {
-		if(absorbedEnergy.getType() != NumericPropertyKeyword.ABSORBED_ENERGY)
+		if(absorbedEnergy.getType() != NumericPropertyKeyword.LASER_ENERGY)
 			throw new IllegalArgumentException("Wrong type of NumericProperty: "
 		+ absorbedEnergy.getType());		
 		
-		this.absorbedEnergy = (double) absorbedEnergy.getValue();
+		this.laserEnergy = (double) absorbedEnergy.getValue();
 	}
 	
 	/**
@@ -371,7 +371,7 @@ public class Metadata extends PropertyHolder implements Reflexive, Saveable {
 		case DIAMETER 			: setSampleDiameter(property);	break; 
 		case PULSE_WIDTH 		: setPulseWidth(property);		break;
 		case SPOT_DIAMETER 		: setSpotDiameter(property); 	break;
-		case ABSORBED_ENERGY 	: setAbsorbedEnergy(property); 	break;
+		case LASER_ENERGY 	: setAbsorbedEnergy(property); 	break;
 		case DETECTOR_GAIN 		: setDetectorGain(property); 	break;
 		case DETECTOR_IRIS 		: setDetectorIris(property); 	break;
 		default: 
@@ -387,7 +387,7 @@ public class Metadata extends PropertyHolder implements Reflexive, Saveable {
 		list.add(NumericProperty.def(DIAMETER));
 		list.add(NumericProperty.def(PULSE_WIDTH));
 		list.add(NumericProperty.def(SPOT_DIAMETER));
-		list.add(NumericProperty.def(ABSORBED_ENERGY));
+		list.add(NumericProperty.def(LASER_ENERGY));
 		list.add(NumericProperty.def(DETECTOR_GAIN));
 		list.add(NumericProperty.def(DETECTOR_IRIS));
 		list.add(PulseShape.RECTANGULAR);		
