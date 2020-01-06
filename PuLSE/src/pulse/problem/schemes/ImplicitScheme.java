@@ -2,7 +2,13 @@ package pulse.problem.schemes;
 
 import static java.lang.Math.pow;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import pulse.HeatingCurve;
+import pulse.problem.statements.AbsorptionModel;
+import pulse.problem.statements.DiathermicMaterialProblem;
+import pulse.problem.statements.DistributedAbsorptionProblem;
 import pulse.problem.statements.LinearisedProblem;
 import pulse.problem.statements.NonlinearProblem;
 import pulse.problem.statements.Problem;
@@ -83,8 +89,8 @@ public class ImplicitScheme extends DifferenceScheme {
 
 		double[] U = new double[grid.N + 1];
 		double[] V = new double[grid.N + 1];
-		double[] alpha = new double[grid.N + 2];
-		double[] beta = new double[grid.N + 2];
+		double[] alpha = new double[grid.N + 1];
+		double[] beta = new double[grid.N + 1];
 
 		HeatingCurve curve = problem.getHeatingCurve();
 		curve.reinit();
@@ -141,7 +147,7 @@ public class ImplicitScheme extends DifferenceScheme {
 				V[grid.N] = (HH * U[grid.N] + 2. * grid.tau * beta[grid.N])
 						/ (2 * Bi2HTAU + HH - 2. * grid.tau * (alpha[grid.N] - 1));
 
-				for (j = grid.N - 1; j >= 0; j--)
+				for (j = grid.N - 1; j >= 0; j--) 
 					V[j] = alpha[j + 1] * V[j + 1] + beta[j + 1];
 
 				System.arraycopy(V, 0, U, 0, grid.N + 1);
@@ -151,6 +157,214 @@ public class ImplicitScheme extends DifferenceScheme {
 			curve.setTemperatureAt(w, V[grid.N]); // the temperature of the rear face
 			maxVal = Math.max(maxVal, V[grid.N]);
 			curve.setTimeAt(w, (w * timeInterval) * grid.tau * problem.timeFactor());
+
+			/*
+			 * UNCOMMENT TO DEBUG
+			 */
+
+			//debug(problem, V, w);
+
+		}
+
+		curve.scale(maxTemp / maxVal);
+
+	});
+	
+	public Solver<DiathermicMaterialProblem> diathermicSolver = (problem -> {
+
+		super.prepare(problem);
+
+		final double Bi1		= (double) problem.getFrontHeatLoss().getValue();
+		final double maxTemp	= (double) problem.getMaximumTemperature().getValue();
+		final double eta		= (double)problem.getDiathermicCoefficient().getValue();
+
+		final double EPS = 1e-7; // a small value ensuring numeric stability
+
+		int N		= grid.N;
+		double hx	= grid.hx;
+		double tau	= grid.tau;
+		
+		double[] U = new double[N + 1];
+		double[] V = new double[N + 1];
+		double[] p = new double[N];
+		double[] q = new double[N];
+		
+		double[] alpha	= new double[N + 1];
+		double[] beta	= new double[N + 1];
+		double[] gamma	= new double[N + 1];
+
+		HeatingCurve curve = problem.getHeatingCurve();
+		curve.reinit();
+		final int counts = (int) curve.getNumPoints().getValue();
+
+		double maxVal = 0;
+		int i, m, w;
+		double pls;
+		
+		final double HX2_TAU = pow(hx,2)/tau;
+
+		// coefficients for difference equation
+
+		double a = 1.0;
+		double c = 1.0;
+		double b = 2.0 + HX2_TAU;
+
+		// precalculated constants
+
+		final double z0		= 1.0 + 0.5*HX2_TAU + hx*Bi1*(1.0 + eta);
+		final double zN_1	= -hx*eta*Bi1;
+		final double f01	= HX2_TAU/2.0;
+		final double fN1	= f01;
+
+		double F;
+		
+		alpha[1] = 1.0/z0;
+		gamma[1] = -zN_1/z0;
+
+		/*
+		 * The outer cycle iterates over the number of points of the HeatingCurve
+		 */
+
+		for (w = 1; w < counts; w++) {
+
+			/*
+			 * Two adjacent points of the heating curves are separated by timeInterval on
+			 * the time grid. Thus, to calculate the next point on the heating curve,
+			 * timeInterval/tau time steps have to be made first.
+			 */			
+
+			for (m = (w - 1) * timeInterval + 1; m < w * timeInterval + 1; m++) {
+
+				pls = discretePulse.evaluateAt((m - EPS) * tau); // NOTE: EPS is very important here and ensures
+																 // numeric stability!
+				
+				beta[1] = (hx*hx/(2.0*tau)*U[0] + hx*pls)/z0;
+				
+				for (i = 1; i < N; i++) {
+					alpha[i + 1]	= c / (b - a * alpha[i]);
+					F 				= -U[i] * HX2_TAU;
+					beta[i + 1]		= (a * beta[i] - F) / (b - a * alpha[i]);
+					gamma[i + 1]	= a*gamma[i]/(b - a * alpha[i]);
+				}
+
+				p[N-1] = beta[N]; 
+				q[N-1] = alpha[N] + gamma[N];
+				
+				for (i = N - 2; i >= 0; i--) {
+					p[i] = alpha[i + 1] * p[i + 1] + beta[i + 1];
+					q[i] = alpha[i + 1] * q[i + 1] + gamma[i + 1];
+				}
+				
+				V[N] = (fN1*U[N] - zN_1*p[0] + p[N-1])/(z0 + zN_1*q[0] - q[N-1]);
+				
+				for (i = N - 1; i >= 0; i--) 
+					V[i] = p[i] + V[N]*q[i];
+				
+				System.arraycopy(V, 0, U, 0, N + 1);
+
+			}
+
+			curve.setTemperatureAt(w, V[N]); // the temperature of the rear face
+			maxVal = Math.max(maxVal, V[N]);
+			curve.setTimeAt(w, (w * timeInterval) * tau * problem.timeFactor());
+
+			/*
+			 * UNCOMMENT TO DEBUG
+			 */
+
+			//debug(problem, V, w);
+
+		}
+
+		curve.scale(maxTemp / maxVal);
+
+	});
+	
+	public Solver<DistributedAbsorptionProblem> distributedSolver = (problem -> {
+
+		super.prepare(problem);
+		
+		AbsorptionModel absorb = problem.getAbsorptionModel();
+
+		final double Bi1 = (double) problem.getFrontHeatLoss().getValue();
+		final double Bi2 = (double) problem.getHeatLossRear().getValue();
+		final double maxTemp = (double) problem.getMaximumTemperature().getValue();
+
+		final double EPS = 1e-7; // a small value ensuring numeric stability
+
+		int N		= grid.N;
+		double hx	= grid.hx;
+		double tau	= grid.tau;
+		
+		double[] U		= new double[N + 1];
+		double[] V		= new double[N + 1];
+		double[] alpha	= new double[N + 2];
+		double[] beta	= new double[N + 2];
+
+		HeatingCurve curve = problem.getHeatingCurve();
+		curve.reinit();
+		final int counts = (int) curve.getNumPoints().getValue();
+
+		double maxVal = 0;
+		int i, j, m, w;
+		double pls;
+
+		// coefficients for difference equation
+
+		double a = 1. / pow(hx, 2);
+		double b = 1. / tau + 2. / pow(hx, 2);
+		double c = 1. / pow(hx, 2);
+		
+		// precalculated constants
+
+		double HH		= pow(hx, 2);		
+		double F;
+
+		// precalculated constants
+
+		double Bi1H = Bi1 * hx;
+		double Bi2H = Bi2 * hx;
+
+		/*
+		 * The outer cycle iterates over the number of points of the HeatingCurve
+		 */
+
+		for (w = 1; w < counts; w++) {
+
+			/*
+			 * Two adjacent points of the heating curves are separated by timeInterval on
+			 * the time grid. Thus, to calculate the next point on the heating curve,
+			 * timeInterval/tau time steps have to be made first.
+			 */
+
+			for (m = (w - 1) * timeInterval + 1; m < w * timeInterval + 1; m++) {
+
+				pls = discretePulse.evaluateAt((m - EPS) * tau); // NOTE: EPS is very important here and ensures
+																 // numeric stability!
+
+				alpha[1] = 1.0 / ( 1.0 + HH/(2.0*tau) + Bi1H );
+				beta[1]	 = ( U[0] + tau*pls*absorb.absorption(0.0) ) / (1.0 + 2.0*tau/HH * (1 + Bi1H));
+
+				for (i = 1; i < N; i++) {
+					alpha[i + 1] = c / (b - a * alpha[i]);
+					F			 = -U[i] / tau - pls*absorb.absorption( (i - EPS)*hx );
+					beta[i + 1]	 = (F - a * beta[i]) / (a * alpha[i] - b);
+				}				
+
+				V[N] = (HH * (U[N] + tau * pls * absorb.absorption((N - EPS)*hx)) + 2. * tau * beta[N])
+						/ (2 * Bi2H * tau + HH + 2. * tau * (1 - alpha[N]));
+
+				for (j = N - 1; j >= 0; j--)
+					V[j] = alpha[j + 1] * V[j + 1] + beta[j + 1];
+
+				System.arraycopy(V, 0, U, 0, N + 1);
+
+			}
+
+			curve.setTemperatureAt(w, V[N]); // the temperature of the rear face
+			maxVal = Math.max(maxVal, V[N]);
+
+			curve.setTimeAt(w, (w * timeInterval) * tau * problem.timeFactor());
 
 			/*
 			 * UNCOMMENT TO DEBUG
@@ -310,7 +524,7 @@ public class ImplicitScheme extends DifferenceScheme {
 		 * OUTPUTs THE X-INTEGRAL OF T(x,t)
 		 * 
 		 * 
-		 * double i1 = 0; double i2 = 0;
+		 * double i1 = 0; double i2 = 0;a
 		 * 
 		 * for(int j = 0; j < grid.N; j++) { i1 += 0.5*((V[j] - Tav) + (V[j+1] -
 		 * Tav))/Tav*grid.hx*l*Tmax; i2 += 0.5*((V[j] - Tav)*j*grid.hx + (V[j+1] -
@@ -318,7 +532,7 @@ public class ImplicitScheme extends DifferenceScheme {
 		 * 
 		 * double B = A0*(4.0*l*i1 - 6.0*i2); double A = 2.0*A0/l/l*i1 - 2.0*B/l;
 		 * 
-		 * //System.out.println("\t" + w*timeInterval*grid.tau + "\t" + i1 + "\t" + i2);
+		 * //System.out.println("\t" + w*tiameInterval*grid.tau + "\t" + i1 + "\t" + i2);
 		 * 
 		 * double x, epsilon; double sigma = 0;
 		 * 
@@ -387,14 +601,20 @@ public class ImplicitScheme extends DifferenceScheme {
 	@Override
 	public Solver<? extends Problem> solver(Problem problem) {
 		if (problem instanceof TwoDimensional)
-			return null;
+			return null;		
 
-		if (problem instanceof LinearisedProblem)
+		Class<?> problemClass = problem.getClass();
+		
+		if (problemClass.equals(LinearisedProblem.class))
 			return implicitLinearisedSolver;
-		else if (problem instanceof NonlinearProblem)
+		else if (problemClass.equals(NonlinearProblem.class))
 			return implicitNonlinearSolver;
+		else if (problemClass.equals(DistributedAbsorptionProblem.class))
+			return distributedSolver;
+		else if (problemClass.equals(DiathermicMaterialProblem.class))
+			return diathermicSolver;
 		else
-			return null;
+			return null;		
 	}
 
 }

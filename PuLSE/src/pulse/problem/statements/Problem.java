@@ -159,8 +159,6 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 			case DENSITY 			: 	rho = newVal; 			return;
 		}
 		
-		
-		
 	}
 
 	public NumericProperty getDiffusivity() {
@@ -435,7 +433,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 	
 	@Override
 	public List<Property> listedTypes() {
-		List<Property> list = new ArrayList<Property>();
+		List<Property> list = super.listedTypes();
 		list.add(NumericProperty.def(MAXTEMP));
 		list.add(NumericProperty.def(DIFFUSIVITY));
 		list.add(NumericProperty.def(THICKNESS));

@@ -5,7 +5,7 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import pulse.problem.statements.Pulse.PulseShape;
+import pulse.problem.statements.Pulse.TemporalShape;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
@@ -27,7 +27,7 @@ public class Metadata extends PropertyHolder implements Reflexive, Saveable {
 	
 	private double testTemperature, sampleThickness, sampleDiameter, pulseWidth, spotDiameter, laserEnergy;
 	private int detectorGain, detectorIris;
-	private PulseShape pulseShape = PulseShape.RECTANGULAR;
+	private TemporalShape pulseShape = TemporalShape.RECTANGULAR;
 	private int externalID;
 	private String sampleName = "UnnamedSample";
 	
@@ -287,7 +287,7 @@ public class Metadata extends PropertyHolder implements Reflexive, Saveable {
 	 * @return a {@code PulseShape} object
 	 */
 
-	public PulseShape getPulseShape() {
+	public TemporalShape getPulseShape() {
 		return pulseShape;
 	}
 	
@@ -296,7 +296,7 @@ public class Metadata extends PropertyHolder implements Reflexive, Saveable {
 	 * @param pulseShape a {@code PulseShape} object
 	 */
 
-	public void setPulseShape(PulseShape pulseShape) {
+	public void setPulseShape(TemporalShape pulseShape) {
 		this.pulseShape = pulseShape;
 	}
 	
@@ -390,7 +390,7 @@ public class Metadata extends PropertyHolder implements Reflexive, Saveable {
 		list.add(NumericProperty.def(LASER_ENERGY));
 		list.add(NumericProperty.def(DETECTOR_GAIN));
 		list.add(NumericProperty.def(DETECTOR_IRIS));
-		list.add(PulseShape.RECTANGULAR);		
+		list.add(TemporalShape.RECTANGULAR);		
 		return list;
 	}
 	

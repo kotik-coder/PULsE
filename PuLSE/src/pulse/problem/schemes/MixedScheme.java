@@ -214,7 +214,7 @@ public class MixedScheme extends DifferenceScheme {
 		if(problem instanceof TwoDimensional)
 			return null;
 		
-		if(problem instanceof LinearisedProblem)
+		if(problem.getClass().equals(LinearisedProblem.class))
 			return mixedLinearisedSolver;
 		else 
 			return null;

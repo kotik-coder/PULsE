@@ -20,7 +20,7 @@ import static pulse.properties.NumericPropertyKeyword.*;
 
 public class Pulse extends PropertyHolder {
 	
-	private PulseShape pulseShape;
+	private TemporalShape pulseShape;
 	private double pulseWidth, spotDiameter;
 	private double laserEnergy;
 	
@@ -29,7 +29,7 @@ public class Pulse extends PropertyHolder {
 	 */
 	
 	public Pulse() {
-		this(PulseShape.RECTANGULAR);
+		this(TemporalShape.RECTANGULAR);
 	}
 	
 	/**
@@ -38,7 +38,7 @@ public class Pulse extends PropertyHolder {
 	 * @param pform the pulse shape
 	 */
 	
-	public Pulse(PulseShape pform) {
+	public Pulse(TemporalShape pform) {
 		this.pulseShape = pform;
 		pulseWidth		= (double) NumericProperty.def(PULSE_WIDTH).getValue();
 		spotDiameter	= (double) NumericProperty.def(SPOT_DIAMETER).getValue();
@@ -62,11 +62,11 @@ public class Pulse extends PropertyHolder {
 	 * @return the {@code} PulseShape
 	 */
 	
-	public PulseShape getPulseShape() {
+	public TemporalShape getPulseShape() {
 		return pulseShape;
 	}
 
-	public void setPulseShape(PulseShape pulseShape) {
+	public void setPulseShape(TemporalShape pulseShape) {
 		this.pulseShape = pulseShape;
 	}
 
@@ -114,7 +114,7 @@ public class Pulse extends PropertyHolder {
 	@Override
 	public List<Property> listedTypes() {
 		List<Property> list = new ArrayList<Property>();
-		list.add(PulseShape.RECTANGULAR);
+		list.add(TemporalShape.RECTANGULAR);
 		list.add(NumericProperty.def(PULSE_WIDTH));
 		list.add(NumericProperty.def(SPOT_DIAMETER));
 		list.add(NumericProperty.def(LASER_ENERGY));
@@ -136,7 +136,7 @@ public class Pulse extends PropertyHolder {
 	 *
 	 */
 	
-	public enum PulseShape implements EnumProperty {	
+	public enum TemporalShape implements EnumProperty {	
 		
 		/**
 		 * Currently not supported (redirects to {@code RECTANGULAR})
@@ -173,7 +173,7 @@ public class Pulse extends PropertyHolder {
 
 		@Override
 		public String getDescriptor(boolean addHtmlTags) {
-			return "Pulse shape";
+			return "Pulse temporal shape";
 		}
 
 		@Override

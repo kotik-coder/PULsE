@@ -24,7 +24,7 @@ public class ResultFormat {
 	
 	private static String formatString;
 	private final static char[] allowedCharacters	= 
-		{'D', 'S', 'T', 'B', 'M', 'R', 'C', 'E', 'Q', 'A', 'U', 'V', 'I'};
+		{'D', 'S', 'T', 'B', 'M', 'R', 'C', 'E', 'Q', 'A', 'U', 'V', 'I', 'N'};
 	private final static char[] minimumAllowed		= 
 		{'T', 'D'};
 	
@@ -63,14 +63,14 @@ public class ResultFormat {
 						   break;
 				case 'E' : nameMap.add(EMISSIVITY);
 						   break;
-				case 'Q' : nameMap.add(ABSORPTION);
-						   break;
 				case 'A' : nameMap.add(RSQUARED);
 						   break;
 				case 'U' : nameMap.add(BASELINE_INTERCEPT);
 				   		   break;
 				case 'V' : nameMap.add(BASELINE_SLOPE);
 		   		   		   break;
+				case 'N' : nameMap.add(DIATHERMIC_COEFFICIENT);
+		   		   break;
 				case 'I' : nameMap.add(IDENTIFIER);
 		   		   break;
 				default  : throw new IllegalArgumentException

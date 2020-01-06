@@ -50,7 +50,7 @@ import pulse.util.ImmutableDataEntry;
  * 210	400	5	2	31.81	10	TRAPEZOIDAL	1
  * </code></pre>
  * @see pulse.properties.NumericPropertyKeyword
- * @see pulse.problem.statements.Pulse.PulseShape
+ * @see pulse.problem.statements.Pulse.TemporalShape
  */
 
 public class MetaFileReader implements AbstractReader {	

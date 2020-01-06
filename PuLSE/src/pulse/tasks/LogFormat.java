@@ -31,6 +31,7 @@ public class LogFormat {
 						   add(NumericPropertyKeyword.HEAT_LOSS);
 						   add(NumericPropertyKeyword.BASELINE_INTERCEPT);
 						   add(NumericPropertyKeyword.BASELINE_SLOPE);
+						   add(NumericPropertyKeyword.DIATHERMIC_COEFFICIENT);
 						   break;
 				case 'S' : add(NumericPropertyKeyword.SUM_OF_SQUARES); 
 						   break;

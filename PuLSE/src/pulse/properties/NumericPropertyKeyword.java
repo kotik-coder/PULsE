@@ -215,9 +215,22 @@ public enum NumericPropertyKeyword {
 	ITERATION_LIMIT,
 	
 	/**
-	 * Coefficient of laser energy absorption (0 < A <= 1).
+	 * Dimensionless coefficient of laser energy absorption (&gamma;<sub>0</sub>).
 	 */
 	
-	ABSORPTION;
+	ABSORPTIVITY,
+	
+	/**
+	 * Reflectance of the sample (0 < R <= 1).
+	 */
+	
+	REFLECTANCE,
+	
+	/**
+	 * A dimensionless coefficient in the radiation flux expression for the radiative heat transfer between the front and the rear (coated) surfaces.
+	 * Used by the <code>DiathermicMaterialProblem</code>. 
+	 */
+	
+	DIATHERMIC_COEFFICIENT;
 	
 }

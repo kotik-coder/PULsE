@@ -3,6 +3,8 @@ package pulse.problem.schemes;
 import static java.lang.Math.pow;
 
 import pulse.HeatingCurve;
+import pulse.problem.statements.AbsorptionModel;
+import pulse.problem.statements.DistributedAbsorptionProblem;
 import pulse.problem.statements.LinearisedProblem;
 import pulse.problem.statements.NonlinearProblem;
 import pulse.problem.statements.Problem;
@@ -10,8 +12,6 @@ import pulse.problem.statements.TwoDimensional;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.ui.Messages;
-
-import static java.lang.Math.PI;
 
 /**
  * This class implements the simple explicit finite-difference scheme 
@@ -156,8 +156,6 @@ public class ExplicitScheme extends DifferenceScheme {
 			
 			final double EPS = 1e-5;
 			
-			double maxVal = 0;
-			
 			int i, m, w;
 			double pls;
 			
@@ -170,7 +168,7 @@ public class ExplicitScheme extends DifferenceScheme {
 			double f01 = 0.25*Bi1*T/dT;
 			double fN1 = 0.25*Bi2*T/dT;
 			double f0, fN;
-
+			
 			for (w = 1; w < counts; w++) {
 				
 				for (m = (w - 1)*timeInterval + 1; m < w*timeInterval + 1; m++) {
@@ -216,6 +214,87 @@ public class ExplicitScheme extends DifferenceScheme {
 			curve.scale( dT );			
 			
 	});
+	
+	public Solver<DistributedAbsorptionProblem> distributedSolver = ( problem -> 
+	{
+			super.prepare(problem);
+			
+			final double Bi1 = (double) problem.getFrontHeatLoss().getValue();
+			final double Bi2 = (double) problem.getHeatLossRear().getValue();
+			final double maxTemp = (double) problem.getMaximumTemperature().getValue(); 
+					
+			final double EPS = 1e-5;
+			
+			HeatingCurve curve = problem.getHeatingCurve();
+			curve.reinit();
+			final int counts = (int) curve.getNumPoints().getValue();
+			
+			double maxVal = 0;		
+			int i, m, w;
+			
+			double tau = grid.tau;
+			double hx  = grid.hx;
+			int N 	   = grid.N;
+			
+			double[] U 	   = new double[N + 1];
+			double[] V     = new double[N + 1];
+			
+			AbsorptionModel absorb = problem.getAbsorptionModel();
+			double pls;
+			
+			/*
+			 * Constants used in the calculation loop
+			 */
+			
+			double TAU_HH = grid.tau/pow(grid.hx,2);		
+			double a = 1./(1. + Bi1*grid.hx);
+			double b = 1./(1. + Bi2*grid.hx);			
+			
+			/*
+			 * The outer cycle iterates over the number of points of the HeatingCurve
+			 */
+
+			for (w = 1; w < counts; w++) {
+				
+				/*
+				 * Two adjacent points of the heating curves are 
+				 * separated by timeInterval on the time grid. Thus, to calculate
+				 * the next point on the heating curve, timeInterval/tau time steps
+				 * have to be made first.
+				 */
+				
+				for (m = (w - 1)*timeInterval + 1; m < w*timeInterval + 1; m++) {
+					
+					pls = discretePulse.evaluateAt((m - EPS) * tau);
+					
+					/*
+					 * Uses the heat equation explicitly to calculate the 
+					 * grid-function everywhere except the boundaries
+					 */
+					for(i = 1; i < N; i++) 
+						V[i] =	U[i] +  TAU_HH*( U[i+1] - 2.*U[i] + U[i-1] ) + 
+								tau*pls*absorb.absorption( (i - EPS)*hx );
+					
+					/*
+					 * Calculates boundary values
+					 */
+					
+					V[0] = V[1]*a ;
+					V[N] = V[N-1]*b;
+					
+					System.arraycopy(V, 0, U, 0, N + 1);
+								
+				}
+				
+				curve.setTemperatureAt(w, V[N]); //the temperature of the rear face
+				maxVal = Math.max(maxVal, V[N]);
+				curve.setTimeAt( w,	(w*timeInterval)*tau*problem.timeFactor() );
+				
+			}			
+
+			curve.scale( maxTemp/maxVal );
+					
+	});	
 
 	/**
 	 * Constructs a default explicit scheme using the default 
@@ -271,10 +350,12 @@ public class ExplicitScheme extends DifferenceScheme {
 		if(problem instanceof TwoDimensional)
 			return null;
 		
-		if(problem instanceof LinearisedProblem)
+		if(problem.getClass().equals(LinearisedProblem.class))
 			return explicitLinearisedSolver;
-		else if(problem instanceof NonlinearProblem)
+		else if(problem.getClass().equals(NonlinearProblem.class))
 			return explicitNonlinearSolver;
+		else if (problem.getClass().equals(DistributedAbsorptionProblem.class))
+			return distributedSolver;
 		else 
 			return null;
 	}

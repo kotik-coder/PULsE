@@ -1,8 +1,18 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <NumericProperties>
-    <NumericProperty abbreviation="&amp;alpha;" descriptor="Coefficient of absorption, &amp;alpha;" keyword="ABSORPTION"
-    	auto-adjustable="false" maximum="1" dimensionfactor="1" minimum="0.001"
-    	primitive-type="double" value="1">
+    <NumericProperty abbreviation="&amp;eta;" auto-adjustable="true"
+    	dimensionfactor="1" keyword="DIATHERMIC_COEFFICIENT" maximum="1"
+    	minimum="0" primitive-type="double" value="0" descriptor="Diathermic coefficient, &amp;eta;">
+    </NumericProperty>
+    <NumericProperty abbreviation="&lt;i&gt;r&lt;/i&gt;"
+    	auto-adjustable="true"
+    	descriptor="Reflectance, &lt;i&gt;r&lt;/i&gt;" dimensionfactor="1"
+    	keyword="REFLECTANCE" maximum="1" minimum="1E-5"
+    	primitive-type="double" value="0.5">
+    </NumericProperty>
+    <NumericProperty abbreviation=" &amp;gamma;&lt;sub&gt;0&lt;/sub&gt;" descriptor="Absorptivity, &amp;gamma;&lt;sub&gt;0&lt;/sub&gt;" keyword="ABSORPTIVITY"
+    	auto-adjustable="false" maximum="1E8" dimensionfactor="1" minimum="1E-3"
+    	primitive-type="double" value="100">
     </NumericProperty>
     <NumericProperty keyword="ITERATION_LIMIT"
     	abbreviation="Iteration limit" auto-adjustable="true"
