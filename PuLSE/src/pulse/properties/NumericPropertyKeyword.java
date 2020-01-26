@@ -125,10 +125,16 @@ public enum NumericPropertyKeyword {
 	ERROR_TOLERANCE, 
 	
 	/**
-	 * The diameter of the pyrometer detection area.
+	 * The outer field of view diameter for the detector sighting.
 	 */
 	
-	PYROMETER_SPOT,
+	FOV_OUTER,
+	
+	/**
+	 * The inner field of view diameter for the detector sighting.
+	 */
+
+	FOV_INNER,
 	
 	/**
 	 * The baseline slope (for linear baselines).
@@ -231,6 +237,8 @@ public enum NumericPropertyKeyword {
 	 * Used by the <code>DiathermicMaterialProblem</code>. 
 	 */
 	
-	DIATHERMIC_COEFFICIENT;
+	DIATHERMIC_COEFFICIENT,
+	
+	START_TIME;
 	
 }

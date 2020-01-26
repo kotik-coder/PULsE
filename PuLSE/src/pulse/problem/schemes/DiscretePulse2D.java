@@ -3,6 +3,9 @@ package pulse.problem.schemes;
 import pulse.problem.statements.Problem;
 import pulse.problem.statements.Pulse;
 import pulse.problem.statements.TwoDimensional;
+import pulse.properties.NumericProperty;
+import pulse.properties.NumericPropertyKeyword;
+import pulse.properties.Property;
 
 /**
  * The discrete pulse on a {@code Grid2D}. 
@@ -33,6 +36,7 @@ public class DiscretePulse2D extends DiscretePulse {
 		discretePulseSpot = grid.gridRadialDistance( 
 				(double) pulse.getSpotDiameter().getValue() / 2.0,
 				coordFactor );
+		
 	}
 	
 	/**
@@ -56,12 +60,16 @@ public class DiscretePulse2D extends DiscretePulse {
 	 */
 	
 	@Override
-	public void recalculate() {
-		super.recalculate();
-		
-		discretePulseSpot = ((Grid2D)getGrid()).gridRadialDistance( 
-				(double) getPulse().getSpotDiameter().getValue() / 2.0,
-				coordFactor );		
+	public void recalculate(NumericPropertyKeyword keyword) {				
+		switch(keyword) {
+			case SPOT_DIAMETER : 
+					discretePulseSpot = ((Grid2D)getGrid()).gridRadialDistance( 
+					(double) getPulse().getSpotDiameter().getValue() / 2.0,
+					coordFactor );
+					break;
+			default : 
+				super.recalculate(keyword);
+		}			
 	}
 	
 	/**
@@ -80,7 +88,7 @@ public class DiscretePulse2D extends DiscretePulse {
 		Grid2D grid2D = (Grid2D)grid;
 		
 		for(final double factor = 1.05; factor*grid2D.hy > discretePulseSpot; 
-				 recalculate()) { 
+				 recalculate(NumericPropertyKeyword.SPOT_DIAMETER)) { 
 					grid2D.N += 5;	
 					grid2D.hy = 1./grid2D.N; 
 					grid2D.hx = 1./grid2D.N;

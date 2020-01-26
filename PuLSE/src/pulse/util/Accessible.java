@@ -186,10 +186,10 @@ public abstract class Accessible extends UpwardsNavigable {
 	        if(a == null)
 	        	continue;
 	        
-	        /* Ignore factor/instance methods returning objects of the same class */
-	        if(a.getClass().equals(getClass()))
+	        /* Ignore factor/instance methods returning same accessibles */
+	        if(a.getDescriptor().equals(getDescriptor()))
 	        	continue;
-	        
+
 	        fields.add(a);
 
 	    }

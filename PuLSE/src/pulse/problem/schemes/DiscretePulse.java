@@ -9,6 +9,9 @@ import static java.lang.Math.sqrt;
 
 import pulse.problem.statements.Problem;
 import pulse.problem.statements.Pulse;
+import pulse.properties.NumericProperty;
+import pulse.properties.NumericPropertyKeyword;
+import pulse.properties.Property;
 
 /**
  * A {@code DiscretePulse} is an object that acts as a medium between the physical {@code Pulse}
@@ -35,13 +38,20 @@ public class DiscretePulse {
 	
 	public DiscretePulse(Problem problem, Pulse pulse, Grid grid) {
 		timeFactor	= problem.timeFactor();
-		discretePulseWidth = grid.gridTime( 
-				((Number)pulse.getPulseWidth().getValue()).doubleValue(),
-				timeFactor);
-		this.grid = grid;
-		this.pulse = pulse;
+		this.grid	= grid;
+		this.pulse	= pulse;
+		
+		recalculate(NumericPropertyKeyword.PULSE_WIDTH);
+		recalculate(NumericPropertyKeyword.START_TIME);
+		
 		pulse.addListener( e -> {
-			recalculate();
+			Property p = e.getProperty(); 
+			
+			if( ! (p instanceof NumericProperty ) )
+				return;
+			
+			NumericPropertyKeyword key = ((NumericProperty) p).getType();				
+			recalculate(key);			
 		});
 	}
 	
@@ -75,10 +85,14 @@ public class DiscretePulse {
 	 * @see pulse.problem.schemes.Grid.gridTime(double,double)
 	 */
 	
-	public void recalculate() {
-		discretePulseWidth = grid.gridTime( 
+	public void recalculate(NumericPropertyKeyword keyword) {		
+		switch(keyword) {
+		case PULSE_WIDTH :		discretePulseWidth = grid.gridTime( 
 				((Number)pulse.getPulseWidth().getValue()).doubleValue(), 
-				timeFactor);
+				timeFactor); break;
+		default:
+			break;
+		}
 	}
 	
 	/**
@@ -91,7 +105,7 @@ public class DiscretePulse {
 	public void optimise(Grid grid) {
 		for(final double factor = 1.05; 
 			factor*grid.tau > discretePulseWidth; 
-			recalculate() ) {
+			recalculate(NumericPropertyKeyword.PULSE_WIDTH) ) {
 				grid.tauFactor	/= 1.5;						
 				grid.tau		 = grid.tauFactor*pow(grid.hx, 2);;
 		}		

@@ -5,15 +5,18 @@ import java.awt.Component;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import javax.swing.AbstractButton;
 import javax.swing.AbstractCellEditor;
 import javax.swing.DefaultCellEditor;
+import javax.swing.ImageIcon;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -114,7 +117,7 @@ public class PropertyHolderTable extends JTable {
 		if(p == null) 
 			return null;
 		
-		List<Property> data = p.data();
+		List<Property> data = p.data();				
 
 		List<Accessible> internalHolders = new ArrayList<Accessible>(0);
 		
@@ -199,7 +202,7 @@ public class PropertyHolderTable extends JTable {
 	    			  (PropertyHolder)value);	      
 	      
 	      if(value instanceof Flag)
-	    	  return new ButtonEditor((AbstractButton) getCellRenderer(row, column).getTableCellRendererComponent(this, value, false, false, row, column)
+	    	  return new ButtonEditor((IconCheckBox) getCellRenderer(row, column).getTableCellRendererComponent(this, value, false, false, row, column)
 	    			  , ((Flag)value).getType() );	    	  	      
 
 	      return getDefaultEditor(value.getClass());
@@ -229,7 +232,7 @@ public class PropertyHolderTable extends JTable {
 		AbstractButton btn;
 		PropertyHolder dat;
 		NumericPropertyKeyword type;
-		
+				
 		public ButtonEditor(AbstractButton btn, PropertyHolder dat) {
 			this.btn = btn;						
 			this.dat = dat;
@@ -240,10 +243,12 @@ public class PropertyHolderTable extends JTable {
 				public void actionPerformed(ActionEvent e) {
 					JFrame dataFrame = new DataFrame(dat, btn);
 					dataFrame.setVisible(true);
+					btn.setEnabled(false);
 					dataFrame.addWindowListener(new WindowAdapter() {
 						@Override
 						public void windowClosed(WindowEvent we) {
 							btn.setText(((DataFrame) dataFrame).getDataObject().toString());
+							btn.setEnabled(true);
 						}
 					});
 				}
@@ -251,20 +256,17 @@ public class PropertyHolderTable extends JTable {
 			
 		}
 		
-		public ButtonEditor(AbstractButton btn, NumericPropertyKeyword index) {
+		public ButtonEditor(IconCheckBox btn, NumericPropertyKeyword index) {
 			this.btn = btn;
 			this.type = index;
-	    	btn.setContentAreaFilled(false);
-			btn.setOpaque(true);
 
 			btn.addActionListener(new ActionListener() {
 
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					Boolean b = Boolean.parseBoolean(btn.getText());
-					btn.setText(Boolean.toString(!b));										
-					btn.setBackground(!b ? new Color(232,232,232) : null);
-					((JTable) ( ((JComponent)e.getSource()).getParent())).getCellEditor().stopCellEditing();
+					IconCheckBox source = (IconCheckBox) e.getSource();
+					source.setHorizontalAlignment(IconCheckBox.CENTER);
+					((JTable) ( source.getParent()) ).getCellEditor().stopCellEditing();
 				}
 				
 			});
@@ -276,7 +278,7 @@ public class PropertyHolderTable extends JTable {
 			if(dat != null)
 				return dat;					
 			Flag f = new Flag(type);
-			f.setValue( Boolean.parseBoolean(btn.getText()) );
+			f.setValue( btn.isSelected() );
 			return f;
 		}
 

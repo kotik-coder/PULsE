@@ -10,8 +10,8 @@ public class Insulator extends AbsorptionModel {
 
 	private double R;
 	
-	public Insulator() {
-		super();
+	public Insulator(SpectralRange spectrum) {
+		super(spectrum);
 		R = (double)NumericProperty.def(NumericPropertyKeyword.REFLECTANCE).getValue();
 	}
 

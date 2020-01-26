@@ -119,8 +119,6 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 	 */
 
 	public void setTimeLimit(NumericProperty timeLimit) {
-		if(timeLimit.getType() != NumericPropertyKeyword.TIME_LIMIT)
-			throw new IllegalArgumentException("Wrong type passed to method: " + timeLimit.getType());
 		this.timeLimit = (double)timeLimit.getValue();
 	}
 	

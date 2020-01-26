@@ -169,6 +169,8 @@ public class XMLConverter {
             		  eElement.getAttribute("keyword"));
               boolean autoAdjustable = Boolean.valueOf(
             		  eElement.getAttribute("auto-adjustable"));
+              boolean discreet = Boolean.valueOf(
+            		  eElement.getAttribute("discreet"));
               String descriptor = eElement.getAttribute("descriptor");
               String abbreviation = eElement.getAttribute("abbreviation");
               
@@ -187,7 +189,7 @@ public class XMLConverter {
               }
               
               properties.add(new NumericProperty(keyword, descriptor, abbreviation, 
-            		  value, minimum, maximum, dimensionFactor, autoAdjustable));
+            		  value, minimum, maximum, dimensionFactor, autoAdjustable, discreet));
            }
         }
  

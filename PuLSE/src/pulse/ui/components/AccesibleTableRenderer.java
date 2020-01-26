@@ -1,12 +1,9 @@
 package pulse.ui.components;
 
-import java.awt.Color;
 import java.awt.Component;
 import javax.swing.JButton;
 import javax.swing.JFormattedTextField;
 import javax.swing.JTable;
-import javax.swing.JToggleButton;
-
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.Property;
@@ -31,7 +28,8 @@ public class AccesibleTableRenderer extends NumericPropertyRenderer {
 			return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 		
 		if(value instanceof Flag) {
-			JToggleButton btn = initToggleButton(((Flag)value).getValue().toString());
+			IconCheckBox btn = new IconCheckBox( (boolean)((Flag)value).getValue() );
+			btn.setHorizontalAlignment(CENTER);
 			return btn;
 		}
 		
@@ -47,15 +45,6 @@ public class AccesibleTableRenderer extends NumericPropertyRenderer {
 		
 		return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
     
-	}
-	
-	private JToggleButton initToggleButton(String str) {
-		JToggleButton btn = new JToggleButton(str);
-		btn.setContentAreaFilled(false);
-		btn.setOpaque(true);
-		btn.setBorderPainted(false);
-		btn.setBackground(Boolean.parseBoolean( btn.getText() )  ? new Color(232,232,232) : null);
-		return btn;
 	}
 	
 	private JButton initButton(String str) {

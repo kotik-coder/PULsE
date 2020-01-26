@@ -1,20 +1,23 @@
 package pulse.ui.components;
 
-import java.awt.Color;
+import javax.swing.ImageIcon;
+
+import pulse.ui.Launcher;
 
 public enum ExecutionState {
-	EXECUTE("EXECUTE", Color.GREEN), STOP("STOP", Color.RED);
-	
-	private Color color;
+	EXECUTE("EXECUTE", Launcher.loadIcon("/execute.png", 24)), 
+	STOP("STOP", Launcher.loadIcon("/stop.png", 24));
+
 	private String message;
+	private ImageIcon icon;
 	
-	private ExecutionState(String message, Color clr) {
-		this.color = clr;
+	private ExecutionState(String message, ImageIcon icon) {
+		this.icon = icon;
 		this.message = message;
 	}
 	
-	public Color getColor() {
-		return color;
+	public ImageIcon getIcon() {
+		return icon;
 	}
 	
 	public String getMessage() {

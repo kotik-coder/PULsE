@@ -4,6 +4,8 @@ import java.awt.Component;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JToolBar;
@@ -13,6 +15,7 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import pulse.tasks.TaskManager;
+import pulse.ui.Launcher;
 import pulse.ui.Messages;
 import pulse.ui.components.ResultTableModel;
 import pulse.ui.frames.PlotFrame;
@@ -30,6 +33,14 @@ public class ResultsToolBar extends JToolBar {
 	private static PlotFrame plotFrame;
 	private static SimpleInputFrame simpleInput;
 	
+	private final static int ICON_SIZE = 16;
+	
+    private static ImageIcon ICON_REMOVE	= Launcher.loadIcon("/remove.png", ICON_SIZE);
+    private static ImageIcon ICON_PREVIEW	= Launcher.loadIcon("/preview.png", ICON_SIZE);  
+    private static ImageIcon ICON_UNDO	= Launcher.loadIcon("/reset.png", ICON_SIZE);
+    private static ImageIcon ICON_MERGE	= Launcher.loadIcon("/merge.png", ICON_SIZE);
+    private static ImageIcon ICON_SAVE	= Launcher.loadIcon("/save.png", ICON_SIZE);
+	
 	public ResultsToolBar(ResultTable resultsTable, JFrame parentWindow) {
 		super();
 		setLayout(new GridLayout());
@@ -38,7 +49,7 @@ public class ResultsToolBar extends JToolBar {
 		 * CONTROL BUTTONS
 		 */
 		
-		ToolBarButton btnDel = new ToolBarButton(Messages.getString("ResultsToolBar.DeleteButton")); //$NON-NLS-1$
+		ToolBarButton btnDel = new ToolBarButton(Messages.getString("ResultsToolBar.DeleteButton"), ICON_REMOVE);
 		btnDel.setEnabled(false);
 		add(btnDel);		
 		
@@ -61,7 +72,7 @@ public class ResultsToolBar extends JToolBar {
 			
 		});
 				
-		ToolBarButton btnAvg = new ToolBarButton(Messages.getString("ResultsToolBar.AutoAverageButton")); //$NON-NLS-1$
+		ToolBarButton btnAvg = new ToolBarButton(Messages.getString("ResultsToolBar.AutoAverageButton"),ICON_MERGE); //$NON-NLS-1$
 		btnAvg.setEnabled(false);
 		add(btnAvg);
 		
@@ -78,7 +89,7 @@ public class ResultsToolBar extends JToolBar {
 			
 		});		
 		
-		ToolBarButton btnExpand = new ToolBarButton("Undo"); //$NON-NLS-1$
+		ToolBarButton btnExpand = new ToolBarButton("Undo", ICON_UNDO); //$NON-NLS-1$
 		add(btnExpand);		
 		
 		btnExpand.addActionListener(new ActionListener() {
@@ -96,7 +107,7 @@ public class ResultsToolBar extends JToolBar {
 			
 		});
 				
-		ToolBarButton btnPlot = new ToolBarButton(Messages.getString("ResultsToolBar.PlotButton")); //$NON-NLS-1$
+		ToolBarButton btnPlot = new ToolBarButton(Messages.getString("ResultsToolBar.PlotButton"),ICON_PREVIEW); //$NON-NLS-1$
 		btnPlot.setEnabled(false);
 		add(btnPlot);				
 		
@@ -119,7 +130,7 @@ public class ResultsToolBar extends JToolBar {
 			
 		});
 				
-		ToolBarButton btnSave = new ToolBarButton(Messages.getString("ResultsToolBar.SaveButton")); //$NON-NLS-1$
+		ToolBarButton btnSave = new ToolBarButton(Messages.getString("ResultsToolBar.SaveButton"),ICON_SAVE); //$NON-NLS-1$
 		btnSave.setEnabled(false);
 		add(btnSave);
 		

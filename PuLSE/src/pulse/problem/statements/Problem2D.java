@@ -16,34 +16,31 @@ import static pulse.properties.NumericPropertyKeyword.*;
 
 public abstract class Problem2D extends Problem implements TwoDimensional {
 	
-	protected double d, Bi3, dAv;
+	protected double d, Bi3, fovOuter, fovInner;
 	private final static boolean DEBUG = false;	
 
 	protected Problem2D() {
 		super();
 		Bi3 = (double)NumericProperty.def(HEAT_LOSS_SIDE).getValue();
 		d 	= (double)NumericProperty.def(DIAMETER).getValue();
-		dAv = (double)NumericProperty.def(PYROMETER_SPOT).getValue();
+		fovOuter = (double)NumericProperty.def(FOV_OUTER).getValue();
+		fovInner = (double)NumericProperty.def(FOV_INNER).getValue();
 	}	
-
-	protected Problem2D(double d, double Bi3, double dAv) {
-		super();
-		this.d 	 = d;
-		this.Bi3 = Bi3;
-	}
 	
 	protected Problem2D(Problem sdd) {
 		super(sdd);
 		Bi3 = (double)NumericProperty.def(HEAT_LOSS_SIDE).getValue();
 		d 	= (double)NumericProperty.def(DIAMETER).getValue();
-		dAv = (double)NumericProperty.def(PYROMETER_SPOT).getValue();
+		fovOuter = (double)NumericProperty.def(FOV_OUTER).getValue();
+		fovInner = (double)NumericProperty.def(FOV_INNER).getValue();
 	}
 	
 	protected Problem2D(Problem2D sdd) {
 		super(sdd);
 		this.d	 = sdd.d;
 		this.Bi3 = sdd.Bi3;
-		this.dAv = sdd.dAv;
+		this.fovOuter = sdd.fovOuter;
+		this.fovInner = sdd.fovInner;
 	}
 	
 	@Override
@@ -64,12 +61,21 @@ public abstract class Problem2D extends Problem implements TwoDimensional {
 	}
 	
 	@Override
-	public NumericProperty getPyrometerSpot() {
-		return NumericProperty.derive(PYROMETER_SPOT, dAv); //$NON-NLS-1$
+	public NumericProperty getFOVOuter() {
+		return NumericProperty.derive(FOV_OUTER, fovOuter); 
 	}
 
-	public void setPyrometerSpot(NumericProperty dAv) {
-		this.dAv = (double)dAv.getValue();
+	public void setFOVOuter(NumericProperty fovOuter) {
+		this.fovOuter = (double)fovOuter.getValue();
+	}
+	
+	@Override
+	public NumericProperty getFOVInner() {
+		return NumericProperty.derive(FOV_INNER, fovInner); 
+	}
+
+	public void setFOVInner(NumericProperty fovInner) {
+		this.fovInner = (double)fovInner.getValue();
 	}
 	
 	@Override
@@ -78,7 +84,8 @@ public abstract class Problem2D extends Problem implements TwoDimensional {
 		list.addAll(super.listedTypes());
 		list.add(NumericProperty.def(HEAT_LOSS_SIDE));
 		list.add(NumericProperty.def(DIAMETER));
-		list.add(NumericProperty.def(PYROMETER_SPOT));
+		list.add(NumericProperty.def(FOV_OUTER));
+		list.add(NumericProperty.def(FOV_INNER));
 		return list;
 	}
 
@@ -86,7 +93,8 @@ public abstract class Problem2D extends Problem implements TwoDimensional {
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
 		super.set(type, property);
 		switch(type) {
-		case PYROMETER_SPOT		: setPyrometerSpot(property); break;
+		case FOV_OUTER		: setFOVOuter(property); break;
+		case FOV_INNER		: setFOVInner(property); break;
 		case DIAMETER			: setSampleDiameter(property); break;
 		case HEAT_LOSS_SIDE		: setSideLosses(property); break;
 		}
@@ -105,16 +113,23 @@ public abstract class Problem2D extends Problem implements TwoDimensional {
 	}
 	
 	@Override
-	public IndexedVector optimisationVector(List<Flag> flags) {
-		IndexedVector optimisationVector = super.optimisationVector(flags);		 				
+	public IndexedVector[] optimisationVector(List<Flag> flags) {
+		IndexedVector[] optimisationVector = super.optimisationVector(flags);		 				
 				
-		for(int i = 0, size = optimisationVector.dimension(); i < size; i++) {
-			switch( optimisationVector.getIndex(i) ) {
-				case PYROMETER_SPOT		:	
-					optimisationVector.set(i, dAv);
+		for(int i = 0, size = optimisationVector[0].dimension(); i < size; i++) {
+			switch( optimisationVector[0].getIndex(i) ) {
+				case FOV_OUTER		:	
+					optimisationVector[0].set(i, fovOuter/d);
+					optimisationVector[1].set(i, 0.25);
 					break;
+				case FOV_INNER		:	
+					optimisationVector[0].set(i, fovInner/d);
+					optimisationVector[1].set(i, 0.25);
+					break;	
 				case SPOT_DIAMETER		:	
-					optimisationVector.set(i, (double)pulse.getSpotDiameter().getValue());
+					double fov = (double)pulse.getSpotDiameter().getValue();
+					optimisationVector[0].set(i, fov/d);
+					optimisationVector[1].set(i, 0.25);
 					break;					
 				default 				: 	continue;
 			}
@@ -130,13 +145,15 @@ public abstract class Problem2D extends Problem implements TwoDimensional {
 		
 		for(int i = 0, size = params.dimension(); i < size; i++) {
 			switch( params.getIndex(i) ) {
-				case PYROMETER_SPOT		:	
-					dAv = params.get(i);
+				case FOV_OUTER		:	
+					fovOuter = params.get(i)*d;
 					break;
+				case FOV_INNER		:	
+					fovInner = params.get(i)*d;
+					break;		
 				case SPOT_DIAMETER		:
-					NumericProperty spotDiameter = NumericProperty.derive(SPOT_DIAMETER, params.get(i)); 
+					NumericProperty spotDiameter = NumericProperty.derive(SPOT_DIAMETER, params.get(i)*d); 
 					pulse.setSpotDiameter(spotDiameter);
-					pulse.notifyListeners(this, spotDiameter);
 					break;					
 				case HEAT_LOSS		:	
 					Bi3 = params.get(i);

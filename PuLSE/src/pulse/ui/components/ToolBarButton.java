@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.border.EtchedBorder;
 
@@ -21,6 +22,11 @@ public class ToolBarButton extends JButton {
 	public ToolBarButton() {
 		super();
 		init();
+	}
+	
+	public ToolBarButton(String s, ImageIcon icon) {
+		super(s, icon);
+		init();			
 	}
 	
 	public ToolBarButton(String s) {

@@ -15,6 +15,9 @@ public enum DataEventType {
 	 * @see pulse.input.ExperimentalData.truncate() 
 	 */
 	
-	TRUNCATED;
+	TRUNCATED, 
+	
+	
+	CHANGE_OF_ORIGIN;
 	
 }

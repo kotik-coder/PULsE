@@ -1,6 +1,7 @@
 package pulse.ui;
 
 import java.awt.EventQueue;
+import java.awt.Image;
 import java.lang.management.ManagementFactory;
 
 import javax.management.Attribute;
@@ -10,8 +11,10 @@ import javax.management.MBeanServer;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import javax.management.ReflectionException;
+import javax.swing.ImageIcon;
 
 import pulse.ui.charts.Chart;
+import pulse.ui.components.IconCheckBox;
 import pulse.ui.frames.ProblemStatementFrame;
 import pulse.ui.frames.SearchOptionsFrame;
 import pulse.ui.frames.TaskControlFrame;
@@ -141,5 +144,12 @@ public class Launcher {
 		int number = Runtime.getRuntime().availableProcessors();
 		return number > 1 ? (number - 1) : 1;
 	}
+	
+    public static ImageIcon loadIcon(String path, int iconSize) {
+    	ImageIcon imageIcon = new ImageIcon(Launcher.class.getResource(path)); // load the image to a imageIcon
+    	Image image = imageIcon.getImage(); // transform it 
+    	Image newimg = image.getScaledInstance(iconSize, iconSize,  java.awt.Image.SCALE_SMOOTH); // scale it the smooth way  
+    	return new ImageIcon(newimg);  // transform it back
+    }
 	
 }

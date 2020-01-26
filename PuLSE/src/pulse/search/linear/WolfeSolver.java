@@ -63,8 +63,8 @@ public class WolfeSolver extends LinearSolver {
 		final double G1P 	 = g1.dot(direction);
 		final double G1P_ABS = abs(G1P);
 		
-		IndexedVector params	= problem.optimisationVector( PathSolver.getSearchFlags() );
-		Segment segment			= domain(params, direction);
+		IndexedVector[] params	= problem.optimisationVector( PathSolver.getSearchFlags() );
+		Segment segment			= domain(params[0], params[1], direction);
 			
 		double ss1 = task.solveProblemAndCalculateDeviation();
 		double ss2;
@@ -78,8 +78,8 @@ public class WolfeSolver extends LinearSolver {
 			
 			randomConfinedValue = segment.randomValue();
 			
-			newParams = params.sum(direction.multiply(randomConfinedValue));
-			problem.assign(new IndexedVector(newParams, params.getIndices()));
+			newParams = params[0].sum(direction.multiply(randomConfinedValue));
+			problem.assign(new IndexedVector(newParams, params[0].getIndices()));
 			
 			ss2 	  = task.solveProblemAndCalculateDeviation();
 			
@@ -114,7 +114,7 @@ public class WolfeSolver extends LinearSolver {
 						
 		}
 		
-		problem.assign(params);
+		problem.assign(params[0]);
 		p.setGradient(g1);
 		
 	    return randomConfinedValue;

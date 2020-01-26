@@ -33,9 +33,7 @@ public class ExperimentalData extends HeatingCurve {
 	private final static double FAIL_SAFE_FACTOR = 3.0;
 	
 	private static Comparator<Point2D> pointComparator = 
-			(p1, p2) -> Double.valueOf(p1.getY()).compareTo(Double.valueOf(p2.getY()));
-			
-	private List<DataListener> dataListeners;
+			(p1, p2) -> Double.valueOf(p1.getY()).compareTo(Double.valueOf(p2.getY()));			
 
 	/**
 	 * Constructor for {@code ExperimentalData}. This constructs a {@code HeatingCurve}
@@ -49,7 +47,6 @@ public class ExperimentalData extends HeatingCurve {
 		this.clear();
 		count = 0;
 		getBaseline().setParent(null);
-		dataListeners = new ArrayList<DataListener>();
 	}
 	
 	public String toString() {
@@ -59,14 +56,6 @@ public class ExperimentalData extends HeatingCurve {
 			sb.append("for " + metadata.getSampleName() + " "); 
 		sb.append("(" + metadata.getTestTemperature().formattedValue(false) + ")");
 		return sb.toString();
-	}
-	
-	public void addDataListener(DataListener listener) {
-		dataListeners.add(listener);
-	}
-	
-	public void clearDataListener() {
-		dataListeners.clear();
 	}
 	
 	/**
@@ -346,8 +335,7 @@ public class ExperimentalData extends HeatingCurve {
 		count = time.size();
 		
 		DataEvent dataEvent = new DataEvent(DataEventType.TRUNCATED, this);
-		dataListeners.stream().forEach(l -> l.onExperimentalDataChanged(dataEvent));
-		
+		notifyListeners(dataEvent);		
 	}
 	
 	/*

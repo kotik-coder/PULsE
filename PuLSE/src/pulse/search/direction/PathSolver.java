@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import pulse.problem.schemes.Grid;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
@@ -143,18 +144,19 @@ public abstract class PathSolver extends PropertyHolder implements Reflexive {
 		Vector grad					= new Vector(params.dimension());
 		
 		Vector newParams, shift;
-		double ss1, ss2;
+		double ss1, ss2, dx;
 		
-		final double dx = 2.0*gradientResolution;
+		boolean discreteGradient = params.getIndices().stream().anyMatch(index -> NumericProperty.isDiscreet(index));			
+		dx = discreteGradient ? 2.0*task.getScheme().getGrid().getXStep() : 2.0*gradientResolution;  
 		
-		for(int i = 0; i < params.dimension(); i++) {
-			shift = new Vector(params.dimension());
+		for(int i = 0; i < params.dimension(); i++) {									
+			shift = new Vector(params.dimension());					
 			shift.set(i, 0.5*dx);
 			
 			newParams	= params.sum(shift);
 			task.assign( new IndexedVector(newParams, params.getIndices()) );
 			ss2			= task.solveProblemAndCalculateDeviation();
-			
+						
 			newParams	= params.subtract(shift);
 			task.assign( new IndexedVector(newParams, params.getIndices()) );
 			ss1			= task.solveProblemAndCalculateDeviation();

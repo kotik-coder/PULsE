@@ -23,7 +23,7 @@ public class ExecutionButton extends ToolBarButton {
 	
 	public ExecutionButton() {
 		super();
-		setBackground(state.getColor());
+		setIcon(state.getIcon());
 		setText(state.getMessage());
 		
 		this.addActionListener(new ActionListener() {
@@ -101,7 +101,7 @@ public class ExecutionButton extends ToolBarButton {
 	public void setExecutionState(ExecutionState state) {
 		this.state = state;
 		this.setText(state.getMessage());
-		this.setBackground(state.getColor());
+		this.setIcon(state.getIcon());
 	}
 	
 	

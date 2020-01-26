@@ -291,9 +291,8 @@ public class Baseline extends PropertyHolder {
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
 		switch(type) {
 		case BASELINE_INTERCEPT : this.intercept = ((Number)property.getValue()).doubleValue(); break;
-		case BASELINE_SLOPE : this.slope = ((Number)property.getValue()).doubleValue(); break;
-		default:
-			throw new IllegalArgumentException("Illegal type passed to method: " + property);
+		case BASELINE_SLOPE		: this.slope = ((Number)property.getValue()).doubleValue(); break;
+		default: return;
 		}
 		
 	}

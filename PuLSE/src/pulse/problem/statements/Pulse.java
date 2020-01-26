@@ -2,6 +2,7 @@ package pulse.problem.statements;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import pulse.properties.EnumProperty;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
@@ -21,7 +22,7 @@ import static pulse.properties.NumericPropertyKeyword.*;
 public class Pulse extends PropertyHolder {
 	
 	private TemporalShape pulseShape;
-	private double pulseWidth, spotDiameter;
+	protected double pulseWidth, spotDiameter;
 	private double laserEnergy;
 	
 	/**
@@ -84,6 +85,7 @@ public class Pulse extends PropertyHolder {
 
 	public void setSpotDiameter(NumericProperty spotDiameter) {
 		this.spotDiameter = (double)spotDiameter.getValue();
+		notifyListeners(this, spotDiameter);
 	}
 	
 	public NumericProperty getLaserEnergy() {
@@ -128,6 +130,9 @@ public class Pulse extends PropertyHolder {
 		case SPOT_DIAMETER	: setSpotDiameter(property); break;
 		case LASER_ENERGY	: setLaserEnergy(property); break;
 		}
+		
+		notifyListeners(this, property);
+		
 	}
 	
 	/**

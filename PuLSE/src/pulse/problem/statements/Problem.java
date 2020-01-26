@@ -2,7 +2,6 @@ package pulse.problem.statements;
 
 import static java.lang.Math.pow;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -276,8 +275,8 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 	 */
 	
 	public void useParkersSolution(ExperimentalData c) {
-		double t0 = c.halfRiseTime();	
-		this.a = PARKERS_COEFFICIENT*l*l/t0;
+		double t0	= c.halfRiseTime();	
+		this.a		= PARKERS_COEFFICIENT*l*l/t0;
 	}
 	
 	/**
@@ -294,8 +293,14 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 	 * @see listedTypes()
 	 */
 	
-	public IndexedVector optimisationVector(List<Flag> flags) {	
+	/*
+	 * TODO put relative bounds in a constant field
+	 * Consider creating a Bounds class, or putting them in the XML file
+	 */
+	
+	public IndexedVector[] optimisationVector(List<Flag> flags) {	
 		IndexedVector optimisationVector = new IndexedVector(Flag.convert(flags));
+		IndexedVector upperBound		 = new IndexedVector(optimisationVector.getIndices());
 		int size = optimisationVector.dimension(); 		
 		
 		Baseline baseline = curve.getBaseline();
@@ -303,16 +308,36 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 		for(int i = 0; i < size; i++) {
 			
 			switch( optimisationVector.getIndex(i) ) {
-				case DIFFUSIVITY		:	optimisationVector.set(i, a/(l*l)); break;
-				case MAXTEMP			:	optimisationVector.set(i, signalHeight); break;
-				case BASELINE_INTERCEPT	:   optimisationVector.set(i, baseline.parameters()[0]); break; 
-				case BASELINE_SLOPE		:   optimisationVector.set(i, baseline.parameters()[1]); break;	
-				case HEAT_LOSS			:	optimisationVector.set(i, Bi1 ); break;
+				case DIFFUSIVITY		:	
+					optimisationVector.set(i, a/(l*l));
+					upperBound.set(i, 0.75*a/(l*l));
+					break;
+				case MAXTEMP			:	
+					optimisationVector.set(i, signalHeight);
+					upperBound.set(i, 0.5*signalHeight);
+					break;
+				case BASELINE_INTERCEPT	:   
+					optimisationVector.set(i, baseline.parameters()[0]);
+					upperBound.set(i, 5);
+					break; 
+				case BASELINE_SLOPE		:   
+					optimisationVector.set(i, baseline.parameters()[1]);
+					upperBound.set(i, 1000);
+					break;	
+				case HEAT_LOSS			:	
+					optimisationVector.set(i, Bi1 );
+					upperBound.set(i, 2.0);
+					break;
+				case START_TIME			:	
+					optimisationVector.set(i, (double)curve.getStartTime().getValue() );
+					double timeLimit = curve.timeLimit(); 
+					upperBound.set(i, timeLimit*0.25);
+					break;
 				default 				: 	continue;
 			}
 		}
 		
-		return optimisationVector;
+		return new IndexedVector[] { optimisationVector, upperBound };
 		
 	}
 	
@@ -334,9 +359,15 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 				case BASELINE_SLOPE		:	(curve.getBaseline()).
 											setParameter(1, params.get(i)); break;
 				case HEAT_LOSS			:	Bi1 = params.get(i); Bi2 = params.get(i); break;
+				case START_TIME			:	curve.set(NumericPropertyKeyword.START_TIME,
+													  NumericProperty.derive(
+													  NumericPropertyKeyword.START_TIME, 
+													  params.get(i)));
+											break;
 				default 				: 	continue;
 			}
-		}
+		}				
+		
 	}
 	
 	/**

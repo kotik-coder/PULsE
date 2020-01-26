@@ -218,12 +218,13 @@ public class Chart extends JFXPanel {
 		
 	    ObservableList<Data<Number,Number>> data = series.getData();	    
 	    
-	    int realCount = curve.arraySize();	    
-	    double time = 0;
+	    int realCount = curve.arraySize();
+	    double startTime = (double)curve.getStartTime().getValue();
+	    double time = 0;	   
 	    
 	    for(int i = 0; i < realCount; i++) {
 	    	time = curve.timeAt(i);
-	    	if(time < 0) 
+	    	if(time < startTime) 
 	    		if(!extendedCurve)
 	    			continue;
 	    	data.add(new Data<Number, Number>(time*timeAxisSpecs.getFactor(), curve.temperatureAt(i)));	    

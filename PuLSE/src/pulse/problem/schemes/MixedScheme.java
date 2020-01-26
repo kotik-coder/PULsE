@@ -148,10 +148,11 @@ public class MixedScheme extends DifferenceScheme {
 								
 				}
 				
-				curve.setTemperatureAt(w, V[grid.N]); //the temperature of the rear face
 				maxVal = Math.max(maxVal, V[grid.N]);
 				
-				curve.setTimeAt( w,	(w*timeInterval)*grid.tau*problem.timeFactor() );
+				curve.addPoint(
+						(w * timeInterval) * grid.tau * problem.timeFactor(),
+						V[grid.N] );
 				
 			}			
 

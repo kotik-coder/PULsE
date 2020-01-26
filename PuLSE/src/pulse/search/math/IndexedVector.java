@@ -85,7 +85,7 @@ public class IndexedVector extends Vector {
 	  */
 	 
 	 public double get(NumericPropertyKeyword index) {
-		 return super.get( indices.indexOf(index));
+		 return super.get( getDataIndex(index) );
 	 }
 	
 	 private void assign(List<NumericPropertyKeyword> indices) {
@@ -119,6 +119,16 @@ public class IndexedVector extends Vector {
 			
 			return v;
 				
+	}
+	
+	public static IndexedVector concat(IndexedVector v1, IndexedVector v2) {
+		List<NumericPropertyKeyword> allIndices = 
+				new ArrayList<NumericPropertyKeyword>(v1.indices);
+		allIndices.addAll(v2.indices);
+		
+		System.out.println(v1.indices.size());
+		
+		return new IndexedVector( allIndices );
 	}
 	
 }

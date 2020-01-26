@@ -49,21 +49,26 @@ public abstract class LinearSolver extends PropertyHolder implements Reflexive {
 	 * to ensure that the change in the {@code HEAT_LOSS} {@code NumericProperty} 
 	 * is less than unity.</p>   
 	 * @param x the current set of parameters
+	 * @param bounds the bounds for x
 	 * @param p the result of the direction search with the {@code PathSolver}
 	 * @return a {@code Segment} defining the domain of this search
 	 * @see pulse.search.direction.PathSolver.direction(SearchTask)
 	 */
 	
-	public static Segment domain(IndexedVector x, Vector p) {
-		int diffusivityIndex = x.getDataIndex(NumericPropertyKeyword.DIFFUSIVITY);
-		double alpha = 0.5*x.get(diffusivityIndex)/Math.abs(p.get(diffusivityIndex));
+	public static Segment domain(IndexedVector x, IndexedVector bounds, Vector p) {						
+		double alpha = Double.POSITIVE_INFINITY;
 		
-		final double UPPER_LIMIT_LOSSES = 2.0;
-		int heatLossIndex = x.getDataIndex(NumericPropertyKeyword.HEAT_LOSS);
+		final double EPS = 1E-15;
 		
-		if(heatLossIndex > -1)
-			while(Math.pow(x.get(heatLossIndex) + p.get(heatLossIndex)*alpha, 2) > UPPER_LIMIT_LOSSES)
-				alpha /= 2;
+		for(int i = 0; i < x.dimension(); i++) { 
+			
+			if(p.get(i) < EPS)
+				if(p.get(i) > -EPS)
+					continue;
+			
+			alpha = Math.min(alpha, Math.abs(bounds.get(i)/p.get(i)) );
+			
+		}
 		
 		return new Segment(0, alpha);
 	}

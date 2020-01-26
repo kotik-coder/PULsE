@@ -10,6 +10,7 @@ import pulse.HeatingCurve;
 import pulse.input.ExperimentalData;
 import pulse.input.InterpolationDataset;
 import pulse.input.Metadata;
+import pulse.input.listeners.DataEventType;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
@@ -53,7 +54,7 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 	private double cp, rho, emissivity, lambda;
 	private double rSq, ssr;
 	
-	private final static double RELATIVE_TIME_MARGIN = 1.05;
+	private final static double RELATIVE_TIME_MARGIN = 1.01;
 
 	/**
 	 * If {@code SearchTask} finishes, and its <i>R<sup>2</sup></i> value is lower than this constant,
@@ -109,8 +110,9 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 		
 		curve.addDataListener( dataEvent -> {
 			if(scheme != null) {
+				double startTime = (double)problem.getHeatingCurve().getStartTime().getValue();
 				scheme.setTimeLimit
-				(NumericProperty.derive(TIME_LIMIT, RELATIVE_TIME_MARGIN*curve.timeLimit()));
+				(NumericProperty.derive(TIME_LIMIT, RELATIVE_TIME_MARGIN*curve.timeLimit() - startTime));
 			}
 		}
 		);
@@ -126,7 +128,7 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 	 */
 	
 	public IndexedVector searchVector() {
-		return problem.optimisationVector(PathSolver.getSearchFlags());
+		return problem.optimisationVector(PathSolver.getSearchFlags())[0];
 	}
 	
 	/**
@@ -224,7 +226,8 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 	  HeatingCurve solutionCurve = this.getProblem().getHeatingCurve();
 	  ssr	   			 		 = solutionCurve.deviationSquares(curve);
 	  
-	  PathSolver pathSolver 	= TaskManager.getPathSolver();	  
+	  PathSolver pathSolver 	= TaskManager.getPathSolver();
+	  
 	  path 						= pathSolver.createPath(this);
 	   
 	  double errorTolerance		= (double)PathSolver.getErrorTolerance().getValue();
@@ -250,14 +253,14 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 				if(status != Status.IN_PROGRESS)
 					break outer;
 					
-				ssr = pathSolver.iteration(this);				
+				ssr = pathSolver.iteration(this);
 		  		rSq = solutionCurve.rSquared(getExperimentalCurve());		  				  	
 		  		
-		  		final int j = i;
+		  		final int j = i;		  		
 		  		
 		  		bufferFutures.add(CompletableFuture.runAsync( () -> {
 		  			buffer.fill(this, j);		  		
-		  			notifyDataListeners(dataCollected); }, singleThreadExecutor ));		  				  		
+		  			notifyDataListeners(dataCollected); }, singleThreadExecutor ));		  		
 		  		
 		}
 		
@@ -370,6 +373,20 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 
 		});
 		
+		problem.getHeatingCurve().addDataListener( dataEvent -> {
+			
+			DataEventType event = dataEvent.getType();								
+			
+			if(event == DataEventType.CHANGE_OF_ORIGIN) {
+				double upperLimitUpdated = RELATIVE_TIME_MARGIN*curve.timeLimit() - 
+						(double)problem.getHeatingCurve().getStartTime().getValue();
+				scheme.setTimeLimit
+				(NumericProperty.derive(TIME_LIMIT, upperLimitUpdated));
+			}
+				
+			
+		});
+		
 	}
 	
 	/**
@@ -382,8 +399,13 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 		this.scheme = scheme;
 		if(scheme != null) {
 			scheme.setParent(this);
+			
+			double upperLimit = RELATIVE_TIME_MARGIN*curve.timeLimit() - 
+					(double)problem.getHeatingCurve().getStartTime().getValue();
+			
 			scheme.setTimeLimit
-			(NumericProperty.derive(TIME_LIMIT, RELATIVE_TIME_MARGIN*curve.timeLimit()));
+			(NumericProperty.derive(TIME_LIMIT, upperLimit ));
+			
 		}
 	}
 	

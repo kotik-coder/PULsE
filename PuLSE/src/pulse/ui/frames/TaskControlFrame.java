@@ -8,6 +8,7 @@ import java.awt.GridLayout;
 import java.awt.Toolkit;
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
 import javax.swing.JDialog;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
@@ -639,6 +640,14 @@ public class TaskControlFrame extends JFrame {
 		private static final long serialVersionUID = -6823289494869587461L;
 		
 		private ToolBarButton btnRemove, btnClr, btnReset, btnShowCurve;
+		
+	    private final static int ICON_SIZE = 24;
+	    
+	    private ImageIcon ICON_REMOVE	= Launcher.loadIcon("/remove.png", ICON_SIZE);
+	    private ImageIcon ICON_CLEAR	= Launcher.loadIcon("/clear.png", ICON_SIZE);  
+	    private ImageIcon ICON_RESET	= Launcher.loadIcon("/reset.png", ICON_SIZE);
+	    private ImageIcon ICON_GRAPH	= Launcher.loadIcon("/graph.png", ICON_SIZE);
+	    
 		private ExecutionButton controlButton;
 
 		public TaskToolBar() {
@@ -647,7 +656,7 @@ public class TaskControlFrame extends JFrame {
 			setForeground(Color.BLACK);
 			setLayout(new GridLayout());				
 			
-			btnRemove = new ToolBarButton(Messages.getString("TaskControlFrame.RemoveSelected")); //$NON-NLS-1$
+			btnRemove = new ToolBarButton(Messages.getString("TaskControlFrame.RemoveSelected"), ICON_REMOVE); //$NON-NLS-1$
 			btnRemove.setEnabled(false);
 			add(btnRemove);
 			
@@ -669,7 +678,7 @@ public class TaskControlFrame extends JFrame {
 					
 			});
 			
-			btnClr = new ToolBarButton(Messages.getString("TaskControlFrame.Clear")); //$NON-NLS-1$
+			btnClr = new ToolBarButton(Messages.getString("TaskControlFrame.Clear"), ICON_CLEAR); //$NON-NLS-1$
 			btnClr.setEnabled(false);
 			add(btnClr);
 			
@@ -684,7 +693,7 @@ public class TaskControlFrame extends JFrame {
 				
 			});
 			
-			btnReset = new ToolBarButton(Messages.getString("TaskControlFrame.Reset")); //$NON-NLS-1$
+			btnReset = new ToolBarButton(Messages.getString("TaskControlFrame.Reset"), ICON_RESET); //$NON-NLS-1$
 			add(btnReset);
 			btnReset.setEnabled(false);
 			
@@ -699,7 +708,7 @@ public class TaskControlFrame extends JFrame {
 				
 			});
 				
-			btnShowCurve = new ToolBarButton(Messages.getString("TaskControlFrame.Graph")); //$NON-NLS-1$
+			btnShowCurve = new ToolBarButton(Messages.getString("TaskControlFrame.Graph"), ICON_GRAPH); //$NON-NLS-1$
 			btnShowCurve.setEnabled(false);
 			btnShowCurve.addActionListener(new ActionListener() {
 					

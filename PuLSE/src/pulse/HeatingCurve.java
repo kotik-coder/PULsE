@@ -1,13 +1,19 @@
 package pulse;
 
+import static pulse.properties.NumericPropertyKeyword.START_TIME;
+
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import pulse.input.ExperimentalData;
+import pulse.input.listeners.DataEvent;
+import pulse.input.listeners.DataEventType;
+import pulse.input.listeners.DataListener;
 import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
@@ -33,10 +39,12 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 	protected int count;
 	protected List<Double> temperature, baselineAdjustedTemperature;
 	protected List<Double> time;
-	protected Baseline baseline;	
+	protected Baseline baseline;
+	private double startTime;
 	private String name;
-	
 	private final static int DEFAULT_CLASSIC_PRECISION = 200;
+	
+	private List<DataListener> dataListeners;
 	
 	/**
 	 * Checks if the {@code temperature} list is empty. 	
@@ -57,6 +65,9 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 		final double EPS = 1e-8;
 		
 		if( Math.abs(count - (Integer)other.getNumPoints().getValue()) > EPS )
+			return false;
+		
+		if(!getStartTime().equals(other.getStartTime()))
 			return false;
 		
 		if(temperature.hashCode() != other.temperature.hashCode())
@@ -92,7 +103,21 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 		time		   = new ArrayList<Double>(this.count);
 		baseline	   = new Baseline();
 		baseline.setParent(this);
+		startTime	   = (double) NumericProperty.def(START_TIME).getValue();
+		dataListeners	= new ArrayList<DataListener>();
 		reinit();
+	}
+	
+	public void addDataListener(DataListener listener) {
+		dataListeners.add(listener);
+	}
+	
+	public void clearDataListener() {
+		dataListeners.clear();
+	}
+	
+	public void notifyListeners(DataEvent dataEvent) {
+		dataListeners.stream().forEach(l -> l.onDataChanged(dataEvent));
 	}
 	
 	/**
@@ -106,21 +131,14 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 	}
 	
 	/**
-	 * Calls {@code clear()}, and then iterates over the three {@code List} objects
-	 * containing data, only to fill them with zeroes, stopping at {@code getCount() - 1}
+	 * Calls {@code clear()}, and add the first element (0.0, 0.0).
 	 * @see getNumPoints() 
 	 * @see clear()
 	 */
 	
 	public void reinit() {
-		clear();											
-		
-		for(int i = 0; i < count; i++) {
-			this.time.add(0.0);
-			this.temperature.add(0.0);			
-			this.baselineAdjustedTemperature.add(0.0);
-		}
-		
+		clear();
+		addPoint(0.0, 0.0);				
 	}
 	
 	/**
@@ -181,8 +199,8 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 	 * @return a time value corresponding to {@code index}
 	 */
 	
-	public double timeAt(int index) {		
-		return time.get(index);
+	public double timeAt(int index) {
+		return time.get(index) + startTime;		
 	}
 	
 	/**
@@ -207,6 +225,11 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 		time.set(i, t);
 		temperature.set(i, T);		
 		baselineAdjustedTemperature.set(i, T + baseline.valueAt(i));
+	}
+	
+	public void addPoint(double time, double temperature) {
+		this.time.add(time);
+		this.temperature.add(temperature);
 	}
 	
 	/**
@@ -267,7 +290,7 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 	 */
 	
 	public double timeLimit() {
-		return time.get(time.size() - 1);
+		return time.get(time.size() - 1) - startTime;
 	}
 	
 	public String toString() {
@@ -279,6 +302,9 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 		sb.append(getNumPoints());
 		sb.append(" ; ");
 		sb.append(getBaseline());
+		sb.append(String.format("%3.2f", startTime));
+		sb.append(" ; ");
+		sb.append(Messages.getString("Pulse.5"));
 		sb.append(")");
 		return sb.toString();
 	}			
@@ -291,6 +317,7 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 	public List<Property> listedTypes() {
 		List<Property> list = new ArrayList<Property>();
 		list.add(getNumPoints());
+		list.add(NumericProperty.def(START_TIME));
 		return list;
 	}
 	
@@ -322,18 +349,20 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 		 * y* is the interpolated value.  
 		*/ 
 		
+		final double zeroTime = this.timeAt(0);
+		
 		for (int i = curve.getFittingStartIndex(); i <= curve.getFittingEndIndex(); i++) {
 			/*find the point on the calculated heating curve 
 			which has the closest time value smaller than the experimental points' time value*/
-			cur 		 = (int) (curve.timeAt(i)/timeInterval_1);  
+			cur 		 = (int) ( (curve.timeAt(i) - zeroTime)/timeInterval_1);			
 			
-			b1			 = ( this.timeAt(cur + 1) - curve.timeAt(i)  ) / timeInterval_1; //(x2 -x*)/dx
+			b1			 = ( this.timeAt(cur + 1) - curve.timeAt(i)  ) / timeInterval_1; //(x2 -x*)/dx			
 			b2  		 = ( curve.timeAt(i) 	  - this.timeAt(cur) ) / timeInterval_1; //(x* -x1)/dx
 			interpolated = b1*this.temperatureAt(cur) + b2*this.temperatureAt(cur + 1);
 			
 			diff		 = curve.temperatureAt(i) - interpolated; //y_exp - y*
 			sum			+= diff*diff; 
-		}		
+		}				
 		
 		return sum;
 		
@@ -385,8 +414,17 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 		
 		for(int i = 0; i < size; i++) {
 			t = time.get(i);			
-			baselineAdjustedTemperature.set(i, temperature.get(i) + baseline.valueAt(t));			
+			baselineAdjustedTemperature.add(temperature.get(i) + baseline.valueAt(t));			
 		}
+				
+		final double interval = timeAt(1) - timeAt(0);			
+		int i = 0;
+		
+		for(double st = startTime - interval; st > -0.9*interval; st -= interval, i++) {
+			time.add(0,st-startTime);
+			temperature.add(0,0.0);
+			baselineAdjustedTemperature.add(0,baseline.valueAt(st-startTime));
+		}		
 		
 	}
 	
@@ -577,7 +615,9 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 	@Override
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
 		switch(type) {
-			case NUMPOINTS : setNumPoints(property); break;
+			case NUMPOINTS	: setNumPoints(property); break;
+			case START_TIME : setStartTime(property); break;
+			default : break;
 		}
 	}
 	
@@ -601,5 +641,15 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 		this.temperature.remove(i);
 		this.baselineAdjustedTemperature.remove(i);
 	}
+	
+	public NumericProperty getStartTime() {
+		return NumericProperty.derive(NumericPropertyKeyword.START_TIME, startTime);
+	}
+	
+	public void setStartTime(NumericProperty startTime) {
+		this.startTime = (double) startTime.getValue();
+		DataEvent dataEvent = new DataEvent(DataEventType.CHANGE_OF_ORIGIN, this);
+		notifyListeners(dataEvent);
+	}	
 	
 }

@@ -1,6 +1,6 @@
 package pulse.input.listeners;
 
-import pulse.input.ExperimentalData;
+import pulse.HeatingCurve;
 
 /**
  * A {@code DataEvent} is used to track changes happening with {@code ExperimentalData}.
@@ -10,7 +10,7 @@ import pulse.input.ExperimentalData;
 public class DataEvent {
 
 	private DataEventType type;
-	private ExperimentalData data;
+	private HeatingCurve data;
 	
 	/**
 	 * Constructs a {@code DataEvent} object, combining the {@code type} and associated {@code data}
@@ -18,7 +18,7 @@ public class DataEvent {
 	 * @param data the source of the event
 	 */
 	
-	public DataEvent(DataEventType type, ExperimentalData data) {
+	public DataEvent(DataEventType type, HeatingCurve data) {
 		this.type = type;
 		this.data = data;
 	}
@@ -37,7 +37,7 @@ public class DataEvent {
 	 * @return the associated data
 	 */
 
-	public ExperimentalData getData() {
+	public HeatingCurve getData() {
 		return data;
 	}
 	

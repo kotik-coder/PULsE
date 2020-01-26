@@ -4,7 +4,7 @@ import static java.lang.Math.pow;
 
 import pulse.HeatingCurve;
 import pulse.problem.statements.AbsorptionModel;
-import pulse.problem.statements.DistributedAbsorptionProblem;
+import pulse.problem.statements.TranslucentMaterialProblem;
 import pulse.problem.statements.LinearisedProblem;
 import pulse.problem.statements.NonlinearProblem;
 import pulse.problem.statements.Problem;
@@ -129,9 +129,10 @@ public class ExplicitScheme extends DifferenceScheme {
 								
 				}
 				
-				curve.setTemperatureAt(w, V[grid.N]); //the temperature of the rear face
 				maxVal = Math.max(maxVal, V[grid.N]);
-				curve.setTimeAt( w,	(w*timeInterval)*grid.tau*problem.timeFactor() );
+				curve.addPoint(
+						(w * timeInterval) * grid.tau * problem.timeFactor(),
+						V[grid.N] );
 				
 			}			
 
@@ -206,8 +207,9 @@ public class ExplicitScheme extends DifferenceScheme {
 								
 				}
 				
-				curve.setTemperatureAt(w, V[grid.N]);
-				curve.setTimeAt( w,	(w*timeInterval)*grid.tau*ref.timeFactor() );
+				curve.addPoint(
+						(w * timeInterval) * grid.tau * ref.timeFactor(),
+						V[grid.N] );
 				
 			}		
 			
@@ -215,7 +217,7 @@ public class ExplicitScheme extends DifferenceScheme {
 			
 	});
 	
-	public Solver<DistributedAbsorptionProblem> distributedSolver = ( problem -> 
+	public Solver<TranslucentMaterialProblem> distributedSolver = ( problem -> 
 	{
 			super.prepare(problem);
 			
@@ -239,7 +241,7 @@ public class ExplicitScheme extends DifferenceScheme {
 			double[] U 	   = new double[N + 1];
 			double[] V     = new double[N + 1];
 			
-			AbsorptionModel absorb = problem.getAbsorptionModel();
+			AbsorptionModel absorb = problem.getLaserAbsorptionModel();
 			double pls;
 			
 			/*
@@ -286,9 +288,10 @@ public class ExplicitScheme extends DifferenceScheme {
 								
 				}
 				
-				curve.setTemperatureAt(w, V[N]); //the temperature of the rear face
 				maxVal = Math.max(maxVal, V[N]);
-				curve.setTimeAt( w,	(w*timeInterval)*tau*problem.timeFactor() );
+				curve.addPoint(
+						(w * timeInterval) * grid.tau * problem.timeFactor(),
+						V[grid.N] );
 				
 			}			
 
@@ -354,7 +357,7 @@ public class ExplicitScheme extends DifferenceScheme {
 			return explicitLinearisedSolver;
 		else if(problem.getClass().equals(NonlinearProblem.class))
 			return explicitNonlinearSolver;
-		else if (problem.getClass().equals(DistributedAbsorptionProblem.class))
+		else if (problem.getClass().equals(TranslucentMaterialProblem.class))
 			return distributedSolver;
 		else 
 			return null;

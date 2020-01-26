@@ -68,9 +68,11 @@ public class Flag implements Property {
 		flags.add(new Flag(NumericPropertyKeyword.MAXTEMP, NumericProperty.def(MAXTEMP).getAbbreviation(true), true));
 		flags.add(new Flag(NumericPropertyKeyword.BASELINE_INTERCEPT, NumericProperty.def(BASELINE_INTERCEPT).getAbbreviation(true), false));
 		flags.add(new Flag(NumericPropertyKeyword.BASELINE_SLOPE, NumericProperty.def(BASELINE_SLOPE).getAbbreviation(true), false));
-		flags.add(new Flag(NumericPropertyKeyword.PYROMETER_SPOT, NumericProperty.def(PYROMETER_SPOT).getAbbreviation(true), false));
+		flags.add(new Flag(NumericPropertyKeyword.FOV_OUTER, NumericProperty.def(FOV_OUTER).getAbbreviation(true), false));
+		flags.add(new Flag(NumericPropertyKeyword.FOV_INNER, NumericProperty.def(FOV_INNER).getAbbreviation(true), false));
 		flags.add(new Flag(NumericPropertyKeyword.SPOT_DIAMETER, NumericProperty.def(SPOT_DIAMETER).getAbbreviation(true), false));
 		flags.add(new Flag(NumericPropertyKeyword.DIATHERMIC_COEFFICIENT, NumericProperty.def(DIATHERMIC_COEFFICIENT).getAbbreviation(true), false));
+		flags.add(new Flag(NumericPropertyKeyword.START_TIME, NumericProperty.def(START_TIME).getAbbreviation(true), false));
 		return flags;
 	}
 	

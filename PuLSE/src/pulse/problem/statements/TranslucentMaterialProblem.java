@@ -1,49 +1,67 @@
 package pulse.problem.statements;
 
+import pulse.problem.statements.AbsorptionModel.SpectralRange;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.ui.Messages;
 
-public class DistributedAbsorptionProblem extends LinearisedProblem {
+public class TranslucentMaterialProblem extends LinearisedProblem {
 
-	private AbsorptionModel absorptionModel;
+	private AbsorptionModel laserAbsorption, thermalAbsorption;
 	private final static boolean DEBUG = false;	
 
-	public DistributedAbsorptionProblem() {
+	public TranslucentMaterialProblem() {
 		super();
-		absorptionModel = new BeerLambertAbsorption();
+		laserAbsorption		= new BeerLambertAbsorption(SpectralRange.LASER);
+		thermalAbsorption	= new BeerLambertAbsorption(SpectralRange.THERMAL);
 	}	
 
-	public DistributedAbsorptionProblem(AbsorptionModel m) {
+	public TranslucentMaterialProblem(AbsorptionModel laserAbsorption, AbsorptionModel thermalAbsorption) {
 		super();
-		this.absorptionModel = m;
+		this.laserAbsorption	= laserAbsorption;
+		this.thermalAbsorption	= thermalAbsorption;
 	}	
 	
-	public DistributedAbsorptionProblem(Problem sdd) {
+	public TranslucentMaterialProblem(Problem sdd) {
 		super(sdd);
-		if(sdd instanceof DistributedAbsorptionProblem)
-			this.absorptionModel = ((DistributedAbsorptionProblem)sdd).absorptionModel;
-		else
-			this.absorptionModel = new BeerLambertAbsorption();
+		if(sdd instanceof TranslucentMaterialProblem) {
+			TranslucentMaterialProblem tp = (TranslucentMaterialProblem)sdd; 
+			this.laserAbsorption	= tp.laserAbsorption;
+			this.thermalAbsorption	= tp.thermalAbsorption;			
+		}
+		else {
+			laserAbsorption		= new BeerLambertAbsorption(SpectralRange.LASER);
+			thermalAbsorption	= new BeerLambertAbsorption(SpectralRange.THERMAL);
+		}		
 	}
 	
-	public DistributedAbsorptionProblem(DistributedAbsorptionProblem sdd) {
-		super(sdd);
-		this.absorptionModel = sdd.absorptionModel;
+	public TranslucentMaterialProblem(TranslucentMaterialProblem tp) {
+		super(tp);
+		this.laserAbsorption	= tp.laserAbsorption;
+		this.thermalAbsorption	= tp.thermalAbsorption;
 	}
 	
-	public AbsorptionModel getAbsorptionModel() {
-		return absorptionModel;
+	public AbsorptionModel getLaserAbsorptionModel() {
+		return laserAbsorption;
 	}
 	
-	public void setAbsorptionModel(AbsorptionModel model) {
-		this.absorptionModel = model;
+	public AbsorptionModel getThermalAbsorptionModel() {
+		return thermalAbsorption;
+	}
+	
+	public void setLaserAbsorptionModel(AbsorptionModel model) {
+		this.laserAbsorption = model;
+	}
+	
+	public void setThermalAbsorptionModel(AbsorptionModel model) {
+		this.thermalAbsorption = model;
 	}
 	
 	@Override
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
 		super.set(type, property);
-		absorptionModel.set(type, property);
+		laserAbsorption.set(type, property);
+		thermalAbsorption.set(type, property);
 	}
 	
 	@Override

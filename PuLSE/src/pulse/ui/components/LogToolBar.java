@@ -4,6 +4,7 @@ import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JToolBar;
@@ -11,6 +12,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import pulse.tasks.Log;
+import pulse.ui.Launcher;
 import pulse.ui.Messages;
 
 public class LogToolBar extends JToolBar {
@@ -20,6 +22,8 @@ public class LogToolBar extends JToolBar {
 	 */
 	private static final long serialVersionUID = 7569969348003139935L;
 
+    private static ImageIcon ICON_SAVE	= Launcher.loadIcon("/save.png", 24);
+	
 	public LogToolBar(JFrame parentFrame, LogPane logPane) {
 		super();
 		setLayout(new GridLayout());
@@ -30,7 +34,7 @@ public class LogToolBar extends JToolBar {
 		
 		verboseCheckBox.addActionListener( event -> Log.setVerbose(verboseCheckBox.isSelected()) ) ;
 		
-		ToolBarButton btnLogSave = new ToolBarButton(Messages.getString("LogToolBar.SaveButton")); //$NON-NLS-1$
+		ToolBarButton btnLogSave = new ToolBarButton(Messages.getString("LogToolBar.SaveButton"), ICON_SAVE); //$NON-NLS-1$
 		btnLogSave.setEnabled(false);						
 		add(btnLogSave);
 		

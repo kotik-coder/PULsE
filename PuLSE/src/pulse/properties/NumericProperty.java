@@ -29,6 +29,7 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
 	private Number error;
 	private NumericPropertyKeyword type;
 	private boolean autoAdjustable = true;
+	private boolean discreet;
 	
 	/**
 	 * The list of default properties read that is created by reading the default {@code .xml} file.
@@ -64,13 +65,15 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
 	
 	public NumericProperty(NumericPropertyKeyword type, String descriptor, 
 			String abbreviation, Number value, Number minimum, 
-		   Number maximum, Number dimensionFactor, boolean autoAdjustable) {		
+		   Number maximum, Number dimensionFactor, boolean autoAdjustable,
+		   boolean discreet) {		
 		this.type = type;
 		this.descriptor = descriptor;
 		this.abbreviation = abbreviation;
 		this.value = value;
 		this.dimensionFactor = dimensionFactor; 
 		this.autoAdjustable = autoAdjustable;
+		this.discreet = discreet;
 		setDomain(minimum, maximum);
 	}
 	
@@ -388,6 +391,18 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
 		
 	public static NumericProperty theDefault(NumericPropertyKeyword keyword) {
 		return DEFAULT.stream().filter(p -> p.getType() == keyword).findFirst().get();
+	}
+
+	public boolean isDiscreet() {
+		return discreet;
+	}
+	
+	public static boolean isDiscreet(NumericPropertyKeyword key) {
+		return NumericProperty.theDefault(key).isDiscreet();
+	}
+
+	public void setDiscreet(boolean discreet) {
+		this.discreet = discreet;
 	}
 	
 }

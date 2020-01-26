@@ -26,13 +26,15 @@ public class ADIScheme extends DifferenceScheme {
 				//quick links
 
 				final int N			= grid.N;
+				final double tau	= grid.tau;
 				
 				final double Bi1	= (double) problem.getFrontHeatLoss().getValue();
 				final double Bi2 	= (double) problem.getHeatLossRear().getValue();
 				final double Bi3	= (double) problem.getSideLosses().getValue();
 				
 				final double d		= (double) problem.getSampleDiameter().getValue();
-				final double dAv	= (double) problem.getPyrometerSpot().getValue();
+				final double fovOuter	= (double) problem.getFOVOuter().getValue();
+				final double fovInner	= (double) problem.getFOVInner().getValue();
 				final double l		= (double) problem.getSampleThickness().getValue();
 				
 				final double maxTemp 	= (double) problem.getMaximumTemperature().getValue();
@@ -63,7 +65,6 @@ public class ADIScheme extends DifferenceScheme {
 				int i, j, m, w;
 				double pls;
 
-				double tau	= grid.tau;
 				double hy	= ((Grid2D)getGrid()).hy;
 				double hx	= grid.hx;
 				double HX2	= pow(hx,2); 
@@ -83,22 +84,25 @@ public class ADIScheme extends DifferenceScheme {
 				}
 				
 				double a2 = 1./HY2;
-				double b2 = 2./HY2 + 2./grid.tau;
+				double b2 = 2./HY2 + 2./tau;
 				double c2 = 1./HY2;
 				
 				double F;
 				
-				int lastIndex = (int)(dAv/d/hx);
+				int lastIndex = (int)(fovOuter/d/hx);
 				lastIndex 	  = lastIndex > N ? N : lastIndex;
+				
+				int firstIndex = (int)(fovInner/d/hx);
+				firstIndex	  = firstIndex < 0 ? 0 : firstIndex;
 				
 				//precalc coefs
 
-				double a11 = 1.0/( 1.0 + HX2/(OMEGA_SQ*grid.tau) );
-				double b11 = 0.5*grid.tau/(1.0 + OMEGA_SQ*grid.tau/HX2);
+				double a11 = 1.0/( 1.0 + HX2/(OMEGA_SQ*tau) );
+				double b11 = 0.5*tau/(1.0 + OMEGA_SQ*tau/HX2);
 
-				double _a11 = 1.0/(1.0 + Bi1*hy + HY2/grid.tau);
-				double _b11 = 1.0/((1 + hy*Bi1)*grid.tau + HY2);
-				double _c11 = 0.5*HY2*grid.tau*OMEGA_SQ/HX2;
+				double _a11 = 1.0/(1.0 + Bi1*hy + HY2/tau);
+				double _b11 = 1.0/((1 + hy*Bi1)*tau + HY2);
+				double _c11 = 0.5*HY2*tau*OMEGA_SQ/HX2;
 				double _b12 = _c11*_b11;
 
 				//end of coefs			
@@ -206,12 +210,14 @@ public class ADIScheme extends DifferenceScheme {
 
 					double sum = 0;
 					
-					for (i = 0; i <= lastIndex; i++)
+					for (i = firstIndex; i <= lastIndex; i++)
 						sum += U1[i][N];
 					
-					sum /= (lastIndex + 1);
-					curve.setTemperatureAt(w, sum);
-					curve.setTimeAt(w, w*timeInterval*tau*problem.timeFactor());
+					sum /= (lastIndex - firstIndex + 1);
+					
+					curve.addPoint(
+							(w * timeInterval) * tau * problem.timeFactor(),
+							sum );
 
 					maxVal = max(maxVal, sum);			
 					

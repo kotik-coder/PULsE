@@ -8,7 +8,7 @@ import java.util.List;
 import pulse.HeatingCurve;
 import pulse.problem.statements.AbsorptionModel;
 import pulse.problem.statements.DiathermicMaterialProblem;
-import pulse.problem.statements.DistributedAbsorptionProblem;
+import pulse.problem.statements.TranslucentMaterialProblem;
 import pulse.problem.statements.LinearisedProblem;
 import pulse.problem.statements.NonlinearProblem;
 import pulse.problem.statements.Problem;
@@ -154,9 +154,10 @@ public class ImplicitScheme extends DifferenceScheme {
 
 			}
 
-			curve.setTemperatureAt(w, V[grid.N]); // the temperature of the rear face
 			maxVal = Math.max(maxVal, V[grid.N]);
-			curve.setTimeAt(w, (w * timeInterval) * grid.tau * problem.timeFactor());
+			curve.addPoint(
+					(w * timeInterval) * grid.tau * problem.timeFactor(),
+					V[grid.N] );
 
 			/*
 			 * UNCOMMENT TO DEBUG
@@ -264,9 +265,11 @@ public class ImplicitScheme extends DifferenceScheme {
 
 			}
 
-			curve.setTemperatureAt(w, V[N]); // the temperature of the rear face
 			maxVal = Math.max(maxVal, V[N]);
-			curve.setTimeAt(w, (w * timeInterval) * tau * problem.timeFactor());
+			
+			curve.addPoint(
+					(w * timeInterval) * grid.tau * problem.timeFactor(),
+					V[N] );			
 
 			/*
 			 * UNCOMMENT TO DEBUG
@@ -280,11 +283,12 @@ public class ImplicitScheme extends DifferenceScheme {
 
 	});
 	
-	public Solver<DistributedAbsorptionProblem> distributedSolver = (problem -> {
+	public Solver<TranslucentMaterialProblem> translucentSolver = (problem -> {
 
 		super.prepare(problem);
 		
-		AbsorptionModel absorb = problem.getAbsorptionModel();
+		AbsorptionModel laser = problem.getLaserAbsorptionModel();
+		AbsorptionModel thermal = problem.getThermalAbsorptionModel();		
 
 		final double Bi1 = (double) problem.getFrontHeatLoss().getValue();
 		final double Bi2 = (double) problem.getHeatLossRear().getValue();
@@ -295,6 +299,8 @@ public class ImplicitScheme extends DifferenceScheme {
 		int N		= grid.N;
 		double hx	= grid.hx;
 		double tau	= grid.tau;
+		
+		double signal = 0;
 		
 		double[] U		= new double[N + 1];
 		double[] V		= new double[N + 1];
@@ -343,15 +349,15 @@ public class ImplicitScheme extends DifferenceScheme {
 																 // numeric stability!
 
 				alpha[1] = 1.0 / ( 1.0 + HH/(2.0*tau) + Bi1H );
-				beta[1]	 = ( U[0] + tau*pls*absorb.absorption(0.0) ) / (1.0 + 2.0*tau/HH * (1 + Bi1H));
+				beta[1]	 = ( U[0] + tau*pls*laser.absorption(0.0) ) / (1.0 + 2.0*tau/HH * (1 + Bi1H));
 
 				for (i = 1; i < N; i++) {
 					alpha[i + 1] = c / (b - a * alpha[i]);
-					F			 = -U[i] / tau - pls*absorb.absorption( (i - EPS)*hx );
+					F			 = -U[i] / tau - pls*laser.absorption( (i - EPS)*hx );
 					beta[i + 1]	 = (F - a * beta[i]) / (a * alpha[i] - b);
 				}				
 
-				V[N] = (HH * (U[N] + tau * pls * absorb.absorption((N - EPS)*hx)) + 2. * tau * beta[N])
+				V[N] = (HH * (U[N] + tau * pls * laser.absorption((N - EPS)*hx)) + 2. * tau * beta[N])
 						/ (2 * Bi2H * tau + HH + 2. * tau * (1 - alpha[N]));
 
 				for (j = N - 1; j >= 0; j--)
@@ -361,10 +367,19 @@ public class ImplicitScheme extends DifferenceScheme {
 
 			}
 
-			curve.setTemperatureAt(w, V[N]); // the temperature of the rear face
-			maxVal = Math.max(maxVal, V[N]);
-
-			curve.setTimeAt(w, (w * timeInterval) * tau * problem.timeFactor());
+			signal = 0;
+						
+			for(i = 0; i < N; i++) 
+				signal += V[N - i]*thermal.absorption(i*hx) + 
+						   V[N - 1 - i]*thermal.absorption((i + 1)*hx);
+			
+			signal *= hx/2.0;
+			
+			maxVal = Math.max(maxVal, signal);
+			
+			curve.addPoint(
+					(w * timeInterval) * grid.tau * problem.timeFactor(),
+					signal );
 
 			/*
 			 * UNCOMMENT TO DEBUG
@@ -460,8 +475,9 @@ public class ImplicitScheme extends DifferenceScheme {
 
 			}
 
-			curve.setTemperatureAt(w, V[grid.N]);
-			curve.setTimeAt(w, (w * timeInterval) * grid.tau * ref.timeFactor());
+			curve.addPoint(
+					(w * timeInterval) * grid.tau * ref.timeFactor(),
+					V[grid.N] );
 
 			/*
 			 * UNCOMMENT TO DEBUG
@@ -609,8 +625,8 @@ public class ImplicitScheme extends DifferenceScheme {
 			return implicitLinearisedSolver;
 		else if (problemClass.equals(NonlinearProblem.class))
 			return implicitNonlinearSolver;
-		else if (problemClass.equals(DistributedAbsorptionProblem.class))
-			return distributedSolver;
+		else if (problemClass.equals(TranslucentMaterialProblem.class))
+			return translucentSolver;
 		else if (problemClass.equals(DiathermicMaterialProblem.class))
 			return diathermicSolver;
 		else

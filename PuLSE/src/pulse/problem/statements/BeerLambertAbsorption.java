@@ -2,8 +2,8 @@ package pulse.problem.statements;
 
 public class BeerLambertAbsorption extends AbsorptionModel {
 
-	public BeerLambertAbsorption() {
-		super();
+	public BeerLambertAbsorption(SpectralRange spectrum) {
+		super(spectrum);
 	}
 	
 	@Override
