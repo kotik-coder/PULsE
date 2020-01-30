@@ -1,4 +1,4 @@
-package pulse.ui.components;
+package pulse.ui.components.models;
 
 import javax.swing.AbstractListModel;
 import javax.swing.ComboBoxModel;

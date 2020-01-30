@@ -28,7 +28,7 @@ import pulse.tasks.SearchTask;
 import pulse.tasks.TaskManager;
 import pulse.ui.Messages;
 import pulse.ui.components.PropertyHolderTable;
-import pulse.ui.components.WrapCellRenderer;
+import pulse.ui.components.controllers.WrapCellRenderer;
 import pulse.util.PropertyEvent;
 import pulse.util.PropertyHolderListener;
 import pulse.util.Reflexive;

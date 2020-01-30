@@ -1,5 +1,6 @@
-package pulse.ui.components;
+package pulse.ui.components.controllers;
 
+import java.awt.Color;
 import java.awt.Component;
 import javax.swing.JButton;
 import javax.swing.JFormattedTextField;
@@ -7,6 +8,7 @@ import javax.swing.JTable;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.Property;
+import pulse.ui.components.IconCheckBox;
 import pulse.util.PropertyHolder;
 
 public class AccesibleTableRenderer extends NumericPropertyRenderer {
@@ -30,6 +32,10 @@ public class AccesibleTableRenderer extends NumericPropertyRenderer {
 		if(value instanceof Flag) {
 			IconCheckBox btn = new IconCheckBox( (boolean)((Flag)value).getValue() );
 			btn.setHorizontalAlignment(CENTER);
+			if(isSelected) 
+				btn.setBackground(LIGHT_BLUE);
+			else
+				btn.setBackground(Color.WHITE);
 			return btn;
 		}
 		

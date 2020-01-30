@@ -22,6 +22,7 @@ import pulse.tasks.listeners.TaskRepositoryListener;
 import pulse.tasks.listeners.TaskSelectionEvent;
 import pulse.tasks.listeners.TaskSelectionListener;
 import pulse.ui.Launcher;
+import pulse.ui.charts.Chart;
 import pulse.util.UpwardsNavigable;
 import pulse.util.SaveableDirectory;
 
@@ -69,7 +70,7 @@ public static TaskManager getInstance() {
  * @param t a {@code SearchTask} that will be executed
  */
 
-public static void execute(SearchTask t) {
+public static void execute(SearchTask t) {		
 	removeResult(t); //remove old result	
 	t.setStatus(Status.QUEUED); //notify listeners computation is about to start
 	
@@ -86,7 +87,7 @@ public static void execute(SearchTask t) {
 						@Override
 						public void run() {
 							
-							if(t.getStatus() == Status.DONE) 							
+							if(t.getStatus() == Status.DONE) 				
 								results.put( t, new Result(t, 
 										ResultFormat.getInstance() ) );
 							

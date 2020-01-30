@@ -11,7 +11,7 @@ public class IconCheckBox extends JCheckBox {
 	 * Checkbox icons for the inner button editor class
 	 */
 	
-    private final static int ICON_SIZE = 32;
+    private final static int ICON_SIZE = 16;
     private final static ImageIcon ICON_ENABLED		= Launcher.loadIcon("/checked.png", ICON_SIZE);
     private final static ImageIcon ICON_DISABLED	= Launcher.loadIcon("/unchecked.png", ICON_SIZE);
     

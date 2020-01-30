@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
@@ -17,12 +18,8 @@ import pulse.io.readers.ReaderManager;
 import pulse.tasks.TaskManager;
 import pulse.ui.Messages;
 
-public class LoaderButton extends ToolBarButton {
-	
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 3550812688285747954L;
+public class LoaderButton extends JButton {
+
 	private DataType dataType;
 	private static File dir;
 	
@@ -34,9 +31,7 @@ public class LoaderButton extends ToolBarButton {
 		super(str);
 	}
 	
-	@Override
 	public void init() {
-		super.init();
 		addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				JFileChooser fileChooser = new JFileChooser();

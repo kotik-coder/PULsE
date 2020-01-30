@@ -2,222 +2,197 @@ package pulse.ui.charts;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.Rectangle;
+import java.awt.Font;
 import java.awt.Stroke;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.geom.Area;
-import java.util.Set;
+import java.util.List;
 
-import javax.swing.JMenuItem;
-import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.SwingUtilities;
-
-import javafx.application.Platform;
-import javafx.collections.ObservableList;
-import javafx.embed.swing.JFXPanel;
-import javafx.scene.Node;
-import javafx.scene.Scene;
-import javafx.scene.chart.LineChart;
-import javafx.scene.chart.NumberAxis;
-import javafx.scene.chart.XYChart;
-import javafx.scene.chart.XYChart.Data;
-import javafx.scene.chart.XYChart.Series;
-import javafx.scene.control.Tooltip;
-import javafx.scene.effect.Bloom;
-import javafx.scene.text.Font;
 import pulse.HeatingCurve;
-import pulse.tasks.Identifier;
+import pulse.input.ExperimentalData;
+import pulse.tasks.SearchTask;
 import pulse.ui.Messages;
-import pulse.ui.components.PlotType;
-import pulse.ui.frames.RangeSelectionFrame;
 
-public class Chart extends JFXPanel {
-	
-	private static final long serialVersionUID = 1L;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.annotations.XYTitleAnnotation;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.block.BlockBorder;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.ValueMarker;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.chart.title.LegendTitle;
+import org.jfree.chart.ui.RectangleAnchor;
+import org.jfree.chart.ui.RectangleEdge;
+import org.jfree.data.Range;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
 
-	private XYChart<Number,Number> chart;
+public class Chart {
 
-	private RectangleSelection selection;
-	private RangeSelectionFrame rangeSelectionFrame;
-	private ChoiceMenu choiceMenu;		
-	
-	private Identifier identifier;	
-	
-	private final static int FONT_SIZE = 20;
-	private final static Font TOOL_TIP_FONT = Font.font(Messages.getString("Charting.FonName"), 26);
-	
-	private final static java.awt.Font MENU_FONT = new java.awt.Font(Messages.getString("Charting.FonName"), java.awt.Font.PLAIN, 20);
-	
-	private TimeAxisSpecs timeAxisSpecs;
-	
-	public Chart() {
-		super();
+	private TimeAxisSpecs timeAxisSpecs;    
+    private static JFreeChart chart;
+    private static float opacity = 0.15f;
+    private static boolean residualsShown, zeroApproximationShown;
+    
+    public static ChartPanel createEmptyPanel() {    	
+        chart = ChartFactory.createScatterPlot(
+        		"",
+        		Messages.getString("Charting.TimeAxisLabel"),
+        		(Messages.getString("Charting.TemperatureAxisLabel")),
+                null,
+                PlotOrientation.VERTICAL,
+                true,
+                true,
+                false
+        );
+        
+        var renderer = (XYLineAndShapeRenderer) chart.getXYPlot().getRenderer();
+        renderer.setDefaultShapesFilled(false); 
+        renderer.setUseFillPaint(false);        
+        renderer.setSeriesPaint(0, new Color(1.0f, 0.0f, 0.0f, opacity));
+        
+        var rendererLines = new XYLineAndShapeRenderer();               
+        rendererLines.setSeriesPaint(0, Color.BLUE);
+        rendererLines.setSeriesStroke(0, new BasicStroke(2.0f));
+        rendererLines.setSeriesShapesVisible(0, false);
+        
+        var rendererResiduals = new XYLineAndShapeRenderer();               
+        rendererResiduals.setSeriesPaint(0, Color.GREEN);
+        rendererResiduals.setSeriesShapesVisible(0, false);
+        
+        var rendererClassic = new XYLineAndShapeRenderer();               
+        rendererClassic.setSeriesPaint(0, Color.BLACK);
+        rendererClassic.setSeriesShapesVisible(0, false);
+        
+        XYPlot plot = chart.getXYPlot();
+        
+        plot.setRenderer(0, renderer);
+        plot.setRenderer(1, rendererLines);
+        plot.setRenderer(2, rendererResiduals);
+        plot.setRenderer(3, rendererClassic);
+        plot.setBackgroundPaint(Color.white);
 
-    	choiceMenu			= new ChoiceMenu(this);
-		rangeSelectionFrame = new RangeSelectionFrame(this);
-		selection			= new RectangleSelection();
-		
-        addMouseHandler();
-		
-	}
-	
-	private void addMouseHandler() {
-		MouseAdapter mouseHandler = new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-	            choiceMenu.setVisible(false);	            
-            	
-            	if (SwingUtilities.isRightMouseButton(e)) {
-            		zoomOut();
-            		return;
-            	}
-            		            	                      	
-            	selection.setClickPoint(e.getPoint());
-            	undoHighlight();
-            }
+        plot.setRangeGridlinesVisible(true);
+        plot.setRangeGridlinePaint(Color.GRAY);
 
-            @Override
-            public void mouseReleased(MouseEvent e) {
-            	
-	            if (SwingUtilities.isRightMouseButton(e) || selection == null) {
-	            	undoHighlight();
-	            	rangeSelectionFrame.setVisible(false);
-	        		return;
-	            }
-	            
-	            Rectangle bounds = selection.getSelectionBounds();
-	            
-	            if(bounds == null)
-	            	return;
-	                	
-            	double minXChart = convertToChartX(bounds.getMinX() );
-            	double maxXChart = convertToChartX(bounds.getMaxX() );        
-            	double minYChart = converToChartY(bounds.getMinY() );
-            	double maxYChart = converToChartY(bounds.getMaxY() );
-            	
-            	selection.setLocalCoordinatesSelection(new pulse.ui.charts.Rectangle(minXChart, maxXChart, maxYChart, minYChart));
-            	
-            	choiceMenu.setLocation(e.getLocationOnScreen());
-            	choiceMenu.show(e.getComponent(), (int)bounds.getCenterX(), (int)bounds.getCenterY() );
-                           
-                repaint();
-            }
+        plot.setDomainGridlinesVisible(true);
+        plot.setDomainGridlinePaint(Color.GRAY);
 
-            @Override
-            public void mouseDragged(MouseEvent e) {
-	            if (SwingUtilities.isRightMouseButton(e))
-	            	return;
-
-                Point dragPoint = e.getPoint();                
-                
-                int x = Math.min(selection.getClickPoint().x, dragPoint.x);
-                int y = Math.min(selection.getClickPoint().y, dragPoint.y);
-                int width = Math.max(selection.getClickPoint().x - dragPoint.x, dragPoint.x - selection.getClickPoint().x);
-                int height = Math.max(selection.getClickPoint().y - dragPoint.y, dragPoint.y - selection.getClickPoint().y);
-                
-                selection.setSelectionBounds(new Rectangle(x, y, width, height));
-   
-                repaint();
-            }
-        };
-
-        addMouseListener(mouseHandler);
-        addMouseMotionListener(mouseHandler);
-	}
-	
-	public static void setup() {
-		Platform.setImplicitExit(false);
-	}
-	
-	public void plot(HeatingCurve curve, PlotType type, boolean extendedCurve) {
-		if(curve.arraySize() < 1)
-			return;
-		
-		Platform.runLater(() -> {
-			
-				if(type == PlotType.EXPERIMENTAL_DATA) {
-					int realCount = curve.arraySize();
-					if(curve.timeAt(realCount - 1) < 0.1) 
-				    	timeAxisSpecs = TimeAxisSpecs.MILLIS;
-				    else
-				    	timeAxisSpecs = TimeAxisSpecs.SECONDS;
-				    
-				    chart.getXAxis().setLabel(timeAxisSpecs.getTitle());
-				}
-			
-				chart.getData().add(series(curve, extendedCurve));
-												
-				Set<Node> nodes = chart.lookupAll(".series" + type.getChartIndex()); //$NON-NLS-1$               
-				
-				for (Node n : nodes) 
-					n.setStyle(type.getStyle());	
-					
-               if(type == PlotType.EXPERIMENTAL_DATA)
-            	   addTooltips();
-               
-               }
-				
-		);      	
-	
-	}
-	
-	public void clear() {
-		
-		Platform.runLater(() -> {
-				ObservableList<Series<Number,Number>> data = chart.getData();
-			
-				if(data.isEmpty())
-					return;
-
-				data.clear();
-			    				
-            }
-				
-		); 
-		
-	}
-	
-	public void makeChart() {
-		Platform.runLater(() -> {
-		 NumberAxis xAxis = new NumberAxis();
-	     NumberAxis yAxis = new NumberAxis();
-	     
-	     xAxis.setLabel(Messages.getString("Charting.TimeAxisLabel")); //$NON-NLS-1$
-	     yAxis.setLabel(Messages.getString("Charting.TemperatureAxisLabel")); //$NON-NLS-1$
-	     
-	     //creating the chart
-	     
-	     chart = new LineChart<Number,Number>(xAxis,yAxis);
-	     chart.setAnimated(false);
-	     
-		 chart.setStyle("-fx-font-size: " + FONT_SIZE + "px;");
-		 xAxis.tickLabelFontProperty().set(Font.font(FONT_SIZE));
-		 yAxis.tickLabelFontProperty().set(Font.font(FONT_SIZE));	
-		 
-		 chart.applyCss();
-		 
-		 setScene(new Scene(chart));
-		 
-		xAxis.setAutoRanging(true);
-		yAxis.setAutoRanging(true);
-		 
-		});
-	}
-	
-	public Series<Number,Number> series(HeatingCurve curve, boolean extendedCurve) {
-		Series<Number,Number> series = new Series<Number, Number>();		
-		
-		series.setName(curve.toString());
-		
-	    ObservableList<Data<Number,Number>> data = series.getData();	    
+        LegendTitle lt = new LegendTitle(plot);
+        lt.setItemFont(new Font("Dialog", Font.PLAIN, 14));
+        lt.setBackgroundPaint(new Color(200, 200, 255, 100));
+        lt.setFrame(new BlockBorder(Color.black));
+        lt.setPosition(RectangleEdge.RIGHT);
+        XYTitleAnnotation ta = new XYTitleAnnotation(0.98, 0.2, lt,RectangleAnchor.RIGHT);
+        ta.setMaxWidth(0.58);
+        plot.addAnnotation(ta);
+        
+        chart.removeLegend();
+        
+        return new ChartPanel(chart);  
+    }
+    
+    public static void plot(SearchTask task, boolean extendedCurve) {
+    	if(task == null)
+    		return;
+    	
+    	XYPlot plot = chart.getXYPlot();
+    	
+    	plot.setDataset(0, null);
+    	plot.setDataset(1, null); 
+    	plot.setDataset(2, null);
+    	plot.setDataset(3, null);
+    	
+        ExperimentalData rawData = task.getExperimentalCurve();
+        
+        if(rawData == null)
+        	return;
+        
+        var rawDataset = new XYSeriesCollection();
+        
+        rawDataset.addSeries(series(rawData,"Raw data (" + task.getIdentifier() + ")",extendedCurve));
+	    plot.setDataset(0, rawDataset);
 	    
+	    plot.clearDomainMarkers();
+	    
+	    ValueMarker lowerMarker = new ValueMarker(rawData.timeAt(rawData.getFittingStartIndex()));
+	    
+	    Stroke dashed = new BasicStroke(1.5f, BasicStroke.CAP_BUTT,
+	            BasicStroke.JOIN_MITER, 5.0f, new float[] {10f}, 0.0f);	    
+	    
+	    lowerMarker.setPaint(Color.black);	    
+	    lowerMarker.setStroke(dashed);
+	    
+	    ValueMarker upperMarker = new ValueMarker(rawData.timeAt(rawData.getFittingEndIndex()));
+	    upperMarker.setPaint(Color.black);
+	    upperMarker.setStroke(dashed);
+	    
+	    //marker.setLabel("here"); // see JavaDoc for labels, colors, strokes
+	    plot.addDomainMarker(upperMarker);
+	    plot.addDomainMarker(lowerMarker);
+        
+        if(task.getProblem() != null) {
+        	HeatingCurve solution = task.getProblem().getHeatingCurve();
+            if(solution != null)        
+            	if(task.getScheme() != null) {            		
+            		var solutionDataset = new XYSeriesCollection();
+            		solutionDataset.addSeries(series(task.getProblem().getHeatingCurve(),
+            				"Solution with " + task.getScheme().getSimpleName(),
+            				extendedCurve));            		            		            		
+            		plot.setDataset(1, solutionDataset);
+            		
+            		if(residualsShown)
+            		if(solution.getResiduals() != null) {            			
+            		
+	            	    final NumberAxis axis2 = new NumberAxis("Residuals (a.u.)");
+	            	    plot.setRangeAxis(1, axis2);
+	            		
+	            		var residualsDataset = new XYSeriesCollection();
+	            		residualsDataset.addSeries(residuals(solution));
+	            	    plot.setDataset(2, residualsDataset);
+	            	    plot.mapDatasetToRangeAxis(2, 1);
+	            	    
+	            	    double shift = (double)(task.getProblem().getMaximumTemperature().getValue());	            	    
+	            	    axis2.setRange(Range.expandToInclude(axis2.getRange(),shift));
+	            	    
+            		} 
+            		
+            	}
+        
+        plot.getRenderer().setSeriesPaint(0, new Color(1.0f, 0.0f, 0.0f, opacity));
+        
+        }
+        
+        if(zeroApproximationShown) {
+        	var p = task.getProblem();
+        	var s = task.getScheme();
+        	
+        	if(p != null)
+        		if(s != null)
+		        	plotSingle(HeatingCurve.classicSolution(p, 
+						(double)(s.getTimeLimit().getValue())));
+        }
+        
+    }
+    
+    public static void plotSingle(HeatingCurve curve) {
+    	if(curve == null)
+    		return;
+    	
+    	XYPlot plot = chart.getXYPlot();
+    	
+        var classicDataset = new XYSeriesCollection();
+        
+        classicDataset.addSeries(series(curve,curve.getName(), false));
+        
+	    plot.setDataset(3, classicDataset);
+        plot.getRenderer(3).setSeriesPaint(0, Color.black);   
+    }
+
+	public static XYSeries series(HeatingCurve curve, String title, boolean extendedCurve) {		
+        var series = new XYSeries(title);
+		
 	    int realCount = curve.arraySize();
 	    double startTime = (double)curve.getStartTime().getValue();
 	    double time = 0;	   
@@ -227,236 +202,79 @@ public class Chart extends JFXPanel {
 	    	if(time < startTime) 
 	    		if(!extendedCurve)
 	    			continue;
-	    	data.add(new Data<Number, Number>(time*timeAxisSpecs.getFactor(), curve.temperatureAt(i)));	    
+	    	series.add(time*1.0//timeAxisSpecs.getFactor()
+	    			, curve.temperatureAt(i));	 
 	    }
-	    	
-	    return series;			
+	    	    	  
+	    return series;
 	}
 	
-	private void addTooltips() {		
-		chart.getData().stream().forEach(series -> 
-			series.getData().stream().forEach(data -> addTooltip(data)));
+	public static XYSeries residuals(HeatingCurve solution) {		
+        var series = new XYSeries("Residuals");
+		
+	    List<Double[]> residuals = solution.getResiduals();
+	    int size = residuals.size();
+	    
+	    for(int i = 0; i < size; i++) 
+	    	series.add(residuals.get(i)[0], residuals.get(i)[1]); 	    
+	    	    	  
+	    return series;
 	}
 
-	private static void addTooltip(Data<Number, Number> data) {
-		Tooltip t = new Tooltip(
-	            Messages.getString("Charting.XToolTip") + String.format(Messages.getString("Charting.XFormat"), data.getXValue()) + System.getProperty("line.separator") +  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-	            Messages.getString("Charting.YToolTip") + String.format(Messages.getString("Charting.YFormat"), data.getYValue()) ); //$NON-NLS-1$ //$NON-NLS-2$
-		t.setFont(TOOL_TIP_FONT);
-		Tooltip.install(data.getNode(), t);				  
-	}
-	
-	public void undoHighlight() {					
-		ObservableList<Series<Number,Number>> data = chart.getData();
-		
-		if(data.isEmpty()) return;
-		
-		Series<Number,Number> expSeries = data.get(PlotType.EXPERIMENTAL_DATA.getChartIndex());
-		
-		for(Data<Number,Number> d : expSeries.getData()) 	
-			d.getNode().setEffect(null);
-		
-	}
-	
-	public void highlightPoints(pulse.ui.charts.Rectangle rectangle) {		
-		Series<Number,Number> expSeries = chart.getData().get(PlotType.EXPERIMENTAL_DATA.getChartIndex());
-		
-		Bloom effect = new Bloom(0.1);
-		
-		double x = 0;
-		
-		double xmin = rectangle.getXLower();
-		double xmax = rectangle.getXUpper();
-		
-		for(Data<Number,Number> d : expSeries.getData()) {
-			
-			x = (double) d.getXValue();
-			
-			if(x < xmin)
-				continue;
-			
-			if(x > xmax)
-				continue;
-			
-			d.getNode().setEffect(effect);
-			
-		}
-		
-	}
-	
-	public void zoomTo(pulse.ui.charts.Rectangle rectangle) {
-		
-		NumberAxis xAxis = (NumberAxis) chart.getXAxis();
-		NumberAxis yAxis = (NumberAxis) chart.getYAxis();
-		
-		xAxis.setAutoRanging(false);
-		yAxis.setAutoRanging(false);
-		
-		xAxis.setLowerBound(rectangle.getXLower());
-		xAxis.setUpperBound(rectangle.getXUpper());
-		yAxis.setLowerBound(rectangle.getYLower());
-		yAxis.setUpperBound(rectangle.getYUpper());
-		
-	}
-	
-	public void zoomOut() {
-		
-		NumberAxis xAxis = (NumberAxis) chart.getXAxis();
-		NumberAxis yAxis = (NumberAxis) chart.getYAxis();
-		
-		xAxis.setAutoRanging(true);
-		yAxis.setAutoRanging(true);
-		
-	}	
-	
-	public double convertToChartX(double x) {
-    	Node chartPlotBackground = chart.lookup(".chart-plot-background"); //$NON-NLS-1$
-    	double chartZeroX = chartPlotBackground.getLayoutX();
-    	return ((double) chart.getXAxis().getValueForDisplay(x-chartZeroX));
-	}
-	
-	public double converToChartY(double y) {
-    	Node chartPlotBackground = chart.lookup(".chart-plot-background"); //$NON-NLS-1$
-    	double chartZeroY = chartPlotBackground.getLayoutY();
-    	return ((double) chart.getYAxis().getValueForDisplay(y-chartZeroY));
-	}
-	
-	protected void setHeatingChart(LineChart<Number,Number> heatingChart) {
-		this.chart = heatingChart;
-	}
-	
-	public XYChart<Number,Number> getHeatingChart() {
-		return chart;
-	}
-	
-    @Override
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        selection.paintComponent(g);
-    }
-    
-    public Identifier getIdentifier() {
-		return identifier;
-	}
-
-	public void setIdentifier(Identifier identifier) {
-		this.identifier = identifier;
-	}
-
-	public class RectangleSelection extends JPanel {
-
-        /**
-		 * 
-		 */
-		private static final long serialVersionUID = 6195826661405922987L;
-		private Rectangle selectionBounds;
-		private pulse.ui.charts.Rectangle localCoordinatesSelection;		
-        private Point clickPoint;
-        private Stroke dashed;
-
-        public RectangleSelection() {
-        	super();
-            setOpaque(false);
-            dashed = new BasicStroke(3, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[]{9}, 0);
-        }
-
-        @Override
-        protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
-            Graphics2D g2d = (Graphics2D) g.create();
-            g2d.setColor(new Color(255, 255, 255, 128));
-
-            Area fill = new Area(new Rectangle(new Point(0, 0), getSize()));
-            if (selectionBounds != null) {
-                fill.subtract(new Area(selectionBounds));
-            }
-            g2d.fill(fill);
-            if (selectionBounds != null) {
-                g2d.setColor(Color.blue);
-                g2d.setStroke(dashed);
-                g2d.draw(selectionBounds);
-            }
-            g2d.dispose();
-        }
-
-    	public Point getClickPoint() {
-    		return clickPoint;
-    	}
-
-    	public void setClickPoint(Point clickPoint) {
-    		this.clickPoint = clickPoint;
-    	}
-
-    	public Rectangle getSelectionBounds() {
-    		return selectionBounds;
-    	}
-
-    	public void setSelectionBounds(Rectangle selectionBounds) {
-    		this.selectionBounds = selectionBounds;
-    	}
-
-		public pulse.ui.charts.Rectangle getLocalCoordinatesSelection() {
-			return localCoordinatesSelection;
-		}
-
-		public void setLocalCoordinatesSelection(pulse.ui.charts.Rectangle fxRectangleBounds) {
-			this.localCoordinatesSelection = fxRectangleBounds;
-		}
-        
-    }
-    
-    class ChoiceMenu extends JPopupMenu {
-    	
-    	/**
-		 * 
-		 */
-		private static final long serialVersionUID = -3471882740905439544L;
-
-    	public ChoiceMenu(Chart panel) {
-    		super();
-    		JMenuItem zoomItem = new JMenuItem("Zoom to Selection");
-    		zoomItem.setFont(MENU_FONT);
-    		JMenuItem fittingLimits = new JMenuItem("Change Fitting Range");
-    		fittingLimits.setFont(MENU_FONT);
-    		this.add(zoomItem);
-    		this.add(fittingLimits);
-    		
-    		setEnabled(true);
-    	
-        	zoomItem.addActionListener(new ActionListener() {
-
-    				@Override
-    				public void actionPerformed(ActionEvent e) {
-    					selection.setSelectionBounds(null);
-    					zoomTo(selection.getLocalCoordinatesSelection());
-    					setVisible(false); 
-    				}
-    				
-    			}
-        		
-        	);
-        	
-        	fittingLimits.addActionListener(new ActionListener() {
-
-    			@Override
-    			public void actionPerformed(ActionEvent e) {
-    				pulse.ui.charts.Rectangle local = selection.getLocalCoordinatesSelection();
-    				highlightPoints(local);
-                	rangeSelectionFrame.setRangeFields(local.getXLower(), local.getXUpper());
-                	rangeSelectionFrame.setLocationRelativeTo(panel);
-                	rangeSelectionFrame.setVisible(true);
-                	selection.setSelectionBounds(null);
-                	setVisible(false);
-    			}
-        		
-        	});
-    		
-    	}
-    	
-    }
-    
     public TimeAxisSpecs getTimeAxisSpecs( ) {
     	return timeAxisSpecs;
     }
+    
+    /*
+     * 
+     */
+    
+    public enum PlotType {
+
+    	EXPERIMENTAL_DATA(0, Messages.getString("Charting.0")), 
+    	SOLUTION(1, Messages.getString("Charting.1")), 
+    	CLASSIC_SOLUTION(2, Messages.getString("Charting.2"));
+    	
+    	private int index;
+    	private String style;
+    		
+    	private PlotType(int i, String style) {
+    		this.index = i;
+    		this.style = style;
+    	}
+
+    	public int getChartIndex() {
+    		return index;
+    	}
+
+    	public String getStyle() {
+    		return style;
+    	}
+    	
+    }
+    
+    public static void setOpacity(float opacity) {
+    	Chart.opacity = opacity;
+    }
+
+    public static double getOpacity() {
+    	return opacity;
+    }
+
+	public static boolean isResidualsShown() {
+		return residualsShown;
+	}
+
+	public static void setResidualsShown(boolean residualsShown) {
+		Chart.residualsShown = residualsShown;
+	}
+
+	public static boolean isZeroApproximationShown() {
+		return zeroApproximationShown;
+	}
+
+	public static void setZeroApproximationShown(boolean zeroApproximationShown) {
+		Chart.zeroApproximationShown = zeroApproximationShown;
+	}
 	
 }

@@ -1,4 +1,4 @@
-package pulse.ui.components;
+package pulse.ui.components.controllers;
 
 import java.awt.Component;
 import java.awt.Font;
@@ -12,14 +12,8 @@ import pulse.tasks.Status;
 
 public class TaskTableRenderer extends NumericPropertyRenderer {		
 	
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 3697779016101849934L;
-
 	public TaskTableRenderer() {
 		super();
-		setVerticalAlignment( SwingConstants.TOP );
 	}
 	
 	@Override
@@ -29,12 +23,8 @@ public class TaskTableRenderer extends NumericPropertyRenderer {
 		if(value instanceof NumericProperty) 
 			return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 		
-		else if(value instanceof Identifier) {
-			
-			JFormattedTextField jtf = initTextField("" + ((Identifier) value).getValue(), table.isRowSelected(row));				
-			return jtf;
-	
-		}
+		else if(value instanceof Identifier) 
+			return initTextField("" + ((Identifier) value).getValue(), table.isRowSelected(row));				
 		
 		else if(value instanceof Status) {
 		

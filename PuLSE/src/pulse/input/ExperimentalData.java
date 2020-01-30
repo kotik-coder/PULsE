@@ -99,6 +99,26 @@ public class ExperimentalData extends HeatingCurve {
 		
 	}
 	
+	public void setLowerBound(double a) {
+		
+		for(fittingStartIndex = 0; fittingStartIndex < count - 1; fittingStartIndex++) {
+			if(timeAt(fittingStartIndex) >= a) 
+				break;
+		}
+				
+	}
+	
+	public void setUpperBound(double b) {
+		
+		for(fittingEndIndex = count-2; fittingEndIndex > fittingStartIndex; fittingEndIndex--) {
+			if(timeAt(fittingEndIndex) < b) 
+				break;
+		}
+		
+		fittingEndIndex++;
+				
+	}
+	
 	/**
 	 * Retrieves the {@code time} corresponding to the {@code fittingStartIndex}.
 	 * @return start time, which is the lower time limit

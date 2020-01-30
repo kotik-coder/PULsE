@@ -34,40 +34,38 @@ import pulse.tasks.listeners.TaskSelectionEvent;
 import pulse.tasks.listeners.TaskSelectionListener;
 import pulse.tasks.listeners.TaskStateEvent;
 import pulse.ui.Messages;
+import pulse.ui.components.controllers.TaskTableRenderer;
 
 public class TaskTable extends JTable {
 	
-		/**
-	 * 
-	 */
-	private static final long serialVersionUID = -6220530138940491704L;
-		private final static int ROW_HEIGHT = 35;
-		private final static int HEADER_HEIGHT = 45;
-		private TaskTableRenderer taskTableRenderer;
-		private	TaskTablePopupMenu menu;
+	private final static int ROW_HEIGHT		= 35;
+	private final static int HEADER_HEIGHT	= 30;
+	
+	private TaskTableRenderer taskTableRenderer;
+	private	TaskPopupMenu menu;
 		
-		private final static Font f = new Font(Messages.getString("TaskTable.FontName"), Font.PLAIN, 14); //$NON-NLS-1$
+	private Comparator<NumericProperty> numericComparator = (i1, i2) -> i1.compareTo(i2);
+	private Comparator<Status> statusComparator = (s1, s2) -> s1.compareTo(s2);
 		
-		private Comparator<NumericProperty> numericComparator = (i1, i2) -> i1.compareTo(i2);
-		private Comparator<Status> statusComparator = (s1, s2) -> s1.compareTo(s2);
-		
+	private final static int FONT_SIZE = 14;
+	
 		public TaskTable() {
 			super();
 			taskTableRenderer = new TaskTableRenderer();			
 			this.setRowSelectionAllowed(true);
 			setRowHeight(ROW_HEIGHT);
+			
 			setFillsViewportHeight(true);
 			setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
 			setShowHorizontalLines(false);
+			
 			setModel(new TaskTableModel());
 			
-			getTableHeader().setFont(f);
+			Font font = getTableHeader().getFont().deriveFont(FONT_SIZE);
+			getTableHeader().setFont(font);
 			getTableHeader().setPreferredSize(new Dimension( 50 , HEADER_HEIGHT ));
 			
-			menu = new TaskTablePopupMenu();
-			
 			setAutoCreateRowSorter(true);
-		    
 			DefaultRowSorter sorter		= ((DefaultRowSorter) getRowSorter()); 
 		    ArrayList<RowSorter.SortKey> list	= new ArrayList();
 		    
@@ -82,7 +80,8 @@ public class TaskTable extends JTable {
 		    sorter.setSortKeys(list);
 		    
 		    initListeners();
-			
+		    menu = new TaskPopupMenu();
+		    
 		}
 		
 		public void initListeners() {

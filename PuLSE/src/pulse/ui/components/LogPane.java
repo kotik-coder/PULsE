@@ -1,9 +1,9 @@
 package pulse.ui.components;
 
-import java.awt.Dimension;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -25,18 +25,16 @@ import pulse.util.Saveable;
 
 public class LogPane extends JEditorPane implements Saveable {
 	
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -8464602356332804481L;
+;
 	private ExecutorService updateExecutor = Executors.newSingleThreadExecutor();
 	
 	private final static boolean DEBUG = true;
 
+	private PrintStream outStream, errStream;
+	
 	public LogPane() {
 		super();	
-		this.setPreferredSize(new Dimension(500, 500));
-		setContentType("text/html"); //$NON-NLS-1$
+		setContentType("text/html");
 		setEditable(false);
 		DefaultCaret c = (DefaultCaret)getCaret();
 		c.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);	  
@@ -59,8 +57,8 @@ public class LogPane extends JEditorPane implements Saveable {
 		};
 
 		if(!DEBUG) {
-			System.setOut(new java.io.PrintStream(out, true));
-			System.setErr(new java.io.PrintStream(out, true));		
+			System.setOut(outStream = new PrintStream(out, true));
+			System.setErr(errStream = new PrintStream(out, true));		
 		}
 		
 	}		
@@ -168,6 +166,12 @@ public class LogPane extends JEditorPane implements Saveable {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	@Override
+	public void finalize() {
+		outStream.close();
+		errStream.close();
 	}
 
 	public ExecutorService getUpdateExecutor() {

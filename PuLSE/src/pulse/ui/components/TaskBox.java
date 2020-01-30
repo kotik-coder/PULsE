@@ -14,13 +14,11 @@ import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.TaskSelectionEvent;
 import pulse.tasks.listeners.TaskSelectionListener;
 import pulse.ui.Messages;
+import pulse.ui.components.models.TaskBoxModel;
 
 public class TaskBox extends JComboBox<SearchTask> {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -5475468801415250259L;
+	private final static int FONT_SIZE = 12;
 
 	public TaskBox() {
 		super();
@@ -70,11 +68,9 @@ public class TaskBox extends JComboBox<SearchTask> {
 	
 	public void init() {
 		setMaximumSize(new Dimension(32767, 24));
-		setFont(new Font(Messages.getString("TaskBox.FontName"), Font.PLAIN, 14)); //$NON-NLS-1$
-		setMinimumSize(new Dimension(250, 20));
-		
+		setFont(getFont().deriveFont(FONT_SIZE));
+		setMinimumSize(new Dimension(250, 20));		
 		setToolTipText(Messages.getString("TaskBox.DefaultText")); //$NON-NLS-1$
-		
 		setBackground(Color.WHITE);
 	}
 	

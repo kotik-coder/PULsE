@@ -43,12 +43,12 @@ import pulse.tasks.Status.Details;
 import pulse.tasks.listeners.TaskSelectionEvent;
 import pulse.tasks.listeners.TaskSelectionListener;
 import pulse.ui.Messages;
+import pulse.ui.charts.Chart;
 import pulse.ui.components.LoaderButton;
 import pulse.ui.components.PropertyHolderTable;
-import pulse.ui.components.TaskSelectionToolBar;
-import pulse.ui.components.ToolBarButton;
-import pulse.ui.components.WrapCellRenderer;
+import pulse.ui.components.SettingsToolBar;
 import pulse.ui.components.LoaderButton.DataType;
+import pulse.ui.components.controllers.WrapCellRenderer;
 import pulse.util.Reflexive;
 
 public class ProblemStatementFrame extends JFrame {
@@ -61,7 +61,7 @@ public class ProblemStatementFrame extends JFrame {
 	private PropertyHolderTable problemTable, schemeTable;
 	private	SchemeSelectionList schemeSelectionList;
 	private ProblemList problemList;
-	private TaskSelectionToolBar taskToolBar;
+	private SettingsToolBar taskToolBar;
 	
 	private final static int WIDTH	= 1000;
 	private final static int HEIGHT = 600;
@@ -185,7 +185,7 @@ public class ProblemStatementFrame extends JFrame {
 		toolBar.setLayout(new GridLayout());
 		contentPane.add(toolBar, BorderLayout.SOUTH);
 
-		JButton btnSimulate = new ToolBarButton(Messages.getString("ProblemStatementFrame.SimulateButton")); //$NON-NLS-1$
+		JButton btnSimulate = new JButton(Messages.getString("ProblemStatementFrame.SimulateButton")); //$NON-NLS-1$
 		
 		//simulate btn listener
 		
@@ -210,7 +210,7 @@ public class ProblemStatementFrame extends JFrame {
 
 				t.getScheme().solver(t.getProblem()).solve(t.getProblem());				
 		
-				TaskControlFrame.plot(t, true);				
+				Chart.plot(t, true);				
 
 			}
 		});
@@ -225,7 +225,7 @@ public class ProblemStatementFrame extends JFrame {
 		btnLoadDensity.setDataType(DataType.DENSITY);
 		toolBar.add(btnLoadDensity);
 		
-		taskToolBar = new TaskSelectionToolBar(problemTable, schemeTable);
+		taskToolBar = new SettingsToolBar(problemTable, schemeTable);
 		contentPane.add(taskToolBar, BorderLayout.NORTH);
 		
 		/*

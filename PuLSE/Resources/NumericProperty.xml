@@ -188,8 +188,8 @@
     	minimum="-Infinity" value="-Infinity" primitive-type="double"
     	discreet="false" />
     <NumericProperty
-    	abbreviation="&amp;#8721&lt;sub&gt;i&lt;/sub&gt;(&lt;i&gt;T&lt;/i&gt;&lt;sub&gt;i&lt;/sub&gt;&lt;sup&gt;exp&lt;/sup&gt; - &lt;i&gt;T&lt;/i&gt;&lt;sub&gt;i&lt;/sub&gt;)&lt;sup&gt;2&lt;/sup&gt;"
-    	auto-adjustable="true" descriptor="Sum of squares"
+    	abbreviation="&amp;chi;&lt;sup&gt;2&lt;/sup&gt;"
+    	auto-adjustable="true" descriptor="Total sum of squares"
     	dimensionfactor="1.0" keyword="SUM_OF_SQUARES"
     	maximum="1.7976931348623157E308" minimum="4.9E-324"
     	value="Infinity" primitive-type="double" discreet="false" />

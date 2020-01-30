@@ -1,6 +1,5 @@
 package pulse.ui;
 
-import java.awt.EventQueue;
 import java.awt.Image;
 import java.lang.management.ManagementFactory;
 
@@ -14,7 +13,6 @@ import javax.management.ReflectionException;
 import javax.swing.ImageIcon;
 
 import pulse.ui.charts.Chart;
-import pulse.ui.components.IconCheckBox;
 import pulse.ui.frames.ProblemStatementFrame;
 import pulse.ui.frames.SearchOptionsFrame;
 import pulse.ui.frames.TaskControlFrame;
@@ -29,7 +27,6 @@ import pulse.ui.frames.TaskControlFrame;
 
 public class Launcher {
 
-	private static TaskControlFrame controlFrame;
 	private static ProblemStatementFrame directFrame;
 	private static SearchOptionsFrame searchOptionsFrame; 
 	
@@ -40,17 +37,30 @@ public class Launcher {
 	 */
 	
 	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					Chart.setup();
-					TaskControlFrame.getInstance().setLocationRelativeTo(null);
-					TaskControlFrame.getInstance().setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
+        /* Set the Nimbus look and feel */
+        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
+        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
+         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+         */
+        try {
+            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
+            java.util.logging.Logger.getLogger(Launcher.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
+        //</editor-fold>
+
+        /* Create and display the form */
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            public void run() {
+				TaskControlFrame.getInstance().setVisible(true);
+		        TaskControlFrame.getInstance().setLocationRelativeTo(null);
+            }
+        });
 	}
 	
 	/**
@@ -61,7 +71,7 @@ public class Launcher {
 		if(directFrame == null) {
 			directFrame = 
 				new ProblemStatementFrame();
-			directFrame.setLocationRelativeTo(controlFrame);
+			directFrame.setLocationRelativeTo(null);
 		}
 		else
 			directFrame.update();
@@ -76,7 +86,7 @@ public class Launcher {
 		if(searchOptionsFrame == null) {
 			searchOptionsFrame = 
 				new SearchOptionsFrame(  );
-			searchOptionsFrame.setLocationRelativeTo(controlFrame);
+			searchOptionsFrame.setLocationRelativeTo(null);
 		} else
 			searchOptionsFrame.update();
 		searchOptionsFrame.setVisible(true);

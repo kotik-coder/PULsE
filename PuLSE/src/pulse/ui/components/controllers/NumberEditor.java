@@ -1,4 +1,4 @@
-package pulse.ui.components;
+package pulse.ui.components.controllers;
 
 import java.awt.Component;
 import java.awt.Toolkit;
@@ -99,18 +99,18 @@ public class NumberEditor extends DefaultCellEditor {
 		        //JFormattedTextField's focusLostBehavior property.)
 		        ftf.getInputMap().put(KeyStroke.getKeyStroke(
 		                                        KeyEvent.VK_ENTER, 0),
-		                                        "check"); //$NON-NLS-1$
-		        ftf.getActionMap().put("check", new AbstractAction() { //$NON-NLS-1$
+		                                        "check"); 
+		        ftf.getActionMap().put("check", new AbstractAction() {
 		            /**
 					 * 
 					 */
 					private static final long serialVersionUID = 1L;
 
 					public void actionPerformed(ActionEvent e) {
-		        if (!ftf.isEditValid()) { //The text is invalid.
+						if (!ftf.isEditValid()) { //The text is invalid.
 		                    if (userSaysRevert()) { //reverted
-		                ftf.postActionEvent(); //inform the editor
-		            }
+		                    	ftf.postActionEvent(); //inform the editor
+		                    }
 		                } else try {              //The text is valid,
 		                    ftf.commitEdit();     //so use it.
 		                    ftf.postActionEvent(); //stop editing
@@ -119,7 +119,8 @@ public class NumberEditor extends DefaultCellEditor {
 		        });
 		    }		   
 		 
-		    //Override to invoke setValue on the formatted text field.
+		   //Override to invoke setValue on the formatted text field.
+		   @Override
 		   public Component getTableCellEditorComponent(JTable table,				   
 		            Object value, boolean isSelected,
 		            int row, int column) {
@@ -139,6 +140,7 @@ public class NumberEditor extends DefaultCellEditor {
 		        return ftf;
 		    }
 		 
+		    @Override
 		    public Object getCellEditorValue() {
 		        JFormattedTextField ftf = (JFormattedTextField)getComponent();
 		        Object o = ftf.getValue();
@@ -184,6 +186,7 @@ public class NumberEditor extends DefaultCellEditor {
 		    //it isn't.  If it's OK for the editor to go
 		    //away, we need to invoke the superclass's version 
 		    //of this method so that everything gets cleaned up.
+		    @Override
 		    public boolean stopCellEditing() {
 		        JFormattedTextField ftf = (JFormattedTextField)getComponent();
 		        if (ftf.isEditValid()) {
@@ -209,13 +212,13 @@ public class NumberEditor extends DefaultCellEditor {
 		    protected boolean userSaysRevert() {
 		        Toolkit.getDefaultToolkit().beep();
 		        ftf.selectAll();
-		        Object[] options = {Messages.getString("NumberEditor.EditText"), //$NON-NLS-1$
-		                            Messages.getString("NumberEditor.RevertText")}; //$NON-NLS-1$
+		        Object[] options = {Messages.getString("NumberEditor.EditText"), 
+		                            Messages.getString("NumberEditor.RevertText")};
 		        int answer = JOptionPane.showOptionDialog(
 		            SwingUtilities.getWindowAncestor(ftf),
-		            "The value must be a " + property.getMinimum().getClass().getSimpleName() + " between " //$NON-NLS-1$ //$NON-NLS-2$
-		            + property.getMinimum().doubleValue()*property.getDimensionFactor().doubleValue() + " and " //$NON-NLS-1$
-		            + property.getMaximum().doubleValue()*property.getDimensionFactor().doubleValue() + ".\n" //$NON-NLS-1$
+		            "The value must be a " + property.getMinimum().getClass().getSimpleName() + " between " 
+		            + property.getMinimum().doubleValue()*property.getDimensionFactor().doubleValue() + " and "
+		            + property.getMaximum().doubleValue()*property.getDimensionFactor().doubleValue() + ".\n" 
 		            + Messages.getString("NumberEditor.MessageLine1") //$NON-NLS-1$
 		            + Messages.getString("NumberEditor.MessageLine2"), //$NON-NLS-1$
 		            Messages.getString("NumberEditor.InvalidText"), //$NON-NLS-1$

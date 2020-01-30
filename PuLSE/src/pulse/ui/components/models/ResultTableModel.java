@@ -1,4 +1,4 @@
-package pulse.ui.components;
+package pulse.ui.components.models;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +11,7 @@ import pulse.tasks.Identifier;
 import pulse.tasks.Result;
 import pulse.tasks.ResultFormat;
 import pulse.tasks.listeners.ResultFormatEvent;
+import pulse.ui.components.ResultListener;
 
 public class ResultTableModel extends DefaultTableModel {
 

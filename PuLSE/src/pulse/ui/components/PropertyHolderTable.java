@@ -1,12 +1,9 @@
 package pulse.ui.components;
 
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
@@ -15,10 +12,7 @@ import java.util.List;
 import javax.swing.AbstractButton;
 import javax.swing.AbstractCellEditor;
 import javax.swing.DefaultCellEditor;
-import javax.swing.ImageIcon;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
-import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JTable;
 import javax.swing.SortOrder;
@@ -34,6 +28,8 @@ import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 import pulse.ui.Messages;
+import pulse.ui.components.controllers.AccesibleTableRenderer;
+import pulse.ui.components.controllers.NumberEditor;
 import pulse.ui.frames.DataFrame;
 import pulse.util.Accessible;
 import pulse.util.PropertyHolder;
@@ -41,11 +37,9 @@ import pulse.util.PropertyHolder;
 public class PropertyHolderTable extends JTable {
 
 	private PropertyHolder propertyHolder;
-	
-	private static final long serialVersionUID = 1L;
-	
+
 	private final static Font font = new Font(Messages.getString("PropertyHolderTable.FontName"), Font.PLAIN, 15); //$NON-NLS-1$
-	private	final static int ROW_HEIGHT = 70;
+	private	final static int ROW_HEIGHT = 50;
 	
 	private PropertySorter sorter;
 	

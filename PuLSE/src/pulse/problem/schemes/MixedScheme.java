@@ -157,7 +157,6 @@ public class MixedScheme extends DifferenceScheme {
 			}			
 
 			curve.scale( maxTemp/maxVal );
-			curve.scale(1.0);
 			
 	}
 	);

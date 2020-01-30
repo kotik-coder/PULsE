@@ -15,18 +15,15 @@ import pulse.problem.statements.Problem;
 import pulse.ui.Messages;
 
 
-public class TaskSelectionToolBar extends JToolBar {
-	
-	/**
-	 * 
-	 */
+public class SettingsToolBar extends JToolBar {
+
 	private static final long serialVersionUID = -1171612225785102673L;
 
 	private JCheckBox cbSingleStatement, cbHideDetails;
 	
 	private Font f = new Font(Messages.getString("TaskSelectionToolBar.FontName"), Font.PLAIN, 14); //$NON-NLS-1$
 	
-	public TaskSelectionToolBar(PropertyHolderTable... tables) {
+	public SettingsToolBar(PropertyHolderTable... tables) {
 		super();
 		setFloatable(false);
 		

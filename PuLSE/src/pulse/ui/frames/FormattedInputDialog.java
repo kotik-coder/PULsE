@@ -1,80 +1,104 @@
 package pulse.ui.frames;
 
-import javax.swing.JFrame;
+import javax.swing.JLabel;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.text.DecimalFormat;
-import java.text.NumberFormat;
-import java.awt.Font;
 import javax.swing.JPanel;
+import javax.swing.JSeparator;
+
 import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+
 import javax.swing.JOptionPane;
-import javax.swing.JTextArea;
-import javax.swing.UIManager;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 
-import java.awt.GridLayout;
 import java.awt.Toolkit;
 
-import javax.swing.JButton;
 import javax.swing.JFormattedTextField;
 import javax.swing.SwingUtilities;
 
 import javax.swing.AbstractAction;
-import javax.swing.border.EmptyBorder;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.text.DefaultFormatterFactory;
 import javax.swing.text.NumberFormatter;
 
 import pulse.ui.Messages;
-import pulse.ui.components.ResultTable;
+import pulse.ui.components.controllers.ConfirmAction;
 
-import java.awt.event.ActionListener;
-
-public class SimpleInputFrame extends JFrame {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -1877579145033684459L;
-	private JFormattedTextField inputTextField;
-	private NumberFormatter numFormatter;
+public class FormattedInputDialog extends JDialog {
 	
+	private final static int FONT_SIZE = 14;
 	private final static int WIDTH = 450;
 	private final static int HEIGHT = 130;
+	private JFormattedTextField ftf;
+	private ConfirmAction confirmAction;
+	private NumberFormatter numFormatter;
 	
-	private final static Font FONT = new Font(Messages.getString("SimpleInputFrame.Font"), Font.PLAIN, 16);
+	public FormattedInputDialog() {
+		this.setDefaultCloseOperation(JDialog.HIDE_ON_CLOSE);
+		this.setMinimumSize(new Dimension(WIDTH, HEIGHT));		
+		
+		setTitle(Messages.getString("SimpleInputFrame.Title"));
+		
+		JPanel northPanel = new JPanel();
+		
+		northPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));		
+		
+		northPanel.setLayout(new GridLayout());
+		
+		northPanel.add(new JLabel(Messages.getString("SimpleInputFrame.GroupMessage")));
+		northPanel.add(new JSeparator());
+		northPanel.add(ftf = initFormattedTextField());
+		add(northPanel, BorderLayout.CENTER);
+		//
+	    JPanel btnPanel = new JPanel();
+	    JButton okBtn = new JButton("OK");
+	    JButton cancelBtn = new JButton("Cancel");
+	    btnPanel.add(okBtn);
+	    btnPanel.add(cancelBtn);
+	    add(btnPanel, BorderLayout.SOUTH);
+	    //
+	    cancelBtn.addActionListener(event -> 
+	    {
+	    	close();
+	    });
+	    okBtn.addActionListener(event -> 
+	    	{	    		
+	    		if (!ftf.isEditValid()) { //The text is invalid.
+                    if (userSaysRevert(ftf, numFormatter))  //reverted
+                    	ftf.postActionEvent(); //inform the editor
+	    		}
+                else {
+			    	confirmAction.onConfirm();
+			    	close();
+                }
+	    	});
+	}
 	
-	public SimpleInputFrame(ResultTable linkedTable) {
-		setType(Type.UTILITY);
-		setTitle("Input required"); //$NON-NLS-1$
-		
-		this.setSize(WIDTH, HEIGHT);
-		
-		JPanel panel = new JPanel();
-		panel.setBorder(new EmptyBorder(5, 5, 5, 5));
-		getContentPane().add(panel, BorderLayout.NORTH);
-		panel.setLayout(new BorderLayout(0, 0));
-		
-		JTextArea infoText = new JTextArea();
-		infoText.setEditable(false);
-		infoText.setFont(FONT); //$NON-NLS-1$
-		infoText.setBackground(UIManager.getColor(Messages.getString("SimpleInputFrame.Color"))); //$NON-NLS-1$
-		infoText.setLineWrap(true);
-		infoText.setWrapStyleWord(true);
-		infoText.setText(Messages.getString("SimpleInputFrame.GroupMessage")); //$NON-NLS-1$
-		panel.add(infoText);
-		
-		JPanel panel_1 = new JPanel();
-		getContentPane().add(panel_1, BorderLayout.CENTER);
-		panel_1.setLayout(new GridLayout(0, 3, 0, 0));
-		
-		inputTextField = new JFormattedTextField(1.0);
+	private void close() {
+		this.setVisible(false);
+	}
+	
+	public double value() {
+		return (double)ftf.getValue();
+	}
+	
+	private JFormattedTextField initFormattedTextField() {
+		JFormattedTextField inputTextField = new JFormattedTextField(1.0);
 		
 		 //Set up the editor for the integer cells.
                
-        NumberFormat numberFormat = new DecimalFormat(Messages.getString("SimpleInputFrame.SimpleNumberFormat")); //$NON-NLS-1$
+        DecimalFormat numberFormat = new DecimalFormat(Messages.getString("SimpleInputFrame.SimpleNumberFormat")); //$NON-NLS-1$
         numFormatter = new NumberFormatter(numberFormat);
-
+        
         numFormatter.setMinimum(0.01);
 	    numFormatter.setMaximum(50.0);
         
@@ -83,8 +107,8 @@ public class SimpleInputFrame extends JFrame {
         inputTextField.setFormatterFactory(
                 new DefaultFormatterFactory(numFormatter));
         inputTextField.setHorizontalAlignment(JTextField.CENTER);
-        inputTextField.setFocusLostBehavior(JFormattedTextField.PERSIST);
- 
+        inputTextField.setFocusLostBehavior(JFormattedTextField.PERSIST);        
+        
         //React when the user presses Enter while the editor is
         //active.  (Tab is handled as specified by
         //JFormattedTextField's focusLostBehavior property.)
@@ -92,14 +116,10 @@ public class SimpleInputFrame extends JFrame {
                                         KeyEvent.VK_ENTER, 0),
                                         "check"); //$NON-NLS-1$
         inputTextField.getActionMap().put("check", new AbstractAction() { //$NON-NLS-1$
-            /**
-			 * 
-			 */
-			private static final long serialVersionUID = 3977051175084065931L;
 
-			public void actionPerformed(ActionEvent e) {
+		public void actionPerformed(ActionEvent e) {
         if (!inputTextField.isEditValid()) { //The text is invalid.
-                    if (userSaysRevert()) { //reverted
+                    if (userSaysRevert(inputTextField, numFormatter)) { //reverted
                     	inputTextField.postActionEvent(); //inform the editor
             }
                 } else try {              //The text is valid,
@@ -107,34 +127,22 @@ public class SimpleInputFrame extends JFrame {
                 	inputTextField.postActionEvent(); //stop editing
                 } catch (java.text.ParseException exc) { }
             }
-        });
+        });		
 		
-		
-		inputTextField.setFont(FONT); //$NON-NLS-1$
-		panel_1.add(inputTextField);
+		inputTextField.setFont(inputTextField.getFont().deriveFont(FONT_SIZE));; //$NON-NLS-1$
 		inputTextField.setColumns(10);
-		
-		JButton groupButton = new JButton(Messages.getString("SimpleInputFrame.GroupButton")); //$NON-NLS-1$
-		groupButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				setVisible(false);
-				linkedTable.merge(Double.parseDouble(inputTextField.getText()) );
-			}
-		});
-		groupButton.setFont(FONT); //$NON-NLS-1$
-		panel_1.add(groupButton);
-		
-		JButton doNothingButton = new JButton(Messages.getString("SimpleInputFrame.DoNothing")); //$NON-NLS-1$
-		doNothingButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				setVisible(false);
-			}
-		});
-		doNothingButton.setFont(FONT); //$NON-NLS-1$
-		panel_1.add(doNothingButton);
+		return inputTextField;
+	}
+	
+	public void setConfirmAction(ConfirmAction confirmAction) {
+		this.confirmAction = confirmAction;
+	}
+	
+	public ConfirmAction getConfirmAction() {
+		return confirmAction;
 	}
 
-    protected boolean userSaysRevert() {
+    private static boolean userSaysRevert(JFormattedTextField inputTextField, NumberFormatter numFormatter) {
         Toolkit.getDefaultToolkit().beep();
         inputTextField.selectAll();
         Object[] options = {Messages.getString("SimpleInputFrame.Edit"), //$NON-NLS-1$

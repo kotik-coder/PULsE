@@ -45,6 +45,7 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 	private final static int DEFAULT_CLASSIC_PRECISION = 200;
 	
 	private List<DataListener> dataListeners;
+	private List<Double[]> residuals;
 	
 	/**
 	 * Checks if the {@code temperature} list is empty. 	
@@ -350,6 +351,8 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 		*/ 
 		
 		final double zeroTime = this.timeAt(0);
+
+		residuals = new LinkedList<Double[]>(); 
 		
 		for (int i = curve.getFittingStartIndex(); i <= curve.getFittingEndIndex(); i++) {
 			/*find the point on the calculated heating curve 
@@ -361,6 +364,9 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 			interpolated = b1*this.temperatureAt(cur) + b2*this.temperatureAt(cur + 1);
 			
 			diff		 = curve.temperatureAt(i) - interpolated; //y_exp - y*
+			
+			residuals.add(new Double[] { curve.timeAt(i), diff });
+			
 			sum			+= diff*diff; 
 		}				
 		
@@ -573,20 +579,26 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 	 */
 	
 	public static HeatingCurve classicSolution(Problem p, double timeLimit, int precision) {
-		 HeatingCurve curve = p.getHeatingCurve();
+		 HeatingCurve hc = p.getHeatingCurve();
 		
 		 HeatingCurve classicCurve = new 
 				 HeatingCurve(NumericProperty.derive
-						 (NumericPropertyKeyword.NUMPOINTS, curve.count));
-		 classicCurve.setBaseline(curve.getBaseline());
+						 (NumericPropertyKeyword.NUMPOINTS, hc.count));
+		
+		 double time, step;
 		 
-		 double time;
-		 double step = TaskManager.getSelectedTask().getProblem().getHeatingCurve().timeAt(1) - TaskManager.getSelectedTask().getProblem().getHeatingCurve().timeAt(0);
+		 if(hc.time.size() < hc.count)
+			 step = timeLimit/((double)hc.count-1.0);
+		 else
+			 step = hc.timeAt(1) - hc.timeAt(0);
 		 
-	     for(int i = 0; i < curve.count; i++) {
+	     for(int i = 0; i < hc.count; i++) {
 	    	 	time = i*step;
-	    	 	classicCurve.set(i, time, p.classicSolutionAt(time, precision));
+	    	 	classicCurve.addPoint(time, p.classicSolutionAt(time, precision));
+	    	 	classicCurve.baselineAdjustedTemperature.add(
+	    	 			classicCurve.temperature.get(i) + hc.baseline.valueAt(time));	
 	     }
+	    
 	     
 	     classicCurve.setName("Classic solution");
 	     
@@ -604,6 +616,10 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 	
 	public static HeatingCurve classicSolution(Problem p) {
 		 return classicSolution(p, p.getHeatingCurve().timeLimit(), DEFAULT_CLASSIC_PRECISION);
+	}
+	
+	public static HeatingCurve classicSolution(Problem p, double timeLimit) {
+		 return classicSolution(p, timeLimit, DEFAULT_CLASSIC_PRECISION);
 	}
 	
 	/**
@@ -651,5 +667,9 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 		DataEvent dataEvent = new DataEvent(DataEventType.CHANGE_OF_ORIGIN, this);
 		notifyListeners(dataEvent);
 	}	
+	
+	public List<Double[]> getResiduals() {
+		return residuals;
+	}
 	
 }

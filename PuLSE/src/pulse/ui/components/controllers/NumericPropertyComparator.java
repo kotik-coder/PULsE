@@ -1,4 +1,4 @@
-package pulse.ui.components;
+package pulse.ui.components.controllers;
 
 import java.util.Comparator;
 

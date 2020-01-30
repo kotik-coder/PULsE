@@ -1,4 +1,4 @@
-package pulse.ui.components;
+package pulse.ui.components.controllers;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -12,11 +12,8 @@ import pulse.ui.Messages;
 
 public class NumericPropertyRenderer extends DefaultTableCellRenderer {
 	
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -501909930818738712L;
-	private static final Color LIGHT_BLUE = new Color(175, 238, 238);
+	protected static final Color LIGHT_BLUE = new Color(175, 238, 238);
+	private final static int FONT_SIZE = 16;
 	
 	public NumericPropertyRenderer() {
 		super();
@@ -26,11 +23,8 @@ public class NumericPropertyRenderer extends DefaultTableCellRenderer {
 	
 	public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {			
 		
-		if(value instanceof NumericProperty) {
-			JFormattedTextField jtf = initTextField(((NumericProperty) value).formattedValue(), table.isRowSelected(row));	
-			return jtf;
-			
-		}
+		if(value instanceof NumericProperty) 
+			return initTextField(((NumericProperty) value).formattedValue(), table.isRowSelected(row));	
 		
 		return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 			
@@ -40,9 +34,9 @@ public class NumericPropertyRenderer extends DefaultTableCellRenderer {
 		JFormattedTextField jtf = new JFormattedTextField(text);
 		jtf.setOpaque(true);
 		jtf.setBorder(null);			
-		jtf.setHorizontalAlignment(JFormattedTextField.CENTER);					
+		jtf.setHorizontalAlignment(JFormattedTextField.RIGHT);					
 		
-		Font f = new Font(Messages.getString("NumericPropertyRenderer.FontName"), Font.PLAIN, 16);  //$NON-NLS-1$
+		Font f = jtf.getFont().deriveFont(FONT_SIZE);
 		jtf.setFont(f);					
 		
 		if(rowSelected)

@@ -1,5 +1,6 @@
 package pulse.ui.components;
 
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.MouseEvent;
 import java.io.FileOutputStream;
@@ -35,19 +36,23 @@ import pulse.tasks.listeners.TaskRepositoryListener;
 import pulse.tasks.listeners.TaskSelectionEvent;
 import pulse.tasks.listeners.TaskSelectionListener;
 import pulse.ui.Messages;
+import pulse.ui.components.controllers.NumericPropertyRenderer;
+import pulse.ui.components.models.ResultTableModel;
 import pulse.util.Saveable;
 
 public class ResultTable extends JTable implements Saveable  {		
 	
 	private final static Font font = new Font(
-			Messages.getString("ResultTable.FontName"), Font.PLAIN, 16);  
+			Messages.getString("ResultTable.FontName"), Font.PLAIN, 12);  
 	
-	private final static int ROW_HEIGHT = 30;
+	private final static int ROW_HEIGHT = 25;
 	
 	private NumericPropertyRenderer renderer;
+	private final static int RESULTS_HEADER_HEIGHT = 30;
 	
 	public ResultTable(ResultFormat fmt) {
 		super();
+		
 		renderer = new NumericPropertyRenderer();		
 		renderer.setVerticalAlignment( SwingConstants.TOP );
 		
@@ -66,6 +71,10 @@ public class ResultTable extends JTable implements Saveable  {
 		setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
 	    setRowSelectionAllowed(false);
 	    setColumnSelectionAllowed(true);
+	    
+		Dimension headersSize = getPreferredSize();
+		headersSize.height = RESULTS_HEADER_HEIGHT;
+		getTableHeader().setPreferredSize(headersSize);		
 	    
 	    /*
 	     * Listen to TaskTable and select appropriate results when task selection changes
@@ -100,7 +109,7 @@ public class ResultTable extends JTable implements Saveable  {
 					
 				}
 					
-			}											
+			}		
 	    	
 	    });
 	    

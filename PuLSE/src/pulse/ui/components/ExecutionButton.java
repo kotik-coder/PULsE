@@ -4,6 +4,8 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
@@ -11,20 +13,17 @@ import pulse.tasks.SearchTask;
 import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.TaskRepositoryEvent;
 import pulse.tasks.listeners.TaskRepositoryListener;
+import pulse.ui.Launcher;
 import pulse.ui.Messages;
 
-public class ExecutionButton extends ToolBarButton {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -6317905957478587768L;
+public class ExecutionButton extends JButton {
 
 	private ExecutionState state = ExecutionState.EXECUTE;
 	
 	public ExecutionButton() {
 		super();
 		setIcon(state.getIcon());
-		setText(state.getMessage());
+        setToolTipText(state.getMessage());
 		
 		this.addActionListener(new ActionListener() {
 
@@ -100,13 +99,35 @@ public class ExecutionButton extends ToolBarButton {
 	
 	public void setExecutionState(ExecutionState state) {
 		this.state = state;
-		this.setText(state.getMessage());
+		this.setToolTipText(state.getMessage());
 		this.setIcon(state.getIcon());
 	}
 	
 	
 	public ExecutionState getExecutionState() {
 		return state;
+	}
+	
+	public enum ExecutionState {
+		EXECUTE("Execute All Tasks", Launcher.loadIcon("/execute.png", 24)), 
+		STOP("Terminate All Running Tasks", Launcher.loadIcon("/stop.png", 24));
+
+		private String message;
+		private ImageIcon icon;
+		
+		private ExecutionState(String message, ImageIcon icon) {
+			this.icon = icon;
+			this.message = message;
+		}
+		
+		public ImageIcon getIcon() {
+			return icon;
+		}
+		
+		public String getMessage() {
+			return message;
+		}
+		
 	}
 	
 }

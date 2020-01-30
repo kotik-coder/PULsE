@@ -5,8 +5,7 @@ import java.awt.Font;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.lang.reflect.InvocationTargetException;
-
+import javax.swing.ImageIcon;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
@@ -22,21 +21,26 @@ import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.TaskRepositoryEvent;
 import pulse.ui.Launcher;
 import pulse.ui.Messages;
-import pulse.ui.frames.TaskControlFrame;
+import pulse.ui.charts.Chart;
 
-public class TaskTablePopupMenu extends JPopupMenu {
+public class TaskPopupMenu extends JPopupMenu {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -4545548692231417093L;
+	private final static Font f = new Font(Messages.getString("TaskTable.FontName"), Font.PLAIN, 16); //$NON-NLS-1$ 
+
+	private final static int ICON_SIZE = 24;
 	
-	private final static Font f = new Font(Messages.getString("TaskTable.FontName"), Font.BOLD, 18); //$NON-NLS-1$ 
-
-	public TaskTablePopupMenu() {	
+    private static ImageIcon ICON_DETAILS	= Launcher.loadIcon("/details.png", ICON_SIZE);
+    private static ImageIcon ICON_GRAPH		= Launcher.loadIcon("/graph.png", ICON_SIZE);  
+    private static ImageIcon ICON_METADATA	= Launcher.loadIcon("/metadata.png", ICON_SIZE);
+    private static ImageIcon ICON_MISSING	= Launcher.loadIcon("/missing.png", ICON_SIZE);
+    private static ImageIcon ICON_RUN		= Launcher.loadIcon("/execute_single.png", ICON_SIZE);
+    private static ImageIcon ICON_RESET		= Launcher.loadIcon("/reset.png", ICON_SIZE);
+    private static ImageIcon ICON_RESULT	= Launcher.loadIcon("/result.png", ICON_SIZE);	
+    
+	public TaskPopupMenu() {	
 		JMenuItem problemStatement, itemExecute, itemChart, itemExtendedChart, itemShowMeta, itemReset, itemGenerateResult, itemShowStatus;
 		
-		problemStatement = new JMenuItem(Messages.getString("TaskTablePopupMenu.ShowDetails")); //$NON-NLS-1$
+		problemStatement = new JMenuItem(Messages.getString("TaskTablePopupMenu.ShowDetails"), ICON_DETAILS); //$NON-NLS-1$
 		
 		problemStatement.addActionListener(new ActionListener() {
 
@@ -50,7 +54,7 @@ public class TaskTablePopupMenu extends JPopupMenu {
 	
 		Window referenceWindow = SwingUtilities.getWindowAncestor(this);
 		
-		itemChart		= new JMenuItem(Messages.getString("TaskTablePopupMenu.ShowHeatingCurve")); //$NON-NLS-1$
+		itemChart		= new JMenuItem(Messages.getString("TaskTablePopupMenu.ShowHeatingCurve"), ICON_GRAPH); //$NON-NLS-1$
 		itemChart.addActionListener(new ActionListener() {
 
 			@Override
@@ -62,7 +66,7 @@ public class TaskTablePopupMenu extends JPopupMenu {
 		
 		itemChart.setFont(f);
 		
-		itemExtendedChart = new JMenuItem(Messages.getString("TaskTablePopupMenu.ShowExtendedHeatingCurve")); //$NON-NLS-1$
+		itemExtendedChart = new JMenuItem(Messages.getString("TaskTablePopupMenu.ShowExtendedHeatingCurve"), ICON_GRAPH); //$NON-NLS-1$
 		itemExtendedChart.addActionListener(new ActionListener() {
 
 			@Override
@@ -74,7 +78,7 @@ public class TaskTablePopupMenu extends JPopupMenu {
 		
 		itemExtendedChart.setFont(f);
 		
-		itemShowMeta	= new JMenuItem("Show metadata");
+		itemShowMeta	= new JMenuItem("Show metadata", ICON_METADATA);
 		itemShowMeta.addActionListener(new ActionListener() {
 
 			@Override
@@ -97,7 +101,7 @@ public class TaskTablePopupMenu extends JPopupMenu {
 		
 		itemShowMeta.setFont(f);
 		
-		itemShowStatus	= new JMenuItem("What is missing?");
+		itemShowStatus	= new JMenuItem("What is missing?", ICON_MISSING);
 		
 		TaskManager.addSelectionListener(event -> {
 			if(TaskManager.getSelectedTask().getStatus().getDetails() == null)
@@ -130,7 +134,7 @@ public class TaskTablePopupMenu extends JPopupMenu {
 		
 		itemShowStatus.setFont(f);
 		
-		itemExecute		= new JMenuItem(Messages.getString("TaskTablePopupMenu.Execute")); //$NON-NLS-1$
+		itemExecute		= new JMenuItem(Messages.getString("TaskTablePopupMenu.Execute"), ICON_RUN); //$NON-NLS-1$
 		itemExecute.addActionListener(new ActionListener() {
 
 			@Override
@@ -163,13 +167,13 @@ public class TaskTablePopupMenu extends JPopupMenu {
 				
 				TaskManager.execute(TaskManager.getSelectedTask());
 				
-			}
+			}						
 			
 		});
 		
 		itemExecute.setFont(f);
 		
-		itemReset = new JMenuItem(Messages.getString("TaskTablePopupMenu.Reset"));
+		itemReset = new JMenuItem(Messages.getString("TaskTablePopupMenu.Reset"), ICON_RESET);
 		itemReset.setFont(f);
 		
 		itemReset.addActionListener(new ActionListener() {
@@ -181,7 +185,7 @@ public class TaskTablePopupMenu extends JPopupMenu {
 			
 		});
 		
-		itemGenerateResult = new JMenuItem(Messages.getString("TaskTablePopupMenu.GenerateResult"));
+		itemGenerateResult = new JMenuItem(Messages.getString("TaskTablePopupMenu.GenerateResult"), ICON_RESULT);
 		itemGenerateResult.setFont(f);
 		
 		itemGenerateResult.addActionListener(new ActionListener() {
@@ -242,7 +246,7 @@ public class TaskTablePopupMenu extends JPopupMenu {
 		if(t.getScheme() != null) 
 			t.getScheme().solver(t.getProblem()).solve(t.getProblem());		
 		
-		TaskControlFrame.plot(t, extended);
+		Chart.plot(t, extended);
 	}
 	
 	
