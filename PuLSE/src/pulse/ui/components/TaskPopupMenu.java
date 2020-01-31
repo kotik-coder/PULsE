@@ -38,19 +38,7 @@ public class TaskPopupMenu extends JPopupMenu {
     private static ImageIcon ICON_RESULT	= Launcher.loadIcon("/result.png", ICON_SIZE);	
     
 	public TaskPopupMenu() {	
-		JMenuItem problemStatement, itemExecute, itemChart, itemExtendedChart, itemShowMeta, itemReset, itemGenerateResult, itemShowStatus;
-		
-		problemStatement = new JMenuItem(Messages.getString("TaskTablePopupMenu.ShowDetails"), ICON_DETAILS); //$NON-NLS-1$
-		
-		problemStatement.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				Launcher.showProblemStatementFrame();
-			}
-			
-		});
-		problemStatement.setFont(f);
+		JMenuItem itemExecute, itemChart, itemExtendedChart, itemShowMeta, itemReset, itemGenerateResult, itemShowStatus;		
 	
 		Window referenceWindow = SwingUtilities.getWindowAncestor(this);
 		
@@ -149,11 +137,12 @@ public class TaskPopupMenu extends JPopupMenu {
 				
 				if(t.checkProblems() == Status.DONE) {
 					int dialogButton = JOptionPane.YES_NO_OPTION;
-					int dialogResult = JOptionPane.showConfirmDialog(referenceWindow, Messages.getString("TaskTablePopupMenu.TaskCompletedWarning") + System.lineSeparator() + Messages.getString("TaskTablePopupMenu.AskToDelete"), Messages.getString("TaskTablePopupMenu.DeleteTitle"), dialogButton); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+					int dialogResult = JOptionPane.showConfirmDialog(referenceWindow, Messages.getString("TaskTablePopupMenu.TaskCompletedWarning") + System.lineSeparator() + Messages.getString("TaskTablePopupMenu.AskToDelete"), Messages.getString("TaskTablePopupMenu.DeleteTitle"), dialogButton);
 					if(dialogResult == 1) 
 					  return;
 					else {
 						TaskManager.removeResult(t);
+						//t.storeCurrentSolution();
 					}
 				}
 				
@@ -165,7 +154,7 @@ public class TaskPopupMenu extends JPopupMenu {
 					return;
 				}
 				
-				TaskManager.execute(TaskManager.getSelectedTask());
+				TaskManager.execute(TaskManager.getSelectedTask());				
 				
 			}						
 			
@@ -211,8 +200,6 @@ public class TaskPopupMenu extends JPopupMenu {
 			
 		});
 		
-
-		add(problemStatement);
 		add(itemShowMeta);
 		add(itemShowStatus);
 		add(new JSeparator());

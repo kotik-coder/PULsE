@@ -28,6 +28,12 @@ public class Baseline extends PropertyHolder {
 	private BaselineType baselineType;
 	
 	private final static double ZERO_LEFT = -1E-5;
+
+	public Baseline(Baseline another) {
+		this.slope = another.slope;
+		this.intercept = another.intercept;
+		this.baselineType = another.baselineType;
+	}
 	
 	/**
 	 * A primitive constructor, which assigns the object's BaselineType to CONSTANT

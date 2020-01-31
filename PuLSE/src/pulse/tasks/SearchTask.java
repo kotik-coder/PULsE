@@ -40,6 +40,7 @@ import static pulse.properties.NumericPropertyKeyword.*;
 public class SearchTask extends Accessible implements Runnable, SaveableDirectory {
 
 	private Problem problem;
+	private HeatingCurve storedSolution;
 	private DifferenceScheme scheme;
 	private ExperimentalData curve;
 
@@ -76,7 +77,6 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 		this.identifier = new Identifier();		
 		this.curve = curve;
 		curve.setParent(this);		
-						
 		clear();	
 	}
 	
@@ -116,7 +116,7 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 			}
 		}
 		);
-		
+		storedSolution = null;
 	}
 	
 	/**
@@ -584,4 +584,13 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 	
 	}
 	
+	/*
+	public void storeCurrentSolution() {
+		storedSolution = HeatingCurve.copy(problem.getHeatingCurve());
+	}
+	
+	public HeatingCurve getStoredSolution() {
+		return storedSolution;
+	}
+	*/
 }

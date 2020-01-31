@@ -8,16 +8,18 @@ import java.awt.GridLayout;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.DefaultListSelectionModel;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -25,10 +27,12 @@ import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
+import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
@@ -48,26 +52,15 @@ import pulse.ui.components.LoaderButton;
 import pulse.ui.components.PropertyHolderTable;
 import pulse.ui.components.SettingsToolBar;
 import pulse.ui.components.LoaderButton.DataType;
-import pulse.ui.components.controllers.WrapCellRenderer;
 import pulse.util.Reflexive;
 
-public class ProblemStatementFrame extends JFrame {
+public class ProblemStatementFrame extends JInternalFrame {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 826803930933344406L;
-	private JPanel contentPane;
 	private PropertyHolderTable problemTable, schemeTable;
 	private	SchemeSelectionList schemeSelectionList;
 	private ProblemList problemList;
-	private SettingsToolBar taskToolBar;
-	
-	private final static int WIDTH	= 1000;
-	private final static int HEIGHT = 600;
-	
-	private final static int LIST_FONT_SIZE = 16;
-	private final static Font LIST_FONT = new Font(Messages.getString("ProblemStatementFrame.LIST_FONT"), Font.PLAIN, LIST_FONT_SIZE);
+
+	private final static int LIST_FONT_SIZE = 12;
 	
 	private final static List<Problem> knownProblems = Reflexive.instancesOf(Problem.class);
 	
@@ -76,42 +69,31 @@ public class ProblemStatementFrame extends JFrame {
 	 * Create the frame.
 	 */
 	public ProblemStatementFrame() {
-		setType(Type.UTILITY);
-		setAlwaysOnTop(true);
 		setResizable(false);
-		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		setClosable(true);
+		setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+		
 		setTitle(Messages.getString("ProblemStatementFrame.Title")); //$NON-NLS-1$
+		
 		setBounds(100, 100, WIDTH, HEIGHT);
 		
-		contentPane = new JPanel();
-		contentPane.setBorder(new EmptyBorder(0, 0, 0, 0));
-		setContentPane(contentPane);
-		contentPane.setLayout(new BorderLayout(0, 0));
+		getContentPane().setLayout(new BorderLayout());
+		
+		/*
+		 * Create a 2x2 grid for lists and tables
+		 */
+		
+		JPanel contentPane = new JPanel();		
+		GridLayout layout = new GridLayout(2,2);
+		layout.setHgap(5);
+		layout.setVgap(5);
+		contentPane.setLayout(layout);
+		
+		/*
+		 * Problem selection list and scroller
+		 */
 
-		JSplitPane splitPane = new JSplitPane();
-		splitPane.setOneTouchExpandable(true);
-		splitPane.setDividerSize(10);
-		splitPane.setResizeWeight(0.5);
-		contentPane.add(splitPane);
-
-		JPanel pane1 = new JPanel();
-		splitPane.setLeftComponent(pane1);
-		pane1.setLayout(new GridLayout(0, 1, 0, 0));
-
-		problemList = new ProblemList();		
-		problemList.setCellRenderer(new WrapCellRenderer(this.getWidth()/2 - 150) {
-	        @Override
-	        public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-	            Component comp = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-	            if(!knownProblems.get(index).isEnabled()) 
-	                comp.setForeground(Color.lightGray);
-	            JPanel p = new JPanel();
-	            p.add(comp);
-	            p.add(new JSeparator());
-	            return p;
-	        }
-			
-		});
+		problemList = new ProblemList();
 		
 		problemList.setSelectionModel(new DefaultListSelectionModel() {
 			
@@ -131,11 +113,21 @@ public class ProblemStatementFrame extends JFrame {
 	    
 		});
 		
-		JScrollPane problemScroller = new JScrollPane(problemList);
-		pane1.add(problemScroller);
-
-		JScrollPane problemDetailsScroller = new JScrollPane();
-		pane1.add(problemDetailsScroller);
+		contentPane.add(new JScrollPane(problemList));
+		
+		/*
+		 * Scheme list and scroller
+		 */
+		
+		schemeSelectionList = new SchemeSelectionList();
+		schemeSelectionList.setToolTipText(Messages.getString("ProblemStatementFrame.PleaseSelect")); //$NON-NLS-1$		
+		
+		JScrollPane schemeScroller = new JScrollPane(schemeSelectionList);
+		contentPane.add(schemeScroller);
+		
+		/*
+		 * Problem details scroller
+		 */
 		
 		problemTable = new PropertyHolderTable(null) {
 			
@@ -152,38 +144,24 @@ public class ProblemStatementFrame extends JFrame {
 			
 		};			
 		
-		problemDetailsScroller.setViewportView(problemTable);
+		JScrollPane problemDetailsScroller = new JScrollPane(problemTable);											
+		contentPane.add(problemDetailsScroller);
 		
-		JPanel pane2 = new JPanel();
-		splitPane.setRightComponent(pane2);
-		pane2.setLayout(new GridLayout(0, 1, 0, 0));
-
-		JScrollPane schemeSroller = new JScrollPane();
-		schemeSroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-		pane2.add(schemeSroller);
-		schemeSelectionList = new SchemeSelectionList();
-		schemeSelectionList.setToolTipText(Messages.getString("ProblemStatementFrame.PleaseSelect")); //$NON-NLS-1$
-		schemeSelectionList.setCellRenderer(new WrapCellRenderer(this.getWidth()/2 - 150) {
-	        @Override
-	        public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-	            Component comp = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-	            JPanel p = new JPanel();
-	            p.add(comp);
-	            return p;
-	        }
-		});
-		schemeSroller.setViewportView(schemeSelectionList);
-		
-		JScrollPane schemeDetailsScroller = new JScrollPane();
-		pane2.add(schemeDetailsScroller);
+		/*
+		 * Scheme details table and scroller
+		 */		
 
 		schemeTable = new PropertyHolderTable(null); //TODO
-		schemeDetailsScroller.setViewportView(schemeTable);
+		JScrollPane schemeDetailsScroller = new JScrollPane(schemeTable);
+		contentPane.add(schemeDetailsScroller);
+		
+		/*
+		 * Toolbar
+		 */
 
 		JToolBar toolBar = new JToolBar();
 		toolBar.setFloatable(false);
-		toolBar.setLayout(new GridLayout());
-		contentPane.add(toolBar, BorderLayout.SOUTH);
+		toolBar.setLayout(new GridLayout());		
 
 		JButton btnSimulate = new JButton(Messages.getString("ProblemStatementFrame.SimulateButton")); //$NON-NLS-1$
 		
@@ -225,29 +203,17 @@ public class ProblemStatementFrame extends JFrame {
 		btnLoadDensity.setDataType(DataType.DENSITY);
 		toolBar.add(btnLoadDensity);
 		
-		taskToolBar = new SettingsToolBar(problemTable, schemeTable);
-		contentPane.add(taskToolBar, BorderLayout.NORTH);
+		/*
+		 * 
+		 */
+		
+		getContentPane().add(new SettingsToolBar(problemTable, schemeTable), BorderLayout.NORTH);		
+		getContentPane().add(contentPane, BorderLayout.CENTER);
+		getContentPane().add(toolBar, BorderLayout.SOUTH);
 		
 		/*
-		 * Window events
+		 * listeners
 		 */
-
-		addWindowListener(new WindowAdapter() {
-			@Override
-			public void windowActivated(WindowEvent arg0) {							
-				
-				if(TaskManager.numberOfTasks() < 1) {
-					JOptionPane.showMessageDialog(arg0.getWindow(),
-							"Please create a task first!", "Task List Empty", JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$ //$NON-NLS-2$
-					arg0.getWindow().setVisible(false);
-					return;
-				}
-							
-				update(TaskManager.getSelectedTask());	
-				
-				}
-			}
-		);
 		
 		TaskManager.addSelectionListener(new TaskSelectionListener() {
 
@@ -271,7 +237,7 @@ public class ProblemStatementFrame extends JFrame {
 					task.getProblem().updateProperty(event, event.getProperty());							
 			
 		}
-		);
+		);			
 		
 	}	
 	
@@ -404,18 +370,15 @@ public class ProblemStatementFrame extends JFrame {
 	
 	class ProblemList extends JList<Problem> {
 		
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 4769009831926832789L;
-
 		public ProblemList() {
 			super();
-			setFont(LIST_FONT); //$NON-NLS-1$
+			setFont(getFont().deriveFont(LIST_FONT_SIZE));
 			
 			DefaultListModel<Problem> listModel = new DefaultListModel<Problem>();
+			
 			for(Problem p : knownProblems)
 				listModel.addElement(p);
+			
 			setModel(listModel);
 			setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 			
@@ -505,15 +468,10 @@ public class ProblemStatementFrame extends JFrame {
 	
 	class SchemeSelectionList extends JList<DifferenceScheme> {
 		
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 7976007297729697556L;
-
 		public SchemeSelectionList() {
 			
 			super();
-			setFont(LIST_FONT);		 //$NON-NLS-1$
+			setFont(getFont().deriveFont(LIST_FONT_SIZE));
 			setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 			
 			DefaultListModel<DifferenceScheme> m = new DefaultListModel<DifferenceScheme>();

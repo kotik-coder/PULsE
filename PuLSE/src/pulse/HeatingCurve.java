@@ -77,6 +77,15 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 		if(time.hashCode() != other.time.hashCode())
 			return false;
 		
+		if(!time.containsAll(other.time))
+			return false;
+		
+		if(!temperature.containsAll(other.temperature))
+			return false;
+		
+		if(!baselineAdjustedTemperature.containsAll(other.baselineAdjustedTemperature))
+			return false;
+		
 		return true;
 		
 	}
@@ -108,6 +117,24 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 		dataListeners	= new ArrayList<DataListener>();
 		reinit();
 	}
+	
+	/*
+	public static HeatingCurve copy(HeatingCurve hc) {
+		HeatingCurve h = new HeatingCurve(hc.getNumPoints());
+		h.startTime = hc.startTime;
+		h.baseline = new Baseline(hc.baseline);
+						
+		for(int i = 0, size = hc.time.size(); i < size; i++)
+			h.time.add(hc.time.get(i));
+		
+		for(int i = 0, size = hc.temperature.size(); i < size; i++)
+			h.temperature.add(hc.temperature.get(i));
+		
+		for(int i = 0, size = hc.baselineAdjustedTemperature.size(); i < size; i++)
+			h.baselineAdjustedTemperature.add(hc.baselineAdjustedTemperature.get(i));
+		
+		return h;
+	}*/
 	
 	public void addDataListener(DataListener listener) {
 		dataListeners.add(listener);

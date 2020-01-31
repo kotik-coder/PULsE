@@ -13,7 +13,7 @@ import pulse.ui.Messages;
 public class NumericPropertyRenderer extends DefaultTableCellRenderer {
 	
 	protected static final Color LIGHT_BLUE = new Color(175, 238, 238);
-	private final static int FONT_SIZE = 16;
+	private final static Font font = new Font(Messages.getString("PropertyHolderTable.FontName"), Font.PLAIN, 14);
 	
 	public NumericPropertyRenderer() {
 		super();
@@ -34,10 +34,8 @@ public class NumericPropertyRenderer extends DefaultTableCellRenderer {
 		JFormattedTextField jtf = new JFormattedTextField(text);
 		jtf.setOpaque(true);
 		jtf.setBorder(null);			
-		jtf.setHorizontalAlignment(JFormattedTextField.RIGHT);					
-		
-		Font f = jtf.getFont().deriveFont(FONT_SIZE);
-		jtf.setFont(f);					
+		jtf.setHorizontalAlignment(JFormattedTextField.CENTER);					
+		jtf.setFont(font);					
 		
 		if(rowSelected)
 			jtf.setBackground(LIGHT_BLUE);

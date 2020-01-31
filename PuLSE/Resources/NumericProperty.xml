@@ -188,8 +188,8 @@
     	minimum="-Infinity" value="-Infinity" primitive-type="double"
     	discreet="false" />
     <NumericProperty
-    	abbreviation="&amp;chi;&lt;sup&gt;2&lt;/sup&gt;"
-    	auto-adjustable="true" descriptor="Total sum of squares"
+    	abbreviation="RSS"
+    	auto-adjustable="true" descriptor="Residual sum of squares, RSS"
     	dimensionfactor="1.0" keyword="SUM_OF_SQUARES"
     	maximum="1.7976931348623157E308" minimum="4.9E-324"
     	value="Infinity" primitive-type="double" discreet="false" />

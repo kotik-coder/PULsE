@@ -33,7 +33,8 @@ public class Chart {
 	private TimeAxisSpecs timeAxisSpecs;    
     private static JFreeChart chart;
     private static float opacity = 0.15f;
-    private static boolean residualsShown, zeroApproximationShown;
+    private static boolean residualsShown = true;
+    private static boolean zeroApproximationShown = false;
     
     public static ChartPanel createEmptyPanel() {    	
         chart = ChartFactory.createScatterPlot(
@@ -65,12 +66,20 @@ public class Chart {
         rendererClassic.setSeriesPaint(0, Color.BLACK);
         rendererClassic.setSeriesShapesVisible(0, false);
         
+        var rendererOld = new XYLineAndShapeRenderer();               
+        rendererOld.setSeriesPaint(0, Color.BLUE);
+        rendererOld.setSeriesStroke(0, 
+        		new BasicStroke(2.0f, BasicStroke.CAP_BUTT,
+        		        BasicStroke.JOIN_MITER, 2.0f, new float[]{10f}, 0) );
+        rendererOld.setSeriesShapesVisible(0, false);
+        
         XYPlot plot = chart.getXYPlot();
         
         plot.setRenderer(0, renderer);
         plot.setRenderer(1, rendererLines);
-        plot.setRenderer(2, rendererResiduals);
-        plot.setRenderer(3, rendererClassic);
+        plot.setRenderer(2, rendererOld);
+        plot.setRenderer(3, rendererResiduals);
+        plot.setRenderer(4, rendererClassic);
         plot.setBackgroundPaint(Color.white);
 
         plot.setRangeGridlinesVisible(true);
@@ -103,6 +112,7 @@ public class Chart {
     	plot.setDataset(1, null); 
     	plot.setDataset(2, null);
     	plot.setDataset(3, null);
+    	plot.setDataset(4, null);
     	
         ExperimentalData rawData = task.getExperimentalCurve();
         
@@ -142,6 +152,25 @@ public class Chart {
             				extendedCurve));            		            		            		
             		plot.setDataset(1, solutionDataset);
             		
+            		/*
+            		 * plot old solutions
+            		 */
+            		
+            		var oldDataset = new XYSeriesCollection();
+            		int i = 0;
+            		
+            		/*
+            		HeatingCurve hc = task.getStoredSolution();
+            	
+            		if(hc != null)
+            			oldDataset.addSeries(series(hc, "Stored solution", extendedCurve));		            		            
+            		
+        			plot.setDataset(2, oldDataset);
+            		*/
+            		/*
+            		 * plot residuals
+            		 */
+            		
             		if(residualsShown)
             		if(solution.getResiduals() != null) {            			
             		
@@ -150,11 +179,11 @@ public class Chart {
 	            		
 	            		var residualsDataset = new XYSeriesCollection();
 	            		residualsDataset.addSeries(residuals(solution));
-	            	    plot.setDataset(2, residualsDataset);
+	            	    plot.setDataset(3, residualsDataset);
 	            	    plot.mapDatasetToRangeAxis(2, 1);
 	            	    
 	            	    double shift = (double)(task.getProblem().getMaximumTemperature().getValue());	            	    
-	            	    axis2.setRange(Range.expandToInclude(axis2.getRange(),shift));
+	            	    axis2.setRange(Range.expandToInclude(axis2.getRange(),shift));	            	    	            	    
 	            	    
             		} 
             		
@@ -186,8 +215,8 @@ public class Chart {
         
         classicDataset.addSeries(series(curve,curve.getName(), false));
         
-	    plot.setDataset(3, classicDataset);
-        plot.getRenderer(3).setSeriesPaint(0, Color.black);   
+	    plot.setDataset(4, classicDataset);
+        plot.getRenderer(4).setSeriesPaint(0, Color.black);   
     }
 
 	public static XYSeries series(HeatingCurve curve, String title, boolean extendedCurve) {		

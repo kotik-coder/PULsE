@@ -214,4 +214,10 @@ public class ResultFormat {
 		return formatString.length();
 	}
 	
+	public int indexOf(NumericPropertyKeyword key) {
+		if(nameMap.contains(key))
+			return nameMap.indexOf(key);
+		return -1;
+	}
+	
 }

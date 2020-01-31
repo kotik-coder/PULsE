@@ -17,8 +17,11 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
 
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
@@ -60,6 +63,16 @@ public class TaskTable extends JTable {
 			setShowHorizontalLines(false);
 			
 			setModel(new TaskTableModel());
+					   
+			TableHeader th = new TableHeader(getColumnModel(), new String[]{
+				   NumericProperty.theDefault(NumericPropertyKeyword.IDENTIFIER).getDescriptor(true), 
+				   NumericProperty.theDefault(NumericPropertyKeyword.TEST_TEMPERATURE).getDescriptor(true),
+				   NumericProperty.theDefault(NumericPropertyKeyword.SUM_OF_SQUARES).getDescriptor(true),
+				   NumericProperty.theDefault(NumericPropertyKeyword.RSQUARED).getDescriptor(true), 
+				   ("Task status")
+				});
+			
+			setTableHeader(th);
 			
 			Font font = getTableHeader().getFont().deriveFont(FONT_SIZE);
 			getTableHeader().setFont(font);
@@ -197,17 +210,17 @@ public class TaskTable extends JTable {
 			private static final int R2_COLUMN = 3;
 			private static final int STATUS_COLUMN = 4;
 			
-			public TaskTableModel() { 
+			public TaskTableModel() { 								
+				
 				super( new Object[][] {},
-					   new String[] {
-							   Messages.getString("TaskTable.TaskID"),  //$NON-NLS-1$
-							   NumericProperty.def(NumericPropertyKeyword.TEST_TEMPERATURE).getAbbreviation(true),
-							   NumericProperty.def(NumericPropertyKeyword.SUM_OF_SQUARES).getAbbreviation(true),  //$NON-NLS-1$
-							   NumericProperty.def(NumericPropertyKeyword.RSQUARED).getAbbreviation(true),  //$NON-NLS-1$
-							   Messages.getString("TaskTable.Status") //$NON-NLS-1$
-					 });
-								
-			}
+						   new String[] {
+								   NumericProperty.theDefault(NumericPropertyKeyword.IDENTIFIER).getAbbreviation(true),
+								   NumericProperty.theDefault(NumericPropertyKeyword.TEST_TEMPERATURE).getAbbreviation(true),
+								   NumericProperty.theDefault(NumericPropertyKeyword.SUM_OF_SQUARES).getAbbreviation(true),  
+								   NumericProperty.theDefault(NumericPropertyKeyword.RSQUARED).getAbbreviation(true),  
+								   Messages.getString("TaskTable.Status")} );
+									
+			}		
 	
 			public void addTask(SearchTask t) {
 				Object[] data = new Object[]{
@@ -273,6 +286,24 @@ public class TaskTable extends JTable {
 				
 			}
 						
+		}		
+
+		private class TableHeader extends JTableHeader {
+			
+			private String[] tooltips;
+			
+		    public TableHeader(TableColumnModel columnModel, String[] columnTooltips) {
+		      super(columnModel);//do everything a normal JTableHeader does
+		      this.tooltips = columnTooltips;//plus extra data
+		    }
+
+		    public String getToolTipText(MouseEvent e) {
+		        java.awt.Point p = e.getPoint();
+		        int index = columnModel.getColumnIndexAtX(p.x);
+		        int realIndex = columnModel.getColumn(index).getModelIndex();
+		        return this.tooltips[realIndex];
+		    }
+			
 		}
 		
 }

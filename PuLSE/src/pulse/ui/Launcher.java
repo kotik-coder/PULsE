@@ -12,7 +12,6 @@ import javax.management.ObjectName;
 import javax.management.ReflectionException;
 import javax.swing.ImageIcon;
 
-import pulse.ui.charts.Chart;
 import pulse.ui.frames.ProblemStatementFrame;
 import pulse.ui.frames.SearchOptionsFrame;
 import pulse.ui.frames.TaskControlFrame;
@@ -61,36 +60,7 @@ public class Launcher {
 		        TaskControlFrame.getInstance().setLocationRelativeTo(null);
             }
         });
-	}
-	
-	/**
-	 * Invoked when the respective frame component needs to be shown on screen.
-	 */
-
-	public static void showProblemStatementFrame() {
-		if(directFrame == null) {
-			directFrame = 
-				new ProblemStatementFrame();
-			directFrame.setLocationRelativeTo(null);
-		}
-		else
-			directFrame.update();
-		directFrame.setVisible(true);			
-	}
-	
-	/**
-	 * Invoked when the respective frame component needs to be shown on screen.
-	 */
-	
-	public static void showSearchOptionsFrame() {
-		if(searchOptionsFrame == null) {
-			searchOptionsFrame = 
-				new SearchOptionsFrame(  );
-			searchOptionsFrame.setLocationRelativeTo(null);
-		} else
-			searchOptionsFrame.update();
-		searchOptionsFrame.setVisible(true);
-	}
+	}		
 	
 	/**
 	 * <p>This will calculate the ratio {@code totalMemory/maxMemory} using the standard {@code Runtime}.

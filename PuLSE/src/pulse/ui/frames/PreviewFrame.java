@@ -10,8 +10,8 @@ import java.util.List;
 
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.JToolBar;
 
@@ -20,13 +20,17 @@ import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.chart.renderer.xy.XYErrorRenderer;
+import org.jfree.chart.renderer.xy.XYSplineRenderer;
+import org.jfree.data.xy.XYIntervalSeries;
+import org.jfree.data.xy.XYIntervalSeriesCollection;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
+import pulse.properties.NumericPropertyKeyword;
 import pulse.tasks.ResultFormat;
 
-public class PreviewFrame extends JFrame {
+public class PreviewFrame extends JInternalFrame {
 
 	private final static int FRAME_WIDTH = 640;
 	private final static int FRAME_HEIGHT = 480;
@@ -40,6 +44,7 @@ public class PreviewFrame extends JFrame {
 	private static JFreeChart chart;
 	
 	private final static Color RESULT_COLOR = Color.BLUE;
+	private final static Color SPLINE_COLOR = Color.RED;
 	
 	public PreviewFrame() {
 		init();							
@@ -48,7 +53,9 @@ public class PreviewFrame extends JFrame {
 	private void init() {
 		setSize(FRAME_WIDTH, FRAME_HEIGHT);		
 		setTitle("Preview Plotting");
-				
+		setClosable(true);	
+		setDefaultCloseOperation(JInternalFrame.HIDE_ON_CLOSE);
+		
 		getContentPane().setLayout(new BorderLayout());
 		
 		getContentPane().add(createEmptyPanel(), BorderLayout.CENTER);
@@ -93,7 +100,7 @@ public class PreviewFrame extends JFrame {
     	plot.getDomainAxis().setLabel(xLabel); 
     	plot.getRangeAxis().setLabel(yLabel);
     	
-        var dataset = new XYSeriesCollection();
+        var dataset = new XYIntervalSeriesCollection();
       
         if(data == null)
         	return;
@@ -101,11 +108,19 @@ public class PreviewFrame extends JFrame {
         dataset.addSeries(series(data[selectedX][0], data[selectedX][1], data[selectedY][0], data[selectedY][1]));
 	    plot.setDataset(0, dataset);
         plot.getRenderer().setSeriesPaint(0, RESULT_COLOR);
+        
+        var datasetSmooth = new XYSeriesCollection();
+        
+        datasetSmooth.addSeries(series(data[selectedX][0], data[selectedY][0]));
+	    plot.setDataset(1, datasetSmooth);
+        plot.getRenderer().setSeriesPaint(1, SPLINE_COLOR);
+     
 	}
 	
 	public void update(ResultFormat fmt, double[][][] data) {
 		this.data = data;
 		List<String> descriptors = fmt.descriptors();
+		List<String> htmlDescriptors = new ArrayList<String>();
 		int size = descriptors.size();
 		
 		propertyNames = new ArrayList<String>(size);
@@ -113,22 +128,23 @@ public class PreviewFrame extends JFrame {
 		
 		for(int i = 0; i < size; i++) {
 			tmp = descriptors.get(i).replaceAll("<.*?>" , " ").replaceAll("&.*?;" , "");
+			htmlDescriptors.add("<html>" + descriptors.get(i) + "</html>");
 			propertyNames.add(tmp);
 		}
 		
 		selectXBox.removeAllItems();
 		
-		for(String s : descriptors)
+		for(String s : htmlDescriptors)
 			selectXBox.addItem(s);
 		
-		selectXBox.setSelectedIndex(0);
+		selectXBox.setSelectedIndex(fmt.indexOf(NumericPropertyKeyword.TEST_TEMPERATURE));
 		
 		selectYBox.removeAllItems();
 		
-		for(String s : descriptors)
+		for(String s : htmlDescriptors)
 			selectYBox.addItem(s);
 		
-		selectYBox.setSelectedIndex(1);	
+		selectYBox.setSelectedIndex(fmt.indexOf(NumericPropertyKeyword.DIFFUSIVITY));
 	}
 	
 	/*
@@ -147,8 +163,11 @@ public class PreviewFrame extends JFrame {
                 false
         );
         
-        var renderer = (XYLineAndShapeRenderer) chart.getXYPlot().getRenderer();
+        var renderer = new XYErrorRenderer();
         renderer.setSeriesPaint(0, RESULT_COLOR);
+        
+        var rendererSpline = new XYSplineRenderer();
+        rendererSpline.setSeriesPaint(0, SPLINE_COLOR);
         
         double size = 6.0;
         double delta = size / 2.0;
@@ -158,6 +177,7 @@ public class PreviewFrame extends JFrame {
         XYPlot plot = chart.getXYPlot();
         
         plot.setRenderer(0, renderer);
+        plot.setRenderer(1, rendererSpline);
         plot.setBackgroundPaint(Color.white);
 
         plot.setRangeGridlinesVisible(true);
@@ -175,12 +195,25 @@ public class PreviewFrame extends JFrame {
      * 
      */
 	
-	private static XYSeries series(double[] x, double[] xerr, double[] y, double[] yerr) {		
+	private static XYIntervalSeries series(double[] x, double[] xerr, double[] y, double[] yerr) {		
+        var series = new XYIntervalSeries("Preview");
+			    
+	    for(int i = 0; i < x.length; i++) 
+	    	series.add(x[i], x[i] - xerr[i], x[i] + xerr[i], 
+	    			y[i], y[i] - yerr[i], y[i] + yerr[i]);	    	    
+	    	    	  
+	    return series;
+	}
+	
+    /*
+     * 
+     */
+	
+	private static XYSeries series(double[] x, double[] y) {		
         var series = new XYSeries("Preview");
 			    
-	    for(int i = 0; i < x.length; i++) {
-	    	series.add(x[i], y[i]);	    
-	    }
+	    for(int i = 0; i < x.length; i++) 
+	    	series.add(x[i], y[i]);	    	    
 	    	    	  
 	    return series;
 	}

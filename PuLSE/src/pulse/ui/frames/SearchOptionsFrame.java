@@ -1,57 +1,43 @@
 package pulse.ui.frames;
 
+import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.GridLayout;
-import java.awt.Toolkit;
-
 import javax.swing.AbstractListModel;
+import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
 import javax.swing.JList;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JSeparator;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
-import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 
-import pulse.problem.statements.Problem;
 import pulse.search.direction.PathSolver;
 import pulse.search.linear.LinearSolver;
 import pulse.tasks.SearchTask;
 import pulse.tasks.TaskManager;
 import pulse.ui.Messages;
 import pulse.ui.components.PropertyHolderTable;
-import pulse.ui.components.controllers.WrapCellRenderer;
-import pulse.util.PropertyEvent;
-import pulse.util.PropertyHolderListener;
 import pulse.util.Reflexive;
 
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
-public class SearchOptionsFrame extends JFrame {
+public class SearchOptionsFrame extends JInternalFrame {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -6832552989196599722L;
-	private JPanel contentPane;
 	private PropertyHolderTable pathTable;
 	private JList<LinearSolver> linearList;
 	private PathSolversList pathList;
 
-	private final static int WIDTH = 750;
-	private final static int HEIGHT = 550;
-	private final static Font LIST_FONT = new Font(Messages.getString("SearchOptionsFrame.ListFont"), Font.PLAIN, 18);
+	private final static Font font = new Font(Messages.getString("PropertyHolderTable.FontName"), Font.ITALIC, 16);
 	
 	private final static List<PathSolver> pathSolvers		= Reflexive.instancesOf(PathSolver.class);
 	private final static List<LinearSolver> linearSolvers	= Reflexive.instancesOf(LinearSolver.class);
@@ -61,75 +47,52 @@ public class SearchOptionsFrame extends JFrame {
 	 * Create the frame.
 	 */
 	public SearchOptionsFrame() {
-		setAlwaysOnTop(true);
-		setResizable(false);
+		setClosable(true);
 		setTitle(Messages.getString("SearchOptionsFrame.SelectSearch")); //$NON-NLS-1$
-		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
 		setBounds(100, 100, WIDTH, HEIGHT);
 		
-		contentPane = new JPanel();
-		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
-		setContentPane(contentPane);
-		contentPane.setLayout(new GridLayout(0, 2, 0, 0));
-		
-		JPanel panel = new JPanel();
-		contentPane.add(panel);
-		panel.setLayout(new GridLayout(2, 1, 0, 0));
-
-		pathList = new PathSolversList();
-		
-		ListCellRenderer renderer = new WrapCellRenderer(this.getWidth()/2 - 150) {
-			
-	        @Override
-	        public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-	            Component comp = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-	            JPanel p = new JPanel();
-	            p.add(comp);
-	            return p;
-	        }
-			
-		};
-		
-		pathList.setCellRenderer(renderer);
-		panel.add(new JScrollPane(pathList));
-		
-		linearList = new LinearSearchList();
-		
-		linearList.setCellRenderer(renderer);
-		linearList.setEnabled(false);
-		panel.add(new JScrollPane(linearList));
-		
-		JPanel panel_1 = new JPanel();
-		contentPane.add(panel_1);
-		panel_1.setLayout(new BoxLayout(panel_1, BoxLayout.X_AXIS));
-		
-		JScrollPane scrollPane_2 = new JScrollPane();
-		panel_1.add(scrollPane_2);
-		
-		pathTable = new PropertyHolderTable(null);
-		
-		scrollPane_2.setViewportView(pathTable);
-		
 		/*
-		 * Window Events
+		 * Path solver list and scroller
 		 */
 		
-		addWindowListener(new WindowAdapter() {
-			@Override
-			public void windowActivated(WindowEvent arg0) {
-				if(TaskManager.numberOfTasks() < 1) {
-					Toolkit.getDefaultToolkit().beep();
-					JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor((Component) arg0.getSource()),
-							Messages.getString("SearchOptionsFrame.PleaseCreateTask"), //$NON-NLS-1$
-							"No tasks", JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$
-					setVisible(false);
-					return;
-				}			
+		JPanel panel = new JPanel();
+		panel.setBorder(new EmptyBorder(5,5,5,5));
+		setContentPane(panel);
+		
+		pathList = new PathSolversList();	
+		JScrollPane pathListScroller = new JScrollPane(pathList);
+		pathListScroller.setBorder(BorderFactory.createTitledBorder("Select a Direction Search Method"));
+		
+		linearList = new LinearSearchList();		
+		linearList.setEnabled(false);
+		JScrollPane linearListScroller = new JScrollPane(linearList);
+		linearListScroller.setBorder(BorderFactory.createTitledBorder("Select a Line Search Method"));
 				
-			}
-			
-			
-		});
+		pathTable = new PropertyHolderTable(null);
+		
+		getContentPane().setLayout(new GridBagLayout());
+		
+		GridBagConstraints gbc = new GridBagConstraints();
+		
+		gbc.fill = GridBagConstraints.BOTH;
+		gbc.gridy = 0;
+		gbc.gridx = 0;
+		gbc.weightx = 1.0;
+		gbc.weighty = 0.2;
+		
+		getContentPane().add(pathListScroller, gbc);
+		
+		gbc.gridy = 1;
+		
+		getContentPane().add(linearListScroller, gbc);
+		
+		gbc.gridy = 2;
+		gbc.weighty = 0.6;
+		
+		JScrollPane tableScroller = new JScrollPane(pathTable);
+		tableScroller.setBorder(BorderFactory.createTitledBorder("Select search variables and settings"));
+		getContentPane().add(tableScroller, gbc);
 		
 	}
 	
@@ -172,7 +135,7 @@ public class SearchOptionsFrame extends JFrame {
 				}
 			});		
 			
-			setFont(LIST_FONT); //$NON-NLS-1$
+			setFont(font);
 			setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 			
 			addListSelectionListener(new ListSelectionListener() {
@@ -215,7 +178,7 @@ public class SearchOptionsFrame extends JFrame {
 			
 			super();
 			
-			setFont(LIST_FONT); //$NON-NLS-1$
+			setFont(font);
 			setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 			setModel(new AbstractListModel<LinearSolver>() {
 				/**

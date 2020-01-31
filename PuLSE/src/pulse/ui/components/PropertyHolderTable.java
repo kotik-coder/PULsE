@@ -38,8 +38,8 @@ public class PropertyHolderTable extends JTable {
 
 	private PropertyHolder propertyHolder;
 
-	private final static Font font = new Font(Messages.getString("PropertyHolderTable.FontName"), Font.PLAIN, 15); //$NON-NLS-1$
-	private	final static int ROW_HEIGHT = 50;
+	private final static Font font = new Font(Messages.getString("PropertyHolderTable.FontName"), Font.BOLD, 16);
+	private	final static int ROW_HEIGHT = 80;
 	
 	private PropertySorter sorter;
 	

@@ -1,19 +1,21 @@
 package pulse.ui.frames;
 
 import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.NumberFormatter;
 
 import org.jfree.chart.ChartPanel;
 
 import java.awt.GridLayout;
+import java.awt.Insets;
+import java.awt.Rectangle;
 import java.awt.Toolkit;
 
 import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
 import javax.swing.JDialog;
 
-import pulse.HeatingCurve;
 import pulse.input.ExperimentalData;
 import pulse.input.Metadata;
 import pulse.io.readers.MetaFileReader;
@@ -44,6 +46,8 @@ import pulse.ui.components.models.ResultTableModel;
 import pulse.util.SaveableDirectory;
 
 import java.awt.Component;
+import java.awt.Font;
+
 import javax.swing.JOptionPane;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
@@ -52,6 +56,8 @@ import javax.swing.JFileChooser;
 import javax.swing.JFormattedTextField;
 
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.WindowAdapter;
@@ -65,7 +71,11 @@ import java.util.concurrent.TimeUnit;
 import java.awt.event.ActionEvent;
 import java.awt.Color;
 import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.BorderLayout;
+
+import javax.swing.event.InternalFrameAdapter;
+import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
@@ -150,7 +160,16 @@ public class TaskControlFrame extends JFrame {
     private void initComponents() {
 
         desktopPane = new javax.swing.JDesktopPane();
-        taskManagerFrame = new javax.swing.JInternalFrame();
+
+        globalLayout = new GridBagLayout();
+        desktopPane.setLayout(globalLayout);
+
+        global = new java.awt.GridBagConstraints();
+        
+        global.fill = GridBagConstraints.BOTH;
+        global.insets = new Insets(5,5,5,5);
+        
+        taskManagerFrame = new javax.swing.JInternalFrame("", false, false, false, true);
         taskScrollPane = new javax.swing.JScrollPane();
         taskTable= new TaskTable();
 		logTextPane	= new LogPane();
@@ -162,8 +181,8 @@ public class TaskControlFrame extends JFrame {
         graphBtn = new javax.swing.JButton(Launcher.loadIcon(File.separator + "graph.png", ICON_SIZE));
         execBtn = new ExecutionButton();
         
-        graphFrame = new javax.swing.JInternalFrame();
-        graphFrame.getContentPane().add(Chart.createEmptyPanel(), BorderLayout.CENTER);
+        graphFrame = new javax.swing.JInternalFrame("", false, false, false, true);
+        graphFrame.getContentPane().add(Chart.createEmptyPanel(), BorderLayout.CENTER);        
         
         jSlider1 = new JSlider();
         jSlider1.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
@@ -183,7 +202,7 @@ public class TaskControlFrame extends JFrame {
         limitRangeBtn = new javax.swing.JButton();                        
         adiabaticSolutionBtn = new javax.swing.JToggleButton();
         residualsBtn = new javax.swing.JToggleButton();
-        logFrame = new javax.swing.JInternalFrame();
+        logFrame = new javax.swing.JInternalFrame("", false, false, false, true);                
         logScroller = new javax.swing.JScrollPane();
         logToolbar = new javax.swing.JPanel();
         
@@ -195,7 +214,7 @@ public class TaskControlFrame extends JFrame {
         cpuLabel = new javax.swing.JLabel();
         memoryLabel = new javax.swing.JLabel();
         coresLabel = new javax.swing.JLabel();
-        resultsFrame = new javax.swing.JInternalFrame();
+        resultsFrame = new javax.swing.JInternalFrame("", false, false, false, true);
         resultsScroller = new javax.swing.JScrollPane();
         resultToolbar = new javax.swing.JPanel();
         
@@ -256,9 +275,10 @@ public class TaskControlFrame extends JFrame {
         taskToolbar.add(execBtn);
 
         taskManagerFrame.getContentPane().add(taskToolbar, java.awt.BorderLayout.PAGE_START);
-
-        desktopPane.add(taskManagerFrame);
-        taskManagerFrame.setBounds(10, 10, 420, 430);
+        
+        desktopPane.add(taskManagerFrame, global);
+        taskManagerFrame.setBounds(new Rectangle(10, 10, 420, 430));
+        taskManagerFrame.setNormalBounds(new Rectangle(10, 10, 420, 430));
 
         graphFrame.setTitle("Time-temperature profile(s)");
         graphFrame.setVisible(true);
@@ -351,8 +371,9 @@ public class TaskControlFrame extends JFrame {
 
         graphFrame.getContentPane().add(chartToolbar, java.awt.BorderLayout.PAGE_END);
 
-        desktopPane.add(graphFrame);
-        graphFrame.setBounds(440, 10, 570, 430);
+        desktopPane.add(graphFrame, global);
+        graphFrame.setBounds(new Rectangle(440, 10, 570, 430));
+        graphFrame.setNormalBounds(new Rectangle(440, 10, 570, 430));
 
         logFrame.setTitle("Log");
         logFrame.setVisible(true);
@@ -401,8 +422,9 @@ public class TaskControlFrame extends JFrame {
         logFrame.getContentPane().add(systemStatusBar, java.awt.BorderLayout.PAGE_END);
         logFrame.getContentPane().add(logToolbar, java.awt.BorderLayout.NORTH);
 
-        desktopPane.add(logFrame);
-        logFrame.setBounds(10, 450, 420, 220);
+        desktopPane.add(logFrame, global);
+        logFrame.setBounds(new Rectangle(10, 450, 420, 220));
+        logFrame.setNormalBounds(new Rectangle(10, 450, 420, 220));
 
         resultsFrame.setTitle("Results");
         resultsFrame.setVisible(true);
@@ -431,20 +453,21 @@ public class TaskControlFrame extends JFrame {
 
         resultsFrame.getContentPane().add(resultToolbar, java.awt.BorderLayout.EAST);
 
-        desktopPane.add(resultsFrame);
-        resultsFrame.setBounds(440, 450, 570, 220);
+        desktopPane.add(resultsFrame,global);
+        resultsFrame.setBounds(new Rectangle(440, 450, 570, 220));
+        resultsFrame.setNormalBounds(new Rectangle(440, 450, 570, 220));
 
         getContentPane().add(desktopPane, java.awt.BorderLayout.CENTER);
 
         dataControlsMenu.setMnemonic('f');
-        dataControlsMenu.setText("Data Controls");
+        dataControlsMenu.setText("File");
 
-        loadDataItem.setMnemonic('o');
+        loadDataItem.setMnemonic('h');
         loadDataItem.setIcon(Launcher.loadIcon(File.separator + "load.png", ICON_SIZE));
         loadDataItem.setText("Load Heating Curve(s)...");
         dataControlsMenu.add(loadDataItem);
 
-        loadMetadataItem.setMnemonic('s');
+        loadMetadataItem.setMnemonic('m');
         loadMetadataItem.setIcon(Launcher.loadIcon(File.separator + "metadata.png", ICON_SIZE));
         loadMetadataItem.setText("Load Metadata...");
         loadMetadataItem.setEnabled(false);
@@ -452,6 +475,7 @@ public class TaskControlFrame extends JFrame {
         dataControlsMenu.add(jSeparator2);
 
         exportCurrentItem.setText("Export Current Solution");
+        exportCurrentItem.setMnemonic('c');
         exportCurrentItem.setIcon(Launcher.loadIcon(File.separator + "save.png", ICON_SIZE));
         exportCurrentItem.setEnabled(false);
         
@@ -469,8 +493,12 @@ public class TaskControlFrame extends JFrame {
         });
        
         dataControlsMenu.add(exportCurrentItem);
+        
+        Font menuFont = new Font("Arial", Font.PLAIN, 16);
+        dataControlsMenu.setFont(menuFont);
 
         exportAllItem.setText("Export All Solutions");
+        exportAllItem.setMnemonic('a');
         exportAllItem.setIcon(Launcher.loadIcon(File.separator + "save.png", ICON_SIZE));
         exportAllItem.setEnabled(false);
 
@@ -490,6 +518,7 @@ public class TaskControlFrame extends JFrame {
 
         settingsMenu.setMnemonic('e');
         settingsMenu.setText("Calculation Settings");
+        settingsMenu.setFont(menuFont);
 
         modelSettingsItem.setMnemonic('t');
         modelSettingsItem.setText("Heat Problem: Statement & Solution");
@@ -512,6 +541,7 @@ public class TaskControlFrame extends JFrame {
         mainMenu.add(settingsMenu);
 
         InfoMenu.setText("Info");
+        InfoMenu.setFont(menuFont);
 
         aboutItem.setText("About...");
         InfoMenu.add(aboutItem);
@@ -521,6 +551,63 @@ public class TaskControlFrame extends JFrame {
         setJMenuBar(mainMenu);
 
         previewFrame = new PreviewFrame();
+        desktopPane.add(previewFrame, global);
+        
+        previewFrame.addInternalFrameListener(new InternalFrameAdapter() {
+        	
+        	@Override
+        	public void internalFrameClosing(InternalFrameEvent e) {
+        		hidePreviewFrame();
+        	}
+        	
+        });
+        
+		problemStatementFrame = 
+				new ProblemStatementFrame();
+		
+		problemStatementFrame.addInternalFrameListener(new InternalFrameAdapter() {
+        	
+        	@Override
+        	public void internalFrameClosing(InternalFrameEvent e) {
+        		hideProblemStatementFrame();
+        	}
+        	
+        });
+		
+		desktopPane.add(problemStatementFrame, global);
+        		
+		searchOptionsFrame = 
+				new SearchOptionsFrame(  );
+		
+		searchOptionsFrame.addInternalFrameListener(new InternalFrameAdapter() {
+        	
+        	@Override
+        	public void internalFrameClosing(InternalFrameEvent e) {
+        		hideSearchOptionsFrame();
+        	}
+        	
+        });
+		
+		desktopPane.add(searchOptionsFrame, global);
+		
+        /*
+         * CONSTRAIN ADJUSTMENT
+         */
+		
+		resetConstraints();	
+        
+		var ifa = new InternalFrameAdapter() {
+			
+			public void internalFrameDeiconified(InternalFrameEvent e) {
+				resetConstraints();
+			}
+			
+		};
+		
+        taskManagerFrame.addInternalFrameListener(ifa);        
+        graphFrame.addInternalFrameListener(ifa);
+        logFrame.addInternalFrameListener(ifa);
+        resultsFrame.addInternalFrameListener(ifa);
         
         pack();
     }// </editor-fold>                        
@@ -868,10 +955,10 @@ public class TaskControlFrame extends JFrame {
 		loadMetadataItem.addActionListener(e -> loadMetadataDialog());		
 		
 		modelSettingsItem.setEnabled(false);
-		modelSettingsItem.addActionListener(e -> Launcher.showProblemStatementFrame());
+		modelSettingsItem.addActionListener(e -> showProblemStatementFrame());
 		
 		searchSettingsItem.setEnabled(false);
-		searchSettingsItem.addActionListener(e -> Launcher.showSearchOptionsFrame() );
+		searchSettingsItem.addActionListener(e -> showSearchOptionsFrame() );
 		
 		resultFormatItem.addActionListener(e -> {
 				ResultChangeDialog changeDialog = new ResultChangeDialog();
@@ -996,7 +1083,7 @@ public class TaskControlFrame extends JFrame {
 			}
 			
 		});
-				
+		
 		saveResultsBtn.setEnabled(false);
 		saveResultsBtn.addActionListener(new ActionListener() {
 
@@ -1027,9 +1114,163 @@ public class TaskControlFrame extends JFrame {
 		    		((ResultTableModel)resultsTable.getModel()).getFormat()
 		    		, resultsTable.data());
 		
-		previewFrame.setLocationRelativeTo(SwingUtilities.getWindowAncestor(this));
-		previewFrame.setVisible(true);
-		previewFrame.requestFocus();
+		global.fill = GridBagConstraints.BOTH;
+		global.gridx = 0;
+		global.gridy = 0;
+		global.weightx = 1.0;
+		global.weighty = 0.65;
+		
+		globalLayout.setConstraints(previewFrame, global);
+		
+		global.fill = GridBagConstraints.BOTH;
+		global.gridx = 0;
+		global.gridy = 1;
+		global.weightx = 1.0;
+		global.weighty = 0.35;
+		
+		globalLayout.setConstraints(resultsFrame, global);
+		
+		previewFrame.setVisible(true);				
+		resultsFrame.setVisible(true);		
+		taskManagerFrame.setVisible(false);
+		graphFrame.setVisible(false);
+		logFrame.setVisible(false);				
+	}
+	
+	private void resetConstraints() {
+		global.fill = GridBagConstraints.BOTH;
+		global.gridx = 1;
+		global.gridy = 1;
+		global.weightx = 0.6;
+		global.weighty = 0.35;
+		
+		globalLayout.setConstraints(resultsFrame, global);
+		
+		global.fill = GridBagConstraints.BOTH;
+		global.gridx = 1;
+		global.gridy = 0;
+		global.weightx = 0.6;
+		global.weighty = 0.65;
+		
+		globalLayout.setConstraints(graphFrame, global);
+		
+		global.fill = GridBagConstraints.BOTH;
+		global.gridx = 0;
+		global.gridy = 1;
+		global.weightx = 0.4;
+		global.weighty = 0.35;
+		
+		globalLayout.setConstraints(logFrame, global);
+		
+		global.fill = GridBagConstraints.BOTH;
+		global.gridx = 0;
+		global.gridy = 0;
+		global.weightx = 0.4;
+		global.weighty = 0.65;
+		
+		globalLayout.setConstraints(taskManagerFrame, global);
+		
+		global.fill = GridBagConstraints.BOTH;
+		global.gridx = 0;
+		global.gridy = 0;
+		global.weightx = 1.0;
+		global.weighty = 0.65;
+		
+		globalLayout.setConstraints(previewFrame, global);
+		
+		global.fill = GridBagConstraints.BOTH;
+		global.gridx = 0;
+		global.gridy = 0;
+		global.weightx = 1.0;
+		global.weighty = 0.65;
+		
+		globalLayout.setConstraints(problemStatementFrame, global);
+		
+		global.fill = GridBagConstraints.BOTH;
+		global.gridx = 0;
+		global.gridy = 0;
+		global.weightx = 1.0;
+		global.weighty = 1.0;
+		
+		globalLayout.setConstraints(problemStatementFrame, global);
+	}
+	
+	private void hidePreviewFrame() {
+		resetConstraints();		
+		previewFrame.setVisible(false);				
+		resultsFrame.setVisible(true);		
+		taskManagerFrame.setVisible(true);
+		graphFrame.setVisible(true);
+		logFrame.setVisible(true);				
+	}
+	
+	private void hideProblemStatementFrame() {
+		resetConstraints();		
+		previewFrame.setVisible(false);
+		problemStatementFrame.setVisible(false);
+		resultsFrame.setVisible(true);		
+		taskManagerFrame.setVisible(true);
+		graphFrame.setVisible(true);
+		logFrame.setVisible(true);				
+	}
+	
+	private void hideSearchOptionsFrame() {
+		resetConstraints();		
+		searchOptionsFrame.setVisible(false);
+		previewFrame.setVisible(false);
+		problemStatementFrame.setVisible(false);
+		resultsFrame.setVisible(true);		
+		taskManagerFrame.setVisible(true);
+		graphFrame.setVisible(true);
+		logFrame.setVisible(true);				
+	}
+	
+	private void showProblemStatementFrame() {	
+		problemStatementFrame.update();
+		problemStatementFrame.setVisible(true);
+		
+		global.fill = GridBagConstraints.BOTH;
+		global.gridx = 0;
+		global.gridy = 1;
+		global.weightx = 1.0;
+		global.weighty = 0.35;
+		
+		globalLayout.setConstraints(graphFrame, global);
+		
+		global.fill = GridBagConstraints.BOTH;
+		global.gridx = 0;
+		global.gridy = 0;
+		global.weightx = 1.0;
+		global.weighty = 0.65;
+		
+		globalLayout.setConstraints(problemStatementFrame, global);
+		
+		searchOptionsFrame.setVisible(false);
+		previewFrame.setVisible(false);				
+		resultsFrame.setVisible(false);		
+		taskManagerFrame.setVisible(false);
+		graphFrame.setVisible(true);
+		logFrame.setVisible(false);		
+	}
+	
+	private void showSearchOptionsFrame() {	
+		searchOptionsFrame.update();
+		searchOptionsFrame.setVisible(true);
+		
+		global.fill = GridBagConstraints.BOTH;
+		global.gridx = 0;
+		global.gridy = 0;
+		global.weightx = 1.0;
+		global.weighty = 1.0;
+		
+		globalLayout.setConstraints(searchOptionsFrame, global);
+		
+		problemStatementFrame.setVisible(false);
+		previewFrame.setVisible(false);				
+		resultsFrame.setVisible(false);		
+		taskManagerFrame.setVisible(false);
+		graphFrame.setVisible(false);
+		logFrame.setVisible(false);		
 	}
 	
     private boolean userSaysRevert(JFormattedTextField ftf) {
@@ -1104,7 +1345,7 @@ public class TaskControlFrame extends JFrame {
 		if(dialogResult == JOptionPane.YES_OPTION)			
 			expCurve.setFittingRange(a, b);	
 		
-    }
+    }        
 	
     // Variables declaration - do not modify                     
     private javax.swing.JMenu InfoMenu;
@@ -1163,6 +1404,10 @@ public class TaskControlFrame extends JFrame {
 	private FormattedInputDialog inputDialog = new FormattedInputDialog();
 	private JSlider jSlider1;
 	private PreviewFrame previewFrame;
+	private ProblemStatementFrame problemStatementFrame;
+	private SearchOptionsFrame searchOptionsFrame;
+	private GridBagConstraints global;
+	private GridBagLayout globalLayout;
     // End of variables declaration                   
 		
 }
