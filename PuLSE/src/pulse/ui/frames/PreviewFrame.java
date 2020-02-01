@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.GridLayout;
 import java.awt.Shape;
 import java.awt.geom.Rectangle2D;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,6 +14,7 @@ import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
 import javax.swing.JSeparator;
+import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 
 import org.jfree.chart.ChartFactory;
@@ -29,6 +31,7 @@ import org.jfree.data.xy.XYSeriesCollection;
 
 import pulse.properties.NumericPropertyKeyword;
 import pulse.tasks.ResultFormat;
+import pulse.ui.Launcher;
 
 public class PreviewFrame extends JInternalFrame {
 
@@ -45,6 +48,10 @@ public class PreviewFrame extends JInternalFrame {
 	
 	private final static Color RESULT_COLOR = Color.BLUE;
 	private final static Color SPLINE_COLOR = Color.RED;
+	
+	private static boolean drawSmooth = true;
+	
+	private final static int ICON_SIZE = 24;
 	
 	public PreviewFrame() {
 		init();							
@@ -79,7 +86,19 @@ public class PreviewFrame extends JInternalFrame {
 		
 		selectYBox = new JComboBox<String>();
 		toolbar.add(selectYBox);	
-			
+		
+		var drawSmoothBtn = new JToggleButton();
+		drawSmoothBtn.setToolTipText("Smooth with cubic normal splines");
+		drawSmoothBtn.setIcon(Launcher.loadIcon(File.separator + "spline.png", ICON_SIZE));
+		drawSmoothBtn.setSelected(true);
+		toolbar.add(drawSmoothBtn);
+		
+		drawSmoothBtn.addActionListener( e -> 
+		{
+			drawSmooth = drawSmoothBtn.isSelected();
+			replot(chart);
+		});
+		
 		selectXBox.addItemListener(e -> replot(chart));
 		selectYBox.addItemListener(e -> replot(chart));
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -101,20 +120,21 @@ public class PreviewFrame extends JInternalFrame {
     	plot.getRangeAxis().setLabel(yLabel);
     	
         var dataset = new XYIntervalSeriesCollection();
-      
+        var datasetSmooth = new XYSeriesCollection();
+        
         if(data == null)
         	return;
         
         dataset.addSeries(series(data[selectedX][0], data[selectedX][1], data[selectedY][0], data[selectedY][1]));
 	    plot.setDataset(0, dataset);
-        plot.getRenderer().setSeriesPaint(0, RESULT_COLOR);
         
-        var datasetSmooth = new XYSeriesCollection();
+	    /*
+        if(drawSmooth) {
+	    datasetSmooth.addSeries(series(data[selectedX][0], data[selectedY][0]));
+		plot.setDataset(1, datasetSmooth);
+        } 
+        */
         
-        datasetSmooth.addSeries(series(data[selectedX][0], data[selectedY][0]));
-	    plot.setDataset(1, datasetSmooth);
-        plot.getRenderer().setSeriesPaint(1, SPLINE_COLOR);
-     
 	}
 	
 	public void update(ResultFormat fmt, double[][][] data) {
@@ -186,6 +206,9 @@ public class PreviewFrame extends JInternalFrame {
         plot.setDomainGridlinesVisible(true);
         plot.setDomainGridlinePaint(Color.GRAY);
 
+	    plot.getRenderer(1).setSeriesPaint(0, SPLINE_COLOR);
+        plot.getRenderer(0).setSeriesPaint(0, RESULT_COLOR);
+	    
         chart.removeLegend();
         
         return new ChartPanel(chart);  
@@ -216,6 +239,14 @@ public class PreviewFrame extends JInternalFrame {
 	    	series.add(x[i], y[i]);	    	    
 	    	    	  
 	    return series;
+	}
+
+	public boolean isDrawSmooth() {
+		return drawSmooth;
+	}
+
+	public void setDrawSmooth(boolean drawSmooth) {
+		PreviewFrame.drawSmooth = drawSmooth;
 	}
     
 }

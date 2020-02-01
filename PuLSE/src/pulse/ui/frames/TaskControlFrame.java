@@ -520,20 +520,17 @@ public class TaskControlFrame extends JFrame {
         settingsMenu.setText("Calculation Settings");
         settingsMenu.setFont(menuFont);
 
-        modelSettingsItem.setMnemonic('t');
         modelSettingsItem.setText("Heat Problem: Statement & Solution");
         modelSettingsItem.setIcon(Launcher.loadIcon(File.separator + "heat_problem.png", ICON_SIZE));
         modelSettingsItem.setEnabled(false);
         settingsMenu.add(modelSettingsItem);
 
-        searchSettingsItem.setMnemonic('y');
         searchSettingsItem.setText("Parameter Estimation: Method & Settings");
         searchSettingsItem.setIcon(Launcher.loadIcon(File.separator + "inverse_problem.png", ICON_SIZE));
         searchSettingsItem.setEnabled(false);
         settingsMenu.add(searchSettingsItem);
         settingsMenu.add(jSeparator1);
 
-        resultFormatItem.setMnemonic('d');
         resultFormatItem.setIcon(Launcher.loadIcon(File.separator + "result_format.png", ICON_SIZE));
         resultFormatItem.setText("Change Result Format...");
         settingsMenu.add(resultFormatItem);

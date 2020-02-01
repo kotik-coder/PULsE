@@ -233,9 +233,13 @@ public class ProblemStatementFrame extends JInternalFrame {
 			if(!Problem.isSingleStatement())
 				return;
 			
-			for(SearchTask task : TaskManager.getTaskList()) 				
-					task.getProblem().updateProperty(event, event.getProperty());							
+			Problem p;
 			
+			for(SearchTask task : TaskManager.getTaskList()) { 				
+				p = task.getProblem();
+				if(p != null) p.updateProperty(event, event.getProperty());							
+			}
+					
 		}
 		);			
 		

@@ -396,7 +396,7 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 			
 			sum			+= diff*diff; 
 		}				
-		
+
 		return sum;
 		
 	}
@@ -699,4 +699,32 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 		return residuals;
 	}
 	
+	public double residualUpperBound() {
+		double upper = Double.NEGATIVE_INFINITY;
+		
+		if(residuals == null)
+			return 0;
+		
+		for(Double[] d : residuals)
+			if(d[1] > upper) 
+				upper = d[1];
+		
+		return upper;
+			
+	}
+	
+	public double residualLowerBound() {
+		double lower = Double.POSITIVE_INFINITY;
+		
+		if(residuals == null)
+			return 0;
+		
+		for(Double[] d : residuals)
+			if(d[1] < lower) 
+				lower = d[1];
+		
+		return lower;
+	}
+	
+
 }

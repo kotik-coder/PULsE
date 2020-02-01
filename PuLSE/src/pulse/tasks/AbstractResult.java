@@ -36,10 +36,6 @@ public abstract class AbstractResult extends UpwardsNavigable {
 		return format;
 	}
 	
-	public void setFormat(ResultFormat format) {
-		this.format = format;
-	}
-	
 	/**
 	 * This will print out all the properties according to the {@code ResultFormat}.
 	 */
@@ -71,7 +67,11 @@ public abstract class AbstractResult extends UpwardsNavigable {
 	}
 	
 	protected NumericProperty getProperty(int i) {
-		return properties.get(i);
+		return filterProperties(this,format).get(i);
+	}
+	
+	public void setFormat(ResultFormat format) {
+		this.format = format;
 	}
 
 	/**

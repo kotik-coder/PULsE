@@ -8,6 +8,7 @@ import java.util.List;
 
 import pulse.HeatingCurve;
 import pulse.input.ExperimentalData;
+import pulse.problem.statements.Problem;
 import pulse.tasks.SearchTask;
 import pulse.ui.Messages;
 
@@ -174,17 +175,18 @@ public class Chart {
             		if(residualsShown)
             		if(solution.getResiduals() != null) {            			
             		
-	            	    final NumberAxis axis2 = new NumberAxis("Residuals (a.u.)");
-	            	    plot.setRangeAxis(1, axis2);
+	            	    //final NumberAxis axis2 = new NumberAxis("Residuals (a.u.)");
+	            	    //plot.setRangeAxis(2, axis2);
 	            		
 	            		var residualsDataset = new XYSeriesCollection();
 	            		residualsDataset.addSeries(residuals(solution));
 	            	    plot.setDataset(3, residualsDataset);
-	            	    plot.mapDatasetToRangeAxis(2, 1);
+	            	    //plot.mapDatasetToRangeAxis(3, 2);
 	            	    
-	            	    double shift = (double)(task.getProblem().getMaximumTemperature().getValue());	            	    
-	            	    axis2.setRange(Range.expandToInclude(axis2.getRange(),shift));	            	    	            	    
+	            	    final double MARGIN = 5.0;
 	            	    
+	            	    //axis2.setUpperBound(solution.residualUpperBound()*MARGIN);	            	    	            	    
+	            	    //axis2.setLowerBound(solution.residualLowerBound()*MARGIN);
             		} 
             		
             	}
@@ -239,13 +241,16 @@ public class Chart {
 	}
 	
 	public static XYSeries residuals(HeatingCurve solution) {		
-        var series = new XYSeries("Residuals");
+        final double span = solution.maxTemperature() - solution.getBaseline().valueAt(0); 
+	    final double offset = solution.getBaseline().valueAt(0) - span/2.0;	            	    
 		
+	    var series = new XYSeries(String.format("Residuals (offset %3.2f)", offset)); 
+	    
 	    List<Double[]> residuals = solution.getResiduals();
 	    int size = residuals.size();
 	    
 	    for(int i = 0; i < size; i++) 
-	    	series.add(residuals.get(i)[0], residuals.get(i)[1]); 	    
+	    	series.add(residuals.get(i)[0], (Number)(residuals.get(i)[1] + offset)); 	    
 	    	    	  
 	    return series;
 	}
