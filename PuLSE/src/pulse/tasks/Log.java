@@ -11,7 +11,10 @@ import pulse.tasks.listeners.LogEntryListener;
 import pulse.tasks.listeners.StatusChangeListener;
 import pulse.tasks.listeners.TaskStateEvent;
 import pulse.ui.Messages;
+import pulse.util.Extension;
 import pulse.util.Saveable;
+import pulse.util.UpwardsNavigable;
+
 
 /**
  * A {@code Log} is used to track changes for a specific {@code SearchTask}, such
@@ -19,7 +22,7 @@ import pulse.util.Saveable;
  *
  */
 
-public class Log implements Saveable {
+public class Log extends UpwardsNavigable implements Saveable {
 
 	private List<LogEntry> logEntries;
 	private LocalTime start, end;
@@ -39,6 +42,7 @@ public class Log implements Saveable {
 		if(task == null)
 			throw new IllegalArgumentException(Messages.getString("Log.NullTaskError"));
 		
+		setParent(task);
 		logFormat	= LogFormat.getInstance();
 		id			= task.getIdentifier();
 		

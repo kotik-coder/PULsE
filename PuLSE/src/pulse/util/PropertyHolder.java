@@ -7,6 +7,8 @@ import java.util.stream.Collectors;
 import pulse.properties.EnumProperty;
 import pulse.properties.NumericProperty;
 import pulse.properties.Property;
+import pulse.tasks.Identifier;
+import pulse.tasks.SearchTask;
 
 /**
  * An {@code Accessible} that has a list of parameters it accepts as its own and a list
@@ -19,6 +21,7 @@ public abstract class PropertyHolder extends Accessible {
 
 	private List<Property> parameters = listedTypes();
 	private List<PropertyHolderListener> listeners;
+	private String prefix;
 	
 	/**
 	 * <p>By default, this will search the children of this {@code PropertyHolder} to collect
@@ -224,5 +227,29 @@ public abstract class PropertyHolder extends Accessible {
 	public boolean ignoreSiblings() {
 		return true;
 	}
+	
+	@Override
+	public String describe() {
+		if(prefix == null)
+			return super.describe();
+		
+		Identifier id = identify();
+		
+		if(id == null)
+			return super.describe();
+		
+		if(!prefix.trim().isEmpty())
+			return prefix + "_" + id.getValue();
+		else
+			return describe() + "_" + id.getValue();
+	}
 
+	public String getPrefix() {
+		return prefix;
+	}
+
+	public void setPrefix(String prefix) {
+		this.prefix = prefix;
+	}
+	
 }

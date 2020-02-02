@@ -18,8 +18,7 @@ public interface Describable {
 	
 	public default String describe() {
 		
-		return getClass().getSimpleName() + "_" +
-				DateTimeFormatter.ISO_DATE.format( LocalDateTime.now() );
+		return getClass().getSimpleName();
 		
 	};
 	

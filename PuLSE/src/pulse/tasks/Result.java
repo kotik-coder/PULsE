@@ -4,6 +4,7 @@ import java.io.FileOutputStream;
 import java.io.PrintStream;
 import pulse.properties.NumericProperty;
 import pulse.ui.Messages;
+import pulse.util.Extension;
 import pulse.util.Saveable;
 
 /**
@@ -14,8 +15,6 @@ import pulse.util.Saveable;
  */
 
 public class Result extends AbstractResult implements Saveable {
-	
-	private Identifier identifier;
 	
 	/**
 	 * Creates an individual {@code Result} related to the current state of 
@@ -31,23 +30,22 @@ public class Result extends AbstractResult implements Saveable {
 		if(task == null)
 			throw new IllegalArgumentException(Messages.getString("Result.NullTaskError"));
 		
-		this.identifier = task.getIdentifier();
+		setParent(task);
 		
 		format.getKeywords().stream().forEach(key -> addProperty(task.numericProperty(key)));
 
 	}	
 	
-	public Identifier getIdentifier() {
-		return identifier;
-	}
-
 	/**
 	 * Prints the data of this Result with {@code fos} in an html-format.
 	 */
 	
 	@Override
 	public void printData(FileOutputStream fos, Extension extension) {
-		printHTML(fos);
+		switch(extension) {
+			case HTML : printHTML(fos); break;
+			case CSV : printCSV(fos); break;
+	}
 	}
 	
 	private void printHTML(FileOutputStream fos) {
@@ -60,7 +58,7 @@ public class Result extends AbstractResult implements Saveable {
     		stream.print("<td>"); 
     		
             stream.print(
-            		p.getType()
+            		p.getDescriptor(true)
             		); 
             stream.print("</td><td>"); 
             stream.print(
@@ -73,6 +71,26 @@ public class Result extends AbstractResult implements Saveable {
         
 		stream.print("</table>"); 
         
+        stream.close();
+	}
+	
+	/**
+	 * The supported extensions for exporting the data contained in this object. Currently include {@code .html} and {@code .csv}.
+	 */
+	
+	@Override
+	public Extension[] getSupportedExtensions() {
+		return new Extension[] {Extension.HTML, Extension.CSV};
+	}
+	
+	private void printCSV(FileOutputStream fos) {
+		PrintStream stream = new PrintStream(fos);
+        stream.print("(Results)");
+		
+        for (NumericProperty p : getProperties()) {
+        	stream.printf("%n%-20.10s", p.getType()); 
+        	stream.printf("\t%-20.10s", p.formattedValue(true));   
+        }
         stream.close();
 	}
 	

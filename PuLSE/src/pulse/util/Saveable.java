@@ -3,9 +3,18 @@ package pulse.util;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.filechooser.FileNameExtensionFilter;
+
+import pulse.tasks.Identifier;
+import pulse.tasks.SearchTask;
 
 /**
  * A {@code Saveable} is any individual {@code PULsE} entity that can be saved using a {@code FileOutputStream}.
@@ -20,8 +29,13 @@ public interface Saveable extends Describable {
 	 */
 	
 	public default Extension getDefaultExportExtension() {
-		return Extension.HTML;
+		return Extension.CSV;
 	}
+	
+	public static Extension[] getAllSupportedExtensions() {
+		return Extension.values();
+	}
+	
 	
 	/**
 	 * Returns an array of supported extensions, which by default contains only the default extension.
@@ -37,13 +51,18 @@ public interface Saveable extends Describable {
 	 * @param directory the directory where this {@code Saveable} needs to be saved.
 	 */
 	
-	public default void saveNow(File directory) {
+	public default void save(File directory, Extension extension) {
 
+		Extension supportedExtension = extension;
+		
+		if(!Arrays.stream(getSupportedExtensions()).anyMatch(extension::equals) )
+			supportedExtension = getDefaultExportExtension(); //revert to default extension
+			
 		try {
-				File newFile = new File(directory, describe() + "." + getDefaultExportExtension());
+				File newFile = new File(directory, describe() + "." + supportedExtension);
 				newFile.createNewFile();
 	            FileOutputStream fos = new FileOutputStream(newFile);
-	            printData(fos, getDefaultExportExtension());
+	            printData(fos, supportedExtension);
 	            
 		} catch (IOException e) {
 	            // TODO Auto-generated catch block
@@ -96,33 +115,6 @@ public interface Saveable extends Describable {
 	    }
 	}
 	
-	public void printData(FileOutputStream fos, Extension extension);
-	
-	public enum Extension {
-		
-		/**
-		 * The result will be an html-document with tags that can be opened with any web browser.
-		 * Useful for complex formatting, but not for data manipulation, as it contains tags
-		 * and special symbols.
-		 */
-		
-		HTML, 
-		
-		/**
-		 * The result will be a tab-delimited CSV document. Usefult for data manipulations and plotting.
-		 */
-		
-		CSV;
-		
-		/**
-		 * This will return the lower-case characters for the extension. 
-		 */
-		
-		@Override
-		public String toString() {
-			return super.toString().toLowerCase();
-		}
-		
-	}
+	public abstract void printData(FileOutputStream fos, Extension extension);
 	
 }

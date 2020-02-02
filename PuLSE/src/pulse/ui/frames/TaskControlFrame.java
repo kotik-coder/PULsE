@@ -16,6 +16,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
 import javax.swing.JDialog;
 
+import pulse.HeatingCurve;
 import pulse.input.ExperimentalData;
 import pulse.input.Metadata;
 import pulse.io.readers.MetaFileReader;
@@ -43,7 +44,8 @@ import pulse.ui.components.ResultTable;
 import pulse.ui.components.TaskTable;
 import pulse.ui.components.TaskTable.TaskTableModel;
 import pulse.ui.components.models.ResultTableModel;
-import pulse.util.SaveableDirectory;
+import pulse.util.Saveable;
+import pulse.util.SaveableCategory;
 
 import java.awt.Component;
 import java.awt.Font;
@@ -474,7 +476,7 @@ public class TaskControlFrame extends JFrame {
         dataControlsMenu.add(loadMetadataItem);
         dataControlsMenu.add(jSeparator2);
 
-        exportCurrentItem.setText("Export Current Solution");
+        exportCurrentItem.setText("Export Current");
         exportCurrentItem.setMnemonic('c');
         exportCurrentItem.setIcon(Launcher.loadIcon(File.separator + "save.png", ICON_SIZE));
         exportCurrentItem.setEnabled(false);
@@ -489,7 +491,20 @@ public class TaskControlFrame extends JFrame {
 				return; 
 			}
 			
-			selectedTask.askToSave(instance);
+			var fileChooser = new JFileChooser();
+			fileChooser.setMultiSelectionEnabled(false);
+			fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+			
+		    int returnVal = fileChooser.showSaveDialog(this);
+		    
+		    if (returnVal == JFileChooser.APPROVE_OPTION) {
+				dir = new File(fileChooser.getSelectedFile() + File.separator + TaskManager.getInstance().describe());
+				dir.mkdirs();
+				TaskManager.getSelectedTask().contents().stream().forEach(
+									individual -> individual.save(dir, individual.getDefaultExportExtension())
+								);
+		    }
+			
         });
        
         dataControlsMenu.add(exportCurrentItem);
@@ -497,7 +512,7 @@ public class TaskControlFrame extends JFrame {
         Font menuFont = new Font("Arial", Font.PLAIN, 16);
         dataControlsMenu.setFont(menuFont);
 
-        exportAllItem.setText("Export All Solutions");
+        exportAllItem.setText("Export...");
         exportAllItem.setMnemonic('a');
         exportAllItem.setIcon(Launcher.loadIcon(File.separator + "save.png", ICON_SIZE));
         exportAllItem.setEnabled(false);
@@ -990,11 +1005,14 @@ public class TaskControlFrame extends JFrame {
 			}				
 			
 		});
-
-		exportAllItem.addActionListener(e -> 
-				SaveableDirectory.askToSave(instance, 
-						TaskManager.getInstance().describe(), 
-						TaskManager.saveableContents()) );
+		
+		exportAllItem.setEnabled(true);
+		exportAllItem.addActionListener(e -> {
+			ExportDialog ed = new ExportDialog();
+			ed.setLocationRelativeTo(null);
+			ed.setVisible(true);
+		}
+				 );
 		
 		aboutItem.addActionListener(e -> {
 				JDialog aboutDialog = new AboutDialog();

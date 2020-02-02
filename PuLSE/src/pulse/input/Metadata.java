@@ -1,5 +1,6 @@
 package pulse.input;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -9,6 +10,8 @@ import pulse.problem.statements.Pulse.TemporalShape;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
+import pulse.tasks.Identifier;
+import pulse.util.Extension;
 import pulse.util.PropertyHolder;
 import pulse.util.Reflexive;
 import pulse.util.Saveable;
@@ -23,7 +26,7 @@ import static pulse.properties.NumericPropertyKeyword.*;
  *
  */
 
-public class Metadata extends PropertyHolder implements Reflexive, Saveable {
+public class Metadata extends PropertyHolder implements Saveable, Reflexive {
 	
 	private double testTemperature, sampleThickness, sampleDiameter, pulseWidth, spotDiameter, laserEnergy;
 	private int detectorGain, detectorIris;
@@ -412,6 +415,18 @@ public class Metadata extends PropertyHolder implements Reflexive, Saveable {
 
 		return sb.toString();
 		
+	}
+	
+	@Override
+	public void save(File file, Extension extension) {
+		if(externalID < 0) 
+			return; //do nothing then
+		Saveable.super.save(file, extension);
+	}
+	
+	@Override
+	public Identifier identify() {
+		return getParent() == null ? Identifier.externalIdentifier(externalID) : super.identify();
 	}
 		
 }

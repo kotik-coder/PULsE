@@ -21,11 +21,11 @@ import pulse.tasks.SearchTask;
 import pulse.tasks.Status;
 import pulse.tasks.TaskManager;
 import pulse.ui.Messages;
+import pulse.util.Extension;
 import pulse.util.Saveable;
 
 public class LogPane extends JEditorPane implements Saveable {
 	
-;
 	private ExecutorService updateExecutor = Executors.newSingleThreadExecutor();
 	
 	private final static boolean DEBUG = true;

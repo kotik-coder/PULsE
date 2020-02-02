@@ -18,7 +18,7 @@ import pulse.properties.Property;
 import pulse.search.math.IndexedVector;
 import pulse.util.PropertyHolder;
 import pulse.util.Reflexive;
-import pulse.util.SaveableDirectory;
+import pulse.util.SaveableCategory;
 
 import static java.lang.Math.PI;
 import static java.lang.Math.exp;
@@ -34,7 +34,7 @@ import static pulse.properties.NumericPropertyKeyword.*;
  * @see pulse.problem.schemes.DifferenceScheme
  */
 
-public abstract class Problem extends PropertyHolder implements Reflexive, SaveableDirectory {		
+public abstract class Problem extends PropertyHolder implements Reflexive, SaveableCategory {		
 	
 	protected HeatingCurve curve;
 	protected Pulse	pulse;

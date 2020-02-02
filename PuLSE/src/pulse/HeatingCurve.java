@@ -18,8 +18,8 @@ import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
-import pulse.tasks.TaskManager;
 import pulse.ui.Messages;
+import pulse.util.Extension;
 import pulse.util.PropertyHolder;
 import pulse.util.Saveable;
 
@@ -107,6 +107,7 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 	 */
 	
 	public HeatingCurve(NumericProperty count) {
+		setPrefix("Solution");
 		this.count 	   = (int)count.getValue();
 		temperature    = new ArrayList<Double>(this.count);
 		baselineAdjustedTemperature = new ArrayList<Double>(this.count);
@@ -518,12 +519,11 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 	private void printCSV(FileOutputStream fos) {
 		PrintStream stream = new PrintStream(fos);
 		
-		final String TIME_LABEL = Messages.getString("HeatingCurve.6"); //$NON-NLS-1$
-		final String TEMPERATURE_LABEL = Messages.getString("HeatingCurve.7"); //$NON-NLS-1$
+		final String TIME_LABEL = Messages.getString("HeatingCurve.6");
+		final String TEMPERATURE_LABEL = Messages.getString("HeatingCurve.7") + " (" + getPrefix() + ")";
 		
        	stream.print(TIME_LABEL + "\t");
        	stream.print(TEMPERATURE_LABEL + "\t"); 
-       	stream.println();
        	
         double t, T;
 
@@ -532,12 +532,9 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
         
         for (int i = 0; i < finalSize; i++) {
            	t = time.get(i);
-            stream.printf("%.6f %n", t); //$NON-NLS-1$
-            stream.print("</td><td>"); //$NON-NLS-1$
+            stream.printf("%n %3.4f", t); 
             T = temperature.get(i);
-            stream.printf("%.6f %n", T); //$NON-NLS-1$
-            stream.print("</td>"); //$NON-NLS-1$            
-            stream.println();
+            stream.printf("\t%3.4f", T);
         }
         
         stream.close();
@@ -670,7 +667,7 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 	
 	@Override
 	public Extension[] getSupportedExtensions() {
-		return new Extension[] {Saveable.Extension.HTML, Saveable.Extension.CSV};
+		return new Extension[] {Extension.HTML, Extension.CSV};
 	}
 	
 	/**
@@ -725,6 +722,5 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 		
 		return lower;
 	}
-	
 
 }

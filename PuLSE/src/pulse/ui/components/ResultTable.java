@@ -38,6 +38,7 @@ import pulse.tasks.listeners.TaskSelectionListener;
 import pulse.ui.Messages;
 import pulse.ui.components.controllers.NumericPropertyRenderer;
 import pulse.ui.components.models.ResultTableModel;
+import pulse.util.Extension;
 import pulse.util.Saveable;
 
 public class ResultTable extends JTable implements Saveable  {		
@@ -96,7 +97,7 @@ public class ResultTable extends JTable implements Saveable  {
 					if(! (r instanceof Result) ) 
 						continue;
 
-					if(! ((Result)r).getIdentifier().equals(id) )
+					if(! ((Result)r).identify().equals(id) )
 						continue;
 						
 					jj = convertRowIndexToView(results.indexOf(r));
@@ -169,7 +170,7 @@ public class ResultTable extends JTable implements Saveable  {
 	
 	@Override
 	public Extension[] getSupportedExtensions() {
-		return new Extension[] {Saveable.Extension.HTML, Saveable.Extension.CSV};
+		return new Extension[] {Extension.HTML, Extension.CSV};
 	}
 	
 	public double[][][] data() {

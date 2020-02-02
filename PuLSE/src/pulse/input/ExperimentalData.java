@@ -13,6 +13,7 @@ import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.ui.Messages;
 import pulse.ui.charts.Point2D;
+import pulse.util.SaveableCategory;
 
 /**
  * <p> An {@code ExperimentalData} object is essentially a {@code HeatingCurve} with
@@ -22,7 +23,7 @@ import pulse.ui.charts.Point2D;
  * this {@code ExperimentalData}.
  */
 
-public class ExperimentalData extends HeatingCurve {
+public class ExperimentalData extends HeatingCurve implements SaveableCategory {
 	
 	private Metadata metadata;
 	
@@ -44,6 +45,7 @@ public class ExperimentalData extends HeatingCurve {
 	
 	public ExperimentalData() {
 		super();
+		setPrefix("RawData");
 		this.clear();
 		count = 0;
 		getBaseline().setParent(null);
@@ -257,7 +259,8 @@ public class ExperimentalData extends HeatingCurve {
 	 */
 	
 	public void setMetadata(Metadata metadata) {
-		this.metadata = metadata;	
+		this.metadata = metadata;
+		metadata.setParent(this);
 		updateFittingRange(metadata);
 		
 		metadata.addListener(event -> {			

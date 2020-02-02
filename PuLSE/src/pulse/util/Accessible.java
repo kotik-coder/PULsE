@@ -30,32 +30,37 @@ public abstract class Accessible extends UpwardsNavigable {
 	 * @return a full list of {@code Saveable}s.
 	 */
 	
-	public List<Saveable> saveableContents() {
+	public List<Saveable> contents() {
 		List<Saveable> contents = new ArrayList<Saveable>();
 
 	    try {
 			//contents.addAll(numericProperties());
-			accessibles().stream().forEach(c -> 						
+			saveables().stream().forEach(c -> 						
 				{
 					/*
 					 * Filter only children, not parents! 
 					 */
 					
-				 if(this.getParent() != c) {										
-					 if(c instanceof SaveableDirectory) 
-						contents.addAll(c.saveableContents() );				
-					 if(c instanceof Saveable) {
+				 if(this.getParent() != c) 
+					 if(c instanceof Saveable) 
 						contents.add((Saveable)c);
-						contents.addAll(c.saveableContents());
-					 }
-				 }
 				 
-				 });
+				 }
+				
+				);
+			//
+			saveableCategories().stream().forEach(sc -> 						
+			{	
+				contents.addAll( sc.contents() );
+			 }
+			
+			);
+			
 		} catch (IllegalArgumentException e) {
 			System.err.println("Unable to generate saveable contents for " + this.getClass());
 			e.printStackTrace();
 		}
-	    
+
 	    return contents;
 	}
 	
@@ -95,7 +100,9 @@ public abstract class Accessible extends UpwardsNavigable {
 	    	
 	        if( NumericProperty.class.isAssignableFrom(m.getReturnType()) )
 				try {
-					fields.add((NumericProperty) m.invoke(this));
+					Object obj = m.invoke(this);
+					if(obj != null)
+						fields.add((NumericProperty) m.invoke(this));
 				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 					System.err.println("Error invoking method " + m);
 					e.printStackTrace();
@@ -149,6 +156,80 @@ public abstract class Accessible extends UpwardsNavigable {
     	
         for(Accessible a : children()) 
         	fields.addAll(a.genericProperties());
+	    
+	    return fields;
+		
+	}
+	
+	public List<Saveable> saveables() {
+		var fields = new ArrayList<Saveable>();
+		
+		Method[] methods = this.getClass().getMethods();		
+		
+	    for(Method m : methods)
+	    {       
+	    	if(m.getParameterCount() > 0)
+	    		continue;
+	    	
+	    	if(!Saveable.class.isAssignableFrom(m.getReturnType()))
+	        	continue;
+	    	
+	        Saveable s = null;
+	        
+			try {
+				s = (Saveable) m.invoke(this);
+			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+				System.err.println("Failed to invoke " + m);
+				e.printStackTrace();
+			}
+	        
+	        if(s == null)
+	        	continue;
+	        
+	        /* Ignore factor/instance methods returning same accessibles */
+	        if(s.describe().equals(describe()))
+	        	continue;
+
+	        fields.add(s);
+
+	    }
+	    
+	    return fields;
+		
+	}
+	
+	public List<SaveableCategory> saveableCategories() {
+		var fields = new ArrayList<SaveableCategory>();
+		
+		Method[] methods = this.getClass().getMethods();		
+		
+	    for(Method m : methods)
+	    {       
+	    	if(m.getParameterCount() > 0)
+	    		continue;
+	    	
+	    	if(!SaveableCategory.class.isAssignableFrom(m.getReturnType()))
+	        	continue;
+	    	
+	        SaveableCategory s = null;
+	        
+			try {
+				s = (SaveableCategory) m.invoke(this);
+			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+				System.err.println("Failed to invoke " + m);
+				e.printStackTrace();
+			}
+	        
+	        if(s == null)
+	        	continue;
+ 
+	        /* Ignore factor/instance methods returning same accessibles */
+	        if(s.describe().equals(describe()))
+	        	continue;
+
+	        fields.add(s);
+
+	    }
 	    
 	    return fields;
 		
@@ -408,7 +489,7 @@ public abstract class Accessible extends UpwardsNavigable {
 	 */
 	
 	public  String getDescriptor() {
-		return getSimpleName();
+		return describe();
 	}
 	
 }

@@ -26,7 +26,8 @@ import pulse.ui.components.PropertyHolderTable;
 import pulse.util.Accessible;
 import pulse.util.PropertyEvent;
 import pulse.util.PropertyHolderListener;
-import pulse.util.SaveableDirectory;
+import pulse.util.Saveable;
+import pulse.util.SaveableCategory;
 import static pulse.properties.NumericPropertyKeyword.*;
 
 /**
@@ -37,16 +38,15 @@ import static pulse.properties.NumericPropertyKeyword.*;
  * @see pulse.tasks.TaskManager
  */
 
-public class SearchTask extends Accessible implements Runnable, SaveableDirectory {
+public class SearchTask extends Accessible implements Runnable, SaveableCategory {
 
 	private Problem problem;
-	private HeatingCurve storedSolution;
 	private DifferenceScheme scheme;
 	private ExperimentalData curve;
 
 	private Path   path;
 	private Buffer buffer;
-	private Log log;
+	private Log	   log;
 	
 	private Identifier identifier;
 	private Status status = Status.INCOMPLETE;
@@ -116,7 +116,7 @@ public class SearchTask extends Accessible implements Runnable, SaveableDirector
 			}
 		}
 		);
-		storedSolution = null;
+
 	}
 	
 	/**

@@ -16,10 +16,11 @@ import java.util.Optional;
 public class Identifier extends NumericProperty {
 		private static int lastId = -1;
 		
-		private Identifier(int value) {
+		private Identifier(int value, boolean addToList) {
 			super(NumericProperty.theDefault(IDENTIFIER));
 			setValue(value);
-			Identifier.lastId = value;		
+			if(addToList) 
+				Identifier.lastId = value;		
 		}
 		
 		/**
@@ -27,7 +28,7 @@ public class Identifier extends NumericProperty {
 		 */
 		
 		public Identifier() {
-			this(Identifier.lastId + 1);
+			this(Identifier.lastId + 1, true);
 		}
 		
 		/**
@@ -43,6 +44,13 @@ public class Identifier extends NumericProperty {
 			.findFirst();
 			if(i.isPresent())
 				return i.get();
+			else 
+				return null;
+		}
+		
+		public static Identifier externalIdentifier(int id) {
+			if(id > -1)
+				return new Identifier(id, false);
 			else 
 				return null;
 		}

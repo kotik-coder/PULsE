@@ -56,7 +56,7 @@ public class DATReader implements CurveReader {
 	@Override
 	public List<ExperimentalData> read(File file) throws IOException {
 		if(file == null)
-			throw new NullPointerException(Messages.getString("DATReader.1"));				 //$NON-NLS-1$
+			throw new NullPointerException(Messages.getString("DATReader.1"));
 		
 		ExperimentalData curve = new ExperimentalData();
 
