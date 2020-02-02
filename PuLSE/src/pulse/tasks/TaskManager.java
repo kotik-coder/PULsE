@@ -24,7 +24,7 @@ import pulse.tasks.listeners.TaskRepositoryListener;
 import pulse.tasks.listeners.TaskSelectionEvent;
 import pulse.tasks.listeners.TaskSelectionListener;
 import pulse.ui.Launcher;
-import pulse.ui.charts.Chart;
+import pulse.ui.components.Chart;
 import pulse.util.UpwardsNavigable;
 import pulse.util.Saveable;
 import pulse.util.SaveableCategory;

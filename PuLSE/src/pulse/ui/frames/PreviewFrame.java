@@ -1,9 +1,11 @@
 package pulse.ui.frames;
 
+import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GridLayout;
 import java.awt.Shape;
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.util.ArrayList;
@@ -47,7 +49,7 @@ public class PreviewFrame extends JInternalFrame {
 	private static JFreeChart chart;
 	
 	private final static Color RESULT_COLOR = Color.BLUE;
-	private final static Color SPLINE_COLOR = Color.RED;
+	private final static Color SMOOTH_COLOR = Color.RED;
 	
 	private static boolean drawSmooth = true;
 	
@@ -114,7 +116,10 @@ public class PreviewFrame extends JInternalFrame {
 		xLabel = propertyNames.get(selectedX);
 		yLabel = propertyNames.get(selectedY);
 		
-    	XYPlot plot = chart.getXYPlot();        
+    	XYPlot plot = chart.getXYPlot();     
+    	
+    	plot.setDataset(0, null);
+    	plot.setDataset(1, null);
         
     	plot.getDomainAxis().setLabel(xLabel); 
     	plot.getRangeAxis().setLabel(yLabel);
@@ -128,12 +133,10 @@ public class PreviewFrame extends JInternalFrame {
         dataset.addSeries(series(data[selectedX][0], data[selectedX][1], data[selectedY][0], data[selectedY][1]));
 	    plot.setDataset(0, dataset);
         
-	    /*
         if(drawSmooth) {
-	    datasetSmooth.addSeries(series(data[selectedX][0], data[selectedY][0]));
-		plot.setDataset(1, datasetSmooth);
-        } 
-        */
+		    datasetSmooth.addSeries(series(data[selectedX][0], data[selectedY][0]));
+			plot.setDataset(1, datasetSmooth);
+		} 
         
 	}
 	
@@ -187,7 +190,13 @@ public class PreviewFrame extends JInternalFrame {
         renderer.setSeriesPaint(0, RESULT_COLOR);
         
         var rendererSpline = new XYSplineRenderer();
-        rendererSpline.setSeriesPaint(0, SPLINE_COLOR);
+        rendererSpline.setSeriesPaint(0, SMOOTH_COLOR);
+        rendererSpline.setSeriesStroke(
+        	    0, 
+        	    new BasicStroke(
+        	        2.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND,
+        	        1.0f, new float[] {6.0f, 6.0f}, 0.0f
+        	    ));
         
         double size = 6.0;
         double delta = size / 2.0;
@@ -206,7 +215,7 @@ public class PreviewFrame extends JInternalFrame {
         plot.setDomainGridlinesVisible(true);
         plot.setDomainGridlinePaint(Color.GRAY);
 
-	    plot.getRenderer(1).setSeriesPaint(0, SPLINE_COLOR);
+	    plot.getRenderer(1).setSeriesPaint(1, SMOOTH_COLOR);
         plot.getRenderer(0).setSeriesPaint(0, RESULT_COLOR);
 	    
         chart.removeLegend();

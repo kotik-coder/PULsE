@@ -47,7 +47,7 @@ import pulse.tasks.Status.Details;
 import pulse.tasks.listeners.TaskSelectionEvent;
 import pulse.tasks.listeners.TaskSelectionListener;
 import pulse.ui.Messages;
-import pulse.ui.charts.Chart;
+import pulse.ui.components.Chart;
 import pulse.ui.components.LoaderButton;
 import pulse.ui.components.PropertyHolderTable;
 import pulse.ui.components.SettingsToolBar;

@@ -21,7 +21,6 @@ import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.TaskRepositoryEvent;
 import pulse.ui.Launcher;
 import pulse.ui.Messages;
-import pulse.ui.charts.Chart;
 
 public class TaskPopupMenu extends JPopupMenu {
 

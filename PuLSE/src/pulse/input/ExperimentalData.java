@@ -1,5 +1,6 @@
 package pulse.input;
 
+import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -12,7 +13,6 @@ import pulse.input.listeners.DataListener;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.ui.Messages;
-import pulse.ui.charts.Point2D;
 import pulse.util.SaveableCategory;
 
 /**
@@ -181,7 +181,7 @@ public class ExperimentalData extends HeatingCurve implements SaveableCategory {
 						
 			tmp *= 1.0/step;
 			
-			crudeAverage.add(new Point2D( 
+			crudeAverage.add(new Point2D.Double( 
 					time.get((i1+i2)/2), 
 					tmp));
 			

@@ -1,7 +1,6 @@
 package pulse.ui.frames;
 
 import javax.swing.JFrame;
-import javax.swing.JInternalFrame;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.NumberFormatter;
 
@@ -16,7 +15,6 @@ import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
 import javax.swing.JDialog;
 
-import pulse.HeatingCurve;
 import pulse.input.ExperimentalData;
 import pulse.input.Metadata;
 import pulse.io.readers.MetaFileReader;
@@ -37,16 +35,13 @@ import pulse.tasks.listeners.TaskSelectionEvent;
 import pulse.tasks.listeners.TaskSelectionListener;
 import pulse.ui.Launcher;
 import pulse.ui.Messages;
-import pulse.ui.charts.Chart;
+import pulse.ui.components.Chart;
 import pulse.ui.components.ExecutionButton;
 import pulse.ui.components.LogPane;
 import pulse.ui.components.ResultTable;
 import pulse.ui.components.TaskTable;
 import pulse.ui.components.TaskTable.TaskTableModel;
 import pulse.ui.components.models.ResultTableModel;
-import pulse.util.Saveable;
-import pulse.util.SaveableCategory;
-
 import java.awt.Component;
 import java.awt.Font;
 
@@ -58,8 +53,6 @@ import javax.swing.JFileChooser;
 import javax.swing.JFormattedTextField;
 
 import java.awt.event.ActionListener;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.WindowAdapter;
@@ -106,6 +99,7 @@ public class TaskControlFrame extends JFrame {
 		adjustEnabledControls();
 		assignMenuFunctions();
 		scheduleLogEvents();
+		setIconImage(Launcher.loadIcon(File.separator + "logo.png", 32).getImage());
 		startSystemMonitors();
 		assignResultToolbar();
 		adjustTablesToolbars();
@@ -244,7 +238,7 @@ public class TaskControlFrame extends JFrame {
         aboutItem = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setTitle("PULsE v. 1.3");
+        setTitle(Messages.getString("TaskControlFrame.SoftwareTitle"));
         setPreferredSize(new java.awt.Dimension(WIDTH, HEIGHT));
         taskManagerFrame.setTitle("Task Manager");
         taskManagerFrame.setVisible(true);

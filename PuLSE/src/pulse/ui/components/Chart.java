@@ -1,4 +1,4 @@
-package pulse.ui.charts;
+package pulse.ui.components;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -8,7 +8,6 @@ import java.util.List;
 
 import pulse.HeatingCurve;
 import pulse.input.ExperimentalData;
-import pulse.problem.statements.Problem;
 import pulse.tasks.SearchTask;
 import pulse.ui.Messages;
 
@@ -16,7 +15,6 @@ import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.annotations.XYTitleAnnotation;
-import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.block.BlockBorder;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.ValueMarker;
@@ -25,13 +23,11 @@ import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.ui.RectangleAnchor;
 import org.jfree.chart.ui.RectangleEdge;
-import org.jfree.data.Range;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
 public class Chart {
-
-	private TimeAxisSpecs timeAxisSpecs;    
+   
     private static JFreeChart chart;
     private static float opacity = 0.15f;
     private static boolean residualsShown = true;
@@ -139,7 +135,6 @@ public class Chart {
 	    upperMarker.setPaint(Color.black);
 	    upperMarker.setStroke(dashed);
 	    
-	    //marker.setLabel("here"); // see JavaDoc for labels, colors, strokes
 	    plot.addDomainMarker(upperMarker);
 	    plot.addDomainMarker(lowerMarker);
         
@@ -154,39 +149,14 @@ public class Chart {
             		plot.setDataset(1, solutionDataset);
             		
             		/*
-            		 * plot old solutions
-            		 */
-            		
-            		var oldDataset = new XYSeriesCollection();
-            		int i = 0;
-            		
-            		/*
-            		HeatingCurve hc = task.getStoredSolution();
-            	
-            		if(hc != null)
-            			oldDataset.addSeries(series(hc, "Stored solution", extendedCurve));		            		            
-            		
-        			plot.setDataset(2, oldDataset);
-            		*/
-            		/*
             		 * plot residuals
             		 */
             		
             		if(residualsShown)
             		if(solution.getResiduals() != null) {            			
-            		
-	            	    //final NumberAxis axis2 = new NumberAxis("Residuals (a.u.)");
-	            	    //plot.setRangeAxis(2, axis2);
-	            		
-	            		var residualsDataset = new XYSeriesCollection();
+            			var residualsDataset = new XYSeriesCollection();
 	            		residualsDataset.addSeries(residuals(solution));
 	            	    plot.setDataset(3, residualsDataset);
-	            	    //plot.mapDatasetToRangeAxis(3, 2);
-	            	    
-	            	    final double MARGIN = 5.0;
-	            	    
-	            	    //axis2.setUpperBound(solution.residualUpperBound()*MARGIN);	            	    	            	    
-	            	    //axis2.setLowerBound(solution.residualLowerBound()*MARGIN);
             		} 
             		
             	}
@@ -254,38 +224,6 @@ public class Chart {
 	    	    	  
 	    return series;
 	}
-
-    public TimeAxisSpecs getTimeAxisSpecs( ) {
-    	return timeAxisSpecs;
-    }
-    
-    /*
-     * 
-     */
-    
-    public enum PlotType {
-
-    	EXPERIMENTAL_DATA(0, Messages.getString("Charting.0")), 
-    	SOLUTION(1, Messages.getString("Charting.1")), 
-    	CLASSIC_SOLUTION(2, Messages.getString("Charting.2"));
-    	
-    	private int index;
-    	private String style;
-    		
-    	private PlotType(int i, String style) {
-    		this.index = i;
-    		this.style = style;
-    	}
-
-    	public int getChartIndex() {
-    		return index;
-    	}
-
-    	public String getStyle() {
-    		return style;
-    	}
-    	
-    }
     
     public static void setOpacity(float opacity) {
     	Chart.opacity = opacity;
