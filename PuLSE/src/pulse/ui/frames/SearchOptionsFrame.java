@@ -1,20 +1,15 @@
 package pulse.ui.frames;
 
-import java.awt.BorderLayout;
-import java.awt.Component;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.GridLayout;
 import javax.swing.AbstractListModel;
 import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ListSelectionEvent;

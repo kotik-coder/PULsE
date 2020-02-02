@@ -91,7 +91,7 @@ public class PreviewFrame extends JInternalFrame {
 		
 		var drawSmoothBtn = new JToggleButton();
 		drawSmoothBtn.setToolTipText("Smooth with cubic normal splines");
-		drawSmoothBtn.setIcon(Launcher.loadIcon(File.separator + "spline.png", ICON_SIZE));
+		drawSmoothBtn.setIcon(Launcher.loadIcon("spline.png", ICON_SIZE));
 		drawSmoothBtn.setSelected(true);
 		toolbar.add(drawSmoothBtn);
 		

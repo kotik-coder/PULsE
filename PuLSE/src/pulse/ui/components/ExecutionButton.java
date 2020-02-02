@@ -109,8 +109,8 @@ public class ExecutionButton extends JButton {
 	}
 	
 	public enum ExecutionState {
-		EXECUTE("Execute All Tasks", Launcher.loadIcon("/execute.png", 24)), 
-		STOP("Terminate All Running Tasks", Launcher.loadIcon("/stop.png", 24));
+		EXECUTE("Execute All Tasks", Launcher.loadIcon("execute.png", 24)), 
+		STOP("Terminate All Running Tasks", Launcher.loadIcon("stop.png", 24));
 
 		private String message;
 		private ImageIcon icon;

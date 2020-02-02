@@ -28,13 +28,13 @@ public class TaskPopupMenu extends JPopupMenu {
 
 	private final static int ICON_SIZE = 24;
 	
-    private static ImageIcon ICON_DETAILS	= Launcher.loadIcon("/details.png", ICON_SIZE);
-    private static ImageIcon ICON_GRAPH		= Launcher.loadIcon("/graph.png", ICON_SIZE);  
-    private static ImageIcon ICON_METADATA	= Launcher.loadIcon("/metadata.png", ICON_SIZE);
-    private static ImageIcon ICON_MISSING	= Launcher.loadIcon("/missing.png", ICON_SIZE);
-    private static ImageIcon ICON_RUN		= Launcher.loadIcon("/execute_single.png", ICON_SIZE);
-    private static ImageIcon ICON_RESET		= Launcher.loadIcon("/reset.png", ICON_SIZE);
-    private static ImageIcon ICON_RESULT	= Launcher.loadIcon("/result.png", ICON_SIZE);	
+    private static ImageIcon ICON_DETAILS	= Launcher.loadIcon("details.png", ICON_SIZE);
+    private static ImageIcon ICON_GRAPH		= Launcher.loadIcon("graph.png", ICON_SIZE);  
+    private static ImageIcon ICON_METADATA	= Launcher.loadIcon("metadata.png", ICON_SIZE);
+    private static ImageIcon ICON_MISSING	= Launcher.loadIcon("missing.png", ICON_SIZE);
+    private static ImageIcon ICON_RUN		= Launcher.loadIcon("execute_single.png", ICON_SIZE);
+    private static ImageIcon ICON_RESET		= Launcher.loadIcon("reset.png", ICON_SIZE);
+    private static ImageIcon ICON_RESULT	= Launcher.loadIcon("result.png", ICON_SIZE);	
     
 	public TaskPopupMenu() {	
 		JMenuItem itemExecute, itemChart, itemExtendedChart, itemShowMeta, itemReset, itemGenerateResult, itemShowStatus;		

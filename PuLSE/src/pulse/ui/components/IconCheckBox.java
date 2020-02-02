@@ -12,8 +12,8 @@ public class IconCheckBox extends JCheckBox {
 	 */
 	
     private final static int ICON_SIZE = 20;
-    private final static ImageIcon ICON_ENABLED		= Launcher.loadIcon("/checked.png", ICON_SIZE);
-    private final static ImageIcon ICON_DISABLED	= Launcher.loadIcon("/unchecked.png", ICON_SIZE);
+    private final static ImageIcon ICON_ENABLED		= Launcher.loadIcon("checked.png", ICON_SIZE);
+    private final static ImageIcon ICON_DISABLED	= Launcher.loadIcon("unchecked.png", ICON_SIZE);
     
     public IconCheckBox() {
     	super();

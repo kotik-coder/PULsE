@@ -99,7 +99,7 @@ public class TaskControlFrame extends JFrame {
 		adjustEnabledControls();
 		assignMenuFunctions();
 		scheduleLogEvents();
-		setIconImage(Launcher.loadIcon(File.separator + "logo.png", 32).getImage());
+		setIconImage(Launcher.loadIcon("logo.png", 32).getImage());
 		startSystemMonitors();
 		assignResultToolbar();
 		adjustTablesToolbars();
@@ -171,10 +171,10 @@ public class TaskControlFrame extends JFrame {
 		logTextPane	= new LogPane();
         taskToolbar = new javax.swing.JPanel();
         
-        removeBtn = new javax.swing.JButton(Launcher.loadIcon(File.separator + "remove.png", ICON_SIZE));
-        clearBtn = new javax.swing.JButton(Launcher.loadIcon(File.separator + "clear.png", ICON_SIZE));
-        resetBtn = new javax.swing.JButton(Launcher.loadIcon(File.separator + "reset.png", ICON_SIZE));
-        graphBtn = new javax.swing.JButton(Launcher.loadIcon(File.separator + "graph.png", ICON_SIZE));
+        removeBtn = new javax.swing.JButton(Launcher.loadIcon("remove.png", ICON_SIZE));
+        clearBtn = new javax.swing.JButton(Launcher.loadIcon("clear.png", ICON_SIZE));
+        resetBtn = new javax.swing.JButton(Launcher.loadIcon("reset.png", ICON_SIZE));
+        graphBtn = new javax.swing.JButton(Launcher.loadIcon("graph.png", ICON_SIZE));
         execBtn = new ExecutionButton();
         
         graphFrame = new javax.swing.JInternalFrame("", false, false, false, true);
@@ -202,7 +202,7 @@ public class TaskControlFrame extends JFrame {
         logScroller = new javax.swing.JScrollPane();
         logToolbar = new javax.swing.JPanel();
         
-        saveLogBtn = new javax.swing.JButton(Launcher.loadIcon(File.separator + "save.png", ICON_SIZE));
+        saveLogBtn = new javax.swing.JButton(Launcher.loadIcon("save.png", ICON_SIZE));
         saveLogBtn.setToolTipText("Save");
         
         systemStatusBar = new javax.swing.JPanel();
@@ -214,11 +214,11 @@ public class TaskControlFrame extends JFrame {
         resultsScroller = new javax.swing.JScrollPane();
         resultToolbar = new javax.swing.JPanel();
         
-        deleteEntryBtn = new javax.swing.JButton(Launcher.loadIcon(File.separator + "remove.png", ICON_SIZE));
-        mergeBtn = new javax.swing.JButton(Launcher.loadIcon(File.separator + "merge.png", ICON_SIZE));
-        undoBtn = new javax.swing.JButton(Launcher.loadIcon(File.separator + "reset.png", ICON_SIZE));
-        previewBtn = new javax.swing.JButton(Launcher.loadIcon(File.separator + "preview.png", ICON_SIZE));
-        saveResultsBtn = new javax.swing.JButton(Launcher.loadIcon(File.separator + "save.png", ICON_SIZE));
+        deleteEntryBtn = new javax.swing.JButton(Launcher.loadIcon("remove.png", ICON_SIZE));
+        mergeBtn = new javax.swing.JButton(Launcher.loadIcon("merge.png", ICON_SIZE));
+        undoBtn = new javax.swing.JButton(Launcher.loadIcon("reset.png", ICON_SIZE));
+        previewBtn = new javax.swing.JButton(Launcher.loadIcon("preview.png", ICON_SIZE));
+        saveResultsBtn = new javax.swing.JButton(Launcher.loadIcon("save.png", ICON_SIZE));
         
         mainMenu = new javax.swing.JMenuBar();
         dataControlsMenu = new javax.swing.JMenu();
@@ -343,7 +343,7 @@ public class TaskControlFrame extends JFrame {
         chartToolbar.add(limitRangeBtn,gbc);
 
         adiabaticSolutionBtn.setToolTipText("Sanity check (original adiabatic solution)");
-        adiabaticSolutionBtn.setIcon(Launcher.loadIcon(File.separator + "parker.png", ICON_SIZE));
+        adiabaticSolutionBtn.setIcon(Launcher.loadIcon("parker.png", ICON_SIZE));
         
         adiabaticSolutionBtn.addActionListener(e -> {
         	Chart.setZeroApproximationShown(adiabaticSolutionBtn.isSelected());
@@ -354,7 +354,7 @@ public class TaskControlFrame extends JFrame {
         chartToolbar.add(adiabaticSolutionBtn,gbc);
         
         residualsBtn.setToolTipText("Plot residuals");
-        residualsBtn.setIcon(Launcher.loadIcon(File.separator + "residuals.png", ICON_SIZE));
+        residualsBtn.setIcon(Launcher.loadIcon("residuals.png", ICON_SIZE));
         residualsBtn.setSelected(true);
         
         residualsBtn.addActionListener(e -> {
@@ -459,12 +459,12 @@ public class TaskControlFrame extends JFrame {
         dataControlsMenu.setText("File");
 
         loadDataItem.setMnemonic('h');
-        loadDataItem.setIcon(Launcher.loadIcon(File.separator + "load.png", ICON_SIZE));
+        loadDataItem.setIcon(Launcher.loadIcon("load.png", ICON_SIZE));
         loadDataItem.setText("Load Heating Curve(s)...");
         dataControlsMenu.add(loadDataItem);
 
         loadMetadataItem.setMnemonic('m');
-        loadMetadataItem.setIcon(Launcher.loadIcon(File.separator + "metadata.png", ICON_SIZE));
+        loadMetadataItem.setIcon(Launcher.loadIcon("metadata.png", ICON_SIZE));
         loadMetadataItem.setText("Load Metadata...");
         loadMetadataItem.setEnabled(false);
         dataControlsMenu.add(loadMetadataItem);
@@ -472,7 +472,7 @@ public class TaskControlFrame extends JFrame {
 
         exportCurrentItem.setText("Export Current");
         exportCurrentItem.setMnemonic('c');
-        exportCurrentItem.setIcon(Launcher.loadIcon(File.separator + "save.png", ICON_SIZE));
+        exportCurrentItem.setIcon(Launcher.loadIcon("save.png", ICON_SIZE));
         exportCurrentItem.setEnabled(false);
         
         exportCurrentItem.addActionListener(e -> {
@@ -492,7 +492,7 @@ public class TaskControlFrame extends JFrame {
 		    int returnVal = fileChooser.showSaveDialog(this);
 		    
 		    if (returnVal == JFileChooser.APPROVE_OPTION) {
-				dir = new File(fileChooser.getSelectedFile() + File.separator + TaskManager.getInstance().describe());
+				dir = new File(fileChooser.getSelectedFile() + TaskManager.getInstance().describe());
 				dir.mkdirs();
 				TaskManager.getSelectedTask().contents().stream().forEach(
 									individual -> individual.save(dir, individual.getDefaultExportExtension())
@@ -508,7 +508,7 @@ public class TaskControlFrame extends JFrame {
 
         exportAllItem.setText("Export...");
         exportAllItem.setMnemonic('a');
-        exportAllItem.setIcon(Launcher.loadIcon(File.separator + "save.png", ICON_SIZE));
+        exportAllItem.setIcon(Launcher.loadIcon("save.png", ICON_SIZE));
         exportAllItem.setEnabled(false);
 
         dataControlsMenu.add(exportAllItem);
@@ -530,17 +530,17 @@ public class TaskControlFrame extends JFrame {
         settingsMenu.setFont(menuFont);
 
         modelSettingsItem.setText("Heat Problem: Statement & Solution");
-        modelSettingsItem.setIcon(Launcher.loadIcon(File.separator + "heat_problem.png", ICON_SIZE));
+        modelSettingsItem.setIcon(Launcher.loadIcon("heat_problem.png", ICON_SIZE));
         modelSettingsItem.setEnabled(false);
         settingsMenu.add(modelSettingsItem);
 
         searchSettingsItem.setText("Parameter Estimation: Method & Settings");
-        searchSettingsItem.setIcon(Launcher.loadIcon(File.separator + "inverse_problem.png", ICON_SIZE));
+        searchSettingsItem.setIcon(Launcher.loadIcon("inverse_problem.png", ICON_SIZE));
         searchSettingsItem.setEnabled(false);
         settingsMenu.add(searchSettingsItem);
         settingsMenu.add(jSeparator1);
 
-        resultFormatItem.setIcon(Launcher.loadIcon(File.separator + "result_format.png", ICON_SIZE));
+        resultFormatItem.setIcon(Launcher.loadIcon("result_format.png", ICON_SIZE));
         resultFormatItem.setText("Change Result Format...");
         settingsMenu.add(resultFormatItem);
 
