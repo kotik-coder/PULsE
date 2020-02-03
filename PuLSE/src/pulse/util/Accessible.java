@@ -488,8 +488,8 @@ public abstract class Accessible extends UpwardsNavigable {
 	 * @see getSimpleName()
 	 */
 	
-	public  String getDescriptor() {
-		return describe();
+	public String getDescriptor() {
+		return getClass().getSimpleName();
 	}
 	
 }

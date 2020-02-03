@@ -38,7 +38,7 @@ public class PropertyHolderTable extends JTable {
 
 	private PropertyHolder propertyHolder;
 
-	private final static Font font = new Font(Messages.getString("PropertyHolderTable.FontName"), Font.BOLD, 16);
+	private final static Font font = new Font(Messages.getString("PropertyHolderTable.FontName"), Font.BOLD, 12);
 	private	final static int ROW_HEIGHT = 80;
 	
 	private PropertySorter sorter;
@@ -140,7 +140,8 @@ public class PropertyHolderTable extends JTable {
 		
 		for(; i < dataArray.length; i++) {
 			propertyHolder = (PropertyHolder) internalHolders.get(i-size);
-			dataArray[i][0] = propertyHolder.getDescriptor();
+			dataArray[i][0] = propertyHolder.getPrefix() != null ? 
+									propertyHolder.getPrefix() : propertyHolder.getDescriptor();
 			dataArray[i][1] = propertyHolder;
 		}
 		

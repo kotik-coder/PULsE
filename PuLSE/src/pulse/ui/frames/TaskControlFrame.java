@@ -503,7 +503,7 @@ public class TaskControlFrame extends JFrame {
        
         dataControlsMenu.add(exportCurrentItem);
         
-        Font menuFont = new Font("Arial", Font.PLAIN, 16);
+        Font menuFont = new Font("Arial", Font.PLAIN, 14);
         dataControlsMenu.setFont(menuFont);
 
         exportAllItem.setText("Export...");
