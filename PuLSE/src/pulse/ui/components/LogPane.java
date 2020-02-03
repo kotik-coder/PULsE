@@ -28,7 +28,7 @@ public class LogPane extends JEditorPane implements Saveable {
 	
 	private ExecutorService updateExecutor = Executors.newSingleThreadExecutor();
 	
-	private final static boolean DEBUG = true;
+	private final static boolean DEBUG = false;
 
 	private PrintStream outStream, errStream;
 	

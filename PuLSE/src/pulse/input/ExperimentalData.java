@@ -9,7 +9,6 @@ import java.util.List;
 import pulse.HeatingCurve;
 import pulse.input.listeners.DataEvent;
 import pulse.input.listeners.DataEventType;
-import pulse.input.listeners.DataListener;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.ui.Messages;

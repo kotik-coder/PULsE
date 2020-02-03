@@ -191,9 +191,6 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 	 */
 
 	public NumericProperty getHeatLoss() {
-		if(((Double)Bi1).compareTo((Double)Bi2) != 0)
-			System.err.println("Bi1 = " + Bi1 + " is not equal to " + " Bi2 = " + Bi2);
-		
 		return NumericProperty.derive(HEAT_LOSS, Bi1);
 	}
 	
