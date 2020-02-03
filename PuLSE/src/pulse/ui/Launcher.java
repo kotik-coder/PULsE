@@ -29,6 +29,7 @@ public class Launcher {
 
 	private static ProblemStatementFrame directFrame;
 	private static SearchOptionsFrame searchOptionsFrame; 
+	private final static String RESOURCES_FOLDER = "Resources";
 	
 	private Launcher() { }
 	
@@ -127,7 +128,7 @@ public class Launcher {
 	}
 	
     public static ImageIcon loadIcon(String path, int iconSize) {
-    	ImageIcon imageIcon = new ImageIcon(Launcher.class.getResource(File.separator + path)); // load the image to a imageIcon
+    	ImageIcon imageIcon = new ImageIcon(Launcher.class.getResource("/"  + path)); // load the image to a imageIcon
     	Image image = imageIcon.getImage(); // transform it 
     	Image newimg = image.getScaledInstance(iconSize, iconSize,  java.awt.Image.SCALE_SMOOTH); // scale it the smooth way  
     	return new ImageIcon(newimg);  // transform it back

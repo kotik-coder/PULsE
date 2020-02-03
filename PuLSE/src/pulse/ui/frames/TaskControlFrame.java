@@ -492,7 +492,7 @@ public class TaskControlFrame extends JFrame {
 		    int returnVal = fileChooser.showSaveDialog(this);
 		    
 		    if (returnVal == JFileChooser.APPROVE_OPTION) {
-				dir = new File(fileChooser.getSelectedFile() + TaskManager.getInstance().describe());
+				dir = new File(fileChooser.getSelectedFile() + File.separator + TaskManager.getInstance().describe());
 				dir.mkdirs();
 				TaskManager.getSelectedTask().contents().stream().forEach(
 									individual -> individual.save(dir, individual.getDefaultExportExtension())
