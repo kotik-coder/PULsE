@@ -185,7 +185,7 @@ public class PreviewFrame extends JInternalFrame {
                 true,
                 false
         );
-        
+                
         var renderer = new XYErrorRenderer();
         renderer.setSeriesPaint(0, RESULT_COLOR);
         
@@ -220,7 +220,14 @@ public class PreviewFrame extends JInternalFrame {
 	    
         chart.removeLegend();
         
-        return new ChartPanel(chart);  
+        ChartPanel cp = new ChartPanel(chart);
+        
+        cp.setMaximumDrawHeight(2000);
+        cp.setMaximumDrawWidth(2000);
+        cp.setMinimumDrawWidth(10);
+        cp.setMinimumDrawHeight(10);
+        
+        return cp;  
     }
     
     /*

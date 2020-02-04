@@ -1,7 +1,6 @@
 package pulse.ui;
 
 import java.awt.Image;
-import java.io.File;
 import java.lang.management.ManagementFactory;
 
 import javax.management.Attribute;
@@ -13,8 +12,6 @@ import javax.management.ObjectName;
 import javax.management.ReflectionException;
 import javax.swing.ImageIcon;
 
-import pulse.ui.frames.ProblemStatementFrame;
-import pulse.ui.frames.SearchOptionsFrame;
 import pulse.ui.frames.TaskControlFrame;
 
 /**
@@ -27,10 +24,6 @@ import pulse.ui.frames.TaskControlFrame;
 
 public class Launcher {
 
-	private static ProblemStatementFrame directFrame;
-	private static SearchOptionsFrame searchOptionsFrame; 
-	private final static String RESOURCES_FOLDER = "Resources";
-	
 	private Launcher() { }
 	
 	/**

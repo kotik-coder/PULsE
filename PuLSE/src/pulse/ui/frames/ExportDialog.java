@@ -96,6 +96,8 @@ public class ExportDialog extends JDialog {
 		
 		var solutionCheckbox = new JCheckBox("Export Solution(s)"); 
 		solutionCheckbox.setSelected(exportSolutions);
+		solutionCheckbox.addActionListener(e -> exportSolutions = solutionCheckbox.isSelected());
+		
 		var rawDataCheckbox = new JCheckBox("Export Raw Data"); 
 		rawDataCheckbox.setSelected(exportRawData);
 		rawDataCheckbox.addActionListener(e -> exportRawData = rawDataCheckbox.isSelected());

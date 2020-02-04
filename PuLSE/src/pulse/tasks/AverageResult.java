@@ -38,10 +38,8 @@ public class AverageResult extends AbstractResult {
 		
 		results = new ArrayList<AbstractResult>();
 		
-		for(AbstractResult r : res) {
+		for(AbstractResult r : res) 
 			results.add(r);
-			r.setParent(this);
-		}
 		
 		average();
 		

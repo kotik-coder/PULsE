@@ -178,7 +178,14 @@ public class TaskControlFrame extends JFrame {
         execBtn = new ExecutionButton();
         
         graphFrame = new javax.swing.JInternalFrame("", false, false, false, true);
-        graphFrame.getContentPane().add(Chart.createEmptyPanel(), BorderLayout.CENTER);        
+        
+        ChartPanel chart = Chart.createEmptyPanel();
+        graphFrame.getContentPane().add(chart, BorderLayout.CENTER);        
+        
+        chart.setMaximumDrawHeight(2000);
+        chart.setMaximumDrawWidth(2000);
+        chart.setMinimumDrawWidth(10);
+        chart.setMinimumDrawHeight(10);
         
         jSlider1 = new JSlider();
         jSlider1.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
@@ -237,6 +244,8 @@ public class TaskControlFrame extends JFrame {
         InfoMenu = new javax.swing.JMenu();
         aboutItem = new javax.swing.JMenuItem();
 
+        ed = new ExportDialog();
+        
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle(Messages.getString("TaskControlFrame.SoftwareTitle"));
         setPreferredSize(new java.awt.Dimension(WIDTH, HEIGHT));
@@ -1002,8 +1011,8 @@ public class TaskControlFrame extends JFrame {
 		
 		exportAllItem.setEnabled(true);
 		exportAllItem.addActionListener(e -> {
-			ExportDialog ed = new ExportDialog();
 			ed.setLocationRelativeTo(null);
+			ed.setAlwaysOnTop(true);
 			ed.setVisible(true);
 		}
 				 );
@@ -1417,6 +1426,7 @@ public class TaskControlFrame extends JFrame {
 	private SearchOptionsFrame searchOptionsFrame;
 	private GridBagConstraints global;
 	private GridBagLayout globalLayout;
+	private ExportDialog ed;
     // End of variables declaration                   
 		
 }
