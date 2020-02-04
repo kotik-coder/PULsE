@@ -10,14 +10,14 @@ public class Insulator extends AbsorptionModel {
 
 	private double R;
 	
-	public Insulator(SpectralRange spectrum) {
-		super(spectrum);
+	public Insulator() {
 		R = (double)NumericProperty.def(NumericPropertyKeyword.REFLECTANCE).getValue();
 	}
 
 	@Override
-	public double absorption(double x) {
-		return a0*( Math.exp(-a0*x) - R*Math.exp(-a0*(2.0 - x)) ) / (1.0 - R*R*Math.exp(-2.0*a0));
+	public double absorption(SpectralRange spectrum, double x) {
+		double a = (double) (this.getAbsorptivity(spectrum).getValue());
+		return a*( Math.exp(-a*x) - R*Math.exp(-a*(2.0 - x)) ) / (1.0 - R*R*Math.exp(-2.0*a));
 	}
 	
 	public NumericProperty getReflectance() {

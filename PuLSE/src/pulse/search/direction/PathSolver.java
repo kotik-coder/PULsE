@@ -153,7 +153,7 @@ public abstract class PathSolver extends PropertyHolder implements Reflexive {
 			shift = new Vector(params.dimension());					
 			shift.set(i, 0.5*dx);
 			
-			newParams	= params.sum(shift);
+			newParams	= params.sum(shift);			
 			task.assign( new IndexedVector(newParams, params.getIndices()) );
 			ss2			= task.solveProblemAndCalculateDeviation();
 						
@@ -162,8 +162,8 @@ public abstract class PathSolver extends PropertyHolder implements Reflexive {
 			ss1			= task.solveProblemAndCalculateDeviation();
 			
 			grad.set(i, ( ss2 - ss1 ) / dx );
-					
-		}			
+			
+		}				
 		
 		task.assign( params );
 		

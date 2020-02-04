@@ -1,86 +1,82 @@
 package pulse.problem.statements;
 
-import pulse.problem.statements.AbsorptionModel.SpectralRange;
+import java.util.List;
+
+import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
+import pulse.search.math.IndexedVector;
 import pulse.ui.Messages;
 
 public class TranslucentMaterialProblem extends LinearisedProblem {
 
-	private AbsorptionModel laserAbsorption, thermalAbsorption;
-	private final static boolean DEBUG = false;	
+	private AbsorptionModel absorption;
+	private final static boolean DEBUG = false;
+	private final static double SENSITIVITY = 100;
 
 	public TranslucentMaterialProblem() {
 		super();
-		laserAbsorption		= new BeerLambertAbsorption(SpectralRange.LASER);
-		thermalAbsorption	= new BeerLambertAbsorption(SpectralRange.THERMAL);
+		absorption		= new BeerLambertAbsorption();
 	}	
 
 	public TranslucentMaterialProblem(AbsorptionModel laserAbsorption, AbsorptionModel thermalAbsorption) {
 		super();
-		this.laserAbsorption	= laserAbsorption;
-		this.thermalAbsorption	= thermalAbsorption;
+		this.absorption	= laserAbsorption;
 	}	
 	
 	public TranslucentMaterialProblem(Problem sdd) {
 		super(sdd);
 		if(sdd instanceof TranslucentMaterialProblem) {
 			TranslucentMaterialProblem tp = (TranslucentMaterialProblem)sdd; 
-			this.laserAbsorption	= tp.laserAbsorption;
-			this.thermalAbsorption	= tp.thermalAbsorption;			
+			this.absorption	= tp.absorption;			
 		}
-		else {
-			laserAbsorption		= new BeerLambertAbsorption(SpectralRange.LASER);
-			thermalAbsorption	= new BeerLambertAbsorption(SpectralRange.THERMAL);
-		}		
+		else 
+			absorption		= new BeerLambertAbsorption();	
 	}
 	
 	public TranslucentMaterialProblem(TranslucentMaterialProblem tp) {
 		super(tp);
-		this.laserAbsorption	= tp.laserAbsorption;
-		this.thermalAbsorption	= tp.thermalAbsorption;
+		this.absorption	= tp.absorption;
 	}
 	
-	public AbsorptionModel getLaserAbsorptionModel() {
-		return laserAbsorption;
+	public AbsorptionModel getAbsorptionModel() {
+		return absorption;
 	}
 	
-	public AbsorptionModel getThermalAbsorptionModel() {
-		return thermalAbsorption;
-	}
 	
-	public void setLaserAbsorptionModel(AbsorptionModel model) {
-		this.laserAbsorption = model;
-	}
-	
-	public void setThermalAbsorptionModel(AbsorptionModel model) {
-		this.thermalAbsorption = model;
+	public void setAbsorptionModel(AbsorptionModel model) {
+		this.absorption = model;
 	}
 	
 	@Override
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
 		super.set(type, property);
-		laserAbsorption.set(type, property);
-		thermalAbsorption.set(type, property);
+		absorption.set(type, property);
 	}
 	
 	@Override
 	public boolean isEnabled() {
 		return !DEBUG;
 	}
-	/*
+	
 	@Override
-	public IndexedVector optimisationVector(List<Flag> flags) {
-		IndexedVector optimisationVector = super.optimisationVector(flags);		 				
-		
-		for(int i = 0, size = optimisationVector.dimension(); i < size; i++) {
-			switch( optimisationVector.getIndex(i) ) {
-				case PYROMETER_SPOT		:	
-					optimisationVector.set(i, dAv);
+	public IndexedVector[] optimisationVector(List<Flag> flags) {
+		IndexedVector[] optimisationVector = super.optimisationVector(flags);		 				
+				
+		for(int i = 0, size = optimisationVector[0].dimension(); i < size; i++) {
+			switch( optimisationVector[0].getIndex(i) ) {
+				case LASER_ABSORPTIVITY		:	
+					optimisationVector[0].set(i, 
+							(double) (absorption.getLaserAbsorptivity()).getValue()/SENSITIVITY  );
+					optimisationVector[1].set(i, 
+							0.1 );
 					break;
-				case SPOT_DIAMETER		:	
-					optimisationVector.set(i, (double)pulse.getSpotDiameter().getValue());
-					break;					
+				case THERMAL_ABSORPTIVITY		:	
+					optimisationVector[0].set(i, 
+							(double) (absorption.getThermalAbsorptivity()).getValue()/SENSITIVITY );
+					optimisationVector[1].set(i, 
+							0.1 );
+					break;						
 				default 				: 	continue;
 			}
 		}
@@ -95,22 +91,18 @@ public class TranslucentMaterialProblem extends LinearisedProblem {
 		
 		for(int i = 0, size = params.dimension(); i < size; i++) {
 			switch( params.getIndex(i) ) {
-				case PYROMETER_SPOT		:	
-					dAv = params.get(i);
+				case LASER_ABSORPTIVITY		:	
+					absorption.setLaserAbsorptivity( 
+							NumericProperty.derive(NumericPropertyKeyword.LASER_ABSORPTIVITY, params.get(i)*SENSITIVITY) );
 					break;
-				case SPOT_DIAMETER		:
-					NumericProperty spotDiameter = NumericProperty.derive(SPOT_DIAMETER, params.get(i)); 
-					pulse.setSpotDiameter(spotDiameter);
-					pulse.notifyListeners(this, spotDiameter);
-					break;					
-				case HEAT_LOSS		:	
-					Bi3 = params.get(i);
-					break;
+				case THERMAL_ABSORPTIVITY		:	
+					absorption.setThermalAbsorptivity( 
+							NumericProperty.derive(NumericPropertyKeyword.THERMAL_ABSORPTIVITY, params.get(i)*SENSITIVITY) );
+					break;		
 				default 				: 	continue;
 			}
 		}
 	}
-	*/
 	
 	@Override
 	public String toString() {

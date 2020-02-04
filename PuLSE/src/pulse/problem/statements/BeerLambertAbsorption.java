@@ -2,13 +2,14 @@ package pulse.problem.statements;
 
 public class BeerLambertAbsorption extends AbsorptionModel {
 
-	public BeerLambertAbsorption(SpectralRange spectrum) {
-		super(spectrum);
+	public BeerLambertAbsorption() {
+		super();
 	}
 	
 	@Override
-	public double absorption(double y) {
-		return a0*Math.exp(-a0*y);
+	public double absorption(SpectralRange range, double y) {
+		double a = (double) (this.getAbsorptivity(range).getValue());
+		return a*Math.exp(-a*y);
 	}
 	
 }

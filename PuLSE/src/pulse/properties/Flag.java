@@ -17,7 +17,7 @@ public class Flag implements Property {
 
 	private NumericPropertyKeyword index;
 	private boolean value;
-	private String abbreviation;
+	private String descriptor;
 	
 	/**
 	 * Creates a {@code Flag} with the type {@code type}. The default {@code value} is set to {@code false}. 
@@ -39,7 +39,7 @@ public class Flag implements Property {
 	
 	public Flag(NumericPropertyKeyword type, String abbreviation, boolean value) {
 		this.index = type;
-		this.abbreviation = abbreviation;
+		this.descriptor = abbreviation;
 		this.value = value;
 	}
 	
@@ -63,16 +63,18 @@ public class Flag implements Property {
 	
 	public static List<Flag> defaultList() {
 		List<Flag> flags = new ArrayList<Flag>();
-		flags.add(new Flag(NumericPropertyKeyword.DIFFUSIVITY, NumericProperty.def(DIFFUSIVITY).getAbbreviation(true), true));
-		flags.add(new Flag(NumericPropertyKeyword.HEAT_LOSS, NumericProperty.def(HEAT_LOSS).getAbbreviation(true), true));
-		flags.add(new Flag(NumericPropertyKeyword.MAXTEMP, NumericProperty.def(MAXTEMP).getAbbreviation(true), true));
-		flags.add(new Flag(NumericPropertyKeyword.BASELINE_INTERCEPT, NumericProperty.def(BASELINE_INTERCEPT).getAbbreviation(true), false));
-		flags.add(new Flag(NumericPropertyKeyword.BASELINE_SLOPE, NumericProperty.def(BASELINE_SLOPE).getAbbreviation(true), false));
-		flags.add(new Flag(NumericPropertyKeyword.FOV_OUTER, NumericProperty.def(FOV_OUTER).getAbbreviation(true), false));
-		flags.add(new Flag(NumericPropertyKeyword.FOV_INNER, NumericProperty.def(FOV_INNER).getAbbreviation(true), false));
-		flags.add(new Flag(NumericPropertyKeyword.SPOT_DIAMETER, NumericProperty.def(SPOT_DIAMETER).getAbbreviation(true), false));
-		flags.add(new Flag(NumericPropertyKeyword.DIATHERMIC_COEFFICIENT, NumericProperty.def(DIATHERMIC_COEFFICIENT).getAbbreviation(true), false));
-		flags.add(new Flag(NumericPropertyKeyword.START_TIME, NumericProperty.def(START_TIME).getAbbreviation(true), false));
+		flags.add(new Flag(NumericPropertyKeyword.DIFFUSIVITY, NumericProperty.def(DIFFUSIVITY).getDescriptor(true), true));
+		flags.add(new Flag(NumericPropertyKeyword.HEAT_LOSS, NumericProperty.def(HEAT_LOSS).getDescriptor(true), true));
+		flags.add(new Flag(NumericPropertyKeyword.MAXTEMP, NumericProperty.def(MAXTEMP).getDescriptor(true), true));
+		flags.add(new Flag(NumericPropertyKeyword.BASELINE_INTERCEPT, NumericProperty.def(BASELINE_INTERCEPT).getDescriptor(true), false));
+		flags.add(new Flag(NumericPropertyKeyword.BASELINE_SLOPE, NumericProperty.def(BASELINE_SLOPE).getDescriptor(true), false));
+		flags.add(new Flag(NumericPropertyKeyword.FOV_OUTER, NumericProperty.def(FOV_OUTER).getDescriptor(true), false));
+		flags.add(new Flag(NumericPropertyKeyword.FOV_INNER, NumericProperty.def(FOV_INNER).getDescriptor(true), false));
+		flags.add(new Flag(NumericPropertyKeyword.SPOT_DIAMETER, NumericProperty.def(SPOT_DIAMETER).getDescriptor(true), false));
+		flags.add(new Flag(NumericPropertyKeyword.DIATHERMIC_COEFFICIENT, NumericProperty.def(DIATHERMIC_COEFFICIENT).getDescriptor(true), false));
+		flags.add(new Flag(NumericPropertyKeyword.LASER_ABSORPTIVITY, NumericProperty.def(LASER_ABSORPTIVITY).getDescriptor(true), false));
+		flags.add(new Flag(NumericPropertyKeyword.THERMAL_ABSORPTIVITY, NumericProperty.def(THERMAL_ABSORPTIVITY).getDescriptor(true), false));
+		flags.add(new Flag(NumericPropertyKeyword.START_TIME, NumericProperty.def(START_TIME).getDescriptor(true), false));
 		return flags;
 	}
 	
@@ -92,7 +94,7 @@ public class Flag implements Property {
 	 */
 	
 	public Flag derive(boolean value) {
-		return new Flag(this.index, this.abbreviation, value);
+		return new Flag(this.index, this.descriptor, value);
 	}
 		
 	/**
@@ -101,8 +103,8 @@ public class Flag implements Property {
 	
 	@Override
 	public String getDescriptor(boolean addHtmlTags) {
-		return addHtmlTags ? "<html><b>Search for </b>" + abbreviation + "</html>" :
-			"<b>Search for </b>" + abbreviation;
+		return addHtmlTags ? "<html><b>Search for </b>" + descriptor + "</html>" :
+			"<b>Search for </b>" + descriptor;
 	}
 
 	/**
@@ -132,11 +134,11 @@ public class Flag implements Property {
 	}
 
 	public String abbreviation(boolean addHtmlTags) {
-		return addHtmlTags ? "<html>" + abbreviation + "</html>" : abbreviation;
+		return addHtmlTags ? "<html>" + descriptor + "</html>" : descriptor;
 	}
 
 	public void setAbbreviation(String abbreviation) {
-		this.abbreviation = abbreviation;
+		this.descriptor = abbreviation;
 	}
 
 }

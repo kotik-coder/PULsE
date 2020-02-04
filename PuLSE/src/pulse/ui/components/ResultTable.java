@@ -97,7 +97,9 @@ public class ResultTable extends JTable implements Saveable  {
 					if(! (r instanceof Result) ) 
 						continue;
 
-					if(! ((Result)r).identify().equals(id) )
+					Identifier rid = ((Result)r).identify();
+					
+					if(! rid.equals(id) )
 						continue;
 						
 					jj = convertRowIndexToView(results.indexOf(r));
@@ -221,8 +223,8 @@ public class ResultTable extends JTable implements Saveable  {
 	public void merge(double temperatureDelta) {
 		
 		ResultTableModel model = (ResultTableModel) this.getModel();
-		int temperatureIndex = model.getFormat().getKeywords().
-				indexOf(NumericPropertyKeyword.TEST_TEMPERATURE);
+		int temperatureIndex = model.getFormat().
+									indexOf(NumericPropertyKeyword.TEST_TEMPERATURE);
 		
 		if(temperatureIndex < 0)
 			return;

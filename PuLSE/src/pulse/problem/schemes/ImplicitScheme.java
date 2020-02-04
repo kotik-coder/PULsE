@@ -7,6 +7,7 @@ import java.util.List;
 
 import pulse.HeatingCurve;
 import pulse.problem.statements.AbsorptionModel;
+import pulse.problem.statements.AbsorptionModel.SpectralRange;
 import pulse.problem.statements.DiathermicMaterialProblem;
 import pulse.problem.statements.TranslucentMaterialProblem;
 import pulse.problem.statements.LinearisedProblem;
@@ -287,8 +288,7 @@ public class ImplicitScheme extends DifferenceScheme {
 
 		super.prepare(problem);
 		
-		AbsorptionModel laser = problem.getLaserAbsorptionModel();
-		AbsorptionModel thermal = problem.getThermalAbsorptionModel();		
+		AbsorptionModel absorption = problem.getAbsorptionModel();		
 
 		final double Bi1 = (double) problem.getFrontHeatLoss().getValue();
 		final double Bi2 = (double) problem.getHeatLossRear().getValue();
@@ -349,15 +349,15 @@ public class ImplicitScheme extends DifferenceScheme {
 																 // numeric stability!
 
 				alpha[1] = 1.0 / ( 1.0 + HH/(2.0*tau) + Bi1H );
-				beta[1]	 = ( U[0] + tau*pls*laser.absorption(0.0) ) / (1.0 + 2.0*tau/HH * (1 + Bi1H));
+				beta[1]	 = ( U[0] + tau*pls*absorption.absorption(SpectralRange.LASER, 0.0) ) / (1.0 + 2.0*tau/HH * (1 + Bi1H));
 
 				for (i = 1; i < N; i++) {
 					alpha[i + 1] = c / (b - a * alpha[i]);
-					F			 = -U[i] / tau - pls*laser.absorption( (i - EPS)*hx );
+					F			 = -U[i] / tau - pls*absorption.absorption(SpectralRange.LASER, (i - EPS)*hx );
 					beta[i + 1]	 = (F - a * beta[i]) / (a * alpha[i] - b);
 				}				
 
-				V[N] = (HH * (U[N] + tau * pls * laser.absorption((N - EPS)*hx)) + 2. * tau * beta[N])
+				V[N] = (HH * (U[N] + tau * pls * absorption.absorption(SpectralRange.LASER, (N - EPS)*hx)) + 2. * tau * beta[N])
 						/ (2 * Bi2H * tau + HH + 2. * tau * (1 - alpha[N]));
 
 				for (j = N - 1; j >= 0; j--)
@@ -370,8 +370,8 @@ public class ImplicitScheme extends DifferenceScheme {
 			signal = 0;
 						
 			for(i = 0; i < N; i++) 
-				signal += V[N - i]*thermal.absorption(i*hx) + 
-						   V[N - 1 - i]*thermal.absorption((i + 1)*hx);
+				signal += V[N - i]*absorption.absorption(SpectralRange.THERMAL, i*hx) + 
+						   V[N - 1 - i]*absorption.absorption(SpectralRange.THERMAL,(i + 1)*hx);
 			
 			signal *= hx/2.0;
 			

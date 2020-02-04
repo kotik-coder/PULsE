@@ -224,7 +224,9 @@ public enum NumericPropertyKeyword {
 	 * Dimensionless coefficient of laser energy absorption (&gamma;<sub>0</sub>).
 	 */
 	
-	ABSORPTIVITY,
+	LASER_ABSORPTIVITY,
+	
+	THERMAL_ABSORPTIVITY,
 	
 	/**
 	 * Reflectance of the sample (0 < R <= 1).

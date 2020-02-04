@@ -9,6 +9,7 @@ import pulse.problem.statements.LinearisedProblem;
 import pulse.problem.statements.NonlinearProblem;
 import pulse.problem.statements.Problem;
 import pulse.problem.statements.TwoDimensional;
+import pulse.problem.statements.AbsorptionModel.SpectralRange;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.ui.Messages;
@@ -241,8 +242,9 @@ public class ExplicitScheme extends DifferenceScheme {
 			double[] U 	   = new double[N + 1];
 			double[] V     = new double[N + 1];
 			
-			AbsorptionModel absorb = problem.getLaserAbsorptionModel();
+			AbsorptionModel absorb = problem.getAbsorptionModel();
 			double pls;
+			double signal = 0;
 			
 			/*
 			 * Constants used in the calculation loop
@@ -275,7 +277,7 @@ public class ExplicitScheme extends DifferenceScheme {
 					 */
 					for(i = 1; i < N; i++) 
 						V[i] =	U[i] +  TAU_HH*( U[i+1] - 2.*U[i] + U[i-1] ) + 
-								tau*pls*absorb.absorption( (i - EPS)*hx );
+								tau*pls*absorb.absorption(SpectralRange.LASER, (i - EPS)*hx );
 					
 					/*
 					 * Calculates boundary values
@@ -289,6 +291,11 @@ public class ExplicitScheme extends DifferenceScheme {
 				}
 				
 				maxVal = Math.max(maxVal, V[N]);
+				
+				for(i = 0; i < N; i++) 
+					signal += V[N - i]*absorb.absorption(SpectralRange.THERMAL, i*hx) + 
+							   V[N - 1 - i]*absorb.absorption(SpectralRange.THERMAL,(i + 1)*hx);				
+				
 				curve.addPoint(
 						(w * timeInterval) * grid.tau * problem.timeFactor(),
 						V[grid.N] );

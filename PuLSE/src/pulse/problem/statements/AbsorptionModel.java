@@ -1,7 +1,9 @@
 package pulse.problem.statements;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
@@ -11,47 +13,74 @@ import pulse.util.Reflexive;
 
 public abstract class AbsorptionModel extends PropertyHolder implements Reflexive {
 	
-	protected double a0;	
-	private SpectralRange spectrum;
+	private Map<SpectralRange,NumericProperty> absorptionMap; 
 	
-	protected AbsorptionModel(SpectralRange spectrum) {
-		a0 = (double)NumericProperty.def(NumericPropertyKeyword.ABSORPTIVITY).getValue();
-		this.spectrum = spectrum;
+	protected AbsorptionModel() {
+		setPrefix("Absorption model");
+		absorptionMap = new HashMap<SpectralRange,NumericProperty>();
+		absorptionMap.put(
+				SpectralRange.LASER, 
+				NumericProperty.theDefault(NumericPropertyKeyword.
+								LASER_ABSORPTIVITY) );
+		absorptionMap.put(
+				SpectralRange.THERMAL, 
+				NumericProperty.theDefault(NumericPropertyKeyword.
+								THERMAL_ABSORPTIVITY) );
+	}
+
+	public abstract double absorption(SpectralRange range, double x);
+	
+	public NumericProperty getLaserAbsorptivity() {
+		return absorptionMap.get(SpectralRange.LASER);
 	}
 	
-	public SpectralRange getSpectralRange() {
-		return spectrum;
+	public NumericProperty getThermalAbsorptivity() {
+		return absorptionMap.get(SpectralRange.THERMAL);
 	}
 	
-	public abstract double absorption(double x);
-	
-	public NumericProperty getAbsorptivity() {
-		return NumericProperty.derive(NumericPropertyKeyword.ABSORPTIVITY, a0);
+	public NumericProperty getAbsorptivity(SpectralRange spectrum) {
+		return absorptionMap.get(spectrum);
 	}
 	
-	public void setAbsorptivity(NumericProperty a) {
-		this.a0 = (double)a.getValue();
-		
+	public void setAbsorptivity(SpectralRange range, NumericProperty a) {
+		absorptionMap.put(range, a);		
+	}
+	
+	public void setLaserAbsorptivity(NumericProperty a) {
+		absorptionMap.put(SpectralRange.LASER, a);		
+	}
+	
+	public void setThermalAbsorptivity(NumericProperty a) {
+		absorptionMap.put(SpectralRange.THERMAL, a);		
 	}
 	
 	@Override
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
-		NumericPropertyKeyword prop = (NumericPropertyKeyword)type;
-		double newVal = ((Number)property.getValue()).doubleValue();
 		
-		switch(prop) {
-			case ABSORPTIVITY		: 	a0 = newVal; 			return;
+		switch(type) {
+			case LASER_ABSORPTIVITY		: 	
+				absorptionMap.put(SpectralRange.LASER, property);  			
+				return;
+			case THERMAL_ABSORPTIVITY	:
+				absorptionMap.put(SpectralRange.THERMAL, property);  			
+				return;
 		}
-	}
-	
-	public  String getDescriptor() {
-		return spectrum.toString();
+		
 	}
 	
 	@Override
 	public List<Property> listedTypes() {
 		List<Property> list = new ArrayList<Property>();
-		list.add(NumericProperty.def(NumericPropertyKeyword.ABSORPTIVITY));
+		list.add(
+				NumericProperty.def(
+						NumericPropertyKeyword.LASER_ABSORPTIVITY
+									)
+				);
+		list.add(
+				NumericProperty.def(
+						NumericPropertyKeyword.THERMAL_ABSORPTIVITY
+									)
+				);		
 		return list;				
 	}
 	
@@ -69,11 +98,12 @@ public abstract class AbsorptionModel extends PropertyHolder implements Reflexiv
 			return name;
 		}
 		
-	}
-	
-	@Override
-	public String toString() {
-		return getClass().getSimpleName() + " for " + spectrum;
+		public NumericPropertyKeyword typeOfAbsorption() {
+			return this == SpectralRange.LASER ? 
+					NumericPropertyKeyword.LASER_ABSORPTIVITY :
+					NumericPropertyKeyword.THERMAL_ABSORPTIVITY;
+		}
+		
 	}
 	
 }

@@ -18,11 +18,18 @@
     	keyword="REFLECTANCE" maximum="1" minimum="1E-5"
     	primitive-type="double" value="0.5" discreet="false">
     </NumericProperty>
+    <NumericProperty abbreviation=" &amp;gamma;&lt;sub&gt;1&lt;/sub&gt;"
+    	auto-adjustable="false"
+    	descriptor="Thermal absorptivity, &amp;gamma;&lt;sub&gt;1&lt;/sub&gt;"
+    	dimensionfactor="1.0" discreet="false"
+    	keyword="THERMAL_ABSORPTIVITY" maximum="1E8" minimum="1E-3"
+    	primitive-type="double" value="10">
+    </NumericProperty>
     <NumericProperty abbreviation=" &amp;gamma;&lt;sub&gt;0&lt;/sub&gt;"
-    	descriptor="Absorptivity, &amp;gamma;&lt;sub&gt;0&lt;/sub&gt;"
-    	keyword="ABSORPTIVITY" auto-adjustable="false" maximum="1E8"
+    	descriptor="Laser absorptivity, &amp;gamma;&lt;sub&gt;0&lt;/sub&gt;"
+    	keyword="LASER_ABSORPTIVITY" auto-adjustable="false" maximum="1E8"
     	dimensionfactor="1" minimum="1E-3" primitive-type="double"
-    	value="100" discreet="false">
+    	value="10" discreet="false">
     </NumericProperty>
     <NumericProperty keyword="ITERATION_LIMIT"
     	abbreviation="Iteration limit" auto-adjustable="true"
