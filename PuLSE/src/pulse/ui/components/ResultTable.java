@@ -221,7 +221,6 @@ public class ResultTable extends JTable implements Saveable  {
 	 */
 	
 	public void merge(double temperatureDelta) {
-		
 		ResultTableModel model = (ResultTableModel) this.getModel();
 		int temperatureIndex = model.getFormat().
 									indexOf(NumericPropertyKeyword.TEST_TEMPERATURE);

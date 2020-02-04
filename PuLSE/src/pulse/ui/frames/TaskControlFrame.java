@@ -1059,10 +1059,9 @@ public class TaskControlFrame extends JFrame {
 				if(resultsTable.getRowCount() < 1)
 					return;
 				
-				inputDialog.setConfirmAction( () -> resultsTable.merge(inputDialog.value()) );
-				
 				inputDialog.setLocationRelativeTo(null);
 				inputDialog.setVisible(true);
+				inputDialog.setConfirmAction( () -> resultsTable.merge(inputDialog.value()) );
 			}
 			
 		});		

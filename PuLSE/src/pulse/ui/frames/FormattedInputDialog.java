@@ -5,6 +5,8 @@ import javax.swing.JLabel;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.text.DecimalFormat;
+import java.text.ParseException;
+
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 
@@ -36,7 +38,7 @@ import pulse.ui.components.controllers.ConfirmAction;
 public class FormattedInputDialog extends JDialog {
 	
 	private final static int FONT_SIZE = 14;
-	private final static int WIDTH = 450;
+	private final static int WIDTH = 550;
 	private final static int HEIGHT = 130;
 	private JFormattedTextField ftf;
 	private ConfirmAction confirmAction;
@@ -77,6 +79,12 @@ public class FormattedInputDialog extends JDialog {
                     	ftf.postActionEvent(); //inform the editor
 	    		}
                 else {
+                	try {
+						ftf.commitEdit();
+					} catch (ParseException e) {
+						System.out.println("Could not parse merge value");
+						e.printStackTrace();
+					}
 			    	confirmAction.onConfirm();
 			    	close();
                 }
