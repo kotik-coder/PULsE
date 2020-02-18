@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE xml>
+<NumericProperties>
+	<NumericProperty
+		abbreviation="&lt;i&gt;t&lt;/i&gt;&lt;sub&gt;0&lt;/sub&gt;"
+		auto-adjustable="true"
+		descriptor="Pulse start time, &lt;i&gt;t&lt;/i&gt;&lt;sub&gt;0&lt;/sub&gt;"
+		dimensionfactor="1" keyword="START_TIME" maximum="10" minimum="-10"
+		primitive-type="double" value="0" discreet="false">
+	</NumericProperty>
+	<NumericProperty abbreviation="&amp;eta;"
+		auto-adjustable="true" dimensionfactor="1"
+		keyword="DIATHERMIC_COEFFICIENT" maximum="1" minimum="0"
+		primitive-type="double" value="0"
+		descriptor="Diathermic coefficient, &amp;eta;" discreet="false">
+	</NumericProperty>
+	<NumericProperty abbreviation="&lt;i&gt;r&lt;/i&gt;"
+		auto-adjustable="true" descriptor="Reflectance, &lt;i&gt;r&lt;/i&gt;"
+		dimensionfactor="1" keyword="REFLECTANCE" maximum="1" minimum="1E-5"
+		primitive-type="double" value="0.5" discreet="false">
+	</NumericProperty>
+	<NumericProperty
+		abbreviation=" &amp;gamma;&lt;sub&gt;1&lt;/sub&gt;"
+		auto-adjustable="false"
+		descriptor="Thermal absorptivity, &amp;gamma;&lt;sub&gt;1&lt;/sub&gt;"
+		dimensionfactor="1.0" discreet="false" keyword="THERMAL_ABSORPTIVITY"
+		maximum="1E8" minimum="1E-3" primitive-type="double" value="10">
+	</NumericProperty>
+	<NumericProperty
+		abbreviation=" &amp;gamma;&lt;sub&gt;0&lt;/sub&gt;"
+		descriptor="Laser absorptivity, &amp;gamma;&lt;sub&gt;0&lt;/sub&gt;"
+		keyword="LASER_ABSORPTIVITY" auto-adjustable="false" maximum="1E8"
+		dimensionfactor="1" minimum="1E-3" primitive-type="double" value="10"
+		discreet="false">
+	</NumericProperty>
+	<NumericProperty keyword="ITERATION_LIMIT"
+		abbreviation="Iteration limit" auto-adjustable="true"
+		descriptor="Iteration limit" dimensionfactor="1" maximum="1000"
+		minimum="1" primitive-type="int" value="64" discreet="false">
+	</NumericProperty>
+	<NumericProperty
+		abbreviation="&lt;i&gt;a&lt;/i&gt; (mm&lt;sup&gt;2&lt;/sup&gt;s&lt;sup&gt;-1&lt;/sup&gt;) "
+		auto-adjustable="true"
+		descriptor="Thermal diffusivity, &lt;i&gt;a&lt;/i&gt; (mm&lt;sup&gt;2&lt;/sup&gt;s&lt;sup&gt;-1&lt;/sup&gt;) "
+		dimensionfactor="1000000.0" keyword="DIFFUSIVITY" maximum="0.001"
+		minimum="1.0E-10" value="1.0E-6" primitive-type="double"
+		discreet="false" />
+	<NumericProperty
+		abbreviation="&lt;i&gt;l&lt;/i&gt; (mm)" auto-adjustable="false"
+		descriptor="Sample thickness, &lt;i&gt;l&lt;/i&gt; (mm)"
+		dimensionfactor="1000.0" keyword="THICKNESS" maximum="0.1"
+		minimum="1.0E-6" value="0.001" primitive-type="double" discreet="true" />
+	<NumericProperty
+		abbreviation="&lt;i&gt;d&lt;/i&gt; (mm)" auto-adjustable="false"
+		descriptor="Sample diameter, &lt;i&gt;d&lt;/i&gt; (mm)"
+		dimensionfactor="1000.0" keyword="DIAMETER" maximum="0.1"
+		minimum="1.0E-6" value="0.01" primitive-type="double" discreet="true" />
+	<NumericProperty
+		abbreviation="&amp;Delta;&lt;i&gt;T&lt;/i&gt;&lt;sub&gt;max&lt;/sub&gt;"
+		auto-adjustable="true"
+		descriptor="Rear-side heating, &amp;Delta;&lt;i&gt;T&lt;/i&gt;&lt;sub&gt;max&lt;/sub&gt; (a.u. or degrees)"
+		dimensionfactor="1.0" keyword="MAXTEMP" maximum="100.0" minimum="0.01"
+		value="1.0" primitive-type="double" discreet="false">
+	</NumericProperty>
+	<NumericProperty abbreviation="Fixed-point error"
+		auto-adjustable="false"
+		descriptor="Fixed-point iteration solver error" dimensionfactor="1.0"
+		keyword="NONLINEAR_PRECISION" maximum="1e-2" minimum="1.0E-12"
+		value="1e-8" primitive-type="double" discreet="false">
+	</NumericProperty>
+	<NumericProperty abbreviation="&lt;i&gt;N&lt;/i&gt;"
+		auto-adjustable="false" descriptor="Number of points"
+		dimensionfactor="1" keyword="NUMPOINTS" maximum="1000" minimum="10"
+		value="100" primitive-type="int" discreet="false" />
+	<NumericProperty abbreviation="&lt;i&gt;j&lt;/i&gt;"
+		auto-adjustable="false" descriptor="Search iteration"
+		dimensionfactor="1" keyword="ITERATION" maximum="1000000" minimum="0"
+		value="0" primitive-type="int" discreet="false" />
+	<NumericProperty
+		abbreviation="&lt;i&gt;t&lt;/i&gt;&lt;sub&gt;las&lt;/sub&gt; (ms)"
+		auto-adjustable="false"
+		descriptor="Pulse width, &lt;i&gt;t&lt;/i&gt;&lt;sub&gt;las&lt;/sub&gt; (ms)"
+		dimensionfactor="1000.0" keyword="PULSE_WIDTH" maximum="10"
+		minimum="1E-7" value="0.0015" primitive-type="double" discreet="true" />
+	<NumericProperty
+		abbreviation="&lt;i&gt;d&lt;/i&gt;&lt;sub&gt;las&lt;/sub&gt; (mm)"
+		auto-adjustable="false"
+		descriptor="Laser spot diameter, &lt;i&gt;d&lt;/i&gt;&lt;sub&gt;las&lt;/sub&gt; (mm)"
+		dimensionfactor="1000.0" keyword="SPOT_DIAMETER" maximum="0.05"
+		minimum="1.0E-4" value="0.01" primitive-type="double" discreet="true" />
+	<NumericProperty
+		abbreviation="&lt;i&gt;t&lt;/i&gt;&lt;sub&gt;lim&lt;/sub&gt;"
+		auto-adjustable="true"
+		descriptor="End time, &lt;i&gt;t&lt;/i&gt;&lt;sub&gt;lim&lt;/sub&gt; (s)"
+		dimensionfactor="1.0" keyword="TIME_LIMIT" maximum="20.0"
+		minimum="1.0E-6" value="1.0" primitive-type="double" discreet="true" />
+	<NumericProperty
+		abbreviation="&lt;i&gt;C&lt;/i&gt;&lt;sub&gt;p&lt;/sub&gt; (J&amp;times;kg&lt;sup&gt;-1&lt;/sup&gt;&amp;times;K&lt;sup&gt;-1&lt;/sup&gt;)"
+		auto-adjustable="true"
+		descriptor="Specific heat, &lt;i&gt;C&lt;/i&gt;&lt;sub&gt;p&lt;/sub&gt; (J&amp;times;kg&lt;sup&gt;-1&lt;/sup&gt;&amp;times;K&lt;sup&gt;-1&lt;/sup&gt;)"
+		dimensionfactor="1.0" keyword="SPECIFIC_HEAT" maximum="10000.0"
+		minimum="1.0" value="0.0" primitive-type="double" discreet="false">
+	</NumericProperty>
+	<NumericProperty
+		abbreviation="&lt;i&gt;&amp;#955;&lt;/i&gt; (W&amp;times;m&lt;sup&gt;-1&lt;/sup&gt;K&lt;sup&gt;-1&lt;/sup&gt;)"
+		auto-adjustable="true"
+		descriptor="Thermal conductivity, &lt;i&gt;&amp;#955;&lt;/i&gt; (W&amp;times;m&lt;sup&gt;-1&lt;/sup&gt;K&lt;sup&gt;-1&lt;/sup&gt;)"
+		dimensionfactor="1.0" keyword="CONDUCTIVITY" maximum="10000.0"
+		minimum="1.0" value="0.0" primitive-type="double" discreet="false" />
+	<NumericProperty
+		abbreviation="&lt;i&gt;&amp;#949;&lt;/i&gt;" auto-adjustable="true"
+		descriptor="Integral emissivity, &lt;i&gt;&amp;#949;&lt;/i&gt;"
+		dimensionfactor="1.0" keyword="EMISSIVITY" maximum="2.0" minimum="1.0"
+		value="0.0" primitive-type="double" discreet="false" />
+	<NumericProperty
+		abbreviation="&amp;rho; (kg/m&lt;sup&gt;3&lt;/sup&gt;)"
+		auto-adjustable="true"
+		descriptor="Density, &amp;rho; (kg/m&lt;sup&gt;3&lt;/sup&gt;)"
+		dimensionfactor="1.0" keyword="DENSITY" maximum="30000.0"
+		minimum="10.0" value="0.0" primitive-type="double" discreet="false" />
+	<NumericProperty
+		abbreviation="&lt;i&gt;Q&lt;/i&gt;&lt;sub&gt;las&lt;/sub&gt; (J)"
+		auto-adjustable="false"
+		descriptor="Pulse energy, &lt;i&gt;Q&lt;/i&gt;&lt;sub&gt;las&lt;/sub&gt; (J)"
+		dimensionfactor="1.0" keyword="LASER_ENERGY" maximum="100.0"
+		minimum="0.01" value="5.0" primitive-type="double" discreet="false" />
+	<NumericProperty
+		abbreviation="&lt;i&gt;T&lt;/i&gt;&lt;sub&gt;0&lt;/sub&gt; (K)"
+		auto-adjustable="true"
+		descriptor="Test temperature, &lt;i&gt;T&lt;/i&gt;&lt;sub&gt;0&lt;/sub&gt; (K)"
+		dimensionfactor="1.0" keyword="TEST_TEMPERATURE" maximum="10000.0"
+		minimum="0.0" value="298.0" primitive-type="double" discreet="false" />
+	<NumericProperty abbreviation="Resolution (linear)"
+		auto-adjustable="false" descriptor="Resolution (linear)"
+		dimensionfactor="1.0" keyword="LINEAR_RESOLUTION" maximum="0.1"
+		minimum="1.0E-8" value="1.0E-7" primitive-type="double"
+		discreet="false" />
+	<NumericProperty abbreviation="Resolution (gradient)"
+		auto-adjustable="false" descriptor="Resolution (gradient)"
+		dimensionfactor="1.0" keyword="GRADIENT_RESOLUTION" maximum="0.1"
+		minimum="1.0E-7" value="1.0E-4" primitive-type="double"
+		discreet="false" />
+	<NumericProperty abbreviation="Buffer size"
+		auto-adjustable="false" descriptor="Buffer size" dimensionfactor="1"
+		keyword="BUFFER_SIZE" maximum="20" minimum="1" value="8"
+		primitive-type="int" discreet="false" />
+	<NumericProperty abbreviation="Resolution (total)"
+		auto-adjustable="false" descriptor="Resolution (total)"
+		dimensionfactor="1.0" keyword="ERROR_TOLERANCE" maximum="0.1"
+		minimum="1.0E-5" value="0.001" primitive-type="double"
+		discreet="false" />
+	<NumericProperty
+		abbreviation="FOV&lt;sub&gt;inner&lt;/sub&gt; (mm)"
+		auto-adjustable="false"
+		descriptor="Field of view (inner), FOV&lt;sub&gt;inner&lt;/sub&gt; (mm)"
+		dimensionfactor="1000.0" discreet="true" keyword="FOV_INNER"
+		maximum="0.1" minimum="0.0" primitive-type="double" value="0.0">
+	</NumericProperty>
+	<NumericProperty
+		abbreviation="FOV&lt;sub&gt;outer&lt;/sub&gt; (mm)"
+		auto-adjustable="false"
+		descriptor="Field of view (outer), FOV&lt;sub&gt;outer&lt;/sub&gt; (mm)"
+		dimensionfactor="1000.0" keyword="FOV_OUTER" maximum="0.1"
+		minimum="1.0E-6" value="0.01" primitive-type="double" discreet="true" />
+	<NumericProperty abbreviation="Baseline (slope)"
+		auto-adjustable="true" descriptor="Baseline (slope)"
+		dimensionfactor="1.0" keyword="BASELINE_SLOPE" maximum="10.0"
+		minimum="-10.0" value="0.0" primitive-type="double" discreet="false" />
+	<NumericProperty abbreviation="Baseline (intercept)"
+		auto-adjustable="true" descriptor="Baseline (intercept)"
+		dimensionfactor="1.0" keyword="BASELINE_INTERCEPT" maximum="10.0"
+		minimum="-10.0" value="0.0" primitive-type="double" discreet="false" />
+	<NumericProperty
+		abbreviation="Bi&lt;sub&gt;3&lt;/sub&gt;" auto-adjustable="true"
+		descriptor="Heat loss (side surface), Bi&lt;sub&gt;3&lt;/sub&gt;"
+		dimensionfactor="1.0" keyword="HEAT_LOSS_SIDE" maximum="10.0"
+		minimum="0.0" value="0.0" primitive-type="double" discreet="false" />
+	<NumericProperty
+		abbreviation="Bi&lt;sub&gt;1&lt;/sub&gt;" auto-adjustable="true"
+		descriptor="Heat loss (front surface), Bi&lt;sub&gt;1&lt;/sub&gt;"
+		dimensionfactor="1.0" keyword="HEAT_LOSS_FRONT" maximum="10.0"
+		minimum="0.0" value="0.0" primitive-type="double" discreet="false" />
+	<NumericProperty keyword="HEAT_LOSS" abbreviation="Bi"
+		auto-adjustable="true" descriptor="Heat loss, Bi" dimensionfactor="1"
+		maximum="10" minimum="0" primitive-type="double" value="0.0"
+		discreet="false">
+	</NumericProperty>
+	<NumericProperty
+		abbreviation="Bi&lt;sub&gt;2&lt;/sub&gt;" auto-adjustable="true"
+		descriptor="Heat loss (rear surface), Bi&lt;sub&gt;2&lt;/sub&gt;"
+		dimensionfactor="1.0" keyword="HEAT_LOSS_REAR" maximum="10.0"
+		minimum="0.0" value="0.0" primitive-type="double" discreet="false" />
+	<NumericProperty
+		abbreviation="&lt;i&gt;R&lt;/i&gt;&lt;sup&gt;2&lt;/sup&gt;"
+		auto-adjustable="true"
+		descriptor="Goodness of fit, &lt;i&gt;R&lt;/i&gt;&lt;sup&gt;2&lt;/sup&gt;"
+		dimensionfactor="1.0" keyword="RSQUARED" maximum="Infinity"
+		minimum="-Infinity" value="-Infinity" primitive-type="double"
+		discreet="false" />
+	<NumericProperty abbreviation="RSS"
+		auto-adjustable="true" descriptor="Residual sum of squares, RSS"
+		dimensionfactor="1.0" keyword="SUM_OF_SQUARES"
+		maximum="1.7976931348623157E308" minimum="4.9E-324" value="Infinity"
+		primitive-type="double" discreet="false" />
+	<NumericProperty abbreviation="Gain"
+		auto-adjustable="false" descriptor="Detector Gain" dimensionfactor="1"
+		keyword="DETECTOR_GAIN" maximum="200" minimum="1" value="10"
+		primitive-type="int" discreet="false" />
+	<NumericProperty abbreviation="Iris"
+		auto-adjustable="false" descriptor="Detector Iris" dimensionfactor="1"
+		keyword="DETECTOR_IRIS" maximum="64" minimum="1" value="1"
+		primitive-type="int" discreet="false" />
+	<NumericProperty descriptor="Identifier"
+		abbreviation="ID" keyword="IDENTIFIER" auto-adjustable="false"
+		value="-1" minimum="0" maximum="10000" dimensionfactor="1"
+		primitive-type="int" discreet="false">
+	</NumericProperty>
+	<NumericProperty abbreviation="&lt;i&gt;N&lt;/i&gt;"
+		auto-adjustable="true" descriptor="Grid density, &lt;i&gt;N&lt;/i&gt;"
+		dimensionfactor="1" keyword="GRID_DENSITY" primitive-type="int"
+		value="30" minimum="15" maximum="1000" discreet="false">
+	</NumericProperty>
+	<NumericProperty keyword="TAU_FACTOR"
+		abbreviation="&lt;i&gt;&amp;tau&lt;/i&gt; / h&lt;sup&gt;2&lt;/sup&gt;"
+		auto-adjustable="true"
+		descriptor="Time factor, &lt;i&gt;&amp;tau&lt;/i&gt; / h&lt;sup&gt;2&lt;/sup&gt;"
+		dimensionfactor="1" primitive-type="double" maximum="1.0"
+		minimum="1E-4" value="0.25" discreet="false">
+	</NumericProperty>
+</NumericProperties>
