@@ -47,7 +47,7 @@ public class DiathermicMaterialProblem extends LinearisedProblem {
 	
 	@Override
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
-		NumericPropertyKeyword prop = (NumericPropertyKeyword)type;
+		NumericPropertyKeyword prop = type;
 		double newVal = ((Number)property.getValue()).doubleValue();
 		
 		switch(prop) {

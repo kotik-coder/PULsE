@@ -1,14 +1,14 @@
 package pulse.problem.schemes;
 
+import static java.lang.Math.max;
 import static java.lang.Math.pow;
+
 import pulse.HeatingCurve;
 import pulse.problem.statements.LinearisedProblem2D;
 import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.ui.Messages;
-
-import static java.lang.Math.max;
 
 public class ADIScheme extends DifferenceScheme {
 	
@@ -252,6 +252,7 @@ public class ADIScheme extends DifferenceScheme {
 		return Messages.getString("ADIScheme.4");
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	public Solver<? extends Problem> solver(Problem problem) {
 		if(problem instanceof LinearisedProblem2D)

@@ -5,6 +5,7 @@ import javax.swing.JCheckBox;
 
 import pulse.ui.Launcher;
 
+@SuppressWarnings("serial")
 public class IconCheckBox extends JCheckBox {
 
 	/*

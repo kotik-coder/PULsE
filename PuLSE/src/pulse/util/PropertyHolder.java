@@ -8,7 +8,6 @@ import pulse.properties.EnumProperty;
 import pulse.properties.NumericProperty;
 import pulse.properties.Property;
 import pulse.tasks.Identifier;
-import pulse.tasks.SearchTask;
 
 /**
  * An {@code Accessible} that has a list of parameters it accepts as its own and a list

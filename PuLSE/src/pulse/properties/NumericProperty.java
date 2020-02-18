@@ -372,7 +372,7 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
 	 */
 	
 	public int compareValues(NumericProperty arg0) {
-		Double d1 = ((Number)value).doubleValue();
+		Double d1 = value.doubleValue();
 		Double d2 = ((Number)arg0.getValue()).doubleValue(); 
 		
 		return d1.compareTo(d2);

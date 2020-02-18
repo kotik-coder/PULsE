@@ -1,8 +1,5 @@
 package pulse.util;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-
 /**
  * Provides the {@code describe()} functionality.
  * @see pulse.util.Saveable

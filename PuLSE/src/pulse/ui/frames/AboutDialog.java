@@ -15,6 +15,7 @@ import javax.swing.text.html.HTMLEditorKit;
 
 import pulse.ui.Messages;
 
+@SuppressWarnings("serial")
 public class AboutDialog extends JDialog {
 
 	private final static int WIDTH = 570;

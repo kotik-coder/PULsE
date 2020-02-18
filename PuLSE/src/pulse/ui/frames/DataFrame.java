@@ -1,18 +1,18 @@
 package pulse.ui.frames;
 
 import java.awt.BorderLayout;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Font;
 
+import javax.swing.JFrame;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.WindowConstants;
 
 import pulse.ui.Messages;
 import pulse.ui.components.PropertyHolderTable;
 import pulse.util.PropertyHolder;
-
-import java.awt.Font;
 
 public class DataFrame extends JFrame {
 
@@ -38,7 +38,7 @@ public class DataFrame extends JFrame {
 	 * Create the frame.
 	 */
 	public DataFrame(PropertyHolder dataObject, Component ancestor) {
-		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		this.ancestorFrame = ancestor.getParent();
 		this.dataObject = dataObject;
 		if(ancestor != null) {

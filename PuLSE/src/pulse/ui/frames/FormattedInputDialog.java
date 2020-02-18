@@ -1,40 +1,34 @@
 package pulse.ui.frames;
 
-import javax.swing.JLabel;
-
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.GridLayout;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 
-import javax.swing.JPanel;
-import javax.swing.JSeparator;
-
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.GridLayout;
-
-import javax.swing.JOptionPane;
-import javax.swing.JTextField;
-import javax.swing.KeyStroke;
-
-import java.awt.Toolkit;
-
-import javax.swing.JFormattedTextField;
-import javax.swing.SwingUtilities;
-
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JFormattedTextField;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JSeparator;
+import javax.swing.KeyStroke;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.WindowConstants;
 import javax.swing.text.DefaultFormatterFactory;
 import javax.swing.text.NumberFormatter;
 
 import pulse.ui.Messages;
 import pulse.ui.components.controllers.ConfirmAction;
 
+@SuppressWarnings("serial")
 public class FormattedInputDialog extends JDialog {
 	
 	private final static int FONT_SIZE = 14;
@@ -45,7 +39,7 @@ public class FormattedInputDialog extends JDialog {
 	private NumberFormatter numFormatter;
 	
 	public FormattedInputDialog() {
-		this.setDefaultCloseOperation(JDialog.HIDE_ON_CLOSE);
+		this.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
 		this.setMinimumSize(new Dimension(WIDTH, HEIGHT));		
 		
 		setTitle(Messages.getString("SimpleInputFrame.Title"));
@@ -114,7 +108,7 @@ public class FormattedInputDialog extends JDialog {
  
         inputTextField.setFormatterFactory(
                 new DefaultFormatterFactory(numFormatter));
-        inputTextField.setHorizontalAlignment(JTextField.CENTER);
+        inputTextField.setHorizontalAlignment(SwingConstants.CENTER);
         inputTextField.setFocusLostBehavior(JFormattedTextField.PERSIST);        
         
         //React when the user presses Enter while the editor is
@@ -125,6 +119,7 @@ public class FormattedInputDialog extends JDialog {
                                         "check"); //$NON-NLS-1$
         inputTextField.getActionMap().put("check", new AbstractAction() { //$NON-NLS-1$
 
+		@Override
 		public void actionPerformed(ActionEvent e) {
         if (!inputTextField.isEditValid()) { //The text is invalid.
                     if (userSaysRevert(inputTextField, numFormatter)) { //reverted
@@ -137,7 +132,7 @@ public class FormattedInputDialog extends JDialog {
             }
         });		
 		
-		inputTextField.setFont(inputTextField.getFont().deriveFont(FONT_SIZE));; //$NON-NLS-1$
+		inputTextField.setFont(inputTextField.getFont().deriveFont(FONT_SIZE));; 
 		inputTextField.setColumns(10);
 		return inputTextField;
 	}

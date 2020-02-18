@@ -4,12 +4,12 @@ import static java.lang.Math.pow;
 
 import pulse.HeatingCurve;
 import pulse.problem.statements.AbsorptionModel;
-import pulse.problem.statements.TranslucentMaterialProblem;
+import pulse.problem.statements.AbsorptionModel.SpectralRange;
 import pulse.problem.statements.LinearisedProblem;
 import pulse.problem.statements.NonlinearProblem;
 import pulse.problem.statements.Problem;
+import pulse.problem.statements.TranslucentMaterialProblem;
 import pulse.problem.statements.TwoDimensional;
-import pulse.problem.statements.AbsorptionModel.SpectralRange;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.ui.Messages;
@@ -290,15 +290,19 @@ public class ExplicitScheme extends DifferenceScheme {
 								
 				}
 				
-				maxVal = Math.max(maxVal, V[N]);
+				signal = 0;
 				
 				for(i = 0; i < N; i++) 
 					signal += V[N - i]*absorb.absorption(SpectralRange.THERMAL, i*hx) + 
-							   V[N - 1 - i]*absorb.absorption(SpectralRange.THERMAL,(i + 1)*hx);				
+							   V[N - 1 - i]*absorb.absorption(SpectralRange.THERMAL,(i + 1)*hx);
+				
+				signal *= hx/2.0;
+				
+				maxVal = Math.max(maxVal, signal);			
 				
 				curve.addPoint(
 						(w * timeInterval) * grid.tau * problem.timeFactor(),
-						V[grid.N] );
+						signal );
 				
 			}			
 
@@ -355,6 +359,7 @@ public class ExplicitScheme extends DifferenceScheme {
 		return Messages.getString("ExplicitScheme.4");
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	public Solver<? extends Problem> solver(Problem problem) {
 		if(problem instanceof TwoDimensional)

@@ -1,6 +1,6 @@
 package pulse.search.linear;
 
-import static java.lang.Math.*;
+import static java.lang.Math.abs;
 
 import pulse.problem.statements.Problem;
 import pulse.search.direction.Path;

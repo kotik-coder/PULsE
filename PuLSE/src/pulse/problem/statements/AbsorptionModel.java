@@ -64,6 +64,8 @@ public abstract class AbsorptionModel extends PropertyHolder implements Reflexiv
 			case THERMAL_ABSORPTIVITY	:
 				absorptionMap.put(SpectralRange.THERMAL, property);  			
 				return;
+			default:
+				break;
 		}
 		
 	}

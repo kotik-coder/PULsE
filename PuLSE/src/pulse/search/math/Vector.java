@@ -221,6 +221,7 @@ public class Vector {
 	@return the string-equivalent of this object containing all it's field values.
 	*/
 	 
+	@Override
 	public String toString() {
 		final String f = Messages.getString("Math.DecimalFormat"); //$NON-NLS-1$
 	    StringBuilder sb = new StringBuilder().append("("); //$NON-NLS-1$
@@ -235,6 +236,7 @@ public class Vector {
 	@return true if <code>o</code> equals <code>this</code>.
 	*/
 	 
+	@Override
 	public boolean equals(Object o) {
 	    if(o == this)
 	        return true;

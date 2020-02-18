@@ -1,6 +1,7 @@
 package pulse.problem.schemes;
 
 import static java.lang.Math.pow;
+
 import pulse.properties.NumericProperty;
 
 /**
@@ -50,6 +51,7 @@ public class Grid2D extends Grid {
 		return Math.rint( (radial/lengthFactor)/hy )*hy;
 	}
 	
+	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("<html>");

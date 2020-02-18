@@ -1,10 +1,21 @@
 package pulse.properties;
 
+import static pulse.properties.NumericPropertyKeyword.BASELINE_INTERCEPT;
+import static pulse.properties.NumericPropertyKeyword.BASELINE_SLOPE;
+import static pulse.properties.NumericPropertyKeyword.DIATHERMIC_COEFFICIENT;
+import static pulse.properties.NumericPropertyKeyword.DIFFUSIVITY;
+import static pulse.properties.NumericPropertyKeyword.FOV_INNER;
+import static pulse.properties.NumericPropertyKeyword.FOV_OUTER;
+import static pulse.properties.NumericPropertyKeyword.HEAT_LOSS;
+import static pulse.properties.NumericPropertyKeyword.LASER_ABSORPTIVITY;
+import static pulse.properties.NumericPropertyKeyword.MAXTEMP;
+import static pulse.properties.NumericPropertyKeyword.SPOT_DIAMETER;
+import static pulse.properties.NumericPropertyKeyword.START_TIME;
+import static pulse.properties.NumericPropertyKeyword.THERMAL_ABSORPTIVITY;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static pulse.properties.NumericPropertyKeyword.*;
 
 /**
  * A {@code Flag} is a {@code Property} that has a {@code type} represented by 

@@ -1,6 +1,6 @@
 package pulse.search.direction;
 
-import static pulse.search.math.Matrix.*;
+import static pulse.search.math.Matrix.outerProduct;
 
 import pulse.search.math.Matrix;
 import pulse.search.math.Vector;
@@ -107,6 +107,7 @@ public class ApproximatedHessianSolver extends PathSolver {
 	 * @return a {@code Path} instance
 	 */
 	
+	@Override
 	public Path createPath(SearchTask t) {
 		return new ComplexPath(t);
 	}

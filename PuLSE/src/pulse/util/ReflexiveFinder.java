@@ -109,6 +109,7 @@ public class ReflexiveFinder {
 	 * @return a list of classes implementing {@code Reflexive} that are found in {@code pckgname}.
 	 */
 	
+	@SuppressWarnings("unchecked")
 	public static <V extends Reflexive> List<V> simpleInstances(String pckgname) {
 		List<V> instances = new LinkedList<V>();
 		

@@ -59,11 +59,11 @@ public class TaskBoxModel extends AbstractListModel<SearchTask> implements Combo
 			throw new IllegalArgumentException(Messages.getString("TaskBoxModel.WrongClassError")); //$NON-NLS-1$
 		
 		// object is already selected so no change required.
-		if (selectedTask != null && selectedTask.equals((SearchTask)anItem))
+		if (selectedTask != null && selectedTask.equals(anItem))
 			return;
 		
 		// Simply return if object is not in the list.
-		if (selectedTask != null && !TaskManager.getTaskList().contains((SearchTask)anItem))
+		if (selectedTask != null && !TaskManager.getTaskList().contains(anItem))
 			return;
 
 		// Here we know that object is either an item in the list or null.

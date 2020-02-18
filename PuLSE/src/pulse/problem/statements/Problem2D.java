@@ -1,5 +1,11 @@
 package pulse.problem.statements;
 
+import static pulse.properties.NumericPropertyKeyword.DIAMETER;
+import static pulse.properties.NumericPropertyKeyword.FOV_INNER;
+import static pulse.properties.NumericPropertyKeyword.FOV_OUTER;
+import static pulse.properties.NumericPropertyKeyword.HEAT_LOSS_SIDE;
+import static pulse.properties.NumericPropertyKeyword.SPOT_DIAMETER;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,7 +18,6 @@ import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 import pulse.search.math.IndexedVector;
-import static pulse.properties.NumericPropertyKeyword.*;
 
 public abstract class Problem2D extends Problem implements TwoDimensional {
 	
@@ -97,6 +102,8 @@ public abstract class Problem2D extends Problem implements TwoDimensional {
 		case FOV_INNER		: setFOVInner(property); break;
 		case DIAMETER			: setSampleDiameter(property); break;
 		case HEAT_LOSS_SIDE		: setSideLosses(property); break;
+		default:
+			break;
 		}
 	}
 	

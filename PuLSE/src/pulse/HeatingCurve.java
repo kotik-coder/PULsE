@@ -322,6 +322,7 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 		return time.get(time.size() - 1) - startTime;
 	}
 	
+	@Override
 	public String toString() {
 		if(name != null)
 			return name;
@@ -452,9 +453,8 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 		}
 				
 		final double interval = timeAt(1) - timeAt(0);			
-		int i = 0;
 		
-		for(double st = startTime - interval; st > -0.9*interval; st -= interval, i++) {
+		for(double st = startTime - interval; st > -0.9*interval; st -= interval) {
 			time.add(0,st-startTime);
 			temperature.add(0,0.0);
 			baselineAdjustedTemperature.add(0,baseline.valueAt(st-startTime));
@@ -654,7 +654,7 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 		 double time, step;
 		 
 		 if(hc.time.size() < hc.count)
-			 step = timeLimit/((double)hc.count-1.0);
+			 step = timeLimit/(hc.count-1.0);
 		 else
 			 step = hc.timeAt(1) - hc.timeAt(0);
 		 

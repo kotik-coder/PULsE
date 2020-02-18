@@ -6,9 +6,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Vector;
-
-import javax.swing.DefaultRowSorter;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.RowSorter;
@@ -20,8 +17,8 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
+import javax.swing.table.TableRowSorter;
 
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
@@ -39,6 +36,7 @@ import pulse.tasks.listeners.TaskStateEvent;
 import pulse.ui.Messages;
 import pulse.ui.components.controllers.TaskTableRenderer;
 
+@SuppressWarnings("serial")
 public class TaskTable extends JTable {
 	
 	private final static int ROW_HEIGHT		= 35;
@@ -62,7 +60,8 @@ public class TaskTable extends JTable {
 			setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
 			setShowHorizontalLines(false);
 			
-			setModel(new TaskTableModel());
+			var model = new TaskTableModel();
+			setModel(model);
 					   
 			TableHeader th = new TableHeader(getColumnModel(), new String[]{
 				   NumericProperty.theDefault(NumericPropertyKeyword.IDENTIFIER).getDescriptor(true), 
@@ -79,8 +78,9 @@ public class TaskTable extends JTable {
 			getTableHeader().setPreferredSize(new Dimension( 50 , HEADER_HEIGHT ));
 			
 			setAutoCreateRowSorter(true);
-			DefaultRowSorter sorter		= ((DefaultRowSorter) getRowSorter()); 
-		    ArrayList<RowSorter.SortKey> list	= new ArrayList();
+			var sorter = new TableRowSorter<DefaultTableModel>();
+			sorter.setModel(model);
+		    var list	= new ArrayList<RowSorter.SortKey>();
 		    
 		    for(int i = 0; i < this.getModel().getColumnCount(); i++) {
 		    	list.add( new RowSorter.SortKey(i, SortOrder.ASCENDING) );
@@ -91,6 +91,7 @@ public class TaskTable extends JTable {
 		    }
 		    	
 		    sorter.setSortKeys(list);
+		    setRowSorter(sorter);
 		    
 		    initListeners();
 		    menu = new TaskPopupMenu();
@@ -273,11 +274,11 @@ public class TaskTable extends JTable {
 			public int searchRow(Identifier id) {
 				int rows = this.getRowCount();
 				
-				Vector dataVector = this.getDataVector();
+				var dataVector = this.getDataVector();
 				
 				for(int i = 0; i < rows; i++) {
 					if(id.equals(
-							((Vector)dataVector.elementAt(i)).elementAt(0)
+							(dataVector.elementAt(i)).elementAt(0)
 							))
 						return i;
 				}
@@ -297,7 +298,8 @@ public class TaskTable extends JTable {
 		      this.tooltips = columnTooltips;//plus extra data
 		    }
 
-		    public String getToolTipText(MouseEvent e) {
+		    @Override
+			public String getToolTipText(MouseEvent e) {
 		        java.awt.Point p = e.getPoint();
 		        int index = columnModel.getColumnIndexAtX(p.x);
 		        int realIndex = columnModel.getColumn(index).getModelIndex();

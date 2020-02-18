@@ -1,7 +1,10 @@
 package pulse.search.linear;
 
+import static pulse.properties.NumericPropertyKeyword.LINEAR_RESOLUTION;
+
 import java.util.ArrayList;
 import java.util.List;
+
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
@@ -11,7 +14,6 @@ import pulse.search.math.Vector;
 import pulse.tasks.SearchTask;
 import pulse.util.PropertyHolder;
 import pulse.util.Reflexive;
-import static pulse.properties.NumericPropertyKeyword.*;
 
 /**
  * The most basic {@code LinearSolver} class, which defines the notion of 
@@ -114,6 +116,8 @@ public abstract class LinearSolver extends PropertyHolder implements Reflexive {
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
 		switch(type) {
 		case LINEAR_RESOLUTION : setLinearResolution(property); break;
+		default:
+			break;
 		}
 	}
 	

@@ -2,7 +2,6 @@ package pulse.ui.components;
 
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 
@@ -16,6 +15,7 @@ import pulse.tasks.listeners.TaskSelectionListener;
 import pulse.ui.Messages;
 import pulse.ui.components.models.TaskBoxModel;
 
+@SuppressWarnings("serial")
 public class TaskBox extends JComboBox<SearchTask> {
 
 	private final static int FONT_SIZE = 12;

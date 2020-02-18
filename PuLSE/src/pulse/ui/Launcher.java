@@ -50,7 +50,8 @@ public class Launcher {
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
+            @Override
+			public void run() {
 				TaskControlFrame.getInstance().setVisible(true);
 		        TaskControlFrame.getInstance().setLocationRelativeTo(null);
             }

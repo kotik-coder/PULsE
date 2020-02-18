@@ -16,6 +16,7 @@ import pulse.tasks.listeners.TaskRepositoryListener;
 import pulse.ui.Launcher;
 import pulse.ui.Messages;
 
+@SuppressWarnings("serial")
 public class ExecutionButton extends JButton {
 
 	private ExecutionState state = ExecutionState.EXECUTE;

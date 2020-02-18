@@ -1,6 +1,7 @@
 package pulse.problem.schemes;
 
 import static java.lang.Math.pow;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,6 +60,8 @@ public class Grid extends PropertyHolder {
 		switch(type) {
 		case TAU_FACTOR		: setTimeFactor(property); break;
 		case GRID_DENSITY	: setGridDensity(property); break;
+		default:
+			break;
 		}
 	}
 	
@@ -159,6 +162,7 @@ public class Grid extends PropertyHolder {
 		return Math.rint((distance/lengthFactor)/hx)*hx;	
 	}
 	
+	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("<html>");

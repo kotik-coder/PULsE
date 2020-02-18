@@ -43,7 +43,7 @@ public abstract class Accessible extends UpwardsNavigable {
 					
 				 if(this.getParent() != c) 
 					 if(c instanceof Saveable) 
-						contents.add((Saveable)c);
+						contents.add(c);
 				 
 				 }
 				
@@ -388,6 +388,7 @@ public abstract class Accessible extends UpwardsNavigable {
 	 * @param property the {@code Property}, which will update a similar property of this {@code Accessible}.  
 	 */
 	
+	@SuppressWarnings("unchecked")
 	public void update(Property property) {
 
 		List<Accessible> children = children();

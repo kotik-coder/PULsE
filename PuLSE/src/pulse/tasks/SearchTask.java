@@ -1,11 +1,21 @@
 package pulse.tasks;
 
+import static pulse.properties.NumericPropertyKeyword.CONDUCTIVITY;
+import static pulse.properties.NumericPropertyKeyword.DENSITY;
+import static pulse.properties.NumericPropertyKeyword.EMISSIVITY;
+import static pulse.properties.NumericPropertyKeyword.RSQUARED;
+import static pulse.properties.NumericPropertyKeyword.SPECIFIC_HEAT;
+import static pulse.properties.NumericPropertyKeyword.SUM_OF_SQUARES;
+import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
+import static pulse.properties.NumericPropertyKeyword.TIME_LIMIT;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
 import pulse.HeatingCurve;
 import pulse.input.ExperimentalData;
 import pulse.input.InterpolationDataset;
@@ -26,9 +36,7 @@ import pulse.ui.components.PropertyHolderTable;
 import pulse.util.Accessible;
 import pulse.util.PropertyEvent;
 import pulse.util.PropertyHolderListener;
-import pulse.util.Saveable;
 import pulse.util.SaveableCategory;
-import static pulse.properties.NumericPropertyKeyword.*;
 
 /**
  * A {@code SearchTask} is the most important class in {@code PULsE}. It combines access to all 

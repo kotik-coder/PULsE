@@ -11,6 +11,7 @@ import javax.swing.JLabel;
  * code found on stackoverflow
  */
 
+@SuppressWarnings("serial")
 public class RotatedJLabel extends JLabel {
 
 	private boolean needsRotate;

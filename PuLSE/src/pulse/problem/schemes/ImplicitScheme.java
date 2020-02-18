@@ -2,17 +2,14 @@ package pulse.problem.schemes;
 
 import static java.lang.Math.pow;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import pulse.HeatingCurve;
 import pulse.problem.statements.AbsorptionModel;
 import pulse.problem.statements.AbsorptionModel.SpectralRange;
 import pulse.problem.statements.DiathermicMaterialProblem;
-import pulse.problem.statements.TranslucentMaterialProblem;
 import pulse.problem.statements.LinearisedProblem;
 import pulse.problem.statements.NonlinearProblem;
 import pulse.problem.statements.Problem;
+import pulse.problem.statements.TranslucentMaterialProblem;
 import pulse.problem.statements.TwoDimensional;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
@@ -401,7 +398,6 @@ public class ImplicitScheme extends DifferenceScheme {
 		super.prepare(ref);
 
 		final double HH = pow(grid.hx, 2);
-		final double _2HTAU = 2. * grid.hx * grid.tau;
 
 		HeatingCurve curve = ref.getHeatingCurve();
 		curve.reinit();
@@ -500,6 +496,7 @@ public class ImplicitScheme extends DifferenceScheme {
 		this(GRID_DENSITY, TAU_FACTOR);
 	}
 
+	/*
 	private void debug(Problem ref, double[] V, int w) {
 
 		if (w % 2 != 0)
@@ -565,7 +562,7 @@ public class ImplicitScheme extends DifferenceScheme {
 		 * dT_Wang) + "\t" + String.format("%3.2E", V[grid.N]*Tmax + dT_Wang));
 		 */
 
-	}
+	//}
 
 	/**
 	 * Constructs a fully-implicit scheme on a one-dimensional grid that is
@@ -614,6 +611,7 @@ public class ImplicitScheme extends DifferenceScheme {
 		return Messages.getString("ImplicitScheme.4");
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public Solver<? extends Problem> solver(Problem problem) {
 		if (problem instanceof TwoDimensional)

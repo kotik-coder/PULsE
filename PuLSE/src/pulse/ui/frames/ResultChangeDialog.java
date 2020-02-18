@@ -1,11 +1,24 @@
 package pulse.ui.frames;
 
-import javax.swing.JDialog;
-import javax.swing.JOptionPane;
-
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+import javax.swing.JTextPane;
+import javax.swing.UIManager;
+import javax.swing.text.AbstractDocument;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
@@ -14,21 +27,6 @@ import javax.swing.text.html.HTMLEditorKit;
 
 import pulse.tasks.ResultFormat;
 import pulse.ui.Messages;
-
-import java.awt.Font;
-import javax.swing.JTextPane;
-import javax.swing.JTextField;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JButton;
-import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import javax.swing.UIManager;
-import javax.swing.text.AbstractDocument;
 
 public class ResultChangeDialog extends JDialog {
 	/**

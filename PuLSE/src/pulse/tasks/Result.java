@@ -2,6 +2,7 @@ package pulse.tasks;
 
 import java.io.FileOutputStream;
 import java.io.PrintStream;
+
 import pulse.properties.NumericProperty;
 import pulse.ui.Messages;
 import pulse.util.Extension;

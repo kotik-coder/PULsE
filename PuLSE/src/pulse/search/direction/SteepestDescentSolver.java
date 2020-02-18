@@ -62,6 +62,7 @@ public class SteepestDescentSolver extends PathSolver {
 	 * @return a {@code Path} instance
 	 */
 	
+	@Override
 	public Path createPath(SearchTask t) {
 		return new Path(t);
 	}

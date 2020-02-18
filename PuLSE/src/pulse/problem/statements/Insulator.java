@@ -33,11 +33,13 @@ public class Insulator extends AbsorptionModel {
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
 		super.set(type, property);
 		
-		NumericPropertyKeyword prop = (NumericPropertyKeyword)type;
+		NumericPropertyKeyword prop = type;
 		double newVal = ((Number)property.getValue()).doubleValue();
 		
 		switch(prop) {
 			case REFLECTANCE		: 	R = newVal; 			return;
+		default:
+			break;
 		}
 	}
 	

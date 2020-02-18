@@ -1,5 +1,14 @@
 package pulse.input;
 
+import static pulse.properties.NumericPropertyKeyword.DETECTOR_GAIN;
+import static pulse.properties.NumericPropertyKeyword.DETECTOR_IRIS;
+import static pulse.properties.NumericPropertyKeyword.DIAMETER;
+import static pulse.properties.NumericPropertyKeyword.LASER_ENERGY;
+import static pulse.properties.NumericPropertyKeyword.PULSE_WIDTH;
+import static pulse.properties.NumericPropertyKeyword.SPOT_DIAMETER;
+import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
+import static pulse.properties.NumericPropertyKeyword.THICKNESS;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
@@ -15,8 +24,6 @@ import pulse.util.Extension;
 import pulse.util.PropertyHolder;
 import pulse.util.Reflexive;
 import pulse.util.Saveable;
-
-import static pulse.properties.NumericPropertyKeyword.*;
 
 /**
  * <p>{@code Metadata} is the information relating to a specific experiment, which is required
@@ -352,9 +359,9 @@ public class Metadata extends PropertyHolder implements Saveable, Reflexive {
         	stream.print("<tr>"); //$NON-NLS-1$
             
     		stream.print("<td>"); //$NON-NLS-1$
-            stream.print(entry.getDescriptor(false)); //$NON-NLS-1$
+            stream.print(entry.getDescriptor(false)); 
             stream.print("</td><td>"); //$NON-NLS-1$
-            stream.print(entry.formattedValue()); //$NON-NLS-1$
+            stream.print(entry.formattedValue()); 
             //possible error typecast property -> object
             stream.print("</td>"); //$NON-NLS-1$
         

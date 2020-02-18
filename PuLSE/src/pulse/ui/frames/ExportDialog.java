@@ -2,6 +2,7 @@ package pulse.ui.frames;
 
 import java.awt.Dimension;
 import java.io.File;
+
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -22,6 +23,7 @@ import pulse.tasks.TaskManager;
 import pulse.util.Extension;
 import pulse.util.Saveable;
 
+@SuppressWarnings("serial")
 public class ExportDialog extends JDialog {
 
 	private GroupLayout layout;
@@ -74,10 +76,12 @@ public class ExportDialog extends JDialog {
 		var projectText = new JTextField(projectName);
 		
 		projectText.getDocument().addDocumentListener(new DocumentListener() {
-			  public void changedUpdate(DocumentEvent e) {
+			  @Override
+			public void changedUpdate(DocumentEvent e) {
 			    	//
 				  }
-		      public void removeUpdate(DocumentEvent e) {
+		      @Override
+			public void removeUpdate(DocumentEvent e) {
 				    if(projectText.getText().trim().isEmpty()) {
 				    	projectName = defaultProjectName;
 				    	directoryField.setText(dir.getPath() + File.separator + projectName + File.separator);
@@ -86,7 +90,8 @@ public class ExportDialog extends JDialog {
 				    	directoryField.setText(dir.getPath() + File.separator + projectName + File.separator);
 				    }
 				  }
-			  public void insertUpdate(DocumentEvent e) {
+			  @Override
+			public void insertUpdate(DocumentEvent e) {
 				  	if(projectText.getText().trim().isEmpty())
 				  		return;
 			    	projectName = projectText.getText();

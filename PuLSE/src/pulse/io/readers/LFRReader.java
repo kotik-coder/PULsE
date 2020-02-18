@@ -108,10 +108,10 @@ public class LFRReader implements CurveReader {
 		for(File f : new File(directory).listFiles()) {
 			
 			nameAndExtension = f.getName().split(stringSplitter);
-			nameAndExtension[0] = nameAndExtension[0].replaceAll(toReplace, Messages.getString(" "));
+			nameAndExtension[0] = nameAndExtension[0].replaceAll(toReplace, " ");
 			
 			for(String name : fileNames) {
-				if(nameAndExtension[0].equalsIgnoreCase(name.replaceAll(toReplace, Messages.getString(" "))))
+				if(nameAndExtension[0].equalsIgnoreCase(name.replaceAll(toReplace, " ")))
 				{ //add only those curves listed in the master file
 					curves.add( readSingleCurve(f, fileTempMap.get(name)) );
 					break;

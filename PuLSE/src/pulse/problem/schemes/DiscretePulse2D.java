@@ -3,9 +3,7 @@ package pulse.problem.schemes;
 import pulse.problem.statements.Problem;
 import pulse.problem.statements.Pulse;
 import pulse.problem.statements.TwoDimensional;
-import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
-import pulse.properties.Property;
 
 /**
  * The discrete pulse on a {@code Grid2D}. 

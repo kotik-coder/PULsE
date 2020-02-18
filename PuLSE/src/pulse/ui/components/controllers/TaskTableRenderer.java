@@ -2,14 +2,15 @@ package pulse.ui.components.controllers;
 
 import java.awt.Component;
 import java.awt.Font;
+
 import javax.swing.JFormattedTextField;
 import javax.swing.JTable;
-import javax.swing.SwingConstants;
 
 import pulse.properties.NumericProperty;
 import pulse.tasks.Identifier;
 import pulse.tasks.Status;
 
+@SuppressWarnings("serial")
 public class TaskTableRenderer extends NumericPropertyRenderer {		
 	
 	public TaskTableRenderer() {

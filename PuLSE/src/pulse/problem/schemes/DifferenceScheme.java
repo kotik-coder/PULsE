@@ -2,6 +2,7 @@ package pulse.problem.schemes;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;

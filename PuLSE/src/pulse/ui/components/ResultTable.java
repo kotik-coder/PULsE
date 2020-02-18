@@ -41,6 +41,7 @@ import pulse.ui.components.models.ResultTableModel;
 import pulse.util.Extension;
 import pulse.util.Saveable;
 
+@SuppressWarnings("serial")
 public class ResultTable extends JTable implements Saveable  {		
 	
 	private final static Font font = new Font(
@@ -138,7 +139,9 @@ public class ResultTable extends JTable implements Saveable  {
 					case TASK_RESET :
 						((ResultTableModel)getModel()).removeAll( e.getId() );
 						getSelectionModel().clearSelection();						
-					break;	
+					break;
+					default:
+						break;	
 				}				
 				
 				}
@@ -182,7 +185,7 @@ public class ResultTable extends JTable implements Saveable  {
 		for(int i = 0; i < data.length; i++) 
 			for(int j = 0; j < data[0][0].length; j++) {
 				property = (NumericProperty)getValueAt(j, i);
-				data[i][0][j] = ((Number) property.getValue()).doubleValue() * ((Number) property.getDimensionFactor()).doubleValue();
+				data[i][0][j] = ((Number) property.getValue()).doubleValue() * property.getDimensionFactor().doubleValue();
 				if(property.getError() != null)
 					data[i][1][j] = property.getError().doubleValue() * 
 									property.getDimensionFactor().doubleValue();
@@ -290,7 +293,8 @@ public class ResultTable extends JTable implements Saveable  {
 	@Override
     protected JTableHeader createDefaultTableHeader() {
         return new JTableHeader(columnModel) {
-            public String getToolTipText(MouseEvent e) {
+            @Override
+			public String getToolTipText(MouseEvent e) {
                 int index = columnModel.getColumnIndexAtX(e.getPoint().x);
                 int realIndex = 
                         columnModel.getColumn(index).getModelIndex();
@@ -358,17 +362,13 @@ public class ResultTable extends JTable implements Saveable  {
         stream.println();
 
         List<AbstractResult> ir;
-        AverageResult ar;
-        Result rr;
         List<NumericProperty> props;
         
         for(AbstractResult r : results) {
         	if(r instanceof AverageResult) {
-        		ar = (AverageResult) r;
-        		ir = ar.getIndividualResults();
+        		ir = ((AverageResult) r).getIndividualResults();
         		
         		for(AbstractResult aar : ir) {		
-        			rr = (Result)aar;
         			props = AbstractResult.filterProperties(aar);
         			
         			for (int j = 0; j < getColumnCount(); j++) {
@@ -448,19 +448,15 @@ public class ResultTable extends JTable implements Saveable  {
         stream.println(""); 
 
         List<AbstractResult> ir;
-        AverageResult ar;
-        Result rr;
         List<NumericProperty> props;
         
         for(AbstractResult r : results) {
         	if(r instanceof AverageResult) {
-        		ar = (AverageResult) r;
-        		ir = ar.getIndividualResults();
+        		ir = ( (AverageResult) r ).getIndividualResults();
         		
         		for(AbstractResult aar : ir) {		
         			stream.print("<tr>"); 
-        			rr = (Result)aar;
-        			props = AbstractResult.filterProperties(aar);
+        			props = AbstractResult.filterProperties( aar );
         			
         			for (int j = 0; j < getColumnCount(); j++) {
                     	stream.print("<td>"); 

@@ -9,11 +9,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.StringTokenizer;
 
-import pulse.ui.Messages;
 import pulse.input.ExperimentalData;
 import pulse.input.Metadata;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
+import pulse.ui.Messages;
 
 /**
  * A specific implementation of {@code CurveReader} used to read {@code .dat} files.

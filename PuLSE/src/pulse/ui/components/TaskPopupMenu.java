@@ -5,6 +5,7 @@ import java.awt.Font;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+
 import javax.swing.ImageIcon;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -22,13 +23,13 @@ import pulse.tasks.listeners.TaskRepositoryEvent;
 import pulse.ui.Launcher;
 import pulse.ui.Messages;
 
+@SuppressWarnings("serial")
 public class TaskPopupMenu extends JPopupMenu {
 
 	private final static Font f = new Font(Messages.getString("TaskTable.FontName"), Font.PLAIN, 16); //$NON-NLS-1$ 
 
 	private final static int ICON_SIZE = 24;
 	
-    private static ImageIcon ICON_DETAILS	= Launcher.loadIcon("details.png", ICON_SIZE);
     private static ImageIcon ICON_GRAPH		= Launcher.loadIcon("graph.png", ICON_SIZE);  
     private static ImageIcon ICON_METADATA	= Launcher.loadIcon("metadata.png", ICON_SIZE);
     private static ImageIcon ICON_MISSING	= Launcher.loadIcon("missing.png", ICON_SIZE);
@@ -216,7 +217,7 @@ public class TaskPopupMenu extends JPopupMenu {
 		SearchTask t = TaskManager.getSelectedTask();
 		
 		if(t == null) {
-			JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor((Component) this), 
+			JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(this), 
 					Messages.getString("TaskTablePopupMenu.EmptySelection2"), Messages.getString("TaskTablePopupMenu.11"), JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$ //$NON-NLS-2$
 			return;
 		}
@@ -224,7 +225,7 @@ public class TaskPopupMenu extends JPopupMenu {
 		Details statusDetails = t.getStatus().getDetails();
 		
 		if(statusDetails == Details.MISSING_HEATING_CURVE) {
-			JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor((Component) this), 
+			JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(this), 
 					Messages.getString("TaskTablePopupMenu.12"), Messages.getString("TaskTablePopupMenu.13"), JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$ //$NON-NLS-2$
 			return;	
 		}

@@ -1,9 +1,7 @@
 package pulse.ui.frames;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Component;
-import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -12,27 +10,18 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
-import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.DefaultListSelectionModel;
 import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
-import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JSeparator;
-import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
-import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
-import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
-import javax.swing.border.EmptyBorder;
-import javax.swing.border.LineBorder;
+import javax.swing.WindowConstants;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
@@ -42,18 +31,19 @@ import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.statements.Problem;
 import pulse.tasks.SearchTask;
 import pulse.tasks.Status;
-import pulse.tasks.TaskManager;
 import pulse.tasks.Status.Details;
+import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.TaskSelectionEvent;
 import pulse.tasks.listeners.TaskSelectionListener;
 import pulse.ui.Messages;
 import pulse.ui.components.Chart;
 import pulse.ui.components.LoaderButton;
+import pulse.ui.components.LoaderButton.DataType;
 import pulse.ui.components.PropertyHolderTable;
 import pulse.ui.components.SettingsToolBar;
-import pulse.ui.components.LoaderButton.DataType;
 import pulse.util.Reflexive;
 
+@SuppressWarnings("serial")
 public class ProblemStatementFrame extends JInternalFrame {
 
 	private PropertyHolderTable problemTable, schemeTable;
@@ -71,7 +61,7 @@ public class ProblemStatementFrame extends JInternalFrame {
 	public ProblemStatementFrame() {
 		setResizable(false);
 		setClosable(true);
-		setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+		setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
 		
 		setTitle(Messages.getString("ProblemStatementFrame.Title")); //$NON-NLS-1$
 		
@@ -168,6 +158,7 @@ public class ProblemStatementFrame extends JInternalFrame {
 		//simulate btn listener
 		
 		btnSimulate.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent arg0) {
 					
 				SearchTask t = TaskManager.getSelectedTask();
@@ -387,12 +378,13 @@ public class ProblemStatementFrame extends JInternalFrame {
 			setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 			
 			addListSelectionListener(new ListSelectionListener() {
+				@Override
 				public void valueChanged(ListSelectionEvent arg0) {
 					
 					if(arg0.getValueIsAdjusting())
 						return;
 					
-					Problem newlySelectedProblem  	= (Problem) getSelectedValue();
+					Problem newlySelectedProblem  	= getSelectedValue();
 					
 					if(newlySelectedProblem == null) {
 						((DefaultTableModel) problemTable.getModel()).setRowCount(0);
@@ -438,7 +430,7 @@ public class ProblemStatementFrame extends JInternalFrame {
 					
 					if(e.getSelection().getProblem() != null) {
 					    for(int i = 0; i < getModel().getSize(); i++) { 
-					    		Problem p = (Problem) getModel().getElementAt(i);
+					    		Problem p = getModel().getElementAt(i);
 					    		if(e.getSelection().getProblem().getClass().equals(p.getClass())) {
 					    			setSelectedIndex(i);
 					    			break;
@@ -483,6 +475,7 @@ public class ProblemStatementFrame extends JInternalFrame {
 			//scheme list listener
 			
 			addListSelectionListener(new ListSelectionListener() {
+				@Override
 				public void valueChanged(ListSelectionEvent arg0) {
 					
 					if(arg0.getValueIsAdjusting())
@@ -494,7 +487,7 @@ public class ProblemStatementFrame extends JInternalFrame {
 					}
 					
 					SearchTask selectedTask = TaskManager.getSelectedTask();	
-					DifferenceScheme newScheme = (DifferenceScheme) (getSelectedValue());
+					DifferenceScheme newScheme = (getSelectedValue());
 					
 					if(newScheme == null)
 						return;

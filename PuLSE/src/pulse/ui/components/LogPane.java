@@ -24,6 +24,7 @@ import pulse.ui.Messages;
 import pulse.util.Extension;
 import pulse.util.Saveable;
 
+@SuppressWarnings("serial")
 public class LogPane extends JEditorPane implements Saveable {
 	
 	private ExecutorService updateExecutor = Executors.newSingleThreadExecutor();

@@ -18,6 +18,7 @@ import pulse.io.readers.ReaderManager;
 import pulse.tasks.TaskManager;
 import pulse.ui.Messages;
 
+@SuppressWarnings("serial")
 public class LoaderButton extends JButton {
 
 	private DataType dataType;
@@ -33,6 +34,7 @@ public class LoaderButton extends JButton {
 	
 	public void init() {
 		addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				JFileChooser fileChooser = new JFileChooser();
 				fileChooser.setCurrentDirectory(dir);

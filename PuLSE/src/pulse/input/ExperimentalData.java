@@ -50,6 +50,7 @@ public class ExperimentalData extends HeatingCurve implements SaveableCategory {
 		getBaseline().setParent(null);
 	}
 	
+	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("Experimental data "); 

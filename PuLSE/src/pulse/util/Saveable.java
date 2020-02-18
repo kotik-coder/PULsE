@@ -3,18 +3,11 @@ package pulse.util;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.filechooser.FileNameExtensionFilter;
-
-import pulse.tasks.Identifier;
-import pulse.tasks.SearchTask;
 
 /**
  * A {@code Saveable} is any individual {@code PULsE} entity that can be saved using a {@code FileOutputStream}.

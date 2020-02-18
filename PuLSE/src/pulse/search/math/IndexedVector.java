@@ -1,11 +1,17 @@
 package pulse.search.math;
 
+import static pulse.properties.NumericPropertyKeyword.BASELINE_INTERCEPT;
+import static pulse.properties.NumericPropertyKeyword.BASELINE_SLOPE;
+import static pulse.properties.NumericPropertyKeyword.DIFFUSIVITY;
+import static pulse.properties.NumericPropertyKeyword.HEAT_LOSS;
+import static pulse.properties.NumericPropertyKeyword.MAXTEMP;
+import static pulse.properties.NumericPropertyKeyword.THICKNESS;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
-import static pulse.properties.NumericPropertyKeyword.*;
 
 /**
  * A {@code Vector} with components that have been associated with

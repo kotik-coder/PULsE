@@ -4,15 +4,11 @@ import static java.lang.Math.pow;
 
 import pulse.HeatingCurve;
 import pulse.problem.statements.LinearisedProblem;
-import pulse.problem.statements.NonlinearProblem;
 import pulse.problem.statements.Problem;
 import pulse.problem.statements.TwoDimensional;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.ui.Messages;
-
-import static java.lang.Math.abs;
-import static java.lang.Math.PI;
 
 /**
  * This class implements a symmetric (weight <math> = 0.5</math>) second-order in time Crank-Nicolson semi-implicit finite-difference scheme 
@@ -205,10 +201,12 @@ public class MixedScheme extends DifferenceScheme {
 				grid.getTimeFactor(), getTimeLimit());
 	}
 	
+	@Override
 	public String toString() {
 		return Messages.getString("MixedScheme.4");
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	public Solver<? extends Problem> solver(Problem problem) {
 		if(problem instanceof TwoDimensional)

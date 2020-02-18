@@ -5,19 +5,17 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GridLayout;
 import java.awt.Shape;
-import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JComboBox;
-import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
 import javax.swing.JSeparator;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
+import javax.swing.WindowConstants;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -35,6 +33,7 @@ import pulse.properties.NumericPropertyKeyword;
 import pulse.tasks.ResultFormat;
 import pulse.ui.Launcher;
 
+@SuppressWarnings("serial")
 public class PreviewFrame extends JInternalFrame {
 
 	private final static int FRAME_WIDTH = 640;
@@ -63,7 +62,7 @@ public class PreviewFrame extends JInternalFrame {
 		setSize(FRAME_WIDTH, FRAME_HEIGHT);		
 		setTitle("Preview Plotting");
 		setClosable(true);	
-		setDefaultCloseOperation(JInternalFrame.HIDE_ON_CLOSE);
+		setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
 		
 		getContentPane().setLayout(new BorderLayout());
 		
@@ -103,7 +102,7 @@ public class PreviewFrame extends JInternalFrame {
 		
 		selectXBox.addItemListener(e -> replot(chart));
 		selectYBox.addItemListener(e -> replot(chart));
-		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 	}		
 	
 	private void replot(JFreeChart chart) {

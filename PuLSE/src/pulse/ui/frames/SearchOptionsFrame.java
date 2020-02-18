@@ -3,14 +3,16 @@ package pulse.ui.frames;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.util.List;
+
 import javax.swing.AbstractListModel;
 import javax.swing.BorderFactory;
-import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
+import javax.swing.WindowConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -24,8 +26,7 @@ import pulse.ui.Messages;
 import pulse.ui.components.PropertyHolderTable;
 import pulse.util.Reflexive;
 
-import java.util.List;
-
+@SuppressWarnings("serial")
 public class SearchOptionsFrame extends JInternalFrame {
 
 	private PropertyHolderTable pathTable;
@@ -44,7 +45,7 @@ public class SearchOptionsFrame extends JInternalFrame {
 	public SearchOptionsFrame() {
 		setClosable(true);
 		setTitle(Messages.getString("SearchOptionsFrame.SelectSearch")); //$NON-NLS-1$
-		setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+		setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
 		setBounds(100, 100, WIDTH, HEIGHT);
 		
 		/*
@@ -134,6 +135,7 @@ public class SearchOptionsFrame extends JInternalFrame {
 			setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 			
 			addListSelectionListener(new ListSelectionListener() {
+				@Override
 				public void valueChanged(ListSelectionEvent arg0) {
 					
 					if(arg0.getValueIsAdjusting())
@@ -144,7 +146,7 @@ public class SearchOptionsFrame extends JInternalFrame {
 						return;
 					}
 					
-					PathSolver searchScheme = (PathSolver) (getSelectedValue());
+					PathSolver searchScheme = (getSelectedValue());
 					
 					if(searchScheme == null)
 						return;
@@ -191,6 +193,7 @@ public class SearchOptionsFrame extends JInternalFrame {
 			});
 			
 			addListSelectionListener(new ListSelectionListener() {
+				@Override
 				public void valueChanged(ListSelectionEvent arg0) {
 					
 					if(arg0.getValueIsAdjusting())
@@ -201,7 +204,7 @@ public class SearchOptionsFrame extends JInternalFrame {
 						return;
 					}
 					
-					LinearSolver linearSolver = (LinearSolver) (getSelectedValue());
+					LinearSolver linearSolver = (getSelectedValue());
 					 
 					TaskManager.getPathSolver().setLinearSolver(linearSolver);
 					

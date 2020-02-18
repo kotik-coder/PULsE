@@ -1,6 +1,16 @@
 package pulse.problem.statements;
 
+import static java.lang.Math.PI;
+import static java.lang.Math.exp;
 import static java.lang.Math.pow;
+import static pulse.properties.NumericPropertyKeyword.DENSITY;
+import static pulse.properties.NumericPropertyKeyword.DIFFUSIVITY;
+import static pulse.properties.NumericPropertyKeyword.HEAT_LOSS;
+import static pulse.properties.NumericPropertyKeyword.HEAT_LOSS_FRONT;
+import static pulse.properties.NumericPropertyKeyword.HEAT_LOSS_REAR;
+import static pulse.properties.NumericPropertyKeyword.MAXTEMP;
+import static pulse.properties.NumericPropertyKeyword.SPECIFIC_HEAT;
+import static pulse.properties.NumericPropertyKeyword.THICKNESS;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,11 +29,6 @@ import pulse.search.math.IndexedVector;
 import pulse.util.PropertyHolder;
 import pulse.util.Reflexive;
 import pulse.util.SaveableCategory;
-
-import static java.lang.Math.PI;
-import static java.lang.Math.exp;
-
-import static pulse.properties.NumericPropertyKeyword.*;
 
 /**
  * A {@code Problem} is an abstract class defining the general rules for handling
@@ -144,8 +149,9 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 	 * @see listedTypes()  
 	 */
 	
+	@Override
 	public void set(NumericPropertyKeyword type, NumericProperty value) {
-		NumericPropertyKeyword prop = (NumericPropertyKeyword)type;
+		NumericPropertyKeyword prop = type;
 		double newVal = ((Number)value.getValue()).doubleValue();
 		
 		switch(prop) {
@@ -156,6 +162,8 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 			case HEAT_LOSS_REAR 	: 	Bi2 = newVal; 			return;
 			case SPECIFIC_HEAT 		: 	cP = newVal; 			return;
 			case DENSITY 			: 	rho = newVal; 			return;
+			default:
+				break;
 		}
 		
 	}

@@ -13,8 +13,8 @@ import javax.swing.DefaultCellEditor;
 import javax.swing.JFormattedTextField;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
-import javax.swing.JTextField;
 import javax.swing.KeyStroke;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.text.DefaultFormatterFactory;
 import javax.swing.text.NumberFormatter;
@@ -91,7 +91,7 @@ public class NumberEditor extends DefaultCellEditor {
 		        ftf.setFormatterFactory(
 		                new DefaultFormatterFactory(numFormatter));
 		        ftf.setValue(value);
-		        ftf.setHorizontalAlignment(JTextField.CENTER);
+		        ftf.setHorizontalAlignment(SwingConstants.CENTER);
 		        ftf.setFocusLostBehavior(JFormattedTextField.PERSIST);
 		 
 		        //React when the user presses Enter while the editor is
@@ -106,6 +106,7 @@ public class NumberEditor extends DefaultCellEditor {
 					 */
 					private static final long serialVersionUID = 1L;
 
+					@Override
 					public void actionPerformed(ActionEvent e) {
 						if (!ftf.isEditValid()) { //The text is invalid.
 		                    if (userSaysRevert()) { //reverted

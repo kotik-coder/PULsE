@@ -6,11 +6,6 @@ import java.awt.Font;
 import java.awt.Stroke;
 import java.util.List;
 
-import pulse.HeatingCurve;
-import pulse.input.ExperimentalData;
-import pulse.tasks.SearchTask;
-import pulse.ui.Messages;
-
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -25,6 +20,11 @@ import org.jfree.chart.ui.RectangleAnchor;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
+
+import pulse.HeatingCurve;
+import pulse.input.ExperimentalData;
+import pulse.tasks.SearchTask;
+import pulse.ui.Messages;
 
 public class Chart {
    

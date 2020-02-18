@@ -1,5 +1,9 @@
 package pulse.problem.statements;
 
+import static pulse.properties.NumericPropertyKeyword.NONLINEAR_PRECISION;
+import static pulse.properties.NumericPropertyKeyword.REFLECTANCE;
+import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
+
 import java.util.List;
 
 import pulse.input.ExperimentalData;
@@ -8,8 +12,6 @@ import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 import pulse.tasks.TaskManager;
 import pulse.ui.Messages;
-
-import static pulse.properties.NumericPropertyKeyword.*;
 
 public class NonlinearProblem extends Problem {
 	
@@ -94,6 +96,7 @@ public class NonlinearProblem extends Problem {
 		switch(type) {
 			case TEST_TEMPERATURE	 :	T = newVal; return; 
 			case NONLINEAR_PRECISION : nonlinearPrecision = newVal; return;
+			default: break;
 		}				
 		
 	}

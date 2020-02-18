@@ -9,13 +9,16 @@ import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
 import javax.swing.AbstractButton;
 import javax.swing.AbstractCellEditor;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JTable;
+import javax.swing.RowSorter.SortKey;
 import javax.swing.SortOrder;
+import javax.swing.SwingConstants;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
@@ -34,6 +37,7 @@ import pulse.ui.frames.DataFrame;
 import pulse.util.Accessible;
 import pulse.util.PropertyHolder;
 
+@SuppressWarnings("serial")
 public class PropertyHolderTable extends JTable {
 
 	private PropertyHolder propertyHolder;
@@ -41,7 +45,7 @@ public class PropertyHolderTable extends JTable {
 	private final static Font font = new Font(Messages.getString("PropertyHolderTable.FontName"), Font.BOLD, 12);
 	private	final static int ROW_HEIGHT = 80;
 	
-	private PropertySorter sorter;
+	private TableRowSorter<DefaultTableModel> sorter;
 	
 	public PropertyHolderTable(PropertyHolder p) {
 		super();
@@ -58,10 +62,16 @@ public class PropertyHolderTable extends JTable {
 	
 		setShowGrid(false);
 		setFont(font);
-		setRowHeight(ROW_HEIGHT);
+		setRowHeight(ROW_HEIGHT);	
 		
-		setRowSorter(sorter = new PropertySorter(model));
+		sorter = new TableRowSorter<DefaultTableModel>();
+		sorter.setModel(model);
+		ArrayList<SortKey> list	= new ArrayList<SortKey>();
+	    list.add( new SortKey(0, SortOrder.ASCENDING) );
+	    sorter.setSortKeys(list);		
 		sorter.sort();
+		
+		setRowSorter(sorter);
 		
 		/*
 		 * Update properties of the PropertyHolder when table is changed by the user
@@ -165,7 +175,6 @@ public class PropertyHolderTable extends JTable {
 		DefaultTableModel model = ((DefaultTableModel) getModel());
 		model.setDataVector(dataArray(propertyHolder), new String[]{model.getColumnName(0), model.getColumnName(1)});
 	
-		sorter.reset();
 		sorter.sort();
 		
 	}
@@ -189,8 +198,8 @@ public class PropertyHolderTable extends JTable {
 	          return new DefaultCellEditor((JComboBox<?>)value);
 		  
 	      if(value instanceof Enum) 
-	    	  return new DefaultCellEditor(new JComboBox<Object>(((Enum)value).getDeclaringClass().getEnumConstants()));
-	    
+	    	  return new DefaultCellEditor(new JComboBox<Object>(((Enum<?>)value).getDeclaringClass().getEnumConstants()));
+	
 	      if((value instanceof PropertyHolder)) 
 	    	  return new ButtonEditor( 
 	    			  (AbstractButton) getCellRenderer(row, column).getTableCellRendererComponent(this, value, false, false, row, column),
@@ -260,7 +269,7 @@ public class PropertyHolderTable extends JTable {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					IconCheckBox source = (IconCheckBox) e.getSource();
-					source.setHorizontalAlignment(IconCheckBox.CENTER);
+					source.setHorizontalAlignment(SwingConstants.CENTER);
 					((JTable) ( source.getParent()) ).getCellEditor().stopCellEditing();
 				}
 				
@@ -287,23 +296,6 @@ public class PropertyHolderTable extends JTable {
 	
 	public PropertyHolder getPropertyHolder() {
 		return propertyHolder;
-	}
-	
-	class PropertySorter extends TableRowSorter {
-		
-		public PropertySorter(DefaultTableModel model) {
-			super();
-			this.setModel(model);
-				
-			reset();
-		}
-		
-		public void reset() {
-			ArrayList<SortKey> list	= new ArrayList<SortKey>();
-		    list.add( new SortKey(0, SortOrder.ASCENDING) );
-		    setSortKeys(list);
-		}
-		
 	}
 	
 }

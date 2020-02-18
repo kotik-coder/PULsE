@@ -1,5 +1,9 @@
 package pulse.problem.statements;
 
+import static pulse.properties.NumericPropertyKeyword.LASER_ENERGY;
+import static pulse.properties.NumericPropertyKeyword.PULSE_WIDTH;
+import static pulse.properties.NumericPropertyKeyword.SPOT_DIAMETER;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,10 +11,8 @@ import pulse.properties.EnumProperty;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
-import pulse.util.PropertyHolder;
 import pulse.ui.Messages;
-
-import static pulse.properties.NumericPropertyKeyword.*;
+import pulse.util.PropertyHolder;
 
 /**
  * A {@code Pulse} stores the parameters of the laser pulse,
@@ -96,6 +98,7 @@ public class Pulse extends PropertyHolder {
 		this.laserEnergy = (double)laserEnergy.getValue();
 	}
 	
+	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(getPulseShape());
@@ -129,6 +132,8 @@ public class Pulse extends PropertyHolder {
 		case PULSE_WIDTH	: setPulseWidth(property); break;
 		case SPOT_DIAMETER	: setSpotDiameter(property); break;
 		case LASER_ENERGY	: setLaserEnergy(property); break;
+		default:
+			break;
 		}
 		
 		notifyListeners(this, property);

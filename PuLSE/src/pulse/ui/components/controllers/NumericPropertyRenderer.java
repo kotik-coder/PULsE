@@ -3,13 +3,16 @@ package pulse.ui.components.controllers;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
+
 import javax.swing.JFormattedTextField;
 import javax.swing.JTable;
+import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableCellRenderer;
 
 import pulse.properties.NumericProperty;
 import pulse.ui.Messages;
 
+@SuppressWarnings("serial")
 public class NumericPropertyRenderer extends DefaultTableCellRenderer {
 	
 	protected static final Color LIGHT_BLUE = new Color(175, 238, 238);
@@ -34,7 +37,7 @@ public class NumericPropertyRenderer extends DefaultTableCellRenderer {
 		JFormattedTextField jtf = new JFormattedTextField(text);
 		jtf.setOpaque(true);
 		jtf.setBorder(null);			
-		jtf.setHorizontalAlignment(JFormattedTextField.CENTER);					
+		jtf.setHorizontalAlignment(SwingConstants.CENTER);					
 		jtf.setFont(font);					
 		
 		if(rowSelected)

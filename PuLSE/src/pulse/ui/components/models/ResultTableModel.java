@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.swing.table.DefaultTableModel;
+
 import pulse.properties.NumericProperty;
 import pulse.tasks.AbstractResult;
 import pulse.tasks.Identifier;
@@ -13,6 +14,7 @@ import pulse.tasks.ResultFormat;
 import pulse.tasks.listeners.ResultFormatEvent;
 import pulse.ui.components.ResultListener;
 
+@SuppressWarnings("serial")
 public class ResultTableModel extends DefaultTableModel {
 
 	private ResultFormat fmt;

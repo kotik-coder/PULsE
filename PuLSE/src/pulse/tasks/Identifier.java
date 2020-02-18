@@ -1,11 +1,11 @@
 package pulse.tasks;
 
-import pulse.properties.NumericProperty;
-import pulse.ui.Messages;
-
-import static pulse.properties.NumericPropertyKeyword.*;
+import static pulse.properties.NumericPropertyKeyword.IDENTIFIER;
 
 import java.util.Optional;
+
+import pulse.properties.NumericProperty;
+import pulse.ui.Messages;
 
 /**
  * <p>An {@code Identifier} is used to identify {@code SearchTask}s. 

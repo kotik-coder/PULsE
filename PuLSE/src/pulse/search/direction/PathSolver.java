@@ -1,10 +1,13 @@
 package pulse.search.direction;
 
+import static pulse.properties.NumericPropertyKeyword.ERROR_TOLERANCE;
+import static pulse.properties.NumericPropertyKeyword.GRADIENT_RESOLUTION;
+import static pulse.properties.NumericPropertyKeyword.ITERATION_LIMIT;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import pulse.problem.schemes.Grid;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
@@ -16,8 +19,6 @@ import pulse.tasks.SearchTask;
 import pulse.tasks.Status;
 import pulse.util.PropertyHolder;
 import pulse.util.Reflexive;
-
-import static pulse.properties.NumericPropertyKeyword.*;
 
 /**
  * An abstract class that defines the mathematical basis of solving the reverse heat conduction problem.
@@ -260,6 +261,8 @@ public abstract class PathSolver extends PropertyHolder implements Reflexive {
 		case GRADIENT_RESOLUTION : setGradientResolution(property); break;
 		case ERROR_TOLERANCE : setErrorTolerance(property); break;
 		case ITERATION_LIMIT : setMaxIterations(property); break;
+		default:
+			break;
 		}
 	}
 	

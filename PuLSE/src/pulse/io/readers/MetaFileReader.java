@@ -2,7 +2,6 @@ package pulse.io.readers;
 
 import java.io.BufferedReader;
 import java.io.File;
-import pulse.ui.Messages;
 import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -12,10 +11,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
+
 import pulse.input.Metadata;
 import pulse.properties.EnumProperty;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
+import pulse.ui.Messages;
 import pulse.util.ImmutableDataEntry;
 
 /**

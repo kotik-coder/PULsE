@@ -6,10 +6,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import pulse.ui.Messages;
-
 import pulse.input.ExperimentalData;
 import pulse.input.InterpolationDataset;
+import pulse.ui.Messages;
 import pulse.util.ReflexiveFinder;
 
 /**

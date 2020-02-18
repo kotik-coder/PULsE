@@ -2,9 +2,11 @@ package pulse.ui.components.controllers;
 
 import java.awt.Color;
 import java.awt.Component;
+
 import javax.swing.JButton;
 import javax.swing.JFormattedTextField;
 import javax.swing.JTable;
+
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.Property;
