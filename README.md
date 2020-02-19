@@ -10,6 +10,8 @@
 
 <img src="https://kotik-coder.github.io/Screenshot.png" width=50% height=50% title="Loading and executings tasks in PULsE">
 
+## Main contributors and license information
+
 * Lead developer: Dr. Artem Lunev;
 * Beta testing, validation studies and User Manual by Rob Heymer;
 * Thermal transfer models by: Dr. Artem Lunev and Dr. Teymur Aliev.
