@@ -45,4 +45,4 @@ Please refer to the software [GitHub Page](https://kotik-coder.github.io/) for a
 
 I really enjoyed working on this open source project. In my opinion, this type of distribution fits very well with the spirit of science. PULsE will always be free to download and use. If you feel that this project deserves your support, please consider buying me a coffee by following the link below: 
 
-<a href="https://www.buymeacoffee.com/kotik" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-green.png" alt="Buy Me A Coffee" style="height: 51px !important;width: 217px !important;" width=50% height=50%></a>
+<a href="https://www.buymeacoffee.com/kotik" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-green.png" alt="Buy Me A Coffee" style="height: 51px !important;width: 217px !important;" width=20% height=20%></a>
