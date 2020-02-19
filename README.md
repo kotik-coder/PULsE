@@ -26,7 +26,7 @@ Please do contact me via [email](artem.lunev@ukaea.uk) in case if you are intere
 
 * The first step is to clone the project files to your filesystem. Change the current working directory to the location where you want the cloned directory to be made. Type `$ git clone https://github.com/kotik-coder/PULsE` in Terminal to populate your current directory with the project sources files;
 * Staying in the same directory, you should see the `pom.xml` file. This is used by Maven to build the binaries. You will need to have [Maven](https://maven.apache.org/install.html) installed in order to proceed, as well as the [Java Development Kit 11](https://www.oracle.com/java/technologies/javase-jdk11-downloads.html). After you have installed both, type `mvn install` in the directory where you've cloned the PULsE source files to. The dependencies are managed automatically with the info contained in the `pom.xml` file, so you don't need to do anything else;
-* This will produce a `/target/` subdirectory with the `.jar` file and the `/target/lib/` folder. These can be copied to wherever location you prefer, as long as they stay in the same directoryl
+* This will produce a `/target/` subdirectory with the `.jar` file and the `/target/lib/` folder. These can be copied to wherever location you prefer, but please remember to always put them in the same directory together;
 * Allow the `.jar` file to be executable (e.g. on Linux) and double-click in order to run. If nothing happens, type `java -jar <NAME_OF_JAR>.jar`, replacing the <NAME_OF_JAR> with the appropriate file name. This should start the PULsE graphical interface. 
 
 ## Pre-compiled releases
