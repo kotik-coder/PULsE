@@ -29,6 +29,10 @@ Please do contact me via [email](artem.lunev@ukaea.uk) in case if you are intere
 * This will produce a `/target/` subdirectory with the `.jar` file and the `/target/lib/` folder. These can be copied to wherever location you prefer, but please remember to always put them in the same directory together;
 * Allow the `.jar` file to be executable (e.g. on Linux) and double-click in order to run. If nothing happens, type `java -jar <NAME_OF_JAR>.jar`, replacing the <NAME_OF_JAR> with the appropriate file name. This should start the PULsE graphical interface. 
 
+## Eclipse integration
+
+If you want to use an IDE for modifying the cloned code, please consider using Eclipse. It is quite straightforward to import the project to Eclipse. Once you've cloned the git repo, open the associated project with File -> 'Open Projects from File System...', type in or select the project source, and click OK. This should be sufficient to get you started.
+
 ## Pre-compiled releases
 
 Please visit this [page](https://github.com/kotik-coder/PULsE/releases) for a list of pre-compiled releases.
