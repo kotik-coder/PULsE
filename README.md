@@ -20,7 +20,7 @@ Licensed under the Apache 2.0 Permissive License.
 
 ## Feature requests and collaboration
 
-Please do contact me via [email](artem.lunev@ukaea.uk) in case if you are interested in new features, such as new input file formats, new heat transfer models, or anything related to the modification of the GUI or internal code structures. Anyone wanting to contribute to the code development are cordially welcome to make thoughtful commits to the repository! Those will be reviewed promptly.  
+Please do contact me via [email](artem.lunev@ukaea.uk) in case if you are interested in new features, such as new input file formats, new heat transfer models, or anything related to the modification of the GUI or internal code structures. Anyone wanting to contribute to the code development are cordially invited to make thoughtful commits to the repository! Those will be reviewed promptly.  
 
 ## Build instructions
 
