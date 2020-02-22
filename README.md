@@ -1,6 +1,8 @@
 # PULsE
 
 [![Build Status](https://travis-ci.com/kotik-coder/PULsE.svg?branch=releases)](https://travis-ci.com/kotik-coder/PULsE) 
+[![Code Quality](https://www.code-inspector.com/project/4377/score/svg)](https://www.code-inspector.com/project/4377/score/svg)
+[![Code Grade](https://www.code-inspector.com/project/4377/status/svg)](https://www.code-inspector.com/project/4377/status/svg)
 [![Maintainability](https://api.codeclimate.com/v1/badges/bbbb695c6ffa3fbcb7e9/maintainability)](https://codeclimate.com/github/kotik-coder/PULsE/maintainability)
 
 ## General Information
