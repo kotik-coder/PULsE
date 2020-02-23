@@ -158,6 +158,7 @@ public class ProblemStatementFrame extends JInternalFrame {
 		//simulate btn listener
 		
 		btnSimulate.addActionListener(new ActionListener() {
+			@SuppressWarnings("unchecked")
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 					
@@ -177,7 +178,7 @@ public class ProblemStatementFrame extends JInternalFrame {
 					}
 				}						
 
-				t.getScheme().solver(t.getProblem()).solve(t.getProblem());				
+				t.getScheme().getSolver(t.getProblem()).solve(t.getProblem());				
 		
 				Chart.plot(t, true);				
 

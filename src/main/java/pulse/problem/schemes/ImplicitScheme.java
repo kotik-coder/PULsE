@@ -8,9 +8,7 @@ import pulse.problem.statements.AbsorptionModel.SpectralRange;
 import pulse.problem.statements.DiathermicMaterialProblem;
 import pulse.problem.statements.LinearisedProblem;
 import pulse.problem.statements.NonlinearProblem;
-import pulse.problem.statements.Problem;
 import pulse.problem.statements.TranslucentMaterialProblem;
-import pulse.problem.statements.TwoDimensional;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.ui.Messages;
@@ -56,6 +54,7 @@ public class ImplicitScheme extends DifferenceScheme {
 
 	public final static NumericProperty GRID_DENSITY = NumericProperty.derive(NumericPropertyKeyword.GRID_DENSITY, 30);
 
+	
 	/**
 	 * Performs a fully-dimensionless calculation for the {@code LinearisedProblem}.
 	 * <p>
@@ -487,6 +486,7 @@ public class ImplicitScheme extends DifferenceScheme {
 
 	});
 
+
 	/**
 	 * Constructs a default fully-implicit scheme using the default values of
 	 * {@code GRID_DENSITY} and {@code TAU_FACTOR}.
@@ -579,6 +579,10 @@ public class ImplicitScheme extends DifferenceScheme {
 		super(N, timeFactor);
 		grid = new Grid(N, timeFactor);
 		grid.setParent(this);
+		addSolver(LinearisedProblem.class, implicitLinearisedSolver);
+		addSolver(NonlinearProblem.class, implicitNonlinearSolver);
+		addSolver(TranslucentMaterialProblem.class, translucentSolver);
+		addSolver(DiathermicMaterialProblem.class, diathermicSolver);
 	}
 
 	/**
@@ -610,25 +614,5 @@ public class ImplicitScheme extends DifferenceScheme {
 	public String toString() {
 		return Messages.getString("ImplicitScheme.4");
 	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public Solver<? extends Problem> solver(Problem problem) {
-		if (problem instanceof TwoDimensional)
-			return null;		
-
-		Class<?> problemClass = problem.getClass();
-		
-		if (problemClass.equals(LinearisedProblem.class))
-			return implicitLinearisedSolver;
-		else if (problemClass.equals(NonlinearProblem.class))
-			return implicitNonlinearSolver;
-		else if (problemClass.equals(TranslucentMaterialProblem.class))
-			return translucentSolver;
-		else if (problemClass.equals(DiathermicMaterialProblem.class))
-			return diathermicSolver;
-		else
-			return null;		
-	}
-
+	
 }

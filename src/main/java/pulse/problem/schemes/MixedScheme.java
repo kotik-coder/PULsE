@@ -4,8 +4,6 @@ import static java.lang.Math.pow;
 
 import pulse.HeatingCurve;
 import pulse.problem.statements.LinearisedProblem;
-import pulse.problem.statements.Problem;
-import pulse.problem.statements.TwoDimensional;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.ui.Messages;
@@ -178,6 +176,7 @@ public class MixedScheme extends DifferenceScheme {
 		super(N, timeFactor);
 		grid = new Grid(N, timeFactor);	
 		grid.setParent(this);
+		addSolver(LinearisedProblem.class, mixedLinearisedSolver);
 	}
 	
 	/**
@@ -205,17 +204,5 @@ public class MixedScheme extends DifferenceScheme {
 	public String toString() {
 		return Messages.getString("MixedScheme.4");
 	}
-	
-	@SuppressWarnings("unchecked")
-	@Override
-	public Solver<? extends Problem> solver(Problem problem) {
-		if(problem instanceof TwoDimensional)
-			return null;
-		
-		if(problem.getClass().equals(LinearisedProblem.class))
-			return mixedLinearisedSolver;
-		else 
-			return null;
-	}
-	
+
 }

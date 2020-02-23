@@ -140,7 +140,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 	
 	public List<DifferenceScheme> availableSolutions() {
 		List<DifferenceScheme> allSchemes = Reflexive.instancesOf(DifferenceScheme.class);
-		return allSchemes.stream().filter(scheme -> scheme.solver(this) != null).collect(Collectors.toList());
+		return allSchemes.stream().filter(scheme -> scheme.getSolver(this) != null).collect(Collectors.toList());
 	}
 	
 	/**

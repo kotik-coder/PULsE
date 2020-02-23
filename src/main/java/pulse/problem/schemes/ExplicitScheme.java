@@ -7,9 +7,7 @@ import pulse.problem.statements.AbsorptionModel;
 import pulse.problem.statements.AbsorptionModel.SpectralRange;
 import pulse.problem.statements.LinearisedProblem;
 import pulse.problem.statements.NonlinearProblem;
-import pulse.problem.statements.Problem;
 import pulse.problem.statements.TranslucentMaterialProblem;
-import pulse.problem.statements.TwoDimensional;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.ui.Messages;
@@ -331,6 +329,9 @@ public class ExplicitScheme extends DifferenceScheme {
 		super(N, timeFactor);	
 		grid = new Grid(N, timeFactor);	
 		grid.setParent(this);
+		addSolver(LinearisedProblem.class, explicitLinearisedSolver);
+		addSolver(NonlinearProblem.class, explicitNonlinearSolver);
+		addSolver(TranslucentMaterialProblem.class, distributedSolver);
 	}
 	
 	/**
@@ -358,21 +359,5 @@ public class ExplicitScheme extends DifferenceScheme {
 	public String toString() {
 		return Messages.getString("ExplicitScheme.4");
 	}
-	
-	@SuppressWarnings("unchecked")
-	@Override
-	public Solver<? extends Problem> solver(Problem problem) {
-		if(problem instanceof TwoDimensional)
-			return null;
-		
-		if(problem.getClass().equals(LinearisedProblem.class))
-			return explicitLinearisedSolver;
-		else if(problem.getClass().equals(NonlinearProblem.class))
-			return explicitNonlinearSolver;
-		else if (problem.getClass().equals(TranslucentMaterialProblem.class))
-			return distributedSolver;
-		else 
-			return null;
-	}
-	
+
 }

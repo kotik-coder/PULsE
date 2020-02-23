@@ -199,8 +199,9 @@ public class SearchTask extends Accessible implements Runnable, SaveableCategory
 	 * @return the value of SSR (sum of squared residuals).
 	 */
 	
+	@SuppressWarnings("unchecked")
 	public double solveProblemAndCalculateDeviation() {
-		scheme.solver(problem).solve(problem);
+		scheme.getSolver(problem).solve(problem);
 		return problem.getHeatingCurve().deviationSquares(getExperimentalCurve()); 
 	}
 	
@@ -228,11 +229,9 @@ public class SearchTask extends Accessible implements Runnable, SaveableCategory
 	  }		
 	  
 	  /* preparatory steps */
-	  
-	  scheme.solver(problem).solve(problem);	  
-	  
-	  HeatingCurve solutionCurve = this.getProblem().getHeatingCurve();
-	  ssr	   			 		 = solutionCurve.deviationSquares(curve);
+	    
+	  HeatingCurve solutionCurve = problem.getHeatingCurve();
+	  ssr	   			 		 = solveProblemAndCalculateDeviation();
 	  
 	  PathSolver pathSolver 	= TaskManager.getPathSolver();
 	  

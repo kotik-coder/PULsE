@@ -1,7 +1,9 @@
 package pulse.problem.schemes;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
@@ -29,6 +31,9 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 	
 	protected double		timeLimit;
 	protected int	 		timeInterval;
+	
+	private Map< Class<? extends Problem>, Solver<? extends Problem> > solvers = 
+				new HashMap< Class<? extends Problem>, Solver<? extends Problem>>();
 		
 	private static boolean hideDetailedAdjustment	= true;
 	
@@ -179,6 +184,10 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 	public DiscretePulse getDiscretePulse() {
 		return discretePulse;
 	}
+
+	public void addSolver(Class<? extends Problem> problemClass, Solver<? extends Problem> solver) {
+		solvers.put(problemClass, solver);
+	}
 	
 	/**
 	 * Selects the appropriate {@code Solver} within this {@code DifferenceScheme}
@@ -188,6 +197,9 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 	 * or {@code null} if the solver cannot be found in this class.   
 	 */
 	
-	public abstract <T extends Problem> Solver<T> solver(T t);
+	@SuppressWarnings("rawtypes")
+	public Solver getSolver(Problem problem) {
+		return solvers.get(problem.getClass());
+	}
 	
 }
