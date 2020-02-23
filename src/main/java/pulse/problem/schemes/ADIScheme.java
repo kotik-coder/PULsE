@@ -5,7 +5,6 @@ import static java.lang.Math.pow;
 
 import pulse.HeatingCurve;
 import pulse.problem.statements.LinearisedProblem2D;
-import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.ui.Messages;
@@ -226,6 +225,7 @@ public class ADIScheme extends DifferenceScheme {
 				curve.scale( maxTemp/maxVal );
 	});	
 	
+
 	public ADIScheme() {
 		this(GRID_DENSITY, TAU_FACTOR);
 	}	
@@ -234,6 +234,7 @@ public class ADIScheme extends DifferenceScheme {
 		super(N, timeFactor);
 		grid = new Grid2D(N, timeFactor);	
 		grid.setParent(this);
+		addSolver(LinearisedProblem2D.class, linearisedSolver2D);
 	}
 	
 	public ADIScheme(NumericProperty N, NumericProperty timeFactor, NumericProperty timeLimit) {
@@ -250,15 +251,6 @@ public class ADIScheme extends DifferenceScheme {
 	@Override
 	public String toString() {
 		return Messages.getString("ADIScheme.4");
-	}
-	
-	@SuppressWarnings("unchecked")
-	@Override
-	public Solver<? extends Problem> solver(Problem problem) {
-		if(problem instanceof LinearisedProblem2D)
-			return linearisedSolver2D;
-		else 
-			return null;
 	}
 	
 }

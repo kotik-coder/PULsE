@@ -11,9 +11,9 @@ public interface Solver<T extends Problem> {
 
 	/**
 	 * Calculates the solution of the {@code t} and stores it in the respective {@code HeatingCurve}.
-	 * @param t - an accepted instance of {@code T}
+	 * @param problem - an accepted instance of {@code T}
 	 */
 	
-	public void solve(T t);
-	
+	public void solve(T problem);
+
 }

@@ -213,6 +213,7 @@ public class TaskPopupMenu extends JPopupMenu {
 		
 	}
 	
+	@SuppressWarnings("unchecked")
 	public void plot(boolean extended) {
 		SearchTask t = TaskManager.getSelectedTask();
 		
@@ -231,7 +232,7 @@ public class TaskPopupMenu extends JPopupMenu {
 		}
 		
 		if(t.getScheme() != null) 
-			t.getScheme().solver(t.getProblem()).solve(t.getProblem());		
+			t.getScheme().getSolver(t.getProblem()).solve(t.getProblem());		
 		
 		Chart.plot(t, extended);
 	}
