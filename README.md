@@ -3,6 +3,7 @@
 [![Build Status](https://travis-ci.com/kotik-coder/PULsE.svg?branch=releases)](https://travis-ci.com/kotik-coder/PULsE) 
 [![Code Quality](https://www.code-inspector.com/project/4377/score/svg)](https://frontend.code-inspector.com/public/project/4377/PULsE/dashboard)
 [![Code Grade](https://www.code-inspector.com/project/4377/status/svg)](https://frontend.code-inspector.com/public/project/4377/PULsE/dashboard)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/1c354f5fe4d0435d8935f11cf2368d8e)](https://app.codacy.com/manual/kotik-coder/PULsE?utm_source=github.com&utm_medium=referral&utm_content=kotik-coder/PULsE&utm_campaign=Badge_Grade_Dashboard)
 [![Maintainability](https://api.codeclimate.com/v1/badges/bbbb695c6ffa3fbcb7e9/maintainability)](https://codeclimate.com/github/kotik-coder/PULsE/maintainability)
 
 ## General Information
