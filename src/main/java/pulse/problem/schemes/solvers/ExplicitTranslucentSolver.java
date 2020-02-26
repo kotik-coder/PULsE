@@ -14,7 +14,27 @@ import pulse.properties.NumericProperty;
 public class ExplicitTranslucentSolver 
 				extends ExplicitScheme 
 					implements Solver<TranslucentMaterialProblem> {
-				
+		
+	private double Bi1;
+	private double Bi2;
+	private double maxTemp;
+	private AbsorptionModel absorb;	
+	
+	private int N;
+	private int counts;
+	private double hx;
+	private double tau;
+	
+	private HeatingCurve curve;
+	
+	private double a,b;
+	
+	private double[] U;
+	private double[] V;
+	private double maxVal;
+	
+	private final static double EPS = 1e-7; // a small value ensuring numeric stability
+	
 	public ExplicitTranslucentSolver() {
 		super();
 	}
@@ -27,41 +47,42 @@ public class ExplicitTranslucentSolver
 		super(N, timeFactor, timeLimit);
 	}
 
+	private void prepare(TranslucentMaterialProblem problem) {
+		super.prepare(problem);		
+		curve = problem.getHeatingCurve();
+		
+		absorb	= problem.getAbsorptionModel();
+		
+		N		= (int)grid.getGridDensity().getValue();
+		hx	= grid.getXStep();
+		tau	= grid.getTimeStep();
+		
+		U		= new double[N + 1];
+		V		= new double[N + 1];		
+		
+		Bi1 = (double) problem.getFrontHeatLoss().getValue();
+		Bi2 = (double) problem.getHeatLossRear().getValue();
+		maxTemp = (double) problem.getMaximumTemperature().getValue(); 		
+		
+		counts = (int) curve.getNumPoints().getValue();
+		
+		maxVal = 0;		
+				
+		a = 1./(1. + Bi1*hx);
+		b = 1./(1. + Bi2*hx);	
+		
+	}		
+	
 	@Override
 	public void solve(TranslucentMaterialProblem problem) {
-		prepare(problem);
+		prepare(problem);	
 		
-		int N		= (int)grid.getGridDensity().getValue();
-		double hx	= grid.getXStep();
-		double tau	= grid.getTimeStep();
-		
-		final double Bi1 = (double) problem.getFrontHeatLoss().getValue();
-		final double Bi2 = (double) problem.getHeatLossRear().getValue();
-		final double maxTemp = (double) problem.getMaximumTemperature().getValue(); 
-		
-		final double EPS = 1e-5;
-		
-		HeatingCurve curve = problem.getHeatingCurve();
-		curve.reinit();
-		final int counts = (int) curve.getNumPoints().getValue();
-		
-		double maxVal = 0;		
-		int i, m, w;
-		
-		double[] U 	   = new double[N + 1];
-		double[] V     = new double[N + 1];
-		
-		AbsorptionModel absorb = problem.getAbsorptionModel();
+		double TAU_HH = tau/pow(hx,2);
+			
 		double pls;
-		double signal = 0;
+		double signal = 0;		
 		
-		/*
-		 * Constants used in the calculation loop
-		 */
-		
-		double TAU_HH = tau/pow(hx,2);		
-		double a = 1./(1. + Bi1*hx);
-		double b = 1./(1. + Bi2*hx);			
+		int i,m,w;
 		
 		/*
 		 * The outer cycle iterates over the number of points of the HeatingCurve

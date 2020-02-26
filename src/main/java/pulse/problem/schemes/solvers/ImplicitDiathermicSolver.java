@@ -12,7 +12,27 @@ import pulse.properties.NumericProperty;
 public class ImplicitDiathermicSolver 
 					extends ImplicitScheme 
 							implements Solver<DiathermicMaterialProblem> {
-					
+				
+	private final static double EPS = 1e-7; // a small value ensuring numeric stability
+	
+	private double[] U, V;
+	private double[] p, q;
+	private double a,b,c;
+	private double[] alpha, beta, gamma;
+	
+	private double Bi1;
+	private double maxTemp;
+	private double eta;
+	
+	private double maxVal;
+	
+	private int N;
+	private int counts;
+	private double hx;
+	private double tau;
+	
+	private HeatingCurve curve;
+	
 	public ImplicitDiathermicSolver() {
 		super();
 	}
@@ -25,46 +45,43 @@ public class ImplicitDiathermicSolver
 		super(N, timeFactor, timeLimit);
 	}
 
-	@Override
-	public void solve(DiathermicMaterialProblem problem) {
-
-		super.prepare(problem);
-
-		final double Bi1		= (double) problem.getFrontHeatLoss().getValue();
-		final double maxTemp	= (double) problem.getMaximumTemperature().getValue();
-		final double eta		= (double)problem.getDiathermicCoefficient().getValue();
-
-		final double EPS = 1e-7; // a small value ensuring numeric stability
-
-		int N		= (int)grid.getGridDensity().getValue();
-		double hx	= grid.getXStep();
-		double tau	= grid.getTimeStep();
+	private void prepare(DiathermicMaterialProblem problem) {
+		super.prepare(problem);		
+		curve = problem.getHeatingCurve();
 		
-		double[] U = new double[N + 1];
-		double[] V = new double[N + 1];
-		double[] p = new double[N];
-		double[] q = new double[N];
-		
-		double[] alpha	= new double[N + 1];
-		double[] beta	= new double[N + 1];
-		double[] gamma	= new double[N + 1];
+		Bi1		= (double) problem.getFrontHeatLoss().getValue();
+		maxTemp	= (double) problem.getMaximumTemperature().getValue();
+		eta		= (double)problem.getDiathermicCoefficient().getValue();
 
-		HeatingCurve curve = problem.getHeatingCurve();
-		curve.reinit();
-		final int counts = (int) curve.getNumPoints().getValue();
-
-		double maxVal = 0;
-		int i, m, w;
-		double pls;
+		N		= (int)grid.getGridDensity().getValue();
+		hx	= grid.getXStep();
+		tau	= grid.getTimeStep();
 		
-		final double HX2_TAU = pow(hx,2)/tau;
+		U = new double[N + 1];
+		V = new double[N + 1];
+		p = new double[N];
+		q = new double[N];				
+		
+		alpha	= new double[N + 1];
+		beta	= new double[N + 1];
+		gamma	= new double[N + 1];
+
+		counts = (int) curve.getNumPoints().getValue();
+		maxVal = 0;
 
 		// coefficients for difference equation
 
-		double a = 1.0;
-		double c = 1.0;
-		double b = 2.0 + HX2_TAU;
+		a = 1.0;
+		c = 1.0;
+	}
+	
+	@Override
+	public void solve(DiathermicMaterialProblem problem) {
 
+		prepare(problem);
+		
+		final double HX2_TAU = pow(hx,2)/tau;
+		
 		// precalculated constants
 
 		final double z0		= 1.0 + 0.5*HX2_TAU + hx*Bi1*(1.0 + eta);
@@ -76,6 +93,11 @@ public class ImplicitDiathermicSolver
 		
 		alpha[1] = 1.0/z0;
 		gamma[1] = -zN_1/z0;
+		
+		int i, m, w;
+		double pls;
+		
+		b = 2.0 + HX2_TAU;
 
 		/*
 		 * The outer cycle iterates over the number of points of the HeatingCurve

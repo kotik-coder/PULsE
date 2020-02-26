@@ -10,12 +10,33 @@ import pulse.problem.schemes.DiscretePulse2D;
 import pulse.problem.schemes.Grid2D;
 import pulse.problem.statements.LinearisedProblem2D;
 import pulse.problem.statements.Problem;
+import pulse.problem.statements.Problem2D;
 import pulse.properties.NumericProperty;
 
 public class ADILinearisedSolver 
 				extends ADIScheme
 					implements Solver<LinearisedProblem2D> {
 
+	private HeatingCurve curve;
+	
+	private int N;	
+	private double hx, hy;
+	private double tau;
+	private int firstIndex, lastIndex;
+	
+	private double fovOuter, fovInner;
+	private double d, l;
+	private double Bi1, Bi2, Bi3;
+	
+	private double maxTemp, maxVal;
+	private int counts;
+	
+	private double[][] U1, U2, U1_E, U2_E;
+	private double[] alpha, beta;
+	private double[] a1, b1, c1;	
+	
+	private final static double EPS = 1e-8;
+	
 	public ADILinearisedSolver() {
 		super();
 	}
@@ -28,55 +49,61 @@ public class ADILinearisedSolver
 		super(N, timeFactor, timeLimit);
 	}
 	
+	private void prepare(Problem2D problem) {
+		super.prepare(problem);		
+		curve = problem.getHeatingCurve();		
+		
+		N	= (int)grid.getGridDensity().getValue();
+		hx	= grid.getXStep();
+		hy	= ((Grid2D)getGrid()).getYStep();
+		tau	= grid.getTimeStep();
+		
+		Bi1	= (double) problem.getFrontHeatLoss().getValue();
+		Bi2 	= (double) problem.getHeatLossRear().getValue();
+		Bi3	= (double) problem.getSideLosses().getValue();
+		
+		d		= (double) problem.getSampleDiameter().getValue();
+		fovOuter	= (double) problem.getFOVOuter().getValue();
+		fovInner	= (double) problem.getFOVInner().getValue();
+		l		= (double) problem.getSampleThickness().getValue();
+		
+		maxTemp 	= (double) problem.getMaximumTemperature().getValue();
+		
+		//end
+
+		U1	= new double[N + 1][N + 1];
+		U2	= new double[N + 1][N + 1];
+		
+		U1_E	= new double[N + 3][N + 3];
+		U2_E = new double[N + 3][N + 3];				
+		
+		alpha  = new double[N + 2];
+		beta   = new double[N + 2];
+		
+		a1 = new double[N + 1];
+		b1 = new double[N + 1];
+		c1 = new double[N + 1];
+		
+		counts = (int) curve.getNumPoints().getValue();
+		
+		maxVal = 0;
+		
+		//a[i]*u[i-1] - b[i]*u[i] + c[i]*u[i+1] = F[i]
+		
+		lastIndex = (int)(fovOuter/d/hx);
+		lastIndex 	  = lastIndex > N ? N : lastIndex;
+		
+		firstIndex = (int)(fovInner/d/hx);
+		firstIndex	  = firstIndex < 0 ? 0 : firstIndex;
+	}
+	
 	@Override
 	public void solve(LinearisedProblem2D problem) {		
-			super.prepare(problem);
+			prepare(problem);
 
-			DiscretePulse2D discretePulse2D = (DiscretePulse2D)discretePulse;
-			
-			//quick links
-
-			int N		= (int)grid.getGridDensity().getValue();
-			double hx	= grid.getXStep();
-			double hy	= ((Grid2D)getGrid()).getYStep();
-			double tau	= grid.getTimeStep();
-			
-			final double Bi1	= (double) problem.getFrontHeatLoss().getValue();
-			final double Bi2 	= (double) problem.getHeatLossRear().getValue();
-			final double Bi3	= (double) problem.getSideLosses().getValue();
-			
-			final double d		= (double) problem.getSampleDiameter().getValue();
-			final double fovOuter	= (double) problem.getFOVOuter().getValue();
-			final double fovInner	= (double) problem.getFOVInner().getValue();
-			final double l		= (double) problem.getSampleThickness().getValue();
-			
-			final double maxTemp 	= (double) problem.getMaximumTemperature().getValue();
-			
-			//end
-
-			double[][] U1	= new double[N + 1][N + 1];
-			double[][] U2	= new double[N + 1][N + 1];
-			
-			double[][] U1_E	= new double[N + 3][N + 3];
-			double[][] U2_E = new double[N + 3][N + 3];				
-			
-			double[] alpha  = new double[N + 2];
-			double[] beta   = new double[N + 2];
-			
-			double[] a1 = new double[N + 1];
-			double[] b1 = new double[N + 1];
-			double[] c1 = new double[N + 1];
-			
-			final double EPS = 1e-8;
-			
-			HeatingCurve curve = problem.getHeatingCurve();
-			curve.reinit();
-			
-			final int counts = (int) curve.getNumPoints().getValue();
-			
-			double maxVal = 0;
 			int i, j, m, w;
 			double pls;
+			double F;
 
 			double HX2	= pow(hx,2); 
 			double HY2	= pow(hy,2);	
@@ -86,8 +113,6 @@ public class ADILinearisedSolver
 			double OMEGA	= 2.0*l/d;
 			double OMEGA_SQ = OMEGA*OMEGA;
 			
-			//a[i]*u[i-1] - b[i]*u[i] + c[i]*u[i+1] = F[i]
-
 			for(i = 1; i < N + 1; i++) {
 				a1[i] = OMEGA_SQ*(i - 0.5)/HX2/i;
 			    b1[i] = 2./tau + 2.*OMEGA_SQ/HX2;
@@ -98,14 +123,6 @@ public class ADILinearisedSolver
 			double b2 = 2./HY2 + 2./tau;
 			double c2 = 1./HY2;
 			
-			double F;
-			
-			int lastIndex = (int)(fovOuter/d/hx);
-			lastIndex 	  = lastIndex > N ? N : lastIndex;
-			
-			int firstIndex = (int)(fovInner/d/hx);
-			firstIndex	  = firstIndex < 0 ? 0 : firstIndex;
-			
 			//precalc coefs
 
 			double a11 = 1.0/( 1.0 + HX2/(OMEGA_SQ*tau) );
@@ -115,8 +132,8 @@ public class ADILinearisedSolver
 			double _b11 = 1.0/((1 + hy*Bi1)*tau + HY2);
 			double _c11 = 0.5*HY2*tau*OMEGA_SQ/HX2;
 			double _b12 = _c11*_b11;
-
-			//end of coefs			
+			
+			DiscretePulse2D discretePulse2D = (DiscretePulse2D)discretePulse;
 			
 			//begin time cycle
 			

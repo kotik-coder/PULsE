@@ -26,6 +26,26 @@ public class ExplicitLinearisedSolver
 				extends ExplicitScheme 
 						implements Solver<LinearisedProblem> {
 	
+	private double[] U;
+	private double[] V;
+	
+	private double Bi1;
+	private double Bi2;
+	private double maxTemp;
+	
+	private int N;
+	private int counts;
+	private double hx;
+	private double tau;
+	
+	private HeatingCurve curve;
+	
+	private double a,b;
+
+	private double maxVal;	
+	
+	private final static double EPS = 1e-7; // a small value ensuring numeric stability
+	
 	public ExplicitLinearisedSolver() {
 		super();
 	}
@@ -39,38 +59,37 @@ public class ExplicitLinearisedSolver
 	}
 	
 	@Override
+	public void prepare(Problem problem) {
+		super.prepare(problem);		
+		curve = problem.getHeatingCurve();
+		
+		N	= (int)grid.getGridDensity().getValue();
+		hx	= grid.getXStep();
+		tau	= grid.getTimeStep();
+		
+		U		= new double[N + 1];
+		V		= new double[N + 1];
+		
+		Bi1 = (double) problem.getFrontHeatLoss().getValue();
+		Bi2 = (double) problem.getHeatLossRear().getValue();
+		maxTemp = (double) problem.getMaximumTemperature().getValue(); 
+				
+		counts = (int) curve.getNumPoints().getValue();
+		
+		maxVal = 0;				
+				
+		a = 1./(1. + Bi1*hx);
+		b = 1./(1. + Bi2*hx);		
+	}
+	
+	@Override
 	public void solve(LinearisedProblem problem) {
 		
 			prepare(problem);
 			
-			int N		= (int)grid.getGridDensity().getValue();
-			double hx	= grid.getXStep();
-			double tau	= grid.getTimeStep();
-			
-			final double Bi1 = (double) problem.getFrontHeatLoss().getValue();
-			final double Bi2 = (double) problem.getHeatLossRear().getValue();
-			final double maxTemp = (double) problem.getMaximumTemperature().getValue(); 
-					
-			final double EPS = 1e-5;
-			
-			double[] U 	   = new double[N + 1];
-			double[] V     = new double[N + 1];
-			
-			HeatingCurve curve = problem.getHeatingCurve();
-			curve.reinit();
-			final int counts = (int) curve.getNumPoints().getValue();
-			
-			double maxVal = 0;		
 			int i, m, w;
 			double pls;
-			
-			/*
-			 * Constants used in the calculation loop
-			 */
-			
-			double TAU_HH = tau/pow(hx,2);		
-			double a = 1./(1. + Bi1*hx);
-			double b = 1./(1. + Bi2*hx);			
+			double TAU_HH = tau/pow(hx,2);			
 			
 			/*
 			 * The outer cycle iterates over the number of points of the HeatingCurve

@@ -15,6 +15,27 @@ public class ImplicitTranslucentSolver
 				extends ImplicitScheme 
 						implements Solver<TranslucentMaterialProblem> {
 
+	private double Bi1;
+	private double Bi2;
+	private double maxTemp;
+	private AbsorptionModel absorption;	
+	
+	private int N;
+	private int counts;
+	private double hx;
+	private double tau;
+	
+	private HeatingCurve curve;
+	
+	private double a,b,c;
+	
+	private double[] U, V;
+	private double[] alpha, beta;
+	private double maxVal;
+	
+	private final static double EPS = 1e-7; // a small value ensuring numeric stability
+	
+	
 	public ImplicitTranslucentSolver() {
 		super();
 	}
@@ -27,43 +48,46 @@ public class ImplicitTranslucentSolver
 		super(N, timeFactor, timeLimit);
 	}
 
-	@Override
-	public void solve(TranslucentMaterialProblem problem) {
-
+	private void prepare(TranslucentMaterialProblem problem) {
 		super.prepare(problem);
 		
-		AbsorptionModel absorption = problem.getAbsorptionModel();		
-
-		final double Bi1 = (double) problem.getFrontHeatLoss().getValue();
-		final double Bi2 = (double) problem.getHeatLossRear().getValue();
-		final double maxTemp = (double) problem.getMaximumTemperature().getValue();
-
-		final double EPS = 1e-7; // a small value ensuring numeric stability
-
-		int N		= (int)grid.getGridDensity().getValue();
-		double hx	= grid.getXStep();
-		double tau	= grid.getTimeStep();
+		curve = problem.getHeatingCurve();
 		
-		double signal = 0;
+		absorption = problem.getAbsorptionModel();		
+
+		Bi1 = (double) problem.getFrontHeatLoss().getValue();
+		Bi2 = (double) problem.getHeatLossRear().getValue();
+		maxTemp = (double) problem.getMaximumTemperature().getValue();
+
+		N		= (int)grid.getGridDensity().getValue();
+		hx	= grid.getXStep();
+		tau	= grid.getTimeStep();
 		
-		double[] U		= new double[N + 1];
-		double[] V		= new double[N + 1];
-		double[] alpha	= new double[N + 2];
-		double[] beta	= new double[N + 2];
-
-		HeatingCurve curve = problem.getHeatingCurve();
-		curve.reinit();
-		final int counts = (int) curve.getNumPoints().getValue();
-
-		double maxVal = 0;
-		int i, j, m, w;
-		double pls;
+		U		= new double[N + 1];
+		V		= new double[N + 1];
+		alpha	= new double[N + 2];
+		beta	= new double[N + 2];
+				
+		counts = (int) curve.getNumPoints().getValue();
 
 		// coefficients for difference equation
 
-		double a = 1. / pow(hx, 2);
-		double b = 1. / tau + 2. / pow(hx, 2);
-		double c = 1. / pow(hx, 2);
+		a = 1. / pow(hx, 2);
+		b = 1. / tau + 2. / pow(hx, 2);
+		c = 1. / pow(hx, 2);
+		
+		maxVal = 0;
+		
+	}
+	
+	@Override
+	public void solve(TranslucentMaterialProblem problem) {
+
+		prepare(problem);		
+		
+		int i, j, m, w;
+		double pls;
+		double signal = 0;
 		
 		// precalculated constants
 
@@ -74,7 +98,7 @@ public class ImplicitTranslucentSolver
 
 		double Bi1H = Bi1 * hx;
 		double Bi2H = Bi2 * hx;
-
+		
 		/*
 		 * The outer cycle iterates over the number of points of the HeatingCurve
 		 */

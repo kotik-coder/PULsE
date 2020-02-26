@@ -26,6 +26,27 @@ public class MixedLinearisedSolver
 				extends MixedScheme 
 					implements Solver<LinearisedProblem> {
 	
+	private double Bi1;
+	private double Bi2;
+	private double maxTemp;
+	
+	private HeatingCurve curve;
+	
+	private int N;
+	private int counts;
+	private double hx;
+	private double tau;
+	
+	private double a,b,c,a1,b1,c1,b2,b3,c2;
+	
+	private double[] U;
+	private double[] V;
+	private double[] alpha;
+	private double[] beta;
+	private double maxVal;	
+	
+	private final static double EPS = 1e-7; // a small value ensuring numeric stability
+	
 	public MixedLinearisedSolver() {
 		super();
 	}
@@ -39,55 +60,61 @@ public class MixedLinearisedSolver
 	}
 
 	@Override
-	public void solve(LinearisedProblem problem) {
-		super.prepare(problem);
+	public void prepare(Problem problem) {
+		super.prepare(problem);		
+		curve = problem.getHeatingCurve();
 		
-		int N		= (int)grid.getGridDensity().getValue();
-		double hx	= grid.getXStep();
-		double tau	= grid.getTimeStep();
+		N		= (int)grid.getGridDensity().getValue();
+		hx	= grid.getXStep();
+		tau	= grid.getTimeStep();
 		
-		final double Bi1		= (double) problem.getFrontHeatLoss().getValue();
-		final double Bi2		= (double) problem.getHeatLossRear().getValue();
-		final double maxTemp 	= (double) problem.getMaximumTemperature().getValue(); 
+		Bi1		= (double) problem.getFrontHeatLoss().getValue();
+		Bi2		= (double) problem.getHeatLossRear().getValue();
+		maxTemp = (double) problem.getMaximumTemperature().getValue(); 
+				
+		U		= new double[N + 1];
+		V		= new double[N + 1];
+		alpha	= new double[N + 2];
+		beta	= new double[N + 2];		
 		
-		final double EPS = 1e-7;
-		
-		double[] U 	   = new double[N + 1];
-		double[] V     = new double[N + 1];
-		double[] alpha = new double[N + 2];
-		double[] beta  = new double[N + 2];
-			
-		HeatingCurve curve = problem.getHeatingCurve();
-		curve.reinit();
-		
-		final int counts = (int) curve.getNumPoints().getValue();		
-		
-		double maxVal = 0;
-		int i, j, m, w;
-		double pls;
+		counts = (int) curve.getNumPoints().getValue();		
 		
 		//coefficients for the finite-difference heat equation
 
-		double a = 1./pow(hx,2);
-		double b = 2./tau + 2./pow(hx,2);
-		double c = 1./pow(hx,2);
+		a = 1./pow(hx,2);
+		b = 2./tau + 2./pow(hx,2);
+		c = 1./pow(hx,2);
 
 		//precalculated constants
 
-		double HH      = pow(hx,2);
-		double F;			
+		double HH      = pow(hx,2);		
 				
 		double Bi1HTAU = Bi1*hx*tau;
 		double Bi2HTAU = Bi2*hx*tau;
 		
 		//constant for boundary-conditions calculation
 
-		double a1 = tau/(Bi1HTAU + HH + tau);
-		double b1 = 1./(Bi1HTAU + HH + tau);
-		double b2 = -hx*(Bi1*tau - hx);
-		double b3 = hx*tau;
-		double c1 = b2;
-		double c2 = Bi2HTAU + HH;
+		a1 = tau/(Bi1HTAU + HH + tau);
+		b1 = 1./(Bi1HTAU + HH + tau);
+		b2 = -hx*(Bi1*tau - hx);
+		b3 = hx*tau;
+		c1 = b2;
+		c2 = Bi2HTAU + HH;
+		
+		maxVal = 0;		
+	}
+	
+	@Override
+	public void solve(LinearisedProblem problem) {
+		prepare(problem);
+		
+		//precalculated constants
+
+		double HH      = pow(hx,2);
+		double F;			
+		
+		int i, j, m, w;
+		double pls;
 		
 		/*
 		 * The outer cycle iterates over the number of points of the HeatingCurve
