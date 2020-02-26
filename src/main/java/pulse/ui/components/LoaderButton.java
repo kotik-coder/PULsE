@@ -26,10 +26,12 @@ public class LoaderButton extends JButton {
 	
 	public LoaderButton() {
 		super();
+		init();
 	}
 	
 	public LoaderButton(String str) {
 		super(str);
+		init();
 	}
 	
 	public void init() {
@@ -37,6 +39,7 @@ public class LoaderButton extends JButton {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				JFileChooser fileChooser = new JFileChooser();
+				System.out.println("ok");
 				fileChooser.setCurrentDirectory(dir);
 
 				List<String> extensions = ReaderManager.getDatasetExtensions();							
