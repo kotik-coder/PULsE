@@ -82,7 +82,7 @@ public class Metadata extends PropertyHolder implements Saveable, Reflexive {
 	 */
 
 	public void setTestTemperature(NumericProperty temperature) {
-		if(temperature.getType() != NumericPropertyKeyword.TEST_TEMPERATURE)
+		if(temperature.getType() != TEST_TEMPERATURE)
 			throw new IllegalArgumentException("Wrong type of NumericProperty: " + temperature.getType());
 		
 		this.testTemperature = (double) temperature.getValue();					
@@ -127,7 +127,7 @@ public class Metadata extends PropertyHolder implements Saveable, Reflexive {
 	 */
 
 	public void setSampleThickness(NumericProperty thickness) {
-		if(thickness.getType() != NumericPropertyKeyword.THICKNESS)
+		if(thickness.getType() != THICKNESS)
 				throw new IllegalArgumentException("Wrong type of NumericProperty: " + thickness.getType());
 			
 		this.sampleThickness = (double)thickness.getValue();
@@ -153,7 +153,7 @@ public class Metadata extends PropertyHolder implements Saveable, Reflexive {
 	 */
 
 	public void setSampleDiameter(NumericProperty diameter) {
-		if(diameter.getType() != NumericPropertyKeyword.DIAMETER)
+		if(diameter.getType() != DIAMETER)
 			throw new IllegalArgumentException("Wrong type of NumericProperty: " + diameter.getType());		
 
 		this.sampleDiameter = (double) diameter.getValue();
@@ -179,7 +179,7 @@ public class Metadata extends PropertyHolder implements Saveable, Reflexive {
 	 */
 	
 	public void setPulseWidth(NumericProperty pulseWidth) {
-		if(pulseWidth.getType() != NumericPropertyKeyword.PULSE_WIDTH)
+		if(pulseWidth.getType() != PULSE_WIDTH)
 			throw new IllegalArgumentException("Wrong type of NumericProperty: " + pulseWidth.getType());		
 		
 		this.pulseWidth = (double) pulseWidth.getValue();
@@ -205,7 +205,7 @@ public class Metadata extends PropertyHolder implements Saveable, Reflexive {
 	 */
 
 	public void setSpotDiameter(NumericProperty spotDiameter) {
-		if(spotDiameter.getType() != NumericPropertyKeyword.SPOT_DIAMETER)
+		if(spotDiameter.getType() != SPOT_DIAMETER)
 			throw new IllegalArgumentException("Wrong type of NumericProperty: " + spotDiameter.getType());		
 		
 		this.spotDiameter = (double) spotDiameter.getValue();
@@ -231,7 +231,7 @@ public class Metadata extends PropertyHolder implements Saveable, Reflexive {
 	 */
 
 	public void setAbsorbedEnergy(NumericProperty absorbedEnergy) {
-		if(absorbedEnergy.getType() != NumericPropertyKeyword.LASER_ENERGY)
+		if(absorbedEnergy.getType() != LASER_ENERGY)
 			throw new IllegalArgumentException("Wrong type of NumericProperty: "
 		+ absorbedEnergy.getType());		
 		
@@ -258,7 +258,7 @@ public class Metadata extends PropertyHolder implements Saveable, Reflexive {
 	 */
 
 	public void setDetectorGain(NumericProperty detectorGain) {
-		if(detectorGain.getType() != NumericPropertyKeyword.DETECTOR_GAIN)
+		if(detectorGain.getType() != DETECTOR_GAIN)
 			throw new IllegalArgumentException("Wrong type of NumericProperty: "
 		+ detectorGain.getType());	
 		
@@ -285,7 +285,7 @@ public class Metadata extends PropertyHolder implements Saveable, Reflexive {
 	 */
 
 	public void setDetectorIris(NumericProperty detectorIris) {
-		if(detectorIris.getType() != NumericPropertyKeyword.DETECTOR_IRIS)
+		if(detectorIris.getType() != DETECTOR_IRIS)
 			throw new IllegalArgumentException("Wrong type of NumericProperty: "
 		+ detectorIris.getType());
 		

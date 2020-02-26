@@ -26,8 +26,6 @@ public class MixedLinearisedSolver
 				extends MixedScheme 
 					implements Solver<LinearisedProblem> {
 	
-	private double Bi1;
-	private double Bi2;
 	private double maxTemp;
 	
 	private HeatingCurve curve;
@@ -68,8 +66,8 @@ public class MixedLinearisedSolver
 		hx	= grid.getXStep();
 		tau	= grid.getTimeStep();
 		
-		Bi1		= (double) problem.getFrontHeatLoss().getValue();
-		Bi2		= (double) problem.getHeatLossRear().getValue();
+		double Bi1		= (double) problem.getFrontHeatLoss().getValue();
+		double Bi2		= (double) problem.getHeatLossRear().getValue();
 		maxTemp = (double) problem.getMaximumTemperature().getValue(); 
 				
 		U		= new double[N + 1];

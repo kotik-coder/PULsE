@@ -369,7 +369,8 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 		double timeInterval_1 = this.timeAt(1) - this.timeAt(0); 
 		
 		int cur;
-		double b1, b2, interpolated, diff;	
+		double b1, b2;
+		double interpolated, diff;	
 		
 		double sum = 0;
 		

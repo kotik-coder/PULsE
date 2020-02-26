@@ -39,7 +39,8 @@ public final class TaskManager extends UpwardsNavigable {
 		
 	private static TaskManager instance = new TaskManager();	
 	private static PathSolver pathSolver;
-	private static InterpolationDataset specificHeatCurve, densityCurve;
+	private static InterpolationDataset specificHeatCurve;
+	private static InterpolationDataset densityCurve;
 	
 	private static ForkJoinPool taskPool;
 	

@@ -757,7 +757,7 @@ public class TaskControlFrame extends JFrame {
 			Runnable periodicTask = new Runnable() {
 			    @Override
 				public void run() {
-			    	double cpuUsage = Launcher.CPUUsage();
+			    	double cpuUsage = Launcher.cpuUsage();
 			    	double memoryUsage = Launcher.getMemoryUsage();			    
 			    	
 					String cpuString = String.format("CPU usage: %3.1f%%", cpuUsage);
