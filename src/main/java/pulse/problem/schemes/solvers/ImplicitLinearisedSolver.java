@@ -30,8 +30,29 @@ import pulse.properties.NumericProperty;
 
 public class ImplicitLinearisedSolver 
 					extends ImplicitScheme 
-							implements Solver<LinearisedProblem> {
-
+							implements Solver<LinearisedProblem> {		
+	
+	private double Bi1;
+	private double Bi2;
+	private double maxTemp;
+	
+	private int N;
+	private int counts;
+	private double hx;
+	private double tau;
+	
+	private HeatingCurve curve;
+	
+	private double a,b,c;
+	
+	private double[] U;
+	private double[] V;
+	private double[] alpha;
+	private double[] beta;
+	private double maxVal;	
+	
+	private final static double EPS = 1e-7; // a small value ensuring numeric stability
+	
 	public ImplicitLinearisedSolver() {
 		super();
 	}
@@ -44,51 +65,50 @@ public class ImplicitLinearisedSolver
 		super(N, timeFactor, timeLimit);
 	}
 	
-	@Override
-	public void solve(LinearisedProblem problem) {
-
+	@Override 
+	public void prepare(Problem problem) {
 		super.prepare(problem);
+		curve = problem.getHeatingCurve();		
 		
-		int N		= (int)grid.getGridDensity().getValue();
-		double hx	= grid.getXStep();
-		double tau	= grid.getTimeStep();
-
-		final double Bi1 = (double) problem.getFrontHeatLoss().getValue();
-		final double Bi2 = (double) problem.getHeatLossRear().getValue();
-		final double maxTemp = (double) problem.getMaximumTemperature().getValue();
-
-		final double EPS = 1e-7; // a small value ensuring numeric stability
-
-		double[] U = new double[N + 1];
-		double[] V = new double[N + 1];
-		double[] alpha = new double[N + 1];
-		double[] beta = new double[N + 1];
-
-		HeatingCurve curve = problem.getHeatingCurve();
-		curve.reinit();
-		final int counts = (int) curve.getNumPoints().getValue();
-
-		double maxVal = 0;
-		int i, j, m, w;
-		double pls;
+		N	= (int)grid.getGridDensity().getValue();
+		hx	= grid.getXStep();
+		tau	= grid.getTimeStep();
+		
+		Bi1 = (double) problem.getFrontHeatLoss().getValue();
+		Bi2 = (double) problem.getHeatLossRear().getValue();
+		maxTemp = (double) problem.getMaximumTemperature().getValue();
+		
+		U		= new double[N + 1];
+		V		= new double[N + 1];
+		alpha	= new double[N + 1];
+		beta	= new double[N + 1];
+				
+		counts = (int) curve.getNumPoints().getValue();		
 
 		// coefficients for difference equation
 
-		double a = 1. / pow(hx, 2);
-		double b = 1. / tau + 2. / pow(hx, 2);
-		double c = 1. / pow(hx, 2);
+		a = 1. / pow(hx, 2);
+		b = 1. / tau + 2. / pow(hx, 2);
+		c = 1. / pow(hx, 2);
+		
+		maxVal = 0;		
+	}
+	
+	@Override
+	public void solve(LinearisedProblem problem) {
 
+		prepare(problem);
+		
 		// precalculated constants
 
-		double HH = pow(hx, 2);
-		double _2HTAU = 2. * hx * tau;
+		double HH		= pow(hx, 2);
+		double _2HTAU	= 2. * hx * tau;
+		double Bi1HTAU	= Bi1 * hx * tau;
+		double Bi2HTAU	= Bi2 * hx * tau;
 
 		double F;
-
-		// precalculated constants
-
-		double Bi1HTAU = Bi1 * hx * tau;
-		double Bi2HTAU = Bi2 * hx * tau;
+		double pls;
+		int i, j, m, w;
 
 		/*
 		 * The outer cycle iterates over the number of points of the HeatingCurve

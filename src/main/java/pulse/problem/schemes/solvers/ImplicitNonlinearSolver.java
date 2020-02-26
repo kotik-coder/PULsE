@@ -13,6 +13,25 @@ public class ImplicitNonlinearSolver
 					extends ImplicitScheme 
 							implements Solver<NonlinearProblem> {
 
+	private double Bi1;
+	private double Bi2;
+	
+	private int N;
+	private int counts;
+	private double hx;
+	private double tau;
+	
+	private HeatingCurve curve;
+	
+	private double[] U, V;
+	private double[] alpha, beta;
+	
+	private final static double EPS = 1e-7; // a small value ensuring numeric stability
+	
+	private double T, dT;
+	
+	private double a1,b1,c1,b2,b3,c2,a,b,c;
+		
 	public ImplicitNonlinearSolver() {
 		super();
 	}
@@ -25,51 +44,53 @@ public class ImplicitNonlinearSolver
 		super(N, timeFactor, timeLimit);
 	}
 	
-	@Override
-	public void solve(NonlinearProblem problem) {
-
+	private void prepare(NonlinearProblem problem) {
 		super.prepare(problem);
-
-		int N		= (int)grid.getGridDensity().getValue();
-		double hx	= grid.getXStep();
-		double tau	= grid.getTimeStep();
+		HeatingCurve curve = problem.getHeatingCurve();
+		
+		N	= (int)grid.getGridDensity().getValue();
+		hx	= grid.getXStep();
+		tau	= grid.getTimeStep();
 		
 		final double HH = pow(hx, 2);
 
-		HeatingCurve curve = problem.getHeatingCurve();
-		curve.reinit();
-		final int counts = (int) curve.getNumPoints().getValue();
+		counts = (int) curve.getNumPoints().getValue();
 
-		final double Bi1 = (double) problem.getFrontHeatLoss().getValue();
-		final double Bi2 = (double) problem.getHeatLossRear().getValue();
-		final double fixedPointPrecisionSq = Math.pow((double) problem.getNonlinearPrecision().getValue(), 2);
+		Bi1 = (double) problem.getFrontHeatLoss().getValue();
+		Bi2 = (double) problem.getHeatLossRear().getValue();
 
-		final double T = (double) problem.getTestTemperature().getValue();
-		final double dT = problem.maximumHeating();
+		T = (double) problem.getTestTemperature().getValue();
+		dT = problem.maximumHeating();
 
-		double[] U = new double[N + 1];
-		double[] V = new double[N + 1];
-		double[] alpha = new double[N + 2];
-		double[] beta = new double[N + 2];
-
-		final double EPS = 1e-5;
+		U = new double[N + 1];
+		V = new double[N + 1];
+		alpha = new double[N + 2];
+		beta = new double[N + 2];
 
 		// constant for bc calc
 
-		double a1 = 2. * tau / (HH + 2. * tau);
-		double b1 = HH / (2. * tau + HH);
-		double b2 = a1 * hx;
-		double b3 = Bi1 * T / (4.0 * dT);
-		double c1 = -0.5 * hx * tau * Bi2 * T / dT;
-		double c2;
+		a1 = 2. * tau / (HH + 2. * tau);
+		b1 = HH / (2. * tau + HH);
+		b2 = a1 * hx;
+		b3 = Bi1 * T / (4.0 * dT);
+		c1 = -0.5 * hx * tau * Bi2 * T / dT;
 
+		a = 1. / pow(hx, 2);
+		b = 1. / tau + 2. / pow(hx, 2);
+		c = 1. / pow(hx, 2);		
+	}
+	
+	@Override
+	public void solve(NonlinearProblem problem) {
+
+		prepare(problem);
+		
+		final double fixedPointPrecisionSq = Math.pow((double) problem.getNonlinearPrecision().getValue(), 2);
+		final double HH = pow(hx, 2);
+		
 		int i, m, w, j;
 		double F, pls;
-
-		double a = 1. / pow(hx, 2);
-		double b = 1. / tau + 2. / pow(hx, 2);
-		double c = 1. / pow(hx, 2);
-
+		
 		// time cycle
 
 		for (w = 1; w < counts; w++) {

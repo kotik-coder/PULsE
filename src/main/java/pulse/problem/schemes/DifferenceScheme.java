@@ -98,6 +98,8 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 		timeInterval = (int)Math.rint(
 				(timeLimit/((Number)problem.getHeatingCurve().getNumPoints().getValue()).doubleValue()) 
 				/ (grid.tau*problem.timeFactor()) ) + 1;
+		
+		problem.getHeatingCurve().reinit();
 	}
 	
 	/**
