@@ -10,6 +10,7 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 import pulse.tasks.SearchTask;
+import pulse.tasks.Status;
 import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.TaskRepositoryEvent;
 import pulse.tasks.listeners.TaskRepositoryListener;
@@ -53,18 +54,11 @@ public class ExecutionButton extends JButton {
 				}
 					
 				for(SearchTask t : TaskManager.getTaskList())
-					switch(t.checkProblems()) {
-						case READY :
-						case TERMINATED :
-						case DONE :
-							continue;
-						default : 
+					if(t.checkProblems() == Status.INCOMPLETE)
 							JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor((Component) e.getSource()),
 									    t + " is " + t.getStatus().getMessage() , //$NON-NLS-1$
 									    "Task Not Ready", //$NON-NLS-1$
 									    JOptionPane.ERROR_MESSAGE);			
-							return;
-					}
 
 				TaskManager.executeAll();
 						

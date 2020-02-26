@@ -24,7 +24,6 @@ public class ADILinearisedSolver
 	private double tau;
 	private int firstIndex, lastIndex;
 	
-	private double fovOuter, fovInner;
 	private double d, l;
 	private double Bi1, Bi2, Bi3;
 	
@@ -56,15 +55,15 @@ public class ADILinearisedSolver
 		N	= (int)grid.getGridDensity().getValue();
 		hx	= grid.getXStep();
 		hy	= ((Grid2D)getGrid()).getYStep();
-		tau	= grid.getTimeStep();
+		tau	= grid.getTimeStep();		
 		
 		Bi1	= (double) problem.getFrontHeatLoss().getValue();
 		Bi2 	= (double) problem.getHeatLossRear().getValue();
 		Bi3	= (double) problem.getSideLosses().getValue();
 		
 		d		= (double) problem.getSampleDiameter().getValue();
-		fovOuter	= (double) problem.getFOVOuter().getValue();
-		fovInner	= (double) problem.getFOVInner().getValue();
+		double fovOuter	= (double) problem.getFOVOuter().getValue();
+		double fovInner	= (double) problem.getFOVInner().getValue();
 		l		= (double) problem.getSampleThickness().getValue();
 		
 		maxTemp 	= (double) problem.getMaximumTemperature().getValue();

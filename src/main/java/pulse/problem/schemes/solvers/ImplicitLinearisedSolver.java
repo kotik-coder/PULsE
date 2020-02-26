@@ -32,9 +32,8 @@ public class ImplicitLinearisedSolver
 					extends ImplicitScheme 
 							implements Solver<LinearisedProblem> {		
 	
-	private double Bi1;
-	private double Bi2;
 	private double maxTemp;
+	private double Bi1HTAU, Bi2HTAU;
 	
 	private int N;
 	private int counts;
@@ -74,8 +73,8 @@ public class ImplicitLinearisedSolver
 		hx	= grid.getXStep();
 		tau	= grid.getTimeStep();
 		
-		Bi1 = (double) problem.getFrontHeatLoss().getValue();
-		Bi2 = (double) problem.getHeatLossRear().getValue();
+		double Bi1 = (double) problem.getFrontHeatLoss().getValue();
+		double Bi2 = (double) problem.getHeatLossRear().getValue();
 		maxTemp = (double) problem.getMaximumTemperature().getValue();
 		
 		U		= new double[N + 1];
@@ -91,6 +90,9 @@ public class ImplicitLinearisedSolver
 		b = 1. / tau + 2. / pow(hx, 2);
 		c = 1. / pow(hx, 2);
 		
+		Bi1HTAU	= Bi1 * hx * tau;
+		Bi2HTAU	= Bi2 * hx * tau;
+		
 		maxVal = 0;		
 	}
 	
@@ -103,8 +105,6 @@ public class ImplicitLinearisedSolver
 
 		double HH		= pow(hx, 2);
 		double _2HTAU	= 2. * hx * tau;
-		double Bi1HTAU	= Bi1 * hx * tau;
-		double Bi2HTAU	= Bi2 * hx * tau;
 
 		double F;
 		double pls;

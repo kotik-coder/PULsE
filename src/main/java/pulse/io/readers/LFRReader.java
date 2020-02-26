@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.StringTokenizer;
 
 import pulse.input.ExperimentalData;
@@ -65,7 +66,7 @@ public class LFRReader implements CurveReader {
 	@Override 
 	public List<ExperimentalData> read(File file) throws IOException {
 		if(file == null)
-			throw new NullPointerException(Messages.getString("LFRReader.1"));				 //$NON-NLS-1$
+			Objects.requireNonNull(file, Messages.getString("LFRReader.1"));
 		
 		BufferedReader reader = new BufferedReader(new FileReader(file));
 		final String directory = file.getAbsoluteFile().getParent();

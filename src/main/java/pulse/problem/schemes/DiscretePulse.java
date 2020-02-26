@@ -107,7 +107,7 @@ public class DiscretePulse {
 			factor*grid.tau > discretePulseWidth; 
 			recalculate(NumericPropertyKeyword.PULSE_WIDTH) ) {
 				grid.tauFactor	/= 1.5;						
-				grid.tau		 = grid.tauFactor*pow(grid.hx, 2);;
+				grid.tau		 = grid.tauFactor*pow(grid.hx, 2);
 		}		
 	}
 	

@@ -49,7 +49,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 	protected double signalHeight;
 	protected double cP, rho;
 	
-	private static boolean singleStatement;
+	private static boolean singleStatement = true;
 	private static boolean hideDetailedAdjustment = true;
 	
 	/**
@@ -77,7 +77,6 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 		Bi1 = (double)NumericProperty.def(HEAT_LOSS_FRONT).getValue();
 		Bi2 = (double)NumericProperty.def(HEAT_LOSS_REAR).getValue();
 		signalHeight = (double)NumericProperty.def(MAXTEMP).getValue();
-		singleStatement = true;
 		pulse = new Pulse();
 		curve = new HeatingCurve();
 		curve.setParent(this);

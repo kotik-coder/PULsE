@@ -59,14 +59,12 @@ public class DiscretePulse2D extends DiscretePulse {
 	
 	@Override
 	public void recalculate(NumericPropertyKeyword keyword) {				
-		switch(keyword) {
-			case SPOT_DIAMETER : 
-					discretePulseSpot = ((Grid2D)getGrid()).gridRadialDistance( 
+		if(keyword == NumericPropertyKeyword.SPOT_DIAMETER) {
+			discretePulseSpot = ((Grid2D)getGrid()).gridRadialDistance( 
 					(double) getPulse().getSpotDiameter().getValue() / 2.0,
 					coordFactor );
-					break;
-			default : 
-				super.recalculate(keyword);
+		} else {
+			super.recalculate(keyword);
 		}			
 	}
 	
