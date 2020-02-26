@@ -58,7 +58,7 @@ public class ReflexiveFinder {
 	 */
 	
 	public static List<Class<?>> classesIn(String pckgname) {		
-        String name = new String(pckgname);
+        String name = "" + pckgname;
         if (!name.startsWith(File.separator))  
             name = File.separatorChar + name;
         name = name.replace('.',File.separatorChar);

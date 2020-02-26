@@ -13,9 +13,6 @@ public class ImplicitNonlinearSolver
 					extends ImplicitScheme 
 							implements Solver<NonlinearProblem> {
 
-	private double Bi1;
-	private double Bi2;
-	
 	private int N;
 	private int counts;
 	private double hx;
@@ -56,8 +53,8 @@ public class ImplicitNonlinearSolver
 
 		counts = (int) curve.getNumPoints().getValue();
 
-		Bi1 = (double) problem.getFrontHeatLoss().getValue();
-		Bi2 = (double) problem.getHeatLossRear().getValue();
+		double Bi1 = (double) problem.getFrontHeatLoss().getValue();
+		double Bi2 = (double) problem.getHeatLossRear().getValue();
 
 		T = (double) problem.getTestTemperature().getValue();
 		dT = problem.maximumHeating();

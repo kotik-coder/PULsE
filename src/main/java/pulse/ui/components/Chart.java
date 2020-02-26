@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Stroke;
 import java.util.List;
+import java.util.Objects;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -101,7 +102,7 @@ public class Chart {
     
     public static void plot(SearchTask task, boolean extendedCurve) {
     	if(task == null)
-    		return;
+    		Objects.requireNonNull(task);
     	
     	XYPlot plot = chart.getXYPlot();
     	
@@ -140,8 +141,7 @@ public class Chart {
         
         if(task.getProblem() != null) {
         	HeatingCurve solution = task.getProblem().getHeatingCurve();
-            if(solution != null)        
-            	if(task.getScheme() != null) {            		
+            if(solution != null && task.getScheme() != null) {            		
             		var solutionDataset = new XYSeriesCollection();
             		solutionDataset.addSeries(series(task.getProblem().getHeatingCurve(),
             				"Solution with " + task.getScheme().getSimpleName(),
@@ -169,8 +169,7 @@ public class Chart {
         	var p = task.getProblem();
         	var s = task.getScheme();
         	
-        	if(p != null)
-        		if(s != null)
+        	if(p != null && s != null)
 		        	plotSingle(HeatingCurve.classicSolution(p, 
 						(double)(s.getTimeLimit().getValue())));
         }

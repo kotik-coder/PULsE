@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.StringTokenizer;
 
 import pulse.input.ExperimentalData;
@@ -56,7 +57,7 @@ public class DATReader implements CurveReader {
 	@Override
 	public List<ExperimentalData> read(File file) throws IOException {
 		if(file == null)
-			throw new NullPointerException(Messages.getString("DATReader.1"));
+			Objects.requireNonNull(file, Messages.getString("DATReader.1"));
 		
 		ExperimentalData curve = new ExperimentalData();
 

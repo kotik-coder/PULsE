@@ -26,7 +26,7 @@ public class Log extends UpwardsNavigable implements Saveable {
 
 	private List<LogEntry> logEntries;
 	private LocalTime start, end;
-	private static LogFormat logFormat;
+	private static LogFormat logFormat = LogFormat.getInstance();
 	private Identifier id;
 	private List<LogEntryListener> listeners;
 	private static boolean verbose = false;
@@ -43,7 +43,6 @@ public class Log extends UpwardsNavigable implements Saveable {
 			throw new IllegalArgumentException(Messages.getString("Log.NullTaskError"));
 		
 		setParent(task);
-		logFormat	= LogFormat.getInstance();
 		id			= task.getIdentifier();
 		
 		this.logEntries = new CopyOnWriteArrayList<LogEntry>();
