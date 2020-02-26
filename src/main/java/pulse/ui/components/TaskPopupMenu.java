@@ -13,6 +13,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.JSeparator;
 import javax.swing.SwingUtilities;
 
+import pulse.problem.schemes.solvers.Solver;
 import pulse.tasks.Result;
 import pulse.tasks.ResultFormat;
 import pulse.tasks.SearchTask;
@@ -213,7 +214,7 @@ public class TaskPopupMenu extends JPopupMenu {
 		
 	}
 	
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void plot(boolean extended) {
 		SearchTask t = TaskManager.getSelectedTask();
 		
@@ -232,7 +233,7 @@ public class TaskPopupMenu extends JPopupMenu {
 		}
 		
 		if(t.getScheme() != null) 
-			t.getScheme().getSolver(t.getProblem()).solve(t.getProblem());		
+			( (Solver) t.getScheme() ).solve(t.getProblem());		
 		
 		Chart.plot(t, extended);
 	}

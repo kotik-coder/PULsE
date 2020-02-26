@@ -1,4 +1,4 @@
-package pulse.problem.schemes;
+package pulse.problem.schemes.solvers;
 
 import pulse.problem.statements.Problem;
 

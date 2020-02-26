@@ -25,7 +25,31 @@ import pulse.ui.Messages;
 public class ReflexiveFinder {
 	
 	private ReflexiveFinder() { }
+	
+	private static List<File> listf(File directory) {
 
+		var files = new ArrayList<File>();
+		
+	    // Get all files from a directory.
+	    File[] fList = directory.listFiles();	    
+	    
+	    if(fList != null) {
+	    	
+	        for (File file : fList) {
+	        	
+	            if (file.isFile()) 
+	            	files.add(file);
+	            else if (file.isDirectory()) 
+	            	files.addAll( listf(file) );
+	            
+	        }
+	        
+	    }
+	
+		return files;
+		
+	}
+	
 	/**
 	 * Uses Java Reflection API to find all classes within the package named {@code pckgname}. Works well with .jar
 	 * files.
@@ -52,18 +76,24 @@ public class ReflexiveFinder {
      
        	File root = new File(locationPath + name);
        	if(root.isDirectory()) {
-       		String[] files = root.list(); 
-       		for(String file : files) {
-       			if(file.endsWith(".class"))
+       		List<File> files = listf(root); 
+       		
+       		files.stream().map(f -> f.getParentFile().equals(root) ? 
+       									f.getName() :
+       									f.getParentFile().getName() + "." + f.getName()  
+       								).forEach(path ->
+       			{       		
+       			if(path.endsWith(".class"))
 					try {
 						classes.add(
        							Class.forName(
-       									pckgname + "." + file.substring(0, file.length() - 6)));
+       									pckgname + "." + path.substring(0, path.length() - 6)));
 					} catch (ClassNotFoundException e) {
 						System.err.println("Failed to find the .class file");
 						e.printStackTrace();
 					}
-       		}
+       		});
+       		
 		}
        	
        	else {
@@ -113,8 +143,11 @@ public class ReflexiveFinder {
 	public static <V extends Reflexive> List<V> simpleInstances(String pckgname) {
 		List<V> instances = new LinkedList<V>();
 		
-        for (Class<?> aClass : ReflexiveFinder.classesIn(pckgname)) {        	
-                 
+        for (Class<?> aClass : ReflexiveFinder.classesIn(pckgname)) {
+
+        	if( Modifier.isAbstract( aClass.getModifiers() ) )
+        		continue;
+        	        	
                     try {
                         // Try to create an instance of the object                    	
                     	

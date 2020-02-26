@@ -21,6 +21,7 @@ import pulse.input.ExperimentalData;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.DiscretePulse;
 import pulse.problem.schemes.Grid;
+import pulse.problem.schemes.solvers.Solver;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
@@ -140,7 +141,9 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 	
 	public List<DifferenceScheme> availableSolutions() {
 		List<DifferenceScheme> allSchemes = Reflexive.instancesOf(DifferenceScheme.class);
-		return allSchemes.stream().filter(scheme -> scheme.getSolver(this) != null).collect(Collectors.toList());
+		return allSchemes.stream().
+				filter(scheme -> scheme instanceof Solver).
+				filter(s -> s.domain() == this.getClass()).collect(Collectors.toList());
 	}
 	
 	/**
