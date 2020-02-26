@@ -77,7 +77,7 @@ public class Launcher {
 	 * @return a value depicting the CPU usage
 	 */
 	
-	public static double CPUUsage() {
+	public static double cpuUsage() {
 
 	    MBeanServer mbs    = ManagementFactory.getPlatformMBeanServer();
 	    ObjectName name = null;

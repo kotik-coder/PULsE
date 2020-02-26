@@ -29,8 +29,6 @@ public class ExplicitLinearisedSolver
 	private double[] U;
 	private double[] V;
 	
-	private double Bi1;
-	private double Bi2;
 	private double maxTemp;
 	
 	private int N;
@@ -70,8 +68,8 @@ public class ExplicitLinearisedSolver
 		U		= new double[N + 1];
 		V		= new double[N + 1];
 		
-		Bi1 = (double) problem.getFrontHeatLoss().getValue();
-		Bi2 = (double) problem.getHeatLossRear().getValue();
+		double Bi1 = (double) problem.getFrontHeatLoss().getValue();
+		double Bi2 = (double) problem.getHeatLossRear().getValue();
 		maxTemp = (double) problem.getMaximumTemperature().getValue(); 
 				
 		counts = (int) curve.getNumPoints().getValue();

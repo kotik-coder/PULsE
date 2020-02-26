@@ -44,6 +44,7 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 	
 	public DifferenceScheme(NumericProperty N, NumericProperty timeFactor) {
 		setTimeLimit(NumericProperty.def(NumericPropertyKeyword.TIME_LIMIT));
+		grid.setTimeFactor(timeFactor);
 	}
 	
 	/**
