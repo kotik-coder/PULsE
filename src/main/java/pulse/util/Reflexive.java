@@ -48,5 +48,6 @@ public interface Reflexive {
 	public static <T extends Reflexive> List<T> instancesOf(Class<? extends T> reflexiveType) {
 		return Reflexive.instancesOf(reflexiveType, reflexiveType.getPackage().getName());
 	}
+
 	
 }

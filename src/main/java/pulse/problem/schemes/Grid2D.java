@@ -60,5 +60,9 @@ public class Grid2D extends Grid {
 		sb.append("<i>&tau;</i>="+String.format("%3.4f", tau));
 		return sb.toString();
 	}
+
+	public double getYStep() {
+		return hy;
+	}
 	
 }

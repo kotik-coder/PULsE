@@ -28,6 +28,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 
 import pulse.problem.schemes.DifferenceScheme;
+import pulse.problem.schemes.solvers.Solver;
 import pulse.problem.statements.Problem;
 import pulse.tasks.SearchTask;
 import pulse.tasks.Status;
@@ -158,7 +159,7 @@ public class ProblemStatementFrame extends JInternalFrame {
 		//simulate btn listener
 		
 		btnSimulate.addActionListener(new ActionListener() {
-			@SuppressWarnings("unchecked")
+			@SuppressWarnings({ "unchecked", "rawtypes" })
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 					
@@ -178,7 +179,7 @@ public class ProblemStatementFrame extends JInternalFrame {
 					}
 				}						
 
-				t.getScheme().getSolver(t.getProblem()).solve(t.getProblem());				
+				( (Solver)t.getScheme() ).solve(t.getProblem());				
 		
 				Chart.plot(t, true);				
 

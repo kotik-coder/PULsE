@@ -22,6 +22,7 @@ import pulse.input.InterpolationDataset;
 import pulse.input.Metadata;
 import pulse.input.listeners.DataEventType;
 import pulse.problem.schemes.DifferenceScheme;
+import pulse.problem.schemes.solvers.Solver;
 import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
@@ -199,9 +200,9 @@ public class SearchTask extends Accessible implements Runnable, SaveableCategory
 	 * @return the value of SSR (sum of squared residuals).
 	 */
 	
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public double solveProblemAndCalculateDeviation() {
-		scheme.getSolver(problem).solve(problem);
+		((Solver)scheme).solve(problem);
 		return problem.getHeatingCurve().deviationSquares(getExperimentalCurve()); 
 	}
 	
