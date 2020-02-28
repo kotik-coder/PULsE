@@ -205,7 +205,7 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 	}	
 	
 	public static NumericProperty getMaxIterations() {
-		return NumericProperty.derive(NumericPropertyKeyword.ITERATION_LIMIT, maxIterations);
+		return NumericProperty.derive(ITERATION_LIMIT, maxIterations);
 	}
 
 	public static void setMaxIterations(NumericProperty maxIterations) {

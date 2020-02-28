@@ -61,9 +61,8 @@ public abstract class ExplicitScheme extends DifferenceScheme {
 	 */
 	
 	public ExplicitScheme(NumericProperty N, NumericProperty timeFactor) {
-		super(N, timeFactor);	
-		grid = new Grid(N, timeFactor);	
-		grid.setParent(this);
+		super();
+		initGrid(N, timeFactor);
 	}
 	
 	/**
@@ -77,8 +76,8 @@ public abstract class ExplicitScheme extends DifferenceScheme {
 	 */
 	
 	public ExplicitScheme(NumericProperty N, NumericProperty timeFactor, NumericProperty timeLimit) {
-		this(N, timeFactor);
-		setTimeLimit(timeLimit);
+		super(timeLimit);
+		initGrid(N, timeFactor);
 	}
 
 	@Override
