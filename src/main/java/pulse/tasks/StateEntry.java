@@ -1,15 +1,10 @@
-package pulse.tasks.listeners;
+package pulse.tasks;
 
-import pulse.tasks.LogEntry;
-import pulse.tasks.SearchTask;
-import pulse.tasks.Status;
-import pulse.tasks.TaskManager;
-
-public class TaskStateEvent extends LogEntry {
+public class StateEntry extends LogEntry {
 	
 	private Status status;
 	
-	public TaskStateEvent(SearchTask task, Status status) {
+	public StateEntry(SearchTask task, Status status) {
 		super(task);
 		this.setStatus(status);
 	}

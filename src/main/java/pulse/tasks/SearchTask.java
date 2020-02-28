@@ -32,7 +32,6 @@ import pulse.search.math.IndexedVector;
 import pulse.tasks.Status.Details;
 import pulse.tasks.listeners.DataCollectionListener;
 import pulse.tasks.listeners.StatusChangeListener;
-import pulse.tasks.listeners.TaskStateEvent;
 import pulse.ui.components.PropertyHolderTable;
 import pulse.util.Accessible;
 import pulse.util.PropertyEvent;
@@ -113,7 +112,7 @@ public class SearchTask extends Accessible implements Runnable, SaveableCategory
 		this.scheme		= null;				
 				
 		setStatus(Status.INCOMPLETE);		
-		TaskStateEvent e = new TaskStateEvent(this, status);
+		StateEntry e = new StateEntry(this, status);
 		notifyStatusListeners(e);
 		notifyDataListeners(e);
 		
@@ -245,7 +244,7 @@ public class SearchTask extends Accessible implements Runnable, SaveableCategory
 	  
 	  /* search cycle */
 	  
-	  TaskStateEvent dataCollected = new TaskStateEvent(this, null);
+	  StateEntry dataCollected = new StateEntry(this, null);
 	  
 	  /* sets an independent thread for manipulating the buffer */
 	  
@@ -451,7 +450,7 @@ public class SearchTask extends Accessible implements Runnable, SaveableCategory
 			return;
 		
 		this.status = status;		
-		notifyStatusListeners(new TaskStateEvent(this, status));
+		notifyStatusListeners(new StateEntry(this, status));
 	}
 		
 	/**
@@ -517,12 +516,12 @@ public class SearchTask extends Accessible implements Runnable, SaveableCategory
 		this.emissivity = (double)emissivity.getValue();
 	}
 	
-	private void notifyDataListeners(TaskStateEvent e) {
+	private void notifyDataListeners(StateEntry e) {
 		for(DataCollectionListener l : listeners)
   			l.onDataCollected(e);
 	}
 	
-	private void notifyStatusListeners(TaskStateEvent e) {
+	private void notifyStatusListeners(StateEntry e) {
 		for(StatusChangeListener l : statusChangeListeners)
   			l.onStatusChange(e);
 	}
@@ -563,7 +562,7 @@ public class SearchTask extends Accessible implements Runnable, SaveableCategory
 
 	@Override
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
-		
+		//intentionally left blank
 	}
 	
 	/**

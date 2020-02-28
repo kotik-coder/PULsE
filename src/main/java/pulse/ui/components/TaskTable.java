@@ -25,6 +25,7 @@ import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.tasks.Identifier;
 import pulse.tasks.SearchTask;
+import pulse.tasks.StateEntry;
 import pulse.tasks.Status;
 import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.DataCollectionListener;
@@ -33,7 +34,6 @@ import pulse.tasks.listeners.TaskRepositoryEvent;
 import pulse.tasks.listeners.TaskRepositoryListener;
 import pulse.tasks.listeners.TaskSelectionEvent;
 import pulse.tasks.listeners.TaskSelectionListener;
-import pulse.tasks.listeners.TaskStateEvent;
 import pulse.ui.Messages;
 import pulse.ui.components.controllers.TaskTableRenderer;
 
@@ -238,7 +238,7 @@ public class TaskTable extends JTable {
 				t.addStatusChangeListener(new StatusChangeListener() {
 
 					@Override
-					public void onStatusChange(TaskStateEvent e) { 
+					public void onStatusChange(StateEntry e) { 
 							setValueAt(e.getState(), searchRow(t.getIdentifier()), STATUS_COLUMN);						
 					}
 					
@@ -247,7 +247,7 @@ public class TaskTable extends JTable {
 				t.addTaskListener(new DataCollectionListener() {
 
 					@Override
-					public void onDataCollected(TaskStateEvent e) {
+					public void onDataCollected(StateEntry e) {
 						setValueAt(t.getSumOfSquares(), searchRow(t.getIdentifier()), SS_COLUMN);
 						setValueAt(t.getRSquared(), searchRow(t.getIdentifier()), R2_COLUMN);
 					}

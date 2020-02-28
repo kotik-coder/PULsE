@@ -9,7 +9,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import pulse.tasks.listeners.DataCollectionListener;
 import pulse.tasks.listeners.LogEntryListener;
 import pulse.tasks.listeners.StatusChangeListener;
-import pulse.tasks.listeners.TaskStateEvent;
 import pulse.ui.Messages;
 import pulse.util.Extension;
 import pulse.util.Saveable;
@@ -55,7 +54,7 @@ public class Log extends UpwardsNavigable implements Saveable {
 			 */
 			
 			@Override
-			public void onDataCollected(TaskStateEvent src) {
+			public void onDataCollected(StateEntry src) {
 				if(src.getState() == Status.INCOMPLETE) 
 					return;
 				
@@ -76,7 +75,7 @@ public class Log extends UpwardsNavigable implements Saveable {
 			 */
 			
 			@Override
-			public void onStatusChange(TaskStateEvent e) { 
+			public void onStatusChange(StateEntry e) { 
 				logEntries.add(e);
 				
 				if(e.getStatus() != Status.DONE) {
