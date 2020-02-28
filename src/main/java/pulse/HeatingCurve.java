@@ -1,6 +1,7 @@
 package pulse;
 
 import static pulse.properties.NumericPropertyKeyword.START_TIME;
+import static pulse.properties.NumericPropertyKeyword.NUMPOINTS;
 
 import java.io.FileOutputStream;
 import java.io.PrintStream;
@@ -92,7 +93,7 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 	 */
 	
 	public HeatingCurve() {
-		this(NumericProperty.def(NumericPropertyKeyword.NUMPOINTS));
+		this(NumericProperty.def(NUMPOINTS));
 	}
 	
 	/**
@@ -103,9 +104,9 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 	 * @see reinit
 	 */
 	
-	public HeatingCurve(NumericProperty count) {
-		setPrefix("Solution");
-		this.count 	   = (int)count.getValue();
+	public HeatingCurve(NumericProperty count) {		
+		setPrefix("Solution");							
+		setCount(count);
 		temperature    = new ArrayList<Double>(this.count);
 		baselineAdjustedTemperature = new ArrayList<Double>(this.count);
 		time		   = new ArrayList<Double>(this.count);
@@ -133,6 +134,13 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 		
 		return h;
 	}*/
+	
+	private void setCount(NumericProperty count) {
+		if(count.getType() != NUMPOINTS)
+			throw new IllegalArgumentException("Illegal type: " + count.getType());
+		
+		this.count 	   = (int)count.getValue();
+	}
 	
 	public void addDataListener(DataListener listener) {
 		dataListeners.add(listener);
@@ -183,7 +191,7 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 	 */
 	
 	public NumericProperty getNumPoints() {
-		return NumericProperty.derive(NumericPropertyKeyword.NUMPOINTS, count);
+		return NumericProperty.derive(NUMPOINTS, count);
 	}
 	
 	/**
@@ -469,6 +477,8 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 		switch(extension) {
 			case HTML : printHTML(fos); break;
 			case CSV : printCSV(fos); break;
+			default : 
+				throw new IllegalArgumentException("Format not recognised: " + extension);
 		}		
 	}
 	
@@ -646,8 +656,7 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 		 HeatingCurve hc = p.getHeatingCurve();
 		
 		 HeatingCurve classicCurve = new 
-				 HeatingCurve(NumericProperty.derive
-						 (NumericPropertyKeyword.NUMPOINTS, hc.count));
+				 HeatingCurve(NumericProperty.derive(NUMPOINTS, hc.count));
 		
 		 double time, step;
 		 
@@ -727,6 +736,8 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 	}
 	
 	public void setStartTime(NumericProperty startTime) {
+		if(startTime.getType() != START_TIME) 
+			throw new IllegalArgumentException("Illegal type: " + startTime.getType());
 		this.startTime = (double) startTime.getValue();
 		DataEvent dataEvent = new DataEvent(DataEventType.CHANGE_OF_ORIGIN, this);
 		notifyListeners(dataEvent);

@@ -120,19 +120,12 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
 		
 		double v = val.doubleValue();
 		
-		double max = property.getMaximum().doubleValue();
-
 		final double EPS = 1E-10;
 		
-		if( v > max + EPS ) 
-			return false;
+		if( v > property.getMaximum().doubleValue() + EPS ) 
+			return false;		
 		
-		double min = property.getMinimum().doubleValue();
-		
-		if( v < min - EPS )
-			return false;
-
-		return true;
+		return v > property.getMinimum().doubleValue() - EPS;
 		
 	}
 	
@@ -347,10 +340,7 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
 		if(onp.getType() != this.getType())
 			return false;
 		
-		if(!onp.getValue().equals(this.getValue()))
-			return false;
-		
-		return true;
+		return onp.getValue().equals(this.getValue());
 		
 	}
 	

@@ -115,7 +115,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Savea
 	public final double classicSolutionAt(double time, int precision) {
 		
 		final double EPS = 1E-8; 
-		double Fo = time*a/Math.pow(l, 2);
+		double Fo = time*a/pow(l, 2);
 		
 		if(time < EPS) return 0;
 		

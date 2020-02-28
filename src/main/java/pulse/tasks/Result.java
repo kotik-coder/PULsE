@@ -46,6 +46,8 @@ public class Result extends AbstractResult implements Saveable {
 		switch(extension) {
 			case HTML : printHTML(fos); break;
 			case CSV : printCSV(fos); break;
+			default : 
+					throw new IllegalArgumentException("Format not recognised: " + extension);
 	}
 	}
 	
