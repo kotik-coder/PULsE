@@ -42,9 +42,8 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 	 * @see pulse.problem.schemes.Grid(NumericProperty,NumericProperty)
 	 */
 	
-	public DifferenceScheme(NumericProperty N, NumericProperty timeFactor) {
+	public DifferenceScheme(NumericProperty N) {
 		setTimeLimit(NumericProperty.def(NumericPropertyKeyword.TIME_LIMIT));
-		grid.setTimeFactor(timeFactor);
 	}
 	
 	/**
@@ -57,8 +56,8 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 	 * @see pulse.problem.schemes.Grid(NumericProperty,NumericProperty)
 	 */
 	
-	public DifferenceScheme(NumericProperty N, NumericProperty timeFactor, NumericProperty timeLimit) {
-		this(N, timeFactor);
+	public DifferenceScheme(NumericProperty N, NumericProperty timeLimit) {
+		this(N);
 		setTimeLimit(timeLimit);
 	}
 	

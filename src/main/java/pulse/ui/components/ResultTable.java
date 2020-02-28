@@ -202,10 +202,9 @@ public class ResultTable extends JTable implements Saveable  {
 	@Override
 	public TableCellRenderer getCellRenderer(int row, int column) {
 		   Object value = getValueAt(row, column);
-		   
-		   if(value != null) 			   			   			   
-			   if(value instanceof NumericProperty)
-				   return renderer;	   
+		    			   			   			   
+		   if(value instanceof NumericProperty)
+			   return renderer;	   
 		   
 		   return super.getCellRenderer(row, column);
 		   

@@ -27,7 +27,7 @@ import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.search.direction.Path;
-import pulse.search.direction.PathSolver;
+import pulse.search.direction.PathOptimiser;
 import pulse.search.math.IndexedVector;
 import pulse.tasks.Status.Details;
 import pulse.tasks.listeners.DataCollectionListener;
@@ -137,7 +137,7 @@ public class SearchTask extends Accessible implements Runnable, SaveableCategory
 	 */
 	
 	public IndexedVector searchVector() {
-		return problem.optimisationVector(PathSolver.getSearchFlags())[0];
+		return problem.optimisationVector(PathOptimiser.getSearchFlags())[0];
 	}
 	
 	/**
@@ -234,11 +234,11 @@ public class SearchTask extends Accessible implements Runnable, SaveableCategory
 	  HeatingCurve solutionCurve = problem.getHeatingCurve();
 	  ssr	   			 		 = solveProblemAndCalculateDeviation();
 	  
-	  PathSolver pathSolver 	= TaskManager.getPathSolver();
+	  PathOptimiser pathSolver 	= TaskManager.getPathSolver();
 	  
 	  path 						= pathSolver.createPath(this);
 	   
-	  double errorTolerance		= (double)PathSolver.getErrorTolerance().getValue();
+	  double errorTolerance		= (double)PathOptimiser.getErrorTolerance().getValue();
 	  int bufferSize			= (Integer)buffer.getSize().getValue();	  
 	  
 	  rSq 						= solutionCurve.rSquared(this.getExperimentalCurve());	  
@@ -472,7 +472,7 @@ public class SearchTask extends Accessible implements Runnable, SaveableCategory
 		if(status == Status.DONE)
 			return status;		
 		
-		PathSolver pathSolver = TaskManager.getPathSolver();				
+		PathOptimiser pathSolver = TaskManager.getPathSolver();				
 		Status s = Status.INCOMPLETE;
 		
 		if(problem == null) 
@@ -485,7 +485,7 @@ public class SearchTask extends Accessible implements Runnable, SaveableCategory
 			s.setDetails(Details.MISSING_HEATING_CURVE);
 		else if(pathSolver == null)
 			s.setDetails(Details.MISSING_PATH_SOLVER);
-		else if(PathSolver.getLinearSolver() == null)
+		else if(PathOptimiser.getLinearSolver() == null)
 			s.setDetails(Details.MISSING_LINEAR_SOLVER);
 		else if(buffer == null)
 			s.setDetails(Details.MISSING_BUFFER);
@@ -581,14 +581,11 @@ public class SearchTask extends Accessible implements Runnable, SaveableCategory
 			return true;
 		
 		if(! (o instanceof SearchTask))
-			return false;
+			return false;		
 		
-		SearchTask other = (SearchTask)o;
-		
-		if( ! curve.equals(other.getExperimentalCurve()))
-			return false;
-		
-		return true;
+		return curve.equals( 
+								( (SearchTask)o ) .getExperimentalCurve()
+																			);
 	
 	}
 	

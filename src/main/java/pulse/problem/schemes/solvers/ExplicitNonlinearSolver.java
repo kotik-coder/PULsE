@@ -23,8 +23,7 @@ public class ExplicitNonlinearSolver
 	
 	private HeatingCurve curve;
 	
-	private double[] U;
-	private double[] V;
+	private double[] U, V;
 	
 	private final static double EPS = 1e-7; // a small value ensuring numeric stability
 	

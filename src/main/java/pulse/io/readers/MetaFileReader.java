@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.StringTokenizer;
 
 import pulse.input.Metadata;
@@ -67,8 +68,7 @@ public class MetaFileReader implements AbstractReader {
 	}
 	
 	public void populateMetadata(File file, Metadata met) throws IOException {
-			if(file == null)
-				throw new NullPointerException(Messages.getString("MetaFileReader.1")); //$NON-NLS-1$			
+			Objects.requireNonNull(file, Messages.getString("MetaFileReader.1")); //$NON-NLS-1$			
 			
 			BufferedReader reader = new BufferedReader(new FileReader(file));
 

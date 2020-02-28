@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 import pulse.input.ExperimentalData;
 import pulse.input.InterpolationDataset;
 import pulse.io.readers.ReaderManager;
-import pulse.search.direction.PathSolver;
+import pulse.search.direction.PathOptimiser;
 import pulse.tasks.listeners.TaskRepositoryEvent;
 import pulse.tasks.listeners.TaskRepositoryListener;
 import pulse.tasks.listeners.TaskSelectionEvent;
@@ -38,7 +38,7 @@ import pulse.util.UpwardsNavigable;
 public final class TaskManager extends UpwardsNavigable {	
 		
 	private static TaskManager instance = new TaskManager();	
-	private static PathSolver pathSolver;
+	private static PathOptimiser pathSolver;
 	private static InterpolationDataset specificHeatCurve;
 	private static InterpolationDataset densityCurve;
 	
@@ -271,7 +271,7 @@ public final class TaskManager extends UpwardsNavigable {
 			notifyListeners(e);	
 		}
 		
-		PathSolver.reset();
+		PathOptimiser.reset();
 				
 	}
 	
@@ -464,11 +464,11 @@ public final class TaskManager extends UpwardsNavigable {
 		return selectedTask;
 	}
 	
-	public static PathSolver getPathSolver() {
+	public static PathOptimiser getPathSolver() {
 		return pathSolver;
 	}
 	
-	public static void setPathSolver(PathSolver pathSolver) {
+	public static void setPathSolver(PathOptimiser pathSolver) {
 		TaskManager.pathSolver = pathSolver;
 		pathSolver.setParent(getInstance());
 	}

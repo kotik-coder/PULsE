@@ -132,7 +132,7 @@ public class FormattedInputDialog extends JDialog {
             }
         });		
 		
-		inputTextField.setFont(inputTextField.getFont().deriveFont(FONT_SIZE));; 
+		inputTextField.setFont(inputTextField.getFont().deriveFont(FONT_SIZE));
 		inputTextField.setColumns(10);
 		return inputTextField;
 	}

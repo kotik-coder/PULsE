@@ -23,11 +23,11 @@ import pulse.util.Reflexive;
  *
  */
 
-public abstract class LinearSolver extends PropertyHolder implements Reflexive {
+public abstract class LinearOptimiser extends PropertyHolder implements Reflexive {
 
 	protected static double searchResolution = (double) NumericProperty.def(LINEAR_RESOLUTION).getValue();
 	
-	protected LinearSolver() {	
+	protected LinearOptimiser() {	
 		super();
 	}	
 	
@@ -92,7 +92,7 @@ public abstract class LinearSolver extends PropertyHolder implements Reflexive {
 	}
 
 	public static void setLinearResolution(NumericProperty searchError) {
-		LinearSolver.searchResolution = (double)searchError.getValue();
+		LinearOptimiser.searchResolution = (double)searchError.getValue();
 	}
 		
 	@Override

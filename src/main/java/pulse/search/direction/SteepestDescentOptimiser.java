@@ -8,15 +8,15 @@ import pulse.ui.Messages;
  * The simplest possible {@code PathSolver}, which assumes that the minimum direction
  * coincides with the inverted gradient. Used in combination with the {@code GoldenSectionSolver}
  * for increased accuracy. 
- * @see pulse.search.linear.GoldenSectionSolver
+ * @see pulse.search.linear.GoldenSectionOptimiser
  * @see <a href="https://en.wikipedia.org/wiki/Gradient_descent">Wikipedia page</a> 
  */
 
-public class SteepestDescentSolver extends PathSolver {
+public class SteepestDescentOptimiser extends PathOptimiser {
 	
-	private static SteepestDescentSolver instance = new SteepestDescentSolver();
+	private static SteepestDescentOptimiser instance = new SteepestDescentOptimiser();
 	
-	private SteepestDescentSolver() { super(); }
+	private SteepestDescentOptimiser() { super(); }
 
 	/**
 	 * <p>The direction of the minimum at the iteration <math><i>k</i></math> 
@@ -51,7 +51,7 @@ public class SteepestDescentSolver extends PathSolver {
 	 * @return the single (static) instance of this class
 	 */
 	
-	public static SteepestDescentSolver getInstance() {
+	public static SteepestDescentOptimiser getInstance() {
 		return instance;
 	}
 	

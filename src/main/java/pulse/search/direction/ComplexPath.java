@@ -25,8 +25,8 @@ public class ComplexPath extends Path {
 	
 	@Override
 	public void reset(SearchTask task) {
-		setGradient(PathSolver.gradient(task));
-		hessian = new Matrix(PathSolver.activeParameters().size(), 1.0);
+		setGradient(PathOptimiser.gradient(task));
+		hessian = new Matrix(PathOptimiser.activeParameters().size(), 1.0);
 		setDirection( TaskManager.getPathSolver().direction(this) );
 	}
 	

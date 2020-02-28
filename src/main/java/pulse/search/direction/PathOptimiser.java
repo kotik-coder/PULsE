@@ -12,7 +12,7 @@ import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
-import pulse.search.linear.LinearSolver;
+import pulse.search.linear.LinearOptimiser;
 import pulse.search.math.IndexedVector;
 import pulse.search.math.Vector;
 import pulse.tasks.SearchTask;
@@ -27,16 +27,16 @@ import pulse.util.Reflexive;
  * Declares (but not defines!) the methods for finding the direction of the minimum. This class
  * is closely linked with another abstract search class, the {@code LinearSolver}.</p>
  * @see pulse.search.tasks.SearchTask.run()
- * @see pulse.search.linear.LinearSolver
+ * @see pulse.search.linear.LinearOptimiser
  */
 
-public abstract class PathSolver extends PropertyHolder implements Reflexive {
+public abstract class PathOptimiser extends PropertyHolder implements Reflexive {
 	
 	private static int		maxIterations;
 	private static double	errorTolerance;
 	private static double	gradientResolution;
 
-	private static LinearSolver linearSolver;
+	private static LinearOptimiser linearSolver;
 	private static List<Flag>	globalSearchFlags = Flag.defaultList();
 	
 	/**
@@ -45,7 +45,7 @@ public abstract class PathSolver extends PropertyHolder implements Reflexive {
 	 * @see pulse.properties.Flag.defaultList() 
 	 */
 	
-	protected PathSolver() {
+	protected PathOptimiser() {
 		super();
 		reset();
 	}
@@ -75,7 +75,7 @@ public abstract class PathSolver extends PropertyHolder implements Reflexive {
 	 * @param task a {@code SearchTask} that needs to be driven to a minimum of SSR.
 	 * @return the SSR value with the newly found parameters.
 	 * @see direction(Path)
-	 * @see pulse.search.linear.LinearSolver
+	 * @see pulse.search.linear.LinearOptimiser
 	 */
 	
 	public double iteration(SearchTask task) {
@@ -85,7 +85,7 @@ public abstract class PathSolver extends PropertyHolder implements Reflexive {
 		 * Checks whether an iteration limit has been already reached 		
 		 */
 		
-		if( p.getIteration().compareValues(PathSolver.getMaxIterations()) > 0 ) 
+		if( p.getIteration().compareValues(PathOptimiser.getMaxIterations()) > 0 ) 
 			task.setStatus(Status.TIMEOUT);
 		
 		IndexedVector parameters = task.searchVector(); //get current search vector
@@ -172,7 +172,7 @@ public abstract class PathSolver extends PropertyHolder implements Reflexive {
 		
 	}	
 	
-	public static LinearSolver getLinearSolver() {
+	public static LinearOptimiser getLinearSolver() {
 		return linearSolver;
 	}
 	
@@ -182,8 +182,8 @@ public abstract class PathSolver extends PropertyHolder implements Reflexive {
 	 * @param linearSearch a {@code LinearSolver}
 	 */
 
-	public void setLinearSolver(LinearSolver linearSearch) {
-		PathSolver.linearSolver = linearSearch;
+	public void setLinearSolver(LinearOptimiser linearSearch) {
+		PathOptimiser.linearSolver = linearSearch;
 		linearSolver.setParent(this);
 		super.parameterListChanged();
 	}
@@ -193,11 +193,11 @@ public abstract class PathSolver extends PropertyHolder implements Reflexive {
 	}
 
 	public static void setErrorTolerance(NumericProperty errorTolerance) {
-		PathSolver.errorTolerance = (double)errorTolerance.getValue();
+		PathOptimiser.errorTolerance = (double)errorTolerance.getValue();
 	}
 
 	public static void setGradientResolution(NumericProperty resolution) {
-		PathSolver.gradientResolution = (double) resolution.getValue();
+		PathOptimiser.gradientResolution = (double) resolution.getValue();
 	}
 	
 	public static NumericProperty getGradientResolution() {
@@ -209,7 +209,7 @@ public abstract class PathSolver extends PropertyHolder implements Reflexive {
 	}
 
 	public static void setMaxIterations(NumericProperty maxIterations) {
-		PathSolver.maxIterations = (int)maxIterations.getValue();
+		PathOptimiser.maxIterations = (int)maxIterations.getValue();
 	}
 	
 	@Override
@@ -281,7 +281,7 @@ public abstract class PathSolver extends PropertyHolder implements Reflexive {
 	 */
 	
 	public static List<NumericPropertyKeyword> activeParameters() {
-		return PathSolver.getSearchFlags().stream()
+		return PathOptimiser.getSearchFlags().stream()
 				.filter(flag -> (boolean)flag.getValue())
 				.map(flag -> flag.getType()).collect(Collectors.toList());
 	}

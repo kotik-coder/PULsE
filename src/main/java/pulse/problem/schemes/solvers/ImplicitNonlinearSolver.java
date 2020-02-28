@@ -27,7 +27,7 @@ public class ImplicitNonlinearSolver
 	
 	private double T, dT;
 	
-	private double a1,b1,c1,b2,b3,c2,a,b,c;
+	private double a1,b1,c1,b2,b3,a,b,c;
 		
 	public ImplicitNonlinearSolver() {
 		super();
@@ -87,6 +87,7 @@ public class ImplicitNonlinearSolver
 		
 		int i, m, w, j;
 		double F, pls;
+		double c2;
 		
 		// time cycle
 

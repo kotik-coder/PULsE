@@ -391,10 +391,7 @@ public final class Matrix {
     	if(this.x.length != m.x.length)
     		return false;
     	
-    	if(this.x[0].length != m.x[0].length)
-    		return false; 
-    	
-    	return true; 
+    	return this.x[0].length == m.x[0].length;
     	
     }
     
