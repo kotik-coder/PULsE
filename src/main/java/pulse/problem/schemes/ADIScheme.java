@@ -16,14 +16,20 @@ public abstract class ADIScheme extends DifferenceScheme {
 	}	
 	
 	public ADIScheme(NumericProperty N, NumericProperty timeFactor) {
-		super(N, timeFactor);
-		grid = new Grid2D(N, timeFactor);	
-		grid.setParent(this);
+		super();
+		initGrid(N, timeFactor);
 	}
 	
 	public ADIScheme(NumericProperty N, NumericProperty timeFactor, NumericProperty timeLimit) {
-		this(N, timeFactor);
-		setTimeLimit(timeLimit);
+		super(timeLimit);
+		initGrid(N, timeFactor);
+	}
+	
+	@Override
+	public void initGrid(NumericProperty N, NumericProperty timeFactor) {
+		grid = new Grid2D(N, timeFactor);	
+		grid.setParent(this);
+		grid.setTimeFactor(timeFactor);		
 	}
 	
 	@Override
