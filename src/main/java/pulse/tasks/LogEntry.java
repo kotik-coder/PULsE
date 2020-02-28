@@ -2,6 +2,7 @@ package pulse.tasks;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.Objects;
 
 import pulse.ui.Messages;
 
@@ -12,7 +13,7 @@ import pulse.ui.Messages;
  *
  */
 
-public abstract class LogEntry {
+public class LogEntry {
 
 	private Identifier identifier;
 	private LocalTime time;
@@ -24,8 +25,7 @@ public abstract class LogEntry {
 	 */
 	
 	public LogEntry(SearchTask t) {
-		if(t == null)
-			throw new IllegalArgumentException(Messages.getString("LogEntry.NullTaskError"));
+		Objects.requireNonNull(t, Messages.getString("LogEntry.NullTaskError"));
 		time 		= LocalDateTime.now().toLocalTime();
 		identifier	= t.getIdentifier();
 	}
