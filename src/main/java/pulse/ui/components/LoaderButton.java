@@ -69,6 +69,8 @@ public class LoaderButton extends JButton {
 				switch(dataType) {
 					case SPECIFIC_HEAT : size = TaskManager.getSpecificHeatCurve().getData().size(); break;
 					case DENSITY : size = TaskManager.getDensityCurve().getData().size(); break;
+					default : 
+						throw new IllegalArgumentException("Unknown data type: " + dataType);
 				}
 				
 				String label = ""; 
@@ -76,6 +78,8 @@ public class LoaderButton extends JButton {
 				switch(dataType) {
 					case SPECIFIC_HEAT : label = Messages.getString("LoaderButton.5"); break; //$NON-NLS-1$
 					case DENSITY : label = Messages.getString("LoaderButton.6"); break; //$NON-NLS-1$
+					default : 
+						throw new IllegalArgumentException("Unknown data type: " + dataType);
 				}
 				
 				JOptionPane

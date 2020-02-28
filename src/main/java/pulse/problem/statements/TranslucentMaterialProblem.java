@@ -19,7 +19,7 @@ public class TranslucentMaterialProblem extends LinearisedProblem {
 		absorption		= new BeerLambertAbsorption();
 	}	
 
-	public TranslucentMaterialProblem(AbsorptionModel laserAbsorption, AbsorptionModel thermalAbsorption) {
+	public TranslucentMaterialProblem(AbsorptionModel laserAbsorption) {
 		super();
 		this.absorption	= laserAbsorption;
 	}	

@@ -96,9 +96,9 @@ public class SearchTask extends Accessible implements Runnable, SaveableCategory
 	
 	public void clear() {				
 		rSq	= (double) NumericProperty.def
-				(NumericPropertyKeyword.RSQUARED).getValue();
+				(RSQUARED).getValue();
 		ssr	= (double) NumericProperty.def
-				(NumericPropertyKeyword.SUM_OF_SQUARES).getValue();				
+				(SUM_OF_SQUARES).getValue();				
 		
 		buffer 			= new Buffer();
 		buffer.setParent(this);		
@@ -354,14 +354,10 @@ public class SearchTask extends Accessible implements Runnable, SaveableCategory
 	 */
 	
 	public void setProblem(Problem problem) {
-		this.problem = problem;
-				
-		if(curve == null)
+		if(curve == null || problem == null)
 			return;
 		
-		if(problem == null)
-			return;
-			
+		this.problem = problem;				
 		problem.setParent(this);
 		problem.removeListeners(); 
 		problem.retrieveData(curve);
@@ -566,8 +562,8 @@ public class SearchTask extends Accessible implements Runnable, SaveableCategory
 	}
 
 	@Override
-	public void set(NumericPropertyKeyword type, NumericProperty property) {		
-		return;
+	public void set(NumericPropertyKeyword type, NumericProperty property) {
+		
 	}
 	
 	/**

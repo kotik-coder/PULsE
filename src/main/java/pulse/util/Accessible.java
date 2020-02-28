@@ -139,8 +139,8 @@ public abstract class Accessible extends UpwardsNavigable {
 	    	if(m.getParameterCount() > 0)
 	    		continue;
 	    	
-	        if( Property.class.isAssignableFrom(m.getReturnType()) )
-	        	if(! NumericProperty.class.isAssignableFrom(m.getReturnType()) )
+	        if( Property.class.isAssignableFrom(m.getReturnType()) &&
+	        	!NumericProperty.class.isAssignableFrom(m.getReturnType()) )
 					try {
 						fields.add((Property) m.invoke(this));
 					} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {

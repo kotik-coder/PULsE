@@ -74,18 +74,18 @@ public class Flag implements Property {
 	
 	public static List<Flag> defaultList() {
 		List<Flag> flags = new ArrayList<Flag>();
-		flags.add(new Flag(NumericPropertyKeyword.DIFFUSIVITY, NumericProperty.def(DIFFUSIVITY).getDescriptor(true), true));
-		flags.add(new Flag(NumericPropertyKeyword.HEAT_LOSS, NumericProperty.def(HEAT_LOSS).getDescriptor(true), true));
-		flags.add(new Flag(NumericPropertyKeyword.MAXTEMP, NumericProperty.def(MAXTEMP).getDescriptor(true), true));
-		flags.add(new Flag(NumericPropertyKeyword.BASELINE_INTERCEPT, NumericProperty.def(BASELINE_INTERCEPT).getDescriptor(true), false));
-		flags.add(new Flag(NumericPropertyKeyword.BASELINE_SLOPE, NumericProperty.def(BASELINE_SLOPE).getDescriptor(true), false));
-		flags.add(new Flag(NumericPropertyKeyword.FOV_OUTER, NumericProperty.def(FOV_OUTER).getDescriptor(true), false));
-		flags.add(new Flag(NumericPropertyKeyword.FOV_INNER, NumericProperty.def(FOV_INNER).getDescriptor(true), false));
-		flags.add(new Flag(NumericPropertyKeyword.SPOT_DIAMETER, NumericProperty.def(SPOT_DIAMETER).getDescriptor(true), false));
-		flags.add(new Flag(NumericPropertyKeyword.DIATHERMIC_COEFFICIENT, NumericProperty.def(DIATHERMIC_COEFFICIENT).getDescriptor(true), false));
-		flags.add(new Flag(NumericPropertyKeyword.LASER_ABSORPTIVITY, NumericProperty.def(LASER_ABSORPTIVITY).getDescriptor(true), false));
-		flags.add(new Flag(NumericPropertyKeyword.THERMAL_ABSORPTIVITY, NumericProperty.def(THERMAL_ABSORPTIVITY).getDescriptor(true), false));
-		flags.add(new Flag(NumericPropertyKeyword.START_TIME, NumericProperty.def(START_TIME).getDescriptor(true), false));
+		flags.add(new Flag(DIFFUSIVITY, NumericProperty.def(DIFFUSIVITY).getDescriptor(true), true));
+		flags.add(new Flag(HEAT_LOSS, NumericProperty.def(HEAT_LOSS).getDescriptor(true), true));
+		flags.add(new Flag(MAXTEMP, NumericProperty.def(MAXTEMP).getDescriptor(true), true));
+		flags.add(new Flag(BASELINE_INTERCEPT, NumericProperty.def(BASELINE_INTERCEPT).getDescriptor(true), false));
+		flags.add(new Flag(BASELINE_SLOPE, NumericProperty.def(BASELINE_SLOPE).getDescriptor(true), false));
+		flags.add(new Flag(FOV_OUTER, NumericProperty.def(FOV_OUTER).getDescriptor(true), false));
+		flags.add(new Flag(FOV_INNER, NumericProperty.def(FOV_INNER).getDescriptor(true), false));
+		flags.add(new Flag(SPOT_DIAMETER, NumericProperty.def(SPOT_DIAMETER).getDescriptor(true), false));
+		flags.add(new Flag(DIATHERMIC_COEFFICIENT, NumericProperty.def(DIATHERMIC_COEFFICIENT).getDescriptor(true), false));
+		flags.add(new Flag(LASER_ABSORPTIVITY, NumericProperty.def(LASER_ABSORPTIVITY).getDescriptor(true), false));
+		flags.add(new Flag(THERMAL_ABSORPTIVITY, NumericProperty.def(THERMAL_ABSORPTIVITY).getDescriptor(true), false));
+		flags.add(new Flag(START_TIME, NumericProperty.def(START_TIME).getDescriptor(true), false));
 		return flags;
 	}
 	

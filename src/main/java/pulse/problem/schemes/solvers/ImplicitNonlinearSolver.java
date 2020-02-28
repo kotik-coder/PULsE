@@ -82,7 +82,7 @@ public class ImplicitNonlinearSolver
 
 		prepare(problem);
 		
-		final double fixedPointPrecisionSq = Math.pow((double) problem.getNonlinearPrecision().getValue(), 2);
+		final double fixedPointPrecisionSq = pow((double) problem.getNonlinearPrecision().getValue(), 2);
 		final double HH = pow(hx, 2);
 		
 		int i, m, w, j;
