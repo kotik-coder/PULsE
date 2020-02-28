@@ -18,8 +18,8 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 
-import pulse.search.direction.PathSolver;
-import pulse.search.linear.LinearSolver;
+import pulse.search.direction.PathOptimiser;
+import pulse.search.linear.LinearOptimiser;
 import pulse.tasks.SearchTask;
 import pulse.tasks.TaskManager;
 import pulse.ui.Messages;
@@ -30,13 +30,13 @@ import pulse.util.Reflexive;
 public class SearchOptionsFrame extends JInternalFrame {
 
 	private PropertyHolderTable pathTable;
-	private JList<LinearSolver> linearList;
+	private JList<LinearOptimiser> linearList;
 	private PathSolversList pathList;
 
 	private final static Font font = new Font(Messages.getString("PropertyHolderTable.FontName"), Font.ITALIC, 16);
 	
-	private final static List<PathSolver> pathSolvers		= Reflexive.instancesOf(PathSolver.class);
-	private final static List<LinearSolver> linearSolvers	= Reflexive.instancesOf(LinearSolver.class);
+	private final static List<PathOptimiser> pathSolvers		= Reflexive.instancesOf(PathOptimiser.class);
+	private final static List<LinearOptimiser> linearSolvers	= Reflexive.instancesOf(LinearOptimiser.class);
 	
 	
 	/**
@@ -95,7 +95,7 @@ public class SearchOptionsFrame extends JInternalFrame {
 	public void update() {
 		if(TaskManager.getPathSolver() != null) {
 			pathList.setSelectedIndex(pathSolvers.indexOf(TaskManager.getPathSolver()));
-			linearList.setSelectedIndex(linearSolvers.indexOf(PathSolver.getLinearSolver()));	
+			linearList.setSelectedIndex(linearSolvers.indexOf(PathOptimiser.getLinearSolver()));	
 		}
 		else {
 			pathList.clearSelection();
@@ -104,7 +104,7 @@ public class SearchOptionsFrame extends JInternalFrame {
 		}
 	}
 
-	class PathSolversList extends JList<PathSolver> {
+	class PathSolversList extends JList<PathOptimiser> {
 		
 		/**
 		 * 
@@ -115,7 +115,7 @@ public class SearchOptionsFrame extends JInternalFrame {
 		
 			super();
 			
-			setModel(new AbstractListModel<PathSolver>() {
+			setModel(new AbstractListModel<PathOptimiser>() {
 				/**
 				 * 
 				 */
@@ -126,7 +126,7 @@ public class SearchOptionsFrame extends JInternalFrame {
 					return pathSolvers.size();
 				}
 				@Override
-				public PathSolver getElementAt(int index) {
+				public PathOptimiser getElementAt(int index) {
 					return pathSolvers.get(index);
 				}
 			});		
@@ -141,12 +141,12 @@ public class SearchOptionsFrame extends JInternalFrame {
 					if(arg0.getValueIsAdjusting())
 						return;
 					
-					if (!(getSelectedValue() instanceof PathSolver)) {
+					if (!(getSelectedValue() instanceof PathOptimiser)) {
 						((DefaultTableModel) pathTable.getModel()).setRowCount(0);
 						return;
 					}
 					
-					PathSolver searchScheme = (getSelectedValue());
+					PathOptimiser searchScheme = (getSelectedValue());
 					
 					if(searchScheme == null)
 						return;
@@ -164,7 +164,7 @@ public class SearchOptionsFrame extends JInternalFrame {
 		}
 	}
 	
-	class LinearSearchList extends JList<LinearSolver> {
+	class LinearSearchList extends JList<LinearOptimiser> {
 		
 		/**
 		 * 
@@ -177,7 +177,7 @@ public class SearchOptionsFrame extends JInternalFrame {
 			
 			setFont(font);
 			setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-			setModel(new AbstractListModel<LinearSolver>() {
+			setModel(new AbstractListModel<LinearOptimiser>() {
 				/**
 				 * 
 				 */
@@ -187,7 +187,7 @@ public class SearchOptionsFrame extends JInternalFrame {
 					return linearSolvers.size();
 				}
 				@Override
-				public LinearSolver getElementAt(int index) {
+				public LinearOptimiser getElementAt(int index) {
 					return linearSolvers.get(index);
 				}
 			});
@@ -199,12 +199,12 @@ public class SearchOptionsFrame extends JInternalFrame {
 					if(arg0.getValueIsAdjusting())
 						return;
 					
-					if (!(getSelectedValue() instanceof LinearSolver)) {
+					if (!(getSelectedValue() instanceof LinearOptimiser)) {
 							pathTable.setEnabled(false);
 						return;
 					}
 					
-					LinearSolver linearSolver = (getSelectedValue());
+					LinearOptimiser linearSolver = (getSelectedValue());
 					 
 					TaskManager.getPathSolver().setLinearSolver(linearSolver);
 					

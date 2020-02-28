@@ -65,8 +65,7 @@ public class LFRReader implements CurveReader {
 
 	@Override 
 	public List<ExperimentalData> read(File file) throws IOException {
-		if(file == null)
-			Objects.requireNonNull(file, Messages.getString("LFRReader.1"));
+		Objects.requireNonNull(file, Messages.getString("LFRReader.1"));
 		
 		BufferedReader reader = new BufferedReader(new FileReader(file));
 		final String directory = file.getAbsoluteFile().getParent();
@@ -139,8 +138,7 @@ public class LFRReader implements CurveReader {
 	 */
 	
 	public ExperimentalData readSingleCurve(File file, Metadata metadata) throws IOException {
-		if(file == null)
-			throw new NullPointerException(Messages.getString("LFRReader.9"));
+		Objects.requireNonNull(file, Messages.getString("LFRReader.9"));
 		
 		ExperimentalData curve = new ExperimentalData();
 		

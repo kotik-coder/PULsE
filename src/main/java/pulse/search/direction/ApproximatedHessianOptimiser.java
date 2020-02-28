@@ -18,14 +18,14 @@ import pulse.ui.Messages;
  * identity matrix. It is recommended to use this {@code PathSolver} in combination with 
  * the {@code WolfeSolver}.</p>
  * @see <a href="https://en.wikipedia.org/wiki/Broyden%E2%80%93Fletcher%E2%80%93Goldfarb%E2%80%93Shanno_algorithm">Wikipedia page</a>
- * @see pulse.search.linear.WolfeSolver
+ * @see pulse.search.linear.WolfeOptimiser
  */
 
-public class ApproximatedHessianSolver extends PathSolver {
+public class ApproximatedHessianOptimiser extends PathOptimiser {
 	
-	private static ApproximatedHessianSolver instance = new ApproximatedHessianSolver();
+	private static ApproximatedHessianOptimiser instance = new ApproximatedHessianOptimiser();
 	
-	private ApproximatedHessianSolver() {
+	private ApproximatedHessianOptimiser() {
 		super();
 	}
 
@@ -96,7 +96,7 @@ public class ApproximatedHessianSolver extends PathSolver {
 	 * @return the single (static) instance of this class
 	 */
 		
-	public static ApproximatedHessianSolver getInstance() {
+	public static ApproximatedHessianOptimiser getInstance() {
 		return instance;
 	}
 	

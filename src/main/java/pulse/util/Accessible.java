@@ -412,8 +412,8 @@ public abstract class Accessible extends UpwardsNavigable {
 			* and second parameter is the property contained in that Iterable, use that method
 			*/
 	    
-	    	if(Iterable.class.isAssignableFrom(m.getParameterTypes()[0])) {
-	    		if(property.getClass().equals(m.getParameterTypes()[1])) {
+	    	if(Iterable.class.isAssignableFrom(m.getParameterTypes()[0]) &&
+	    			property.getClass().equals(m.getParameterTypes()[1])) {
 	        				
 	    			for(Method met : methods)
 	    				if(met.getReturnType().
@@ -440,10 +440,8 @@ public abstract class Accessible extends UpwardsNavigable {
 											| InvocationTargetException e) {
 										System.err.println("Cannot invoked method " + m);
 										e.printStackTrace();
-									}
-	        					}
-	        				
-	        		}
+						}
+	        		}	        				
 	        			
 	        	}
 	    	
@@ -453,8 +451,8 @@ public abstract class Accessible extends UpwardsNavigable {
 		     * For generic Properties: use a simple setter method with enum value as argument
 		     */
 		    
-	    	else if (m.getParameterCount() == 1)
-	    		if(m.getParameterTypes()[0].equals(property.getClass()))
+	    	else if (m.getParameterCount() == 1 &&
+	    			 m.getParameterTypes()[0].equals(property.getClass()))
 					try {
 						m.invoke(this, property);
 					} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {

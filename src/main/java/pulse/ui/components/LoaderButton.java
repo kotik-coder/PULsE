@@ -67,22 +67,22 @@ public class LoaderButton extends JButton {
 				int size = 0;
 				
 				switch(dataType) {
-				case SPECIFIC_HEAT : size = TaskManager.getSpecificHeatCurve().getData().size(); break;
-				case DENSITY : size = TaskManager.getDensityCurve().getData().size(); break;
+					case SPECIFIC_HEAT : size = TaskManager.getSpecificHeatCurve().getData().size(); break;
+					case DENSITY : size = TaskManager.getDensityCurve().getData().size(); break;
 				}
 				
-				String label = ""; //$NON-NLS-1$
+				String label = ""; 
 				
 				switch(dataType) {
 					case SPECIFIC_HEAT : label = Messages.getString("LoaderButton.5"); break; //$NON-NLS-1$
-					case DENSITY : label = Messages.getString("LoaderButton.6"); //$NON-NLS-1$
+					case DENSITY : label = Messages.getString("LoaderButton.6"); break; //$NON-NLS-1$
 				}
 				
 				JOptionPane
 						.showMessageDialog(SwingUtilities.getWindowAncestor((Component) arg0.getSource()),
-								"<html>" + label + " data loaded! A total of " //$NON-NLS-1$ //$NON-NLS-2$
-										+ size + " data points loaded.</html>", //$NON-NLS-1$
-						"Data loaded", JOptionPane.INFORMATION_MESSAGE); //$NON-NLS-1$
+								"<html>" + label + " data loaded! A total of " 
+										+ size + " data points loaded.</html>", 
+						"Data loaded", JOptionPane.INFORMATION_MESSAGE); 
 
 			}
 		});

@@ -198,10 +198,12 @@ public class Chart {
 	    double time = 0;	   
 	    
 	    for(int i = 0; i < realCount; i++) {
+	    	
 	    	time = curve.timeAt(i);
-	    	if(time < startTime) 
-	    		if(!extendedCurve)
-	    			continue;
+	    	
+	    	if(time < startTime && !extendedCurve) 
+	    		continue;
+	    	
 	    	series.add(time*1.0//timeAxisSpecs.getFactor()
 	    			, curve.temperatureAt(i));	 
 	    }

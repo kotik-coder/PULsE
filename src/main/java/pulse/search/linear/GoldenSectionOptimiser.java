@@ -1,7 +1,7 @@
 package pulse.search.linear;
 
 import pulse.problem.statements.Problem;
-import pulse.search.direction.PathSolver;
+import pulse.search.direction.PathOptimiser;
 import pulse.search.math.IndexedVector;
 import pulse.search.math.Segment;
 import pulse.search.math.Vector;
@@ -15,7 +15,7 @@ import pulse.ui.Messages;
  * @see <a href="https://en.wikipedia.org/wiki/Golden-section_search">Wikipedia page</a>
  */
 
-public class GoldenSectionSolver extends LinearSolver {	
+public class GoldenSectionOptimiser extends LinearOptimiser {	
 	
 	/**
 	 * The golden section &phi;, which is approximately equal to 0.618033989.
@@ -23,9 +23,9 @@ public class GoldenSectionSolver extends LinearSolver {
 	
 	public final static double PHI = 1.0 - (3.0 - Math.sqrt(5.0))/2.0;	
 	
-	private static GoldenSectionSolver instance = new GoldenSectionSolver();
+	private static GoldenSectionOptimiser instance = new GoldenSectionOptimiser();
 	
-	private GoldenSectionSolver() { super(); }
+	private GoldenSectionOptimiser() { super(); }
 	
 	/**
 	 * <p>Let {@code a} and {@code b} be the start and end point of a {@code Segment},
@@ -44,7 +44,7 @@ public class GoldenSectionSolver extends LinearSolver {
 		
 		final Problem p = task.getProblem();
 		
-		final IndexedVector[] params	= p.optimisationVector( PathSolver.getSearchFlags() );
+		final IndexedVector[] params	= p.optimisationVector( PathOptimiser.getSearchFlags() );
 		final Vector direction		= task.getPath().getDirection();
 		
 		Segment segment = domain(params[0], params[1], direction);
@@ -91,7 +91,7 @@ public class GoldenSectionSolver extends LinearSolver {
 	 * @return the single (static) instance of this class
 	 */
 	
-	public static GoldenSectionSolver getInstance() {
+	public static GoldenSectionOptimiser getInstance() {
 		return instance;
 	}
 	

@@ -26,7 +26,6 @@ import pulse.util.Saveable;
 @SuppressWarnings("serial")
 public class ExportDialog extends JDialog {
 
-	private GroupLayout layout;
 	private File dir;
 	private String projectName;
 	private JFileChooser fileChooser;
@@ -49,7 +48,7 @@ public class ExportDialog extends JDialog {
 	
 	private void initComponents() {
 		
-		layout = new GroupLayout(getContentPane());
+		GroupLayout layout = new GroupLayout(getContentPane());
 		getContentPane().setLayout(layout);
 		layout.setAutoCreateGaps(true);
 		layout.setAutoCreateContainerGaps(true);
@@ -235,9 +234,8 @@ public class ExportDialog extends JDialog {
 			var subdirs	= TaskManager.contents(); 
 			var results = TaskManager.saveableResults();
 
-			if(subdirs.size() > 0 )
-				if(!destination.exists())
-					destination.mkdirs();
+			if(subdirs.size() > 0 && !destination.exists())
+				destination.mkdirs();
 			
 			if(createSubdirectories) 
 				subdirs.stream().forEach(s -> s.saveCategory(destination,extension));
@@ -246,22 +244,14 @@ public class ExportDialog extends JDialog {
 						directory -> 
 							directory.contents().stream().forEach(
 									individual -> {
-										if(individual instanceof Metadata) {
-											if(exportMetadata)
-												individual.save(destination, extension);
-										}
-										else if(individual instanceof ExperimentalData) {
-											if(exportRawData)
-												individual.save(destination, extension);
-										}
-										else if(individual instanceof HeatingCurve) {
-											if(exportSolutions) 
-												individual.save(destination, extension);
-										}
-										else if(individual instanceof Log) {
-											if(exportLogs) 
-												individual.save(destination, extension);
-										}
+										if(individual instanceof Metadata && exportMetadata)
+											individual.save(destination, extension);										
+										else if(individual instanceof ExperimentalData && exportRawData)
+											individual.save(destination, extension);										
+										else if(individual instanceof HeatingCurve && exportSolutions) 
+											individual.save(destination, extension);										
+										else if(individual instanceof Log && exportLogs) 
+											individual.save(destination, extension);										
 									})
 						);
 			}

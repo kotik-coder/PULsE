@@ -83,10 +83,7 @@ public class HeatingCurve extends PropertyHolder implements Saveable {
 		if(!temperature.containsAll(other.temperature))
 			return false;
 		
-		if(!baselineAdjustedTemperature.containsAll(other.baselineAdjustedTemperature))
-			return false;
-		
-		return true;
+		return baselineAdjustedTemperature.containsAll(other.baselineAdjustedTemperature);			
 		
 	}
 	

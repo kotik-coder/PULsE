@@ -39,7 +39,7 @@ public class Path {
 	 */
 	
 	public void reset(SearchTask t) {
-		this.gradient	= PathSolver.gradient(t);
+		this.gradient	= PathOptimiser.gradient(t);
 		this.direction	= TaskManager.getPathSolver().direction(this);
 		minimumPoint	= 0.0;
 	}

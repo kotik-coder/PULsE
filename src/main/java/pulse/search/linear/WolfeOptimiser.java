@@ -4,7 +4,7 @@ import static java.lang.Math.abs;
 
 import pulse.problem.statements.Problem;
 import pulse.search.direction.Path;
-import pulse.search.direction.PathSolver;
+import pulse.search.direction.PathOptimiser;
 import pulse.search.math.IndexedVector;
 import pulse.search.math.Segment;
 import pulse.search.math.Vector;
@@ -14,13 +14,13 @@ import pulse.ui.Messages;
 /**
  * <p>This is the implementation of the strong Wolfe conditions for performing
  * inexact linear search. This type of linear search works best with the {@code ApproximatedHessianSolver}.</p> 
- * @see pulse.search.direction.ApproximatedHessianSolver
+ * @see pulse.search.direction.ApproximatedHessianOptimiser
  * @see <a href="https://en.wikipedia.org/wiki/Wolfe_conditions">Wikipedia page</a>
  */
 
-public class WolfeSolver extends LinearSolver {
+public class WolfeOptimiser extends LinearOptimiser {
 
-	private static WolfeSolver instance = new WolfeSolver();
+	private static WolfeOptimiser instance = new WolfeOptimiser();
 	
 	/**
 	 * The constant used in the Armijo inequality, equal to {@value C1}.
@@ -35,7 +35,7 @@ public class WolfeSolver extends LinearSolver {
 	
 	public final static double C2 = 0.8;
 	
-	private WolfeSolver() {
+	private WolfeOptimiser() {
 		super();
 	}
 	
@@ -63,7 +63,7 @@ public class WolfeSolver extends LinearSolver {
 		final double G1P 	 = g1.dot(direction);
 		final double G1P_ABS = abs(G1P);
 		
-		IndexedVector[] params	= problem.optimisationVector( PathSolver.getSearchFlags() );
+		IndexedVector[] params	= problem.optimisationVector( PathOptimiser.getSearchFlags() );
 		Segment segment			= domain(params[0], params[1], direction);
 			
 		double ss1 = task.solveProblemAndCalculateDeviation();
@@ -94,7 +94,7 @@ public class WolfeSolver extends LinearSolver {
 				continue;
 			}			
 			
-			g2	= PathSolver.gradient(task);
+			g2	= PathOptimiser.gradient(task);
 			g2p = g2.dot(direction); 
 			
 			/**
@@ -131,7 +131,7 @@ public class WolfeSolver extends LinearSolver {
 	 * @return the single (static) instance of this class
 	 */
 	
-	public static WolfeSolver getInstance() {
+	public static WolfeOptimiser getInstance() {
 		return instance;
 	}
 	

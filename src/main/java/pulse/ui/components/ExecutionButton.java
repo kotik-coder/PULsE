@@ -82,6 +82,7 @@ public class ExecutionButton extends JButton {
 					break;
 				case SHUTDOWN :
 					setExecutionState(ExecutionState.EXECUTE);
+					break;
 				default : 
 					return;
 				}

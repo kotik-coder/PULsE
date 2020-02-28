@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Objects;
 import java.util.StringTokenizer;
 
 import pulse.input.InterpolationDataset;
@@ -63,8 +64,7 @@ public class TBLReader implements DatasetReader {
 	
 	@Override
 	public InterpolationDataset read(File file) throws IOException {
-			if(file == null)
-				throw new NullPointerException(Messages.getString("TBLReader.1")); 
+			Objects.requireNonNull(file, Messages.getString("TBLReader.1")); 
 			
 			InterpolationDataset curve = new InterpolationDataset();
 			

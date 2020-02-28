@@ -172,15 +172,15 @@ public class TaskTable extends JTable {
 						return;
 						
 					Identifier id = e.getSelection().getIdentifier();
-					Identifier idFromTable = null;
+					Identifier idFromTable = null;															
 					
 					for(int i = 0; i < getRowCount(); i++) {
 						idFromTable = (Identifier) getValueAt(i, 0);
-						if(! idFromTable.equals(id))
-							continue;
 						
-						setRowSelectionInterval(i, i);
-						return;
+						if(idFromTable.equals(id)) {						
+							setRowSelectionInterval(i, i);
+							return;
+						}
 						
 					}
 					
@@ -261,15 +261,14 @@ public class TaskTable extends JTable {
 				
 				for(int i = 0; i < getRowCount(); i++) {
 					idFromTable = (Identifier) getValueAt(i, 0);
-					if(! idFromTable.equals(id))
-						continue;
 					
-					removeRow(i);
-					break;
+					if(idFromTable.equals(id)) {
+						removeRow(i);
+						break;
+					}
 					
 				}
 				
-				return;
 			}
 			
 			public int searchRow(Identifier id) {

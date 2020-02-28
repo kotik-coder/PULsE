@@ -20,7 +20,11 @@ public class Identifier extends NumericProperty {
 			super(NumericProperty.theDefault(IDENTIFIER));
 			setValue(value);
 			if(addToList) 
-				Identifier.lastId = value;		
+				setLastId(value);		
+		}
+		
+		private static void setLastId(int value) {
+			Identifier.lastId = value;
 		}
 		
 		/**
