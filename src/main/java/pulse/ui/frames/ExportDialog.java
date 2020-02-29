@@ -261,7 +261,7 @@ public class ExportDialog extends JDialog {
 			}
 			
 			if(exportSettings.get(Result.class))
-				ExportManager.exportAllResults(destination, extension);;
+				ExportManager.exportAllResults(destination, extension);
 			
 	}
 	

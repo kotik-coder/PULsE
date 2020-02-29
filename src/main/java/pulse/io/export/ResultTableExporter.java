@@ -30,6 +30,7 @@ public class ResultTableExporter implements Exporter<ResultTable> {
 		switch(extension) {
 			case HTML : printHTML(table, fos); break;
 			case CSV : printCSV(table, fos); break;
+			default : System.err.println("Extension not supported: " + extension);
 		}		
 	}
 	
