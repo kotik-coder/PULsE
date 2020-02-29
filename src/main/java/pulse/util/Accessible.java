@@ -22,47 +22,7 @@ import pulse.properties.Property;
  *
  */
 
-public abstract class Accessible extends UpwardsNavigable {
-	
-	/**
-	 * <p>Recursively analyses all {@code Accessible}s that this object owns
-	 * (including only children) and chooses those that are {@code Saveable}.</p>
-	 * @return a full list of {@code Saveable}s.
-	 */
-	
-	public List<Saveable> contents() {
-		List<Saveable> contents = new ArrayList<Saveable>();
-
-	    try {
-			//contents.addAll(numericProperties());
-			saveables().stream().forEach(c -> 						
-				{
-					/*
-					 * Filter only children, not parents! 
-					 */
-					
-				 if(this.getParent() != c) 
-					 if(c instanceof Saveable) 
-						contents.add(c);
-				 
-				 }
-				
-				);
-			//
-			saveableCategories().stream().forEach(sc -> 						
-			{	
-				contents.addAll( sc.contents() );
-			 }
-			
-			);
-			
-		} catch (IllegalArgumentException e) {
-			System.err.println("Unable to generate saveable contents for " + this.getClass());
-			e.printStackTrace();
-		}
-
-	    return contents;
-	}
+public abstract class Accessible extends Group {
 	
 	/**
 	 * <p>Searches for a {@code Property} in this {@code Accessible} that looks {@code similar} to the argument.
@@ -114,7 +74,7 @@ public abstract class Accessible extends UpwardsNavigable {
     	 * Get access to the numeric properties of accessibles contained in this accessible
     	 */
     	
-        for(Accessible a : children()) 
+        for(Accessible a : accessibleChildren()) 
         	fields.addAll(a.numericProperties());
         	
 	    return fields;
@@ -154,126 +114,8 @@ public abstract class Accessible extends UpwardsNavigable {
     	 * Get access to the properties of accessibles contained in this accessible
     	 */
     	
-        for(Accessible a : children()) 
+        for(Accessible a : accessibleChildren()) 
         	fields.addAll(a.genericProperties());
-	    
-	    return fields;
-		
-	}
-	
-	public List<Saveable> saveables() {
-		var fields = new ArrayList<Saveable>();
-		
-		Method[] methods = this.getClass().getMethods();		
-		
-	    for(Method m : methods)
-	    {       
-	    	if(m.getParameterCount() > 0)
-	    		continue;
-	    	
-	    	if(!Saveable.class.isAssignableFrom(m.getReturnType()))
-	        	continue;
-	    	
-	        Saveable s = null;
-	        
-			try {
-				s = (Saveable) m.invoke(this);
-			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-				System.err.println("Failed to invoke " + m);
-				e.printStackTrace();
-			}
-	        
-	        if(s == null)
-	        	continue;
-	        
-	        /* Ignore factor/instance methods returning same accessibles */
-	        if(s.describe().equals(describe()))
-	        	continue;
-
-	        fields.add(s);
-
-	    }
-	    
-	    return fields;
-		
-	}
-	
-	public List<SaveableCategory> saveableCategories() {
-		var fields = new ArrayList<SaveableCategory>();
-		
-		Method[] methods = this.getClass().getMethods();		
-		
-	    for(Method m : methods)
-	    {       
-	    	if(m.getParameterCount() > 0)
-	    		continue;
-	    	
-	    	if(!SaveableCategory.class.isAssignableFrom(m.getReturnType()))
-	        	continue;
-	    	
-	        SaveableCategory s = null;
-	        
-			try {
-				s = (SaveableCategory) m.invoke(this);
-			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-				System.err.println("Failed to invoke " + m);
-				e.printStackTrace();
-			}
-	        
-	        if(s == null)
-	        	continue;
- 
-	        /* Ignore factor/instance methods returning same accessibles */
-	        if(s.describe().equals(describe()))
-	        	continue;
-
-	        fields.add(s);
-
-	    }
-	    
-	    return fields;
-		
-	}
-	
-	/**
-	 * <p>Tries to access getter methods to retrieve all {@code Accessible} instances belonging to this object.
-	 * Ignores any methods that return instances of the same class as {@code this} one.</p>
-	 * @return a {@code List} containing {@code Accessibles} objects which could be accessed by the declared
-	 * getter methods.
-	 */
-	
-	public List<Accessible> accessibles() {
-		List<Accessible> fields = new ArrayList<Accessible>();
-		
-		Method[] methods = this.getClass().getMethods();		
-		
-	    for(Method m : methods)
-	    {       
-	    	if(m.getParameterCount() > 0)
-	    		continue;
-	    	
-	    	if(!Accessible.class.isAssignableFrom(m.getReturnType()))
-	        	continue;
-	    	
-	        Accessible a = null;
-	        
-			try {
-				a = (Accessible) m.invoke(this);
-			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-				System.err.println("Failed to invoke " + m);
-				e.printStackTrace();
-			}
-	        
-	        if(a == null)
-	        	continue;
-	        
-	        /* Ignore factor/instance methods returning same accessibles */
-	        if(a.getDescriptor().equals(getDescriptor()))
-	        	continue;
-
-	        fields.add(a);
-
-	    }
 	    
 	    return fields;
 		
@@ -298,7 +140,7 @@ public abstract class Accessible extends UpwardsNavigable {
 		
 		NumericProperty property = null;
 		
-		for(Accessible accessible : children()) {
+		for(Accessible accessible : accessibleChildren()) {
 			property = accessible.numericProperty(type);
 			if(property != null) break; 
 		}
@@ -326,7 +168,7 @@ public abstract class Accessible extends UpwardsNavigable {
 		
 		Property p = null;
 		
-		for(Accessible accessible : children()) {
+		for(Accessible accessible : accessibleChildren()) {
 			p = accessible.genericProperty(sameClass);
 			if(p != null) break; 
 		}
@@ -334,26 +176,7 @@ public abstract class Accessible extends UpwardsNavigable {
 		return p;
 		
 	}
-	
-	/**
-	 * Searches for a specific {@code Accessible} with a {@code simpleName}. 
-	 * @see accessibles()
-	 * @param simpleName the name of the {@code Accessible},
-	 * @return the {@code Accessible} object.
-	 */
-	
-	public  Accessible accessible(String simpleName) {
-		
-		Optional<Accessible> match = accessibles().stream().
-				filter(a -> a.getSimpleName().equals(simpleName)).findFirst();
-		
-		if(match.isPresent())
-			return match.get();
 
-		return null;
-		
-	}
-	
 	/**
 	 * <p>An abstract method, which must be overriden to gain access over setting the values of all relevant
 	 * (selected by the programmer) {@code NumericPropert}ies in subclasses of {@code Accessible}. Typically this involves 
@@ -364,17 +187,6 @@ public abstract class Accessible extends UpwardsNavigable {
 	 */
 	
 	public abstract void set(NumericPropertyKeyword type, NumericProperty property);
-	
-	/**
-	 * <p>Selects only those {@code Accessible}s, the parent of which is {@code this}. Note that all {@code Accessible}s
-	 * are required to explicitly adopt children by calling the {@code setParent()} method.</p> 
-	 * @return a {@code List} of children that this {@code Accessible} has adopted.
-	 * @see accessibles()
-	 */
-	
-	public List<Accessible> children() {
-		return accessibles().stream().filter(a -> a.getParent() == this).collect(Collectors.toList());
-	}
 	
 	/**
 	 * Runs recursive search for a property in this {@code Accessible} object with the same identifier as {@code property} 
@@ -391,7 +203,7 @@ public abstract class Accessible extends UpwardsNavigable {
 	@SuppressWarnings("unchecked")
 	public void update(Property property) {
 
-		List<Accessible> children = children();
+		List<Accessible> children = accessibleChildren();
 		
 		if(property instanceof NumericProperty) {
 			NumericProperty p = (NumericProperty)property;
@@ -470,25 +282,18 @@ public abstract class Accessible extends UpwardsNavigable {
 	    		a.update(property);	    	
 	        		
 	}
-
 	
 	/**
-	 * This will generate a simple name for identifying this {@code Accessible}.
-	 * @return the simple name of the declaring class.
+	 * <p>Selects only those {@code Accessible}s, the parent of which is {@code this}. Note that all {@code Accessible}s
+	 * are required to explicitly adopt children by calling the {@code setParent()} method.</p> 
+	 * @return a {@code List} of children that this {@code Accessible} has adopted.
+	 * @see accessibles()
 	 */
 	
-	public String getSimpleName() {
-		return getClass().getSimpleName();
+	public List<Accessible> accessibleChildren() {
+		return children().stream().filter(group -> group instanceof Accessible)
+				.map(acGroup -> (Accessible)acGroup).collect(Collectors.toList());
 	}
 	
-	/**
-	 * The same as {@code getSimpleName} in this implementation.
-	 * @return the simple name of the declaring class.
-	 * @see getSimpleName()
-	 */
-	
-	public String getDescriptor() {
-		return getClass().getSimpleName();
-	}
 	
 }

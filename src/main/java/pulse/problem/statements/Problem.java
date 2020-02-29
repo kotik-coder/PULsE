@@ -29,7 +29,6 @@ import pulse.properties.Property;
 import pulse.search.math.IndexedVector;
 import pulse.util.PropertyHolder;
 import pulse.util.Reflexive;
-import pulse.util.SaveableCategory;
 
 /**
  * A {@code Problem} is an abstract class defining the general rules for handling
@@ -40,7 +39,7 @@ import pulse.util.SaveableCategory;
  * @see pulse.problem.schemes.DifferenceScheme
  */
 
-public abstract class Problem extends PropertyHolder implements Reflexive, SaveableCategory {		
+public abstract class Problem extends PropertyHolder implements Reflexive {		
 	
 	protected HeatingCurve curve;
 	protected Pulse	pulse;

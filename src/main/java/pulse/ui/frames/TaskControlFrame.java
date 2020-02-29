@@ -48,6 +48,7 @@ import org.jfree.chart.ChartPanel;
 
 import pulse.input.ExperimentalData;
 import pulse.input.Metadata;
+import pulse.io.export.ExportManager;
 import pulse.io.readers.MetaFileReader;
 import pulse.io.readers.ReaderManager;
 import pulse.problem.statements.Problem;
@@ -502,9 +503,7 @@ public class TaskControlFrame extends JFrame {
 		    if (returnVal == JFileChooser.APPROVE_OPTION) {
 				dir = new File(fileChooser.getSelectedFile() + File.separator + TaskManager.getInstance().describe());
 				dir.mkdirs();
-				TaskManager.getSelectedTask().contents().stream().forEach(
-									individual -> individual.save(dir, individual.getDefaultExportExtension())
-								);
+				ExportManager.exportCurrentTask(dir);
 		    }
 			
         });
@@ -954,14 +953,9 @@ public class TaskControlFrame extends JFrame {
 		graphBtn.addActionListener(e -> plot() );		
 		verboseCheckBox.addActionListener( event -> Log.setVerbose(verboseCheckBox.isSelected()) ) ;
 		
-		saveLogBtn.addActionListener( new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if(logTextPane.getDocument().getLength() > 0)
-					logTextPane.askToSave(instance, Messages.getString("LogToolBar.FileFormatDescriptor")); 
-			}
-			
+		saveLogBtn.addActionListener(e -> {
+			if(logTextPane.getDocument().getLength() > 0)
+				ExportManager.askToExport(logTextPane, instance, Messages.getString("LogToolBar.FileFormatDescriptor"));
 		});
 		
 	}
@@ -1116,7 +1110,7 @@ public class TaskControlFrame extends JFrame {
 					return;
 				}
 				
-				resultsTable.askToSave(instance, "Calculation results");
+				ExportManager.askToExport(resultsTable, instance, "Calculation results");
 				
 			}
 			

@@ -9,9 +9,6 @@ import static pulse.properties.NumericPropertyKeyword.SPOT_DIAMETER;
 import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
 import static pulse.properties.NumericPropertyKeyword.THICKNESS;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,10 +17,8 @@ import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 import pulse.tasks.Identifier;
-import pulse.util.Extension;
 import pulse.util.PropertyHolder;
 import pulse.util.Reflexive;
-import pulse.util.Saveable;
 
 /**
  * <p>{@code Metadata} is the information relating to a specific experiment, which is required
@@ -33,7 +28,7 @@ import pulse.util.Saveable;
  *
  */
 
-public class Metadata extends PropertyHolder implements Saveable, Reflexive {
+public class Metadata extends PropertyHolder implements Reflexive {
 	
 	private double testTemperature, sampleThickness, sampleDiameter, pulseWidth, spotDiameter, laserEnergy;
 	private int detectorGain, detectorIris;
@@ -328,51 +323,7 @@ public class Metadata extends PropertyHolder implements Saveable, Reflexive {
 	public void setSampleName(String sampleName) {
 		this.sampleName = sampleName;
 	}
-	
-	@Override
-	public void printData(FileOutputStream fos, Extension extension) {
-		printHTML(fos);
-	}
-	
-	private void printHTML(FileOutputStream fos) {
-		PrintStream stream = new PrintStream(fos);
-		
-		stream.print("<table>"); //$NON-NLS-1$
-		stream.print("<tr>"); //$NON-NLS-1$
-	
-		final String METADATA_LABEL = "Metadata"; //$NON-NLS-1$
-		final String VALUE_LABEL= "Value"; //$NON-NLS-1$
-	
-		stream.print("<html>");
-       	stream.print("<td>"); stream.print(METADATA_LABEL + "\t"); stream.print("</td>"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-       	stream.print("<td>");
-       	stream.print(VALUE_LABEL + "\t"); 
-       	stream.print("</td>"); 
-       	
-        stream.print("</tr>"); //$NON-NLS-1$
 
-        stream.println(" "); //$NON-NLS-1$
-
-        List<Property> data = data();
-        
-        data.forEach(entry -> {
-        	stream.print("<tr>"); //$NON-NLS-1$
-            
-    		stream.print("<td>"); //$NON-NLS-1$
-            stream.print(entry.getDescriptor(false)); 
-            stream.print("</td><td>"); //$NON-NLS-1$
-            stream.print(entry.formattedValue()); 
-            //possible error typecast property -> object
-            stream.print("</td>"); //$NON-NLS-1$
-        
-            stream.println("</tr>"); //$NON-NLS-1$
-        });
-        
-        stream.print("</table>"); //$NON-NLS-1$
-		stream.print("</html>");
-        stream.close();
-	}
-	
 	@Override
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
 		switch(type) {
@@ -422,13 +373,6 @@ public class Metadata extends PropertyHolder implements Saveable, Reflexive {
 
 		return sb.toString();
 		
-	}
-	
-	@Override
-	public void save(File file, Extension extension) {
-		if(externalID < 0) 
-			return; //do nothing then
-		Saveable.super.save(file, extension);
 	}
 	
 	@Override

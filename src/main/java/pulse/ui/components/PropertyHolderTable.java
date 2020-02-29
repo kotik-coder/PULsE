@@ -34,7 +34,7 @@ import pulse.ui.Messages;
 import pulse.ui.components.controllers.AccesibleTableRenderer;
 import pulse.ui.components.controllers.NumberEditor;
 import pulse.ui.frames.DataFrame;
-import pulse.util.Accessible;
+import pulse.util.Group;
 import pulse.util.PropertyHolder;
 
 @SuppressWarnings("serial")
@@ -122,12 +122,11 @@ public class PropertyHolderTable extends JTable {
 			return null;
 		
 		List<Property> data = p.data();				
-
-		List<Accessible> internalHolders = new ArrayList<Accessible>(0);
+		List<Group> internalHolders = new ArrayList<Group>(0);
 		
 		if(p.ignoreSiblings()) {
 			try {
-				internalHolders = p.accessibles();
+				internalHolders = p.subgroups();
 			} catch (IllegalArgumentException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

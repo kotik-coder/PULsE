@@ -4,8 +4,8 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.List;
 
+import pulse.io.export.XMLConverter;
 import pulse.ui.Messages;
-import pulse.util.XMLConverter;
 
 /**
  * A {@code Property} that has a numeric {@code value}, an {@code error} 
@@ -16,7 +16,7 @@ import pulse.util.XMLConverter;
  * The latter is used to link with a repository of default {@code NumericPropert}ies
  * loaded from an {@code .xml} file.</p>
  * @see pulse.properties.NumericPropertyKeyword
- * @see pulse.util.XMLConverter
+ * @see pulse.io.export.XMLConverter
  */
 
 public class NumericProperty implements Property, Comparable<NumericProperty> {
@@ -60,7 +60,7 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
 	 * @param maximum the maximum allowed value for this {@code type}
 	 * @param dimensionFactor a multiplier that will be used when converting the value to SI
 	 * @param autoAdjustable a boolean flag indicating if the property requires user input
-	 * @see pulse.util.XMLConverter
+	 * @see pulse.io.export.XMLConverter
 	 */
 	
 	public NumericProperty(NumericPropertyKeyword type, String descriptor, 

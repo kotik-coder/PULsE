@@ -36,7 +36,6 @@ import pulse.ui.components.PropertyHolderTable;
 import pulse.util.Accessible;
 import pulse.util.PropertyEvent;
 import pulse.util.PropertyHolderListener;
-import pulse.util.SaveableCategory;
 
 /**
  * A {@code SearchTask} is the most important class in {@code PULsE}. It combines access to all 
@@ -46,7 +45,7 @@ import pulse.util.SaveableCategory;
  * @see pulse.tasks.TaskManager
  */
 
-public class SearchTask extends Accessible implements Runnable, SaveableCategory {
+public class SearchTask extends Accessible implements Runnable {
 
 	private Problem problem;
 	private DifferenceScheme scheme;
@@ -583,14 +582,5 @@ public class SearchTask extends Accessible implements Runnable, SaveableCategory
 																			);
 	
 	}
-	
-	/*
-	public void storeCurrentSolution() {
-		storedSolution = HeatingCurve.copy(problem.getHeatingCurve());
-	}
-	
-	public HeatingCurve getStoredSolution() {
-		return storedSolution;
-	}
-	*/
+
 }

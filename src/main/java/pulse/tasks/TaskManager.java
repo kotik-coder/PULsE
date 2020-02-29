@@ -24,8 +24,6 @@ import pulse.tasks.listeners.TaskRepositoryListener;
 import pulse.tasks.listeners.TaskSelectionEvent;
 import pulse.tasks.listeners.TaskSelectionListener;
 import pulse.ui.Launcher;
-import pulse.util.Saveable;
-import pulse.util.SaveableCategory;
 import pulse.util.UpwardsNavigable;
 
 /**
@@ -484,30 +482,6 @@ public final class TaskManager extends UpwardsNavigable {
 	@Override
 	public String describe() {
 		return tasks.size() > 0 ? getSampleName() : DEFAULT_NAME;
-	}
-	
-	public static List<SaveableCategory> contents() {
-		
-		List<SaveableCategory> list = tasks
-			    .stream()
-			    .filter(SaveableCategory.class::isInstance)
-			    .map(SaveableCategory.class::cast)
-			    .collect(Collectors.toList());
-		
-		return list;
-		
-	}
-	
-	public static List<Saveable> saveableResults() {		
-		List<Saveable> list = tasks
-			    .stream()
-			    .map(t -> getResult(t))
-			    .filter(rr -> rr != null)
-			    .filter(r -> r instanceof Saveable)
-			    .collect(Collectors.toList());
-		
-		return list;
-		
 	}
 	
 	public static Result getResult(SearchTask t) {		

@@ -1,6 +1,5 @@
 package pulse.ui.components;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -21,11 +20,10 @@ import pulse.tasks.SearchTask;
 import pulse.tasks.Status;
 import pulse.tasks.TaskManager;
 import pulse.ui.Messages;
-import pulse.util.Extension;
-import pulse.util.Saveable;
+import pulse.util.Describable;
 
 @SuppressWarnings("serial")
-public class LogPane extends JEditorPane implements Saveable {
+public class LogPane extends JEditorPane implements Describable {
 	
 	private ExecutorService updateExecutor = Executors.newSingleThreadExecutor();
 	
@@ -158,17 +156,6 @@ public class LogPane extends JEditorPane implements Saveable {
 		}
 	}
 	
-	@Override 
-	public void printData(FileOutputStream fos, Extension extension) {
-		HTMLEditorKit kit = (HTMLEditorKit) this.getEditorKit();
-		try {
-			kit.write(fos, this.getDocument(), 0, this.getDocument().getLength());
-		} catch (IOException | BadLocationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-	
 	@Override
 	public void finalize() {
 		outStream.close();
@@ -177,6 +164,11 @@ public class LogPane extends JEditorPane implements Saveable {
 
 	public ExecutorService getUpdateExecutor() {
 		return updateExecutor;
+	}
+	
+	@Override
+	public String describe() {
+		return "Log_" + TaskManager.getSelectedTask().getIdentifier().getValue();
 	}
 	
 }

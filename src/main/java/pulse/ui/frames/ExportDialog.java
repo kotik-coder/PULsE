@@ -2,6 +2,8 @@ package pulse.ui.frames;
 
 import java.awt.Dimension;
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
@@ -18,10 +20,18 @@ import javax.swing.event.DocumentListener;
 import pulse.HeatingCurve;
 import pulse.input.ExperimentalData;
 import pulse.input.Metadata;
+import pulse.io.export.ExportManager;
+import pulse.io.export.Exporter;
+import pulse.io.export.Extension;
+import pulse.io.export.HeatingCurveExporter;
+import pulse.io.export.LogExporter;
+import pulse.io.export.MassExporter;
+import pulse.io.export.MetadataExporter;
+import pulse.io.export.RawDataExporter;
+import pulse.io.export.ResultExporter;
 import pulse.tasks.Log;
+import pulse.tasks.Result;
 import pulse.tasks.TaskManager;
-import pulse.util.Extension;
-import pulse.util.Saveable;
 
 @SuppressWarnings("serial")
 public class ExportDialog extends JDialog {
@@ -34,11 +44,16 @@ public class ExportDialog extends JDialog {
 	private final static int HEIGHT = 160;
 	
 	private boolean createSubdirectories = false;
-	private boolean exportMetadata		 = false;
-	private boolean exportRawData		 = true;
-	private boolean exportSolutions		 = true;
-	private boolean exportResults		 = true;
-	private boolean exportLogs			 = false;
+	
+	private static Map<Class<?>,Boolean> exportSettings = new HashMap<Class<?>,Boolean>();
+	
+	static {
+		exportSettings.put(MetadataExporter.getInstance().target(), false);
+		exportSettings.put(HeatingCurveExporter.getInstance().target(), true);
+		exportSettings.put(RawDataExporter.getInstance().target(), true);
+		exportSettings.put(ResultExporter.getInstance().target(), true);
+		exportSettings.put(LogExporter.getInstance().target(), false);	
+	}
 	
 	public ExportDialog() {
 		initComponents();
@@ -69,7 +84,7 @@ public class ExportDialog extends JDialog {
 		directoryField.setEditable(false);
 
 		var formatLabel = new JLabel("Export format:");
-		var formats = new JComboBox<Extension>( Saveable.getAllSupportedExtensions() );
+		var formats = new JComboBox<Extension>( Exporter.getAllSupportedExtensions() );
 		
 		var projectLabel = new JLabel("Project name:");
 		var projectText = new JTextField(projectName);
@@ -99,25 +114,23 @@ public class ExportDialog extends JDialog {
 		});
 		
 		var solutionCheckbox = new JCheckBox("Export Solution(s)"); 
-		solutionCheckbox.setSelected(exportSolutions);
-		solutionCheckbox.addActionListener(e -> exportSolutions = solutionCheckbox.isSelected());
+		solutionCheckbox.setSelected(exportSettings.get(HeatingCurve.class));
+		solutionCheckbox.addActionListener(e -> exportSettings.put(HeatingCurve.class, solutionCheckbox.isSelected()));
 		
 		var rawDataCheckbox = new JCheckBox("Export Raw Data"); 
-		rawDataCheckbox.setSelected(exportRawData);
-		rawDataCheckbox.addActionListener(e -> exportRawData = rawDataCheckbox.isSelected());
+		rawDataCheckbox.setSelected(exportSettings.get(ExperimentalData.class));
+		rawDataCheckbox.addActionListener(e -> exportSettings.put(ExperimentalData.class, rawDataCheckbox.isSelected()));
 		
 		var metadataCheckbox = new JCheckBox("Export Metadata");
-		metadataCheckbox.setSelected(exportMetadata);
-		metadataCheckbox.addActionListener(e -> exportMetadata = metadataCheckbox.isSelected());
+		metadataCheckbox.setSelected(exportSettings.get(Metadata.class));
+		metadataCheckbox.addActionListener(e -> exportSettings.put(Metadata.class, metadataCheckbox.isSelected()));
 		
 		var createDirCheckbox = new JCheckBox("Create Sub-Directories");
 		createDirCheckbox.setSelected(createSubdirectories);
 		
 		var logCheckbox = new JCheckBox("Export log(s)");
-		logCheckbox.setSelected(exportLogs);
-		logCheckbox.addActionListener(e -> { 
-			exportLogs = logCheckbox.isSelected();
-			});
+		logCheckbox.setSelected(exportSettings.get(Log.class));
+		logCheckbox.addActionListener(e -> exportSettings.put(Log.class, logCheckbox.isSelected()));
 		
 		createDirCheckbox.addActionListener(e -> { 
 		metadataCheckbox.setEnabled(!createDirCheckbox.isSelected());
@@ -128,11 +141,8 @@ public class ExportDialog extends JDialog {
 		});
 		
 		var resultsCheckbox = new JCheckBox("Export Results");
-		resultsCheckbox.setSelected(exportResults);
-		resultsCheckbox.addActionListener(e -> { 
-			exportResults = resultsCheckbox.isSelected();
-			});
-		
+		resultsCheckbox.setSelected(exportSettings.get(Result.class));
+		resultsCheckbox.addActionListener(e -> exportSettings.put(Result.class, resultsCheckbox.isSelected()));
 		
 		var browseBtn = new JButton("Browse...");
 		
@@ -231,37 +241,27 @@ public class ExportDialog extends JDialog {
 	private void export(Extension extension) {
 			
 			var destination = new File(dir + File.separator + projectName);
-			var subdirs	= TaskManager.contents(); 
-			var results = TaskManager.saveableResults();
+			var subdirs	= TaskManager.getTaskList();
 
 			if(subdirs.size() > 0 && !destination.exists())
 				destination.mkdirs();
 			
 			if(createSubdirectories) 
-				subdirs.stream().forEach(s -> s.saveCategory(destination,extension));
+				subdirs.stream().forEach(s -> MassExporter.exportGroup(s,destination,extension));
 			else {
-				subdirs.stream().forEach(
-						directory -> 
-							directory.contents().stream().forEach(
+				ExportManager.allGrouppedContents().forEach(
 									individual -> {
-										if(individual instanceof Metadata && exportMetadata)
-											individual.save(destination, extension);										
-										else if(individual instanceof ExperimentalData && exportRawData)
-											individual.save(destination, extension);										
-										else if(individual instanceof HeatingCurve && exportSolutions) 
-											individual.save(destination, extension);										
-										else if(individual instanceof Log && exportLogs) 
-											individual.save(destination, extension);										
-									})
+										Class<?> individualClass = individual.getClass();
+										if(exportSettings.containsKey(individualClass))
+											if(exportSettings.get(individualClass)) 
+												ExportManager.export(individual, destination, extension);		
+											
+									}
 						);
 			}
 			
-			results.stream().forEach(r -> 
-				{
-				if(exportResults) 
-					r.save(destination, extension);
-				}
-			);
+			if(exportSettings.get(Result.class))
+				ExportManager.exportAllResults(destination, extension);;
 			
 	}
 	
