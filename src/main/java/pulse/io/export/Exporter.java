@@ -1,4 +1,4 @@
-package pulse.util;
+package pulse.io.export;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -9,27 +9,29 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import pulse.util.Describable;
+import pulse.util.Reflexive;
+
 /**
  * A {@code Saveable} is any individual {@code PULsE} entity that can be saved using a {@code FileOutputStream}.
  *
  */
 
-public interface Saveable extends Describable {
+public interface Exporter<T extends Describable> extends Reflexive {
 	
 	/**
 	 * Gets the default export extension for this {@code Saveable}.
 	 * @return {@code .html}, if not stated otherwise by overriding this method.
 	 */
 	
-	public default Extension getDefaultExportExtension() {
+	public static Extension getDefaultExportExtension() {
 		return Extension.CSV;
 	}
 	
 	public static Extension[] getAllSupportedExtensions() {
 		return Extension.values();
 	}
-	
-	
+
 	/**
 	 * Returns an array of supported extensions, which by default contains only the default extension.
 	 * @return an array with {@code Extension} type objects. 
@@ -44,7 +46,7 @@ public interface Saveable extends Describable {
 	 * @param directory the directory where this {@code Saveable} needs to be saved.
 	 */
 	
-	public default void save(File directory, Extension extension) {
+	public default void export(T target, File directory, Extension extension) {
 
 		Extension supportedExtension = extension;
 		
@@ -52,10 +54,10 @@ public interface Saveable extends Describable {
 			supportedExtension = getDefaultExportExtension(); //revert to default extension
 			
 		try {
-				File newFile = new File(directory, describe() + "." + supportedExtension);
+				File newFile = new File(directory, target.describe() + "." + supportedExtension);
 				newFile.createNewFile();
 	            FileOutputStream fos = new FileOutputStream(newFile);
-	            printData(fos, supportedExtension);
+	            printToStream(target, fos, supportedExtension);
 	            
 		} catch (IOException e) {
 	            // TODO Auto-generated catch block
@@ -70,13 +72,13 @@ public interface Saveable extends Describable {
 	 * @param fileTypeLabel the label describing the specific type of files that will be saved.
 	 */
 	
-	public default void askToSave(JFrame parentWindow, String fileTypeLabel) {
+	public default void askToExport(T target, JFrame parentWindow, String fileTypeLabel) {
 		JFileChooser fileChooser = new JFileChooser();
 		
 		File workingDirectory = new File(System.getProperty("user.home"));
 		fileChooser.setCurrentDirectory(workingDirectory);
 		fileChooser.setMultiSelectionEnabled(true);
-		fileChooser.setSelectedFile(new File(describe()));
+		fileChooser.setSelectedFile(new File(target.describe()));
 		
 		for(Extension s : getSupportedExtensions())
 			fileChooser.addChoosableFileFilter(
@@ -99,7 +101,7 @@ public interface Saveable extends Describable {
 	            
 	            FileOutputStream fos = new FileOutputStream(file);
 	            
-	            printData(fos, Extension.valueOf(ext.toUpperCase()));
+	            printToStream(target, fos, Extension.valueOf(ext.toUpperCase()));
 	            
 	        } catch (IOException e) {
 	            // TODO Auto-generated catch block
@@ -108,6 +110,8 @@ public interface Saveable extends Describable {
 	    }
 	}
 	
-	public abstract void printData(FileOutputStream fos, Extension extension);
+	public Class<T> target();
+	
+	public void printToStream(T target, FileOutputStream fos, Extension extension);
 	
 }

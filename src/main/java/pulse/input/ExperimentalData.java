@@ -12,7 +12,6 @@ import pulse.input.listeners.DataEventType;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.ui.Messages;
-import pulse.util.SaveableCategory;
 
 /**
  * <p> An {@code ExperimentalData} object is essentially a {@code HeatingCurve} with
@@ -22,7 +21,7 @@ import pulse.util.SaveableCategory;
  * this {@code ExperimentalData}.
  */
 
-public class ExperimentalData extends HeatingCurve implements SaveableCategory {
+public class ExperimentalData extends HeatingCurve {
 	
 	private Metadata metadata;
 	

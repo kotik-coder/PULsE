@@ -1,7 +1,5 @@
 package pulse.tasks;
 
-import java.io.FileOutputStream;
-import java.io.PrintStream;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -10,9 +8,7 @@ import pulse.tasks.listeners.DataCollectionListener;
 import pulse.tasks.listeners.LogEntryListener;
 import pulse.tasks.listeners.StatusChangeListener;
 import pulse.ui.Messages;
-import pulse.util.Extension;
-import pulse.util.Saveable;
-import pulse.util.UpwardsNavigable;
+import pulse.util.Group;
 
 
 /**
@@ -21,7 +17,7 @@ import pulse.util.UpwardsNavigable;
  *
  */
 
-public class Log extends UpwardsNavigable implements Saveable {
+public class Log extends Group {
 
 	private List<LogEntry> logEntries;
 	private LocalTime start, end;
@@ -180,17 +176,6 @@ public class Log extends UpwardsNavigable implements Saveable {
 
 	public LocalTime getEnd() {
 		return end;
-	}
-	
-	/**
-	 * Prints all the data contained in this {@code Log} using {@code fos}. By default, this will
-	 * output all data in an {@code html} format.
-	 */
-
-	@Override
-	public void printData(FileOutputStream fos, Extension extension) {
-		PrintStream stream = new PrintStream(fos);
-		stream.print(toString());
 	}
 	
 	/**

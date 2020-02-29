@@ -2,7 +2,7 @@ package pulse.util;
 
 /**
  * Provides the {@code describe()} functionality.
- * @see pulse.util.Saveable
+ * @see pulse.io.export.Exporter
  */
 
 public interface Describable {
