@@ -36,6 +36,8 @@ import pulse.ui.components.PropertyHolderTable;
 import pulse.util.Accessible;
 import pulse.util.PropertyEvent;
 import pulse.util.PropertyHolderListener;
+import pulse.search.statistics.AndersonDarlingTest;
+import pulse.search.statistics.NormalityTest;
 
 /**
  * A {@code SearchTask} is the most important class in {@code PULsE}. It combines access to all 
@@ -61,6 +63,8 @@ public class SearchTask extends Accessible implements Runnable {
 	private double testTemperature;
 	private double cp, rho, emissivity, lambda;
 	private double rSq, ssr;
+	
+	private NormalityTest normalityTest;
 	
 	private final static double RELATIVE_TIME_MARGIN = 1.01;
 
@@ -101,6 +105,8 @@ public class SearchTask extends Accessible implements Runnable {
 		buffer 			= new Buffer();
 		buffer.setParent(this);		
 		log 			= new Log(this);
+		normalityTest	= new AndersonDarlingTest();
+		normalityTest.setParent(this);
 					
 		testTemperature = (double)curve.getMetadata().getTestTemperature().getValue();
 		
@@ -276,11 +282,11 @@ public class SearchTask extends Accessible implements Runnable {
 	  
 	  calculateThermalProperties();
 	  
-	  singleThreadExecutor.shutdown();
-	 	  	  
+	  singleThreadExecutor.shutdown();	  
+	  
 	  if( status == Status.IN_PROGRESS )
-		 if(rSq > SUCCESS_CUTOFF)
-			 setStatus(Status.DONE);
+		 if(rSq > SUCCESS_CUTOFF) 
+			 setStatus( normalityTest.test(this) ? Status.DONE : Status.FAILED);
 		 else
 			 setStatus(Status.AMBIGUOUS);
 	  		
@@ -581,6 +587,10 @@ public class SearchTask extends Accessible implements Runnable {
 								( (SearchTask)o ) .getExperimentalCurve()
 																			);
 	
+	}
+
+	public NormalityTest getNormalityTest() {
+		return normalityTest;
 	}
 
 }

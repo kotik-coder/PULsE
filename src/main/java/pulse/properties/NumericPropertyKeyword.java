@@ -241,6 +241,12 @@ public enum NumericPropertyKeyword {
 	
 	DIATHERMIC_COEFFICIENT,
 	
-	START_TIME;
+	START_TIME,
+	
+	SIGNIFICANCE,
+	
+	PROBABILITY,
+	
+	STATISTIC;
 	
 }
