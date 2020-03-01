@@ -1,6 +1,20 @@
 package pulse.tasks;
 
-import static pulse.properties.NumericPropertyKeyword.*;
+import static pulse.properties.NumericPropertyKeyword.BASELINE_INTERCEPT;
+import static pulse.properties.NumericPropertyKeyword.BASELINE_SLOPE;
+import static pulse.properties.NumericPropertyKeyword.CONDUCTIVITY;
+import static pulse.properties.NumericPropertyKeyword.DENSITY;
+import static pulse.properties.NumericPropertyKeyword.DIATHERMIC_COEFFICIENT;
+import static pulse.properties.NumericPropertyKeyword.DIFFUSIVITY;
+import static pulse.properties.NumericPropertyKeyword.EMISSIVITY;
+import static pulse.properties.NumericPropertyKeyword.HEAT_LOSS;
+import static pulse.properties.NumericPropertyKeyword.IDENTIFIER;
+import static pulse.properties.NumericPropertyKeyword.MAXTEMP;
+import static pulse.properties.NumericPropertyKeyword.RSQUARED;
+import static pulse.properties.NumericPropertyKeyword.SPECIFIC_HEAT;
+import static pulse.properties.NumericPropertyKeyword.STATISTIC;
+import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;

@@ -29,6 +29,8 @@ import pulse.properties.NumericPropertyKeyword;
 import pulse.search.direction.Path;
 import pulse.search.direction.PathOptimiser;
 import pulse.search.math.IndexedVector;
+import pulse.search.statistics.AndersonDarlingTest;
+import pulse.search.statistics.NormalityTest;
 import pulse.tasks.Status.Details;
 import pulse.tasks.listeners.DataCollectionListener;
 import pulse.tasks.listeners.StatusChangeListener;
@@ -36,8 +38,6 @@ import pulse.ui.components.PropertyHolderTable;
 import pulse.util.Accessible;
 import pulse.util.PropertyEvent;
 import pulse.util.PropertyHolderListener;
-import pulse.search.statistics.AndersonDarlingTest;
-import pulse.search.statistics.NormalityTest;
 
 /**
  * A {@code SearchTask} is the most important class in {@code PULsE}. It combines access to all 
