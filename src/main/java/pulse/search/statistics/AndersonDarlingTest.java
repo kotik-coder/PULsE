@@ -5,10 +5,6 @@ import umontreal.ssj.gof.GofStat;
 import umontreal.ssj.probdist.NormalDist;
 
 public class AndersonDarlingTest extends NormalityTest {
-		
-	public AndersonDarlingTest() {
-		super();
-	}
 	
 	@Override
 	public boolean test(SearchTask task) {

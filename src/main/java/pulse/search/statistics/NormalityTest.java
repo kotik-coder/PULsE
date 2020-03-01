@@ -1,11 +1,10 @@
 package pulse.search.statistics;
 
+import static pulse.properties.NumericPropertyKeyword.PROBABILITY;
+import static pulse.properties.NumericPropertyKeyword.SIGNIFICANCE;
 import static pulse.properties.NumericPropertyKeyword.STATISTIC;
 
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
-
-import static pulse.properties.NumericPropertyKeyword.PROBABILITY;
-import static pulse.properties.NumericPropertyKeyword.SIGNIFICANCE;
 
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;

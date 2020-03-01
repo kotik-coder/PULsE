@@ -1,14 +1,11 @@
 package pulse.search.statistics;
 
-import pulse.tasks.SearchTask;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.stat.inference.TestUtils;
 
+import pulse.tasks.SearchTask;
+
 public class KSTest extends NormalityTest {
-	
-	public KSTest() {
-		super();
-	}
 	
 	public boolean test(SearchTask task) {
 		double[] residuals = transformResiduals(task);		
