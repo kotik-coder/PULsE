@@ -63,7 +63,13 @@ public enum Status {
 	 * The iteration limit has been reached and the task aborted.
 	 */
 	
-	TIMEOUT(Color.RED); 
+	TIMEOUT(Color.RED),
+	
+	/**
+	 * Task has finished without errors, however failing to meet a statistical criterion.  
+	 */
+	
+	FAILED(Color.RED);
 	
 	private final Color clr;
 	private Details details = Details.MISSING_PROBLEM_STATEMENT;

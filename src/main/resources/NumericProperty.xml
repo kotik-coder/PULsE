@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE xml>
 <NumericProperties>
+	<NumericProperty abbreviation="Probability" auto-adjustable="true"
+		descriptor="Probability, &lt;i&gt;p&lt;/i&gt;" dimensionfactor="1"
+		discreet="false" keyword="PROBABILITY" maximum="1" minimum="0"
+		primitive-type="double" value="0">
+	</NumericProperty>
+	<NumericProperty abbreviation="Significance"
+		descriptor="Statistical significance" dimensionfactor="1"
+		auto-adjustable="false" discreet="false" keyword="SIGNIFICANCE"
+		maximum="0.5" minimum="0.00001" primitive-type="double" value="0.001">
+	</NumericProperty>
 	<NumericProperty
 		abbreviation="&lt;i&gt;t&lt;/i&gt;&lt;sub&gt;0&lt;/sub&gt;"
 		auto-adjustable="true"
@@ -226,5 +235,10 @@
 		descriptor="Time factor, &lt;i&gt;&amp;tau&lt;/i&gt; / h&lt;sup&gt;2&lt;/sup&gt;"
 		dimensionfactor="1" primitive-type="double" maximum="1.0"
 		minimum="1E-4" value="0.25" discreet="false">
+	</NumericProperty>
+	<NumericProperty abbreviation="Statistic"
+		descriptor="Statistic (normality test)" auto-adjustable="true"
+		dimensionfactor="1" discreet="false" keyword="STATISTIC"
+		maximum="1E10" minimum="0" primitive-type="double" value="Infinity">
 	</NumericProperty>
 </NumericProperties>

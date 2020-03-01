@@ -1,19 +1,6 @@
 package pulse.tasks;
 
-import static pulse.properties.NumericPropertyKeyword.BASELINE_INTERCEPT;
-import static pulse.properties.NumericPropertyKeyword.BASELINE_SLOPE;
-import static pulse.properties.NumericPropertyKeyword.CONDUCTIVITY;
-import static pulse.properties.NumericPropertyKeyword.DENSITY;
-import static pulse.properties.NumericPropertyKeyword.DIATHERMIC_COEFFICIENT;
-import static pulse.properties.NumericPropertyKeyword.DIFFUSIVITY;
-import static pulse.properties.NumericPropertyKeyword.EMISSIVITY;
-import static pulse.properties.NumericPropertyKeyword.HEAT_LOSS;
-import static pulse.properties.NumericPropertyKeyword.IDENTIFIER;
-import static pulse.properties.NumericPropertyKeyword.MAXTEMP;
-import static pulse.properties.NumericPropertyKeyword.RSQUARED;
-import static pulse.properties.NumericPropertyKeyword.SPECIFIC_HEAT;
-import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
-
+import static pulse.properties.NumericPropertyKeyword.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,7 +23,7 @@ public class ResultFormat {
 	
 	private static String formatString;
 	private final static char[] allowedCharacters	= 
-		{'D', 'S', 'T', 'B', 'M', 'R', 'C', 'E', 'Q', 'A', 'U', 'V', 'I', 'N'};
+		{'D', 'S', 'T', 'B', 'M', 'R', 'C', 'E', 'Q', 'A', 'U', 'V', 'I', 'N', 'K'};
 	private final static char[] minimumAllowed		= 
 		{'T', 'D'};
 	
@@ -82,9 +69,11 @@ public class ResultFormat {
 				case 'V' : nameMap.add(BASELINE_SLOPE);
 		   		   		   break;
 				case 'N' : nameMap.add(DIATHERMIC_COEFFICIENT);
-		   		   break;
+						   break;
 				case 'I' : nameMap.add(IDENTIFIER);
-		   		   break;
+		   		   		   break;
+				case 'K' : nameMap.add(STATISTIC);
+		   		   		   break;
 				default  : throw new IllegalArgumentException
 				(Messages.getString("ResultFormat.UnknownFormatError") + c);
 			}

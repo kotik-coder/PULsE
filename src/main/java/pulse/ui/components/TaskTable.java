@@ -69,6 +69,7 @@ public class TaskTable extends JTable {
 				   NumericProperty.theDefault(NumericPropertyKeyword.TEST_TEMPERATURE).getDescriptor(true),
 				   NumericProperty.theDefault(NumericPropertyKeyword.SUM_OF_SQUARES).getDescriptor(true),
 				   NumericProperty.theDefault(NumericPropertyKeyword.RSQUARED).getDescriptor(true), 
+				   NumericProperty.theDefault(NumericPropertyKeyword.STATISTIC).getDescriptor(true), 
 				   ("Task status")
 				});
 			
@@ -210,7 +211,8 @@ public class TaskTable extends JTable {
 			private static final long serialVersionUID = 7196461896699123800L;
 			private static final int SS_COLUMN = 2;
 			private static final int R2_COLUMN = 3;
-			private static final int STATUS_COLUMN = 4;
+			private static final int KS_COLUMN = 4;
+			private static final int STATUS_COLUMN = 5;
 			
 			public TaskTableModel() { 								
 				
@@ -220,6 +222,7 @@ public class TaskTable extends JTable {
 								   NumericProperty.theDefault(NumericPropertyKeyword.TEST_TEMPERATURE).getAbbreviation(true),
 								   NumericProperty.theDefault(NumericPropertyKeyword.SUM_OF_SQUARES).getAbbreviation(true),  
 								   NumericProperty.theDefault(NumericPropertyKeyword.RSQUARED).getAbbreviation(true),  
+								   NumericProperty.theDefault(NumericPropertyKeyword.STATISTIC).getAbbreviation(true),  
 								   Messages.getString("TaskTable.Status")} );
 									
 			}		
@@ -230,6 +233,7 @@ public class TaskTable extends JTable {
 						t.getTestTemperature(),					
 						t.getSumOfSquares(),
 						t.getRSquared(),
+						t.getNormalityTest().getStatistic(),
 						t.getStatus()
 				};	
 				
@@ -239,7 +243,8 @@ public class TaskTable extends JTable {
 
 					@Override
 					public void onStatusChange(StateEntry e) { 
-							setValueAt(e.getState(), searchRow(t.getIdentifier()), STATUS_COLUMN);						
+							setValueAt(e.getState(), searchRow(t.getIdentifier()), STATUS_COLUMN);	
+							setValueAt(t.getNormalityTest().getStatistic(), searchRow(t.getIdentifier()), KS_COLUMN);
 					}
 					
 				});

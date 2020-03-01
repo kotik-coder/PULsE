@@ -622,12 +622,10 @@ public class HeatingCurve extends PropertyHolder {
 	public double residualUpperBound() {
 		double upper = Double.NEGATIVE_INFINITY;
 		
-		if(residuals == null)
-			return 0;
-		
-		for(Double[] d : residuals)
-			if(d[1] > upper) 
-				upper = d[1];
+		if(residuals != null)
+			for(Double[] d : residuals)
+				if(d[1] > upper) 
+					upper = d[1];
 		
 		return upper;
 			
@@ -636,12 +634,10 @@ public class HeatingCurve extends PropertyHolder {
 	public double residualLowerBound() {
 		double lower = Double.POSITIVE_INFINITY;
 		
-		if(residuals == null)
-			return 0;
-		
-		for(Double[] d : residuals)
-			if(d[1] < lower) 
-				lower = d[1];
+		if(residuals != null)
+			for(Double[] d : residuals)
+				if(d[1] < lower) 
+					lower = d[1];
 		
 		return lower;
 	}
