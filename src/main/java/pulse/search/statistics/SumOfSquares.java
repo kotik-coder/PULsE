@@ -4,10 +4,6 @@ import pulse.tasks.SearchTask;
 
 public class SumOfSquares extends ResidualStatistic {
 	
-	public SumOfSquares() {
-		super();
-	}
-	
 	/**
 	 * Calculates the sum of squared deviations using {@code curve} as reference.
 	 * <p> This calculates <math><munderover><mo>&#x2211;</mo><mrow><mi>i</mi><mo>=</mo><msub><mi>i</mi><mn>1</mn></msub></mrow><msub><mi>i</mi><mn>2</mn></msub></munderover><mo>(</mo><mover><mi>T</mi><mo>&#x23DE;</mo></mover><mo>(</mo><msub><mi>t</mi><mi>i</mi></msub><mo>)</mo><mo>-</mo><mi>T</mi><mo>(</mo><msub><mi>t</mi><mi>i</mi></msub><msup><mo>)</mo><mrow><mi>r</mi><mi>e</mi><mi>f</mi></mrow></msup><msup><mo>)</mo><mn>2</mn></msup></math>,

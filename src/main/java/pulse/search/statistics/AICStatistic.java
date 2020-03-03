@@ -14,10 +14,6 @@ public class AICStatistic extends SumOfSquares {
 	private int kq;
 	private final static double PENALISATION_FACTOR = Math.log(2.0*Math.PI) + 1.0;
 	
-	public AICStatistic() {
-		super();
-	}
-	
 	@Override
 	public void evaluate(SearchTask t) {
 		kq = Flag.convert(PathOptimiser.getSearchFlags()).size();
@@ -29,6 +25,10 @@ public class AICStatistic extends SumOfSquares {
 	@Override
 	public String describe() {
 		return "Akaike Information Criterion (AIC)";
+	}
+	
+	public int getNumVariables() {
+		return kq;
 	}
 
 }
