@@ -27,15 +27,6 @@ public class Buffer extends PropertyHolder {
 	 */
 	
 	public Buffer() {
-		this(size);
-	}
-	
-	/**
-	 * Creates a {@code Buffer} with size {@code n}. 
-	 * @param size the size of the buffer.
-	 */
-	
-	public Buffer(int size) {
 		init();
 	}
 	

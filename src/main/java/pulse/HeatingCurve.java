@@ -496,7 +496,7 @@ public class HeatingCurve extends PropertyHolder {
 	}
 	
 	public NumericProperty getTimeShift() {
-		return NumericProperty.derive(NumericPropertyKeyword.TIME_SHIFT, startTime);
+		return NumericProperty.derive(TIME_SHIFT, startTime);
 	}
 	
 	public void setTimeShift(NumericProperty startTime) {

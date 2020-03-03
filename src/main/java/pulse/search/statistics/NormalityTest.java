@@ -55,14 +55,14 @@ public abstract class NormalityTest extends ResidualStatistic {
 
 	@Override
 	public void setStatistic(NumericProperty statistic) {
-		if(statistic.getType() != NumericPropertyKeyword.TEST_STATISTIC)
+		if(statistic.getType() != TEST_STATISTIC)
 			throw new IllegalArgumentException("Illegal type: " + statistic.getType());
 		this.statistic = (double)statistic.getValue();
 	}
 	
 	@Override
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
-		if(type == NumericPropertyKeyword.TEST_STATISTIC)
+		if(type == TEST_STATISTIC)
 			statistic = (double)property.getValue();
 	}
 	

@@ -590,8 +590,7 @@ public class SearchTask extends Accessible implements Runnable {
 	public void initNormalityTest() {
 		normalityTest = (NormalityTest)ResidualStatistic.instantiate(NormalityTest.getSelectedTestDescriptor());		
 		
-		if(normalityTest instanceof RSquaredTest)
-			if(rs instanceof SumOfSquares)
+		if(normalityTest instanceof RSquaredTest && rs instanceof SumOfSquares)
 				( (RSquaredTest)normalityTest ).setSumOfSquares( (SumOfSquares)rs);
 		
 		normalityTest.setParent(this);
