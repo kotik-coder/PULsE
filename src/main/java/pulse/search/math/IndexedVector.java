@@ -131,9 +131,6 @@ public class IndexedVector extends Vector {
 		List<NumericPropertyKeyword> allIndices = 
 				new ArrayList<NumericPropertyKeyword>(v1.indices);
 		allIndices.addAll(v2.indices);
-		
-		System.out.println(v1.indices.size());
-		
 		return new IndexedVector( allIndices );
 	}
 	

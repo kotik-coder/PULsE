@@ -19,22 +19,15 @@ import pulse.util.PropertyHolder;
 public class Buffer extends PropertyHolder {
 	
 	private IndexedVector[] data;
-	private double[] ssr;
-	
-	/**
-	 * The default size of this buffer, as specified in the {@code .xml} defining
-	 * other default {@code NumericPropert}ies.
-	 */
-	
-	public final static int DEFAULT_SIZE = (int)NumericProperty.
-			def(NumericPropertyKeyword.BUFFER_SIZE).getValue();	
+	private double[] statistic;
+	private static int size = (int)NumericProperty.theDefault(NumericPropertyKeyword.BUFFER_SIZE).getValue();	
 	
 	/**
 	 * Creates a {@code Buffer} with a default size.
 	 */
 	
 	public Buffer() {
-		this(DEFAULT_SIZE);
+		this(size);
 	}
 	
 	/**
@@ -43,8 +36,7 @@ public class Buffer extends PropertyHolder {
 	 */
 	
 	public Buffer(int size) {
-		this.data	= new IndexedVector[size];
-		ssr			= new double[size];
+		init();
 	}
 	
 	/**
@@ -55,6 +47,11 @@ public class Buffer extends PropertyHolder {
 	public IndexedVector[] getData() {
 		return data;
 	}
+		
+	public void init() {
+		this.data	= new IndexedVector[size];
+		statistic	= new double[size];
+	}
 	
 	/**
 	 * (Over)writes a buffer cell corresponding to the {@code bufferElement} with
@@ -64,8 +61,8 @@ public class Buffer extends PropertyHolder {
 	 */
 
 	public void fill(SearchTask t, int bufferElement) {		
-		ssr[bufferElement] 	= (double)t.getSumOfSquares().getValue();
-		data[bufferElement]	= t.searchVector();		
+		statistic[bufferElement]	= (double)t.getResidualStatistic().getStatistic().getValue();
+		data[bufferElement]			= t.searchVector()[0];		
 	}
 	
 	/**
@@ -123,7 +120,7 @@ public class Buffer extends PropertyHolder {
 		
 		double av = 0;
 		
-		for(double ss : ssr)				
+		for(double ss : statistic)				
 			av += ss;
 		
 		return av/data.length;
@@ -155,8 +152,8 @@ public class Buffer extends PropertyHolder {
 	 * @see pulse.properties.NumericPropertyKeyword
 	 */
 	
-	public NumericProperty getSize() {
-		return NumericProperty.derive(NumericPropertyKeyword.BUFFER_SIZE, data.length);
+	public static NumericProperty getSize() {
+		return NumericProperty.derive(NumericPropertyKeyword.BUFFER_SIZE, size);
 	}
 	
 	/**
@@ -165,7 +162,7 @@ public class Buffer extends PropertyHolder {
 	
 	public void clear() {
 		data	= new IndexedVector[data.length];
-		ssr		= new double[ssr.length];
+		statistic		= new double[statistic.length];
 	}
 	
 	/**
@@ -173,9 +170,10 @@ public class Buffer extends PropertyHolder {
 	 * @param newSize a {@code NumericProperty} of the type {@code BUFFER_SIZE}.
 	 */
 	
-	public void setSize(NumericProperty newSize) {
-		int size	= (int)newSize.getValue();
-		this.data	= new IndexedVector[size];
+	public static void setSize(NumericProperty newSize) {
+		if(newSize.getType() != NumericPropertyKeyword.BUFFER_SIZE)
+			throw new IllegalArgumentException("Illegal argument type: " + newSize.getType());
+		Buffer.size = ( (Number)newSize.getValue() ).intValue();				
 	}
 
 	@Override

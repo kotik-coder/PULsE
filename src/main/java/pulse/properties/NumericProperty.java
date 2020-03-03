@@ -201,6 +201,25 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
 		return this.formattedValue(true);
 	}		
 	
+	public NumberFormat numberFormat(boolean convertDimension) {
+		if(value instanceof Integer) 
+			return NumberFormat.getIntegerInstance();		
+		
+		double adjustedValue = convertDimension ? 
+				(double) value * this.getDimensionFactor().doubleValue() : 
+				(double) value;			
+		double absAdjustedValue = Math.abs(adjustedValue);
+		
+		final double UPPER_LIMIT = 1e4; 	//the upper limit, used for formatting
+		final double LOWER_LIMIT = 1e-2;	//the lower limit, used for formatting
+		final double ZERO		 = 1e-30;
+		
+		if( (absAdjustedValue > UPPER_LIMIT) || (absAdjustedValue < LOWER_LIMIT && absAdjustedValue > ZERO) )
+			return new DecimalFormat(Messages.getString("NumericProperty.BigNumberFormat"));
+		else
+			return new DecimalFormat(Messages.getString("NumericProperty.NumberFormat"));		
+	}
+	
 	/**
 	 * Used to print out a nice {@code value} for GUI applications and for exporting.
 	 * <p>Will use a {@code DecimalFormat} to reduce the number of digits, if neccessary.

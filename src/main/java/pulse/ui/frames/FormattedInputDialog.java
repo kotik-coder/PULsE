@@ -6,7 +6,7 @@ import java.awt.GridLayout;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.text.ParseException;
 
 import javax.swing.AbstractAction;
@@ -25,6 +25,7 @@ import javax.swing.WindowConstants;
 import javax.swing.text.DefaultFormatterFactory;
 import javax.swing.text.NumberFormatter;
 
+import pulse.properties.NumericProperty;
 import pulse.ui.Messages;
 import pulse.ui.components.controllers.ConfirmAction;
 
@@ -38,11 +39,12 @@ public class FormattedInputDialog extends JDialog {
 	private ConfirmAction confirmAction;
 	private NumberFormatter numFormatter;
 	
-	public FormattedInputDialog() {
+	public FormattedInputDialog(NumericProperty p) {
 		this.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
 		this.setMinimumSize(new Dimension(WIDTH, HEIGHT));		
+		setLocationRelativeTo(null);
 		
-		setTitle(Messages.getString("SimpleInputFrame.Title"));
+		setTitle("Choose " + p.getAbbreviation(false));
 		
 		JPanel northPanel = new JPanel();
 		
@@ -50,9 +52,9 @@ public class FormattedInputDialog extends JDialog {
 		
 		northPanel.setLayout(new GridLayout());
 		
-		northPanel.add(new JLabel(Messages.getString("SimpleInputFrame.GroupMessage")));
+		northPanel.add(new JLabel(p.getDescriptor(true)));
 		northPanel.add(new JSeparator());
-		northPanel.add(ftf = initFormattedTextField());
+		northPanel.add(ftf = initFormattedTextField(p));
 		add(northPanel, BorderLayout.CENTER);
 		//
 	    JPanel btnPanel = new JPanel();
@@ -69,7 +71,7 @@ public class FormattedInputDialog extends JDialog {
 	    okBtn.addActionListener(event -> 
 	    	{	    		
 	    		if (!ftf.isEditValid()) { //The text is invalid.
-                    if (userSaysRevert(ftf, numFormatter))  //reverted
+                    if (userSaysRevert(ftf, numFormatter, p))  //reverted
                     	ftf.postActionEvent(); //inform the editor
 	    		}
                 else {
@@ -89,20 +91,20 @@ public class FormattedInputDialog extends JDialog {
 		this.setVisible(false);
 	}
 	
-	public double value() {
-		return (double)ftf.getValue();
+	public Number value() {
+		return (Number) ftf.getValue();
 	}
 	
-	private JFormattedTextField initFormattedTextField() {
-		JFormattedTextField inputTextField = new JFormattedTextField(1.0);
+	private JFormattedTextField initFormattedTextField(NumericProperty p) {
+		JFormattedTextField inputTextField = new JFormattedTextField(p.getValue());
 		
 		 //Set up the editor for the integer cells.
                
-        DecimalFormat numberFormat = new DecimalFormat(Messages.getString("SimpleInputFrame.SimpleNumberFormat")); //$NON-NLS-1$
+        NumberFormat numberFormat = p.numberFormat(true);
         numFormatter = new NumberFormatter(numberFormat);
         
-        numFormatter.setMinimum(0.01);
-	    numFormatter.setMaximum(50.0);
+        numFormatter.setMinimum(p.getMinimum().doubleValue());
+	    numFormatter.setMaximum(p.getMaximum().doubleValue());
         
         numFormatter.setFormat(numberFormat);		        
  
@@ -122,7 +124,7 @@ public class FormattedInputDialog extends JDialog {
 		@Override
 		public void actionPerformed(ActionEvent e) {
         if (!inputTextField.isEditValid()) { //The text is invalid.
-                    if (userSaysRevert(inputTextField, numFormatter)) { //reverted
+                    if (userSaysRevert(inputTextField, numFormatter, p)) { //reverted
                     	inputTextField.postActionEvent(); //inform the editor
             }
                 } else try {              //The text is valid,
@@ -145,14 +147,14 @@ public class FormattedInputDialog extends JDialog {
 		return confirmAction;
 	}
 
-    private static boolean userSaysRevert(JFormattedTextField inputTextField, NumberFormatter numFormatter) {
+    private static boolean userSaysRevert(JFormattedTextField inputTextField, NumberFormatter numFormatter, NumericProperty p) {
         Toolkit.getDefaultToolkit().beep();
         inputTextField.selectAll();
         Object[] options = {Messages.getString("SimpleInputFrame.Edit"), //$NON-NLS-1$
                             Messages.getString("SimpleInputFrame.Revert")}; //$NON-NLS-1$
         int answer = JOptionPane.showOptionDialog(
             SwingUtilities.getWindowAncestor(inputTextField),
-            Messages.getString("SimpleInputFrame.IntegerMessage") //$NON-NLS-1$
+            "The value must be a " + p.getValue().getClass().getSimpleName() + " between " //$NON-NLS-1$
             + numFormatter.getMinimum() + " and " //$NON-NLS-1$
             + numFormatter.getMaximum() + ".\n" //$NON-NLS-1$
             + Messages.getString("SimpleInputFrame.MessageLine1") //$NON-NLS-1$

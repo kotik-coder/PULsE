@@ -3,9 +3,7 @@ package pulse.tasks;
 import static pulse.properties.NumericPropertyKeyword.CONDUCTIVITY;
 import static pulse.properties.NumericPropertyKeyword.DENSITY;
 import static pulse.properties.NumericPropertyKeyword.EMISSIVITY;
-import static pulse.properties.NumericPropertyKeyword.RSQUARED;
 import static pulse.properties.NumericPropertyKeyword.SPECIFIC_HEAT;
-import static pulse.properties.NumericPropertyKeyword.SUM_OF_SQUARES;
 import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
 import static pulse.properties.NumericPropertyKeyword.TIME_LIMIT;
 
@@ -16,7 +14,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import pulse.HeatingCurve;
 import pulse.input.ExperimentalData;
 import pulse.input.InterpolationDataset;
 import pulse.input.Metadata;
@@ -24,13 +21,16 @@ import pulse.input.listeners.DataEventType;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.solvers.Solver;
 import pulse.problem.statements.Problem;
+import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.search.direction.Path;
 import pulse.search.direction.PathOptimiser;
 import pulse.search.math.IndexedVector;
-import pulse.search.statistics.AndersonDarlingTest;
 import pulse.search.statistics.NormalityTest;
+import pulse.search.statistics.RSquaredTest;
+import pulse.search.statistics.ResidualStatistic;
+import pulse.search.statistics.SumOfSquares;
 import pulse.tasks.Status.Details;
 import pulse.tasks.listeners.DataCollectionListener;
 import pulse.tasks.listeners.StatusChangeListener;
@@ -52,6 +52,7 @@ public class SearchTask extends Accessible implements Runnable {
 	private Problem problem;
 	private DifferenceScheme scheme;
 	private ExperimentalData curve;
+	private ResidualStatistic rs;
 
 	private Path   path;
 	private Buffer buffer;
@@ -62,7 +63,6 @@ public class SearchTask extends Accessible implements Runnable {
 			
 	private double testTemperature;
 	private double cp, rho, emissivity, lambda;
-	private double rSq, ssr;
 	
 	private NormalityTest normalityTest;
 	
@@ -73,8 +73,6 @@ public class SearchTask extends Accessible implements Runnable {
 	 * the result will be considered {@code AMBIGUOUS}. 
 	 */
 	
-	public final static double SUCCESS_CUTOFF = 0.2;
-		
 	private List<DataCollectionListener> listeners			 = new CopyOnWriteArrayList<DataCollectionListener>();
 	private List<StatusChangeListener> statusChangeListeners = new CopyOnWriteArrayList<StatusChangeListener>();
 
@@ -87,7 +85,8 @@ public class SearchTask extends Accessible implements Runnable {
 	public SearchTask(ExperimentalData curve) {
 		this.identifier = new Identifier();		
 		this.curve = curve;
-		curve.setParent(this);		
+		curve.setParent(this);
+		initOptimiser();
 		clear();	
 	}
 	
@@ -97,16 +96,12 @@ public class SearchTask extends Accessible implements Runnable {
 	 */
 	
 	public void clear() {				
-		rSq	= (double) NumericProperty.def
-				(RSQUARED).getValue();
-		ssr	= (double) NumericProperty.def
-				(SUM_OF_SQUARES).getValue();				
-		
 		buffer 			= new Buffer();
 		buffer.setParent(this);		
 		log 			= new Log(this);
-		normalityTest	= new AndersonDarlingTest();
-		normalityTest.setParent(this);
+		
+		initOptimiser();
+		initNormalityTest();
 					
 		testTemperature = (double)curve.getMetadata().getTestTemperature().getValue();
 		
@@ -123,7 +118,7 @@ public class SearchTask extends Accessible implements Runnable {
 		
 		curve.addDataListener( dataEvent -> {
 			if(scheme != null) {
-				double startTime = (double)problem.getHeatingCurve().getStartTime().getValue();
+				double startTime = (double)problem.getHeatingCurve().getTimeShift().getValue();
 				scheme.setTimeLimit
 				(NumericProperty.derive(TIME_LIMIT, RELATIVE_TIME_MARGIN*curve.timeLimit() - startTime));
 			}
@@ -140,8 +135,19 @@ public class SearchTask extends Accessible implements Runnable {
 	 * @see pulse.problem.statements.Problem.optimisationVector(List<Flag>)
 	 */
 	
-	public IndexedVector searchVector() {
-		return problem.optimisationVector(PathOptimiser.getSearchFlags())[0];
+	public IndexedVector[] searchVector() {
+		var flags = PathOptimiser.getSearchFlags();
+		
+		var optimisationVector	= new IndexedVector(Flag.convert(flags));
+		var upperBound		 	= new IndexedVector(optimisationVector.getIndices());
+		
+		var array = new IndexedVector[] {optimisationVector, upperBound};
+		
+		problem.optimisationVector( array, flags);
+		curve.getRange().optimisationVector(array, flags);
+		
+		return array;
+		
 	}
 	
 	/**
@@ -152,6 +158,7 @@ public class SearchTask extends Accessible implements Runnable {
 	
 	public void assign(IndexedVector searchParameters) {
 		problem.assign(searchParameters);
+		curve.getRange().assign(searchParameters);
 	}
 	
 	/**
@@ -207,7 +214,8 @@ public class SearchTask extends Accessible implements Runnable {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public double solveProblemAndCalculateDeviation() {
 		((Solver)scheme).solve(problem);
-		return problem.getHeatingCurve().deviationSquares(getExperimentalCurve()); 
+		rs.evaluate(this);
+		return (double)rs.getStatistic().getValue();
 	}
 	
 	/**
@@ -235,17 +243,15 @@ public class SearchTask extends Accessible implements Runnable {
 	  
 	  /* preparatory steps */
 	    
-	  HeatingCurve solutionCurve = problem.getHeatingCurve();
-	  ssr	   			 		 = solveProblemAndCalculateDeviation();
+	  solveProblemAndCalculateDeviation();
 	  
 	  PathOptimiser pathSolver 	= TaskManager.getPathSolver();
 	  
 	  path 						= pathSolver.createPath(this);
 	   
 	  double errorTolerance		= (double)PathOptimiser.getErrorTolerance().getValue();
-	  int bufferSize			= (Integer)buffer.getSize().getValue();	  
-	  
-	  rSq 						= solutionCurve.rSquared(this.getExperimentalCurve());	  
+	  int bufferSize			= (Integer)Buffer.getSize().getValue();	 
+	  buffer.init();
 	  
 	  /* search cycle */
 	  
@@ -265,8 +271,7 @@ public class SearchTask extends Accessible implements Runnable {
 				if(status != Status.IN_PROGRESS)
 					break outer;
 					
-				ssr = pathSolver.iteration(this);
-		  		rSq = solutionCurve.rSquared(getExperimentalCurve());		  				  	
+				pathSolver.iteration(this);
 		  		
 		  		final int j = i;		  		
 		  		
@@ -284,11 +289,8 @@ public class SearchTask extends Accessible implements Runnable {
 	  
 	  singleThreadExecutor.shutdown();	  
 	  
-	  if( status == Status.IN_PROGRESS )
-		 if(rSq > SUCCESS_CUTOFF) 
-			 setStatus( normalityTest.test(this) ? Status.DONE : Status.FAILED);
-		 else
-			 setStatus(Status.AMBIGUOUS);
+	  if( status == Status.IN_PROGRESS ) 
+		  setStatus( normalityTest.test(this) ? Status.DONE : Status.FAILED);
 	  		
 	}
 
@@ -331,22 +333,6 @@ public class SearchTask extends Accessible implements Runnable {
 		return path;
 	}
 	
-	public NumericProperty getSumOfSquares() {
-		return NumericProperty.derive(SUM_OF_SQUARES, ssr); 
-	}
-	
-	public NumericProperty getRSquared() {
-		return NumericProperty.derive(RSQUARED, rSq);
-	}
-	
-	public void setRSquared(double rSquared) {
-		this.rSq = rSquared;
-	}
-
-	public void setSumOfSquares(double sumOfSquares) {
-		this.ssr = sumOfSquares;
-	}
-	
 	/**
 	 * <p>After setting and adopting the {@code problem} by this {@code SearchTask},  
 	 * this will attempt to change the parameters of that {@code problem} in accordance with the loaded
@@ -387,7 +373,7 @@ public class SearchTask extends Accessible implements Runnable {
 			
 			if(event == DataEventType.CHANGE_OF_ORIGIN) {
 				double upperLimitUpdated = RELATIVE_TIME_MARGIN*curve.timeLimit() - 
-						(double)problem.getHeatingCurve().getStartTime().getValue();
+						(double)problem.getHeatingCurve().getTimeShift().getValue();
 				scheme.setTimeLimit
 				(NumericProperty.derive(TIME_LIMIT, upperLimitUpdated));
 			}
@@ -409,7 +395,7 @@ public class SearchTask extends Accessible implements Runnable {
 			scheme.setParent(this);
 			
 			double upperLimit = RELATIVE_TIME_MARGIN*curve.timeLimit() - 
-					(double)problem.getHeatingCurve().getStartTime().getValue();
+					(double)problem.getHeatingCurve().getTimeShift().getValue();
 			
 			scheme.setTimeLimit
 			(NumericProperty.derive(TIME_LIMIT, upperLimit ));
@@ -591,6 +577,29 @@ public class SearchTask extends Accessible implements Runnable {
 
 	public NormalityTest getNormalityTest() {
 		return normalityTest;
+	}
+
+	public ResidualStatistic getResidualStatistic() {
+		return rs;
+	}
+	
+	public void setResidualStatistic(ResidualStatistic rs) {
+		this.rs = rs;
+	}
+	
+	public void initNormalityTest() {
+		normalityTest = (NormalityTest)ResidualStatistic.instantiate(NormalityTest.getSelectedTestDescriptor());		
+		
+		if(normalityTest instanceof RSquaredTest)
+			if(rs instanceof SumOfSquares)
+				( (RSquaredTest)normalityTest ).setSumOfSquares( (SumOfSquares)rs);
+		
+		normalityTest.setParent(this);
+	}
+	
+	public void initOptimiser() {
+		rs = ResidualStatistic.instantiate(ResidualStatistic.getSelectedOptimiserDescriptor());
+		rs.setParent(this);
 	}
 
 }

@@ -24,12 +24,17 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFormattedTextField;
 import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JSeparator;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
@@ -48,10 +53,16 @@ import org.jfree.chart.ChartPanel;
 
 import pulse.input.ExperimentalData;
 import pulse.input.Metadata;
+import pulse.input.Range;
 import pulse.io.export.ExportManager;
 import pulse.io.readers.MetaFileReader;
 import pulse.io.readers.ReaderManager;
 import pulse.problem.statements.Problem;
+import pulse.properties.NumericProperty;
+import pulse.properties.NumericPropertyKeyword;
+import pulse.search.statistics.NormalityTest;
+import pulse.search.statistics.ResidualStatistic;
+import pulse.tasks.Buffer;
 import pulse.tasks.Identifier;
 import pulse.tasks.Log;
 import pulse.tasks.LogEntry;
@@ -340,8 +351,8 @@ public class TaskControlFrame extends JFrame {
         	
         	ExperimentalData expCurve = t.getExperimentalCurve();        	
         	
-        	lowerLimitField.setValue(expCurve.timeAt(expCurve.getFittingStartIndex()));
-        	upperLimitField.setValue(expCurve.timeAt(expCurve.getFittingEndIndex()));
+        	lowerLimitField.setValue(expCurve.getEffectiveStartTime());
+        	upperLimitField.setValue(expCurve.getEffectiveEndTime());
         });
         
         lowerLimitField.addFocusListener(ftfFocusListener);
@@ -551,7 +562,90 @@ public class TaskControlFrame extends JFrame {
         resultFormatItem.setIcon(Launcher.loadIcon("result_format.png", ICON_SIZE));
         resultFormatItem.setText("Change Result Format...");
         settingsMenu.add(resultFormatItem);
-
+        
+        JMenu statisticsSubMenu = new JMenu("Normality tests");
+        statisticsSubMenu.setIcon(Launcher.loadIcon("normality_test.png", ICON_SIZE));
+        
+        ButtonGroup statisticItems = new ButtonGroup();
+        
+        JRadioButtonMenuItem item = null;                                
+        
+        for(String statisticName : NormalityTest.allTestDescriptors()) {
+        	item = new JRadioButtonMenuItem(statisticName);
+        	statisticItems.add(item);
+            statisticsSubMenu.add(item);
+            item.addItemListener(e -> {
+            	
+	            if( ( (JRadioButtonMenuItem) e.getItem() ).isSelected() ) {
+	            	var text = ((JMenuItem)e.getItem()).getText();
+	            	NormalityTest.setSelectedTestDescriptor( text );
+	            	
+	            	TaskManager.getTaskList().stream().forEach(t -> t.initNormalityTest());
+	            	
+	            }
+            	
+            });
+        }
+        
+        var significanceDialog = new FormattedInputDialog(NumericProperty.theDefault(NumericPropertyKeyword.SIGNIFICANCE));
+        
+        significanceDialog.setConfirmAction( () -> NormalityTest.setStatisticalSignificance(
+        		NumericProperty.derive(NumericPropertyKeyword.SIGNIFICANCE, significanceDialog.value()) ) );
+        
+        JMenuItem sigItem = new JMenuItem("Change significance...");
+        statisticsSubMenu.add(new JSeparator());
+        statisticsSubMenu.add(sigItem);
+        sigItem.addActionListener(e ->     	
+        	significanceDialog.setVisible(true)      	
+        );
+    
+        statisticsSubMenu.getItem(0).setSelected(true);
+        settingsMenu.add(statisticsSubMenu);
+        
+        JMenu optimisersSubMenu = new JMenu("Optimiser statistics");
+        optimisersSubMenu.setIcon(Launcher.loadIcon("optimiser.png", ICON_SIZE));
+        
+        ButtonGroup optimisersItems = new ButtonGroup();
+        
+        item = null;                            
+        
+        var set = ResidualStatistic.allDescriptors();
+        set.removeAll(NormalityTest.allTestDescriptors());
+        
+        for(String statisticName : set) {
+        	item = new JRadioButtonMenuItem(statisticName);
+        	optimisersItems.add(item);
+            optimisersSubMenu.add(item);
+            item.addItemListener(e -> {
+            	
+	            if( ( (JRadioButtonMenuItem) e.getItem() ).isSelected() ) {
+	            	var text = ((JMenuItem)e.getItem()).getText();
+	            	ResidualStatistic.setSelectedOptimiserDescriptor( text );
+	            	
+	            	TaskManager.getTaskList().stream().forEach(t -> t.initOptimiser());
+	            	
+	            }
+            	
+            });
+        }
+        
+        optimisersSubMenu.getItem(0).setSelected(true);        
+        settingsMenu.add(optimisersSubMenu);        
+        
+        JMenuItem selectBuffer = new JMenuItem("Buffer size...");
+        selectBuffer.setIcon(Launcher.loadIcon("buffer.png", ICON_SIZE));
+        
+        var bufferDialog = new FormattedInputDialog(NumericProperty.theDefault(NumericPropertyKeyword.BUFFER_SIZE));
+        
+        bufferDialog.setConfirmAction( () -> Buffer.setSize(
+        		NumericProperty.derive(NumericPropertyKeyword.BUFFER_SIZE, bufferDialog.value()) ) );
+        
+        selectBuffer.addActionListener(e -> 
+        	bufferDialog.setVisible(true)
+        );
+        
+        settingsMenu.add(selectBuffer);
+        
         mainMenu.add(settingsMenu);
 
         InfoMenu.setText("Info");
@@ -1057,7 +1151,7 @@ public class TaskControlFrame extends JFrame {
 				
 				inputDialog.setLocationRelativeTo(null);
 				inputDialog.setVisible(true);
-				inputDialog.setConfirmAction( () -> resultsTable.merge(inputDialog.value()) );
+				inputDialog.setConfirmAction( () -> resultsTable.merge(inputDialog.value().doubleValue()) );
 			}
 			
 		});		
@@ -1342,9 +1436,9 @@ public class TaskControlFrame extends JFrame {
 		sb.append(Messages.getString("RangeSelectionFrame.ConfirmationMessage1"));
 		sb.append("</p><br>");
 		sb.append(Messages.getString("RangeSelectionFrame.ConfirmationMessage2"));
-		sb.append(String.format("%3.4f", expCurve.timeAt(expCurve.getFittingStartIndex())));
+		sb.append(expCurve.getEffectiveStartTime());
 		sb.append(" to ");
-		sb.append(String.format("%3.4f", expCurve.timeAt(expCurve.getFittingEndIndex())));
+		sb.append(expCurve.getEffectiveEndTime());
 		sb.append("<br><br>");
 		sb.append(Messages.getString("RangeSelectionFrame.ConfirmationMessage3"));
 		sb.append(String.format("%3.4f", a) + " to " + String.format("%3.4f", b));
@@ -1356,7 +1450,7 @@ public class TaskControlFrame extends JFrame {
 						"Confirm chocie", JOptionPane.YES_NO_OPTION);
 		
 		if(dialogResult == JOptionPane.YES_OPTION)			
-			expCurve.setFittingRange(a, b);	
+			expCurve.setRange(new Range(a, b));	
 		
     }        
 	
@@ -1413,7 +1507,7 @@ public class TaskControlFrame extends JFrame {
     private javax.swing.JToggleButton adiabaticSolutionBtn;
     private javax.swing.JCheckBox verboseCheckBox;
     private javax.swing.JToggleButton residualsBtn;
-	private FormattedInputDialog inputDialog = new FormattedInputDialog();
+	private FormattedInputDialog inputDialog = new FormattedInputDialog(NumericProperty.theDefault(NumericPropertyKeyword.WINDOW));
 	private JSlider jSlider1;
 	private PreviewFrame previewFrame;
 	private ProblemStatementFrame problemStatementFrame;

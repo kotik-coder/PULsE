@@ -34,9 +34,9 @@ public class LogFormat {
 						   add(NumericPropertyKeyword.BASELINE_SLOPE);
 						   add(NumericPropertyKeyword.DIATHERMIC_COEFFICIENT);
 						   break;
-				case 'S' : add(NumericPropertyKeyword.SUM_OF_SQUARES); 
+				case 'S' : add(NumericPropertyKeyword.OPTIMISER_STATISTIC); 
 						   break;
-				case 'R' : add(NumericPropertyKeyword.RSQUARED);
+				case 'R' : add(NumericPropertyKeyword.TEST_STATISTIC);
 						   break;
 				default  : throw new IllegalArgumentException(Messages.getString("LogFormat.UnknownFormatError") + c); //$NON-NLS-1$
 			}

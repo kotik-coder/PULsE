@@ -9,7 +9,7 @@ import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 import pulse.search.math.IndexedVector;
-import pulse.search.math.Segment;
+import pulse.search.math.Segment2D;
 import pulse.search.math.Vector;
 import pulse.tasks.SearchTask;
 import pulse.util.PropertyHolder;
@@ -57,7 +57,7 @@ public abstract class LinearOptimiser extends PropertyHolder implements Reflexiv
 	 * @see pulse.search.direction.PathSolver.direction(SearchTask)
 	 */
 	
-	public static Segment domain(IndexedVector x, IndexedVector bounds, Vector p) {						
+	public static Segment2D domain(IndexedVector x, IndexedVector bounds, Vector p) {						
 		double alpha = Double.POSITIVE_INFINITY;
 		
 		final double EPS = 1E-15;
@@ -72,7 +72,7 @@ public abstract class LinearOptimiser extends PropertyHolder implements Reflexiv
 			
 		}
 		
-		return new Segment(0, alpha);
+		return new Segment2D(0, alpha);
 	}
 	
 	/**

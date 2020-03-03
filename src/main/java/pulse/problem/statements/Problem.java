@@ -304,47 +304,44 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 	 * Consider creating a Bounds class, or putting them in the XML file
 	 */
 	
-	public IndexedVector[] optimisationVector(List<Flag> flags) {	
-		IndexedVector optimisationVector = new IndexedVector(Flag.convert(flags));
-		IndexedVector upperBound		 = new IndexedVector(optimisationVector.getIndices());
-		int size = optimisationVector.dimension(); 		
+	public void optimisationVector(IndexedVector[] output, List<Flag> flags) {	
+
+		int size = output[0].dimension(); 		
 		
 		Baseline baseline = curve.getBaseline();
 		
 		for(int i = 0; i < size; i++) {
 			
-			switch( optimisationVector.getIndex(i) ) {
+			switch( output[0].getIndex(i) ) {
 				case DIFFUSIVITY		:	
-					optimisationVector.set(i, a/(l*l));
-					upperBound.set(i, 0.75*a/(l*l));
+					output[0].set(i, a/(l*l));
+					output[1].set(i, 0.75*a/(l*l));
 					break;
 				case MAXTEMP			:	
-					optimisationVector.set(i, signalHeight);
-					upperBound.set(i, 0.5*signalHeight);
+					output[0].set(i, signalHeight);
+					output[1].set(i, 0.5*signalHeight);
 					break;
 				case BASELINE_INTERCEPT	:   
-					optimisationVector.set(i, baseline.parameters()[0]);
-					upperBound.set(i, 5);
+					output[0].set(i, baseline.parameters()[0]);
+					output[1].set(i, 5);
 					break; 
 				case BASELINE_SLOPE		:   
-					optimisationVector.set(i, baseline.parameters()[1]);
-					upperBound.set(i, 1000);
+					output[0].set(i, baseline.parameters()[1]);
+					output[1].set(i, 1000);
 					break;	
 				case HEAT_LOSS			:	
-					optimisationVector.set(i, Bi1 );
-					upperBound.set(i, 2.0);
+					output[0].set(i, Bi1 );
+					output[1].set(i, 2.0);
 					break;
-				case START_TIME			:	
-					optimisationVector.set(i, (double)curve.getStartTime().getValue() );
+				case TIME_SHIFT			:	
+					output[0].set(i, (double)curve.getTimeShift().getValue() );
 					double timeLimit = curve.timeLimit(); 
-					upperBound.set(i, timeLimit*0.25);
+					output[1].set(i, timeLimit*0.25);
 					break;
 				default 				: 	continue;
 			}
 		}
-		
-		return new IndexedVector[] { optimisationVector, upperBound };
-		
+			
 	}
 	
 	/**
@@ -365,9 +362,9 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 				case BASELINE_SLOPE		:	(curve.getBaseline()).
 											setParameter(1, params.get(i)); break;
 				case HEAT_LOSS			:	Bi1 = params.get(i); Bi2 = params.get(i); break;
-				case START_TIME			:	curve.set(NumericPropertyKeyword.START_TIME,
+				case TIME_SHIFT			:	curve.set(NumericPropertyKeyword.TIME_SHIFT,
 													  NumericProperty.derive(
-													  NumericPropertyKeyword.START_TIME, 
+													  NumericPropertyKeyword.TIME_SHIFT, 
 													  params.get(i)));
 											break;
 				default 				: 	continue;

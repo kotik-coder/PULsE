@@ -12,6 +12,7 @@ import java.util.StringTokenizer;
 
 import pulse.input.ExperimentalData;
 import pulse.input.Metadata;
+import pulse.input.Range;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.ui.Messages;
@@ -162,6 +163,7 @@ public class LFRReader implements CurveReader {
 			
 		}
 		
+		curve.setRange(new Range(curve.getTimeSequence()));		
 		reader.close();
 	
 		return curve;	

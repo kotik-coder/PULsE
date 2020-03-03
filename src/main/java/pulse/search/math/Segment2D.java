@@ -8,7 +8,7 @@ import java.util.Random;
  *
  */
 
-public class Segment {
+public class Segment2D {
 	private double a, b;
 	
 	/**
@@ -17,7 +17,7 @@ public class Segment {
 	 * @param b either {@code b > a} or {@code b < a} 
 	 */
 	
-	public Segment(double a, double b) {		
+	public Segment2D(double a, double b) {		
 		this.a = a < b ? a : b;
 		this.b = b > a ? b : a;
 	}
@@ -27,7 +27,7 @@ public class Segment {
 	 * @param segment a {@code Segment}
 	 */
 	
-	public Segment(Segment segment) {		
+	public Segment2D(Segment2D segment) {		
 		this.a = segment.a;
 		this.b = segment.b;
 	}

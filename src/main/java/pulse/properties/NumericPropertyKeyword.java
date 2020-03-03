@@ -191,18 +191,6 @@ public enum NumericPropertyKeyword {
 	HEAT_LOSS, 
 	
 	/**
-	 * The <math><i>R</i><sup>2</sup></math> (coefficient of determination).
-	 */
-	
-	RSQUARED, 
-	
-	/**
-	 * The sum of squared residuals.
-	 */
-	
-	SUM_OF_SQUARES, 
-	
-	/**
 	 * Search iteration.
 	 */
 	
@@ -241,12 +229,20 @@ public enum NumericPropertyKeyword {
 	
 	DIATHERMIC_COEFFICIENT,
 	
-	START_TIME,
+	TIME_SHIFT,
 	
 	SIGNIFICANCE,
 	
 	PROBABILITY,
 	
-	STATISTIC;
+	OPTIMISER_STATISTIC,
+	
+	TEST_STATISTIC,
+	
+	LOWER_BOUND,
+	
+	UPPER_BOUND,
+	
+	WINDOW;
 	
 }

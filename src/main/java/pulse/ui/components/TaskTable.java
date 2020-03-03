@@ -67,9 +67,8 @@ public class TaskTable extends JTable {
 			TableHeader th = new TableHeader(getColumnModel(), new String[]{
 				   NumericProperty.theDefault(NumericPropertyKeyword.IDENTIFIER).getDescriptor(true), 
 				   NumericProperty.theDefault(NumericPropertyKeyword.TEST_TEMPERATURE).getDescriptor(true),
-				   NumericProperty.theDefault(NumericPropertyKeyword.SUM_OF_SQUARES).getDescriptor(true),
-				   NumericProperty.theDefault(NumericPropertyKeyword.RSQUARED).getDescriptor(true), 
-				   NumericProperty.theDefault(NumericPropertyKeyword.STATISTIC).getDescriptor(true), 
+				   NumericProperty.theDefault(NumericPropertyKeyword.OPTIMISER_STATISTIC).getDescriptor(true),
+				   NumericProperty.theDefault(NumericPropertyKeyword.TEST_STATISTIC).getDescriptor(true),
 				   ("Task status")
 				});
 			
@@ -209,10 +208,9 @@ public class TaskTable extends JTable {
 			 * 
 			 */
 			private static final long serialVersionUID = 7196461896699123800L;
-			private static final int SS_COLUMN = 2;
-			private static final int R2_COLUMN = 3;
-			private static final int KS_COLUMN = 4;
-			private static final int STATUS_COLUMN = 5;
+			private static final int SEARCH_STATISTIC_COLUMN = 2;
+			private static final int TEST_STATISTIC_COLUMN = 3;
+			private static final int STATUS_COLUMN = 4;
 			
 			public TaskTableModel() { 								
 				
@@ -220,9 +218,8 @@ public class TaskTable extends JTable {
 						   new String[] {
 								   NumericProperty.theDefault(NumericPropertyKeyword.IDENTIFIER).getAbbreviation(true),
 								   NumericProperty.theDefault(NumericPropertyKeyword.TEST_TEMPERATURE).getAbbreviation(true),
-								   NumericProperty.theDefault(NumericPropertyKeyword.SUM_OF_SQUARES).getAbbreviation(true),  
-								   NumericProperty.theDefault(NumericPropertyKeyword.RSQUARED).getAbbreviation(true),  
-								   NumericProperty.theDefault(NumericPropertyKeyword.STATISTIC).getAbbreviation(true),  
+								   NumericProperty.theDefault(NumericPropertyKeyword.OPTIMISER_STATISTIC).getAbbreviation(true),  
+								   NumericProperty.theDefault(NumericPropertyKeyword.TEST_STATISTIC).getAbbreviation(true),  
 								   Messages.getString("TaskTable.Status")} );
 									
 			}		
@@ -231,8 +228,7 @@ public class TaskTable extends JTable {
 				Object[] data = new Object[]{
 						t.getIdentifier(),
 						t.getTestTemperature(),					
-						t.getSumOfSquares(),
-						t.getRSquared(),
+						t.getResidualStatistic().getStatistic(),
 						t.getNormalityTest().getStatistic(),
 						t.getStatus()
 				};	
@@ -244,7 +240,8 @@ public class TaskTable extends JTable {
 					@Override
 					public void onStatusChange(StateEntry e) { 
 							setValueAt(e.getState(), searchRow(t.getIdentifier()), STATUS_COLUMN);	
-							setValueAt(t.getNormalityTest().getStatistic(), searchRow(t.getIdentifier()), KS_COLUMN);
+							if(t.getNormalityTest() != null)
+								setValueAt(t.getNormalityTest().getStatistic(), searchRow(t.getIdentifier()), TEST_STATISTIC_COLUMN);							
 					}
 					
 				});
@@ -253,8 +250,7 @@ public class TaskTable extends JTable {
 
 					@Override
 					public void onDataCollected(StateEntry e) {
-						setValueAt(t.getSumOfSquares(), searchRow(t.getIdentifier()), SS_COLUMN);
-						setValueAt(t.getRSquared(), searchRow(t.getIdentifier()), R2_COLUMN);
+						setValueAt(t.getResidualStatistic().getStatistic(), searchRow(t.getIdentifier()), SEARCH_STATISTIC_COLUMN);
 					}
 					
 				});

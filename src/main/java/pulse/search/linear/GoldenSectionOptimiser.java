@@ -1,9 +1,7 @@
 package pulse.search.linear;
 
-import pulse.problem.statements.Problem;
-import pulse.search.direction.PathOptimiser;
 import pulse.search.math.IndexedVector;
-import pulse.search.math.Segment;
+import pulse.search.math.Segment2D;
 import pulse.search.math.Vector;
 import pulse.tasks.SearchTask;
 import pulse.ui.Messages;
@@ -42,12 +40,10 @@ public class GoldenSectionOptimiser extends LinearOptimiser {
 		
 		final double EPS = 1e-14;
 		
-		final Problem p = task.getProblem();
+		final IndexedVector[] params	= task.searchVector();
+		final Vector direction			= task.getPath().getDirection();
 		
-		final IndexedVector[] params	= p.optimisationVector( PathOptimiser.getSearchFlags() );
-		final Vector direction		= task.getPath().getDirection();
-		
-		Segment segment = domain(params[0], params[1], direction);
+		Segment2D segment = domain(params[0], params[1], direction);
 		
 		final double squaredError = Math.pow(searchResolution*PHI*segment.length(), 2);
 		double ss2 = 0;
@@ -61,14 +57,14 @@ public class GoldenSectionOptimiser extends LinearOptimiser {
 			one_minus_alpha	= segment.getMaximum() - t;
 			
 			newParams = params[0].sum(direction.multiply(alpha)); //alpha
-			p.assign(new IndexedVector(newParams, params[0].getIndices()));
+			task.assign(new IndexedVector(newParams, params[0].getIndices()));
 			ss2 = task.solveProblemAndCalculateDeviation(); //f(alpha)
 			
 			newParams = params[0].sum(direction.multiply(one_minus_alpha)); //1 - alpha 
-			p.assign(new IndexedVector(newParams, params[0].getIndices()));
+			task.assign(new IndexedVector(newParams, params[0].getIndices()));
 			ss1 = task.solveProblemAndCalculateDeviation(); //f(1-alpha)
 			
-			p.assign(new IndexedVector(newParams, params[0].getIndices())); //return to old position
+			task.assign(new IndexedVector(newParams, params[0].getIndices())); //return to old position
 			
 			if(ss2 - ss1 > EPS)		
 				segment.setMaximum(alpha);
