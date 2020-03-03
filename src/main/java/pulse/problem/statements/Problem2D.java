@@ -120,29 +120,27 @@ public abstract class Problem2D extends Problem implements TwoDimensional {
 	}
 	
 	@Override
-	public IndexedVector[] optimisationVector(List<Flag> flags) {
-		IndexedVector[] optimisationVector = super.optimisationVector(flags);		 				
-				
-		for(int i = 0, size = optimisationVector[0].dimension(); i < size; i++) {
-			switch( optimisationVector[0].getIndex(i) ) {
+	public void optimisationVector(IndexedVector[] output, List<Flag> flags) {
+		super.optimisationVector(output, flags);
+					
+		for(int i = 0, size = output[0].dimension(); i < size; i++) {
+			switch( output[0].getIndex(i) ) {
 				case FOV_OUTER		:	
-					optimisationVector[0].set(i, fovOuter/d);
-					optimisationVector[1].set(i, 0.25);
+					output[0].set(i, fovOuter/d);
+					output[1].set(i, 0.25);
 					break;
 				case FOV_INNER		:	
-					optimisationVector[0].set(i, fovInner/d);
-					optimisationVector[1].set(i, 0.25);
+					output[0].set(i, fovInner/d);
+					output[1].set(i, 0.25);
 					break;	
 				case SPOT_DIAMETER		:	
 					double fov = (double)pulse.getSpotDiameter().getValue();
-					optimisationVector[0].set(i, fov/d);
-					optimisationVector[1].set(i, 0.25);
+					output[0].set(i, fov/d);
+					output[1].set(i, 0.25);
 					break;					
 				default 				: 	continue;
 			}
 		}
-		
-		return optimisationVector;
 		
 	}
 		

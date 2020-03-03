@@ -10,9 +10,8 @@ import static pulse.properties.NumericPropertyKeyword.EMISSIVITY;
 import static pulse.properties.NumericPropertyKeyword.HEAT_LOSS;
 import static pulse.properties.NumericPropertyKeyword.IDENTIFIER;
 import static pulse.properties.NumericPropertyKeyword.MAXTEMP;
-import static pulse.properties.NumericPropertyKeyword.RSQUARED;
 import static pulse.properties.NumericPropertyKeyword.SPECIFIC_HEAT;
-import static pulse.properties.NumericPropertyKeyword.STATISTIC;
+import static pulse.properties.NumericPropertyKeyword.TEST_STATISTIC;
 import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
 
 import java.util.ArrayList;
@@ -37,7 +36,7 @@ public class ResultFormat {
 	
 	private static String formatString;
 	private final static char[] allowedCharacters	= 
-		{'D', 'S', 'T', 'B', 'M', 'R', 'C', 'E', 'Q', 'A', 'U', 'V', 'I', 'N', 'K'};
+		{'D', 'S', 'T', 'B', 'M', 'R', 'C', 'E', 'Q', 'U', 'V', 'I', 'N', 'K'};
 	private final static char[] minimumAllowed		= 
 		{'T', 'D'};
 	
@@ -76,8 +75,6 @@ public class ResultFormat {
 						   break;
 				case 'E' : nameMap.add(EMISSIVITY);
 						   break;
-				case 'A' : nameMap.add(RSQUARED);
-						   break;
 				case 'U' : nameMap.add(BASELINE_INTERCEPT);
 				   		   break;
 				case 'V' : nameMap.add(BASELINE_SLOPE);
@@ -86,7 +83,7 @@ public class ResultFormat {
 						   break;
 				case 'I' : nameMap.add(IDENTIFIER);
 		   		   		   break;
-				case 'K' : nameMap.add(STATISTIC);
+				case 'K' : nameMap.add(TEST_STATISTIC);
 		   		   		   break;
 				default  : throw new IllegalArgumentException
 				(Messages.getString("ResultFormat.UnknownFormatError") + c);

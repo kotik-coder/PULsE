@@ -8,10 +8,12 @@ import static pulse.properties.NumericPropertyKeyword.FOV_INNER;
 import static pulse.properties.NumericPropertyKeyword.FOV_OUTER;
 import static pulse.properties.NumericPropertyKeyword.HEAT_LOSS;
 import static pulse.properties.NumericPropertyKeyword.LASER_ABSORPTIVITY;
+import static pulse.properties.NumericPropertyKeyword.LOWER_BOUND;
 import static pulse.properties.NumericPropertyKeyword.MAXTEMP;
 import static pulse.properties.NumericPropertyKeyword.SPOT_DIAMETER;
-import static pulse.properties.NumericPropertyKeyword.START_TIME;
 import static pulse.properties.NumericPropertyKeyword.THERMAL_ABSORPTIVITY;
+import static pulse.properties.NumericPropertyKeyword.TIME_SHIFT;
+import static pulse.properties.NumericPropertyKeyword.UPPER_BOUND;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -85,9 +87,11 @@ public class Flag implements Property {
 		flags.add(new Flag(DIATHERMIC_COEFFICIENT, NumericProperty.def(DIATHERMIC_COEFFICIENT).getDescriptor(true), false));
 		flags.add(new Flag(LASER_ABSORPTIVITY, NumericProperty.def(LASER_ABSORPTIVITY).getDescriptor(true), false));
 		flags.add(new Flag(THERMAL_ABSORPTIVITY, NumericProperty.def(THERMAL_ABSORPTIVITY).getDescriptor(true), false));
-		flags.add(new Flag(START_TIME, NumericProperty.def(START_TIME).getDescriptor(true), false));
+		flags.add(new Flag(TIME_SHIFT, NumericProperty.def(TIME_SHIFT).getDescriptor(true), false));
+		flags.add(new Flag(LOWER_BOUND, NumericProperty.def(LOWER_BOUND).getDescriptor(true), false));
+		flags.add(new Flag(UPPER_BOUND, NumericProperty.def(UPPER_BOUND).getDescriptor(true), false));
 		return flags;
-	}
+	}	
 	
 	/**
 	 * Returns the type of this {@code Flag}.

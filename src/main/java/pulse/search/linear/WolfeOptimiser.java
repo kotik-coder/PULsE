@@ -2,11 +2,10 @@ package pulse.search.linear;
 
 import static java.lang.Math.abs;
 
-import pulse.problem.statements.Problem;
 import pulse.search.direction.Path;
 import pulse.search.direction.PathOptimiser;
 import pulse.search.math.IndexedVector;
-import pulse.search.math.Segment;
+import pulse.search.math.Segment2D;
 import pulse.search.math.Vector;
 import pulse.tasks.SearchTask;
 import pulse.ui.Messages;
@@ -54,7 +53,6 @@ public class WolfeOptimiser extends LinearOptimiser {
 	@Override
 	public double linearStep(SearchTask task) {						
 		
-		Problem problem = task.getProblem();
 		Path	p		= task.getPath();
 		
 		final Vector direction    = p.getDirection();
@@ -63,8 +61,8 @@ public class WolfeOptimiser extends LinearOptimiser {
 		final double G1P 	 = g1.dot(direction);
 		final double G1P_ABS = abs(G1P);
 		
-		IndexedVector[] params	= problem.optimisationVector( PathOptimiser.getSearchFlags() );
-		Segment segment			= domain(params[0], params[1], direction);
+		IndexedVector[] params	= task.searchVector();
+		Segment2D segment		= domain(params[0], params[1], direction);
 			
 		double ss1 = task.solveProblemAndCalculateDeviation();
 		double ss2;
@@ -79,7 +77,7 @@ public class WolfeOptimiser extends LinearOptimiser {
 			randomConfinedValue = segment.randomValue();
 			
 			newParams = params[0].sum(direction.multiply(randomConfinedValue));
-			problem.assign(new IndexedVector(newParams, params[0].getIndices()));
+			task.assign(new IndexedVector(newParams, params[0].getIndices()));
 			
 			ss2 	  = task.solveProblemAndCalculateDeviation();
 			
@@ -114,7 +112,7 @@ public class WolfeOptimiser extends LinearOptimiser {
 						
 		}
 		
-		problem.assign(params[0]);
+		task.assign(params[0]);
 		p.setGradient(g1);
 		
 	    return randomConfinedValue;

@@ -88,7 +88,7 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 		if( p.getIteration().compareValues(PathOptimiser.getMaxIterations()) > 0 ) 
 			task.setStatus(Status.TIMEOUT);
 		
-		IndexedVector parameters = task.searchVector(); //get current search vector
+		IndexedVector parameters = task.searchVector()[0]; //get current search vector
 		
 		Vector dir = direction(p); //find the direction to the global minimum 
 		
@@ -141,7 +141,7 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 	
 	public static Vector gradient(SearchTask task) {
 		
-		final IndexedVector params	= task.searchVector();		
+		final IndexedVector params	= task.searchVector()[0];		
 		Vector grad					= new Vector(params.dimension());
 		
 		Vector newParams, shift;

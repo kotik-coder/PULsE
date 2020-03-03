@@ -63,20 +63,18 @@ public class DiathermicMaterialProblem extends LinearisedProblem {
 	}
 	
 	@Override
-	public IndexedVector[] optimisationVector(List<Flag> flags) {
-		IndexedVector[] optimisationVector = super.optimisationVector(flags);		 				
+	public void optimisationVector(IndexedVector[] output, List<Flag> flags) {
+		super.optimisationVector(output, flags);
 		
-		for(int i = 0, size = optimisationVector[0].dimension(); i < size; i++) {
-			switch( optimisationVector[0].getIndex(i) ) {
+		for(int i = 0, size = output[0].dimension(); i < size; i++) {
+			switch( output[0].getIndex(i) ) {
 				case DIATHERMIC_COEFFICIENT		:	
-					optimisationVector[0].set(i, diathermicCoefficient);
-					optimisationVector[1].set(i, 0.5);
+					output[0].set(i, diathermicCoefficient);
+					output[1].set(i, 0.5);
 					break;									
 				default 				: 	continue;
 			}
 		}
-		
-		return optimisationVector;
 		
 	}
 		

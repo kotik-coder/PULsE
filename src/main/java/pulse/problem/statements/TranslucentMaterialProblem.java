@@ -60,28 +60,26 @@ public class TranslucentMaterialProblem extends LinearisedProblem {
 	}
 	
 	@Override
-	public IndexedVector[] optimisationVector(List<Flag> flags) {
-		IndexedVector[] optimisationVector = super.optimisationVector(flags);		 				
-				
-		for(int i = 0, size = optimisationVector[0].dimension(); i < size; i++) {
-			switch( optimisationVector[0].getIndex(i) ) {
+	public void optimisationVector(IndexedVector[] output, List<Flag> flags) {
+		super.optimisationVector(output, flags);
+		
+		for(int i = 0, size = output[0].dimension(); i < size; i++) {
+			switch( output[0].getIndex(i) ) {
 				case LASER_ABSORPTIVITY		:	
-					optimisationVector[0].set(i, 
+					output[0].set(i, 
 							(double) (absorption.getLaserAbsorptivity()).getValue()/SENSITIVITY  );
-					optimisationVector[1].set(i, 
+					output[1].set(i, 
 							0.1 );
 					break;
 				case THERMAL_ABSORPTIVITY		:	
-					optimisationVector[0].set(i, 
+					output[0].set(i, 
 							(double) (absorption.getThermalAbsorptivity()).getValue()/SENSITIVITY );
-					optimisationVector[1].set(i, 
+					output[0].set(i, 
 							0.1 );
 					break;						
 				default 				: 	continue;
 			}
 		}
-		
-		return optimisationVector;
 		
 	}
 		

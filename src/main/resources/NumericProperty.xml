@@ -13,8 +13,8 @@
 	<NumericProperty
 		abbreviation="&lt;i&gt;t&lt;/i&gt;&lt;sub&gt;0&lt;/sub&gt;"
 		auto-adjustable="true"
-		descriptor="Pulse start time, &lt;i&gt;t&lt;/i&gt;&lt;sub&gt;0&lt;/sub&gt;"
-		dimensionfactor="1" keyword="START_TIME" maximum="10" minimum="-10"
+		descriptor="Time sequence shift, &lt;i&gt;t&lt;/i&gt;&lt;sub&gt;0&lt;/sub&gt;"
+		dimensionfactor="1" keyword="TIME_SHIFT" maximum="10" minimum="-10"
 		primitive-type="double" value="0" discreet="false">
 	</NumericProperty>
 	<NumericProperty abbreviation="&amp;eta;"
@@ -151,7 +151,7 @@
 		discreet="false" />
 	<NumericProperty abbreviation="Buffer size"
 		auto-adjustable="false" descriptor="Buffer size" dimensionfactor="1"
-		keyword="BUFFER_SIZE" maximum="20" minimum="1" value="8"
+		keyword="BUFFER_SIZE" maximum="32" minimum="1" value="8"
 		primitive-type="int" discreet="false" />
 	<NumericProperty abbreviation="Resolution (total)"
 		auto-adjustable="false" descriptor="Resolution (total)"
@@ -199,18 +199,6 @@
 		descriptor="Heat loss (rear surface), Bi&lt;sub&gt;2&lt;/sub&gt;"
 		dimensionfactor="1.0" keyword="HEAT_LOSS_REAR" maximum="10.0"
 		minimum="0.0" value="0.0" primitive-type="double" discreet="false" />
-	<NumericProperty
-		abbreviation="&lt;i&gt;R&lt;/i&gt;&lt;sup&gt;2&lt;/sup&gt;"
-		auto-adjustable="true"
-		descriptor="Goodness of fit, &lt;i&gt;R&lt;/i&gt;&lt;sup&gt;2&lt;/sup&gt;"
-		dimensionfactor="1.0" keyword="RSQUARED" maximum="Infinity"
-		minimum="-Infinity" value="-Infinity" primitive-type="double"
-		discreet="false" />
-	<NumericProperty abbreviation="RSS"
-		auto-adjustable="true" descriptor="Residual sum of squares, RSS"
-		dimensionfactor="1.0" keyword="SUM_OF_SQUARES"
-		maximum="1.7976931348623157E308" minimum="4.9E-324" value="Infinity"
-		primitive-type="double" discreet="false" />
 	<NumericProperty abbreviation="Gain"
 		auto-adjustable="false" descriptor="Detector Gain" dimensionfactor="1"
 		keyword="DETECTOR_GAIN" maximum="200" minimum="1" value="10"
@@ -236,9 +224,29 @@
 		dimensionfactor="1" primitive-type="double" maximum="1.0"
 		minimum="1E-4" value="0.25" discreet="false">
 	</NumericProperty>
-	<NumericProperty abbreviation="Statistic"
-		descriptor="Statistic (normality test)" auto-adjustable="true"
-		dimensionfactor="1" discreet="false" keyword="STATISTIC"
-		maximum="1E10" minimum="0" primitive-type="double" value="Infinity">
+	<NumericProperty abbreviation="Test-stat" auto-adjustable="true"
+		descriptor="Normality test statistic" dimensionfactor="1"
+		discreet="false" keyword="TEST_STATISTIC" maximum="1E10"
+		minimum="-1e10" primitive-type="double" value="Infinity">
+	</NumericProperty>
+	<NumericProperty abbreviation="Search-stat"
+		descriptor="Optimiser statistic" auto-adjustable="true"
+		dimensionfactor="1" discreet="false" keyword="OPTIMISER_STATISTIC"
+		maximum="1E10" minimum="-1e10" primitive-type="double" value="Infinity">
+	</NumericProperty>
+	<NumericProperty abbreviation="Lower bound" auto-adjustable="false"
+		descriptor="Calculation range lower bound" dimensionfactor="1"
+		discreet="false" keyword="LOWER_BOUND" maximum="100" minimum="-100"
+		primitive-type="double" value="0.0">
+	</NumericProperty>
+	<NumericProperty abbreviation="Upper bound" auto-adjustable="false"
+		descriptor="Calculation range upper bound" dimensionfactor="1"
+		discreet="false" keyword="UPPER_BOUND" maximum="100" minimum="-100"
+		primitive-type="double" value="1.0">
+	</NumericProperty>
+	<NumericProperty abbreviation="Window" auto-adjustable="false"
+		descriptor="Averaging window" dimensionfactor="1" discreet="false"
+		keyword="WINDOW" maximum="1000" minimum="0.001"
+		primitive-type="double" value="1.0">
 	</NumericProperty>
 </NumericProperties>

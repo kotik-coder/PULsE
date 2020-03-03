@@ -2,26 +2,26 @@ package pulse.search.statistics;
 
 import static pulse.properties.NumericPropertyKeyword.PROBABILITY;
 import static pulse.properties.NumericPropertyKeyword.SIGNIFICANCE;
-import static pulse.properties.NumericPropertyKeyword.STATISTIC;
+import static pulse.properties.NumericPropertyKeyword.TEST_STATISTIC;
 
-import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.tasks.SearchTask;
-import pulse.util.PropertyHolder;
 import pulse.util.Reflexive;
 
-public abstract class NormalityTest extends PropertyHolder implements Reflexive {
+public abstract class NormalityTest extends ResidualStatistic {
 
-	protected double statistic; 
 	protected double probability;
-	protected double sd;
-	protected static double significance  = (double)NumericProperty.theDefault(SIGNIFICANCE).getValue(); 
+	protected static double significance  = (double)NumericProperty.theDefault(SIGNIFICANCE).getValue();
+	
+	private static String selectedTestDescriptor;
 	
 	protected NormalityTest() {
 		probability = (double)NumericProperty.theDefault(PROBABILITY).getValue();
-		statistic = (double)NumericProperty.theDefault(STATISTIC).getValue();
+		statistic = (double)NumericProperty.theDefault(TEST_STATISTIC).getValue();
 	}
 	
 	public static NumericProperty getStatisticalSignifiance() {
@@ -33,32 +33,41 @@ public abstract class NormalityTest extends PropertyHolder implements Reflexive 
 			throw new IllegalArgumentException("Illegal argument type: " + alpha.getType());
 		NormalityTest.significance = (double)alpha.getValue();
 	}
-
-	public NumericProperty getStatistic() {
-		return NumericProperty.derive(STATISTIC, statistic);
-	}
 	
 	public NumericProperty getProbability() {
 		return NumericProperty.derive(PROBABILITY, probability);
 	}
-
-	@Override
-	public void set(NumericPropertyKeyword type, NumericProperty property) {
-		if(type == SIGNIFICANCE)
-			setStatisticalSignificance(property);
-	}	
 	
 	public abstract boolean test(SearchTask task);
 
-	public double[] transformResiduals(SearchTask task) {
-		var residuals = task.getProblem().getHeatingCurve().getResiduals()
-		.stream().map(doubleArray -> doubleArray[1]).mapToDouble(Double::doubleValue).toArray();
-		sd = (new StandardDeviation()).evaluate( residuals );
-		return residuals;
+	public static String getSelectedTestDescriptor() {
+		return selectedTestDescriptor;
+	}
+
+	public static void setSelectedTestDescriptor(String selectedTestDescriptor) {
+		NormalityTest.selectedTestDescriptor = selectedTestDescriptor;
 	}
 	
-	public double getStandardDeviation() {
-		return sd;
+	@Override
+	public NumericProperty getStatistic() {
+		return NumericProperty.derive(TEST_STATISTIC, statistic);
+	}
+
+	@Override
+	public void setStatistic(NumericProperty statistic) {
+		if(statistic.getType() != NumericPropertyKeyword.TEST_STATISTIC)
+			throw new IllegalArgumentException("Illegal type: " + statistic.getType());
+		this.statistic = (double)statistic.getValue();
+	}
+	
+	@Override
+	public void set(NumericPropertyKeyword type, NumericProperty property) {
+		if(type == NumericPropertyKeyword.TEST_STATISTIC)
+			statistic = (double)property.getValue();
+	}
+	
+	public static Set<String> allTestDescriptors() {
+		return Reflexive.instancesOf(NormalityTest.class).stream().map(t -> t.describe()).collect(Collectors.toSet());
 	}
 	
 }

@@ -12,6 +12,7 @@ import java.util.StringTokenizer;
 
 import pulse.input.ExperimentalData;
 import pulse.input.Metadata;
+import pulse.input.Range;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.ui.Messages;
@@ -80,6 +81,7 @@ public class DATReader implements CurveReader {
 			tokenizer = null;
 		}
 				
+		curve.setRange(new Range(curve.getTimeSequence()));
 		reader.close();
 		
 		return new ArrayList<ExperimentalData>(Arrays.asList(curve));		

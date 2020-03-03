@@ -24,8 +24,8 @@ import pulse.ui.Messages;
 public class ExperimentalData extends HeatingCurve {
 	
 	private Metadata metadata;
-	
-	private	int fittingStartIndex, fittingEndIndex;
+	private IndexRange indexRange;
+	private Range range;
 	
 	private final static double CUTOFF_FACTOR = 7.2;
 	private final static int	REDUCTION_FACTOR = 32;
@@ -46,6 +46,7 @@ public class ExperimentalData extends HeatingCurve {
 		setPrefix("RawData");
 		this.clear();
 		count = 0;
+		indexRange = new IndexRange();
 		getBaseline().setParent(null);
 	}
 	
@@ -76,73 +77,6 @@ public class ExperimentalData extends HeatingCurve {
 	}
 	
 	/**
-	 * Sets the new time range that will be used in the optimisation problem.
-	 * @param a the lower time limit satisfying the {@code a > b} relation
-	 * @param b the upper time limit 
-	 */
-	
-	public void setFittingRange(double a, double b) {
-		
-		if(a > b) 
-			return;
-		
-		for(fittingStartIndex = 0; fittingStartIndex < count - 1; fittingStartIndex++) {
-			if(timeAt(fittingStartIndex) >= a) 
-				break;
-		}
-		
-		for(fittingEndIndex = count-2; fittingEndIndex > fittingStartIndex; fittingEndIndex--) {
-			if(timeAt(fittingEndIndex) < b) 
-				break;
-		}
-		
-		fittingEndIndex++;
-		
-	}
-	
-	public void setLowerBound(double a) {
-		
-		for(fittingStartIndex = 0; fittingStartIndex < count - 1; fittingStartIndex++) {
-			if(timeAt(fittingStartIndex) >= a) 
-				break;
-		}
-				
-	}
-	
-	public void setUpperBound(double b) {
-		
-		for(fittingEndIndex = count-2; fittingEndIndex > fittingStartIndex; fittingEndIndex--) {
-			if(timeAt(fittingEndIndex) < b) 
-				break;
-		}
-		
-		fittingEndIndex++;
-				
-	}
-	
-	/**
-	 * Retrieves the {@code time} corresponding to the {@code fittingStartIndex}.
-	 * @return start time, which is the lower time limit
-	 * @see getFittingStartIndex
-	 * @see setFittingRange
-	 */
-	
-	public double startTime() {
-		return time.get(fittingStartIndex);
-	}
-	
-	/**
-	 * Retrieves the {@code time} corresponding to the {@code fittingEndIndex}.
-	 * @return end time, which is the upper time limit
-	 * @see getFittingEndIndex
-	 * @see setFittingRange
-	 */
-	
-	public double endTime() {
-		return time.get(fittingEndIndex);
-	}	
-	
-	/**
 	 * Constructs a deliberately crude representation of this heating curve. 
 	 * <p> This is done using a binning algorithm, which will group the 
 	 * time-temperature data associated with this {@code ExperimentalData} in 
@@ -161,8 +95,8 @@ public class ExperimentalData extends HeatingCurve {
 		
 		List<Point2D> crudeAverage = new ArrayList<Point2D>(count/reductionFactor);	
 		
-		int start	= getFittingStartIndex();
-		int end 	= getFittingEndIndex();		
+		int start	= indexRange.getLowerBound();
+		int end 	= indexRange.getUpperBound();		
 
 		int step = (end - start)/(count/reductionFactor);
 		double tmp = 0;
@@ -247,34 +181,6 @@ public class ExperimentalData extends HeatingCurve {
 		return metadata;
 	}
 	
-	/**
-	 * Sets a new {@code Metadata} object for this {@code ExperimentalData}.
-	 * <p>The {@code pulseWidth} property recorded in {@code Metadata} will be used 
-	 * to set the time domain for the reverse problem solution. Whenever this property
-	 * is changed in the {@code metadata}, a listener will ensure 
-	 * the {@code fittingStartIndex} and/or {@code fittingEndIndex} of this {@code ExperimentalData}
-	 * are kept updated.</p> 
-	 * @param metadata the new Metadata object
-	 */
-	
-	public void setMetadata(Metadata metadata) {
-		this.metadata = metadata;
-		metadata.setParent(this);
-		updateFittingRange(metadata);
-		
-		metadata.addListener(event -> {			
-			
-			if(event.getProperty() instanceof NumericProperty) {				
-				NumericProperty p = (NumericProperty)event.getProperty();
-				
-				if(p.getType() == NumericPropertyKeyword.PULSE_WIDTH) 
-					updateFittingRange(metadata);
-				
-			}
-			
-		});		
-	}
-	
 	@Override
 	public boolean equals(Object o) {
 		if(! (o instanceof ExperimentalData))
@@ -286,24 +192,6 @@ public class ExperimentalData extends HeatingCurve {
 			return false;
 		
 		return super.equals(o);
-		
-	}
-	
-	/**
-	 * Returns the fitting start index, or the lower boundary of the time domain
-	 * used in the solution of the reverse heat problem. This index can only point 
-	 * to a non-negative moment in time {@code t >= 0}.
-	 * @return an integer, specifying the fitting start index. 
-	 */
-
-	public int getFittingStartIndex() {
-		if(time.size() < 1)
-			return 0;
-		
-		if(timeAt(fittingStartIndex) >= 0)
-			return fittingStartIndex;
-		
-		return closest(0, time);
 		
 	}
 	
@@ -320,16 +208,6 @@ public class ExperimentalData extends HeatingCurve {
 		double halfMaximum = halfRiseTime();
 		double cutoff = CUTOFF_FACTOR*halfMaximum;
 		return time.get(count-1) < cutoff; 
-	}
-	
-	/**
-	 * Returns the fitting end index, or the upper boundary of the time domain
-	 * used in the solution of the reverse heat problem.
-	 * @return an integer, specifying the fitting end index.
-	 */
-
-	public int getFittingEndIndex() {
-		return fittingEndIndex > 0 ? fittingEndIndex : (count - 1);
 	}
 	
 	/**
@@ -360,26 +238,64 @@ public class ExperimentalData extends HeatingCurve {
 		notifyListeners(dataEvent);		
 	}
 	
-	/*
-	 * return the index of the list element which is closest ot t
+	/**
+	 * Sets a new {@code Metadata} object for this {@code ExperimentalData}.
+	 * <p>The {@code pulseWidth} property recorded in {@code Metadata} will be used 
+	 * to set the time domain for the reverse problem solution. Whenever this property
+	 * is changed in the {@code metadata}, a listener will ensure 
+	 * the {@code fittingStartIndex} and/or {@code fittingEndIndex} of this {@code ExperimentalData}
+	 * are kept updated.</p> 
+	 * @param metadata the new Metadata object
 	 */
 	
-	private static int closest(double of, List<Double> in) {
-		int size = in.size();
+	public void setMetadata(Metadata metadata) {
+		this.metadata = metadata;
+		metadata.setParent(this);
+		if(range != null) range.process(metadata);
 		
-		for(int i = 0; i < size-1; i++) {
-			if(of >= in.get(i))
-				if(of < in.get(i+1))
-					return i;
-		}
-		return -1;			
+		metadata.addListener(event -> {			
+			
+			if(event.getProperty() instanceof NumericProperty) {				
+				NumericProperty p = (NumericProperty)event.getProperty();
+				
+				if(p.getType() == NumericPropertyKeyword.PULSE_WIDTH) 
+					range.process(metadata);
+				
+			}
+			
+		});
 		
 	}
 	
-	private void updateFittingRange(Metadata metadata) {
-		double pulseWidth = (double) metadata.getPulseWidth().getValue();
-		int t = closest(pulseWidth, time);
-		fittingStartIndex = t > fittingStartIndex ? t : fittingStartIndex;	
+	public List<Double> getTimeSequence() {
+		return time;
+	}
+	
+	public double getEffectiveStartTime() {
+		return time.get(indexRange.getLowerBound());
+	}
+	
+	public double getEffectiveEndTime() {
+		return time.get(indexRange.getUpperBound());
+	}	
+
+	public Range getRange() {
+		return range;
+	}
+	
+	public IndexRange getIndexRange() {
+		return indexRange;
+	}
+
+	public void setRange(Range range) {
+		this.range = range;
+		range.setParent(this);
+		indexRange.set(time, range);				
+		
+		addHierarchyListener(l -> {
+			if(l.getSource() == range)
+				indexRange.set(time, range);
+		});		
 	}
 	
 }

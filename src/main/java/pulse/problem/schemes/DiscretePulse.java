@@ -42,7 +42,7 @@ public class DiscretePulse {
 		this.pulse	= pulse;
 		
 		recalculate(NumericPropertyKeyword.PULSE_WIDTH);
-		recalculate(NumericPropertyKeyword.START_TIME);
+		recalculate(NumericPropertyKeyword.TIME_SHIFT);
 		
 		pulse.addListener( e -> {
 			Property p = e.getProperty(); 

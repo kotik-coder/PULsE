@@ -1,11 +1,10 @@
 package pulse;
 
 import static pulse.properties.NumericPropertyKeyword.NUMPOINTS;
-import static pulse.properties.NumericPropertyKeyword.START_TIME;
+import static pulse.properties.NumericPropertyKeyword.TIME_SHIFT;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -42,7 +41,6 @@ public class HeatingCurve extends PropertyHolder {
 	private final static int DEFAULT_CLASSIC_PRECISION = 200;
 	
 	private List<DataListener> dataListeners;
-	private List<Double[]> residuals;
 	
 	/**
 	 * Checks if the {@code temperature} list is empty. 	
@@ -65,7 +63,7 @@ public class HeatingCurve extends PropertyHolder {
 		if( Math.abs(count - (Integer)other.getNumPoints().getValue()) > EPS )
 			return false;
 		
-		if(!getStartTime().equals(other.getStartTime()))
+		if(!getTimeShift().equals(other.getTimeShift()))
 			return false;
 		
 		if(temperature.hashCode() != other.temperature.hashCode())
@@ -108,28 +106,10 @@ public class HeatingCurve extends PropertyHolder {
 		time		   = new ArrayList<Double>(this.count);
 		baseline	   = new Baseline();
 		baseline.setParent(this);
-		startTime	   = (double) NumericProperty.def(START_TIME).getValue();
+		startTime	   = (double) NumericProperty.def(TIME_SHIFT).getValue();
 		dataListeners	= new ArrayList<DataListener>();
 		reinit();
 	}
-	
-	/*
-	public static HeatingCurve copy(HeatingCurve hc) {
-		HeatingCurve h = new HeatingCurve(hc.getNumPoints());
-		h.startTime = hc.startTime;
-		h.baseline = new Baseline(hc.baseline);
-						
-		for(int i = 0, size = hc.time.size(); i < size; i++)
-			h.time.add(hc.time.get(i));
-		
-		for(int i = 0, size = hc.temperature.size(); i < size; i++)
-			h.temperature.add(hc.temperature.get(i));
-		
-		for(int i = 0, size = hc.baselineAdjustedTemperature.size(); i < size; i++)
-			h.baselineAdjustedTemperature.add(hc.baselineAdjustedTemperature.get(i));
-		
-		return h;
-	}*/
 	
 	private void setCount(NumericProperty count) {
 		if(count.getType() != NUMPOINTS)
@@ -345,102 +325,6 @@ public class HeatingCurve extends PropertyHolder {
 	}			
 	
 	/**
-	 * Lists the number of points for this heating curve. 
-	 */
-	
-	@Override
-	public List<Property> listedTypes() {
-		List<Property> list = new ArrayList<Property>();
-		list.add(getNumPoints());
-		list.add(NumericProperty.def(START_TIME));
-		return list;
-	}
-	
-	/**
-	 * Calculates the sum of squared deviations using {@code curve} as reference.
-	 * <p> This calculates <math><munderover><mo>&#x2211;</mo><mrow><mi>i</mi><mo>=</mo><msub><mi>i</mi><mn>1</mn></msub></mrow><msub><mi>i</mi><mn>2</mn></msub></munderover><mo>(</mo><mover><mi>T</mi><mo>&#x23DE;</mo></mover><mo>(</mo><msub><mi>t</mi><mi>i</mi></msub><mo>)</mo><mo>-</mo><mi>T</mi><mo>(</mo><msub><mi>t</mi><mi>i</mi></msub><msup><mo>)</mo><mrow><mi>r</mi><mi>e</mi><mi>f</mi></mrow></msup><msup><mo>)</mo><mn>2</mn></msup></math>,
-	 * where <math><msubsup><mi>T</mi><mi>i</mi><mrow><mi>r</mi><mi>e</mi><mi>f</mi></mrow></msubsup></math> is the temperature value corresponding to the {@code time} at index {@code i} for the reference {@code curve}.
-	 * Note that the time <math><msub><mi>t</mi><mi>i</mi></msub></math> corresponds to the <b>reference's</b> time list, which generally does not match to that of this heating curve.
-	 * The <math><mover><mi>T</mi><mo>&#x23DE;</mo></mover><mo>(</mo><msub><mi>t</mi><mi>i</mi></msub><mo>)</mo></math> is the interpolated value for this heating curve at the reference time. 
-     * The temperature value is interpolated using two nearest elements of the <b>baseline-subtracted</b> temperature list. The value is interpolated using the experimental time <math><i>t</i><sub>i</sub></math>
-     * and the nearest solution points to that time. 
-     * The accuracy of this interpolation depends on the number of points.  
-	 * The boundaries of the summation are set by the {@code curve.getFittingStartIndex()} and {@code curve.getFittingEndIndex()} methods.        
-	 * @param curve The reference heating curve
-	 * @return a double, representing the result of the calculation.
-	 */
-	
-	public double deviationSquares(ExperimentalData curve) {		
-		double timeInterval_1 = this.timeAt(1) - this.timeAt(0); 
-		
-		int cur;
-		double b1, b2;
-		double interpolated, diff;	
-		
-		double sum = 0;
-		
-		/*Linear interpolation for the **solution**: 
-		 * y* = y1*(x2-x*)/dx + y2*(x*-x1)/dx, 
-		 * where y1,x1,y2,x2 are the calculated heating curve points, and 
-		 * y* is the interpolated value.  
-		*/ 
-		
-		final double zeroTime = this.timeAt(0);
-
-		residuals = new LinkedList<Double[]>(); 
-		
-		for (int i = curve.getFittingStartIndex(); i <= curve.getFittingEndIndex(); i++) {
-			/*find the point on the calculated heating curve 
-			which has the closest time value smaller than the experimental points' time value*/
-			cur 		 = (int) ( (curve.timeAt(i) - zeroTime)/timeInterval_1);			
-			
-			b1			 = ( this.timeAt(cur + 1) - curve.timeAt(i)  ) / timeInterval_1; //(x2 -x*)/dx			
-			b2  		 = ( curve.timeAt(i) 	  - this.timeAt(cur) ) / timeInterval_1; //(x* -x1)/dx
-			interpolated = b1*this.temperatureAt(cur) + b2*this.temperatureAt(cur + 1);
-			
-			diff		 = curve.temperatureAt(i) - interpolated; //y_exp - y*
-			
-			residuals.add(new Double[] { curve.timeAt(i), diff });
-			
-			sum			+= diff*diff; 
-		}				
-
-		return sum;
-		
-	}
-	
-	/**
-	 * Calculates the coefficient of determination, or simply the <math><msup><mi>R</mi><mn>2</mn></msup></math>
-	 * value. 
-	 * <p> First, the mean temperature of the {@code data} is calculated. Then, the {@code TSS} (total sum of squares) is calculated
-	 * as proportional to the variance of data. The residual sum of squares ({@code RSS}) is calculated by calling {@code this.deviationSquares(curve)}. 
-	 * Finally, these values are combined together as: {@code 1 - RSS/TSS}.   
-	 * </p>
-	 * @param data the experimental data, acting as reference for this curve
-	 * @return a double, representing the coefficient of determination, which characterises
-	 * the goodness of fit that this {@code HeatingCurve} provides for the {@code data}
-	 * @see <a href="https://en.wikipedia.org/wiki/Coefficient_of_determination">Wikipedia page</a>
-	 */
-	
-	public double rSquared(ExperimentalData data) {
-		
-		double mean = 0;
-		
-		for(int i = 0; i < data.count; i++)
-			mean += data.temperatureAt(i);
-		
-		mean /= data.count;
-		
-		double TSS = 0;
-		
-		for(int i = 0; i < data.count; i++) 
-			TSS += Math.pow(data.temperatureAt(i) - mean, 2);
-		
-		return (1. - this.deviationSquares(data)/TSS);
-		
-	}
-	
-	/**
 	 * Subtracts the baseline values from each element of the {@code temperature} list.
 	 * <p> The baseline.valueAt(...) is explicitly invoked for all {@code time} values,
 	 * and the result of subtracting the baseline value from the corresponding {@code temperature}
@@ -494,7 +378,7 @@ public class HeatingCurve extends PropertyHolder {
 		
 	public final HeatingCurve extendedTo(ExperimentalData data) {
 		
-		int dataStartIndex = data.getFittingStartIndex();
+		int dataStartIndex = data.getIndexRange().getLowerBound();
 		
 		if(dataStartIndex < 1)
 			return this;
@@ -586,9 +470,17 @@ public class HeatingCurve extends PropertyHolder {
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
 		switch(type) {
 			case NUMPOINTS	: setNumPoints(property); break;
-			case START_TIME : setStartTime(property); break;
+			case TIME_SHIFT : setTimeShift(property); break;
 			default : break;
 		}
+	}
+	
+	@Override
+	public List<Property> listedTypes() {
+		List<Property> list = new ArrayList<Property>();
+		list.add(getNumPoints());
+		list.add(NumericProperty.def(TIME_SHIFT));
+		return list;
 	}
 	
 	/**
@@ -603,43 +495,16 @@ public class HeatingCurve extends PropertyHolder {
 		this.baselineAdjustedTemperature.remove(i);
 	}
 	
-	public NumericProperty getStartTime() {
-		return NumericProperty.derive(NumericPropertyKeyword.START_TIME, startTime);
+	public NumericProperty getTimeShift() {
+		return NumericProperty.derive(NumericPropertyKeyword.TIME_SHIFT, startTime);
 	}
 	
-	public void setStartTime(NumericProperty startTime) {
-		if(startTime.getType() != START_TIME) 
+	public void setTimeShift(NumericProperty startTime) {
+		if(startTime.getType() != TIME_SHIFT) 
 			throw new IllegalArgumentException("Illegal type: " + startTime.getType());
 		this.startTime = (double) startTime.getValue();
 		DataEvent dataEvent = new DataEvent(DataEventType.CHANGE_OF_ORIGIN, this);
 		notifyListeners(dataEvent);
 	}	
-	
-	public List<Double[]> getResiduals() {
-		return residuals;
-	}
-	
-	public double residualUpperBound() {
-		double upper = Double.NEGATIVE_INFINITY;
-		
-		if(residuals != null)
-			for(Double[] d : residuals)
-				if(d[1] > upper) 
-					upper = d[1];
-		
-		return upper;
-			
-	}
-	
-	public double residualLowerBound() {
-		double lower = Double.POSITIVE_INFINITY;
-		
-		if(residuals != null)
-			for(Double[] d : residuals)
-				if(d[1] < lower) 
-					lower = d[1];
-		
-		return lower;
-	}
 
 }

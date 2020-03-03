@@ -124,7 +124,7 @@ public class Chart {
 	    
 	    plot.clearDomainMarkers();
 	    
-	    ValueMarker lowerMarker = new ValueMarker(rawData.timeAt(rawData.getFittingStartIndex()));
+	    ValueMarker lowerMarker = new ValueMarker(rawData.getRange().getSegment().getMinimum());
 	    
 	    Stroke dashed = new BasicStroke(1.5f, BasicStroke.CAP_BUTT,
 	            BasicStroke.JOIN_MITER, 5.0f, new float[] {10f}, 0.0f);	    
@@ -132,7 +132,7 @@ public class Chart {
 	    lowerMarker.setPaint(Color.black);	    
 	    lowerMarker.setStroke(dashed);
 	    
-	    ValueMarker upperMarker = new ValueMarker(rawData.timeAt(rawData.getFittingEndIndex()));
+	    ValueMarker upperMarker = new ValueMarker(rawData.getRange().getSegment().getMaximum());
 	    upperMarker.setPaint(Color.black);
 	    upperMarker.setStroke(dashed);
 	    
@@ -140,24 +140,32 @@ public class Chart {
 	    plot.addDomainMarker(lowerMarker);
         
         if(task.getProblem() != null) {
+        	        
         	HeatingCurve solution = task.getProblem().getHeatingCurve();
-            if(solution != null && task.getScheme() != null) {            		
-            		var solutionDataset = new XYSeriesCollection();
-            		solutionDataset.addSeries(series(task.getProblem().getHeatingCurve(),
-            				"Solution with " + task.getScheme().getSimpleName(),
-            				extendedCurve));            		            		            		
-            		plot.setDataset(1, solutionDataset);
-            		
-            		/*
-            		 * plot residuals
-            		 */
-            		
-            		if(residualsShown)
-            		if(solution.getResiduals() != null) {            			
-            			var residualsDataset = new XYSeriesCollection();
-	            		residualsDataset.addSeries(residuals(solution));
-	            	    plot.setDataset(3, residualsDataset);
-            		} 
+            
+        	if(solution != null && task.getScheme() != null) {
+            	
+            		if(solution.arraySize() > 0) {
+            			
+	            		var solutionDataset = new XYSeriesCollection();            		
+	            		
+	            		solutionDataset.addSeries(series(task.getProblem().getHeatingCurve(),
+	            				"Solution with " + task.getScheme().getSimpleName(),
+	            				extendedCurve));            		            		            		
+	            		plot.setDataset(1, solutionDataset);
+	            		
+	            		/*
+	            		 * plot residuals
+	            		 */
+	            		
+	            		if(residualsShown)
+	            		if(task.getResidualStatistic().getResiduals() != null) {            			
+	            			var residualsDataset = new XYSeriesCollection();
+		            		residualsDataset.addSeries(residuals(task));
+		            	    plot.setDataset(3, residualsDataset);
+	            		}
+	            		
+            		}
             		
             	}
         
@@ -194,7 +202,7 @@ public class Chart {
         var series = new XYSeries(title);
 		
 	    int realCount = curve.arraySize();
-	    double startTime = (double)curve.getStartTime().getValue();
+	    double startTime = (double)curve.getTimeShift().getValue();
 	    double time = 0;	   
 	    
 	    for(int i = 0; i < realCount; i++) {
@@ -211,13 +219,15 @@ public class Chart {
 	    return series;
 	}
 	
-	public static XYSeries residuals(HeatingCurve solution) {		
+	public static XYSeries residuals(SearchTask task) {
+		HeatingCurve solution = task.getProblem().getHeatingCurve();		
+		
         final double span = solution.maxTemperature() - solution.getBaseline().valueAt(0); 
 	    final double offset = solution.getBaseline().valueAt(0) - span/2.0;	            	    
 		
 	    var series = new XYSeries(String.format("Residuals (offset %3.2f)", offset)); 
 	    
-	    List<Double[]> residuals = solution.getResiduals();
+	    List<double[]> residuals = task.getResidualStatistic().getResiduals();
 	    int size = residuals.size();
 	    
 	    for(int i = 0; i < size; i++) 
