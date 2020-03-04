@@ -19,6 +19,7 @@ public abstract class ResidualStatistic extends Statistic {
 	public ResidualStatistic() {
 		super();
 		residuals = new LinkedList<double[]>();
+		setPrefix("Residuals");
 	}
 	
 	public double[] transformResiduals(SearchTask task) {
@@ -79,7 +80,7 @@ public abstract class ResidualStatistic extends Statistic {
 	}
 	
 	public static ResidualStatistic instantiate(String descriptor) {
-		Optional<ResidualStatistic> opt = Reflexive.instancesOf(ResidualStatistic.class).stream().filter(test -> test.describe().equals(descriptor)).findFirst();
+		Optional<ResidualStatistic> opt = Reflexive.instancesOf(ResidualStatistic.class).stream().filter(test -> test.getDescriptor().equals(descriptor)).findFirst();
 		if(opt.isPresent())
 			return opt.get();
 		else
@@ -87,7 +88,7 @@ public abstract class ResidualStatistic extends Statistic {
 	}
 	
 	public static Set<String> allDescriptors() {
-		return Reflexive.instancesOf(ResidualStatistic.class).stream().map(t -> t.describe()).collect(Collectors.toSet());
+		return Reflexive.instancesOf(ResidualStatistic.class).stream().map(t -> t.getDescriptor()).collect(Collectors.toSet());
 	}
 	
 	public static void setSelectedOptimiserDescriptor(String selectedTestDescriptor) {

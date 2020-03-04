@@ -3,10 +3,10 @@ package pulse.io.export;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 
-import pulse.search.statistics.SumOfSquares;
+import pulse.search.statistics.ResidualStatistic;
 import pulse.ui.Messages;
 
-public class ResidualStatisticExporter implements Exporter<SumOfSquares> {
+public class ResidualStatisticExporter implements Exporter<ResidualStatistic> {
 
 	private static ResidualStatisticExporter instance = new ResidualStatisticExporter();
 	
@@ -15,12 +15,12 @@ public class ResidualStatisticExporter implements Exporter<SumOfSquares> {
 	}
 
 	@Override
-	public Class<SumOfSquares> target() {
-		return SumOfSquares.class;
+	public Class<ResidualStatistic> target() {
+		return ResidualStatistic.class;
 	}
 
 	@Override
-	public void printToStream(SumOfSquares rs, FileOutputStream fos, Extension extension) {						
+	public void printToStream(ResidualStatistic rs, FileOutputStream fos, Extension extension) {						
 		switch(extension) {
 			case HTML : printHTML(rs, fos); break;
 			case CSV : printCSV(rs, fos); break;
@@ -38,7 +38,7 @@ public class ResidualStatisticExporter implements Exporter<SumOfSquares> {
 		return new Extension[] {Extension.HTML, Extension.CSV};
 	}
 	
-	private void printHTML(SumOfSquares hc, FileOutputStream fos) {
+	private void printHTML(ResidualStatistic hc, FileOutputStream fos) {
 		PrintStream stream = new PrintStream(fos);
 				
 		var residuals = hc.getResiduals();		
@@ -77,7 +77,7 @@ public class ResidualStatisticExporter implements Exporter<SumOfSquares> {
         
 	}
 	
-	private void printCSV(SumOfSquares hc, FileOutputStream fos) {
+	private void printCSV(ResidualStatistic hc, FileOutputStream fos) {
 		PrintStream stream = new PrintStream(fos);
 		
 		var residuals = hc.getResiduals();

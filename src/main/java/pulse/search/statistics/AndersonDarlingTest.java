@@ -20,7 +20,7 @@ public class AndersonDarlingTest extends NormalityTest {
 	}
 	
 	@Override 
-	public String describe() {
+	public String getDescriptor() {
 		return "Anderson-Darling test";
 	}
 

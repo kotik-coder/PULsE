@@ -67,7 +67,7 @@ public abstract class NormalityTest extends ResidualStatistic {
 	}
 	
 	public static Set<String> allTestDescriptors() {
-		return Reflexive.instancesOf(NormalityTest.class).stream().map(t -> t.describe()).collect(Collectors.toSet());
+		return Reflexive.instancesOf(NormalityTest.class).stream().map(t -> t.getDescriptor()).collect(Collectors.toSet());
 	}
 	
 }

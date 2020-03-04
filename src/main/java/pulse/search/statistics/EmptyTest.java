@@ -14,7 +14,7 @@ public class EmptyTest extends NormalityTest {
 	}
 	
 	@Override
-	public String describe() {
+	public String getDescriptor() {
 		return "Don't test please";
 	}
 

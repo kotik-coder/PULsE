@@ -70,7 +70,7 @@ public class RSquaredTest extends NormalityTest {
 	}
 	
 	@Override
-	public String describe() {
+	public String getDescriptor() {
 		return "<html><i>R</i><sup>2</sup> test";
 	}
 

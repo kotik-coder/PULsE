@@ -585,6 +585,7 @@ public class SearchTask extends Accessible implements Runnable {
 	
 	public void setResidualStatistic(ResidualStatistic rs) {
 		this.rs = rs;
+		rs.setParent(this);
 	}
 	
 	public void initNormalityTest() {

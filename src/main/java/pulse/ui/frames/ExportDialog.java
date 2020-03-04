@@ -257,11 +257,22 @@ public class ExportDialog extends JDialog {
 				ExportManager.allGrouppedContents().forEach(
 									individual -> {
 										Class<?> individualClass = individual.getClass();
-										if(exportSettings.containsKey(individualClass))
-											if(exportSettings.get(individualClass)) 
-												ExportManager.export(individual, destination, extension);		
+										
+										if(!exportSettings.containsKey(individualClass)) {
+											var key = exportSettings.keySet().stream().filter(aClass -> aClass.isAssignableFrom(individual.getClass())).findFirst();											
 											
+											if(!key.isPresent()) 
+												return;
+											else
+												individualClass = key.get();
+																																	
 									}
+										
+									if(exportSettings.get(individualClass)) 
+										ExportManager.export(individual, destination, extension);
+									
+								}
+									
 						);
 			}
 			

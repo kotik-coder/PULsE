@@ -30,7 +30,7 @@ public class KSTest extends NormalityTest {
 	}
 		
 	@Override 
-	public String describe() {
+	public String getDescriptor() {
 		return "Kolmogorov-Smirnov test";
 	}
 	

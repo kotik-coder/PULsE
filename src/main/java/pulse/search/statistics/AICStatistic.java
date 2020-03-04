@@ -23,7 +23,7 @@ public class AICStatistic extends SumOfSquares {
 	}
 	
 	@Override
-	public String describe() {
+	public String getDescriptor() {
 		return "Akaike Information Criterion (AIC)";
 	}
 	

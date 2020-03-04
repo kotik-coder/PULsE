@@ -18,25 +18,21 @@ public class ExportManager {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public static <T extends Describable> Exporter<T> findExporter(T target) {
-		var exporter = Reflexive.instancesOf(Exporter.class).stream().filter(e -> 
-													e.target() == target.getClass() ).findFirst();
-		
-		if(exporter.isPresent())
-			return exporter.get();
-		else
-			return null;
+	public static <T extends Describable> Exporter<T> findExporter(T target) {		
+		return target == null ? null : (Exporter<T>) findExporter(target.getClass());
 	}
 	
-	@SuppressWarnings("unchecked")
 	public static <T extends Describable> Exporter<T> findExporter(Class<T> target) {
-		var exporter = Reflexive.instancesOf(Exporter.class).stream().filter(e -> 
+		List<Exporter<T>> allExporters = Reflexive.instancesOf(Exporter.class);
+		var exporter = allExporters.stream().filter(e -> 
 													e.target() == target ).findFirst();
 		
 		if(exporter.isPresent())
 			return exporter.get();
-		else
-			return null;
+		else {
+			exporter = allExporters.stream().filter( e -> e.target().isAssignableFrom(target) ).findFirst();
+			return exporter.isPresent() ? exporter.get() : null;
+		}
 	}
 	
 	public static <T extends Describable> void askToExport(T target, JFrame parentWindow, String fileTypeLabel) {

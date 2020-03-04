@@ -25,7 +25,7 @@ public class SumOfSquares extends ResidualStatistic {
 	}
 	
 	@Override
-	public String describe() {
+	public String getDescriptor() {
 		return "Ordinary least squares";
 	}
 	

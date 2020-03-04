@@ -26,12 +26,12 @@ public class MassExporter {
 	    	
 			root.subgroups().stream().
 			forEach(ph -> 						
-				{
+				{										
 					/*
 					 * Filter only children, not parents! 
 					 */
 						
-				 if(root.getParent() != ph)  
+				 if(root.getParent() != ph)   
 					contents.add(ph);
 				 
 				 }

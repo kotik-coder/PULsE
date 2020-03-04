@@ -620,10 +620,8 @@ public class TaskControlFrame extends JFrame {
             	
 	            if( ( (JRadioButtonMenuItem) e.getItem() ).isSelected() ) {
 	            	var text = ((JMenuItem)e.getItem()).getText();
-	            	ResidualStatistic.setSelectedOptimiserDescriptor( text );
-	            	
-	            	TaskManager.getTaskList().stream().forEach(t -> t.initOptimiser());
-	            	
+	            	ResidualStatistic.setSelectedOptimiserDescriptor( text );	            	
+	            	TaskManager.getTaskList().stream().forEach(t -> t.initOptimiser());	            	
 	            }
             	
             });
