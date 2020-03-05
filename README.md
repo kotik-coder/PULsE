@@ -54,5 +54,5 @@ I really enjoyed working on this open source project. In my opinion, this type o
 
 ## Special Thanks
 
-to Thomas Stainer who has provided many useful advices on improvement of the code structure and on continuous integration and development aspects.
+to Thomas Stainer ([@thomasms](https://github.com/thomasms)) who has provided many useful advices on improvement of the code structure and on continuous integration and development aspects.
 
