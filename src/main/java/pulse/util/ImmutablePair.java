@@ -28,12 +28,12 @@ public class ImmutablePair<T> {
 		
 		ImmutablePair<?> ip = (ImmutablePair<?>) o;
 		
-		if(this.getFirst().equals(ip.getFirst()))
-			if(this.getSecond().equals(ip.getSecond()))
+		//direct order
+		if(this.getFirst().equals(ip.getFirst()) && this.getSecond().equals(ip.getSecond()))
 				return true;
 		
-		if(this.getFirst().equals(ip.getSecond()))
-			if(this.getSecond().equals(ip.getFirst()))
+		//reverse order
+		if(this.getFirst().equals(ip.getSecond()) && this.getSecond().equals(ip.getFirst()))
 				return true;
 			
 		return false;

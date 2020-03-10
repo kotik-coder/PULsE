@@ -61,10 +61,10 @@ public class CorrelationBuffer {
 		var correlationMap = new HashMap<ImmutablePair<NumericPropertyKeyword>, Double>();
 		ImmutablePair<NumericPropertyKeyword> pair = null;
 				
-		for(int i = 0, j = 0; i < indicesSize; i++) {			
+		for(int i = 0; i < indicesSize; i++) {			
 			
 			if(!excludeSingleList.contains(indices.get(i)))
-				for(j = i+1; j < indices.size(); j++) {
+				for(int j = i+1; j < indicesSize; j++) {
 					pair = new ImmutablePair<NumericPropertyKeyword>(indices.get(i), indices.get(j));
 					if(!excludeSingleList.contains(indices.get(j)) && 
 							!excludePairList.contains(pair) )					

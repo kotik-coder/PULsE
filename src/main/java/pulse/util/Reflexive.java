@@ -7,8 +7,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import pulse.search.statistics.ResidualStatistic;
-
 /**
  * An object is declared {@code Reflexive} if {@code PULsE} needs to know all its available subclasses.
  *

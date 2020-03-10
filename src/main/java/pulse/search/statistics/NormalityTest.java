@@ -4,13 +4,9 @@ import static pulse.properties.NumericPropertyKeyword.PROBABILITY;
 import static pulse.properties.NumericPropertyKeyword.SIGNIFICANCE;
 import static pulse.properties.NumericPropertyKeyword.TEST_STATISTIC;
 
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.tasks.SearchTask;
-import pulse.util.Reflexive;
 
 public abstract class NormalityTest extends ResidualStatistic {
 

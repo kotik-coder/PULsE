@@ -2,14 +2,10 @@ package pulse.search.statistics;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import pulse.HeatingCurve;
 import pulse.input.ExperimentalData;
 import pulse.tasks.SearchTask;
-import pulse.util.Reflexive;
 
 public abstract class ResidualStatistic extends Statistic {
 

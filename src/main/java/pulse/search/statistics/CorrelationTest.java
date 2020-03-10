@@ -7,11 +7,10 @@ import pulse.util.Reflexive;
 
 public abstract class CorrelationTest extends PropertyHolder implements Reflexive {
 	
-	protected static double threshold;
+	protected static double threshold = (double) NumericProperty.theDefault(NumericPropertyKeyword.CORRELATION_THRESHOLD).getValue();
 	private static String selectedTestDescriptor;
 
 	public CorrelationTest() {
-		threshold = (double) NumericProperty.theDefault(NumericPropertyKeyword.CORRELATION_THRESHOLD).getValue();
 	}
 	
 	public abstract double evaluate(double[] x, double[] y);
