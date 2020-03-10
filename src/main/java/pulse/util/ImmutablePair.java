@@ -33,11 +33,7 @@ public class ImmutablePair<T> {
 				return true;
 		
 		//reverse order
-		if(this.getFirst().equals(ip.getSecond()) && this.getSecond().equals(ip.getFirst()))
-				return true;
-			
-		return false;
-		
+		return this.getFirst().equals(ip.getSecond()) && this.getSecond().equals(ip.getFirst());		
 		
 	}
 	
