@@ -97,7 +97,7 @@ public class ImplicitTranslucentSolver
 		// precalculated constants
 
 		double Bi1H = Bi1 * hx;
-		double Bi2H = Bi2 * hx;
+		double Bi2H = Bi2 * hx;		
 		
 		/*
 		 * The outer cycle iterates over the number of points of the HeatingCurve

@@ -1,7 +1,7 @@
 package pulse.tasks.listeners;
 
-import pulse.tasks.StateEntry;
+import pulse.tasks.LogEntry;
 
 public interface DataCollectionListener {
-	public void onDataCollected(StateEntry e);
+	public void onDataCollected(LogEntry e);
 }

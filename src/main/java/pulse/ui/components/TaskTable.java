@@ -24,6 +24,7 @@ import javax.swing.table.TableRowSorter;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.tasks.Identifier;
+import pulse.tasks.LogEntry;
 import pulse.tasks.SearchTask;
 import pulse.tasks.StateEntry;
 import pulse.tasks.Status;
@@ -249,7 +250,7 @@ public class TaskTable extends JTable {
 				t.addTaskListener(new DataCollectionListener() {
 
 					@Override
-					public void onDataCollected(StateEntry e) {
+					public void onDataCollected(LogEntry e) {
 						setValueAt(t.getResidualStatistic().getStatistic(), searchRow(t.getIdentifier()), SEARCH_STATISTIC_COLUMN);
 					}
 					

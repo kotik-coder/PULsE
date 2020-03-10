@@ -60,6 +60,7 @@ import pulse.io.readers.ReaderManager;
 import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
+import pulse.search.statistics.CorrelationTest;
 import pulse.search.statistics.NormalityTest;
 import pulse.search.statistics.ResidualStatistic;
 import pulse.tasks.Buffer;
@@ -85,6 +86,7 @@ import pulse.ui.components.ResultTable;
 import pulse.ui.components.TaskTable;
 import pulse.ui.components.TaskTable.TaskTableModel;
 import pulse.ui.components.models.ResultTableModel;
+import pulse.util.Reflexive;
 
 @SuppressWarnings("serial")
 public class TaskControlFrame extends JFrame {
@@ -351,8 +353,25 @@ public class TaskControlFrame extends JFrame {
         	
         	ExperimentalData expCurve = t.getExperimentalCurve();        	
         	
-        	lowerLimitField.setValue(expCurve.getEffectiveStartTime());
-        	upperLimitField.setValue(expCurve.getEffectiveEndTime());
+        	lowerLimitField.setValue(expCurve.getRange().getSegment().getMinimum());
+        	upperLimitField.setValue(expCurve.getRange().getSegment().getMaximum());        	        	
+        	
+        });
+        
+        TaskManager.addTaskRepositoryListener(e -> {
+        	
+        	if(e.getState() == TaskRepositoryEvent.State.TASK_FINISHED) {
+        		
+        		SearchTask t = TaskManager.getSelectedTask();
+        		
+        		if(e.getId().equals(t.getIdentifier())) {
+	        		lowerLimitField.setValue(t.getExperimentalCurve().getRange().getSegment().getMinimum());
+	            	upperLimitField.setValue(t.getExperimentalCurve().getRange().getSegment().getMaximum());
+	            	plot();
+        		}
+        		
+        	}
+        	
         });
         
         lowerLimitField.addFocusListener(ftfFocusListener);
@@ -555,13 +574,12 @@ public class TaskControlFrame extends JFrame {
 
         searchSettingsItem.setText("Parameter Estimation: Method & Settings");
         searchSettingsItem.setIcon(Launcher.loadIcon("inverse_problem.png", ICON_SIZE));
-        searchSettingsItem.setEnabled(false);
-        settingsMenu.add(searchSettingsItem);
-        settingsMenu.add(jSeparator1);
+        searchSettingsItem.setEnabled(false);        
 
         resultFormatItem.setIcon(Launcher.loadIcon("result_format.png", ICON_SIZE));
         resultFormatItem.setText("Change Result Format...");
-        settingsMenu.add(resultFormatItem);
+        
+        JMenu analysisSubMenu = new JMenu("Statistical Analysis");
         
         JMenu statisticsSubMenu = new JMenu("Normality tests");
         statisticsSubMenu.setIcon(Launcher.loadIcon("normality_test.png", ICON_SIZE));
@@ -570,7 +588,7 @@ public class TaskControlFrame extends JFrame {
         
         JRadioButtonMenuItem item = null;                                
         
-        for(String statisticName : NormalityTest.allTestDescriptors()) {
+        for(String statisticName : Reflexive.allDescriptors(NormalityTest.class)) {
         	item = new JRadioButtonMenuItem(statisticName);
         	statisticItems.add(item);
             statisticsSubMenu.add(item);
@@ -600,7 +618,7 @@ public class TaskControlFrame extends JFrame {
         );
     
         statisticsSubMenu.getItem(0).setSelected(true);
-        settingsMenu.add(statisticsSubMenu);
+        analysisSubMenu.add(statisticsSubMenu);
         
         JMenu optimisersSubMenu = new JMenu("Optimiser statistics");
         optimisersSubMenu.setIcon(Launcher.loadIcon("optimiser.png", ICON_SIZE));
@@ -609,8 +627,8 @@ public class TaskControlFrame extends JFrame {
         
         item = null;                            
         
-        var set = ResidualStatistic.allDescriptors();
-        set.removeAll(NormalityTest.allTestDescriptors());
+        var set = Reflexive.allDescriptors(ResidualStatistic.class);
+        set.removeAll(Reflexive.allDescriptors(NormalityTest.class));
         
         for(String statisticName : set) {
         	item = new JRadioButtonMenuItem(statisticName);
@@ -628,7 +646,45 @@ public class TaskControlFrame extends JFrame {
         }
         
         optimisersSubMenu.getItem(0).setSelected(true);        
-        settingsMenu.add(optimisersSubMenu);        
+        analysisSubMenu.add(optimisersSubMenu);
+        
+        //
+        
+        JMenu correlationsSubMenu = new JMenu("Correlation tests");
+        correlationsSubMenu.setIcon(Launcher.loadIcon("correlation.png", ICON_SIZE));
+        
+        ButtonGroup corrItems = new ButtonGroup();
+        
+        JRadioButtonMenuItem corrItem = null;                                
+        
+        for(String corrName : Reflexive.allDescriptors(CorrelationTest.class)) {
+        	corrItem = new JRadioButtonMenuItem(corrName);
+        	corrItems.add(corrItem);
+            correlationsSubMenu.add(corrItem);
+            corrItem.addItemListener(e -> {
+            	
+	            if( ( (JRadioButtonMenuItem) e.getItem() ).isSelected() ) {
+	            	var text = ((JMenuItem)e.getItem()).getText();
+	            	CorrelationTest.setSelectedTestDescriptor( text );	            	
+	            	TaskManager.getTaskList().stream().forEach(t -> t.initCorrelationTest());	            	
+	            }
+            	
+            });
+        }
+        
+        var thresholdDialog = new FormattedInputDialog(NumericProperty.theDefault(NumericPropertyKeyword.CORRELATION_THRESHOLD));
+        
+        thresholdDialog.setConfirmAction( () -> CorrelationTest.setThreshold(
+        		NumericProperty.derive(NumericPropertyKeyword.CORRELATION_THRESHOLD, thresholdDialog.value()) ) );
+        
+        JMenuItem thrItem = new JMenuItem("Change threshold...");
+        correlationsSubMenu.add(new JSeparator());
+        correlationsSubMenu.add(thrItem);
+        thrItem.addActionListener(e ->     	
+        	thresholdDialog.setVisible(true)      	
+        );
+    
+        correlationsSubMenu.getItem(0).setSelected(true);
         
         JMenuItem selectBuffer = new JMenuItem("Buffer size...");
         selectBuffer.setIcon(Launcher.loadIcon("buffer.png", ICON_SIZE));
@@ -640,8 +696,14 @@ public class TaskControlFrame extends JFrame {
         
         selectBuffer.addActionListener(e -> 
         	bufferDialog.setVisible(true)
-        );
+        );  
         
+        analysisSubMenu.add(correlationsSubMenu);
+        
+        settingsMenu.add(searchSettingsItem);
+        settingsMenu.add(analysisSubMenu);
+        settingsMenu.add(jSeparator1);
+        settingsMenu.add(resultFormatItem);
         settingsMenu.add(selectBuffer);
         
         mainMenu.add(settingsMenu);

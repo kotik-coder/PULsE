@@ -2,7 +2,6 @@ package pulse.tasks;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
@@ -103,11 +102,11 @@ public class Buffer extends PropertyHolder {
 	}
 	
 	/**
-	 * Calculated the average sum of squared residuals (SSR).
-	 * @return the mean SSR value
+	 * Calculated the average statistic value
+	 * @return the mean statistic value.
 	 */
 	
-	public double averageSSR() {
+	public double averageStatistic() {
 		
 		double av = 0;
 		
@@ -126,7 +125,7 @@ public class Buffer extends PropertyHolder {
 	 * @return the variance of the data sample for the specific type of {@code NumericPropert}ies.
 	 */
 	
-	public double variance(NumericPropertyKeyword index) {
+	public double variance(NumericPropertyKeyword index) {		
 		double sd = 0;
 		double av = average(index);
 		
@@ -183,6 +182,6 @@ public class Buffer extends PropertyHolder {
 		List<Property> list = new ArrayList<Property>();
 		list.add(NumericProperty.def(NumericPropertyKeyword.BUFFER_SIZE));
 		return list;
-	}
+	}	
 	
 }

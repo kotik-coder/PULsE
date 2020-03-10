@@ -243,6 +243,10 @@ public enum NumericPropertyKeyword {
 	
 	UPPER_BOUND,
 	
-	WINDOW;
+	WINDOW,
+	
+	INCIDENT_INTENSITY,
+	
+	CORRELATION_THRESHOLD;
 	
 }

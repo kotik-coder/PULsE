@@ -3,6 +3,11 @@ package pulse.util;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import pulse.search.statistics.ResidualStatistic;
 
 /**
  * An object is declared {@code Reflexive} if {@code PULsE} needs to know all its available subclasses.
@@ -48,6 +53,18 @@ public interface Reflexive {
 	public static <T extends Reflexive> List<T> instancesOf(Class<? extends T> reflexiveType) {
 		return Reflexive.instancesOf(reflexiveType, reflexiveType.getPackage().getName());
 	}
-
+	
+	
+	public static <T extends PropertyHolder & Reflexive> T instantiate(Class<T> c, String descriptor) {
+		Optional<T> opt = Reflexive.instancesOf(c).stream().filter(test -> test.getDescriptor().equals(descriptor)).findFirst();
+		if(opt.isPresent())
+			return opt.get();
+		else
+			return null;
+	}
+	
+	public static <T extends PropertyHolder & Reflexive> Set<String> allDescriptors(Class<T> c) {
+		return Reflexive.instancesOf(c).stream().map(t -> t.getDescriptor()).collect(Collectors.toSet());
+	}
 	
 }

@@ -39,14 +39,6 @@ public abstract class NormalityTest extends ResidualStatistic {
 	}
 	
 	public abstract boolean test(SearchTask task);
-
-	public static String getSelectedTestDescriptor() {
-		return selectedTestDescriptor;
-	}
-
-	public static void setSelectedTestDescriptor(String selectedTestDescriptor) {
-		NormalityTest.selectedTestDescriptor = selectedTestDescriptor;
-	}
 	
 	@Override
 	public NumericProperty getStatistic() {
@@ -66,8 +58,13 @@ public abstract class NormalityTest extends ResidualStatistic {
 			statistic = (double)property.getValue();
 	}
 	
-	public static Set<String> allTestDescriptors() {
-		return Reflexive.instancesOf(NormalityTest.class).stream().map(t -> t.getDescriptor()).collect(Collectors.toSet());
+
+	public static String getSelectedTestDescriptor() {
+		return selectedTestDescriptor;
+	}
+
+	public static void setSelectedTestDescriptor(String selectedTestDescriptor) {
+		NormalityTest.selectedTestDescriptor = selectedTestDescriptor;
 	}
 	
 }

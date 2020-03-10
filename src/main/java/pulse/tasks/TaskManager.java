@@ -74,7 +74,7 @@ public final class TaskManager extends UpwardsNavigable {
 	 * @param t a {@code SearchTask} that will be executed
 	 */
 	
-	public static void execute(SearchTask t) {		
+	public static void execute(SearchTask t) {
 		removeResult(t); //remove old result	
 		t.setStatus(Status.QUEUED); //notify listeners computation is about to start
 		

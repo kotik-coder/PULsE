@@ -41,8 +41,7 @@ public class TranslucentMaterialProblem extends LinearisedProblem {
 	
 	public AbsorptionModel getAbsorptionModel() {
 		return absorption;
-	}
-	
+	}	
 	
 	public void setAbsorptionModel(AbsorptionModel model) {
 		this.absorption = model;

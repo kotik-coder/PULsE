@@ -1,5 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <NumericProperties>
+	<NumericProperty abbreviation="Correlation threshold"
+		auto-adjustable="false" descriptor="Correlation threshold"
+		dimensionfactor="1" discreet="false" keyword="CORRELATION_THRESHOLD"
+		maximum="1" minimum="0.5" primitive-type="double" value="0.8">
+	</NumericProperty>
+	<NumericProperty
+		abbreviation="&lt;i&gt;I&lt;/i&gt;&lt;sub&gt;0&lt;/sub&gt;"
+		descriptor="Incident intensity, &lt;i&gt;I&lt;/i&gt;&lt;sub&gt;0&lt;/sub&gt;"
+		auto-adjustable="false" dimensionfactor="1" discreet="false"
+		keyword="INCIDENT_INTENSITY" maximum="1E10" minimum="1E-5"
+		primitive-type="double" value="1">
+	</NumericProperty>
 	<NumericProperty abbreviation="Probability" auto-adjustable="true"
 		descriptor="Probability, &lt;i&gt;p&lt;/i&gt;" dimensionfactor="1"
 		discreet="false" keyword="PROBABILITY" maximum="1" minimum="0"

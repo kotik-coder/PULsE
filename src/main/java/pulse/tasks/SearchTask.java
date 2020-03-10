@@ -27,6 +27,7 @@ import pulse.properties.NumericPropertyKeyword;
 import pulse.search.direction.Path;
 import pulse.search.direction.PathOptimiser;
 import pulse.search.math.IndexedVector;
+import pulse.search.statistics.CorrelationTest;
 import pulse.search.statistics.NormalityTest;
 import pulse.search.statistics.RSquaredTest;
 import pulse.search.statistics.ResidualStatistic;
@@ -38,6 +39,7 @@ import pulse.ui.components.PropertyHolderTable;
 import pulse.util.Accessible;
 import pulse.util.PropertyEvent;
 import pulse.util.PropertyHolderListener;
+import pulse.util.Reflexive;
 
 /**
  * A {@code SearchTask} is the most important class in {@code PULsE}. It combines access to all 
@@ -56,7 +58,9 @@ public class SearchTask extends Accessible implements Runnable {
 
 	private Path   path;
 	private Buffer buffer;
+	private CorrelationBuffer correlationBuffer;
 	private Log	   log;
+	private CorrelationTest correlationTest;
 	
 	private Identifier identifier;
 	private Status status = Status.INCOMPLETE;
@@ -83,10 +87,10 @@ public class SearchTask extends Accessible implements Runnable {
 	 */
 	
 	public SearchTask(ExperimentalData curve) {
-		this.identifier = new Identifier();		
+		this.identifier = new Identifier();
 		this.curve = curve;
 		curve.setParent(this);
-		initOptimiser();
+		correlationBuffer = new CorrelationBuffer();
 		clear();	
 	}
 	
@@ -97,10 +101,12 @@ public class SearchTask extends Accessible implements Runnable {
 	
 	public void clear() {				
 		buffer 			= new Buffer();
+		correlationBuffer.clear();
 		buffer.setParent(this);		
 		log 			= new Log(this);
 		
 		initOptimiser();
+		initCorrelationTest();
 		initNormalityTest();
 					
 		testTemperature = (double)curve.getMetadata().getTestTemperature().getValue();
@@ -114,7 +120,6 @@ public class SearchTask extends Accessible implements Runnable {
 		setStatus(Status.INCOMPLETE);		
 		StateEntry e = new StateEntry(this, status);
 		notifyStatusListeners(e);
-		notifyDataListeners(e);
 		
 		curve.addDataListener( dataEvent -> {
 			if(scheme != null) {
@@ -251,11 +256,10 @@ public class SearchTask extends Accessible implements Runnable {
 	   
 	  double errorTolerance		= (double)PathOptimiser.getErrorTolerance().getValue();
 	  int bufferSize			= (Integer)Buffer.getSize().getValue();	 
-	  buffer.init();
+	  buffer.clear();
+	  correlationBuffer.clear();
 	  
 	  /* search cycle */
-	  
-	  StateEntry dataCollected = new StateEntry(this, null);
 	  
 	  /* sets an independent thread for manipulating the buffer */
 	  
@@ -273,11 +277,12 @@ public class SearchTask extends Accessible implements Runnable {
 					
 				pathSolver.iteration(this);
 		  		
-		  		final int j = i;		  		
-		  		
+				final int j = i;
+				
 		  		bufferFutures.add(CompletableFuture.runAsync( () -> {
-		  			buffer.fill(this, j);		  		
-		  			notifyDataListeners(dataCollected); }, singleThreadExecutor ));		  		
+		  			buffer.fill(this, j);
+		  			correlationBuffer.inflate(this);
+		  			notifyDataListeners( new DataLogEntry(this) ); }, singleThreadExecutor ));		  		
 		  		
 		}
 		
@@ -289,8 +294,24 @@ public class SearchTask extends Accessible implements Runnable {
 	  
 	  singleThreadExecutor.shutdown();	  
 	  
-	  if( status == Status.IN_PROGRESS ) 
-		  setStatus( normalityTest.test(this) ? Status.DONE : Status.FAILED);
+	  if( status == Status.IN_PROGRESS ) {
+		  
+		  if(!normalityTest.test(this))
+			  setStatus(Status.FAILED);
+		  
+		  else {
+			  
+			  boolean test = correlationBuffer.test(correlationTest);
+			  notifyDataListeners(new CorrelationLogEntry(this));
+			  
+			  if(test)
+				  setStatus(Status.AMBIGUOUS);
+			  else
+				  setStatus(Status.DONE);
+			  
+		  }
+		  
+	  }
 	  		
 	}
 
@@ -507,7 +528,7 @@ public class SearchTask extends Accessible implements Runnable {
 		this.emissivity = (double)emissivity.getValue();
 	}
 	
-	private void notifyDataListeners(StateEntry e) {
+	private void notifyDataListeners(LogEntry e) {
 		for(DataCollectionListener l : listeners)
   			l.onDataCollected(e);
 	}
@@ -589,7 +610,7 @@ public class SearchTask extends Accessible implements Runnable {
 	}
 	
 	public void initNormalityTest() {
-		normalityTest = (NormalityTest)ResidualStatistic.instantiate(NormalityTest.getSelectedTestDescriptor());		
+		normalityTest = Reflexive.instantiate(NormalityTest.class, NormalityTest.getSelectedTestDescriptor());		
 		
 		if(normalityTest instanceof RSquaredTest && rs instanceof SumOfSquares)
 				( (RSquaredTest)normalityTest ).setSumOfSquares( (SumOfSquares)rs);
@@ -598,8 +619,21 @@ public class SearchTask extends Accessible implements Runnable {
 	}
 	
 	public void initOptimiser() {
-		rs = ResidualStatistic.instantiate(ResidualStatistic.getSelectedOptimiserDescriptor());
+		rs = Reflexive.instantiate(ResidualStatistic.class, ResidualStatistic.getSelectedOptimiserDescriptor());
 		rs.setParent(this);
+	}
+	
+	public void initCorrelationTest() {
+		correlationTest = Reflexive.instantiate(CorrelationTest.class, CorrelationTest.getSelectedTestDescriptor());
+		correlationTest.setParent(this);
+	}
+	
+	public CorrelationBuffer getCorrelationBuffer() {
+		return correlationBuffer;
+	}
+	
+	public CorrelationTest getCorrelationTest() {
+		return correlationTest;
 	}
 
 }

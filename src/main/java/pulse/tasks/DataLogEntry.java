@@ -44,11 +44,12 @@ public class DataLogEntry extends LogEntry {
 	 */
 	
 	private void fill() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-		SearchTask task = TaskManager.getTask( getIdentifier() ); 
-		entry = task.numericProperties().
-				stream().filter(p -> 
-					LogFormat.getInstance().types().stream().anyMatch(keyword -> p.getType() == keyword)
-						).collect(Collectors.toList());
+		SearchTask task = TaskManager.getTask( getIdentifier() );
+	
+		var searchVector = task.searchVector()[0];
+		entry = searchVector.getIndices().stream()
+				.map(index -> NumericProperty.derive(index, searchVector.get(index)))
+				.collect(Collectors.toList());
 		Collections.sort(entry, (p1, p2) -> p1.getDescriptor(false).compareTo(p2.getDescriptor(false)));
 		entry.add(0, task.getPath().getIteration());
 	}

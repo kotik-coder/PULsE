@@ -78,19 +78,7 @@ public abstract class ResidualStatistic extends Statistic {
 	public double residualLowerBound() {
 		return residuals.stream().map(array -> array[1]).reduce((a, b) -> a < b ? a : b).get();
 	}
-	
-	public static ResidualStatistic instantiate(String descriptor) {
-		Optional<ResidualStatistic> opt = Reflexive.instancesOf(ResidualStatistic.class).stream().filter(test -> test.getDescriptor().equals(descriptor)).findFirst();
-		if(opt.isPresent())
-			return opt.get();
-		else
-			return null;
-	}
-	
-	public static Set<String> allDescriptors() {
-		return Reflexive.instancesOf(ResidualStatistic.class).stream().map(t -> t.getDescriptor()).collect(Collectors.toSet());
-	}
-	
+
 	public static void setSelectedOptimiserDescriptor(String selectedTestDescriptor) {
 		ResidualStatistic.selectedOptimiserDescriptor = selectedTestDescriptor;
 	}

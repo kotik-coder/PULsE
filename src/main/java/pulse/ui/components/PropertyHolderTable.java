@@ -43,7 +43,7 @@ public class PropertyHolderTable extends JTable {
 	private PropertyHolder propertyHolder;
 
 	private final static Font font = new Font(Messages.getString("PropertyHolderTable.FontName"), Font.BOLD, 12);
-	private	final static int ROW_HEIGHT = 80;
+	private	final static int ROW_HEIGHT = 40;
 	
 	private TableRowSorter<DefaultTableModel> sorter;
 	

@@ -21,7 +21,6 @@ public class Log extends Group {
 
 	private List<LogEntry> logEntries;
 	private LocalTime start, end;
-	private static LogFormat logFormat = LogFormat.getInstance();
 	private Identifier id;
 	private List<LogEntryListener> listeners;
 	private static boolean verbose = false;
@@ -50,16 +49,15 @@ public class Log extends Group {
 			 */
 			
 			@Override
-			public void onDataCollected(StateEntry src) {
-				if(src.getState() == Status.INCOMPLETE) 
+			public void onDataCollected(LogEntry le) {
+				if(task.getStatus() == Status.INCOMPLETE) 
 					return;
 				
-				if(!Log.isVerbose())
-					return;
+				if(verbose) {				
+					logEntries.add( le );
+					notifyListeners( le );
+				}
 				
-				LogEntry e = new DataLogEntry( task );
-				logEntries.add( e );
-				notifyListeners(e);
 			}
 				
 		});	
@@ -78,10 +76,10 @@ public class Log extends Group {
 					
 					if(e.getState() == Status.IN_PROGRESS) {
 						start = e.getTime();
-						end = null;
+						end = null;			
+						notifyListeners(e);
 					}
-					
-					notifyListeners(e);
+				
 				}
 				
 				else {
@@ -109,10 +107,6 @@ public class Log extends Group {
 	
 	public void addListener(LogEntryListener l) {
 		listeners.add(l);
-	}
-	
-	public static void setLogFormat(LogFormat logFormat) {
-		Log.logFormat = logFormat;
 	}
 	
 	public Identifier getIdentifier() {
@@ -156,10 +150,6 @@ public class Log extends Group {
 		return logEntries;
 	}
 
-	public static LogFormat getLogFormat() {
-		return logFormat;
-	}
-	
 	/**
 	 * This is the time after the creation of the {@code Log} when a change of status to {@code IN_PROGRESS} happened.
 	 * @return the start time

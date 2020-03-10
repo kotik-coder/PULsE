@@ -8,7 +8,7 @@ import pulse.properties.Property;
 
 public class Insulator extends AbsorptionModel {
 
-	private double R;
+	protected double R;
 	
 	public Insulator() {
 		R = (double)NumericProperty.def(NumericPropertyKeyword.REFLECTANCE).getValue();
