@@ -17,6 +17,9 @@ public class CorrelationLogEntry extends LogEntry {
 		var test = t.getCorrelationTest();		
 		var map = buffer.evaluate(test);
 		
+		if(map == null)
+			return "";
+		
 		if(map.isEmpty())
 			return "";
 		

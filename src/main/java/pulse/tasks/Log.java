@@ -77,8 +77,9 @@ public class Log extends Group {
 					if(e.getState() == Status.IN_PROGRESS) {
 						start = e.getTime();
 						end = null;			
-						notifyListeners(e);
 					}
+					
+					notifyListeners(e);
 				
 				}
 				

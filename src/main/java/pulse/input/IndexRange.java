@@ -1,6 +1,7 @@
 package pulse.input;
 
 import java.util.List;
+import java.util.Objects;
 
 public class IndexRange {
 
@@ -19,6 +20,17 @@ public class IndexRange {
 	
 	public IndexRange(List<Double> data, Range range) {
 		set(data,range);
+	}
+	
+	public void reset(List<Double> data) {
+		Objects.requireNonNull(data);
+		int size = data.size();
+		
+		if(size > 0) {
+			setLowerBound(data, data.get(0));
+			setUpperBound(data, data.get(size - 1));
+		}
+		
 	}
 	
 	public void setLowerBound(List<Double> data, double a) {

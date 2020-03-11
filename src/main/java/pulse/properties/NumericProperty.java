@@ -102,6 +102,10 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
 		return value;
 	}
 	
+	public boolean validate() {
+		return NumericProperty.isValueSensible(this, value);
+	}
+	
 	/**
 	 * Checks whether the {@code val} that is going to be passed to the {@code property}
 	 * (a) has the same type as the {@code property.getValue()} object; 
@@ -118,12 +122,12 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
 		if(!property.value.getClass().equals(val.getClass()))
 			return false;
 		
-		double v = val.doubleValue();
+		double v = val.doubleValue()/property.dimensionFactor.doubleValue();
 		
 		final double EPS = 1E-10;
 		
 		if( v > property.getMaximum().doubleValue() + EPS ) 
-			return false;		
+			return false;					
 		
 		return v > property.getMinimum().doubleValue() - EPS;
 		

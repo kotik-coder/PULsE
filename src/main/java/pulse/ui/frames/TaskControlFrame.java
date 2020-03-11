@@ -8,10 +8,12 @@ import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
-import java.awt.Insets;
+import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.WindowAdapter;
@@ -98,6 +100,8 @@ import pulse.util.Reflexive;
 @SuppressWarnings("serial")
 public class TaskControlFrame extends JFrame {
 
+	private static Mode mode = Mode.TASK;
+	
 	private final static int HEIGHT = 730;
 	private final static int WIDTH = 1035;	
 	private final static float SLIDER_A_COEF = 0.01f;
@@ -107,9 +111,6 @@ public class TaskControlFrame extends JFrame {
 	private static FormattedInputDialog averageWindowDialog;
 	private static File dir;	
 	
-	private static GridBagConstraints globalConstraints;
-    private static GridBagLayout globalLayout;
-    
 	private static JInternalFrame graphFrame;	
 	private static TaskControlFrame instance = new TaskControlFrame();	
     private static JInternalFrame logFrame;    
@@ -143,7 +144,7 @@ public class TaskControlFrame extends JFrame {
     
     private TaskTable taskTable;
     
-	private static JPanel assignResultToolbar() {
+	private JPanel assignResultToolbar() {
     	var resultToolbar = new JPanel();
         var deleteEntryBtn = new JButton(Launcher.loadIcon("remove.png", ICON_SIZE));
         var mergeBtn = new JButton(Launcher.loadIcon("merge.png", ICON_SIZE));
@@ -425,7 +426,7 @@ public class TaskControlFrame extends JFrame {
 	}
 
 	private static JInternalFrame initGraphFrame() {
-		var graphFrame = new JInternalFrame("", false, false, false, true);
+		var graphFrame = new JInternalFrame("", false, false, true, true);
 		var chart = Chart.createEmptyPanel();
         graphFrame.getContentPane().add(chart, BorderLayout.CENTER);
         graphFrame.setTitle("Time-temperature profile(s)");                
@@ -478,8 +479,8 @@ public class TaskControlFrame extends JFrame {
         });
         return opacitySlider;
     }	
-	private static JInternalFrame initResultsFrame() {
-		var resultsFrame = new JInternalFrame("", false, false, false, true);				
+	private JInternalFrame initResultsFrame() {
+		var resultsFrame = new JInternalFrame("", false, false, true, true);				
         JScrollPane resultsScroller = new JScrollPane();
         resultTable = new ResultTable(ResultFormat.DEFAULT_FORMAT);
         JPanel resultToolbar = assignResultToolbar();                
@@ -547,32 +548,17 @@ public class TaskControlFrame extends JFrame {
 		averageWindowDialog.setVisible(true);
 		averageWindowDialog.setConfirmAction( () -> resultTable.merge(averageWindowDialog.value().doubleValue()) );
 	}
-    private static void showPreviewFrame() {
+    private void showPreviewFrame() {
 		previewFrame.update(
 		    		((ResultTableModel)resultTable.getModel()).getFormat()
 		    		, resultTable.data());
-		
-		globalConstraints.fill = GridBagConstraints.BOTH;
-		globalConstraints.gridx = 0;
-		globalConstraints.gridy = 0;
-		globalConstraints.weightx = 1.0;
-		globalConstraints.weighty = 0.65;
-		
-		globalLayout.setConstraints(previewFrame, globalConstraints);
-		
-		globalConstraints.fill = GridBagConstraints.BOTH;
-		globalConstraints.gridx = 0;
-		globalConstraints.gridy = 1;
-		globalConstraints.weightx = 1.0;
-		globalConstraints.weighty = 0.35;
-		
-		globalLayout.setConstraints(resultsFrame, globalConstraints);
-		
 		previewFrame.setVisible(true);				
 		resultsFrame.setVisible(true);		
 		taskManagerFrame.setVisible(false);
 		graphFrame.setVisible(false);
-		logFrame.setVisible(false);				
+		logFrame.setVisible(false);
+		mode = Mode.PREVIEW;
+		doResize();
 	}
     private static void truncateDataDialog() {								
 		Object[] options = {"Truncate", "Do not change"}; 
@@ -689,7 +675,11 @@ public class TaskControlFrame extends JFrame {
 		scheduleLogEvents();
 		setIconImage(Launcher.loadIcon("logo.png", 32).getImage());
 		addButtonListeners();
-		
+		addListeners();
+		setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+	}
+	
+	private void addListeners() {
 		addWindowListener(new WindowAdapter() {
 			
 			@Override
@@ -703,8 +693,14 @@ public class TaskControlFrame extends JFrame {
 			
 		});
 		
-		setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        pack();
+		addComponentListener(new ComponentAdapter() {
+			
+			@Override
+			public void componentResized(ComponentEvent e) {
+				doResize();
+			}
+			
+		});
 		
 	}
     
@@ -712,7 +708,7 @@ public class TaskControlFrame extends JFrame {
 		removeBtn.addActionListener(new ActionListener() {
 
 			@Override
-			public void actionPerformed(ActionEvent e) {
+			public void actionPerformed(ActionEvent e) {				
 				int[] rows = taskTable.getSelectedRows();
 				Identifier id; 
 				
@@ -906,6 +902,7 @@ public class TaskControlFrame extends JFrame {
 		graphFrame.setVisible(true);
 		logFrame.setVisible(true);				
 	}
+	
 	/**
      * This method is called from within the constructor to initialize the form.    
      */           
@@ -913,18 +910,12 @@ public class TaskControlFrame extends JFrame {
     private void initComponents() {
 
         var desktopPane = new JDesktopPane();
+        setContentPane(desktopPane);
         
-        globalLayout = new GridBagLayout();
-        desktopPane.setLayout(globalLayout);
-
-        globalConstraints = new GridBagConstraints();        
-        globalConstraints.fill = GridBagConstraints.BOTH;
-        globalConstraints.insets = new Insets(5,5,5,5);
-        
-        taskManagerFrame = new JInternalFrame("", false, false, false, true);
+        taskManagerFrame = new JInternalFrame("", false, false, true, true);
         var taskScrollPane = new JScrollPane();
         
-        var taskTable = new TaskTable();
+        taskTable = new TaskTable();
 		logTextPane	= new LogPane();
         var taskToolbar = new JPanel();
         
@@ -935,10 +926,9 @@ public class TaskControlFrame extends JFrame {
         execBtn = new ExecutionButton();
         
         graphFrame = initGraphFrame();
-        desktopPane.add(graphFrame, globalConstraints);
         graphFrame.setVisible(true);       
                 
-        logFrame = new JInternalFrame("", false, false, false, true);                
+        logFrame = new JInternalFrame("", false, false, true, true);                
         var logScroller = new JScrollPane();
                 
         resultsFrame = initResultsFrame();
@@ -992,9 +982,6 @@ public class TaskControlFrame extends JFrame {
         taskToolbar.add(execBtn);
 
         taskManagerFrame.getContentPane().add(taskToolbar, BorderLayout.PAGE_START);
-        
-        desktopPane.add(taskManagerFrame, globalConstraints);
-
         logFrame.setTitle("Log");
         logFrame.setVisible(true);
 
@@ -1008,16 +995,10 @@ public class TaskControlFrame extends JFrame {
         gridBagConstraints.weightx = 0.5;             
         
         logFrame.getContentPane().add( 
-        		initSystemPanel(globalLayout, globalConstraints) 
+        		initSystemPanel() 
         		, BorderLayout.PAGE_END);
         
         logFrame.getContentPane().add(initLogToolbar(), BorderLayout.NORTH);
-
-        desktopPane.add(logFrame, globalConstraints);
-        
-        desktopPane.add(resultsFrame,globalConstraints);
-
-        getContentPane().add(desktopPane, BorderLayout.CENTER);
 
         dataControlsMenu.setMnemonic('f');
         dataControlsMenu.setText("File");
@@ -1244,13 +1225,11 @@ public class TaskControlFrame extends JFrame {
         setJMenuBar(mainMenu);
 
         previewFrame = new PreviewFrame();
-        desktopPane.add(previewFrame, globalConstraints);
-        
         previewFrame.addInternalFrameListener(new InternalFrameAdapter() {
         	
         	@Override
         	public void internalFrameClosing(InternalFrameEvent e) {
-        		resetConstraints(globalLayout, globalConstraints);
+        		resizeQuadrants();
         		hidePreviewFrame();
         	}
         	
@@ -1263,14 +1242,13 @@ public class TaskControlFrame extends JFrame {
         	
         	@Override
         	public void internalFrameClosing(InternalFrameEvent e) {
-        		resetConstraints(globalLayout, globalConstraints);
+        		mode = Mode.TASK;
+        		resizeQuadrants();
         		hideProblemStatementFrame();
         	}
         	
         });
-		
-		desktopPane.add(problemStatementFrame, globalConstraints);
-        		
+		        		
 		searchOptionsFrame = 
 				new SearchOptionsFrame(  );
 		
@@ -1278,25 +1256,33 @@ public class TaskControlFrame extends JFrame {
         	
         	@Override
         	public void internalFrameClosing(InternalFrameEvent e) {
-        		resetConstraints(globalLayout, globalConstraints);
+        		mode = Mode.TASK;
+        		resizeQuadrants();
         		hideSearchOptionsFrame();
         	}
         	
         });
-		
-		desktopPane.add(searchOptionsFrame, globalConstraints);
-		
+				
         /*
-         * CONSTRAIN ADJUSTMENT
+         * CONSTRAINT ADJUSTMENT
          */
 		
-		resetConstraints(globalLayout, globalConstraints);	
+        pack();
+		
+		resizeQuadrants();
+		desktopPane.add(taskManagerFrame);
+        desktopPane.add(graphFrame);
+        desktopPane.add(previewFrame);
+        desktopPane.add(logFrame);
+        desktopPane.add(resultsFrame);
+		desktopPane.add(problemStatementFrame);
+		desktopPane.add(searchOptionsFrame);
         
 		var ifa = new InternalFrameAdapter() {
 			
 			@Override
 			public void internalFrameDeiconified(InternalFrameEvent e) {
-				resetConstraints(globalLayout,globalConstraints);
+				resizeQuadrants();
 			}
 			
 		};
@@ -1308,10 +1294,12 @@ public class TaskControlFrame extends JFrame {
         
     }
 	
-	private JPanel initSystemPanel(GridBagLayout gridBagLayout, GridBagConstraints gridBagConstraints) {
-        
+	private JPanel initSystemPanel() {
+		
         var systemStatusBar = new JPanel();
-        systemStatusBar.setLayout(gridBagLayout);
+        systemStatusBar.setLayout(new GridBagLayout());
+        
+        var gridBagConstraints = new GridBagConstraints();
 		
 		var cpuLabel = new JLabel();        
         var memoryLabel = new JLabel();
@@ -1340,62 +1328,68 @@ public class TaskControlFrame extends JFrame {
 		return systemStatusBar;
 	}
 	
-	private void resetConstraints(GridBagLayout layout, GridBagConstraints gc) {
-		gc.fill = GridBagConstraints.BOTH;
-		gc.gridx = 1;
-		gc.gridy = 1;
-		gc.weightx = 0.6;
-		gc.weighty = 0.35;
+	private void doResize() {
+		switch(mode) {
+		case TASK : resizeQuadrants(); break;
+		case PROBLEM : resizeHalves(problemStatementFrame,graphFrame); break;
+		case SEARCH : resizeFull(searchOptionsFrame); break;
+		case PREVIEW : resizeHalves(previewFrame, resultsFrame); break;
+		}
+	}
+	
+	private void resizeFull(JInternalFrame f1) {
+		final int gap = 10;
+		final int h = this.getContentPane().getHeight()-2*gap;
+		final int w = this.getContentPane().getWidth()-2*gap;
 		
-		layout.setConstraints(resultsFrame, gc);
+		var p1 = new Point(gap, gap);
+		var s1 = new Dimension(w, h );	
+		f1.setLocation(p1);
+		f1.setSize(s1);
+	}
+	
+	private void resizeHalves(JInternalFrame f1, JInternalFrame f2) {
+		final int gap = 10;
+		final int h = this.getContentPane().getHeight()-3*gap;
+		final int w = this.getContentPane().getWidth()-2*gap;
 		
-		gc.fill = GridBagConstraints.BOTH;
-		gc.gridx = 1;
-		gc.gridy = 0;
-		gc.weightx = 0.6;
-		gc.weighty = 0.65;
+		var p1 = new Point(gap, gap);
+		var s1 = new Dimension(w, 6*h/10 );
 		
-		layout.setConstraints(graphFrame, gc);
+		var p2 = new Point(gap, 2*gap+6*h/10);
+		var s2 = new Dimension(w, 4*h/10);
+	
+		f1.setLocation(p1);
+		f1.setSize(s1);
+		f2.setLocation(p2);
+		f2.setSize(s2);
+	}
+	
+	private void resizeQuadrants() {
+		final int gap = 10;
+		final int h = this.getContentPane().getHeight()-3*gap;
+		final int w = this.getContentPane().getWidth()-3*gap;
 		
-		gc.fill = GridBagConstraints.BOTH;
-		gc.gridx = 0;
-		gc.gridy = 1;
-		gc.weightx = 0.4;
-		gc.weighty = 0.35;
+		var p1 = new Point(gap, gap);
+		var s1 = new Dimension(45*w/100, 55*h/100 );
 		
-		layout.setConstraints(logFrame, gc);
+		var p2 = new Point(2*gap + 45*w/100, gap );
+		var s2 = new Dimension(55*w/100, 55*h/100);
 		
-		gc.fill = GridBagConstraints.BOTH;
-		gc.gridx = 0;
-		gc.gridy = 0;
-		gc.weightx = 0.4;
-		gc.weighty = 0.65;
+		var p3 = new Point(gap, 2*gap + 55*h/100);
+		var s3 = new Dimension(45*w/100, 45*h/100);
 		
-		layout.setConstraints(taskManagerFrame, gc);
+		var p4 = new Point(2*gap + 45*w/100, 2*gap + 55*h/100);
+		var s4 = new Dimension(55*w/100, 45*h/100);
 		
-		gc.fill = GridBagConstraints.BOTH;
-		gc.gridx = 0;
-		gc.gridy = 0;
-		gc.weightx = 1.0;
-		gc.weighty = 0.65;
-		
-		layout.setConstraints(previewFrame, gc);
-		
-		gc.fill = GridBagConstraints.BOTH;
-		gc.gridx = 0;
-		gc.gridy = 0;
-		gc.weightx = 1.0;
-		gc.weighty = 0.65;
-		
-		layout.setConstraints(problemStatementFrame, gc);
-		
-		gc.fill = GridBagConstraints.BOTH;
-		gc.gridx = 0;
-		gc.gridy = 0;
-		gc.weightx = 1.0;
-		gc.weighty = 1.0;
-		
-		layout.setConstraints(problemStatementFrame, gc);
+		taskManagerFrame.setLocation(p1);
+		taskManagerFrame.setSize(s1);
+		graphFrame.setLocation(p2);
+		graphFrame.setSize(s2);
+		logFrame.setLocation(p3);
+		logFrame.setSize(s3);
+		resultsFrame.setLocation(p4);
+		resultsFrame.setSize(s4);
 	}
 	
 	public void scheduleLogEvents() {
@@ -1453,49 +1447,27 @@ public class TaskControlFrame extends JFrame {
 	private void showProblemStatementFrame() {	
 		problemStatementFrame.update();
 		problemStatementFrame.setVisible(true);
-		
-		globalConstraints.fill = GridBagConstraints.BOTH;
-		globalConstraints.gridx = 0;
-		globalConstraints.gridy = 1;
-		globalConstraints.weightx = 1.0;
-		globalConstraints.weighty = 0.35;
-		
-		globalLayout.setConstraints(graphFrame, globalConstraints);
-		
-		globalConstraints.fill = GridBagConstraints.BOTH;
-		globalConstraints.gridx = 0;
-		globalConstraints.gridy = 0;
-		globalConstraints.weightx = 1.0;
-		globalConstraints.weighty = 0.65;
-		
-		globalLayout.setConstraints(problemStatementFrame, globalConstraints);
-		
 		searchOptionsFrame.setVisible(false);
 		previewFrame.setVisible(false);				
 		resultsFrame.setVisible(false);		
 		taskManagerFrame.setVisible(false);
 		graphFrame.setVisible(true);
-		logFrame.setVisible(false);		
+		logFrame.setVisible(false);
+		mode = Mode.PROBLEM;
+		doResize();
 	}
 	
 	private void showSearchOptionsFrame() {	
 		searchOptionsFrame.update();
 		searchOptionsFrame.setVisible(true);
-		
-		globalConstraints.fill = GridBagConstraints.BOTH;
-		globalConstraints.gridx = 0;
-		globalConstraints.gridy = 0;
-		globalConstraints.weightx = 1.0;
-		globalConstraints.weighty = 1.0;
-		
-		globalLayout.setConstraints(searchOptionsFrame, globalConstraints);
-		
 		problemStatementFrame.setVisible(false);
 		previewFrame.setVisible(false);				
 		resultsFrame.setVisible(false);		
 		taskManagerFrame.setVisible(false);
 		graphFrame.setVisible(false);
-		logFrame.setVisible(false);		
+		logFrame.setVisible(false);	
+		mode = Mode.SEARCH;
+		doResize();
 	}
 	
 	private void startSystemMonitors(JLabel coresLabel, JLabel cpuLabel, JLabel memoryLabel) {		
@@ -1539,6 +1511,12 @@ public class TaskControlFrame extends JFrame {
 			};
 			
 		executor.scheduleAtFixedRate(periodicTask, 0, 2, TimeUnit.SECONDS);
+	}
+	
+	private enum Mode {
+		
+		TASK, PROBLEM, PREVIEW, SEARCH;
+		
 	}
 		
 }

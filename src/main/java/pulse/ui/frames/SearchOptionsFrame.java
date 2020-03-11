@@ -36,8 +36,7 @@ public class SearchOptionsFrame extends JInternalFrame {
 	private final static Font font = new Font(Messages.getString("PropertyHolderTable.FontName"), Font.ITALIC, 16);
 	
 	private final static List<PathOptimiser> pathSolvers		= Reflexive.instancesOf(PathOptimiser.class);
-	private final static List<LinearOptimiser> linearSolvers	= Reflexive.instancesOf(LinearOptimiser.class);
-	
+	private final static List<LinearOptimiser> linearSolvers	= Reflexive.instancesOf(LinearOptimiser.class);	
 	
 	/**
 	 * Create the frame.

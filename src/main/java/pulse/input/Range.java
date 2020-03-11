@@ -13,6 +13,11 @@ public class Range extends PropertyHolder {
 
 	private Segment2D segment;
 
+	public void reset(IndexRange range, List<Double> time) {
+		segment.setMaximum(time.get(range.getUpperBound()));
+		segment.setMinimum(time.get(range.getLowerBound()));
+	}
+	
 	public Range(List<Double> data) {
 		double min = data.stream().reduce( (a, b) -> a < b ? a : b).get();
 		double max = data.stream().reduce( (a, b) -> b > a ? b : a).get();

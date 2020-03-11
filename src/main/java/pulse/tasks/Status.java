@@ -72,7 +72,7 @@ public enum Status {
 	FAILED(Color.RED);
 	
 	private final Color clr;
-	private Details details = Details.MISSING_PROBLEM_STATEMENT;
+	private Details details = Details.NONE;
 	
 	Status(Color clr) {
 		this.clr = clr;
@@ -83,7 +83,7 @@ public enum Status {
 	}
 	
 	public Details getDetails() {
-		return this == INCOMPLETE ? details : null;
+		return details;
 	}
 	
 	public void setDetails(Details details) {
@@ -122,6 +122,8 @@ public enum Status {
 	 */
 	
 	public enum Details {
+		
+		NONE,
 		
 		/**
 		 * The {@code Problem} has not been specified by the user.
@@ -164,7 +166,13 @@ public enum Status {
 		 * have been set up incorrectly or the specific heat and density data have not been loaded. 
 		 */
 		
-		INSUFFICIENT_DATA_IN_PROBLEM_STATEMENT;
+		INSUFFICIENT_DATA_IN_PROBLEM_STATEMENT,
+		
+		SIGNIFICANT_CORRELATION_BETWEEN_PARAMETERS,
+		
+		PARAMETER_VALUES_NOT_SENSIBLE,
+		
+		ABNORMAL_DISTRIBUTION_OF_RESIDUALS;
 		
 		@Override
 		public String toString() {

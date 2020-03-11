@@ -99,7 +99,8 @@ public class SearchTask extends Accessible implements Runnable {
 	 * Sets the status of this task to {@code INCOMPLETE}.</p>
 	 */
 	
-	public void clear() {				
+	public void clear() {		
+		curve.resetRanges();
 		buffer 			= new Buffer();
 		correlationBuffer.clear();
 		buffer.setParent(this);		
@@ -119,7 +120,6 @@ public class SearchTask extends Accessible implements Runnable {
 				
 		setStatus(Status.INCOMPLETE);		
 		StateEntry e = new StateEntry(this, status);
-		notifyStatusListeners(e);
 		
 		curve.addDataListener( dataEvent -> {
 			if(scheme != null) {
@@ -296,18 +296,27 @@ public class SearchTask extends Accessible implements Runnable {
 	  
 	  if( status == Status.IN_PROGRESS ) {
 		  
-		  if(!normalityTest.test(this))
-			  setStatus(Status.FAILED);
+		  if(!normalityTest.test(this)) //first, check if the residuals are normally-distributed
+			  setStatus(Status.FAILED, Status.Details.ABNORMAL_DISTRIBUTION_OF_RESIDUALS);		  
 		  
-		  else {
+		  else { 
 			  
-			  boolean test = correlationBuffer.test(correlationTest);
+			  boolean test = correlationBuffer.test(correlationTest); //second, check there are no unexpected correlations
 			  notifyDataListeners(new CorrelationLogEntry(this));
 			  
-			  if(test)
-				  setStatus(Status.AMBIGUOUS);
-			  else
-				  setStatus(Status.DONE);
+			  if(test) 
+				  setStatus(Status.AMBIGUOUS, Status.Details.SIGNIFICANT_CORRELATION_BETWEEN_PARAMETERS);			  
+			  else {				  
+				  //lastly, check if the parameter values estimated in this procedure are reasonable 
+				  
+				  var vector = searchVector()[0];
+				  
+				  if(vector.getIndices().stream().map(index -> NumericProperty.derive(index, vector.get(index))).anyMatch(np -> 
+				  !np.validate() ) ) 
+					  setStatus(Status.FAILED, Status.Details.PARAMETER_VALUES_NOT_SENSIBLE);				  
+				  else
+					  setStatus(Status.DONE);
+			  }
 			  
 		  }
 		  
@@ -415,8 +424,14 @@ public class SearchTask extends Accessible implements Runnable {
 		if(scheme != null) {
 			scheme.setParent(this);
 			
+			if(problem == null)
+				return;
+			
 			double upperLimit = RELATIVE_TIME_MARGIN*curve.timeLimit() - 
 					(double)problem.getHeatingCurve().getTimeShift().getValue();
+			
+			if(scheme == null)
+				return;
 			
 			scheme.setTimeLimit
 			(NumericProperty.derive(TIME_LIMIT, upperLimit ));
@@ -452,6 +467,15 @@ public class SearchTask extends Accessible implements Runnable {
 		return status;
 	}
 	
+	public void setStatus(Status status, Status.Details details) {
+		if(this.status == status)
+			return;
+		
+		this.status = status;
+		status.setDetails(details);
+		notifyStatusListeners(new StateEntry(this, status));
+	}
+	
 	/**
 	 * Sets a new {@code status} to this {@code SearchTask} and informs the listeners.
 	 * @param status the new status
@@ -461,7 +485,8 @@ public class SearchTask extends Accessible implements Runnable {
 		if(this.status == status)
 			return;
 		
-		this.status = status;		
+		this.status = status;
+		status.setDetails(Details.NONE);
 		notifyStatusListeners(new StateEntry(this, status));
 	}
 		

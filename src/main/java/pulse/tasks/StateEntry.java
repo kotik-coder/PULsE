@@ -29,7 +29,9 @@ public class StateEntry extends LogEntry {
 		StringBuilder sb = new StringBuilder();
 		sb.append("<br>");
 		sb.append(getIdentifier().toString() + " changed status to ");
-		sb.append(status.toString());
+		String hex = "#"+Integer.toHexString(status.getColor().getRGB()).substring(2);
+		sb.append("<b><font color='" + hex + "'>" + status.toString() + "</font></b>");
+		if(status.getDetails() != Status.Details.NONE) sb.append(" due to <b>" + status.getDetails() + "</b>");
 		sb.append(" at ");
 		sb.append(getTime());
 		return sb.toString();

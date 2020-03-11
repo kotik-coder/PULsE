@@ -50,6 +50,11 @@ public class ExperimentalData extends HeatingCurve {
 		getBaseline().setParent(null);
 	}
 	
+	public void resetRanges() {
+		indexRange.reset(time);
+		range.reset(indexRange, time);
+	}
+	
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
