@@ -95,14 +95,12 @@ public class Chart {
         ta.setMaxWidth(0.58);
         plot.addAnnotation(ta);
         
-        chart.removeLegend();
-        
+        chart.removeLegend();       
         return new ChartPanel(chart);  
     }
     
     public static void plot(SearchTask task, boolean extendedCurve) {
-    	if(task == null)
-    		Objects.requireNonNull(task);
+    	Objects.requireNonNull(task);    	
     	
     	XYPlot plot = chart.getXYPlot();
     	
@@ -138,7 +136,7 @@ public class Chart {
 	    
 	    plot.addDomainMarker(upperMarker);
 	    plot.addDomainMarker(lowerMarker);
-        
+	    
         if(task.getProblem() != null) {
         	        
         	HeatingCurve solution = task.getProblem().getHeatingCurve();

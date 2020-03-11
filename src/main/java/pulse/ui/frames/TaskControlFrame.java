@@ -3,12 +3,12 @@ package pulse.ui.frames;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
-import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -17,6 +17,7 @@ import java.awt.event.FocusListener;
 import java.awt.event.WindowAdapter;
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -25,18 +26,26 @@ import java.util.concurrent.TimeUnit;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JDesktopPane;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFormattedTextField;
 import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
+import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
+import javax.swing.JToggleButton;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
@@ -49,10 +58,7 @@ import javax.swing.event.TableModelListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.NumberFormatter;
 
-import org.jfree.chart.ChartPanel;
-
 import pulse.input.ExperimentalData;
-import pulse.input.Metadata;
 import pulse.input.Range;
 import pulse.io.export.ExportManager;
 import pulse.io.readers.MetaFileReader;
@@ -91,222 +97,203 @@ import pulse.util.Reflexive;
 @SuppressWarnings("serial")
 public class TaskControlFrame extends JFrame {
 
-	private final static int WIDTH = 1035;
 	private final static int HEIGHT = 730;
+	private final static int WIDTH = 1035;
 	
-	private int ICON_SIZE = 16;
+	private final static float SLIDER_A_COEF = 0.01f;
+    private final static float SLIDER_B_COEF = 0.04605f;                                        
+
+	private final static int ICON_SIZE = 16;	    	
 	
-	private static TaskControlFrame instance = new TaskControlFrame();
-	
+	private static FormattedInputDialog averageWindowDialog;
 	private static File dir;
 	
-    private final static float SLIDER_A_COEF = 0.01f;
-    private final static float SLIDER_B_COEF = 0.04605f;        
+	private static GridBagConstraints globalConstraints;
+    private static GridBagLayout globalLayout;
 	
-	/**
-	 * Create the frame.
-	 */
+	private static JInternalFrame graphFrame;	
+
+	private static TaskControlFrame instance = new TaskControlFrame();
 	
-	private TaskControlFrame() {						
-		initComponents();
-		adjustEnabledControls();
-		assignMenuFunctions();
-		scheduleLogEvents();
-		setIconImage(Launcher.loadIcon("logo.png", 32).getImage());
-		startSystemMonitors();
-		assignResultToolbar();
-		adjustTablesToolbars();
-		addButtonListeners();
+    private static JInternalFrame logFrame;
+    
+    private static LogPane logTextPane;
+    
+    private static PreviewFrame previewFrame;
 		
-		addWindowListener(new WindowAdapter() {
-			
-			@Override
-			public void windowClosing(java.awt.event.WindowEvent evt) {                               
-			        JFrame closingWindow = (JFrame) evt.getSource();
-			        if(!exitConfirmed(closingWindow)) {
-			            closingWindow.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-			        } else
-			            closingWindow.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-			}
-			
-		});
-		
-	}
+	private static JInternalFrame resultsFrame;
 	
-	private void adjustTablesToolbars() {
-		resultsTable.getSelectionModel().addListSelectionListener( new ListSelectionListener() {
+	private static ResultTable resultTable;
+	  
+    private static JInternalFrame taskManagerFrame;
+    
+	private static JPanel assignResultToolbar() {
+    	var resultToolbar = new JPanel();
+        var deleteEntryBtn = new JButton(Launcher.loadIcon("remove.png", ICON_SIZE));
+        var mergeBtn = new JButton(Launcher.loadIcon("merge.png", ICON_SIZE));
+        var undoBtn = new JButton(Launcher.loadIcon("reset.png", ICON_SIZE));
+        var previewBtn = new JButton(Launcher.loadIcon("preview.png", ICON_SIZE));
+        var saveResultsBtn = new JButton(Launcher.loadIcon("save.png", ICON_SIZE));
+        resultToolbar.setLayout(new java.awt.GridLayout(5, 0));
+
+        deleteEntryBtn.setToolTipText("Delete Entry");
+        resultToolbar.add(deleteEntryBtn);
+
+        mergeBtn.setToolTipText("Merge (Auto)");
+        resultToolbar.add(mergeBtn);
+
+        undoBtn.setToolTipText("Undo");
+        resultToolbar.add(undoBtn);
+
+        previewBtn.setToolTipText("Preview");
+        resultToolbar.add(previewBtn);
+
+        saveResultsBtn.setToolTipText("Save");
+        resultToolbar.add(saveResultsBtn);
+        
+		resultTable.getSelectionModel().addListSelectionListener( new ListSelectionListener() {
 
 			@Override
 			public void valueChanged(ListSelectionEvent arg0) {
-				int[] selection = resultsTable.getSelectedRows();
+				int[] selection = resultTable.getSelectedRows();
 				deleteEntryBtn.setEnabled(selection.length > 0);
 			}
 					
 			}
 		);
 		
-		resultsTable.getModel().addTableModelListener(new TableModelListener() {
+		resultTable.getModel().addTableModelListener(new TableModelListener() {
 
 			@Override
 			public void tableChanged(TableModelEvent arg0) {
-				previewBtn.setEnabled(	resultsTable.getRowCount() > 2 );
-				mergeBtn.setEnabled(	resultsTable.getRowCount() > 1 );				
-				saveResultsBtn.setEnabled( resultsTable.getRowCount() > 0 );
-				undoBtn.setEnabled( resultsTable.getRowCount() > 0 );
+				previewBtn.setEnabled(	resultTable.getRowCount() > 2 );
+				mergeBtn.setEnabled(	resultTable.getRowCount() > 1 );				
+				saveResultsBtn.setEnabled( resultTable.getRowCount() > 0 );
+				undoBtn.setEnabled( resultTable.getRowCount() > 0 );
 			}
 			
 		});
+    	
+		deleteEntryBtn.setEnabled(false);
+		deleteEntryBtn.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				ResultTableModel rtm = (ResultTableModel) resultTable.getModel();
+				
+				int[] selection = resultTable.getSelectedRows();								
+				
+				if(selection.length < 0)
+					return;
+			
+				for(int i = selection.length - 1; i >= 0; i--) 
+					rtm.remove( 
+							rtm.getResults().get(resultTable.convertRowIndexToModel(selection[i])) );
+				
+			}
+			
+		});
+				
+		mergeBtn.setEnabled(false);
+		mergeBtn.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if(resultTable.getRowCount() < 1)
+					return;
+				
+				showInputDialog();
+			}
+			
+		});		
+		
+		undoBtn.setEnabled(false);
+		undoBtn.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				ResultTableModel dtm = (ResultTableModel) resultTable.getModel();
+				
+				for(int i = dtm.getRowCount()-1; i >= 0; i--) 
+					dtm.remove( dtm.getResults().get(resultTable.convertRowIndexToModel(i)) );
+				
+				TaskManager.getTaskList().stream().map(t -> TaskManager.getResult(t)).forEach(r -> dtm.addRow(r));				
+			}
+			
+		});
+				
+		previewBtn.setEnabled(false);
+		previewBtn.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				
+				if(resultTable.getModel().getRowCount() < 1) {
+					JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor((Component) e.getSource()),
+						    Messages.getString("ResultsToolBar.NoDataError"), //$NON-NLS-1$
+						    Messages.getString("ResultsToolBar.NoResultsError"), //$NON-NLS-1$
+						    JOptionPane.ERROR_MESSAGE);			
+					return;
+				}						
+				
+				showPreviewFrame();
+				
+			}
+			
+		});
+		
+		saveResultsBtn.setEnabled(false);
+		saveResultsBtn.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if(resultTable.getRowCount() < 1) {
+					JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor((Component) e.getSource()),
+						    Messages.getString("ResultsToolBar.7"),
+						    Messages.getString("ResultsToolBar.8"), 
+						    JOptionPane.ERROR_MESSAGE);			
+					return;
+				}
+				
+				ExportManager.askToExport(resultTable, instance, "Calculation results");
+				
+			}
+			
+			
+		});
+		return resultToolbar;
 	}
 	
-
-    /**
-     * This method is called from within the constructor to initialize the form.
-     * WARNING: Do NOT modify this code. The content of this method is always
-     * regenerated by the Form Editor.
-     */
-    
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">                          
-    private void initComponents() {
-
-        desktopPane = new javax.swing.JDesktopPane();
-
-        globalLayout = new GridBagLayout();
-        desktopPane.setLayout(globalLayout);
-
-        global = new java.awt.GridBagConstraints();
-        
-        global.fill = GridBagConstraints.BOTH;
-        global.insets = new Insets(5,5,5,5);
-        
-        taskManagerFrame = new javax.swing.JInternalFrame("", false, false, false, true);
-        taskScrollPane = new javax.swing.JScrollPane();
-        taskTable= new TaskTable();
-		logTextPane	= new LogPane();
-        taskToolbar = new javax.swing.JPanel();
-        
-        removeBtn = new javax.swing.JButton(Launcher.loadIcon("remove.png", ICON_SIZE));
-        clearBtn = new javax.swing.JButton(Launcher.loadIcon("clear.png", ICON_SIZE));
-        resetBtn = new javax.swing.JButton(Launcher.loadIcon("reset.png", ICON_SIZE));
-        graphBtn = new javax.swing.JButton(Launcher.loadIcon("graph.png", ICON_SIZE));
-        execBtn = new ExecutionButton();
-        
-        graphFrame = new javax.swing.JInternalFrame("", false, false, false, true);
-        
-        ChartPanel chart = Chart.createEmptyPanel();
-        graphFrame.getContentPane().add(chart, BorderLayout.CENTER);        
-        
-        chart.setMaximumDrawHeight(2000);
-        chart.setMaximumDrawWidth(2000);
-        chart.setMinimumDrawWidth(10);
-        chart.setMinimumDrawHeight(10);
-        
-        jSlider1 = new JSlider();
-        jSlider1.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
-        jSlider1.setOrientation(SwingConstants.VERTICAL);
-        jSlider1.setToolTipText("Slide to change the dataset opacity");
-        
-        jSlider1.addChangeListener(e -> {	
-        	Chart.setOpacity( (float) (SLIDER_A_COEF*Math.exp(SLIDER_B_COEF*jSlider1.getValue())) );
-	        plot();
-        });
-        
-        graphFrame.getContentPane().add(jSlider1, java.awt.BorderLayout.LINE_END);
-        
-        chartToolbar = new javax.swing.JPanel();        
-        lowerLimitField = new javax.swing.JFormattedTextField(new NumberFormatter());                        
-        upperLimitField = new javax.swing.JFormattedTextField(new NumberFormatter());
-        limitRangeBtn = new javax.swing.JButton();                        
-        adiabaticSolutionBtn = new javax.swing.JToggleButton();
-        residualsBtn = new javax.swing.JToggleButton();
-        logFrame = new javax.swing.JInternalFrame("", false, false, false, true);                
-        logScroller = new javax.swing.JScrollPane();
-        logToolbar = new javax.swing.JPanel();
-        
-        saveLogBtn = new javax.swing.JButton(Launcher.loadIcon("save.png", ICON_SIZE));
-        saveLogBtn.setToolTipText("Save");
-        
-        systemStatusBar = new javax.swing.JPanel();
-        logToolbar = new javax.swing.JPanel();
-        cpuLabel = new javax.swing.JLabel();
-        memoryLabel = new javax.swing.JLabel();
-        coresLabel = new javax.swing.JLabel();
-        resultsFrame = new javax.swing.JInternalFrame("", false, false, false, true);
-        resultsScroller = new javax.swing.JScrollPane();
-        resultToolbar = new javax.swing.JPanel();
-        
-        deleteEntryBtn = new javax.swing.JButton(Launcher.loadIcon("remove.png", ICON_SIZE));
-        mergeBtn = new javax.swing.JButton(Launcher.loadIcon("merge.png", ICON_SIZE));
-        undoBtn = new javax.swing.JButton(Launcher.loadIcon("reset.png", ICON_SIZE));
-        previewBtn = new javax.swing.JButton(Launcher.loadIcon("preview.png", ICON_SIZE));
-        saveResultsBtn = new javax.swing.JButton(Launcher.loadIcon("save.png", ICON_SIZE));
-        
-        mainMenu = new javax.swing.JMenuBar();
-        dataControlsMenu = new javax.swing.JMenu();
-        loadDataItem = new javax.swing.JMenuItem();
-        loadMetadataItem = new javax.swing.JMenuItem();
-        jSeparator2 = new javax.swing.JPopupMenu.Separator();
-        exportCurrentItem = new javax.swing.JMenuItem();
-        exportAllItem = new javax.swing.JMenuItem();
-        jSeparator3 = new javax.swing.JPopupMenu.Separator();
-        exitItem = new javax.swing.JMenuItem();
-        settingsMenu = new javax.swing.JMenu();
-        modelSettingsItem = new javax.swing.JMenuItem();
-        searchSettingsItem = new javax.swing.JMenuItem();
-        jSeparator1 = new javax.swing.JPopupMenu.Separator();
-        resultFormatItem = new javax.swing.JMenuItem();
-        InfoMenu = new javax.swing.JMenu();
-        aboutItem = new javax.swing.JMenuItem();
-
-        ed = new ExportDialog();
-        
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setTitle(Messages.getString("TaskControlFrame.SoftwareTitle"));
-        setPreferredSize(new java.awt.Dimension(WIDTH, HEIGHT));
-        taskManagerFrame.setTitle("Task Manager");
-        taskManagerFrame.setVisible(true);
-     
-        taskScrollPane.setViewportView(taskTable);
-
-        taskManagerFrame.getContentPane().add(taskScrollPane, java.awt.BorderLayout.CENTER);
-
-        taskToolbar.setLayout(new java.awt.GridLayout(1, 0));
-        
-		removeBtn.setEnabled(false);
-		clearBtn.setEnabled(false);
-		resetBtn.setEnabled(false);
-		graphBtn.setEnabled(false);
-		execBtn.setEnabled(false);
-        
-        removeBtn.setToolTipText("Remove Task");
-        taskToolbar.add(removeBtn);
-
-        clearBtn.setToolTipText("Clear All Tasks");
-        taskToolbar.add(clearBtn);
-
-        resetBtn.setToolTipText("Reset All Tasks");
-        taskToolbar.add(resetBtn);
-
-        graphBtn.setToolTipText("Show Graph");
-        taskToolbar.add(graphBtn);
-
-        execBtn.setToolTipText("Execute All Tasks");
-        taskToolbar.add(execBtn);
-
-        taskManagerFrame.getContentPane().add(taskToolbar, java.awt.BorderLayout.PAGE_START);
-        
-        desktopPane.add(taskManagerFrame, global);
-        taskManagerFrame.setBounds(new Rectangle(10, 10, 420, 430));
-        taskManagerFrame.setNormalBounds(new Rectangle(10, 10, 420, 430));
-
-        graphFrame.setTitle("Time-temperature profile(s)");
-        graphFrame.setVisible(true);
-        
+	private static File directory() {
+		if(dir != null)
+			return dir;
+		else
+			try {
+				return new File(TaskControlFrame.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+			} catch (URISyntaxException e) {
+				System.err.println("Cannot determine current working directory.");
+				e.printStackTrace();
+			}
+		return null;
+	}
+	
+	public static TaskControlFrame getInstance() {
+		return instance;
+	}
+	private static JPanel initChartToolbar() {		
+		var chartToolbar = new JPanel();
         chartToolbar.setLayout(new java.awt.GridBagLayout());
+		
+		var lowerLimitField = new JFormattedTextField(new NumberFormatter());                        
+        var upperLimitField = new JFormattedTextField(new NumberFormatter());
         
-        var gbc = new java.awt.GridBagConstraints();
-        //gbc.anchor = java.awt.GridBagConstraints.WEST;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 0.2;
+        var limitRangeBtn = new JButton();                        
+        var adiabaticSolutionBtn = new JToggleButton();
+        var residualsBtn = new JToggleButton();
+		
+		var gbc = new java.awt.GridBagConstraints();
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.weightx = 0.25;
         
         lowerLimitField.setValue(0.0);
         
@@ -377,8 +364,23 @@ public class TaskControlFrame extends JFrame {
         lowerLimitField.addFocusListener(ftfFocusListener);
         upperLimitField.addFocusListener(ftfFocusListener);
         
-        limitRangeBtn.addActionListener(e -> processRange() );        
+        limitRangeBtn.addActionListener(e -> 
+        {
+            if ( (!lowerLimitField.isEditValid()) || (!upperLimitField.isEditValid()) ) { //The text is invalid.
+                if (userSaysRevert(lowerLimitField)) { //reverted
+                	lowerLimitField.postActionEvent(); //inform the editor
+                }
+            }                       
+            
+            else {            	
+            	double lower = ((Number)lowerLimitField.getValue()).doubleValue();            	
+            	double upper = ((Number)upperLimitField.getValue()).doubleValue();            	            	
+            	validateRange(lower,upper); 
+            	plot();
+            }
+        } );        
         
+        gbc.weightx = 0.25;
         chartToolbar.add(limitRangeBtn,gbc);
 
         adiabaticSolutionBtn.setToolTipText("Sanity check (original adiabatic solution)");
@@ -389,7 +391,7 @@ public class TaskControlFrame extends JFrame {
         	plot();
         });
    
-        gbc.weightx = 0.1;
+        gbc.weightx = 0.125;
         chartToolbar.add(adiabaticSolutionBtn,gbc);
         
         residualsBtn.setToolTipText("Plot residuals");
@@ -401,14 +403,607 @@ public class TaskControlFrame extends JFrame {
         	plot();
         });
         
-        gbc.weightx = 0.1;
+        gbc.weightx = 0.125;
         chartToolbar.add(residualsBtn,gbc);
+        return chartToolbar;
+	}
 
-        graphFrame.getContentPane().add(chartToolbar, java.awt.BorderLayout.PAGE_END);
+	private static JInternalFrame initGraphFrame() {
+		var graphFrame = new JInternalFrame("", false, false, false, true);
+		var chart = Chart.createEmptyPanel();
+        graphFrame.getContentPane().add(chart, BorderLayout.CENTER);
+        graphFrame.setTitle("Time-temperature profile(s)");                
+        
+        chart.setMaximumDrawHeight(2000);
+        chart.setMaximumDrawWidth(2000);
+        chart.setMinimumDrawWidth(10);
+        chart.setMinimumDrawHeight(10);       
+        
+        graphFrame.getContentPane().add(initOpacitySlider(), BorderLayout.LINE_END);                               
+        graphFrame.getContentPane().add(initChartToolbar(), java.awt.BorderLayout.PAGE_END);
+        
+        return graphFrame;
+	}
+	
+	private static JPanel initLogToolbar() {
 
-        desktopPane.add(graphFrame, global);
-        graphFrame.setBounds(new Rectangle(440, 10, 570, 430));
-        graphFrame.setNormalBounds(new Rectangle(440, 10, 570, 430));
+        var logToolbar = new JPanel();
+        logToolbar.setLayout(new GridLayout());
+        
+        var saveLogBtn = new JButton(Launcher.loadIcon("save.png", ICON_SIZE));
+        saveLogBtn.setToolTipText("Save");
+        
+		var verboseCheckBox = new JCheckBox(Messages.getString("LogToolBar.Verbose")); //$NON-NLS-1$
+		verboseCheckBox.setSelected(Log.isVerbose());
+		verboseCheckBox.setHorizontalAlignment(SwingConstants.CENTER);
+		
+		verboseCheckBox.addActionListener( event -> Log.setVerbose(verboseCheckBox.isSelected()) ) ;
+		
+		saveLogBtn.addActionListener(e -> {
+			if(logTextPane.getDocument().getLength() > 0)
+				ExportManager.askToExport(logTextPane, instance, Messages.getString("LogToolBar.FileFormatDescriptor"));
+		});
+        
+        logToolbar.add(saveLogBtn);
+        logToolbar.add(verboseCheckBox);
+        return logToolbar;
+        
+	}
+	
+	private static JSlider initOpacitySlider() {
+        JSlider opacitySlider = new JSlider();
+        opacitySlider.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
+        opacitySlider.setOrientation(SwingConstants.VERTICAL);
+        opacitySlider.setToolTipText("Slide to change the dataset opacity");
+        
+        opacitySlider.addChangeListener(e -> {	
+        	Chart.setOpacity( (float) (SLIDER_A_COEF*Math.exp(SLIDER_B_COEF*opacitySlider.getValue())) );
+	        plot();
+        });
+        return opacitySlider;
+    }	
+	private static JInternalFrame initResultsFrame() {
+		var resultsFrame = new JInternalFrame("", false, false, false, true);				
+        JScrollPane resultsScroller = new JScrollPane();
+        resultTable = new ResultTable(ResultFormat.DEFAULT_FORMAT);
+        JPanel resultToolbar = assignResultToolbar();                
+        
+        resultsScroller.setViewportView(resultTable);
+        resultsFrame.getContentPane().add(resultsScroller, java.awt.BorderLayout.CENTER);
+       
+        resultsFrame.setTitle("Results");
+        resultsFrame.setVisible(true);              
+
+        resultsFrame.getContentPane().add(resultToolbar, java.awt.BorderLayout.EAST);        		
+        
+        return resultsFrame;                       
+	}
+	
+	public static void loadDataDialog() {
+		var files = userInput( Messages.getString("TaskControlFrame.ExtensionDescriptor"), ReaderManager.getCurveExtensions() ); 
+		
+		if(files != null) {		
+			TaskManager.generateTasks(files);
+			TaskManager.selectFirstTask();
+		}
+				
+	}
+	
+	public static void loadMetadataDialog() {
+		MetaFileReader reader = MetaFileReader.getInstance();
+		var file = userInputSingle(Messages.getString("TaskControlFrame.ExtensionDescriptor"), reader.getSupportedExtension());
+
+		//attempt to fill metadata and problem 
+		try {											
+			
+			for(SearchTask task : TaskManager.getTaskList()) {
+				ExperimentalData data = task.getExperimentalCurve();				
+				 
+				reader.populateMetadata(file, data.getMetadata());
+					
+				Problem p = task.getProblem();					
+				if(p != null) p.retrieveData(data);								
+ 				
+			}
+			
+		} catch (IOException e) {
+			JOptionPane.showMessageDialog(instance,
+				    Messages.getString("TaskControlFrame.LoadError"), 
+				    Messages.getString("TaskControlFrame.IOError"), 
+				    JOptionPane.ERROR_MESSAGE);
+			e.printStackTrace();
+		}
+		
+		//check if the data loaded needs truncation		
+		if(TaskManager.dataNeedsTruncation())
+			truncateDataDialog();
+				
+		//select first of the generated task
+		TaskManager.selectFirstTask();
+		
+	}
+	public static void plot() {
+		Chart.plot(TaskManager.getSelectedTask(), false);		
+	}
+	
+    private static void showInputDialog() {
+		averageWindowDialog.setLocationRelativeTo(null);
+		averageWindowDialog.setVisible(true);
+		averageWindowDialog.setConfirmAction( () -> resultTable.merge(averageWindowDialog.value().doubleValue()) );
+	}
+    private static void showPreviewFrame() {
+		previewFrame.update(
+		    		((ResultTableModel)resultTable.getModel()).getFormat()
+		    		, resultTable.data());
+		
+		globalConstraints.fill = GridBagConstraints.BOTH;
+		globalConstraints.gridx = 0;
+		globalConstraints.gridy = 0;
+		globalConstraints.weightx = 1.0;
+		globalConstraints.weighty = 0.65;
+		
+		globalLayout.setConstraints(previewFrame, globalConstraints);
+		
+		globalConstraints.fill = GridBagConstraints.BOTH;
+		globalConstraints.gridx = 0;
+		globalConstraints.gridy = 1;
+		globalConstraints.weightx = 1.0;
+		globalConstraints.weighty = 0.35;
+		
+		globalLayout.setConstraints(resultsFrame, globalConstraints);
+		
+		previewFrame.setVisible(true);				
+		resultsFrame.setVisible(true);		
+		taskManagerFrame.setVisible(false);
+		graphFrame.setVisible(false);
+		logFrame.setVisible(false);				
+	}
+    private static void truncateDataDialog() {								
+		Object[] options = {"Truncate", "Do not change"}; 
+		int answer = JOptionPane.showOptionDialog(
+				instance,
+						("The acquisition time for some experiments appears to be too long.\nIf time resolution is low, the model estimates will be biased.\n\nIt is recommended to allow PULSE to truncate this data.\n\nWould you like to proceed? "), //$NON-NLS-1$
+						"Potential Problem with Data", 
+						JOptionPane.YES_NO_OPTION,
+						JOptionPane.WARNING_MESSAGE,
+						null,
+						options,
+						options[0]);
+		if(answer == 0) 
+			TaskManager.truncateData();										
+	}
+    private static List<File> userInput(String descriptor, List<String> extensions) {
+    	JFileChooser fileChooser = new JFileChooser();
+		 
+		fileChooser.setCurrentDirectory( directory());		
+		fileChooser.setMultiSelectionEnabled(true);
+
+		String[] extArray = extensions.toArray(new String[extensions.size()]);					
+		fileChooser.setFileFilter(new FileNameExtensionFilter( descriptor, extArray)); 
+		
+		boolean approve = fileChooser.showOpenDialog(instance) == JFileChooser.APPROVE_OPTION;
+		dir = fileChooser.getCurrentDirectory();
+		
+		return approve ? Arrays.asList(fileChooser.getSelectedFiles()) : null;
+    }
+    private static File userInputSingle(String descriptor,  List<String> extensions) {
+    	JFileChooser fileChooser = new JFileChooser();
+		 
+		fileChooser.setCurrentDirectory( directory());		
+		fileChooser.setMultiSelectionEnabled(false);
+
+		String[] extArray = extensions.toArray(new String[extensions.size()]);					
+		fileChooser.setFileFilter(new FileNameExtensionFilter( descriptor, extArray)); 
+		
+		boolean approve = fileChooser.showOpenDialog(instance) == JFileChooser.APPROVE_OPTION;
+		dir = fileChooser.getCurrentDirectory();
+		
+		return approve ? fileChooser.getSelectedFile() : null;
+    }
+    private static File userInputSingle(String descriptor, String... extensions) {
+    	return userInputSingle(descriptor, Arrays.asList(extensions));				
+    }
+    private static boolean userSaysRevert(JFormattedTextField ftf) {
+        Toolkit.getDefaultToolkit().beep();
+        ftf.selectAll();
+        Object[] options = {Messages.getString("NumberEditor.EditText"), 
+                            Messages.getString("NumberEditor.RevertText")};
+        int answer = JOptionPane.showOptionDialog(
+            SwingUtilities.getWindowAncestor(ftf),            
+            "<html>Time domain should be consistent with the experimental data range.<br>" 
+            + Messages.getString("NumberEditor.MessageLine1") 
+            + Messages.getString("NumberEditor.MessageLine2") + "</html>",
+            Messages.getString("NumberEditor.InvalidText"),
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.ERROR_MESSAGE,
+            null,
+            options,
+            options[1]);
+         
+        if (answer == 1) { //Revert!
+            ftf.setValue(ftf.getValue());
+        return true;
+        }
+    return false;
+    }
+    private static void validateRange(double a, double b) {
+    	SearchTask task = TaskManager.getSelectedTask();
+    	
+    	if(task == null)
+    		return;
+    	
+    	ExperimentalData expCurve = task.getExperimentalCurve();
+    	
+    	if(expCurve == null)
+    		return;
+    			
+		StringBuilder sb = new StringBuilder();
+		
+		sb.append("<html><p>");
+		sb.append(Messages.getString("RangeSelectionFrame.ConfirmationMessage1"));
+		sb.append("</p><br>");
+		sb.append(Messages.getString("RangeSelectionFrame.ConfirmationMessage2"));
+		sb.append(expCurve.getEffectiveStartTime());
+		sb.append(" to ");
+		sb.append(expCurve.getEffectiveEndTime());
+		sb.append("<br><br>");
+		sb.append(Messages.getString("RangeSelectionFrame.ConfirmationMessage3"));
+		sb.append(String.format("%3.4f", a) + " to " + String.format("%3.4f", b));
+		sb.append("</html>");
+		
+		int dialogResult = JOptionPane.showConfirmDialog 
+				(getInstance(), 
+						sb.toString(), 
+						"Confirm chocie", JOptionPane.YES_NO_OPTION);
+		
+		if(dialogResult == JOptionPane.YES_OPTION)			
+			expCurve.setRange(new Range(a, b));	
+		
+    }
+    private JMenuItem aboutItem;
+    private JButton clearBtn;
+    private JMenu dataControlsMenu;
+    private JButton execBtn;
+    private JMenuItem exitItem;
+    private JMenuItem exportAllItem;
+    private JMenuItem exportCurrentItem;
+    private ExportDialog exportDialog;
+    private JButton graphBtn;
+    private JMenuItem loadDataItem;	
+	
+    private JMenuItem loadMetadataItem;
+    private JMenuBar mainMenu;
+    private JMenuItem modelSettingsItem;
+   
+    private ProblemStatementFrame problemStatementFrame;
+    
+    private JButton removeBtn;
+    
+    private JButton resetBtn;
+	private JMenuItem resultFormatItem;
+    private SearchOptionsFrame searchOptionsFrame;
+    private JMenuItem searchSettingsItem;
+    private JMenu settingsMenu;
+    
+    private TaskTable taskTable;
+    
+    /**
+	 * Create the frame.
+	 */
+	
+	private TaskControlFrame() {
+        setTitle(Messages.getString("TaskControlFrame.SoftwareTitle"));
+        setPreferredSize(new Dimension(WIDTH, HEIGHT));
+		initComponents();
+		assignMenuFunctions();
+		scheduleLogEvents();
+		setIconImage(Launcher.loadIcon("logo.png", 32).getImage());
+		addButtonListeners();
+		
+		addWindowListener(new WindowAdapter() {
+			
+			@Override
+			public void windowClosing(java.awt.event.WindowEvent evt) {                               
+			        JFrame closingWindow = (JFrame) evt.getSource();
+			        if(!exitConfirmed(closingWindow)) {
+			            closingWindow.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+			        } else
+			            closingWindow.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+			}
+			
+		});
+		
+		setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        pack();
+		
+	}
+    
+    private void addButtonListeners() {
+		removeBtn.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				int[] rows = taskTable.getSelectedRows();
+				Identifier id; 
+				
+				for(int i = rows.length - 1; i >= 0; i--) {
+					id = (Identifier) taskTable.getValueAt(rows[i], 0);
+					TaskManager.removeTask(TaskManager.getTask(id));
+				}
+				
+				taskTable.clearSelection();
+				
+			}
+				
+		});
+		
+		/*
+		 * 
+		 */
+		
+		clearBtn.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				TaskManager.clear();
+				logTextPane.clear();
+				resultTable.clear();
+			}
+			
+		});
+		
+		/*
+		 * 
+		 */
+		
+		resetBtn.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				TaskManager.reset();
+				logTextPane.clear();
+				resultTable.removeAll();
+			}
+			
+		});
+		
+		graphBtn.addActionListener(e -> plot() );				
+		
+	}
+    
+	public void adjustEnabledControls(TaskTable taskTable) {
+		TaskTableModel ttm = (TaskTableModel) taskTable.getModel();
+		
+		ttm.addTableModelListener(
+				new TableModelListener(){
+
+					@Override
+					public void tableChanged(TableModelEvent arg0) {
+						if(ttm.getRowCount() < 1) {
+							clearBtn.setEnabled(false);
+							resetBtn.setEnabled(false);
+							execBtn.setEnabled(false);
+						} else {
+							clearBtn.setEnabled(true);
+							resetBtn.setEnabled(true);
+							execBtn.setEnabled(true);
+						}
+					}						
+					
+					
+		});
+		
+		taskTable.getSelectionModel().addListSelectionListener( new ListSelectionListener() {
+
+			@Override
+			public void valueChanged(ListSelectionEvent arg0) {
+				int[] selection = taskTable.getSelectedRows();
+				if(taskTable.getSelectedRow() < 0) {
+					removeBtn.setEnabled(false);
+					graphBtn.setEnabled(false);				
+				} else {
+					if(selection.length > 1) {
+						removeBtn.setEnabled(false);
+						graphBtn.setEnabled(false);
+					}
+					else if(selection.length > 0) {
+						removeBtn.setEnabled(true);
+						graphBtn.setEnabled(true);
+					}
+				}
+			}
+		
+		});
+	}
+	public void assignMenuFunctions() {
+		loadDataItem.addActionListener(e -> loadDataDialog());			
+		loadMetadataItem.setEnabled(false);
+		loadMetadataItem.addActionListener(e -> loadMetadataDialog());		
+		
+		modelSettingsItem.setEnabled(false);
+		modelSettingsItem.addActionListener(e -> showProblemStatementFrame());
+		
+		searchSettingsItem.setEnabled(false);
+		searchSettingsItem.addActionListener(e -> showSearchOptionsFrame() );
+		
+		resultFormatItem.addActionListener(e -> {
+			ResultChangeDialog changeDialog = new ResultChangeDialog();
+			changeDialog.setLocationRelativeTo(instance);
+			changeDialog.setAlwaysOnTop(true);
+			changeDialog.setVisible(true);
+				
+				ResultFormat.addResultFormatListener(new ResultFormatListener() {
+
+					@Override
+					public void resultFormatChanged(ResultFormatEvent rfe) {
+						ResultFormat res = rfe.getResultFormat();
+						 ( (ResultTableModel)resultTable.getModel()).changeFormat(res);
+					}
+					
+				});
+							
+		});
+		
+		TaskManager.addTaskRepositoryListener(new TaskRepositoryListener() {
+
+			@Override
+			public void onTaskListChanged(TaskRepositoryEvent e) {
+				if(TaskManager.getTaskList().size() > 0) {
+					loadMetadataItem.setEnabled(true);
+					modelSettingsItem.setEnabled(true);
+					searchSettingsItem.setEnabled(true);
+				} else {
+					loadMetadataItem.setEnabled(false);
+					modelSettingsItem.setEnabled(false);
+					searchSettingsItem.setEnabled(false);					}
+			}				
+			
+		});
+		
+		exportAllItem.setEnabled(true);
+		exportAllItem.addActionListener(e -> {
+			exportDialog.setLocationRelativeTo(null);
+			exportDialog.setAlwaysOnTop(true);
+			exportDialog.setVisible(true);
+		}
+				 );
+		
+		aboutItem.addActionListener(e -> {
+				JDialog aboutDialog = new AboutDialog();
+				aboutDialog.setLocationRelativeTo(instance);
+				aboutDialog.setAlwaysOnTop(true);
+				aboutDialog.setVisible(true);
+			});
+		
+	}
+	private boolean exitConfirmed(Component closingComponent) {
+        Object[] options = {"Yes", "No"};
+	return JOptionPane.showOptionDialog(
+                                    closingComponent,
+                                    Messages.getString("TaskControlFrame.ExitMessage"), 
+                                    Messages.getString("TaskControlFrame.ExitTitle"), 
+                                    JOptionPane.YES_NO_OPTION,
+                                    JOptionPane.WARNING_MESSAGE,
+                                    null,
+                                    options,
+                                    options[1]) == JOptionPane.YES_OPTION;
+    }
+	private void exitItemActionPerformed(java.awt.event.ActionEvent evt) {                                         
+        if(exitConfirmed((Component) evt.getSource()))
+            System.exit(0);
+    }
+	private void hidePreviewFrame() {
+		previewFrame.setVisible(false);				
+		resultsFrame.setVisible(true);		
+		taskManagerFrame.setVisible(true);
+		graphFrame.setVisible(true);
+		logFrame.setVisible(true);				
+	}
+	private void hideProblemStatementFrame() {
+		previewFrame.setVisible(false);
+		problemStatementFrame.setVisible(false);
+		resultsFrame.setVisible(true);		
+		taskManagerFrame.setVisible(true);
+		graphFrame.setVisible(true);
+		logFrame.setVisible(true);				
+	}
+	private void hideSearchOptionsFrame() {		
+		searchOptionsFrame.setVisible(false);
+		previewFrame.setVisible(false);
+		problemStatementFrame.setVisible(false);
+		resultsFrame.setVisible(true);		
+		taskManagerFrame.setVisible(true);
+		graphFrame.setVisible(true);
+		logFrame.setVisible(true);				
+	}
+	/**
+     * This method is called from within the constructor to initialize the form.    
+     */           
+    
+    private void initComponents() {
+
+        var desktopPane = new JDesktopPane();
+        
+        globalLayout = new GridBagLayout();
+        desktopPane.setLayout(globalLayout);
+
+        globalConstraints = new java.awt.GridBagConstraints();        
+        globalConstraints.fill = GridBagConstraints.BOTH;
+        globalConstraints.insets = new Insets(5,5,5,5);
+        
+        taskManagerFrame = new JInternalFrame("", false, false, false, true);
+        var taskScrollPane = new JScrollPane();
+        
+        var taskTable = new TaskTable();
+		logTextPane	= new LogPane();
+        var taskToolbar = new JPanel();
+        
+        removeBtn = new JButton(Launcher.loadIcon("remove.png", ICON_SIZE));
+        clearBtn = new JButton(Launcher.loadIcon("clear.png", ICON_SIZE));
+        resetBtn = new JButton(Launcher.loadIcon("reset.png", ICON_SIZE));
+        graphBtn = new JButton(Launcher.loadIcon("graph.png", ICON_SIZE));
+        execBtn = new ExecutionButton();
+        
+        graphFrame = initGraphFrame();
+        desktopPane.add(graphFrame, globalConstraints);
+        graphFrame.setVisible(true);       
+                
+        logFrame = new JInternalFrame("", false, false, false, true);                
+        var logScroller = new JScrollPane();
+                
+        resultsFrame = initResultsFrame();
+        
+        mainMenu = new JMenuBar();
+        dataControlsMenu = new JMenu();
+        loadDataItem = new JMenuItem();
+        loadMetadataItem = new JMenuItem();
+        exportCurrentItem = new JMenuItem();
+        exportAllItem = new JMenuItem();
+        exitItem = new JMenuItem();
+        settingsMenu = new JMenu();
+        modelSettingsItem = new JMenuItem();
+        searchSettingsItem = new JMenuItem();
+        resultFormatItem = new JMenuItem();
+        var infoMenu = new JMenu();
+        aboutItem = new JMenuItem();
+
+        exportDialog = new ExportDialog();
+        averageWindowDialog = new FormattedInputDialog(NumericProperty.theDefault(NumericPropertyKeyword.WINDOW));
+                
+        taskManagerFrame.setTitle("Task Manager");
+        taskManagerFrame.setVisible(true);
+     
+        taskScrollPane.setViewportView(taskTable);
+		adjustEnabledControls(taskTable);
+
+        taskManagerFrame.getContentPane().add(taskScrollPane, java.awt.BorderLayout.CENTER);
+
+        taskToolbar.setLayout(new java.awt.GridLayout(1, 0));
+        
+		removeBtn.setEnabled(false);
+		clearBtn.setEnabled(false);
+		resetBtn.setEnabled(false);
+		graphBtn.setEnabled(false);
+		execBtn.setEnabled(false);
+        
+        removeBtn.setToolTipText("Remove Task");
+        taskToolbar.add(removeBtn);
+
+        clearBtn.setToolTipText("Clear All Tasks");
+        taskToolbar.add(clearBtn);
+
+        resetBtn.setToolTipText("Reset All Tasks");
+        taskToolbar.add(resetBtn);
+
+        graphBtn.setToolTipText("Show Graph");
+        taskToolbar.add(graphBtn);
+
+        execBtn.setToolTipText("Execute All Tasks");
+        taskToolbar.add(execBtn);
+
+        taskManagerFrame.getContentPane().add(taskToolbar, BorderLayout.PAGE_START);
+        
+        desktopPane.add(taskManagerFrame, globalConstraints);
 
         logFrame.setTitle("Log");
         logFrame.setVisible(true);
@@ -416,81 +1011,21 @@ public class TaskControlFrame extends JFrame {
         logScroller.setViewportView(logTextPane);
 
         logFrame.getContentPane().setLayout(new BorderLayout());
-        logFrame.getContentPane().add(logScroller, java.awt.BorderLayout.CENTER);
-
-        logToolbar.setLayout(new GridLayout());
-
-        logToolbar.add(saveLogBtn);
-        logFrame.getContentPane().add(logToolbar, java.awt.BorderLayout.LINE_END);
-
-        logToolbar.add(saveLogBtn);
-        
-		verboseCheckBox = new JCheckBox(Messages.getString("LogToolBar.Verbose")); //$NON-NLS-1$
-		verboseCheckBox.setSelected(Log.isVerbose());
-		verboseCheckBox.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        logToolbar.add(verboseCheckBox);
-        
-        systemStatusBar.setLayout(new java.awt.GridBagLayout());
+        logFrame.getContentPane().add(logScroller, java.awt.BorderLayout.CENTER);                		       
         
         GridBagConstraints gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.weightx = 0.5;             
         
-        cpuLabel.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-        cpuLabel.setText("CPU:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.weightx = 2.5;
-        systemStatusBar.add(cpuLabel, gridBagConstraints);
+        logFrame.getContentPane().add( 
+        		initSystemPanel(globalLayout, globalConstraints) 
+        		, java.awt.BorderLayout.PAGE_END);
+        
+        logFrame.getContentPane().add(initLogToolbar(), java.awt.BorderLayout.NORTH);
 
-        memoryLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        memoryLabel.setText("Memory:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.weightx = 2.5;
-        systemStatusBar.add(memoryLabel, gridBagConstraints);
-
-        coresLabel.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        coresLabel.setText("{n cores} ");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.weightx = 2.5;
-        systemStatusBar.add(coresLabel, gridBagConstraints);
-
-        logFrame.getContentPane().add(systemStatusBar, java.awt.BorderLayout.PAGE_END);
-        logFrame.getContentPane().add(logToolbar, java.awt.BorderLayout.NORTH);
-
-        desktopPane.add(logFrame, global);
-        logFrame.setBounds(new Rectangle(10, 450, 420, 220));
-        logFrame.setNormalBounds(new Rectangle(10, 450, 420, 220));
-
-        resultsFrame.setTitle("Results");
-        resultsFrame.setVisible(true);
-
-        resultsTable = new ResultTable(ResultFormat.DEFAULT_FORMAT);
-        resultsScroller.setViewportView(resultsTable);
-
-        resultsFrame.getContentPane().add(resultsScroller, java.awt.BorderLayout.CENTER);
-
-        resultToolbar.setLayout(new java.awt.GridLayout(5, 0));
-
-        deleteEntryBtn.setToolTipText("Delete Entry");
-        resultToolbar.add(deleteEntryBtn);
-
-        mergeBtn.setToolTipText("Merge (Auto)");
-        resultToolbar.add(mergeBtn);
-
-        undoBtn.setToolTipText("Undo");
-        resultToolbar.add(undoBtn);
-
-        previewBtn.setToolTipText("Preview");
-        resultToolbar.add(previewBtn);
-
-        saveResultsBtn.setToolTipText("Save");
-        resultToolbar.add(saveResultsBtn);
-
-        resultsFrame.getContentPane().add(resultToolbar, java.awt.BorderLayout.EAST);
-
-        desktopPane.add(resultsFrame,global);
-        resultsFrame.setBounds(new Rectangle(440, 450, 570, 220));
-        resultsFrame.setNormalBounds(new Rectangle(440, 450, 570, 220));
+        desktopPane.add(logFrame, globalConstraints);
+        
+        desktopPane.add(resultsFrame,globalConstraints);
 
         getContentPane().add(desktopPane, java.awt.BorderLayout.CENTER);
 
@@ -507,7 +1042,7 @@ public class TaskControlFrame extends JFrame {
         loadMetadataItem.setText("Load Metadata...");
         loadMetadataItem.setEnabled(false);
         dataControlsMenu.add(loadMetadataItem);
-        dataControlsMenu.add(jSeparator2);
+        dataControlsMenu.add(new JSeparator());
 
         exportCurrentItem.setText("Export Current");
         exportCurrentItem.setMnemonic('c');
@@ -549,7 +1084,7 @@ public class TaskControlFrame extends JFrame {
         exportAllItem.setEnabled(false);
 
         dataControlsMenu.add(exportAllItem);
-        dataControlsMenu.add(jSeparator3);
+        dataControlsMenu.add(new JSeparator());
 
         exitItem.setMnemonic('x');
         exitItem.setText("Exit");
@@ -702,29 +1237,30 @@ public class TaskControlFrame extends JFrame {
         
         settingsMenu.add(searchSettingsItem);
         settingsMenu.add(analysisSubMenu);
-        settingsMenu.add(jSeparator1);
+        settingsMenu.add(new JSeparator());
         settingsMenu.add(resultFormatItem);
         settingsMenu.add(selectBuffer);
         
         mainMenu.add(settingsMenu);
 
-        InfoMenu.setText("Info");
-        InfoMenu.setFont(menuFont);
+        infoMenu.setText("Info");
+        infoMenu.setFont(menuFont);
 
         aboutItem.setText("About...");
-        InfoMenu.add(aboutItem);
+        infoMenu.add(aboutItem);
 
-        mainMenu.add(InfoMenu);
+        mainMenu.add(infoMenu);
 
         setJMenuBar(mainMenu);
 
         previewFrame = new PreviewFrame();
-        desktopPane.add(previewFrame, global);
+        desktopPane.add(previewFrame, globalConstraints);
         
         previewFrame.addInternalFrameListener(new InternalFrameAdapter() {
         	
         	@Override
         	public void internalFrameClosing(InternalFrameEvent e) {
+        		resetConstraints(globalLayout, globalConstraints);
         		hidePreviewFrame();
         	}
         	
@@ -737,12 +1273,13 @@ public class TaskControlFrame extends JFrame {
         	
         	@Override
         	public void internalFrameClosing(InternalFrameEvent e) {
+        		resetConstraints(globalLayout, globalConstraints);
         		hideProblemStatementFrame();
         	}
         	
         });
 		
-		desktopPane.add(problemStatementFrame, global);
+		desktopPane.add(problemStatementFrame, globalConstraints);
         		
 		searchOptionsFrame = 
 				new SearchOptionsFrame(  );
@@ -751,24 +1288,25 @@ public class TaskControlFrame extends JFrame {
         	
         	@Override
         	public void internalFrameClosing(InternalFrameEvent e) {
+        		resetConstraints(globalLayout, globalConstraints);
         		hideSearchOptionsFrame();
         	}
         	
         });
 		
-		desktopPane.add(searchOptionsFrame, global);
+		desktopPane.add(searchOptionsFrame, globalConstraints);
 		
         /*
          * CONSTRAIN ADJUSTMENT
          */
 		
-		resetConstraints();	
+		resetConstraints(globalLayout, globalConstraints);	
         
 		var ifa = new InternalFrameAdapter() {
 			
 			@Override
 			public void internalFrameDeiconified(InternalFrameEvent e) {
-				resetConstraints();
+				resetConstraints(globalLayout,globalConstraints);
 			}
 			
 		};
@@ -778,26 +1316,97 @@ public class TaskControlFrame extends JFrame {
         logFrame.addInternalFrameListener(ifa);
         resultsFrame.addInternalFrameListener(ifa);
         
-        pack();
-    }// </editor-fold>                        
-
-    private void exitItemActionPerformed(java.awt.event.ActionEvent evt) {                                         
-        if(exitConfirmed((Component) evt.getSource()))
-            System.exit(0);
-    }                                        
-
-    private boolean exitConfirmed(Component closingComponent) {
-        Object[] options = {"Yes", "No"};
-	return JOptionPane.showOptionDialog(
-                                    closingComponent,
-                                    Messages.getString("TaskControlFrame.ExitMessage"), 
-                                    Messages.getString("TaskControlFrame.ExitTitle"), 
-                                    JOptionPane.YES_NO_OPTION,
-                                    JOptionPane.WARNING_MESSAGE,
-                                    null,
-                                    options,
-                                    options[1]) == JOptionPane.YES_OPTION;
     }
+	
+	private JPanel initSystemPanel(GridBagLayout gridBagLayout, GridBagConstraints gridBagConstraints) {
+        
+        var systemStatusBar = new JPanel();
+        systemStatusBar.setLayout(new java.awt.GridBagLayout());
+		
+		var cpuLabel = new JLabel();        
+        var memoryLabel = new JLabel();
+        var coresLabel = new JLabel();
+        
+		cpuLabel.setHorizontalAlignment(SwingConstants.LEFT);
+        cpuLabel.setText("CPU:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.weightx = 2.5;
+        systemStatusBar.add(cpuLabel, gridBagConstraints);
+
+        memoryLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        memoryLabel.setText("Memory:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.weightx = 2.5;
+        systemStatusBar.add(memoryLabel, gridBagConstraints);
+
+        coresLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+        coresLabel.setText("{n cores} ");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.weightx = 2.5;
+        systemStatusBar.add(coresLabel, gridBagConstraints);
+
+		startSystemMonitors(coresLabel,cpuLabel,memoryLabel);
+		
+		return systemStatusBar;
+	}
+	
+	private void resetConstraints(GridBagLayout layout, GridBagConstraints gc) {
+		gc.fill = GridBagConstraints.BOTH;
+		gc.gridx = 1;
+		gc.gridy = 1;
+		gc.weightx = 0.6;
+		gc.weighty = 0.35;
+		
+		layout.setConstraints(resultsFrame, gc);
+		
+		gc.fill = GridBagConstraints.BOTH;
+		gc.gridx = 1;
+		gc.gridy = 0;
+		gc.weightx = 0.6;
+		gc.weighty = 0.65;
+		
+		layout.setConstraints(graphFrame, gc);
+		
+		gc.fill = GridBagConstraints.BOTH;
+		gc.gridx = 0;
+		gc.gridy = 1;
+		gc.weightx = 0.4;
+		gc.weighty = 0.35;
+		
+		layout.setConstraints(logFrame, gc);
+		
+		gc.fill = GridBagConstraints.BOTH;
+		gc.gridx = 0;
+		gc.gridy = 0;
+		gc.weightx = 0.4;
+		gc.weighty = 0.65;
+		
+		layout.setConstraints(taskManagerFrame, gc);
+		
+		gc.fill = GridBagConstraints.BOTH;
+		gc.gridx = 0;
+		gc.gridy = 0;
+		gc.weightx = 1.0;
+		gc.weighty = 0.65;
+		
+		layout.setConstraints(previewFrame, gc);
+		
+		gc.fill = GridBagConstraints.BOTH;
+		gc.gridx = 0;
+		gc.gridy = 0;
+		gc.weightx = 1.0;
+		gc.weighty = 0.65;
+		
+		layout.setConstraints(problemStatementFrame, gc);
+		
+		gc.fill = GridBagConstraints.BOTH;
+		gc.gridx = 0;
+		gc.gridy = 0;
+		gc.weightx = 1.0;
+		gc.weighty = 1.0;
+		
+		layout.setConstraints(problemStatementFrame, gc);
+	}
 	
 	public void scheduleLogEvents() {
 		TaskManager.addSelectionListener(new TaskSelectionListener() {
@@ -822,12 +1431,6 @@ public class TaskControlFrame extends JFrame {
 			task.getLog().addListener( new LogEntryListener() {
 
 				@Override
-				public void onNewEntry(LogEntry e) {
-					if(TaskManager.getSelectedTask() == task) 
-						logTextPane.callUpdate();	
-				}
-				
-				@Override
 				public void onLogFinished(Log log) {
 					if(TaskManager.getSelectedTask() == task) {
 						
@@ -843,6 +1446,12 @@ public class TaskControlFrame extends JFrame {
 					}
 				}
 				
+				@Override
+				public void onNewEntry(LogEntry e) {
+					if(TaskManager.getSelectedTask() == task) 
+						logTextPane.callUpdate();	
+				}
+				
 			}
 			
 			);
@@ -851,56 +1460,55 @@ public class TaskControlFrame extends JFrame {
 		);
 	}
 	
-	public void adjustEnabledControls() {
-		TaskTableModel ttm = (TaskTableModel) taskTable.getModel();
+	private void showProblemStatementFrame() {	
+		problemStatementFrame.update();
+		problemStatementFrame.setVisible(true);
 		
-		ttm.addTableModelListener(
-				new TableModelListener(){
-
-					@Override
-					public void tableChanged(TableModelEvent arg0) {
-						if(ttm.getRowCount() < 1) {
-							clearBtn.setEnabled(false);
-							resetBtn.setEnabled(false);
-							execBtn.setEnabled(false);
-						} else {
-							clearBtn.setEnabled(true);
-							resetBtn.setEnabled(true);
-							execBtn.setEnabled(true);
-						}
-					}						
-					
-					
-		});
+		globalConstraints.fill = GridBagConstraints.BOTH;
+		globalConstraints.gridx = 0;
+		globalConstraints.gridy = 1;
+		globalConstraints.weightx = 1.0;
+		globalConstraints.weighty = 0.35;
 		
-		taskTable.getSelectionModel().addListSelectionListener( new ListSelectionListener() {
-
-			@Override
-			public void valueChanged(ListSelectionEvent arg0) {
-				int[] selection = taskTable.getSelectedRows();
-				if(taskTable.getSelectedRow() < 0) {
-					removeBtn.setEnabled(false);
-					graphBtn.setEnabled(false);				
-				} else {
-					if(selection.length > 1) {
-						removeBtn.setEnabled(false);
-						graphBtn.setEnabled(false);
-					}
-					else if(selection.length > 0) {
-						removeBtn.setEnabled(true);
-						graphBtn.setEnabled(true);
-					}
-				}
-			}
+		globalLayout.setConstraints(graphFrame, globalConstraints);
 		
-		});
+		globalConstraints.fill = GridBagConstraints.BOTH;
+		globalConstraints.gridx = 0;
+		globalConstraints.gridy = 0;
+		globalConstraints.weightx = 1.0;
+		globalConstraints.weighty = 0.65;
+		
+		globalLayout.setConstraints(problemStatementFrame, globalConstraints);
+		
+		searchOptionsFrame.setVisible(false);
+		previewFrame.setVisible(false);				
+		resultsFrame.setVisible(false);		
+		taskManagerFrame.setVisible(false);
+		graphFrame.setVisible(true);
+		logFrame.setVisible(false);		
 	}
 	
-	public static TaskControlFrame getInstance() {
-		return instance;
+	private void showSearchOptionsFrame() {	
+		searchOptionsFrame.update();
+		searchOptionsFrame.setVisible(true);
+		
+		globalConstraints.fill = GridBagConstraints.BOTH;
+		globalConstraints.gridx = 0;
+		globalConstraints.gridy = 0;
+		globalConstraints.weightx = 1.0;
+		globalConstraints.weighty = 1.0;
+		
+		globalLayout.setConstraints(searchOptionsFrame, globalConstraints);
+		
+		problemStatementFrame.setVisible(false);
+		previewFrame.setVisible(false);				
+		resultsFrame.setVisible(false);		
+		taskManagerFrame.setVisible(false);
+		graphFrame.setVisible(false);
+		logFrame.setVisible(false);		
 	}
 	
-	private void startSystemMonitors() {		
+	private void startSystemMonitors(JLabel coresLabel, JLabel cpuLabel, JLabel memoryLabel) {		
 		String coresAvailable = String.format("{" + (Launcher.threadsAvailable()+1) + " cores}");
 		coresLabel.setText(coresAvailable);
 		
@@ -942,639 +1550,5 @@ public class TaskControlFrame extends JFrame {
 			
 		executor.scheduleAtFixedRate(periodicTask, 0, 2, TimeUnit.SECONDS);
 	}
-	
-	/*
-	 * Initiates the dialog to load experimental data
-	 */
-	
-	public static void loadDataDialog() {
-		JFileChooser fileChooser = new JFileChooser();
-		if(dir != null) 
-			fileChooser.setCurrentDirectory(dir);
-		
-		fileChooser.setMultiSelectionEnabled(true);
-		
-		List<String> extensions = ReaderManager.getCurveExtensions();							
-		String[] extArray = extensions.toArray(new String[extensions.size()]);			
-		
-		fileChooser.setFileFilter(new FileNameExtensionFilter(Messages.getString("TaskControlFrame.ExtensionDescriptor"), extArray)); 
-		
-		boolean approve = fileChooser.showOpenDialog(instance) == JFileChooser.APPROVE_OPTION;
-		dir = fileChooser.getCurrentDirectory();
-		
-		if(!approve)
-			return;
-		
-		TaskManager.generateTasks(Arrays.asList(fileChooser.getSelectedFiles()));
-		TaskManager.selectFirstTask();									
-				
-	}
-	
-	/*
-	 * Initiates the dialog to truncate experimental data
-	 */
-
-	public static void truncateDataDialog() {								
-		Object[] options = {"Truncate", "Do not change"}; 
-		int answer = JOptionPane.showOptionDialog(
-				instance,
-						("The acquisition time for some experiments appears to be too long.\nIf time resolution is low, the model estimates will be biased.\n\nIt is recommended to allow PULSE to truncate this data.\n\nWould you like to proceed? "), //$NON-NLS-1$
-						"Potential Problem with Data", 
-						JOptionPane.YES_NO_OPTION,
-						JOptionPane.WARNING_MESSAGE,
-						null,
-						options,
-						options[0]);
-		if(answer == 0) 
-			TaskManager.truncateData();										
-	}
-	
-	/*
-	 * Initiates the dialog to load metadata
-	 */
-	
-	public static void loadMetadataDialog() {
-		JFileChooser fileChooser = new JFileChooser();
-		
-		if(dir != null)
-			fileChooser.setCurrentDirectory(dir);
-		
-		fileChooser.setMultiSelectionEnabled(false);
-		
-		MetaFileReader reader = MetaFileReader.getInstance();
-		
-		String extension = reader.getSupportedExtension();										
-		fileChooser.setFileFilter(new FileNameExtensionFilter(Messages.getString("TaskControlFrame.ExtensionDescriptor"), extension)); //$NON-NLS-1$
-		
-		boolean approve = fileChooser.showOpenDialog(instance) == JFileChooser.APPROVE_OPTION;
-		dir = fileChooser.getCurrentDirectory();
-		
-		if(!approve)
-			return;
-		
-		try {
-			
-			Metadata met;
-			ExperimentalData data;
-			File f = fileChooser.getSelectedFile();
-			
-			for(SearchTask task : TaskManager.getTaskList()) {
-				data = task.getExperimentalCurve();
-				
-				if(data == null)
-					continue;
-				
-				met = data.getMetadata();
-				reader.populateMetadata(f, met);
-				
-				Problem p = task.getProblem();
-				if(p != null)
-					p.retrieveData(data);
- 				
-			}
-			
-			System.gc();
-
-			
-		} catch (IOException e) {
-			JOptionPane.showMessageDialog(instance,
-				    Messages.getString("TaskControlFrame.LoadError"), 
-				    Messages.getString("TaskControlFrame.IOError"), 
-				    JOptionPane.ERROR_MESSAGE);
-			e.printStackTrace();
-		}
-		
-		if(TaskManager.dataNeedsTruncation())
-			truncateDataDialog();
-				
-		TaskManager.selectFirstTask();
-		
-	}
-
-	public void plot() {
-		Chart.plot(TaskManager.getSelectedTask(), false);
-	}
-	
-	private void addButtonListeners() {
-		removeBtn.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				int[] rows = taskTable.getSelectedRows();
-				Identifier id; 
-				
-				for(int i = rows.length - 1; i >= 0; i--) {
-					id = (Identifier) taskTable.getValueAt(rows[i], 0);
-					TaskManager.removeTask(TaskManager.getTask(id));
-				}
-				
-				taskTable.clearSelection();
-				
-			}
-				
-		});
-		
-		/*
-		 * 
-		 */
-		
-		clearBtn.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				TaskManager.clear();
-				logTextPane.clear();
-				resultsTable.clear();
-			}
-			
-		});
-		
-		/*
-		 * 
-		 */
-		
-		resetBtn.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				TaskManager.reset();
-				logTextPane.clear();
-				resultsTable.removeAll();
-			}
-			
-		});
-		
-		graphBtn.addActionListener(e -> plot() );		
-		verboseCheckBox.addActionListener( event -> Log.setVerbose(verboseCheckBox.isSelected()) ) ;
-		
-		saveLogBtn.addActionListener(e -> {
-			if(logTextPane.getDocument().getLength() > 0)
-				ExportManager.askToExport(logTextPane, instance, Messages.getString("LogToolBar.FileFormatDescriptor"));
-		});
-		
-	}
-	
-	public void assignMenuFunctions() {
-		loadDataItem.addActionListener(e -> loadDataDialog());			
-		loadMetadataItem.setEnabled(false);
-		loadMetadataItem.addActionListener(e -> loadMetadataDialog());		
-		
-		modelSettingsItem.setEnabled(false);
-		modelSettingsItem.addActionListener(e -> showProblemStatementFrame());
-		
-		searchSettingsItem.setEnabled(false);
-		searchSettingsItem.addActionListener(e -> showSearchOptionsFrame() );
-		
-		resultFormatItem.addActionListener(e -> {
-				ResultChangeDialog changeDialog = new ResultChangeDialog();
-				changeDialog.setLocationRelativeTo(instance);
-				changeDialog.setAlwaysOnTop(true);
-				changeDialog.setVisible(true);
-				
-				ResultFormat.addResultFormatListener(new ResultFormatListener() {
-
-					@Override
-					public void resultFormatChanged(ResultFormatEvent rfe) {
-						ResultFormat res = rfe.getResultFormat();
-						 ( (ResultTableModel)resultsTable.getModel()).changeFormat(res);
-					}
-					
-				});
-							
-		});
-		
-		TaskManager.addTaskRepositoryListener(new TaskRepositoryListener() {
-
-			@Override
-			public void onTaskListChanged(TaskRepositoryEvent e) {
-				if(TaskManager.getTaskList().size() > 0) {
-					loadMetadataItem.setEnabled(true);
-					modelSettingsItem.setEnabled(true);
-					searchSettingsItem.setEnabled(true);
-				} else {
-					loadMetadataItem.setEnabled(false);
-					modelSettingsItem.setEnabled(false);
-					searchSettingsItem.setEnabled(false);					}
-			}				
-			
-		});
-		
-		exportAllItem.setEnabled(true);
-		exportAllItem.addActionListener(e -> {
-			ed.setLocationRelativeTo(null);
-			ed.setAlwaysOnTop(true);
-			ed.setVisible(true);
-		}
-				 );
-		
-		aboutItem.addActionListener(e -> {
-				JDialog aboutDialog = new AboutDialog();
-				aboutDialog.setLocationRelativeTo(instance);
-				aboutDialog.setAlwaysOnTop(true);
-				aboutDialog.setVisible(true);
-			});
-		
-	}
-	
-	/*
-	 * 
-	 */
-	
-	public void assignResultToolbar() {
-		deleteEntryBtn.setEnabled(false);
-		deleteEntryBtn.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				ResultTableModel rtm = (ResultTableModel) resultsTable.getModel();
-				
-				int[] selection = resultsTable.getSelectedRows();								
-				
-				if(selection.length < 0)
-					return;
-			
-				for(int i = selection.length - 1; i >= 0; i--) 
-					rtm.remove( 
-							rtm.getResults().get(resultsTable.convertRowIndexToModel(selection[i])) );
-				
-			}
-			
-		});
-				
-		mergeBtn.setEnabled(false);
-		mergeBtn.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if(resultsTable.getRowCount() < 1)
-					return;
-				
-				inputDialog.setLocationRelativeTo(null);
-				inputDialog.setVisible(true);
-				inputDialog.setConfirmAction( () -> resultsTable.merge(inputDialog.value().doubleValue()) );
-			}
-			
-		});		
-		
-		undoBtn.setEnabled(false);
-		undoBtn.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				ResultTableModel dtm = (ResultTableModel) resultsTable.getModel();
-				
-				for(int i = dtm.getRowCount()-1; i >= 0; i--) 
-					dtm.remove( dtm.getResults().get(resultsTable.convertRowIndexToModel(i)) );
-				
-				TaskManager.getTaskList().stream().map(t -> TaskManager.getResult(t)).forEach(r -> dtm.addRow(r));				
-			}
-			
-		});
-				
-		previewBtn.setEnabled(false);
-		previewBtn.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				
-				if(resultsTable.getModel().getRowCount() < 1) {
-					JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor((Component) e.getSource()),
-						    Messages.getString("ResultsToolBar.NoDataError"), //$NON-NLS-1$
-						    Messages.getString("ResultsToolBar.NoResultsError"), //$NON-NLS-1$
-						    JOptionPane.ERROR_MESSAGE);			
-					return;
-				}						
-				
-				showPreviewFrame();
-				
-			}
-			
-		});
-		
-		saveResultsBtn.setEnabled(false);
-		saveResultsBtn.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if(resultsTable.getRowCount() < 1) {
-					JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor((Component) e.getSource()),
-						    Messages.getString("ResultsToolBar.7"),
-						    Messages.getString("ResultsToolBar.8"), 
-						    JOptionPane.ERROR_MESSAGE);			
-					return;
-				}
-				
-				ExportManager.askToExport(resultsTable, instance, "Calculation results");
-				
-			}
-			
-			
-		});
-	}
-	
-	/*
-	 * 
-	 */
-	
-	private void showPreviewFrame() {
-		previewFrame.update(
-		    		((ResultTableModel)resultsTable.getModel()).getFormat()
-		    		, resultsTable.data());
-		
-		global.fill = GridBagConstraints.BOTH;
-		global.gridx = 0;
-		global.gridy = 0;
-		global.weightx = 1.0;
-		global.weighty = 0.65;
-		
-		globalLayout.setConstraints(previewFrame, global);
-		
-		global.fill = GridBagConstraints.BOTH;
-		global.gridx = 0;
-		global.gridy = 1;
-		global.weightx = 1.0;
-		global.weighty = 0.35;
-		
-		globalLayout.setConstraints(resultsFrame, global);
-		
-		previewFrame.setVisible(true);				
-		resultsFrame.setVisible(true);		
-		taskManagerFrame.setVisible(false);
-		graphFrame.setVisible(false);
-		logFrame.setVisible(false);				
-	}
-	
-	private void resetConstraints() {
-		global.fill = GridBagConstraints.BOTH;
-		global.gridx = 1;
-		global.gridy = 1;
-		global.weightx = 0.6;
-		global.weighty = 0.35;
-		
-		globalLayout.setConstraints(resultsFrame, global);
-		
-		global.fill = GridBagConstraints.BOTH;
-		global.gridx = 1;
-		global.gridy = 0;
-		global.weightx = 0.6;
-		global.weighty = 0.65;
-		
-		globalLayout.setConstraints(graphFrame, global);
-		
-		global.fill = GridBagConstraints.BOTH;
-		global.gridx = 0;
-		global.gridy = 1;
-		global.weightx = 0.4;
-		global.weighty = 0.35;
-		
-		globalLayout.setConstraints(logFrame, global);
-		
-		global.fill = GridBagConstraints.BOTH;
-		global.gridx = 0;
-		global.gridy = 0;
-		global.weightx = 0.4;
-		global.weighty = 0.65;
-		
-		globalLayout.setConstraints(taskManagerFrame, global);
-		
-		global.fill = GridBagConstraints.BOTH;
-		global.gridx = 0;
-		global.gridy = 0;
-		global.weightx = 1.0;
-		global.weighty = 0.65;
-		
-		globalLayout.setConstraints(previewFrame, global);
-		
-		global.fill = GridBagConstraints.BOTH;
-		global.gridx = 0;
-		global.gridy = 0;
-		global.weightx = 1.0;
-		global.weighty = 0.65;
-		
-		globalLayout.setConstraints(problemStatementFrame, global);
-		
-		global.fill = GridBagConstraints.BOTH;
-		global.gridx = 0;
-		global.gridy = 0;
-		global.weightx = 1.0;
-		global.weighty = 1.0;
-		
-		globalLayout.setConstraints(problemStatementFrame, global);
-	}
-	
-	private void hidePreviewFrame() {
-		resetConstraints();		
-		previewFrame.setVisible(false);				
-		resultsFrame.setVisible(true);		
-		taskManagerFrame.setVisible(true);
-		graphFrame.setVisible(true);
-		logFrame.setVisible(true);				
-	}
-	
-	private void hideProblemStatementFrame() {
-		resetConstraints();		
-		previewFrame.setVisible(false);
-		problemStatementFrame.setVisible(false);
-		resultsFrame.setVisible(true);		
-		taskManagerFrame.setVisible(true);
-		graphFrame.setVisible(true);
-		logFrame.setVisible(true);				
-	}
-	
-	private void hideSearchOptionsFrame() {
-		resetConstraints();		
-		searchOptionsFrame.setVisible(false);
-		previewFrame.setVisible(false);
-		problemStatementFrame.setVisible(false);
-		resultsFrame.setVisible(true);		
-		taskManagerFrame.setVisible(true);
-		graphFrame.setVisible(true);
-		logFrame.setVisible(true);				
-	}
-	
-	private void showProblemStatementFrame() {	
-		problemStatementFrame.update();
-		problemStatementFrame.setVisible(true);
-		
-		global.fill = GridBagConstraints.BOTH;
-		global.gridx = 0;
-		global.gridy = 1;
-		global.weightx = 1.0;
-		global.weighty = 0.35;
-		
-		globalLayout.setConstraints(graphFrame, global);
-		
-		global.fill = GridBagConstraints.BOTH;
-		global.gridx = 0;
-		global.gridy = 0;
-		global.weightx = 1.0;
-		global.weighty = 0.65;
-		
-		globalLayout.setConstraints(problemStatementFrame, global);
-		
-		searchOptionsFrame.setVisible(false);
-		previewFrame.setVisible(false);				
-		resultsFrame.setVisible(false);		
-		taskManagerFrame.setVisible(false);
-		graphFrame.setVisible(true);
-		logFrame.setVisible(false);		
-	}
-	
-	private void showSearchOptionsFrame() {	
-		searchOptionsFrame.update();
-		searchOptionsFrame.setVisible(true);
-		
-		global.fill = GridBagConstraints.BOTH;
-		global.gridx = 0;
-		global.gridy = 0;
-		global.weightx = 1.0;
-		global.weighty = 1.0;
-		
-		globalLayout.setConstraints(searchOptionsFrame, global);
-		
-		problemStatementFrame.setVisible(false);
-		previewFrame.setVisible(false);				
-		resultsFrame.setVisible(false);		
-		taskManagerFrame.setVisible(false);
-		graphFrame.setVisible(false);
-		logFrame.setVisible(false);		
-	}
-	
-    private boolean userSaysRevert(JFormattedTextField ftf) {
-        Toolkit.getDefaultToolkit().beep();
-        ftf.selectAll();
-        Object[] options = {Messages.getString("NumberEditor.EditText"), 
-                            Messages.getString("NumberEditor.RevertText")};
-        int answer = JOptionPane.showOptionDialog(
-            SwingUtilities.getWindowAncestor(ftf),            
-            "<html>Time domain should be consistent with the experimental data range.<br>" 
-            + Messages.getString("NumberEditor.MessageLine1") 
-            + Messages.getString("NumberEditor.MessageLine2") + "</html>",
-            Messages.getString("NumberEditor.InvalidText"),
-            JOptionPane.YES_NO_OPTION,
-            JOptionPane.ERROR_MESSAGE,
-            null,
-            options,
-            options[1]);
-         
-        if (answer == 1) { //Revert!
-            ftf.setValue(ftf.getValue());
-        return true;
-        }
-    return false;
-    }
-    
-    private void processRange() {
-        if ( (!lowerLimitField.isEditValid()) || (!upperLimitField.isEditValid()) ) { //The text is invalid.
-            if (userSaysRevert(lowerLimitField)) { //reverted
-            	lowerLimitField.postActionEvent(); //inform the editor
-            }
-        }                       
-        
-        else {            	
-        	double lower = ((Number)lowerLimitField.getValue()).doubleValue();            	
-        	double upper = ((Number)upperLimitField.getValue()).doubleValue();            	            	
-        	validateRange(lower,upper); 
-        	plot();
-        }
-    }
-        
-    private void validateRange(double a, double b) {
-    	SearchTask task = TaskManager.getSelectedTask();
-    	
-    	if(task == null)
-    		return;
-    	
-    	ExperimentalData expCurve = task.getExperimentalCurve();
-    	
-    	if(expCurve == null)
-    		return;
-    			
-		StringBuilder sb = new StringBuilder();
-		
-		sb.append("<html><p>");
-		sb.append(Messages.getString("RangeSelectionFrame.ConfirmationMessage1"));
-		sb.append("</p><br>");
-		sb.append(Messages.getString("RangeSelectionFrame.ConfirmationMessage2"));
-		sb.append(expCurve.getEffectiveStartTime());
-		sb.append(" to ");
-		sb.append(expCurve.getEffectiveEndTime());
-		sb.append("<br><br>");
-		sb.append(Messages.getString("RangeSelectionFrame.ConfirmationMessage3"));
-		sb.append(String.format("%3.4f", a) + " to " + String.format("%3.4f", b));
-		sb.append("</html>");
-		
-		int dialogResult = JOptionPane.showConfirmDialog 
-				(this, 
-						sb.toString(), 
-						"Confirm chocie", JOptionPane.YES_NO_OPTION);
-		
-		if(dialogResult == JOptionPane.YES_OPTION)			
-			expCurve.setRange(new Range(a, b));	
-		
-    }        
-	
-    // Variables declaration - do not modify                     
-    private javax.swing.JMenu InfoMenu;
-    private javax.swing.JMenuItem aboutItem;
-    private javax.swing.JPanel chartToolbar;
-    private javax.swing.JButton clearBtn;
-    private javax.swing.JLabel coresLabel;
-    private javax.swing.JLabel cpuLabel;
-    private javax.swing.JMenu dataControlsMenu;
-    private javax.swing.JButton deleteEntryBtn;
-    private javax.swing.JDesktopPane desktopPane;
-    private javax.swing.JButton execBtn;
-    private javax.swing.JMenuItem exitItem;
-    private javax.swing.JMenuItem exportAllItem;
-    private javax.swing.JMenuItem exportCurrentItem;
-    private javax.swing.JButton graphBtn;
-    private javax.swing.JInternalFrame graphFrame;
-    private javax.swing.JPopupMenu.Separator jSeparator1;
-    private javax.swing.JPopupMenu.Separator jSeparator2;
-    private javax.swing.JPopupMenu.Separator jSeparator3;
-    private javax.swing.JButton limitRangeBtn;
-    private javax.swing.JMenuItem loadDataItem;
-    private javax.swing.JMenuItem loadMetadataItem;
-    private javax.swing.JInternalFrame logFrame;
-    private javax.swing.JScrollPane logScroller;
-    private javax.swing.JPanel logToolbar;
-    private LogPane logTextPane;
-    private javax.swing.JFormattedTextField lowerLimitField;
-    private javax.swing.JMenuBar mainMenu;
-    private javax.swing.JLabel memoryLabel;
-    private javax.swing.JButton mergeBtn;
-    private javax.swing.JMenuItem modelSettingsItem;
-    private javax.swing.JButton previewBtn;
-    private javax.swing.JButton removeBtn;
-    private javax.swing.JButton resetBtn;
-    private javax.swing.JMenuItem resultFormatItem;	
-	private ResultTable resultsTable;	
-    private javax.swing.JPanel resultToolbar;
-    private javax.swing.JInternalFrame resultsFrame;
-    private javax.swing.JScrollPane resultsScroller;
-    private javax.swing.JButton saveLogBtn;
-    private javax.swing.JButton saveResultsBtn;
-    private javax.swing.JMenuItem searchSettingsItem;
-    private javax.swing.JMenu settingsMenu;
-    private javax.swing.JPanel systemStatusBar;
-    private javax.swing.JInternalFrame taskManagerFrame;
-    private javax.swing.JScrollPane taskScrollPane;
-	private TaskTable taskTable;
-    private javax.swing.JPanel taskToolbar;
-    private javax.swing.JButton undoBtn;
-    private javax.swing.JFormattedTextField upperLimitField;
-    private javax.swing.JToggleButton adiabaticSolutionBtn;
-    private javax.swing.JCheckBox verboseCheckBox;
-    private javax.swing.JToggleButton residualsBtn;
-	private FormattedInputDialog inputDialog = new FormattedInputDialog(NumericProperty.theDefault(NumericPropertyKeyword.WINDOW));
-	private JSlider jSlider1;
-	private PreviewFrame previewFrame;
-	private ProblemStatementFrame problemStatementFrame;
-	private SearchOptionsFrame searchOptionsFrame;
-	private GridBagConstraints global;
-	private GridBagLayout globalLayout;
-	private ExportDialog ed;
-    // End of variables declaration                   
 		
 }

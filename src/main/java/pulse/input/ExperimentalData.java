@@ -225,14 +225,9 @@ public class ExperimentalData extends HeatingCurve {
 	public void truncate() {			
 		double halfMaximum = halfRiseTime();
 		double cutoff = CUTOFF_FACTOR*halfMaximum;
-		
-		for(int i = count-1; i >= 0; i--) {
-			if(time.get(i) <= cutoff)
-				break;
-			remove(i);		
-		}
-		
-		count = time.size();
+
+		this.range.setUpperBound(NumericProperty.derive(NumericPropertyKeyword.UPPER_BOUND, cutoff));
+		this.indexRange.set(time, range);
 		
 		DataEvent dataEvent = new DataEvent(DataEventType.TRUNCATED, this);
 		notifyListeners(dataEvent);		

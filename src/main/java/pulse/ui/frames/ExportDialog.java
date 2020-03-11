@@ -37,16 +37,9 @@ import pulse.tasks.TaskManager;
 @SuppressWarnings("serial")
 public class ExportDialog extends JDialog {
 
-	private File dir;
-	private String projectName;
-	private JFileChooser fileChooser;
-	
-	private final static int WIDTH = 650;
-	private final static int HEIGHT = 160;
-	
-	private boolean createSubdirectories = false;
-	
 	private static Map<Class<?>,Boolean> exportSettings = new HashMap<Class<?>,Boolean>();
+	private final static int HEIGHT = 160;
+	private final static int WIDTH = 650;
 	
 	static {
 		exportSettings.put(MetadataExporter.getInstance().target(), false);
@@ -56,11 +49,70 @@ public class ExportDialog extends JDialog {
 		exportSettings.put(ResultExporter.getInstance().target(), true);
 		exportSettings.put(LogExporter.getInstance().target(), false);
 	}
+	private boolean createSubdirectories = false;
+	
+	private File dir;
+	
+	private JFileChooser fileChooser;
+	
+	private String projectName;
 	
 	public ExportDialog() {
 		initComponents();
 		setTitle("Export Dialog");
 		setSize(new Dimension(WIDTH, HEIGHT));
+	}
+	
+	private File directoryQuery() {
+	    int returnVal = fileChooser.showSaveDialog(this);
+	    
+	    if (returnVal == JFileChooser.APPROVE_OPTION) {
+			dir = fileChooser.getSelectedFile();
+			return dir;
+	    }
+	    
+	    return null;
+	    
+	}
+	
+	private void export(Extension extension) {
+			if(TaskManager.numberOfTasks() < 1)
+				return; //nothing to export		
+		
+			var destination = new File(dir + File.separator + projectName);
+			var subdirs	= TaskManager.getTaskList();
+
+			if(subdirs.size() > 0 && !destination.exists())
+				destination.mkdirs();
+			
+			if(createSubdirectories) 
+				subdirs.stream().forEach(s -> MassExporter.exportGroup(s,destination,extension));
+			else {				
+				ExportManager.allGrouppedContents().forEach(
+									individual -> {
+										Class<?> individualClass = individual.getClass();
+										
+										if(!exportSettings.containsKey(individualClass)) {
+											var key = exportSettings.keySet().stream().filter(aClass -> aClass.isAssignableFrom(individual.getClass())).findFirst();											
+											
+											if(!key.isPresent()) 
+												return;
+											else
+												individualClass = key.get();
+																																	
+									}
+										
+									if(exportSettings.get(individualClass)) 
+										ExportManager.export(individual, destination, extension);
+									
+								}
+									
+						);
+			}
+			
+			if(exportSettings.get(Result.class))
+				ExportManager.exportAllResults(destination, extension);
+			
 	}
 	
 	private void initComponents() {
@@ -70,8 +122,7 @@ public class ExportDialog extends JDialog {
 		layout.setAutoCreateGaps(true);
 		layout.setAutoCreateContainerGaps(true);
 		
-		final String defaultProjectName = TaskManager.getInstance().describe();
-		
+		final String defaultProjectName = TaskManager.getInstance().describe();		
 		projectName = defaultProjectName;
 		
 		var directoryLabel = new JLabel("Export to:");
@@ -97,22 +148,22 @@ public class ExportDialog extends JDialog {
 			    	//
 				  }
 		      @Override
-			public void removeUpdate(DocumentEvent e) {
-				    if(projectText.getText().trim().isEmpty()) {
-				    	projectName = defaultProjectName;
-				    	directoryField.setText(dir.getPath() + File.separator + projectName + File.separator);
-				    } else {
-				    	projectName = projectText.getText();
-				    	directoryField.setText(dir.getPath() + File.separator + projectName + File.separator);
-				    }
-				  }
-			  @Override
 			public void insertUpdate(DocumentEvent e) {
 				  	if(projectText.getText().trim().isEmpty())
 				  		return;
 			    	projectName = projectText.getText();
 			    	directoryField.setText(dir.getPath() + File.separator + projectName + File.separator);
 			 }
+			  @Override
+			public void removeUpdate(DocumentEvent e) {
+				    if(projectText.getText().trim().isEmpty()) {
+				    	projectName = TaskManager.getInstance().describe();;
+				    	directoryField.setText(dir.getPath() + File.separator + projectName + File.separator);
+				    } else {
+				    	projectName = projectText.getText();
+				    	directoryField.setText(dir.getPath() + File.separator + projectName + File.separator);
+				    }
+				  }
 		});
 		
 		var solutionCheckbox = new JCheckBox("Export Solution(s)"); 
@@ -241,56 +292,6 @@ public class ExportDialog extends JDialog {
 					 )
 		);
 		
-	}
-	
-	private void export(Extension extension) {
-			
-			var destination = new File(dir + File.separator + projectName);
-			var subdirs	= TaskManager.getTaskList();
-
-			if(subdirs.size() > 0 && !destination.exists())
-				destination.mkdirs();
-			
-			if(createSubdirectories) 
-				subdirs.stream().forEach(s -> MassExporter.exportGroup(s,destination,extension));
-			else {
-				ExportManager.allGrouppedContents().forEach(
-									individual -> {
-										Class<?> individualClass = individual.getClass();
-										
-										if(!exportSettings.containsKey(individualClass)) {
-											var key = exportSettings.keySet().stream().filter(aClass -> aClass.isAssignableFrom(individual.getClass())).findFirst();											
-											
-											if(!key.isPresent()) 
-												return;
-											else
-												individualClass = key.get();
-																																	
-									}
-										
-									if(exportSettings.get(individualClass)) 
-										ExportManager.export(individual, destination, extension);
-									
-								}
-									
-						);
-			}
-			
-			if(exportSettings.get(Result.class))
-				ExportManager.exportAllResults(destination, extension);
-			
-	}
-	
-	private File directoryQuery() {
-	    int returnVal = fileChooser.showSaveDialog(this);
-	    
-	    if (returnVal == JFileChooser.APPROVE_OPTION) {
-			dir = fileChooser.getSelectedFile();
-			return dir;
-	    }
-	    
-	    return null;
-	    
 	}
 	
 }
