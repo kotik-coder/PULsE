@@ -15,6 +15,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -98,34 +99,49 @@ import pulse.util.Reflexive;
 public class TaskControlFrame extends JFrame {
 
 	private final static int HEIGHT = 730;
-	private final static int WIDTH = 1035;
-	
+	private final static int WIDTH = 1035;	
 	private final static float SLIDER_A_COEF = 0.01f;
     private final static float SLIDER_B_COEF = 0.04605f;                                        
-
 	private final static int ICON_SIZE = 16;	    	
 	
 	private static FormattedInputDialog averageWindowDialog;
-	private static File dir;
+	private static File dir;	
 	
 	private static GridBagConstraints globalConstraints;
     private static GridBagLayout globalLayout;
-	
+    
 	private static JInternalFrame graphFrame;	
-
-	private static TaskControlFrame instance = new TaskControlFrame();
-	
-    private static JInternalFrame logFrame;
-    
-    private static LogPane logTextPane;
-    
-    private static PreviewFrame previewFrame;
-		
-	private static JInternalFrame resultsFrame;
-	
-	private static ResultTable resultTable;
-	  
+	private static TaskControlFrame instance = new TaskControlFrame();	
+    private static JInternalFrame logFrame;    
+    private static LogPane logTextPane;    
+    private static PreviewFrame previewFrame;		
+	private static JInternalFrame resultsFrame;	
+	private static ResultTable resultTable;	  
     private static JInternalFrame taskManagerFrame;
+    private JMenuItem aboutItem;
+    private JButton clearBtn;
+    private JMenu dataControlsMenu;
+    private JButton execBtn;
+    private JMenuItem exitItem;
+    private JMenuItem exportAllItem;
+    private JMenuItem exportCurrentItem;
+    private ExportDialog exportDialog;
+    private JButton graphBtn;
+    private JMenuItem loadDataItem;	
+	
+    private JMenuItem loadMetadataItem;
+    private JMenuItem modelSettingsItem;
+   
+    private ProblemStatementFrame problemStatementFrame;
+    
+    private JButton removeBtn;
+    
+    private JButton resetBtn;
+	private JMenuItem resultFormatItem;
+    private SearchOptionsFrame searchOptionsFrame;
+    private JMenuItem searchSettingsItem;    
+    
+    private TaskTable taskTable;
     
 	private static JPanel assignResultToolbar() {
     	var resultToolbar = new JPanel();
@@ -134,7 +150,7 @@ public class TaskControlFrame extends JFrame {
         var undoBtn = new JButton(Launcher.loadIcon("reset.png", ICON_SIZE));
         var previewBtn = new JButton(Launcher.loadIcon("preview.png", ICON_SIZE));
         var saveResultsBtn = new JButton(Launcher.loadIcon("save.png", ICON_SIZE));
-        resultToolbar.setLayout(new java.awt.GridLayout(5, 0));
+        resultToolbar.setLayout(new GridLayout(5, 0));
 
         deleteEntryBtn.setToolTipText("Delete Entry");
         resultToolbar.add(deleteEntryBtn);
@@ -282,7 +298,7 @@ public class TaskControlFrame extends JFrame {
 	}
 	private static JPanel initChartToolbar() {		
 		var chartToolbar = new JPanel();
-        chartToolbar.setLayout(new java.awt.GridBagLayout());
+        chartToolbar.setLayout(new GridBagLayout());
 		
 		var lowerLimitField = new JFormattedTextField(new NumberFormatter());                        
         var upperLimitField = new JFormattedTextField(new NumberFormatter());
@@ -291,7 +307,7 @@ public class TaskControlFrame extends JFrame {
         var adiabaticSolutionBtn = new JToggleButton();
         var residualsBtn = new JToggleButton();
 		
-		var gbc = new java.awt.GridBagConstraints();
+		var gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.BOTH;
         gbc.weightx = 0.25;
         
@@ -420,7 +436,7 @@ public class TaskControlFrame extends JFrame {
         chart.setMinimumDrawHeight(10);       
         
         graphFrame.getContentPane().add(initOpacitySlider(), BorderLayout.LINE_END);                               
-        graphFrame.getContentPane().add(initChartToolbar(), java.awt.BorderLayout.PAGE_END);
+        graphFrame.getContentPane().add(initChartToolbar(), BorderLayout.PAGE_END);
         
         return graphFrame;
 	}
@@ -469,12 +485,12 @@ public class TaskControlFrame extends JFrame {
         JPanel resultToolbar = assignResultToolbar();                
         
         resultsScroller.setViewportView(resultTable);
-        resultsFrame.getContentPane().add(resultsScroller, java.awt.BorderLayout.CENTER);
+        resultsFrame.getContentPane().add(resultsScroller, BorderLayout.CENTER);
        
         resultsFrame.setTitle("Results");
         resultsFrame.setVisible(true);              
 
-        resultsFrame.getContentPane().add(resultToolbar, java.awt.BorderLayout.EAST);        		
+        resultsFrame.getContentPane().add(resultToolbar, BorderLayout.EAST);        		
         
         return resultsFrame;                       
 	}
@@ -660,32 +676,6 @@ public class TaskControlFrame extends JFrame {
 			expCurve.setRange(new Range(a, b));	
 		
     }
-    private JMenuItem aboutItem;
-    private JButton clearBtn;
-    private JMenu dataControlsMenu;
-    private JButton execBtn;
-    private JMenuItem exitItem;
-    private JMenuItem exportAllItem;
-    private JMenuItem exportCurrentItem;
-    private ExportDialog exportDialog;
-    private JButton graphBtn;
-    private JMenuItem loadDataItem;	
-	
-    private JMenuItem loadMetadataItem;
-    private JMenuBar mainMenu;
-    private JMenuItem modelSettingsItem;
-   
-    private ProblemStatementFrame problemStatementFrame;
-    
-    private JButton removeBtn;
-    
-    private JButton resetBtn;
-	private JMenuItem resultFormatItem;
-    private SearchOptionsFrame searchOptionsFrame;
-    private JMenuItem searchSettingsItem;
-    private JMenu settingsMenu;
-    
-    private TaskTable taskTable;
     
     /**
 	 * Create the frame.
@@ -703,7 +693,7 @@ public class TaskControlFrame extends JFrame {
 		addWindowListener(new WindowAdapter() {
 			
 			@Override
-			public void windowClosing(java.awt.event.WindowEvent evt) {                               
+			public void windowClosing(WindowEvent evt) {                               
 			        JFrame closingWindow = (JFrame) evt.getSource();
 			        if(!exitConfirmed(closingWindow)) {
 			            closingWindow.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
@@ -888,7 +878,7 @@ public class TaskControlFrame extends JFrame {
                                     options,
                                     options[1]) == JOptionPane.YES_OPTION;
     }
-	private void exitItemActionPerformed(java.awt.event.ActionEvent evt) {                                         
+	private void exitItemActionPerformed(ActionEvent evt) {                                         
         if(exitConfirmed((Component) evt.getSource()))
             System.exit(0);
     }
@@ -927,7 +917,7 @@ public class TaskControlFrame extends JFrame {
         globalLayout = new GridBagLayout();
         desktopPane.setLayout(globalLayout);
 
-        globalConstraints = new java.awt.GridBagConstraints();        
+        globalConstraints = new GridBagConstraints();        
         globalConstraints.fill = GridBagConstraints.BOTH;
         globalConstraints.insets = new Insets(5,5,5,5);
         
@@ -953,14 +943,14 @@ public class TaskControlFrame extends JFrame {
                 
         resultsFrame = initResultsFrame();
         
-        mainMenu = new JMenuBar();
+        var mainMenu = new JMenuBar();
         dataControlsMenu = new JMenu();
         loadDataItem = new JMenuItem();
         loadMetadataItem = new JMenuItem();
         exportCurrentItem = new JMenuItem();
         exportAllItem = new JMenuItem();
         exitItem = new JMenuItem();
-        settingsMenu = new JMenu();
+        var settingsMenu = new JMenu();
         modelSettingsItem = new JMenuItem();
         searchSettingsItem = new JMenuItem();
         resultFormatItem = new JMenuItem();
@@ -976,9 +966,9 @@ public class TaskControlFrame extends JFrame {
         taskScrollPane.setViewportView(taskTable);
 		adjustEnabledControls(taskTable);
 
-        taskManagerFrame.getContentPane().add(taskScrollPane, java.awt.BorderLayout.CENTER);
+        taskManagerFrame.getContentPane().add(taskScrollPane, BorderLayout.CENTER);
 
-        taskToolbar.setLayout(new java.awt.GridLayout(1, 0));
+        taskToolbar.setLayout(new GridLayout(1, 0));
         
 		removeBtn.setEnabled(false);
 		clearBtn.setEnabled(false);
@@ -1011,23 +1001,23 @@ public class TaskControlFrame extends JFrame {
         logScroller.setViewportView(logTextPane);
 
         logFrame.getContentPane().setLayout(new BorderLayout());
-        logFrame.getContentPane().add(logScroller, java.awt.BorderLayout.CENTER);                		       
+        logFrame.getContentPane().add(logScroller, BorderLayout.CENTER);                		       
         
-        GridBagConstraints gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        GridBagConstraints gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.anchor = GridBagConstraints.WEST;
         gridBagConstraints.weightx = 0.5;             
         
         logFrame.getContentPane().add( 
         		initSystemPanel(globalLayout, globalConstraints) 
-        		, java.awt.BorderLayout.PAGE_END);
+        		, BorderLayout.PAGE_END);
         
-        logFrame.getContentPane().add(initLogToolbar(), java.awt.BorderLayout.NORTH);
+        logFrame.getContentPane().add(initLogToolbar(), BorderLayout.NORTH);
 
         desktopPane.add(logFrame, globalConstraints);
         
         desktopPane.add(resultsFrame,globalConstraints);
 
-        getContentPane().add(desktopPane, java.awt.BorderLayout.CENTER);
+        getContentPane().add(desktopPane, BorderLayout.CENTER);
 
         dataControlsMenu.setMnemonic('f');
         dataControlsMenu.setText("File");
@@ -1088,9 +1078,9 @@ public class TaskControlFrame extends JFrame {
 
         exitItem.setMnemonic('x');
         exitItem.setText("Exit");
-        exitItem.addActionListener(new java.awt.event.ActionListener() {
+        exitItem.addActionListener(new ActionListener() {
             @Override
-			public void actionPerformed(java.awt.event.ActionEvent evt) {
+			public void actionPerformed(ActionEvent evt) {
                 exitItemActionPerformed(evt);
             }
         });
@@ -1321,7 +1311,7 @@ public class TaskControlFrame extends JFrame {
 	private JPanel initSystemPanel(GridBagLayout gridBagLayout, GridBagConstraints gridBagConstraints) {
         
         var systemStatusBar = new JPanel();
-        systemStatusBar.setLayout(new java.awt.GridBagLayout());
+        systemStatusBar.setLayout(new GridBagLayout());
 		
 		var cpuLabel = new JLabel();        
         var memoryLabel = new JLabel();
@@ -1329,19 +1319,19 @@ public class TaskControlFrame extends JFrame {
         
 		cpuLabel.setHorizontalAlignment(SwingConstants.LEFT);
         cpuLabel.setText("CPU:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints = new GridBagConstraints();
         gridBagConstraints.weightx = 2.5;
         systemStatusBar.add(cpuLabel, gridBagConstraints);
 
         memoryLabel.setHorizontalAlignment(SwingConstants.CENTER);
         memoryLabel.setText("Memory:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints = new GridBagConstraints();
         gridBagConstraints.weightx = 2.5;
         systemStatusBar.add(memoryLabel, gridBagConstraints);
 
         coresLabel.setHorizontalAlignment(SwingConstants.RIGHT);
         coresLabel.setText("{n cores} ");
-        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints = new GridBagConstraints();
         gridBagConstraints.weightx = 2.5;
         systemStatusBar.add(coresLabel, gridBagConstraints);
 

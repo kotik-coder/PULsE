@@ -157,7 +157,7 @@ public class ExportDialog extends JDialog {
 			  @Override
 			public void removeUpdate(DocumentEvent e) {
 				    if(projectText.getText().trim().isEmpty()) {
-				    	projectName = TaskManager.getInstance().describe();;
+				    	projectName = TaskManager.getInstance().describe();
 				    	directoryField.setText(dir.getPath() + File.separator + projectName + File.separator);
 				    } else {
 				    	projectName = projectText.getText();
