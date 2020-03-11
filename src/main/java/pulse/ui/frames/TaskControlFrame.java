@@ -1311,7 +1311,7 @@ public class TaskControlFrame extends JFrame {
 	private JPanel initSystemPanel(GridBagLayout gridBagLayout, GridBagConstraints gridBagConstraints) {
         
         var systemStatusBar = new JPanel();
-        systemStatusBar.setLayout(new GridBagLayout());
+        systemStatusBar.setLayout(gridBagLayout);
 		
 		var cpuLabel = new JLabel();        
         var memoryLabel = new JLabel();

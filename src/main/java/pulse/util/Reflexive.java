@@ -25,7 +25,7 @@ public interface Reflexive {
 	 */
 	
 	@SuppressWarnings("unchecked")
-	public static <T extends Reflexive> List<T> instancesOf(Class<? extends T> reflexiveType, String pckgname) {		
+	public static <T extends Reflexive> List<T> instancesOf(Class<T> reflexiveType, String pckgname) {		
 		List<Reflexive> ref = new LinkedList<Reflexive>();
 		List<T> p	= new ArrayList<T>();
 		
@@ -48,7 +48,7 @@ public interface Reflexive {
 	 * @return a list of {@code Reflexive} conforming with the conditions above.
 	 */
 	
-	public static <T extends Reflexive> List<T> instancesOf(Class<? extends T> reflexiveType) {
+	public static <T extends Reflexive> List<T> instancesOf(Class<T> reflexiveType) {
 		return Reflexive.instancesOf(reflexiveType, reflexiveType.getPackage().getName());
 	}
 	

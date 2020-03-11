@@ -22,8 +22,9 @@ public class ExportManager {
 		return target == null ? null : (Exporter<T>) findExporter(target.getClass());
 	}
 	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public static <T extends Describable> Exporter<T> findExporter(Class<T> target) {
-		List<Exporter<T>> allExporters = Reflexive.instancesOf(Exporter.class);
+		List<Exporter> allExporters = Reflexive.instancesOf(Exporter.class);
 		var exporter = allExporters.stream().filter(e -> 
 													e.target() == target ).findFirst();
 		
