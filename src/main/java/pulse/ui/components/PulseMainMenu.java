@@ -51,18 +51,15 @@ public class PulseMainMenu extends JMenuBar {
     private static JMenuItem loadMetadataItem;
     private static JMenuItem modelSettingsItem;
     
-    private static ExportDialog exportDialog;  
-    private static FormattedInputDialog bufferDialog;
+    private static ExportDialog exportDialog = new ExportDialog();
+    private static FormattedInputDialog bufferDialog = new FormattedInputDialog(NumericProperty.theDefault(NumericPropertyKeyword.BUFFER_SIZE)); 
     
 	private static File dir;	
 	
 	private List<FrameVisibilityRequestListener> listeners;
 	private List<ExitRequestListener> exitListeners;
 	
-	public PulseMainMenu() {
-        exportDialog = new ExportDialog();
-        
-        bufferDialog = new FormattedInputDialog(NumericProperty.theDefault(NumericPropertyKeyword.BUFFER_SIZE));       
+	public PulseMainMenu() {                
         bufferDialog.setConfirmAction( () -> Buffer.setSize(
         		NumericProperty.derive(NumericPropertyKeyword.BUFFER_SIZE, bufferDialog.value()) ) );
         

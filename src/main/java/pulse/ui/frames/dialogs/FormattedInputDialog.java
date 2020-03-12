@@ -130,7 +130,7 @@ public class FormattedInputDialog extends JDialog {
                 } else try {              //The text is valid,
                 	inputTextField.commitEdit();     //so use it.
                 	inputTextField.postActionEvent(); //stop editing
-                } catch (java.text.ParseException exc) { }
+                } catch (ParseException exc) { }
             }
         });		
 		
