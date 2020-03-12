@@ -119,7 +119,6 @@ public class SearchTask extends Accessible implements Runnable {
 		this.scheme		= null;				
 				
 		setStatus(Status.INCOMPLETE);		
-		StateEntry e = new StateEntry(this, status);
 		
 		curve.addDataListener( dataEvent -> {
 			if(scheme != null) {
@@ -294,34 +293,39 @@ public class SearchTask extends Accessible implements Runnable {
 	  
 	  singleThreadExecutor.shutdown();	  
 	  
-	  if( status == Status.IN_PROGRESS ) {
-		  
-		  if(!normalityTest.test(this)) //first, check if the residuals are normally-distributed
-			  setStatus(Status.FAILED, Status.Details.ABNORMAL_DISTRIBUTION_OF_RESIDUALS);		  
-		  
-		  else { 
-			  
-			  boolean test = correlationBuffer.test(correlationTest); //second, check there are no unexpected correlations
-			  notifyDataListeners(new CorrelationLogEntry(this));
-			  
-			  if(test) 
-				  setStatus(Status.AMBIGUOUS, Status.Details.SIGNIFICANT_CORRELATION_BETWEEN_PARAMETERS);			  
-			  else {				  
-				  //lastly, check if the parameter values estimated in this procedure are reasonable 
-				  
-				  var vector = searchVector()[0];
-				  
-				  if(vector.getIndices().stream().map(index -> NumericProperty.derive(index, vector.get(index))).anyMatch(np -> 
-				  !np.validate() ) ) 
-					  setStatus(Status.FAILED, Status.Details.PARAMETER_VALUES_NOT_SENSIBLE);				  
-				  else
-					  setStatus(Status.DONE);
-			  }
-			  
-		  }
-		  
-	  }
+	  if(status == Status.IN_PROGRESS) 
+		  runChecks();
 	  		
+	}
+	
+	private void runChecks() {		
+			  
+		if(!normalityTest.test(this)) //first, check if the residuals are normally-distributed
+			setStatus(Status.FAILED, Status.Details.ABNORMAL_DISTRIBUTION_OF_RESIDUALS);		  
+			  
+		else { 
+				  
+			boolean test = correlationBuffer.test(correlationTest); //second, check there are no unexpected correlations
+			notifyDataListeners(new CorrelationLogEntry(this));
+				  
+			if(test) 
+				setStatus(Status.AMBIGUOUS, Status.Details.SIGNIFICANT_CORRELATION_BETWEEN_PARAMETERS);			  
+			else {				  
+			//lastly, check if the parameter values estimated in this procedure are reasonable 
+					  
+				var vector = searchVector()[0];
+					  
+				if(vector.getIndices().stream().map(index -> 
+				NumericProperty.derive(index, vector.getRawValue(index)) )
+				.anyMatch(np -> !np.validate() ) ) 
+					setStatus(Status.FAILED, Status.Details.PARAMETER_VALUES_NOT_SENSIBLE);				  
+				else
+					setStatus(Status.DONE);
+			  
+				}
+				  
+		  	}
+		
 	}
 
 	public void addTaskListener(DataCollectionListener toAdd) {
@@ -421,17 +425,11 @@ public class SearchTask extends Accessible implements Runnable {
 	
 	public void setScheme(DifferenceScheme scheme) {
 		this.scheme = scheme;
-		if(scheme != null) {
+		if(scheme != null && problem != null) {
 			scheme.setParent(this);
-			
-			if(problem == null)
-				return;
 			
 			double upperLimit = RELATIVE_TIME_MARGIN*curve.timeLimit() - 
 					(double)problem.getHeatingCurve().getTimeShift().getValue();
-			
-			if(scheme == null)
-				return;
 			
 			scheme.setTimeLimit
 			(NumericProperty.derive(TIME_LIMIT, upperLimit ));
@@ -615,9 +613,7 @@ public class SearchTask extends Accessible implements Runnable {
 		if(! (o instanceof SearchTask))
 			return false;		
 		
-		return curve.equals( 
-								( (SearchTask)o ) .getExperimentalCurve()
-																			);
+		return curve.equals( ( (SearchTask)o ) .getExperimentalCurve() );
 	
 	}
 

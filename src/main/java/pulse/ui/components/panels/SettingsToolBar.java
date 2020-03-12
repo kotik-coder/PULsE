@@ -1,4 +1,4 @@
-package pulse.ui.components;
+package pulse.ui.components.panels;
 
 import java.awt.Font;
 import java.awt.GridBagConstraints;
@@ -13,6 +13,8 @@ import javax.swing.event.ChangeListener;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.statements.Problem;
 import pulse.ui.Messages;
+import pulse.ui.components.PropertyHolderTable;
+import pulse.ui.components.TaskBox;
 
 
 public class SettingsToolBar extends JToolBar {

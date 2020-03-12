@@ -8,6 +8,7 @@ import static pulse.properties.NumericPropertyKeyword.MAXTEMP;
 import static pulse.properties.NumericPropertyKeyword.THICKNESS;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import pulse.properties.NumericProperty;
@@ -21,9 +22,12 @@ import pulse.properties.NumericPropertyKeyword;
 public class IndexedVector extends Vector {
 
 	private List<NumericPropertyKeyword> indices;
+	private double[] prefactors;
 	
 	 private IndexedVector(int n) {
 		super(n);
+		prefactors = new double[n];
+		Arrays.fill(prefactors, 1.0); //by default, the prefactor is unity
 		indices = new ArrayList<NumericPropertyKeyword>(n);
 	 }
 	 
@@ -57,7 +61,26 @@ public class IndexedVector extends Vector {
 	  */
 	 
 	 public void set(NumericPropertyKeyword index, double x) {
-		 super.set( indices.indexOf(index), x);
+		 set(index, x, 1.0);
+	 }
+	 
+	 public void set(NumericPropertyKeyword index, double x, double prefactor) {
+		 int i = getDataIndex(index);
+		 super.set( i, x);
+		 prefactors[i] = prefactor;
+	 }
+	 
+	 public double getRawValue(int i) {
+		 return super.get(i)/prefactors[i];
+	 }
+	 
+	 public double getRawValue(NumericPropertyKeyword index) {
+		 return getRawValue( getDataIndex(index) );
+	 }
+	 
+	 public void set(int i, double x, double prefactor) {
+		 super.set( i, x);
+		 prefactors[i] = prefactor;
 	 }
 	 
 	 public List<NumericPropertyKeyword> getIndices() {
@@ -92,6 +115,10 @@ public class IndexedVector extends Vector {
 	 
 	 public double get(NumericPropertyKeyword index) {
 		 return super.get( getDataIndex(index) );
+	 }
+	 
+	 public double getPrefactor(NumericPropertyKeyword index) {
+		 return prefactors[getDataIndex(index)];
 	 }
 	
 	 private void assign(List<NumericPropertyKeyword> indices) {

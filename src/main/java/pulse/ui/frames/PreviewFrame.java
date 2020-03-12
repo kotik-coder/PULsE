@@ -55,13 +55,12 @@ public class PreviewFrame extends JInternalFrame {
 	private final static int ICON_SIZE = 24;
 	
 	public PreviewFrame() {
+		super("Preview Plotting", true, true, true, true);
 		init();							
 	}
 	
 	private void init() {
 		setSize(FRAME_WIDTH, FRAME_HEIGHT);		
-		setTitle("Preview Plotting");
-		setClosable(true);	
 		setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
 		
 		getContentPane().setLayout(new BorderLayout());

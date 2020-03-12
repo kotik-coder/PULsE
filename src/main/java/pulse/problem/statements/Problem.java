@@ -313,9 +313,10 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 		for(int i = 0; i < size; i++) {
 			
 			switch( output[0].getIndex(i) ) {
-				case DIFFUSIVITY		:	
-					output[0].set(i, a/(l*l));
-					output[1].set(i, 0.75*a/(l*l));
+				case DIFFUSIVITY		:
+					double prefactor = Math.pow(l, -2);
+					output[0].set(i, a*prefactor, prefactor);
+					output[1].set(i, 0.75*a*prefactor, prefactor);
 					break;
 				case MAXTEMP			:	
 					output[0].set(i, signalHeight);

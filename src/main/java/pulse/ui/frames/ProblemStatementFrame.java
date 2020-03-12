@@ -38,10 +38,10 @@ import pulse.tasks.listeners.TaskSelectionEvent;
 import pulse.tasks.listeners.TaskSelectionListener;
 import pulse.ui.Messages;
 import pulse.ui.components.Chart;
-import pulse.ui.components.LoaderButton;
-import pulse.ui.components.LoaderButton.DataType;
+import pulse.ui.components.panels.SettingsToolBar;
 import pulse.ui.components.PropertyHolderTable;
-import pulse.ui.components.SettingsToolBar;
+import pulse.ui.components.buttons.LoaderButton;
+import pulse.ui.components.buttons.LoaderButton.DataType;
 import pulse.util.Reflexive;
 
 @SuppressWarnings("serial")

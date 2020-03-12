@@ -1,4 +1,4 @@
-package pulse.ui.components;
+package pulse.ui.components.buttons;
 
 import java.awt.Component;
 import java.awt.Toolkit;

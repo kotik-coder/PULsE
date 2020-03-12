@@ -6,7 +6,6 @@ import java.io.PrintStream;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import javax.swing.JEditorPane;
 import javax.swing.text.BadLocationException;
@@ -101,40 +100,33 @@ public class LogPane extends JEditorPane implements Describable {
 		post(sb.toString());
 	}
 	
-	public void callUpdate() {
+	public synchronized void callUpdate() {
 		updateExecutor.submit(() -> update());							
 	}
 	
-	public void callPrintAll() {
-		try {
-			updateExecutor.awaitTermination(10, TimeUnit.MILLISECONDS);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		printAll();
-	}
-	
-	private void printAll() {
+	public void printAll() {
 		clear();
 		
 		SearchTask task = TaskManager.getSelectedTask();
-		
-		if(task == null)
-			return;
+			
+		if(task != null) {
+						
+			var log = task.getLog();
+				
+			if(log.isStarted()) {											
+				
+				log.getLogEntries().stream().forEach(entry -> post(entry));
 					
-		Log log = task.getLog();
-		
-		if(!log.isStarted()) 
-			return;											
-		
-		log.getLogEntries().stream().forEach(entry -> post(entry));
-		
-		if(task.getStatus() == Status.DONE)
-			printTimeTaken(log);
+				if(task.getStatus() == Status.DONE)
+					printTimeTaken(log);
+				
+			}
+			
+		}			
 			
 	}
 	
-	private void update() {
+	private synchronized void update() {
 		SearchTask task = TaskManager.getSelectedTask();
 		
 		if(task == null)

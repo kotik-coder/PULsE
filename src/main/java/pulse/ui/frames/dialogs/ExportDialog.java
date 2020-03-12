@@ -1,4 +1,4 @@
-package pulse.ui.frames;
+package pulse.ui.frames.dialogs;
 
 import java.awt.Dimension;
 import java.io.File;

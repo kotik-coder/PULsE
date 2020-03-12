@@ -1,4 +1,4 @@
-package pulse.ui.components;
+package pulse.ui.components.buttons;
 
 import java.awt.Component;
 import java.awt.event.ActionEvent;
@@ -9,7 +9,6 @@ import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
-import pulse.tasks.SearchTask;
 import pulse.tasks.Status;
 import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.TaskRepositoryEvent;
@@ -53,14 +52,18 @@ public class ExecutionButton extends JButton {
 					return;
 				}
 					
-				for(SearchTask t : TaskManager.getTaskList())
-					if(t.checkProblems() == Status.INCOMPLETE)
-							JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor((Component) e.getSource()),
-									    t + " is " + t.getStatus().getMessage() , //$NON-NLS-1$
-									    "Task Not Ready", //$NON-NLS-1$
-									    JOptionPane.ERROR_MESSAGE);			
-
-				TaskManager.executeAll();
+				var problematicTask = TaskManager.getTaskList().stream().
+											filter(t -> t.checkProblems() == Status.INCOMPLETE).findFirst();
+				
+				if(problematicTask.isPresent()) {
+					var t = problematicTask.get();
+					JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor((Component) e.getSource()),
+							t + " is " + t.getStatus().getMessage(),
+							"Problems found",
+							JOptionPane.ERROR_MESSAGE);
+				}
+				else
+					TaskManager.executeAll();
 						
 			}
 			

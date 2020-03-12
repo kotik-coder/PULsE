@@ -1,4 +1,4 @@
-package pulse.ui.components;
+package pulse.ui.components.buttons;
 
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;

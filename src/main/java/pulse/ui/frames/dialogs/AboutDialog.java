@@ -1,4 +1,4 @@
-package pulse.ui.frames;
+package pulse.ui.frames.dialogs;
 
 import java.awt.BorderLayout;
 import java.io.BufferedReader;

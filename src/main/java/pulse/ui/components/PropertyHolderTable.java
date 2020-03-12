@@ -31,6 +31,7 @@ import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 import pulse.ui.Messages;
+import pulse.ui.components.buttons.IconCheckBox;
 import pulse.ui.components.controllers.AccesibleTableRenderer;
 import pulse.ui.components.controllers.NumberEditor;
 import pulse.ui.frames.DataFrame;

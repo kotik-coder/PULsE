@@ -290,6 +290,18 @@ public class TaskTable extends JTable {
 			}
 						
 		}		
+		
+		public void removeSelectedRows() {
+			int[] rows = getSelectedRows();
+			Identifier id; 
+			
+			for(int i = rows.length - 1; i >= 0; i--) {
+				id = (Identifier) getValueAt(rows[i], 0);
+				TaskManager.removeTask(TaskManager.getTask(id));
+			}
+			
+			clearSelection();
+		}
 
 		private class TableHeader extends JTableHeader {
 			
@@ -308,6 +320,6 @@ public class TaskTable extends JTable {
 		        return this.tooltips[realIndex];
 		    }
 			
-		}
+		}	
 		
 }

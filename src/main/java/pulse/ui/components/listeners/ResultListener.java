@@ -1,4 +1,4 @@
-package pulse.ui.components;
+package pulse.ui.components.listeners;
 
 import pulse.tasks.listeners.ResultFormatEvent;
 

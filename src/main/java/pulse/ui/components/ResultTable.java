@@ -291,4 +291,35 @@ public class ResultTable extends JTable implements Describable {
 		return "SummaryTable";
 	}
 	
+	public boolean isSelectionEmpty() {
+		return getSelectedRows().length < 1;
+	}
+	
+	public boolean hasEnoughElements(int elements) {
+		return getRowCount() >= elements;
+	}	
+	
+	public void deleteSelected() {
+
+		ResultTableModel rtm = (ResultTableModel) getModel();
+			
+		int[] selection = getSelectedRows();								
+			
+		if(selection.length < 0)
+			return;
+		
+		for(int i = selection.length - 1; i >= 0; i--) 
+			rtm.remove( rtm.getResults().get(convertRowIndexToModel(selection[i])) );
+			
+	}
+	
+	public void undo() {
+		ResultTableModel dtm = (ResultTableModel) getModel();
+		
+		for(int i = dtm.getRowCount()-1; i >= 0; i--) 
+			dtm.remove( dtm.getResults().get(convertRowIndexToModel(i)) );
+		
+		TaskManager.getTaskList().stream().map(t -> TaskManager.getResult(t)).forEach(r -> dtm.addRow(r));	
+	}
+	
 }

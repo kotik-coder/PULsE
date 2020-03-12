@@ -10,7 +10,7 @@ import javax.swing.JTable;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.Property;
-import pulse.ui.components.IconCheckBox;
+import pulse.ui.components.buttons.IconCheckBox;
 import pulse.util.PropertyHolder;
 
 public class AccesibleTableRenderer extends NumericPropertyRenderer {

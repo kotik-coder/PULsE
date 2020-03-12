@@ -12,7 +12,7 @@ import pulse.tasks.Identifier;
 import pulse.tasks.Result;
 import pulse.tasks.ResultFormat;
 import pulse.tasks.listeners.ResultFormatEvent;
-import pulse.ui.components.ResultListener;
+import pulse.ui.components.listeners.ResultListener;
 
 @SuppressWarnings("serial")
 public class ResultTableModel extends DefaultTableModel {

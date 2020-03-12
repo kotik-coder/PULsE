@@ -7,7 +7,6 @@ import java.util.stream.Collectors;
 
 import pulse.properties.NumericProperty;
 import pulse.ui.Messages;
-import pulse.util.ImmutableDataEntry;
 
 /**
  * <p>A {@code LogEntry} with a list of {@code NumericPropert}ies. Can be created
@@ -48,7 +47,7 @@ public class DataLogEntry extends LogEntry {
 	
 		var searchVector = task.searchVector()[0];
 		entry = searchVector.getIndices().stream()
-				.map(index -> NumericProperty.derive(index, searchVector.get(index)))
+				.map(index -> NumericProperty.derive(index, searchVector.getRawValue(index)) )
 				.collect(Collectors.toList());
 		Collections.sort(entry, (p1, p2) -> p1.getDescriptor(false).compareTo(p2.getDescriptor(false)));
 		entry.add(0, task.getPath().getIteration());
@@ -82,31 +81,27 @@ public class DataLogEntry extends LogEntry {
 	*/
 		
 		sb.append("<table>");
-		
-		List<ImmutableDataEntry<String,String>> intermediate = 
-				entry.stream().map(property -> new ImmutableDataEntry<String,String>(
-				property.getDescriptor(true), property.formattedValue())).collect(Collectors.toList());
-		
-		for(ImmutableDataEntry<String,String> p : intermediate) {
+				
+		for(NumericProperty p : entry) {
 			sb.append("<tr>");
 			sb.append("<td>");
-			sb.append(p.getKey());
+			sb.append(p.getAbbreviation(false));
 			sb.append("</td>");
 			sb.append("<td>");
 			sb.append(Messages.getString("DataLogEntry.FontTagNumber")); //$NON-NLS-1$
-			sb.append("<b>"); //$NON-NLS-1$
-			sb.append(p.getValue());
-			sb.append("</b>"); //$NON-NLS-1$
+			sb.append("<b>");
+			sb.append(p.formattedValue());
+			sb.append("</b>");
 			sb.append(Messages.getString("DataLogEntry.FontTagClose")); //$NON-NLS-1$
 			sb.append("</td>");
-			sb.append("<br>"); //$NON-NLS-1$
+			sb.append("<br>");
 			sb.append("</tr>");
 		}
 		
 		sb.append("</table>");
 		
-		sb.append("<br>"); //$NON-NLS-1$
-		sb.append("<hr>"); //$NON-NLS-1$
+		sb.append("<br>");
+		sb.append("<hr>");
 		
 		return sb.toString();
 		

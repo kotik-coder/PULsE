@@ -250,7 +250,7 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
 		final double ZERO		 = 1e-30;
 		
 		double adjustedValue = convertDimension ? 
-			(double) value * this.getDimensionFactor().doubleValue() : 
+			(double) value * dimensionFactor.doubleValue() : 
 			(double) value;
 			
 		double absAdjustedValue = Math.abs(adjustedValue);
