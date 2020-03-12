@@ -93,7 +93,8 @@ public class TaskPopupMenu extends JPopupMenu {
 		itemShowStatus	= new JMenuItem("What is missing?", ICON_MISSING);
 		
 		TaskManager.addSelectionListener(event -> {
-			if(TaskManager.getSelectedTask().getStatus().getDetails() == null)
+			var details = TaskManager.getSelectedTask().checkProblems().getDetails();
+			if( (details == null) || (details == Details.NONE) ) 
 				itemShowStatus.setEnabled(false);
 			else
 				itemShowStatus.setEnabled(true);
@@ -105,18 +106,12 @@ public class TaskPopupMenu extends JPopupMenu {
 			public void actionPerformed(ActionEvent e) {
 				SearchTask t = TaskManager.getSelectedTask();
 				
-				if(t == null) 
-					return;								
-				
-				Details d = t.getStatus().getDetails();
-				
-				if(d == null)
-					return;
-				
-				JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor((Component) e.getSource()), 
-							d.toString(), 
-							t + " status", JOptionPane.INFORMATION_MESSAGE);
-				
+				if(t != null) {
+					Details d = t.getStatus().getDetails();
+					JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor((Component) e.getSource()), 
+							"<html>This is due to " + d.toString() + "</html>", 
+							"Problems with " + t, JOptionPane.INFORMATION_MESSAGE);
+				}
 			}
 			
 		});

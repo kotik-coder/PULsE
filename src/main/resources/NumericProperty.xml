@@ -246,13 +246,13 @@
 		dimensionfactor="1" discreet="false" keyword="OPTIMISER_STATISTIC"
 		maximum="1E10" minimum="-1e10" primitive-type="double" value="Infinity">
 	</NumericProperty>
-	<NumericProperty abbreviation="Lower bound" auto-adjustable="false"
-		descriptor="Calculation range lower bound" dimensionfactor="1"
+	<NumericProperty abbreviation="&lt;i&gt;t&lt;/i&gt;&lt;sub&gt;min&lt;/sub&gt;" auto-adjustable="false"
+		descriptor="Lower bound, &lt;i&gt;t&lt;/i&gt;&lt;sub&gt;min&lt;/sub&gt;" dimensionfactor="1"
 		discreet="false" keyword="LOWER_BOUND" maximum="100" minimum="-100"
 		primitive-type="double" value="0.0">
 	</NumericProperty>
-	<NumericProperty abbreviation="Upper bound" auto-adjustable="false"
-		descriptor="Calculation range upper bound" dimensionfactor="1"
+	<NumericProperty abbreviation="&lt;i&gt;t&lt;/i&gt;&lt;sub&gt;max&lt;/sub&gt;" auto-adjustable="false"
+		descriptor="Upper bound, &lt;i&gt;t&lt;/i&gt;&lt;sub&gt;max&lt;/sub&gt;" dimensionfactor="1"
 		discreet="false" keyword="UPPER_BOUND" maximum="100" minimum="-100"
 		primitive-type="double" value="1.0">
 	</NumericProperty>
