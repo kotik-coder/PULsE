@@ -487,6 +487,10 @@ public class SearchTask extends Accessible implements Runnable {
 		status.setDetails(Details.NONE);
 		notifyStatusListeners(new StateEntry(this, status));
 	}
+	
+	public Status checkProblems() {
+		return checkProblems(true);
+	}
 		
 	/**
 	 * <p>Checks if this {@code SearchTask} is ready to be run. Performs basic check to see
@@ -498,7 +502,7 @@ public class SearchTask extends Accessible implements Runnable {
 	 * @return the current status
 	 */
 	
-	public Status checkProblems() {
+	public Status checkProblems(boolean updateStatus) {
 		if(status == Status.DONE)
 			return status;		
 		
@@ -522,7 +526,8 @@ public class SearchTask extends Accessible implements Runnable {
 		else 
 			s = Status.READY;		
 			
-		setStatus(s);
+		if(updateStatus)
+			setStatus(s);
 			
 		return status;
 	}

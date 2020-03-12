@@ -93,7 +93,7 @@ public class TaskPopupMenu extends JPopupMenu {
 		itemShowStatus	= new JMenuItem("What is missing?", ICON_MISSING);
 		
 		TaskManager.addSelectionListener(event -> {
-			var details = TaskManager.getSelectedTask().checkProblems().getDetails();
+			var details = TaskManager.getSelectedTask().checkProblems(false).getDetails();
 			if( (details == null) || (details == Details.NONE) ) 
 				itemShowStatus.setEnabled(false);
 			else
