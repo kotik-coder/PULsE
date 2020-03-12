@@ -25,7 +25,7 @@ public class DataFrame extends JFrame {
 	private	final static int ROW_HEIGHT = 50;
 
 	@Override 
-	public void dispose() {;
+	public void dispose() {
 		if(ancestorFrame != null) {
 			ancestorFrame.setEnabled(true);
 			if(ancestorFrame.getParent() != null)

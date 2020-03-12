@@ -31,13 +31,8 @@ public class SystemPanel extends JPanel {
 		memoryLabel = new JLabel();
 		
 		setLayout(new GridBagLayout());
-        
         var gridBagConstraints = new GridBagConstraints();
 		
-		var cpuLabel = new JLabel();        
-        var memoryLabel = new JLabel();
-        var coresLabel = new JLabel();
-        
 		cpuLabel.setHorizontalAlignment(SwingConstants.LEFT);
         cpuLabel.setText("CPU:");
         gridBagConstraints = new GridBagConstraints();
