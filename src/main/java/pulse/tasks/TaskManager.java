@@ -16,7 +16,6 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 
 import pulse.input.ExperimentalData;
-import pulse.input.InterpolationDataset;
 import pulse.io.readers.ReaderManager;
 import pulse.search.direction.PathOptimiser;
 import pulse.tasks.listeners.TaskRepositoryEvent;
@@ -36,15 +35,10 @@ import pulse.util.UpwardsNavigable;
 public final class TaskManager extends UpwardsNavigable {	
 		
 	private static TaskManager instance = new TaskManager();	
-	private static PathOptimiser pathSolver;
-	private static InterpolationDataset specificHeatCurve;
-	private static InterpolationDataset densityCurve;
-	
 	private static ForkJoinPool taskPool;
 	
 	private static List<SearchTask> tasks = new LinkedList<SearchTask>();
-	private static SearchTask selectedTask;
-	
+	private static SearchTask selectedTask;	
 	private static Map<SearchTask,Result> results = new HashMap<SearchTask,Result>();
 	
 	private static final int threadsAvailable = Launcher.threadsAvailable();
@@ -285,14 +279,6 @@ public final class TaskManager extends UpwardsNavigable {
 				findFirst().get();
 	}
 	
-	public static InterpolationDataset getSpecificHeatCurve() {
-		return specificHeatCurve;
-	}
-	
-	public static InterpolationDataset getDensityCurve() {
-		return densityCurve;
-	}
-	
 	/**
 	 * <p>Generates a {@code SearchTask} assuming that the {@code ExperimentalData} is stored in the
 	 * {@code file}. This will make the {@code ReaderManager} attempt to read that {@code file}. 
@@ -384,34 +370,6 @@ public final class TaskManager extends UpwardsNavigable {
 	}
 	
 	/**
-	 * Uses the {@code ReaderManager} to create an {@code InterpolationDataset} from {@code f} 
-	 * and updates the thermal properties of each task.
-	 * @param f a {@code File} containing the specific heat (or the heat capacity) data [J/kg/K].
-	 * @throws IOException if file cannot be read
-	 * @see pulse.tasks.SearchTask.calculateThermalProperties()
-	 */
-	
-	public static void loadSpecificHeatData(File f) throws IOException {
-		specificHeatCurve = ReaderManager.readDataset(f);
-		for(SearchTask t : tasks) 
-			t.calculateThermalProperties();
-	}
-	
-	/**
-	 * Uses the {@code ReaderManager} to create an {@code InterpolationDataset} from {@code f} 
-	 * and updates the thermal properties of each task.
-	 * @param f a {@code File} containing the density (or the heat capacity) data [kg/m<sup>3</sup>].
-	 * @throws IOException if file cannot be read
-	 * @see pulse.tasks.SearchTask.calculateThermalProperties()
-	 */
-	
-	public static void loadDensityData(File f) throws IOException {
-		densityCurve = ReaderManager.readDataset(f);
-		for(SearchTask t : tasks)
-			t.calculateThermalProperties();
-	}
-	
-	/**
 	 * <p>Selects a {@code SearchTask} within this repository with the specified {@code id} (if present). Informs
 	 * the listeners this selection has been triggered by {@code src}. </p>
 	 * @param id the {@code Identifier} of a task within this repository.
@@ -460,15 +418,6 @@ public final class TaskManager extends UpwardsNavigable {
 	
 	public static SearchTask getSelectedTask() {
 		return selectedTask;
-	}
-	
-	public static PathOptimiser getPathSolver() {
-		return pathSolver;
-	}
-	
-	public static void setPathSolver(PathOptimiser pathSolver) {
-		TaskManager.pathSolver = pathSolver;
-		pathSolver.setParent(getInstance());
 	}
 	
 	public static List<TaskRepositoryListener> getTaskRepositoryListeners() {
@@ -523,6 +472,10 @@ public final class TaskManager extends UpwardsNavigable {
 			return;
 		results.remove(t);
 		t.setStatus(Status.READY);		
+	}
+	
+	public static void evaluate() {
+		tasks.stream().forEach(t -> t.calculateThermalProperties());
 	}
 
 }

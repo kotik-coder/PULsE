@@ -1,7 +1,10 @@
 package pulse.ui;
 
+import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.SplashScreen;
 import java.lang.management.ManagementFactory;
+import java.util.Objects;
 
 import javax.management.Attribute;
 import javax.management.AttributeList;
@@ -31,7 +34,9 @@ public class Launcher {
 	 */
 	
 	public static void main(String[] args) {
-        /* Set the Nimbus look and feel */
+        splashScreen();
+		
+		/* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
          * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
@@ -52,12 +57,22 @@ public class Launcher {
         java.awt.EventQueue.invokeLater(new Runnable() {
             @Override
 			public void run() {
-				TaskControlFrame.getInstance().setVisible(true);
 		        TaskControlFrame.getInstance().setLocationRelativeTo(null);
+				TaskControlFrame.getInstance().setVisible(true);
             }
         });
 	}		
 	
+	private static void splashScreen() {
+        SplashScreen splash = SplashScreen.getSplashScreen();
+        if(splash == null) 
+        	System.err.println("SplashScreen.getSplashScreen() returned null");
+        else {
+	        Graphics2D g = splash.createGraphics();
+	        Objects.requireNonNull(g, "splash.createGraphics() returned null");
+        }
+	}
+
 	/**
 	 * <p>This will calculate the ratio {@code totalMemory/maxMemory} using the standard {@code Runtime}.
 	 * Note this memory usage depends on heap allocation for the JVM.</p>

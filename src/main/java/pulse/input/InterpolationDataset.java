@@ -1,7 +1,6 @@
 package pulse.input;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import pulse.util.ImmutableDataEntry;
@@ -15,7 +14,9 @@ import pulse.util.ImmutableDataEntry;
 public class InterpolationDataset {
 
 	private List<ImmutableDataEntry<Double,Double>> dataset;
-
+	private static InterpolationDataset specificHeatData;
+	private static InterpolationDataset densityData;
+	
 	/**
 	 * Creates an empty {@code InterpolationDataset}. 
 	 */
@@ -32,16 +33,7 @@ public class InterpolationDataset {
 	 */
 	
 	public ImmutableDataEntry<Double,Double> previousTo(double key) {
-		ImmutableDataEntry<Double,Double> entry = null;
-		ImmutableDataEntry<Double,Double> next = null;
-		for(Iterator<ImmutableDataEntry<Double,Double>> it = dataset.iterator(); it.hasNext(); ) {
-			next = it.next();
-			if(key > next.getKey()) 
-				entry = next;
-			else 
-				break;				
-		}
-		return entry;
+		return dataset.stream().filter(element -> element.getKey() < key).reduce( (a,b) -> b).get();
 	}
 	
 	/**
@@ -57,8 +49,8 @@ public class InterpolationDataset {
 	 */
 	
 	public double interpolateAt(double key) {
-		ImmutableDataEntry<Double,Double> entry = previousTo(key);
-		ImmutableDataEntry<Double,Double> next = dataset.get(dataset.indexOf(entry)+1);
+		var entry	= previousTo(key);
+		var next	= dataset.get(dataset.indexOf(entry)+1);
 		
 		double k = ( next.getValue() - entry.getValue() ) /
 				   ( next.getKey() - entry.getKey() );
@@ -86,6 +78,26 @@ public class InterpolationDataset {
 	
 	public List<ImmutableDataEntry<Double,Double>> getData() {
 		return dataset;			
+	}
+	
+	public static InterpolationDataset getSpecificHeatData() {
+		return specificHeatData;
+	}
+
+	public static void setSpecificHeatData(InterpolationDataset specificHeatData) {
+		InterpolationDataset.specificHeatData = specificHeatData;
+	}
+
+	public static InterpolationDataset getDensityData() {
+		return densityData;
+	}
+
+	public static void setDensityData(InterpolationDataset densityData) {
+		InterpolationDataset.densityData = densityData;
+	}
+
+	public enum Type {
+		SPECIFIC_HEAT, DENSITY;
 	}
 	
 }

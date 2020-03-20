@@ -92,8 +92,9 @@ public class SearchOptionsFrame extends JInternalFrame {
 	}
 	
 	public void update() {
-		if(TaskManager.getPathSolver() != null) {
-			pathList.setSelectedIndex(pathSolvers.indexOf(TaskManager.getPathSolver()));
+		var selected = PathOptimiser.getSelectedPathOptimiser();
+		if(selected != null) {
+			pathList.setSelectedIndex(pathSolvers.indexOf(selected));
 			linearList.setSelectedIndex(linearSolvers.indexOf(PathOptimiser.getLinearSolver()));	
 		}
 		else {
@@ -150,7 +151,7 @@ public class SearchOptionsFrame extends JInternalFrame {
 					if(searchScheme == null)
 						return;
 					
-					TaskManager.setPathSolver(searchScheme);
+					PathOptimiser.setSelectedPathOptimiser(searchScheme);
 			
 					linearList.setEnabled(true);
 					
@@ -205,9 +206,10 @@ public class SearchOptionsFrame extends JInternalFrame {
 					
 					LinearOptimiser linearSolver = (getSelectedValue());
 					 
-					TaskManager.getPathSolver().setLinearSolver(linearSolver);
+					var pathSolver = PathOptimiser.getSelectedPathOptimiser();
+					pathSolver.setLinearSolver(linearSolver);
 					
-					pathTable.setPropertyHolder(TaskManager.getPathSolver());
+					pathTable.setPropertyHolder(pathSolver);
 					pathTable.setEnabled(true);
 					
 					for(SearchTask t : TaskManager.getTaskList())

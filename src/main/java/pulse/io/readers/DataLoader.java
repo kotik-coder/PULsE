@@ -5,12 +5,15 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import pulse.input.ExperimentalData;
+import pulse.input.InterpolationDataset;
+import pulse.input.InterpolationDataset.Type;
 import pulse.problem.statements.Problem;
 import pulse.tasks.SearchTask;
 import pulse.tasks.TaskManager;
@@ -19,6 +22,7 @@ import pulse.ui.Messages;
 public class DataLoader {
 
 	private static File dir;
+		
 	private DataLoader() { }
 	
 	public static void loadDataDialog() {
@@ -122,6 +126,25 @@ public class DataLoader {
 				e.printStackTrace();
 			}
 		return null;
+	}
+	
+	/**
+	 * Uses the {@code ReaderManager} to create an {@code InterpolationDataset} from {@code f} 
+	 * and updates the thermal properties of each task.
+	 * @param f a {@code File} containing the specific heat (or the heat capacity) data [J/kg/K].
+	 * @throws IOException if file cannot be read
+	 * @see pulse.tasks.SearchTask.calculateThermalProperties()
+	 */
+	
+	public static void load(Type type, File f) throws IOException {
+		Objects.requireNonNull(f);
+		
+		switch(type) {
+			case SPECIFIC_HEAT : InterpolationDataset.setSpecificHeatData( ReaderManager.readDataset(f) ); break; 
+			case DENSITY : InterpolationDataset.setDensityData(ReaderManager.readDataset(f)); break;
+			default : throw new IllegalArgumentException("Unrecognized data type: " + type);
+		}
+		TaskManager.evaluate();
 	}
 	
 }

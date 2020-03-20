@@ -7,10 +7,10 @@ import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
 import java.util.List;
 
 import pulse.input.ExperimentalData;
+import pulse.input.InterpolationDataset;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
-import pulse.tasks.TaskManager;
 import pulse.ui.Messages;
 
 public class NonlinearProblem extends Problem {
@@ -61,11 +61,15 @@ public class NonlinearProblem extends Problem {
 	public void setTestTemperature(NumericProperty T) {
 		this.T  = (double)T.getValue();
 		
-		if(TaskManager.getSpecificHeatCurve() != null)
-			super.cP = TaskManager.getSpecificHeatCurve().interpolateAt(this.T);
+		var cP = InterpolationDataset.getSpecificHeatData();
 		
-		if(TaskManager.getDensityCurve() != null) 
-			super.rho = TaskManager.getDensityCurve().interpolateAt(this.T);
+		if(cP != null)
+			super.cP = cP.interpolateAt(this.T);
+		
+		var rho = InterpolationDataset.getDensityData();
+		
+		if(rho != null) 
+			super.rho = rho.interpolateAt(this.T);
 		
 	}		
 	

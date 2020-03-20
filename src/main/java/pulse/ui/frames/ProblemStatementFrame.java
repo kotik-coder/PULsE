@@ -27,6 +27,7 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 
+import pulse.input.InterpolationDataset;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.solvers.Solver;
 import pulse.problem.statements.Problem;
@@ -38,10 +39,9 @@ import pulse.tasks.listeners.TaskSelectionEvent;
 import pulse.tasks.listeners.TaskSelectionListener;
 import pulse.ui.Messages;
 import pulse.ui.components.Chart;
-import pulse.ui.components.panels.SettingsToolBar;
 import pulse.ui.components.PropertyHolderTable;
 import pulse.ui.components.buttons.LoaderButton;
-import pulse.ui.components.buttons.LoaderButton.DataType;
+import pulse.ui.components.panels.SettingsToolBar;
 import pulse.util.Reflexive;
 
 @SuppressWarnings("serial")
@@ -189,11 +189,11 @@ public class ProblemStatementFrame extends JInternalFrame {
 		toolBar.add(btnSimulate);
 
 		LoaderButton btnLoadCv = new LoaderButton(Messages.getString("ProblemStatementFrame.LoadSpecificHeatButton")); //$NON-NLS-1$
-		btnLoadCv.setDataType(DataType.SPECIFIC_HEAT);
+		btnLoadCv.setDataType(InterpolationDataset.Type.SPECIFIC_HEAT);
 		toolBar.add(btnLoadCv);
 
 		LoaderButton btnLoadDensity = new LoaderButton(Messages.getString("ProblemStatementFrame.LoadDensityButton")); //$NON-NLS-1$
-		btnLoadDensity.setDataType(DataType.DENSITY);
+		btnLoadDensity.setDataType(InterpolationDataset.Type.DENSITY);
 		toolBar.add(btnLoadDensity);
 		
 		/*

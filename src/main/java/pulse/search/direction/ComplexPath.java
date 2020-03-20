@@ -2,7 +2,6 @@ package pulse.search.direction;
 
 import pulse.search.math.Matrix;
 import pulse.tasks.SearchTask;
-import pulse.tasks.TaskManager;
 
 /**
  * <p>A more complex version of {@code Path}, which in addition to other variables stores 
@@ -27,7 +26,7 @@ public class ComplexPath extends Path {
 	public void reset(SearchTask task) {
 		setGradient(PathOptimiser.gradient(task));
 		hessian = new Matrix(PathOptimiser.activeParameters().size(), 1.0);
-		setDirection( TaskManager.getPathSolver().direction(this) );
+		setDirection( PathOptimiser.getSelectedPathOptimiser().direction(this) );
 	}
 	
 	public Matrix getHessian() {

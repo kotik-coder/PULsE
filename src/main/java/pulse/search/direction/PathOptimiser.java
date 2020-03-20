@@ -17,6 +17,7 @@ import pulse.search.math.IndexedVector;
 import pulse.search.math.Vector;
 import pulse.tasks.SearchTask;
 import pulse.tasks.Status;
+import pulse.tasks.TaskManager;
 import pulse.util.PropertyHolder;
 import pulse.util.Reflexive;
 
@@ -38,6 +39,8 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 
 	private static LinearOptimiser linearSolver;
 	private static List<Flag>	globalSearchFlags = Flag.defaultList();
+	
+	private static PathOptimiser selectedPathOptimiser;
 	
 	/**
 	 * Abstract constructor that sets up the default {@code ITERATION_LIMIT, ERROR_TOLERANCE} and {@code GRADIENT_RESOLUTION}
@@ -310,5 +313,14 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 	 */
 	
 	public abstract Path createPath(SearchTask t);
+
+	public static PathOptimiser getSelectedPathOptimiser() {
+		return selectedPathOptimiser;
+	}
+
+	public static void setSelectedPathOptimiser(PathOptimiser selectedPathOptimiser) {
+		PathOptimiser.selectedPathOptimiser = selectedPathOptimiser;
+		selectedPathOptimiser.setParent(TaskManager.getInstance());
+	}
 	
 }

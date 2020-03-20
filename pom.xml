@@ -25,6 +25,9 @@
               <classpathPrefix>lib/</classpathPrefix>
               <mainClass>pulse.ui.Launcher</mainClass>
             </manifest>
+          <manifestEntries>
+            <SplashScreen-Image>images/splash.png</SplashScreen-Image>
+          </manifestEntries>
           </archive>
         </configuration>
       </plugin>

@@ -174,14 +174,14 @@ public class SearchTask extends Accessible implements Runnable {
 		if(problem == null)
 			return;
 		
-		InterpolationDataset cpCurve = TaskManager.getSpecificHeatCurve();				
+		var cpCurve = InterpolationDataset.getSpecificHeatData();				
 		
 		if(cpCurve != null) {
 			cp = cpCurve.interpolateAt(testTemperature); 
 			problem.set(SPECIFIC_HEAT, NumericProperty.derive(SPECIFIC_HEAT, cp));
 		}
 		
-		InterpolationDataset rhoCurve = TaskManager.getDensityCurve();		
+		var rhoCurve = InterpolationDataset.getDensityData();		
 		if(rhoCurve != null) { 
 			rho = rhoCurve.interpolateAt(testTemperature);
 			problem.set(DENSITY, NumericProperty.derive(DENSITY, rho));
@@ -249,7 +249,7 @@ public class SearchTask extends Accessible implements Runnable {
 	    
 	  solveProblemAndCalculateDeviation();
 	  
-	  PathOptimiser pathSolver 	= TaskManager.getPathSolver();
+	  PathOptimiser pathSolver 	= PathOptimiser.getSelectedPathOptimiser();
 	  
 	  path 						= pathSolver.createPath(this);
 	   
@@ -506,7 +506,7 @@ public class SearchTask extends Accessible implements Runnable {
 		if(status == Status.DONE)
 			return status;		
 		
-		PathOptimiser pathSolver = TaskManager.getPathSolver();				
+		PathOptimiser pathSolver = PathOptimiser.getSelectedPathOptimiser();		
 		Status s = Status.INCOMPLETE;
 		
 		if(problem == null) 

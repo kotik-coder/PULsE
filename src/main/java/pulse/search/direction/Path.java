@@ -4,7 +4,6 @@ import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.search.math.Vector;
 import pulse.tasks.SearchTask;
-import pulse.tasks.TaskManager;
 
 /**
  * <p>A {@code Path} stores information relevant to the selected {@code PathSolver}, 
@@ -40,7 +39,7 @@ public class Path {
 	
 	public void reset(SearchTask t) {
 		this.gradient	= PathOptimiser.gradient(t);
-		this.direction	= TaskManager.getPathSolver().direction(this);
+		this.direction	= PathOptimiser.getSelectedPathOptimiser().direction(this);
 		minimumPoint	= 0.0;
 	}
 	

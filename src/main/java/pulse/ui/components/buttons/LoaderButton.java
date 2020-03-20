@@ -1,5 +1,8 @@
 package pulse.ui.components.buttons;
 
+import static pulse.input.InterpolationDataset.Type.DENSITY;
+import static pulse.input.InterpolationDataset.Type.SPECIFIC_HEAT;
+
 import java.awt.Component;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -14,14 +17,15 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import pulse.input.InterpolationDataset;
+import pulse.io.readers.DataLoader;
 import pulse.io.readers.ReaderManager;
-import pulse.tasks.TaskManager;
 import pulse.ui.Messages;
 
 @SuppressWarnings("serial")
 public class LoaderButton extends JButton {
 
-	private DataType dataType;
+	private InterpolationDataset.Type dataType;
 	private static File dir;
 	
 	public LoaderButton() {
@@ -54,8 +58,8 @@ public class LoaderButton extends JButton {
 				
 				try {
 					switch(dataType) {
-					case SPECIFIC_HEAT : TaskManager.loadSpecificHeatData(fileChooser.getSelectedFile()); break;
-					case DENSITY	   : TaskManager.loadDensityData(fileChooser.getSelectedFile()); break;
+					case SPECIFIC_HEAT : DataLoader.load(SPECIFIC_HEAT, fileChooser.getSelectedFile()); break;
+					case DENSITY	   : DataLoader.load(DENSITY, fileChooser.getSelectedFile()); break;
 					default : 
 						throw new IllegalStateException("Unrecognised type: " + dataType);
 					}
@@ -69,8 +73,8 @@ public class LoaderButton extends JButton {
 				int size = 0;
 				
 				switch(dataType) {
-					case SPECIFIC_HEAT : size = TaskManager.getSpecificHeatCurve().getData().size(); break;
-					case DENSITY : size = TaskManager.getDensityCurve().getData().size(); break;
+					case SPECIFIC_HEAT : size = InterpolationDataset.getSpecificHeatData().getData().size(); break;
+					case DENSITY : size = InterpolationDataset.getDensityData().getData().size(); break;
 					default : 
 						throw new IllegalStateException("Unknown data type: " + dataType);
 				}
@@ -94,13 +98,8 @@ public class LoaderButton extends JButton {
 		});
 	}
 	
-	public void setDataType(DataType dataType) {
+	public void setDataType(InterpolationDataset.Type dataType) {
 		this.dataType = dataType;
 	}
 
-
-	public enum DataType {
-		SPECIFIC_HEAT, DENSITY;
-	}
-	
 }

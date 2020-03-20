@@ -14,6 +14,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JSeparator;
 import javax.swing.SwingUtilities;
+
 import pulse.io.export.ExportManager;
 import pulse.io.readers.DataLoader;
 import pulse.properties.NumericProperty;
