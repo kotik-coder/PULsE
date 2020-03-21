@@ -183,8 +183,6 @@ public class TaskControlFrame extends JFrame {
          * CONSTRAINT ADJUSTMENT
          */
 		
-        pack();
-		
 		resizeQuadrants();
 		desktopPane.add(taskManagerFrame);
         desktopPane.add(graphFrame);
@@ -196,6 +194,8 @@ public class TaskControlFrame extends JFrame {
         
 		setDefaultResizeBehaviour();
         
+        pack();
+		
     }
     
     private void setDefaultResizeBehaviour() {

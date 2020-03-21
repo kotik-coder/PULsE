@@ -8,10 +8,12 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 
@@ -35,13 +37,13 @@ import pulse.util.UpwardsNavigable;
 public final class TaskManager extends UpwardsNavigable {	
 		
 	private static TaskManager instance = new TaskManager();	
-	private static ForkJoinPool taskPool;
 	
 	private static List<SearchTask> tasks = new LinkedList<SearchTask>();
 	private static SearchTask selectedTask;	
 	private static Map<SearchTask,Result> results = new HashMap<SearchTask,Result>();
 	
-	private static final int threadsAvailable = Launcher.threadsAvailable();
+	private static final int THREADS_AVAILABLE = Launcher.threadsAvailable();
+	private static ForkJoinPool taskPool = new ForkJoinPool(THREADS_AVAILABLE - 1);
 	
 	private static List<TaskSelectionListener> selectionListeners = new CopyOnWriteArrayList<TaskSelectionListener>();
 	private static List<TaskRepositoryListener> taskRepositoryListeners = new CopyOnWriteArrayList<TaskRepositoryListener>();
@@ -128,9 +130,7 @@ public final class TaskManager extends UpwardsNavigable {
 															default: 
 																return true; }
 														}).collect(Collectors.toList());	
-		
-		taskPool = new ForkJoinPool(threadsAvailable - 1);
-		
+				
 		try {
 			taskPool.submit( () -> queue.parallelStream().forEach( t -> execute(t) ) ).get();
 		} catch (InterruptedException | ExecutionException e) {
@@ -217,7 +217,7 @@ public final class TaskManager extends UpwardsNavigable {
 	 */
 	
 	public static void clear() {
-		tasks.stream().forEach(task -> {
+		tasks.stream().sorted( (t1, t2) -> -t1.getIdentifier().compareTo(t2.getIdentifier())).forEach(task -> {
 			TaskRepositoryEvent e = new TaskRepositoryEvent(
 					TaskRepositoryEvent.State.TASK_REMOVED, task.getIdentifier());
 			
@@ -305,13 +305,14 @@ public final class TaskManager extends UpwardsNavigable {
 	 */
 	
 	public static void generateTasks(List<File> files) {
-		if(files.size() == 1) {
-			generateTask(files.get(0));
-			return;
-		}
+		Objects.requireNonNull(files, "Null list of files passed to generatesTasks(...)");
 		
-		files.stream().forEach( f -> generateTask(f));
-	
+		if(files.size() == 1) 
+			generateTask(files.get(0));
+		else {
+			var pool = Executors.newSingleThreadExecutor();
+			files.stream().forEach(f -> pool.submit(() -> generateTask(f) ));
+		}
 	}
 	
 	/**
@@ -330,10 +331,8 @@ public final class TaskManager extends UpwardsNavigable {
 		tasks.add(t);
 		
 		TaskRepositoryEvent e = new TaskRepositoryEvent(TaskRepositoryEvent.State.TASK_ADDED, t.getIdentifier());
-		
-		notifyListeners(e);
-		
 		t.setParent(getInstance());
+		notifyListeners(e);
 		
 		return t;
 	}
@@ -406,6 +405,10 @@ public final class TaskManager extends UpwardsNavigable {
 	
 	public static void removeSelectionListeners() {
 		selectionListeners.clear();
+	}
+	
+	public static void removeTaskRepositoryListener(TaskRepositoryListener trl) {
+		taskRepositoryListeners.remove(trl);
 	}
 	
 	public static int indexOfTask(SearchTask t) {

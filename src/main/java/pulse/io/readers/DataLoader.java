@@ -17,20 +17,34 @@ import pulse.input.InterpolationDataset.Type;
 import pulse.problem.statements.Problem;
 import pulse.tasks.SearchTask;
 import pulse.tasks.TaskManager;
+import pulse.tasks.listeners.TaskRepositoryEvent;
 import pulse.ui.Messages;
+import pulse.ui.frames.dialogs.ProgressDialog;
 
 public class DataLoader {
 
 	private static File dir;
-		
+	private static ProgressDialog progressFrame = new ProgressDialog();
+
+	static {
+		TaskManager.addTaskRepositoryListener(
+				e -> {
+					if(e.getState() == TaskRepositoryEvent.State.TASK_ADDED)
+						progressFrame.incrementProgress();
+				}
+		);
+		progressFrame.setLocationRelativeTo(null);
+		progressFrame.setAlwaysOnTop(true);
+	}
+	
 	private DataLoader() { }
 	
 	public static void loadDataDialog() {
 		var files = userInput( Messages.getString("TaskControlFrame.ExtensionDescriptor"), ReaderManager.getCurveExtensions() ); 
 		
 		if(files != null) {		
+			progressFrame.trackProgress( files.size() );
 			TaskManager.generateTasks(files);
-			TaskManager.selectFirstTask();
 		}
 				
 	}
@@ -39,6 +53,9 @@ public class DataLoader {
 		MetaFileReader reader = MetaFileReader.getInstance();
 		var file = userInputSingle(Messages.getString("TaskControlFrame.ExtensionDescriptor"), reader.getSupportedExtension());
 
+		if(TaskManager.numberOfTasks() > 0)
+			progressFrame.trackProgress( TaskManager.numberOfTasks() + 1 );
+		
 		//attempt to fill metadata and problem 
 		try {											
 			
@@ -48,8 +65,9 @@ public class DataLoader {
 				reader.populateMetadata(file, data.getMetadata());
 					
 				Problem p = task.getProblem();					
-				if(p != null) p.retrieveData(data);								
- 				
+				if(p != null) p.retrieveData(data);
+				progressFrame.incrementProgress();
+				
 			}
 			
 		} catch (IOException e) {
@@ -63,6 +81,8 @@ public class DataLoader {
 		//check if the data loaded needs truncation		
 		if(TaskManager.dataNeedsTruncation())
 			truncateDataDialog();
+		
+		progressFrame.incrementProgress();
 				
 		//select first of the generated task
 		TaskManager.selectFirstTask();

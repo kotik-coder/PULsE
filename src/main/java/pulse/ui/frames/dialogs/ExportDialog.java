@@ -4,6 +4,7 @@ import java.awt.Dimension;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Executors;
 
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
@@ -33,6 +34,7 @@ import pulse.io.export.ResultExporter;
 import pulse.tasks.Log;
 import pulse.tasks.Result;
 import pulse.tasks.TaskManager;
+import pulse.ui.Launcher;
 
 @SuppressWarnings("serial")
 public class ExportDialog extends JDialog {
@@ -40,6 +42,13 @@ public class ExportDialog extends JDialog {
 	private static Map<Class<?>,Boolean> exportSettings = new HashMap<Class<?>,Boolean>();
 	private final static int HEIGHT = 160;
 	private final static int WIDTH = 650;
+	
+	private static ProgressDialog progressFrame = new ProgressDialog();
+	
+	static {
+		progressFrame.setLocationRelativeTo(null);
+		progressFrame.setAlwaysOnTop(true);
+	}
 	
 	static {
 		exportSettings.put(MetadataExporter.getInstance().target(), false);
@@ -85,11 +94,25 @@ public class ExportDialog extends JDialog {
 			if(subdirs.size() > 0 && !destination.exists())
 				destination.mkdirs();
 			
-			if(createSubdirectories) 
-				subdirs.stream().forEach(s -> MassExporter.exportGroup(s,destination,extension));
+			final int threads = Launcher.threadsAvailable();
+			
+			if(createSubdirectories) {
+				progressFrame.trackProgress(subdirs.size());
+				var pool = Executors.newFixedThreadPool(threads - 1);
+				subdirs.stream().forEach(s -> {
+						pool.submit( () -> 
+							{ MassExporter.exportGroup(s,destination,extension);
+							 progressFrame.incrementProgress();
+							} 
+							);
+				} );
+			}
 			else {				
-				ExportManager.allGrouppedContents().forEach(
-									individual -> {
+				var groupped = ExportManager.allGrouppedContents();
+				var pool = Executors.newFixedThreadPool(threads - 1);
+				progressFrame.trackProgress(groupped.size());
+				groupped.stream().forEach(
+									individual -> pool.submit( () -> {
 										Class<?> individualClass = individual.getClass();
 										
 										if(!exportSettings.containsKey(individualClass)) {
@@ -100,12 +123,14 @@ public class ExportDialog extends JDialog {
 											else
 												individualClass = key.get();
 																																	
-									}
-										
-									if(exportSettings.get(individualClass)) 
-										ExportManager.export(individual, destination, extension);
+										}
+											
+										if(exportSettings.get(individualClass)) 
+											ExportManager.export(individual, destination, extension);
 									
-								}
+										progressFrame.incrementProgress();
+									
+								})
 									
 						);
 			}

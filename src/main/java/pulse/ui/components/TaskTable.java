@@ -204,11 +204,7 @@ public class TaskTable extends JTable {
 		}		
 		
 		public class TaskTableModel extends DefaultTableModel {
-			
-			/**
-			 * 
-			 */
-			private static final long serialVersionUID = 7196461896699123800L;
+
 			private static final int SEARCH_STATISTIC_COLUMN = 2;
 			private static final int TEST_STATISTIC_COLUMN = 3;
 			private static final int STATUS_COLUMN = 4;
@@ -234,15 +230,15 @@ public class TaskTable extends JTable {
 						t.getStatus()
 				};	
 				
-				super.addRow(data);	
+				SwingUtilities.invokeLater( () -> super.addRow(data));
 				
 				t.addStatusChangeListener(new StatusChangeListener() {
 
-					@Override
-					public void onStatusChange(StateEntry e) { 
-							setValueAt(e.getState(), searchRow(t.getIdentifier()), STATUS_COLUMN);	
-							if(t.getNormalityTest() != null)
-								setValueAt(t.getNormalityTest().getStatistic(), searchRow(t.getIdentifier()), TEST_STATISTIC_COLUMN);							
+				@Override
+				public void onStatusChange(StateEntry e) { 
+					setValueAt(e.getState(), searchRow(t.getIdentifier()), STATUS_COLUMN);	
+					if(t.getNormalityTest() != null)
+						setValueAt(t.getNormalityTest().getStatistic(), searchRow(t.getIdentifier()), TEST_STATISTIC_COLUMN);							
 					}
 					
 				});
@@ -259,33 +255,21 @@ public class TaskTable extends JTable {
 			}
 			
 			public void removeTask(Identifier id) {
-				Identifier idFromTable = null;
+				int index = searchRow(id);
 				
-				for(int i = 0; i < getRowCount(); i++) {
-					idFromTable = (Identifier) getValueAt(i, 0);
-					
-					if(idFromTable.equals(id)) {
-						removeRow(i);
-						break;
-					}
-					
-				}
+				if(index > -1)
+					SwingUtilities.invokeLater( () -> super.removeRow( index ) );
 				
 			}
 			
 			public int searchRow(Identifier id) {
-				int rows = this.getRowCount();
+				var data = this.getDataVector();
+				var v = dataVector.stream().filter(row -> ( (Identifier)row.get(0) ).equals(id)).findFirst();
 				
-				var dataVector = this.getDataVector();
-				
-				for(int i = 0; i < rows; i++) {
-					if(id.equals(
-							(dataVector.elementAt(i)).elementAt(0)
-							))
-						return i;
-				}
-				
-				return -1;
+				if(v.isPresent())
+					return data.indexOf( v.get() );
+				else
+					return -1;
 				
 			}
 						

@@ -31,7 +31,7 @@ public final class ReaderManager {
 	
 	private static List<String> allDataExtensions		= supportedCurveExtensions();
 	private static List<String> allDatasetExtensions	= supportedDatasetExtensions();
-		
+			
 	private ReaderManager() { }
 	
 	private static List<String> supportedCurveExtensions() {			
@@ -151,7 +151,8 @@ public final class ReaderManager {
 			throw new IllegalArgumentException(
 					Messages.getString("ReaderManager.1") + file.getName());
 		
-		return optional.get().read(file);				
+		var reader = optional.get();
+		return reader.read(file);
 	}
 	
 	/**
@@ -174,9 +175,7 @@ public final class ReaderManager {
 			throw new IllegalArgumentException(
 					Messages.getString("ReaderManager.1") + file.getName());
 		
-		return optional.get().read(file);		
-		
-		
+		return optional.get().read(file);
 	}
     	
 }

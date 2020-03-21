@@ -44,5 +44,5 @@ public interface CurveReader extends AbstractReader {
 			
 		return array.stream().sorted(externalIdComparator).collect(Collectors.toList()); 		
 	}
-	
+		
 }
