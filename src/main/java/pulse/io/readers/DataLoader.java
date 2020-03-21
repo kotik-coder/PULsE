@@ -52,8 +52,8 @@ public class DataLoader {
 	public static void loadMetadataDialog() {
 		MetaFileReader reader = MetaFileReader.getInstance();
 		var file = userInputSingle(Messages.getString("TaskControlFrame.ExtensionDescriptor"), reader.getSupportedExtension());
-
-		if(TaskManager.numberOfTasks() > 0)
+		
+		if(TaskManager.numberOfTasks() > 0 && file != null)
 			progressFrame.trackProgress( TaskManager.numberOfTasks() + 1 );
 		
 		//attempt to fill metadata and problem 
