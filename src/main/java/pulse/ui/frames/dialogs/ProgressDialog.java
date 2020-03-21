@@ -28,7 +28,7 @@ public class ProgressDialog extends JDialog implements PropertyChangeListener {
      * Invoked when task's progress property changes.
      */
     public void propertyChange(PropertyChangeEvent evt) {
-        if ("progress" == evt.getPropertyName()) {
+        if (evt.getPropertyName().equals("progress") ) {
             int progress = (Integer) evt.getNewValue();
             progressBar.setValue(progress);
         } 
