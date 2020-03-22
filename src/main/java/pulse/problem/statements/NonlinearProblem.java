@@ -8,6 +8,7 @@ import java.util.List;
 
 import pulse.input.ExperimentalData;
 import pulse.input.InterpolationDataset;
+import pulse.input.InterpolationDataset.StandartType;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
@@ -61,12 +62,12 @@ public class NonlinearProblem extends Problem {
 	public void setTestTemperature(NumericProperty T) {
 		this.T  = (double)T.getValue();
 		
-		var cP = InterpolationDataset.getSpecificHeatData();
+		var cP = InterpolationDataset.getDataset(StandartType.SPECIFIC_HEAT);
 		
 		if(cP != null)
 			super.cP = cP.interpolateAt(this.T);
 		
-		var rho = InterpolationDataset.getDensityData();
+		var rho = InterpolationDataset.getDataset(StandartType.DENSITY);
 		
 		if(rho != null) 
 			super.rho = rho.interpolateAt(this.T);

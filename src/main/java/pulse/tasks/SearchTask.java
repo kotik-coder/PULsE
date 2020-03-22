@@ -16,6 +16,7 @@ import java.util.concurrent.Executors;
 
 import pulse.input.ExperimentalData;
 import pulse.input.InterpolationDataset;
+import pulse.input.InterpolationDataset.StandartType;
 import pulse.input.Metadata;
 import pulse.input.listeners.DataEventType;
 import pulse.problem.schemes.DifferenceScheme;
@@ -174,14 +175,14 @@ public class SearchTask extends Accessible implements Runnable {
 		if(problem == null)
 			return;
 		
-		var cpCurve = InterpolationDataset.getSpecificHeatData();				
+		var cpCurve = InterpolationDataset.getDataset(StandartType.SPECIFIC_HEAT);			
 		
 		if(cpCurve != null) {
 			cp = cpCurve.interpolateAt(testTemperature); 
 			problem.set(SPECIFIC_HEAT, NumericProperty.derive(SPECIFIC_HEAT, cp));
 		}
 		
-		var rhoCurve = InterpolationDataset.getDensityData();		
+		var rhoCurve = InterpolationDataset.getDataset(StandartType.DENSITY);	
 		if(rhoCurve != null) { 
 			rho = rhoCurve.interpolateAt(testTemperature);
 			problem.set(DENSITY, NumericProperty.derive(DENSITY, rho));

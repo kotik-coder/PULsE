@@ -1,7 +1,9 @@
 package pulse.input;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import pulse.util.ImmutableDataEntry;
 
@@ -14,8 +16,7 @@ import pulse.util.ImmutableDataEntry;
 public class InterpolationDataset {
 
 	private List<ImmutableDataEntry<Double,Double>> dataset;
-	private static InterpolationDataset specificHeatData;
-	private static InterpolationDataset densityData;
+	private static Map<StandartType,InterpolationDataset> standartDatasets = new HashMap<StandartType,InterpolationDataset>();
 	
 	/**
 	 * Creates an empty {@code InterpolationDataset}. 
@@ -80,23 +81,15 @@ public class InterpolationDataset {
 		return dataset;			
 	}
 	
-	public static InterpolationDataset getSpecificHeatData() {
-		return specificHeatData;
+	public static InterpolationDataset getDataset(StandartType type) {
+		return standartDatasets.get(type);
 	}
 
-	public static void setSpecificHeatData(InterpolationDataset specificHeatData) {
-		InterpolationDataset.specificHeatData = specificHeatData;
+	public static void setDataset(InterpolationDataset dataset, StandartType type)  {
+		standartDatasets.put(type, dataset);
 	}
-
-	public static InterpolationDataset getDensityData() {
-		return densityData;
-	}
-
-	public static void setDensityData(InterpolationDataset densityData) {
-		InterpolationDataset.densityData = densityData;
-	}
-
-	public enum Type {
+	
+	public enum StandartType {
 		SPECIFIC_HEAT, DENSITY;
 	}
 	

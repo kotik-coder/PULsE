@@ -1,7 +1,7 @@
 package pulse.ui.components.buttons;
 
-import static pulse.input.InterpolationDataset.Type.DENSITY;
-import static pulse.input.InterpolationDataset.Type.SPECIFIC_HEAT;
+import static pulse.input.InterpolationDataset.StandartType.DENSITY;
+import static pulse.input.InterpolationDataset.StandartType.SPECIFIC_HEAT;
 
 import java.awt.Component;
 import java.awt.Toolkit;
@@ -25,7 +25,7 @@ import pulse.ui.Messages;
 @SuppressWarnings("serial")
 public class LoaderButton extends JButton {
 
-	private InterpolationDataset.Type dataType;
+	private InterpolationDataset.StandartType dataType;
 	private static File dir;
 	
 	public LoaderButton() {
@@ -70,14 +70,7 @@ public class LoaderButton extends JButton {
 					e.printStackTrace();
 				}
 
-				int size = 0;
-				
-				switch(dataType) {
-					case SPECIFIC_HEAT : size = InterpolationDataset.getSpecificHeatData().getData().size(); break;
-					case DENSITY : size = InterpolationDataset.getDensityData().getData().size(); break;
-					default : 
-						throw new IllegalStateException("Unknown data type: " + dataType);
-				}
+				int size = InterpolationDataset.getDataset(dataType).getData().size();
 				
 				String label = ""; 
 				
@@ -98,7 +91,7 @@ public class LoaderButton extends JButton {
 		});
 	}
 	
-	public void setDataType(InterpolationDataset.Type dataType) {
+	public void setDataType(InterpolationDataset.StandartType dataType) {
 		this.dataType = dataType;
 	}
 

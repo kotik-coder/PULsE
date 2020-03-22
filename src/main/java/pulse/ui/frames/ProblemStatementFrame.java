@@ -189,11 +189,11 @@ public class ProblemStatementFrame extends JInternalFrame {
 		toolBar.add(btnSimulate);
 
 		LoaderButton btnLoadCv = new LoaderButton(Messages.getString("ProblemStatementFrame.LoadSpecificHeatButton")); //$NON-NLS-1$
-		btnLoadCv.setDataType(InterpolationDataset.Type.SPECIFIC_HEAT);
+		btnLoadCv.setDataType(InterpolationDataset.StandartType.SPECIFIC_HEAT);
 		toolBar.add(btnLoadCv);
 
 		LoaderButton btnLoadDensity = new LoaderButton(Messages.getString("ProblemStatementFrame.LoadDensityButton")); //$NON-NLS-1$
-		btnLoadDensity.setDataType(InterpolationDataset.Type.DENSITY);
+		btnLoadDensity.setDataType(InterpolationDataset.StandartType.DENSITY);
 		toolBar.add(btnLoadDensity);
 		
 		/*

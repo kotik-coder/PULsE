@@ -13,7 +13,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 import pulse.input.ExperimentalData;
 import pulse.input.InterpolationDataset;
-import pulse.input.InterpolationDataset.Type;
+import pulse.input.InterpolationDataset.StandartType;
 import pulse.problem.statements.Problem;
 import pulse.tasks.SearchTask;
 import pulse.tasks.TaskManager;
@@ -156,14 +156,9 @@ public class DataLoader {
 	 * @see pulse.tasks.SearchTask.calculateThermalProperties()
 	 */
 	
-	public static void load(Type type, File f) throws IOException {
+	public static void load(StandartType type, File f) throws IOException {
 		Objects.requireNonNull(f);
-		
-		switch(type) {
-			case SPECIFIC_HEAT : InterpolationDataset.setSpecificHeatData( ReaderManager.readDataset(f) ); break; 
-			case DENSITY : InterpolationDataset.setDensityData(ReaderManager.readDataset(f)); break;
-			default : throw new IllegalArgumentException("Unrecognized data type: " + type);
-		}
+		InterpolationDataset.setDataset( ReaderManager.readDataset(f), type );
 		TaskManager.evaluate();
 	}
 	

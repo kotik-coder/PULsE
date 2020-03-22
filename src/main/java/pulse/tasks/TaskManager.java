@@ -206,9 +206,20 @@ public final class TaskManager extends UpwardsNavigable {
 	 */
 	
 	public static void selectFirstTask() {
-		Optional<SearchTask> task = tasks.stream().filter(t -> t != null).findFirst();
-		if(task.isPresent())
-			selectTask(task.get().getIdentifier(), TaskManager.getInstance());
+		if(tasks.size() > 0) {
+			var task = tasks.get(0);
+			if(task != null && selectedTask != task) {
+				selectedTask = task;
+				fireTaskSelected( getInstance() );
+			}
+		}
+	}
+	
+	private static void fireTaskSelected(Object source) {
+		TaskSelectionEvent e = new TaskSelectionEvent(source);
+		
+		for(TaskSelectionListener l : selectionListeners)
+			l.onSelectionChanged(e);
 	}
 	
 	/**
@@ -297,6 +308,7 @@ public final class TaskManager extends UpwardsNavigable {
 			e.printStackTrace();
 		}
 		curves.stream().forEach(curve -> addTask(new SearchTask(curve)) );		
+		selectFirstTask();
 	}
 	
 	/**
@@ -376,17 +388,10 @@ public final class TaskManager extends UpwardsNavigable {
 	 */
 	
 	public static void selectTask(Identifier id, Object src) {
-		selectedTask = null;
-		
-		tasks.stream().filter( t -> t.getIdentifier().equals(id)).findAny().
+		tasks.stream().filter( t -> t.getIdentifier().equals(id)).filter(t -> t != selectedTask).findAny().
 				ifPresent( t -> {
 					selectedTask = t;
-					
-					TaskSelectionEvent e = new TaskSelectionEvent(src);
-					
-					for(TaskSelectionListener l : selectionListeners)
-						l.onSelectionChanged(e);
-					
+					fireTaskSelected(src);
 				});	
 		
 	}
