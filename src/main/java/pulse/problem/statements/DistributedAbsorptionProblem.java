@@ -8,33 +8,33 @@ import pulse.properties.NumericPropertyKeyword;
 import pulse.search.math.IndexedVector;
 import pulse.ui.Messages;
 
-public class TranslucentMaterialProblem extends LinearisedProblem {
+public class DistributedAbsorptionProblem extends LinearisedProblem {
 
 	private AbsorptionModel absorption;
 	private final static boolean DEBUG = false;
 	private final static double SENSITIVITY = 100;
 
-	public TranslucentMaterialProblem() {
+	public DistributedAbsorptionProblem() {
 		super();
 		absorption		= new BeerLambertAbsorption();
 	}	
 
-	public TranslucentMaterialProblem(AbsorptionModel laserAbsorption) {
+	public DistributedAbsorptionProblem(AbsorptionModel laserAbsorption) {
 		super();
 		this.absorption	= laserAbsorption;
 	}	
 	
-	public TranslucentMaterialProblem(Problem sdd) {
+	public DistributedAbsorptionProblem(Problem sdd) {
 		super(sdd);
-		if(sdd instanceof TranslucentMaterialProblem) {
-			TranslucentMaterialProblem tp = (TranslucentMaterialProblem)sdd; 
+		if(sdd instanceof DistributedAbsorptionProblem) {
+			DistributedAbsorptionProblem tp = (DistributedAbsorptionProblem)sdd; 
 			this.absorption	= tp.absorption;			
 		}
 		else 
 			absorption		= new BeerLambertAbsorption();	
 	}
 	
-	public TranslucentMaterialProblem(TranslucentMaterialProblem tp) {
+	public DistributedAbsorptionProblem(DistributedAbsorptionProblem tp) {
 		super(tp);
 		this.absorption	= tp.absorption;
 	}

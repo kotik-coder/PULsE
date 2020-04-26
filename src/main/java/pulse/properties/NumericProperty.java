@@ -122,15 +122,26 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
 		if(!property.value.getClass().equals(val.getClass()))
 			return false;
 		
-		double v = val.doubleValue()/property.dimensionFactor.doubleValue();
+		double v = val.doubleValue();
 		
-		final double EPS = 1E-10;
+		final double EPS = 1E-12;
 		
 		if( v > property.getMaximum().doubleValue() + EPS ) 
 			return false;					
 		
 		return v > property.getMinimum().doubleValue() - EPS;
 		
+	}
+	
+	public String printRangeAndNumber(Number value) {
+		StringBuilder msg = new StringBuilder();
+		msg.append("Acceptable region for ");
+		msg.append("parameter : ");
+		msg.append(this.value.getClass().getSimpleName()); 
+		msg.append(" [" + minimum);
+		msg.append(maximum + "]. ");
+		msg.append("Value received: " + value); 
+		return msg.toString();
 	}
 	
 	/**
@@ -143,16 +154,8 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
 
 	public void setValue(Number value) {
 		
-		if( ! NumericProperty.isValueSensible(this, value) ) {
-			StringBuilder msg = new StringBuilder();
-			msg.append("Allowed range for ");
-			msg.append(type + " : ");
-			msg.append(this.value.getClass().getSimpleName()); 
-			msg.append(" from " + minimum);
-			msg.append(" to " + maximum);
-			msg.append(". Received value: " + value); 
-			throw new IllegalArgumentException(msg.toString());
-		}
+		if( ! NumericProperty.isValueSensible(this, value) ) 
+			throw new IllegalArgumentException(printRangeAndNumber(value));
 
 		this.value = value;
 		

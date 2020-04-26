@@ -435,6 +435,10 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 	public NumericProperty getDensity() {
 		return NumericProperty.derive(DENSITY, rho);
 	}
+	
+	public void setDensity(NumericProperty p) { 
+		this.rho = (double)(p.getValue());
+	}
 
 	public String shortName() {
 		return getClass().getSimpleName();

@@ -110,7 +110,7 @@ public class NonlinearProblem extends Problem {
 		double Q	= (double)pulse.getLaserEnergy().getValue();
 		double dLas = (double)pulse.getSpotDiameter().getValue();
 		
-		return Q/(Math.PI*dLas*dLas*l*cP*rho);
+		return 4.0*Q/(Math.PI*dLas*dLas*l*cP*rho);
 	}
 	
 	@Override

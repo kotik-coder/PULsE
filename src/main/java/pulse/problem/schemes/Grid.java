@@ -33,14 +33,12 @@ public class Grid extends PropertyHolder {
 	 */
 	
 	public Grid(NumericProperty gridDensity, NumericProperty timeFactor) {
-		if(timeFactor.getType() != NumericPropertyKeyword.TAU_FACTOR)
-			throw new IllegalArgumentException("Illegal type: " + timeFactor);
-		
-		if(gridDensity.getType() != NumericPropertyKeyword.GRID_DENSITY)
-			throw new IllegalArgumentException("Illegal type: " + gridDensity);		
-		
 		setGridDensity(gridDensity);
 		setTimeFactor(timeFactor);
+	}
+	
+	protected Grid() {
+		
 	}
 	
 	/**

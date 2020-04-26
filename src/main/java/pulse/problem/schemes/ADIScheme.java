@@ -6,9 +6,9 @@ import pulse.ui.Messages;
 
 public abstract class ADIScheme extends DifferenceScheme {
 	
-	private final static NumericProperty TAU_FACTOR = 
+	protected final static NumericProperty TAU_FACTOR = 
 			NumericProperty.derive(NumericPropertyKeyword.TAU_FACTOR, 1.0);
-	private final static NumericProperty GRID_DENSITY = 
+	protected final static NumericProperty GRID_DENSITY = 
 			NumericProperty.derive(NumericPropertyKeyword.GRID_DENSITY, 30);
 
 	public ADIScheme() {

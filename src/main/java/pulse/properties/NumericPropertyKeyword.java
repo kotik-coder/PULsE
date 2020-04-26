@@ -8,6 +8,8 @@ public enum NumericPropertyKeyword {
 	
 	DIFFUSIVITY, 
 	
+	COATING_DIFFUSIVITY,
+	
 	/**
 	 * Sample thickness.
 	 */
@@ -62,7 +64,12 @@ public enum NumericPropertyKeyword {
 	 * Grid (space partitioning) density.
 	 */
 	
-	GRID_DENSITY, 
+	GRID_DENSITY,
+	SHELL_GRID_DENSITY,
+	
+	AXIAL_COATING_THICKNESS,
+	
+	RADIAL_COATING_THICKNESS,
 	
 	/**
 	 * Specific heat (<math><i>C</i><sub>p</sub></math>).
@@ -228,6 +235,10 @@ public enum NumericPropertyKeyword {
 	 */
 	
 	DIATHERMIC_COEFFICIENT,
+	
+	PLANCK_NUMBER,
+	
+	OPTICAL_THICKNESS,
 	
 	TIME_SHIFT,
 	

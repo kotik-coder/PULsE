@@ -8,12 +8,12 @@ import pulse.problem.schemes.ExplicitScheme;
 import pulse.problem.statements.AbsorptionModel;
 import pulse.problem.statements.AbsorptionModel.SpectralRange;
 import pulse.problem.statements.Problem;
-import pulse.problem.statements.TranslucentMaterialProblem;
+import pulse.problem.statements.DistributedAbsorptionProblem;
 import pulse.properties.NumericProperty;
 
 public class ExplicitTranslucentSolver 
 				extends ExplicitScheme 
-					implements Solver<TranslucentMaterialProblem> {
+					implements Solver<DistributedAbsorptionProblem> {
 		
 	private double maxTemp;
 	private AbsorptionModel absorb;	
@@ -45,7 +45,7 @@ public class ExplicitTranslucentSolver
 		super(N, timeFactor, timeLimit);
 	}
 
-	private void prepare(TranslucentMaterialProblem problem) {
+	private void prepare(DistributedAbsorptionProblem problem) {
 		super.prepare(problem);		
 		curve = problem.getHeatingCurve();
 		
@@ -72,7 +72,7 @@ public class ExplicitTranslucentSolver
 	}		
 	
 	@Override
-	public void solve(TranslucentMaterialProblem problem) {
+	public void solve(DistributedAbsorptionProblem problem) {
 		prepare(problem);	
 		
 		double TAU_HH = tau/pow(hx,2);
@@ -146,7 +146,7 @@ public class ExplicitTranslucentSolver
 	
 	@Override
 	public Class<? extends Problem> domain() {
-		return TranslucentMaterialProblem.class;
+		return DistributedAbsorptionProblem.class;
 	}
 	
 }

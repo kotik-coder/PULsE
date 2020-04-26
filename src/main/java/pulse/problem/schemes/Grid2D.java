@@ -15,6 +15,10 @@ public class Grid2D extends Grid {
 
 	protected double hy;
 	
+	protected Grid2D() {
+		super();
+	}
+	
 	public Grid2D(NumericProperty gridDensity, NumericProperty timeFactor) {
 		super(gridDensity, timeFactor);
 	}
