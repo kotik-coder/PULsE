@@ -3,6 +3,7 @@ package pulse.io.export;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import javax.swing.JFrame;
 
@@ -74,7 +75,7 @@ public class ExportManager {
 		 MassExporter.exportGroup(TaskManager.getSelectedTask(), directory, Exporter.getDefaultExportExtension());
 	}
 	
-	public static List<Group> allGrouppedContents() {
+	public static Set<Group> allGrouppedContents() {
 
 		return TaskManager.getTaskList().stream().map(t -> MassExporter.contents(t))
 									.reduce((a, b) -> {

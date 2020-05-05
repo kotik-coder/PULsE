@@ -9,7 +9,6 @@ import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-
 import javax.swing.AbstractButton;
 import javax.swing.AbstractCellEditor;
 import javax.swing.DefaultCellEditor;
@@ -121,41 +120,40 @@ public class PropertyHolderTable extends JTable {
 	private Object[][] dataArray(PropertyHolder p) {
 		if(p == null) 
 			return null;
+	
+		List<Object[]> dataList = new ArrayList<Object[]>();
 		
-		List<Property> data = p.data();				
-		List<Group> internalHolders = new ArrayList<Group>(0);
+		var data = ( (PropertyHolder)p ).data();
 		
-		if(p.ignoreSiblings()) {
-			try {
-				internalHolders = p.subgroups();
-			} catch (IllegalArgumentException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} 
-		}
-		
-		int size = data.size();
-		Object[][] dataArray = new Object[size + internalHolders.size()][2];
 		Property property;
-		
-		int i = 0;
-		
-		for(Iterator<Property> it = data.iterator(); it.hasNext();i++) {
+
+		for(Iterator<Property> it = data.iterator(); it.hasNext(); ) {
 			property = it.next();
-			dataArray[i][0] = property.getDescriptor(true);
-			dataArray[i][1] = property;
-		}
+			dataList.add(new Object[] {
+							property.getDescriptor(true),
+							property
+							});
+			}
+		
+		if(p.ignoreSiblings())
+			return dataList.toArray(new Object[dataList.size()][2]);
+
+		List<Group> internalHolders = p.subgroups();	
 		
 		PropertyHolder propertyHolder;
 		
-		for(; i < dataArray.length; i++) {
-			propertyHolder = (PropertyHolder) internalHolders.get(i-size);
-			dataArray[i][0] = propertyHolder.getPrefix() != null ? 
-									propertyHolder.getPrefix() : propertyHolder.getDescriptor();
-			dataArray[i][1] = propertyHolder;
+		for(Group g : internalHolders) {
+			if(g instanceof PropertyHolder) {
+				propertyHolder = (PropertyHolder) g;
+				dataList.add(new Object[] { 
+								propertyHolder.getPrefix() != null ? 
+										propertyHolder.getPrefix() : propertyHolder.getDescriptor(),
+								propertyHolder});
+			}
 		}
+				
+		return dataList.toArray(new Object[dataList.size()][2]);
 		
-		return dataArray;
 	}
 	
 	public void setPropertyHolder(PropertyHolder propertyHolder) {

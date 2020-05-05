@@ -135,8 +135,7 @@ public abstract class ImplicitScheme extends DifferenceScheme {
 
 	public ImplicitScheme(NumericProperty N, NumericProperty timeFactor) {
 		super();
-		grid = new Grid(N, timeFactor);
-		grid.setParent(this);
+		initGrid(N, timeFactor);
 	}
 
 	/**
@@ -155,8 +154,8 @@ public abstract class ImplicitScheme extends DifferenceScheme {
 	 */
 
 	public ImplicitScheme(NumericProperty N, NumericProperty timeFactor, NumericProperty timeLimit) {
-		this(N, timeFactor);
-		setTimeLimit(timeLimit);
+		super(timeLimit);
+		initGrid(N, timeFactor);
 	}
 
 	@Override

@@ -1,7 +1,9 @@
 package pulse.problem.statements;
 
+import static pulse.properties.NumericPropertyKeyword.DENSITY;
 import static pulse.properties.NumericPropertyKeyword.NONLINEAR_PRECISION;
 import static pulse.properties.NumericPropertyKeyword.REFLECTANCE;
+import static pulse.properties.NumericPropertyKeyword.SPECIFIC_HEAT;
 import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
 
 import java.util.List;
@@ -79,6 +81,8 @@ public class NonlinearProblem extends Problem {
 		List<Property> list = super.listedTypes();
 		list.add(NumericProperty.def(NONLINEAR_PRECISION));
 		list.add(NumericProperty.def(TEST_TEMPERATURE));
+		list.add(NumericProperty.def(SPECIFIC_HEAT));
+		list.add(NumericProperty.def(DENSITY));	
 		list.add(NumericProperty.def(REFLECTANCE));
 		return list;
 	}

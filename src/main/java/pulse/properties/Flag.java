@@ -1,19 +1,6 @@
 package pulse.properties;
 
-import static pulse.properties.NumericPropertyKeyword.BASELINE_INTERCEPT;
-import static pulse.properties.NumericPropertyKeyword.BASELINE_SLOPE;
-import static pulse.properties.NumericPropertyKeyword.DIATHERMIC_COEFFICIENT;
-import static pulse.properties.NumericPropertyKeyword.DIFFUSIVITY;
-import static pulse.properties.NumericPropertyKeyword.FOV_INNER;
-import static pulse.properties.NumericPropertyKeyword.FOV_OUTER;
-import static pulse.properties.NumericPropertyKeyword.HEAT_LOSS;
-import static pulse.properties.NumericPropertyKeyword.LASER_ABSORPTIVITY;
-import static pulse.properties.NumericPropertyKeyword.LOWER_BOUND;
-import static pulse.properties.NumericPropertyKeyword.MAXTEMP;
-import static pulse.properties.NumericPropertyKeyword.SPOT_DIAMETER;
-import static pulse.properties.NumericPropertyKeyword.THERMAL_ABSORPTIVITY;
-import static pulse.properties.NumericPropertyKeyword.TIME_SHIFT;
-import static pulse.properties.NumericPropertyKeyword.UPPER_BOUND;
+import static pulse.properties.NumericPropertyKeyword.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -90,6 +77,8 @@ public class Flag implements Property {
 		flags.add(new Flag(TIME_SHIFT, NumericProperty.def(TIME_SHIFT).getDescriptor(true), false));
 		flags.add(new Flag(LOWER_BOUND, NumericProperty.def(LOWER_BOUND).getDescriptor(true), false));
 		flags.add(new Flag(UPPER_BOUND, NumericProperty.def(UPPER_BOUND).getDescriptor(true), false));
+		flags.add(new Flag(OPTICAL_THICKNESS, NumericProperty.def(OPTICAL_THICKNESS).getDescriptor(true), false));
+		flags.add(new Flag(PLANCK_NUMBER, NumericProperty.def(PLANCK_NUMBER).getDescriptor(true), false));
 		return flags;
 	}	
 	

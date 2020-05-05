@@ -391,12 +391,14 @@ public class SearchTask extends Accessible implements Runnable {
 
 			@Override
 			public void onPropertyChanged(PropertyEvent event) {
-				if(!(event.getSource() instanceof Metadata))
-					if(!(event.getSource() instanceof PropertyHolderTable))
-						return;
-				
-				problem.estimateSignalRange(curve);
-				problem.useParkersSolution(curve);
+				if((event.getSource() instanceof Metadata) || 
+						(event.getSource() instanceof PropertyHolderTable)) {
+							problem.estimateSignalRange(curve);
+							problem.useTheoreticalEstimates(curve);
+				}
+				else if(event.getSource() instanceof InterpolationDataset){
+					problem.useTheoreticalEstimates(curve);
+				}
 			
 			}
 

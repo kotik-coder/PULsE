@@ -2,43 +2,49 @@ package pulse.problem.statements;
 
 import static pulse.properties.NumericPropertyKeyword.PLANCK_NUMBER;
 import static pulse.properties.NumericPropertyKeyword.OPTICAL_THICKNESS;
-import static pulse.properties.NumericPropertyKeyword.EMISSIVITY;
-import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
-
 import java.util.List;
 
+import pulse.input.ExperimentalData;
+import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
+import pulse.search.math.IndexedVector;
 import pulse.ui.Messages;
 
-public class AbsorbingEmittingProblem extends LinearisedProblem {
+public class AbsorbingEmittingProblem extends NonlinearProblem {
 
 	private final static boolean DEBUG = false;
 	
 	private double opticalThickness;
 	private double planckNumber;
 	private double emissivity;
-	private double initialTemperature;
+
+	private final static double DEFAULT_BIOT = 0.0;
+	private final static int DEFAULT_CURVE_POINTS = 300;
 	
 	public AbsorbingEmittingProblem() {
-		super();		
-		this.initialTemperature	= (double)NumericProperty.def(TEST_TEMPERATURE).getValue();
+		super();
+		curve.setNumPoints(NumericProperty.derive(NumericPropertyKeyword.NUMPOINTS, DEFAULT_CURVE_POINTS));
 		this.opticalThickness = (double)NumericProperty.def(OPTICAL_THICKNESS).getValue();
 		this.planckNumber = (double)NumericProperty.def(PLANCK_NUMBER).getValue();
-		this.emissivity = (double)NumericProperty.def(EMISSIVITY).getValue();
+		Bi1 = DEFAULT_BIOT;
+		Bi2 = DEFAULT_BIOT;
+		emissivity = 1.0;
 	}
 	
 	public AbsorbingEmittingProblem(Problem p) {
 		super(p);
+		this.opticalThickness = (double)NumericProperty.theDefault(OPTICAL_THICKNESS).getValue();
+		this.planckNumber = (double)NumericProperty.theDefault(PLANCK_NUMBER).getValue();
+		emissivity = 1.0;
 	}
 	
 	public AbsorbingEmittingProblem(AbsorbingEmittingProblem p) {
 		super(p);
-		this.initialTemperature		= p.initialTemperature;
-		this.emissivity = p.emissivity;
 		this.opticalThickness = p.opticalThickness;
 		this.planckNumber = p.planckNumber;
+		this.emissivity = p.emissivity;
 	}
 	
 	@Override
@@ -70,30 +76,10 @@ public class AbsorbingEmittingProblem extends LinearisedProblem {
 			throw new IllegalArgumentException("Illegal type: " + planckNumber.getType());
 		this.planckNumber = (double)planckNumber.getValue();
 	}
-
-	public NumericProperty getEmissivity() {
-		return NumericProperty.derive(EMISSIVITY, emissivity);
-	}
-
-	public void setEmissivity(NumericProperty emissivity) {
-		if(emissivity.getType() != EMISSIVITY)
-			throw new IllegalArgumentException("Illegal type: " + emissivity.getType());
-		this.emissivity = (double)emissivity.getValue();
-	}
-
-	public NumericProperty getInitialTemperature() {
-		return NumericProperty.derive(TEST_TEMPERATURE, initialTemperature);
-	}
-
-	public void setInitialTemperature(NumericProperty initialTemperature) {
-		if(initialTemperature.getType() != TEST_TEMPERATURE)
-			throw new IllegalArgumentException("Illegal type: " + initialTemperature.getType());
-		this.initialTemperature = (double)initialTemperature.getValue();
-	}
 	
 	@Override
 	public boolean allDetailsPresent() {
-		 if((emissivity > 0) && (cP > 0) && (rho > 0))
+		 if((cP > 0) && (rho > 0))
 			 return super.allDetailsPresent();
 		 else
 			 return false;
@@ -102,16 +88,17 @@ public class AbsorbingEmittingProblem extends LinearisedProblem {
 	@Override
 	public void set(NumericPropertyKeyword type, NumericProperty value) {
 		super.set(type, value);
-		double newVal = ((Number)value.getValue()).doubleValue();
 		
 		switch(type) {
-			case TEST_TEMPERATURE	 :	initialTemperature = newVal; return; 
-			case PLANCK_NUMBER		 :  planckNumber = newVal; return;
-			case OPTICAL_THICKNESS	 :  opticalThickness = newVal; return;
-			case EMISSIVITY			 :  emissivity = newVal; return;
+			case PLANCK_NUMBER		 :  setPlanckNumber(value); break;
+			case OPTICAL_THICKNESS	 :  setOpticalThickness(value); break;
 			default: break;
 		}				
 		
+	}
+	
+	public double getEmissivity() {
+		return emissivity;
 	}
 	
 	@Override
@@ -119,9 +106,47 @@ public class AbsorbingEmittingProblem extends LinearisedProblem {
 		List<Property> list = super.listedTypes();
 		list.add(NumericProperty.def(PLANCK_NUMBER));
 		list.add(NumericProperty.def(OPTICAL_THICKNESS));
-		list.add(NumericProperty.def(EMISSIVITY));
-		list.add(NumericProperty.def(TEST_TEMPERATURE));
 		return list;
+	}
+	
+	@Override
+	public void optimisationVector(IndexedVector[] output, List<Flag> flags) {
+		super.optimisationVector(output, flags);
+		
+		for(int i = 0, size = output[0].dimension(); i < size; i++) {
+			switch( output[0].getIndex(i) ) {
+				case PLANCK_NUMBER		:	
+					output[0].set(i, planckNumber);
+					output[1].set(i, 2.0);
+					break;									
+				case OPTICAL_THICKNESS	:	
+					output[0].set(i, Math.log(opticalThickness));
+					output[1].set(i, 1.0);
+					break;
+				default 				: 	continue;
+			}
+		}
+		
+	}
+		
+	@Override
+	public void assign(IndexedVector params) {
+		super.assign(params);
+		
+		for(int i = 0, size = params.dimension(); i < size; i++) {
+			switch( params.getIndex(i) ) {
+				case PLANCK_NUMBER		:	
+					planckNumber = params.get(i);
+					break;				
+				case OPTICAL_THICKNESS		:	
+					opticalThickness = Math.exp(params.get(i));
+					break;					
+				default 				: 	continue;
+			}
+		}
+		
+		evaluateDependentParameters();
+		
 	}
 	
 	public double maximumHeating() {
@@ -129,6 +154,25 @@ public class AbsorbingEmittingProblem extends LinearisedProblem {
 		double dLas = (double)pulse.getSpotDiameter().getValue();
 		
 		return 4.0*emissivity*Q/(Math.PI*dLas*dLas*l*cP*rho);
+	}
+	
+	@Override
+	public void useTheoreticalEstimates(ExperimentalData c) {		
+		super.useTheoreticalEstimates(c);
+		if(this.allDetailsPresent()) {
+			final double SIGMA = 5.67E-8;
+			final double nSq = 4;
+			final double lambda = a*cP*rho;
+			//planckNumber = lambda/(4*nSq*SIGMA*Math.pow(T, 3)*l);
+			evaluateDependentParameters();
+		}
+	}
+	
+	private void evaluateDependentParameters() {		
+		/*
+		final double lambda = a*cP*rho;
+		final double sigma = 5.6703E-08; //Stephan-Boltzmann constant
+		emissivity =  Bi1*lambda/(4.*Math.pow(T, 3)*l*sigma);*/
 	}
 	
 }

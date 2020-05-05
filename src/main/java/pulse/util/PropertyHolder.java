@@ -219,12 +219,12 @@ public abstract class PropertyHolder extends Accessible {
 	/**
 	 * Should {@code Accessible}s that belong to this {@code PropertyHolder} be 
 	 * ignored when this {@code PropertyHolder} is displayed in a table?  
-	 * @return {@code true} by default
+	 * @return {@code false} by default
 	 * @see pulse.ui.components.PropertyHolderTable
 	 */
 	
 	public boolean ignoreSiblings() {
-		return true;
+		return false;
 	}
 	
 	@Override

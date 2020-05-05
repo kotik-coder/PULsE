@@ -46,6 +46,7 @@ public class Group extends UpwardsNavigable {
 	        	continue;
 
 	        fields.add(a);
+	        fields.addAll(a.subgroups());
 
 	    }
 	    

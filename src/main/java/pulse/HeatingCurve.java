@@ -53,6 +53,9 @@ public class HeatingCurve extends PropertyHolder {
 
 	@Override
 	public boolean equals(Object o) {
+		if(o == this)
+			return true;
+		
 		if(! (o instanceof HeatingCurve))
 			return false;
 	
@@ -296,6 +299,19 @@ public class HeatingCurve extends PropertyHolder {
 		return Collections.max(baselineAdjustedTemperature);
 	}
 	
+	public double apparentMaximum() {
+		double max = Double.NEGATIVE_INFINITY;
+		double t;
+		for(int i = temperature.size() - 1; i > 0; i--) {
+			t = temperature.get(i);
+			if(max < t)
+				max = t;
+			else 
+				break;
+		}
+		return max;
+	}
+	
 	/**
 	 * Retrieves the last element of the {@code time List}. This is used e.g. by the {@code DifferenceScheme} to set 
 	 * the calculation limit for the finite-difference scheme.
@@ -312,16 +328,7 @@ public class HeatingCurve extends PropertyHolder {
 		if(name != null)
 			return name;
 		
-		StringBuilder sb = new StringBuilder();
-		sb.append(getClass().getSimpleName() + " (");
-		sb.append(getNumPoints());
-		sb.append(" ; ");
-		sb.append(getBaseline());
-		sb.append(String.format("%3.2f", startTime));
-		sb.append(" ; ");
-		sb.append(Messages.getString("Pulse.5"));
-		sb.append(")");
-		return sb.toString();
+		return getClass().getSimpleName() + " (" + getNumPoints() + ")";
 	}			
 	
 	/**
@@ -506,5 +513,10 @@ public class HeatingCurve extends PropertyHolder {
 		DataEvent dataEvent = new DataEvent(DataEventType.CHANGE_OF_ORIGIN, this);
 		notifyListeners(dataEvent);
 	}	
+	
+	@Override
+	public boolean ignoreSiblings() {
+		return true;
+	}
 
 }

@@ -1,11 +1,29 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <NumericProperties>
+	<NumericProperty abbreviation="&amp;sigma;" auto-adjustable="true"
+		descriptor="Weight, &amp;sigma;" dimensionfactor="1" discreet="true"
+		keyword="SCHEME_WEIGHT" maximum="1" minimum="0" value="0"
+		primitive-type="double">
+	</NumericProperty>
+	<NumericProperty abbreviation="&amp;tau;&lt;sub&gt;cut&lt;/sub&gt;"
+		auto-adjustable="false"
+		descriptor="Integration cutoff, &lt;i&gt;x&lt;/i&gt;&lt;sub&gt;cut&lt;/sub&gt;"
+		dimensionfactor="1" discreet="false" keyword="INTEGRATION_CUTOFF"
+		maximum="100" minimum="2" primitive-type="double" value="3.5">
+	</NumericProperty>
+	<NumericProperty
+		abbreviation="&lt;i&gt;n&lt;/i&gt;&lt;sub&gt;int&lt;/sub&gt;"
+		auto-adjustable="false"
+		descriptor="Integration segments, &lt;i&gt;n&lt;/i&gt;&lt;sub&gt;int&lt;/sub&gt;"
+		dimensionfactor="1" discreet="false" keyword="INTEGRATION_SEGMENTS"
+		maximum="1024" minimum="8" primitive-type="int" value="64">
+	</NumericProperty>
 	<NumericProperty
 		abbreviation="&lt;i&gt;&amp;tau;&lt;/i&gt;&lt;sub&gt;0&lt;/sub&gt;"
 		auto-adjustable="true"
 		descriptor="Optical thickness, &lt;i&gt;&amp;tau;&lt;/i&gt;&lt;sub&gt;0&lt;/sub&gt;"
 		dimensionfactor="1" discreet="false" keyword="OPTICAL_THICKNESS"
-		maximum="1000" minimum="0" primitive-type="double" value="0.1">
+		maximum="100000" minimum="0" primitive-type="double" value="0.1">
 	</NumericProperty>
 	<NumericProperty
 		abbreviation="&lt;i&gt;N&lt;/i&gt;&lt;sub&gt;Pl&lt;/sub&gt;"
@@ -113,7 +131,7 @@
 	</NumericProperty>
 	<NumericProperty abbreviation="&lt;i&gt;N&lt;/i&gt;"
 		auto-adjustable="false" descriptor="Number of points"
-		dimensionfactor="1" keyword="NUMPOINTS" maximum="1000" minimum="10"
+		dimensionfactor="1" keyword="NUMPOINTS" maximum="10000" minimum="10"
 		value="100" primitive-type="int" discreet="false" />
 	<NumericProperty abbreviation="&lt;i&gt;j&lt;/i&gt;"
 		auto-adjustable="false" descriptor="Search iteration"
@@ -271,13 +289,13 @@
 	<NumericProperty abbreviation="&lt;i&gt;N&lt;/i&gt;"
 		auto-adjustable="true" descriptor="Grid density, &lt;i&gt;N&lt;/i&gt;"
 		dimensionfactor="1" keyword="GRID_DENSITY" primitive-type="int"
-		value="30" minimum="15" maximum="1000" discreet="false">
+		value="30" minimum="8" maximum="1000" discreet="false">
 	</NumericProperty>
 	<NumericProperty keyword="TAU_FACTOR"
 		abbreviation="&lt;i&gt;&amp;tau&lt;/i&gt; / h&lt;sup&gt;2&lt;/sup&gt;"
 		auto-adjustable="true"
 		descriptor="Time factor, &lt;i&gt;&amp;tau&lt;/i&gt; / h&lt;sup&gt;2&lt;/sup&gt;"
-		dimensionfactor="1" primitive-type="double" maximum="1.0"
+		dimensionfactor="1" primitive-type="double" maximum="10"
 		minimum="1E-4" value="0.25" discreet="false">
 	</NumericProperty>
 	<NumericProperty abbreviation="Test-stat" auto-adjustable="true"

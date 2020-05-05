@@ -18,6 +18,8 @@ import java.util.stream.Collectors;
 import pulse.Baseline;
 import pulse.HeatingCurve;
 import pulse.input.ExperimentalData;
+import pulse.input.InterpolationDataset;
+import pulse.input.InterpolationDataset.StandartType;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.DiscretePulse;
 import pulse.problem.schemes.Grid;
@@ -153,16 +155,15 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 	@Override
 	public void set(NumericPropertyKeyword type, NumericProperty value) {
 		NumericPropertyKeyword prop = type;
-		double newVal = ((Number)value.getValue()).doubleValue();
 		
 		switch(prop) {
-			case DIFFUSIVITY		: 	a = newVal; 			return;
-			case MAXTEMP 			: 	signalHeight = newVal; 	return;
-			case THICKNESS 			: 	l = newVal; 			return;
-			case HEAT_LOSS_FRONT 	: 	Bi1 = newVal; 			return;
-			case HEAT_LOSS_REAR 	: 	Bi2 = newVal; 			return;
-			case SPECIFIC_HEAT 		: 	cP = newVal; 			return;
-			case DENSITY 			: 	rho = newVal; 			return;
+			case DIFFUSIVITY		: 	setDiffusivity(value); 			break;
+			case MAXTEMP 			: 	setMaximumTemperature(value); 	break;
+			case THICKNESS 			: 	setSampleThickness(value); 		break;
+			case HEAT_LOSS_FRONT 	: 	setFrontHeatLoss(value); 		break;
+			case HEAT_LOSS_REAR 	: 	setRearHeatLoss(value); 		break;
+			case SPECIFIC_HEAT 		: 	setSpecificHeat(value); 		break;
+			case DENSITY 			: 	setDensity(value); 				break;
 			default:
 				break;
 		}
@@ -215,7 +216,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 		return NumericProperty.derive(HEAT_LOSS_REAR, Bi2);
 	}
 
-	public void setHeatLossRear(NumericProperty bi2) {
+	public void setRearHeatLoss(NumericProperty bi2) {
 		this.Bi2 = (double)bi2.getValue();
 	}
 
@@ -257,7 +258,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 		curve.getBaseline().fitTo(c); //used to estimate the floor of the signal range 				
 		estimateSignalRange(c); 		
 		updateProperties(this, c.getMetadata());
-		useParkersSolution(c);		
+		useTheoreticalEstimates(c);		
 	}
 	
 	/**
@@ -280,7 +281,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 	 * @see pulse.input.ExperimentalData.halfRiseTime()
 	 */
 	
-	public void useParkersSolution(ExperimentalData c) {
+	public void useTheoreticalEstimates(ExperimentalData c) {
 		double t0	= c.halfRiseTime();	
 		this.a		= PARKERS_COEFFICIENT*l*l/t0;
 	}
@@ -430,6 +431,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 
 	public void setSpecificHeat(NumericProperty cV) {
 		this.cP = (double)cV.getValue();
+		this.notifyListeners(InterpolationDataset.getDataset(StandartType.SPECIFIC_HEAT), cV);
 	}
 
 	public NumericProperty getDensity() {
@@ -438,6 +440,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 	
 	public void setDensity(NumericProperty p) { 
 		this.rho = (double)(p.getValue());
+		this.notifyListeners(InterpolationDataset.getDataset(StandartType.DENSITY), p);
 	}
 
 	public String shortName() {

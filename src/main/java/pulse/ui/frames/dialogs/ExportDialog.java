@@ -35,6 +35,7 @@ import pulse.tasks.Log;
 import pulse.tasks.Result;
 import pulse.tasks.TaskManager;
 import pulse.ui.Launcher;
+import pulse.util.Group;
 
 @SuppressWarnings("serial")
 public class ExportDialog extends JDialog {
@@ -111,25 +112,29 @@ public class ExportDialog extends JDialog {
 				var groupped = ExportManager.allGrouppedContents();
 				var pool = Executors.newFixedThreadPool(threads - 1);
 				progressFrame.trackProgress(groupped.size());
+				
 				groupped.stream().forEach(
 									individual -> pool.submit( () -> {
 										Class<?> individualClass = individual.getClass();
 										
 										if(!exportSettings.containsKey(individualClass)) {
-											var key = exportSettings.keySet().stream().filter(aClass -> aClass.isAssignableFrom(individual.getClass())).findFirst();											
 											
-											if(!key.isPresent()) 
-												return;
-											else
+											var key = exportSettings.keySet().stream().filter(aClass -> 
+														aClass.isAssignableFrom(individual.getClass())).findFirst();											
+											
+											if(key.isPresent())
 												individualClass = key.get();
 																																	
 										}
-											
-										if(exportSettings.get(individualClass)) 
-											ExportManager.export(individual, destination, extension);
-									
+										
+										if(individualClass != null) {
+											if(exportSettings.containsKey(individualClass))
+												if(exportSettings.get(individualClass))
+													ExportManager.export(individual, destination, extension);
+										}
+
 										progressFrame.incrementProgress();
-									
+										
 								})
 									
 						);

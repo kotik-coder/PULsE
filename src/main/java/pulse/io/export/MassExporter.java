@@ -2,8 +2,11 @@ package pulse.io.export;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Set;
 
 import pulse.util.Group;
 
@@ -19,8 +22,8 @@ public class MassExporter {
 	 * @return a full list of {@code Saveable}s.
 	 */
 	
-	public static List<Group> contents(Group root) {
-		var contents = new ArrayList<Group>();		
+	public static Set<Group> contents(Group root) {
+		var contents = new HashSet<Group>();		
 
 	    try {
 	    	
@@ -38,8 +41,8 @@ public class MassExporter {
 				
 				);
 			
-			for(ListIterator<Group> it = contents.listIterator(); it.hasNext(); )
-				MassExporter.contents(it.next()).stream().forEach(a -> it.add(a)); 
+			for(Iterator<Group> it = contents.iterator(); it.hasNext(); )
+				MassExporter.contents(it.next()).stream().forEach(a -> contents.add(a)); 
 							
 		} catch (IllegalArgumentException e) {
 			System.err.println("Unable to generate saveable contents for " + root.getClass());

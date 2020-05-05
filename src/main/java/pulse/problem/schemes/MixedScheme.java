@@ -34,7 +34,7 @@ public abstract class MixedScheme extends DifferenceScheme {
 	 */
 	
 	public final static NumericProperty TAU_FACTOR = 
-			NumericProperty.derive(NumericPropertyKeyword.TAU_FACTOR, 0.25);
+			NumericProperty.derive(NumericPropertyKeyword.TAU_FACTOR, 1.0);
 	
 	/**
 	 * The default value of {@code gridDensity}, which is set to {@code 30} 

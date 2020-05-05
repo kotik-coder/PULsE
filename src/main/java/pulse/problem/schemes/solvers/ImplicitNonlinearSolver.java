@@ -43,7 +43,7 @@ public class ImplicitNonlinearSolver
 	
 	private void prepare(NonlinearProblem problem) {
 		super.prepare(problem);
-		HeatingCurve curve = problem.getHeatingCurve();
+		curve = problem.getHeatingCurve();
 		
 		N	= (int)grid.getGridDensity().getValue();
 		hx	= grid.getXStep();

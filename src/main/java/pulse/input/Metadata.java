@@ -379,5 +379,26 @@ public class Metadata extends PropertyHolder implements Reflexive {
 	public Identifier identify() {
 		return getParent() == null ? Identifier.externalIdentifier(externalID) : super.identify();
 	}
+	
+	@Override
+	public boolean equals(Object o) {
+		if(o == this)
+			return true;
+		
+		if(o instanceof Metadata) {
+			
+			Metadata other = (Metadata)o;
+			
+			if(other.getExternalID() != this.getExternalID())
+				return false;
+			
+			if(!sampleName.equals(other.getSampleName()))
+				return false;
+				
+		}
+		
+		return false;
+		
+	}
 		
 }

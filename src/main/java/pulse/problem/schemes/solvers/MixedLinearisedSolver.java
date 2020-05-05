@@ -130,8 +130,8 @@ public class MixedLinearisedSolver
 			for (m = (w - 1)*timeInterval + 1; m < w*timeInterval + 1; m++) {
 				
 				alpha[1] = a1;
-				pls 	 = discretePulse.evaluateAt( (m - EPS)*tau ) 
-						 + discretePulse.evaluateAt( (m + 1 - EPS)*tau ); //changed to m + 1 - eps
+				pls 	 = discretePulse.evaluateAt( (m - 1 + EPS)*tau ) 
+						 + discretePulse.evaluateAt( (m - EPS)*tau );
 				beta[1]  = b1*(b2*U[0] + b3*pls - tau*(U[0] - U[1]));
 
 				for (i = 1; i < N; i++) {

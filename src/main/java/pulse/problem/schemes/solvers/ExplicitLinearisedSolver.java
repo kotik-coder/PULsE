@@ -131,10 +131,6 @@ public class ExplicitLinearisedSolver
 				
 			}			
 
-			for(i = 0; i < N; i++) {
-				System.out.println(U[i]);
-			}
-			
 			curve.scale( maxTemp/maxVal );
 				
 	}
