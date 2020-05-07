@@ -161,7 +161,7 @@ public abstract class Problem2D extends Problem implements TwoDimensional {
 					pulse.setSpotDiameter(spotDiameter);
 					break;					
 				case HEAT_LOSS		:	
-					Bi3 = params.get(i);
+					Bi3 = Math.sqrt( params.get(i) );
 					break;
 				default 				: 	continue;
 			}

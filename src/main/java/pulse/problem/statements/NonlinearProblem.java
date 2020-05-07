@@ -1,8 +1,7 @@
 package pulse.problem.statements;
 
+import static pulse.properties.NumericPropertyKeyword.CONDUCTIVITY;
 import static pulse.properties.NumericPropertyKeyword.DENSITY;
-import static pulse.properties.NumericPropertyKeyword.NONLINEAR_PRECISION;
-import static pulse.properties.NumericPropertyKeyword.REFLECTANCE;
 import static pulse.properties.NumericPropertyKeyword.SPECIFIC_HEAT;
 import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
 
@@ -19,7 +18,9 @@ import pulse.ui.Messages;
 public class NonlinearProblem extends Problem {
 	
 	protected double T;
-	protected double nonlinearPrecision = (double)NumericProperty.def(NONLINEAR_PRECISION).getValue();	
+	private double emissivity;
+	
+	protected final static double STEFAN_BOTLZMAN = 5.6703E-08; //Stephan-Boltzmann constant
 	
 	private final static boolean DEBUG = false;	
 		
@@ -34,7 +35,6 @@ public class NonlinearProblem extends Problem {
 	
 	public NonlinearProblem(NonlinearProblem p) {
 		super(p);
-		this.nonlinearPrecision = p.nonlinearPrecision;
 		this.T		= p.T;
 	}
 	
@@ -47,14 +47,6 @@ public class NonlinearProblem extends Problem {
 	@Override
 	public void setSpecificHeat(NumericProperty cV) {
 		super.setSpecificHeat(cV);
-	}
-
-	public NumericProperty getNonlinearPrecision() {
-		return NumericProperty.derive(NONLINEAR_PRECISION, nonlinearPrecision);
-	}
-
-	public void setNonlinearPrecision(NumericProperty nonlinearPrecision) {
-		this.nonlinearPrecision = (double)nonlinearPrecision.getValue(); 
 	}
 
 	public NumericProperty getTestTemperature() {
@@ -79,11 +71,9 @@ public class NonlinearProblem extends Problem {
 	@Override
 	public List<Property> listedTypes() {
 		List<Property> list = super.listedTypes();
-		list.add(NumericProperty.def(NONLINEAR_PRECISION));
 		list.add(NumericProperty.def(TEST_TEMPERATURE));
 		list.add(NumericProperty.def(SPECIFIC_HEAT));
 		list.add(NumericProperty.def(DENSITY));	
-		list.add(NumericProperty.def(REFLECTANCE));
 		return list;
 	}
 
@@ -104,7 +94,6 @@ public class NonlinearProblem extends Problem {
 		
 		switch(type) {
 			case TEST_TEMPERATURE	 :	T = newVal; return; 
-			case NONLINEAR_PRECISION : nonlinearPrecision = newVal; return;
 			default: break;
 		}				
 		
@@ -114,12 +103,37 @@ public class NonlinearProblem extends Problem {
 		double Q	= (double)pulse.getLaserEnergy().getValue();
 		double dLas = (double)pulse.getSpotDiameter().getValue();
 		
-		return 4.0*Q/(Math.PI*dLas*dLas*l*cP*rho);
+		evaluateDependentParameters();
+		
+		return 4.0*emissivity*Q/(Math.PI*dLas*dLas*l*cP*rho);
 	}
 	
 	@Override
 	public boolean allDetailsPresent() {
 		return cP != 0 && rho !=0;
+	}
+	
+	public void evaluateDependentParameters() {		
+		final double lambda = thermalConductivity();
+		emissivity =  Bi1*lambda/(4.*Math.pow(T, 3)*l*STEFAN_BOTLZMAN);
+	}
+	
+	public double thermalConductivity() {
+		return a*cP*rho;
+	}
+	
+	public NumericProperty getThermalConductivity() {
+		return NumericProperty.derive(CONDUCTIVITY, thermalConductivity());
+	}
+	
+	public NumericProperty getEmissivityProperty() {
+		return NumericProperty.derive(NumericPropertyKeyword.EMISSIVITY, emissivity);
+	}
+	
+	public void setEmissivity(NumericProperty e) {
+		if(e.getType() != NumericPropertyKeyword.EMISSIVITY)
+			throw new IllegalArgumentException("Illegal type: " + e.getType());
+		this.emissivity = (double)e.getValue();
 	}
 
 }

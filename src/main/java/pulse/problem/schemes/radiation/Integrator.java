@@ -11,15 +11,19 @@ import pulse.util.PropertyHolder;
 public abstract class Integrator extends PropertyHolder {
 
 	protected double cutoff;
+	private double cutoffMinusDx;
 	protected int lookupTableSize;
 	protected int integrationSegments;
 	
 	private double lookupTable[][];
+	private double dx;
 	
 	public Integrator(double cutoff, int numPartitions, int expIntPrecision) {
 		this.cutoff = cutoff;
 		this.lookupTableSize = numPartitions;
 		this.integrationSegments = expIntPrecision;
+		dx = cutoff/lookupTableSize;
+		cutoffMinusDx = cutoff - dx;
 	}
 	
 	/*
@@ -28,10 +32,10 @@ public abstract class Integrator extends PropertyHolder {
 	
 	public void init() {
 		lookupTable = new double[lookupTableSize + 1][4];
-		final double H = dx();
+		dx = cutoff/lookupTableSize;
 		for(int i = 0; i < lookupTableSize; i++) { 
 			for(int j = 1; j < 4; j++) 
-				lookupTable[i][j] = integrate(j, i*H);
+				lookupTable[i][j] = integrate(j, i*dx);
 		}
 	}
 	
@@ -40,12 +44,7 @@ public abstract class Integrator extends PropertyHolder {
 	 */
 	
 	public double integralAt(double t, int n) {
-		if(t > cutoff) 
-			return 0.0;
-		
-		final double H = dx();
-		
-		double _tH = t/H;
+		double _tH = Math.min(t, cutoffMinusDx)/dx;
 		int i = (int) _tH;
 		double delta = _tH - i;
 		
@@ -85,6 +84,8 @@ public abstract class Integrator extends PropertyHolder {
 		if(cutoff.getType() != NumericPropertyKeyword.INTEGRATION_CUTOFF)
 			throw new IllegalArgumentException("Keyword not recognised: " + cutoff.getType());
 		this.cutoff = (double)cutoff.getValue();
+		dx = this.cutoff/lookupTableSize;
+		cutoffMinusDx = this.cutoff - dx;
 	}
 	
 	
@@ -122,10 +123,6 @@ public abstract class Integrator extends PropertyHolder {
 	@Override
 	public String toString() {
 		return getClass().getSimpleName() + " : " + getCutoff();
-	}
-
-	public double dx() {
-		return cutoff/lookupTableSize;
 	}
 	
 }

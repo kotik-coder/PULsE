@@ -6,15 +6,15 @@ import pulse.properties.NumericPropertyKeyword;
 
 public class EmissionFunctionIntegrator extends Integrator {
 
-	private double[] U;
+	protected double[] U;
 	
 	private double stepSize;
-	private double hx;
+	protected double hx;
 	
 	private double min;
 	private double max;
 	
-	private EmissionFunction emissionFunction;
+	protected EmissionFunction emissionFunction;
 	
 	public EmissionFunctionIntegrator(EmissionFunction function, Grid grid) {
 		this(function, grid.getXStep());
@@ -24,6 +24,10 @@ public class EmissionFunctionIntegrator extends Integrator {
 		super(Double.POSITIVE_INFINITY, 0, (int)NumericProperty.def(NumericPropertyKeyword.INTEGRATION_SEGMENTS).getValue());
 		emissionFunction = function;
 		this.hx = hx;
+	}
+	
+	protected EmissionFunctionIntegrator() {
+		super(Double.POSITIVE_INFINITY, 0, (int)NumericProperty.def(NumericPropertyKeyword.INTEGRATION_SEGMENTS).getValue());
 	}
 	
 	public void setTemperatureArray(double[] U) {
@@ -89,6 +93,22 @@ public class EmissionFunctionIntegrator extends Integrator {
 	      sum += 2.0 * integrand( order, min + stepSize * i);
 
 	   return sum * stepSize/3.0;
+	}
+
+	public double getGridStep() {
+		return hx;
+	}
+
+	public void setGridStep(double hx) {
+		this.hx = hx;
+	}
+
+	public EmissionFunction getEmissionFunction() {
+		return emissionFunction;
+	}
+
+	public void setEmissionFunction(EmissionFunction emissionFunction) {
+		this.emissionFunction = emissionFunction;
 	}
 
 }

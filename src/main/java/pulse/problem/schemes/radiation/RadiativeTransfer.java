@@ -1,7 +1,8 @@
 package pulse.problem.schemes.radiation;
 
+import static pulse.problem.schemes.radiation.MathUtils.fastPowLoop;
+
 import pulse.problem.schemes.Grid;
-import pulse.problem.schemes.radiation.ExponentialFunctionIntegrator;
 import pulse.problem.statements.AbsorbingEmittingProblem;
 import pulse.util.Group;
 
@@ -9,7 +10,7 @@ public class RadiativeTransfer extends Group {
 
 	private int N;
 	private double hx;
-	private double emissivity;
+	private double emissivity, doubleReflectivity;
 	private double tau0;
 	
 	private EmissionFunction emissionFunction;
@@ -21,29 +22,48 @@ public class RadiativeTransfer extends Group {
 	private double F[], FP[];
 	private double r1, r2;
 	
+	private double _h, _2h, _05h, HX_TAU0;
+	
 	public RadiativeTransfer(Grid grid) {
 		complexIntegrator = new ComplexIntegrator();
 		this.hx = grid.getXStep();	
 		this.N = (int)grid.getGridDensity().getValue();	
 		complexIntegrator.setXStep(hx);
 		complexIntegrator.setParent(this);
+		F = new double[N+1];	
+		FP = new double[N+1];
+		emissionFunction = new EmissionFunction(0.0,0.0);
+		emissionIntegrator = new EmissionFunctionIntegrator();
+		emissionIntegrator.emissionFunction = emissionFunction;
+		complexIntegrator.emissionFunction = emissionFunction;
 	}
 	
 	public void init(AbsorbingEmittingProblem p, Grid grid) {
 		this.hx = grid.getXStep();	
 		this.N = (int)grid.getGridDensity().getValue();	
+		
 		F = new double[N+1];	
 		FP = new double[N+1];
 		
-		tau0 = (double)p.getOpticalThickness().getValue();
-		
 		emissivity = (double)p.getEmissivity();
-		emissionFunction = new EmissionFunction(p.maximumHeating()/( (double)p.getTestTemperature().getValue() ), hx);
-		emissionIntegrator = new EmissionFunctionIntegrator(emissionFunction, hx);
+		doubleReflectivity = 2.0*(1.0 - emissivity);
 		
-		complexIntegrator.setXStep(hx);
-		complexIntegrator.setEmissionFunction(emissionFunction);
+		emissionFunction.tFactor = p.maximumHeating()/( (double)p.getTestTemperature().getValue() );
+	
+		setGridStep(hx);
+
+		tau0 = (double)p.getOpticalThickness().getValue();
+		HX_TAU0 = hx*tau0;
+		_h = 1./(2.0*HX_TAU0);
+		_2h = _h/2.0;
+		_05h = 2.0*_h;
 		complexIntegrator.setOpticalThickness(tau0);
+	}
+	
+	private void setGridStep(double hx) {
+		emissionFunction.hx = hx;
+		emissionIntegrator.hx = hx;
+		complexIntegrator.hx = hx;
 	}
 	
 	/*
@@ -62,14 +82,7 @@ public class RadiativeTransfer extends Group {
 	public double getStoredFlux(int index) {
 		return FP[index];
 	}
-	
-	public double fluxRearThin(double U[]) {
-		emissionIntegrator.setRange(0, tau0);
-		emissionIntegrator.setTemperatureArray(U);
-		return emissionFunction.function(U[0])*(1.0 - 2*tau0) - emissionFunction.function(U[N]) 
-				+ 2.0*emissionIntegrator.integrate(1);
-	}
-	
+
 	public void boundaryFluxes(double[] U) {
 		F[0] = fluxFront(U);
 		F[N] = fluxRear(U);
@@ -83,30 +96,22 @@ public class RadiativeTransfer extends Group {
 	public double fluxFront(double U[]) {		
 		return r1 - 2.0*r2*simpleIntegrator.integralAt(tau0, 3) - 2.0*integrateSecondOrder(U, 0.0, 1.0);
 	}
-	
-	public double fluxFrontThin(double U[]) {
-		emissionIntegrator.setRange(0, tau0);
-		emissionIntegrator.setTemperatureArray(U);
-		return emissionFunction.function(U[0]) - emissionFunction.function(U[N])*(1.0 - 2*tau0) 
-				- 2.0*emissionIntegrator.integrate(1);
-	} 
 
 	public void storeFluxes() {
 		System.arraycopy(F, 0, FP, 0, N + 1); //store previous results 
 	}
 	
 	public void fluxes(double U[]) {
+		complexIntegrator.U = U;
 		F[0] = fluxFront(U);
 		for(int i = 1; i < N; i++)
 			F[i] = flux(U, i);
 		F[N] = fluxRear(U);
 	}
 	
-	public double flux(double U[], int uIndex) {
-		double t = hx*uIndex*tau0;
+	private double flux(double U[], int uIndex) {
+		double t = HX_TAU0*uIndex;
 			
-		complexIntegrator.setTemperatureArray(U);
-		
 		complexIntegrator.setRange(0, t);
 		double I_1 = complexIntegrator.integrate(2, t, -1.0);
 		
@@ -120,76 +125,35 @@ public class RadiativeTransfer extends Group {
 		return result*2.0;	
 	}
 	
-	public double fluxRosseland(double U[], int uIndex) {
-		return (-4.0/3.0)/tau0*emissionFunction.firstDerivative(U, uIndex);
-	}
-		
-	public double fluxDerivative(double[] U, int uIndex) {
-		double h = 2.0*hx*tau0;
-		return -(flux(U, uIndex+1) - flux(U, uIndex-1))/h;		
-	}
-	
 	public double fluxMeanDerivative(int uIndex) {
 		double f = ( F[uIndex - 1] - F[uIndex + 1] ) + ( FP[uIndex - 1] - FP[uIndex + 1] );
-		return f/(4.0*hx*tau0);
+		return f*_2h;
 	}
 	
 	public double fluxMeanDerivativeFront() {
 		double f = ( F[0] - F[1] ) + ( FP[0] - FP[1] );
-		return f/(2.0*hx*tau0);
+		return f*_h;
 	}
 	
 	public double fluxMeanDerivativeRear() {
 		double f = ( F[N-1] - F[N] ) + ( FP[N-1] - FP[N] );
-		return f/(2.0*hx*tau0);	}
+		return f*_h;	
+	}
 	
-	public double fluxDerivative(int uIndex) {
-		return fluxDerivativeDiscrete(uIndex);		
+	public double fluxDerivative(double[] U, int uIndex) {
+		return (flux(U, uIndex-1) - flux(U, uIndex+1))*_h;		
 	}
 	
 	public double fluxDerivativeFront() {
-		return (F[0] - F[1])/(tau0*hx);
+		return (F[0] - F[1])*_05h;
 	}
 	
 	public double fluxDerivativeRear() {
-		return (F[N-1] - F[N])/(tau0*hx);
+		return (F[N-1] - F[N])*_05h;
 	}
 	
 	public double fluxDerivativeDiscrete(int uIndex) {
-		double h = 2.0*hx*tau0;
-		return ( F[uIndex - 1] - F[uIndex + 1] )/h;
-	}
-	
-	/*
-	 * Rosseland approximation for tau0 >> 1
-	 */
-	
-	public double fluxDerivativeRosseland(double[] U, int uIndex) {
-		return 4.0/(3.0*Math.pow(tau0, 2))*emissionFunction.secondDerivative(U, uIndex);
-	}
-	
-	/*
-	 * Black-body approximation for tau0 << 1
-	 */
-	
-	public double fluxDerivativeThin(double[] U, int uIndex) {
-		return 2.0*(emissionFunction.function(U[0]) 
-					+ emissionFunction.function(U[N]) 
-					- 2.0*emissionFunction.function(U[uIndex]) ); 
-	}
-	
-	/*
-	 * -dF/d\tau
-	 *
-	 * = 2 R_1 E_2(y \tau_0) + 2 R_2 E_2( (1 - y) \tau_0 ) - \pi J*(y 'tau_0) 
-	 *
-	 */
-	
-	public double fluxDerivativeAnalytical(double U[], int uIndex) {
-		double t = hx*uIndex*tau0;
-				
-		return 2.0*r1*simpleIntegrator.integralAt(t, 2) + 2.0*r2*simpleIntegrator.integralAt(tau0 - t, 2)
-			   - 4.0*emissionFunction.function(U[uIndex]) + 2.*integrateFirstOrder(U, t);		
+		return ( F[uIndex - 1] - F[uIndex + 1] )*_h;
 	}
 	
 	/*
@@ -208,7 +172,7 @@ public class RadiativeTransfer extends Group {
 	 */
 	
 	private double b() {
-		return 2.0*(1.0 - emissivity)*simpleIntegrator.integralAt(tau0, 3);
+		return doubleReflectivity*simpleIntegrator.integralAt(tau0, 3);
 	}
 	
 	/*
@@ -219,7 +183,7 @@ public class RadiativeTransfer extends Group {
 	 */
 	
 	private double a1(double[] U) {
-		return emissivity*emissionFunction.function(U[0]) +  2.*(1.0 - emissivity)*integrateSecondOrder(U, 0.0, 1.0);
+		return emissivity*emissionFunction.function(U[0]) +  doubleReflectivity*integrateSecondOrder(U, 0.0, 1.0);
 	}
 	
 	/*
@@ -230,7 +194,7 @@ public class RadiativeTransfer extends Group {
 	 */
 	
 	private double a2(double[] U) {
-		return emissivity*emissionFunction.function(U[N]) + 2.*(1.0 - emissivity)*integrateSecondOrder(U, tau0, -1.0);
+		return emissivity*emissionFunction.function(U[N]) + doubleReflectivity*integrateSecondOrder(U, tau0, -1.0);
 	}
 	
 	/*
@@ -241,14 +205,14 @@ public class RadiativeTransfer extends Group {
 	
 	private double integrateSecondOrder(double[] U, double a, double b) {
 		complexIntegrator.setRange(0, tau0);
-		complexIntegrator.setTemperatureArray(U);
+		complexIntegrator.U = U;
 		return complexIntegrator.integrate(2, a, b);
 	}
 	
 	private double integrateFirstOrder(double[] U, double y) {
 		double integral = 0;
 		
-		complexIntegrator.setTemperatureArray(U);
+		complexIntegrator.U = U;
 		
 		complexIntegrator.setRange(0, y);
 		integral += complexIntegrator.integrate(1, y, -1);
@@ -271,5 +235,55 @@ public class RadiativeTransfer extends Group {
 	public void setEmissionFunction(EmissionFunction emissionFunction) {
 		this.emissionFunction = emissionFunction;
 	}
-		
+	
+	public double fluxFrontThin(double U[]) {
+		emissionIntegrator.setRange(0, tau0);
+		emissionIntegrator.U = U;
+		return emissionFunction.function(U[0]) - emissionFunction.function(U[N])*(1.0 - 2*tau0) 
+				- 2.0*emissionIntegrator.integrate(1);
+	} 
+	
+	public double fluxRearThin(double U[]) {
+		emissionIntegrator.setRange(0, tau0);
+		emissionIntegrator.U = U;;
+		return emissionFunction.function(U[0])*(1.0 - 2*tau0) - emissionFunction.function(U[N]) 
+				+ 2.0*emissionIntegrator.integrate(1);
+	}
+	
+	/*
+	 * Black-body approximation for tau0 << 1
+	 */
+	
+	public double fluxDerivativeThin(double[] U, int uIndex) {
+		return 2.0*(emissionFunction.function(U[0]) 
+					+ emissionFunction.function(U[N]) 
+					- 2.0*emissionFunction.function(U[uIndex]) ); 
+	}
+	
+	public double fluxRosseland(double U[], int uIndex) {
+		return (-1.333333333)/tau0*emissionFunction.firstDerivative(U, uIndex);
+	}
+	
+	/*
+	 * Rosseland approximation for tau0 >> 1
+	 */
+	
+	public double fluxDerivativeRosseland(double[] U, int uIndex) {
+		return 1.333333333/(fastPowLoop(tau0, 2))*emissionFunction.secondDerivative(U, uIndex);
+	}
+	
+	/*
+	 * -dF/d\tau
+	 *
+	 * = 2 R_1 E_2(y \tau_0) + 2 R_2 E_2( (1 - y) \tau_0 ) - \pi J*(y 'tau_0) 
+	 *
+	 */
+	
+	public double fluxDerivativeAnalytical(double U[], int uIndex) {
+		double t = hx*uIndex*tau0;
+				
+		return 2.0*r1*simpleIntegrator.integralAt(t, 2) + 2.0*r2*simpleIntegrator.integralAt(tau0 - t, 2)
+			   - 4.0*emissionFunction.function(U[uIndex]) + 2.*integrateFirstOrder(U, t);		
+	}
+	
 }

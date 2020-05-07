@@ -16,7 +16,6 @@ import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
-import pulse.ui.Messages;
 import pulse.util.PropertyHolder;
 
 /**

@@ -1,8 +1,6 @@
 package pulse.tasks;
 
-import static pulse.properties.NumericPropertyKeyword.CONDUCTIVITY;
 import static pulse.properties.NumericPropertyKeyword.DENSITY;
-import static pulse.properties.NumericPropertyKeyword.EMISSIVITY;
 import static pulse.properties.NumericPropertyKeyword.SPECIFIC_HEAT;
 import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
 import static pulse.properties.NumericPropertyKeyword.TIME_LIMIT;
@@ -13,6 +11,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 import pulse.input.ExperimentalData;
 import pulse.input.InterpolationDataset;
@@ -67,7 +66,7 @@ public class SearchTask extends Accessible implements Runnable {
 	private Status status = Status.INCOMPLETE;
 			
 	private double testTemperature;
-	private double cp, rho, emissivity, lambda;
+	private double cp, rho;
 	
 	private NormalityTest normalityTest;
 	
@@ -132,6 +131,11 @@ public class SearchTask extends Accessible implements Runnable {
 
 	}
 	
+	public List<NumericProperty> alteredParameters() {
+		return PathOptimiser.activeParameters().stream().map(
+				key -> this.numericProperty(key)).collect(Collectors.toList()); 		
+	}
+	
 	/**
 	 * Generates a search vector (= optimisation vector) using the search flags 
 	 * set by the {@code PathSolver}.
@@ -172,8 +176,6 @@ public class SearchTask extends Accessible implements Runnable {
 	 */
 	
 	public void calculateThermalProperties() {
-		if(problem == null)
-			return;
 		
 		var cpCurve = InterpolationDataset.getDataset(StandartType.SPECIFIC_HEAT);			
 		
@@ -183,32 +185,14 @@ public class SearchTask extends Accessible implements Runnable {
 		}
 		
 		var rhoCurve = InterpolationDataset.getDataset(StandartType.DENSITY);	
+		
 		if(rhoCurve != null) { 
 			rho = rhoCurve.interpolateAt(testTemperature);
 			problem.set(DENSITY, NumericProperty.derive(DENSITY, rho));
 		}
 		
-		if(rhoCurve != null && cpCurve != null) {
-			evalThermalConductivity();
-			evalEmissivity();
-		}
-		
 	}
 	
-	private void evalThermalConductivity() {
-		double a   = (double)problem.getDiffusivity().getValue();			
-		lambda = a * cp * rho;
-	}
-
-	private void evalEmissivity() {				
-		double Bi     = (double)problem.getHeatLoss().getValue();
-		double l      = (double)problem.getSampleThickness().getValue();		
-			
-		final double sigma = 5.6703E-08; //Stephan-Boltzmann constant
-				
-		emissivity =  Bi*lambda/(4.*Math.pow(testTemperature, 3)*l*sigma);
-	}
-
 	/**
 	 * This will use the current {@code DifferenceScheme} to solve the {@code Problem} for this
 	 * {@code SearchTask} and calculate the SSR value showing how well (or bad) the calculated solution
@@ -290,8 +274,6 @@ public class SearchTask extends Accessible implements Runnable {
 	  
 	  }  while( buffer.isErrorTooHigh(errorTolerance) );
 	  
-	  calculateThermalProperties();
-	  
 	  singleThreadExecutor.shutdown();	  
 	  
 	  if(status == Status.IN_PROGRESS) 
@@ -314,11 +296,9 @@ public class SearchTask extends Accessible implements Runnable {
 			else {				  
 			//lastly, check if the parameter values estimated in this procedure are reasonable 
 					  
-				var vector = searchVector()[0];
+				var properties = alteredParameters();
 					  
-				if(vector.getIndices().stream().map(index -> 
-				NumericProperty.derive(index, vector.getRawValue(index)) )
-				.anyMatch(np -> !np.validate() ) ) 
+				if(properties.stream().anyMatch(np -> !np.validate() ) ) 
 					setStatus(Status.FAILED, Status.Details.PARAMETER_VALUES_NOT_SENSIBLE);				  
 				else
 					setStatus(Status.DONE);
@@ -391,13 +371,14 @@ public class SearchTask extends Accessible implements Runnable {
 
 			@Override
 			public void onPropertyChanged(PropertyEvent event) {
-				if((event.getSource() instanceof Metadata) || 
-						(event.getSource() instanceof PropertyHolderTable)) {
+				if(event.getSource() instanceof Metadata) {
 							problem.estimateSignalRange(curve);
 							problem.useTheoreticalEstimates(curve);
 				}
 				else if(event.getSource() instanceof InterpolationDataset){
 					problem.useTheoreticalEstimates(curve);
+				} else if(event.getSource() instanceof PropertyHolderTable) {
+					problem.estimateSignalRange(curve);
 				}
 			
 			}
@@ -542,23 +523,6 @@ public class SearchTask extends Accessible implements Runnable {
 	public Log getLog() {
 		return log;
 	}
-
-	public NumericProperty getThermalConductivity() {
-		return NumericProperty.derive(CONDUCTIVITY, lambda);
-	}
-
-	public void setThermalConductivity(NumericProperty lambda) {
-		this.lambda = (double)lambda.getValue();
-	}	
-	
-	public NumericProperty getEmissivity() {
-		return NumericProperty.derive(EMISSIVITY, emissivity);
-	}
-
-	public void setEmissivity(NumericProperty emissivity) {
-		this.emissivity = (double)emissivity.getValue();
-	}
-	
 	private void notifyDataListeners(LogEntry e) {
 		for(DataCollectionListener l : listeners)
   			l.onDataCollected(e);

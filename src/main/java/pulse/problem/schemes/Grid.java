@@ -127,6 +127,7 @@ public class Grid extends PropertyHolder {
 			throw new IllegalArgumentException("Type of property passed to constructor " + gridDensity.getType());
 		this.N = (int)gridDensity.getValue();
 		hx = 1./N;
+		setTimeFactor(NumericProperty.derive(NumericPropertyKeyword.TAU_FACTOR, 1.0));
 	}
 	
 	/**

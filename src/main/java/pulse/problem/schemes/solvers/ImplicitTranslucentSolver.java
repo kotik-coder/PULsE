@@ -7,8 +7,8 @@ import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.ImplicitScheme;
 import pulse.problem.statements.AbsorptionModel;
 import pulse.problem.statements.AbsorptionModel.SpectralRange;
-import pulse.problem.statements.Problem;
 import pulse.problem.statements.DistributedAbsorptionProblem;
+import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
 
 public class ImplicitTranslucentSolver 

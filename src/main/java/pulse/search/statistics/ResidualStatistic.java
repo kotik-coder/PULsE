@@ -1,5 +1,6 @@
 package pulse.search.statistics;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -42,7 +43,7 @@ public abstract class ResidualStatistic extends Statistic {
 		
 		final double zeroTime = estimate.timeAt(0);
 
-		residuals = new LinkedList<double[]>(); 
+		residuals = new ArrayList<double[]>(); 
 		
 		for (int startIndex = reference.getIndexRange().getLowerBound(),				
 			 endIndex = reference.getIndexRange().getUpperBound(), 

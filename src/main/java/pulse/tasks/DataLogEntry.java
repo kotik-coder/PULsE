@@ -3,7 +3,6 @@ package pulse.tasks;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import pulse.properties.NumericProperty;
 import pulse.ui.Messages;
@@ -45,10 +44,7 @@ public class DataLogEntry extends LogEntry {
 	private void fill() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		SearchTask task = TaskManager.getTask( getIdentifier() );
 	
-		var searchVector = task.searchVector()[0];
-		entry = searchVector.getIndices().stream()
-				.map(index -> NumericProperty.derive(index, searchVector.getRawValue(index)) )
-				.collect(Collectors.toList());
+		entry = task.alteredParameters();
 		Collections.sort(entry, (p1, p2) -> p1.getDescriptor(false).compareTo(p2.getDescriptor(false)));
 		entry.add(0, task.getPath().getIteration());
 	}

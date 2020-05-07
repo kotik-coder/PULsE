@@ -1,15 +1,19 @@
 package pulse.problem.schemes.solvers;
 
-import static java.lang.Math.pow;
+import static pulse.properties.NumericPropertyKeyword.NONLINEAR_PRECISION;
+
+import java.util.List;
 
 import pulse.HeatingCurve;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.ImplicitScheme;
+import pulse.problem.schemes.radiation.MathUtils;
 import pulse.problem.schemes.radiation.RadiativeTransfer;
 import pulse.problem.statements.AbsorbingEmittingProblem;
 import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
+import pulse.properties.Property;
 
 public class ImplicitCoupledSolver 
 					extends ImplicitScheme 
@@ -55,6 +59,8 @@ public class ImplicitCoupledSolver
 	
 	private double v1;
 	
+	private double nonlinearPrecision = (double)NumericProperty.def(NONLINEAR_PRECISION).getValue();	
+	
 	public ImplicitCoupledSolver() {
 		this(GRID_DENSITY, TAU_FACTOR);
 	}
@@ -93,9 +99,9 @@ public class ImplicitCoupledSolver
 		alpha = new double[N + 2];
 		beta = new double[N + 2];
 
-		a = 1. / pow(hx, 2);
-		b = 1. / tau + 2. / pow(hx, 2);
-		c = 1. / pow(hx, 2);	
+		a = 1. / (hx*hx);
+		b = 1. / tau + 2. / (hx*hx);
+		c = 1. / (hx*hx);	
 		
 		b11 = 1.0/(2.0*Np*hx);
 		
@@ -113,7 +119,7 @@ public class ImplicitCoupledSolver
 
 		prepare(problem);
 		
-		final double errorSq = pow((double) problem.getNonlinearPrecision().getValue(), 2);
+		final double errorSq = MathUtils.fastPowLoop( nonlinearPrecision, 2);
 		
 		int i, m, w, j;
 		double F, pls;
@@ -138,8 +144,8 @@ public class ImplicitCoupledSolver
 				pls = discretePulse.evaluateAt((m - EPS) * tau);
 
 				for( V_0 = errorSq + 1, V_N = errorSq + 1; 
-						   (pow((V[0] - V_0), 2) > errorSq) ||
-						   (pow((V[N] - V_N), 2) > errorSq)
+						   (MathUtils.fastPowLoop((V[0] - V_0), 2) > errorSq) ||
+						   (MathUtils.fastPowLoop((V[N] - V_N), 2) > errorSq)
 						 ; rte.radiosities(V), rte.fluxes(V)) {
 					
 					beta[1] = (HX2_2TAU * U[0] + hx*pls - HX_2NP*(rte.getFlux(0) + rte.getFlux(1)) )*alpha[1];
@@ -189,6 +195,29 @@ public class ImplicitCoupledSolver
 	
 	public RadiativeTransfer getRadiativeTransferEquation() {
 		return rte;
+	}
+	
+	public NumericProperty getNonlinearPrecision() {
+		return NumericProperty.derive(NONLINEAR_PRECISION, nonlinearPrecision);
+	}
+
+	public void setNonlinearPrecision(NumericProperty nonlinearPrecision) {
+		this.nonlinearPrecision = (double)nonlinearPrecision.getValue(); 
+	}
+	
+	@Override
+	public List<Property> listedTypes() {
+		List<Property> list = super.listedTypes();
+		list.add(NumericProperty.def(NumericPropertyKeyword.NONLINEAR_PRECISION));
+		return list;
+	}
+	
+	@Override
+	public void set(NumericPropertyKeyword type, NumericProperty property) {
+		switch(type) {
+		case NONLINEAR_PRECISION : setNonlinearPrecision(property); break;
+		default : throw new IllegalArgumentException("Property not recognised: " + property);
+		}
 	}
 
 }

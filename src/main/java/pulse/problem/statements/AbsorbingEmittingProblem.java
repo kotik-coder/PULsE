@@ -1,7 +1,8 @@
 package pulse.problem.statements;
 
-import static pulse.properties.NumericPropertyKeyword.PLANCK_NUMBER;
 import static pulse.properties.NumericPropertyKeyword.OPTICAL_THICKNESS;
+import static pulse.properties.NumericPropertyKeyword.PLANCK_NUMBER;
+
 import java.util.List;
 
 import pulse.input.ExperimentalData;
@@ -20,7 +21,7 @@ public class AbsorbingEmittingProblem extends NonlinearProblem {
 	private double planckNumber;
 	private double emissivity;
 
-	private final static double DEFAULT_BIOT = 0.0;
+	private final static double DEFAULT_BIOT = 0.1;
 	private final static int DEFAULT_CURVE_POINTS = 300;
 	
 	public AbsorbingEmittingProblem() {
@@ -78,14 +79,6 @@ public class AbsorbingEmittingProblem extends NonlinearProblem {
 	}
 	
 	@Override
-	public boolean allDetailsPresent() {
-		 if((cP > 0) && (rho > 0))
-			 return super.allDetailsPresent();
-		 else
-			 return false;
-	}
-	
-	@Override
 	public void set(NumericPropertyKeyword type, NumericProperty value) {
 		super.set(type, value);
 		
@@ -140,39 +133,26 @@ public class AbsorbingEmittingProblem extends NonlinearProblem {
 					break;				
 				case OPTICAL_THICKNESS		:	
 					opticalThickness = Math.exp(params.get(i));
-					break;					
+					break;				
+				case HEAT_LOSS :
+				case DIFFUSIVITY :
+					evaluateDependentParameters();
+					break;
 				default 				: 	continue;
 			}
 		}
 		
-		evaluateDependentParameters();
-		
-	}
-	
-	public double maximumHeating() {
-		double Q	= (double)pulse.getLaserEnergy().getValue();
-		double dLas = (double)pulse.getSpotDiameter().getValue();
-		
-		return 4.0*emissivity*Q/(Math.PI*dLas*dLas*l*cP*rho);
 	}
 	
 	@Override
 	public void useTheoreticalEstimates(ExperimentalData c) {		
 		super.useTheoreticalEstimates(c);
 		if(this.allDetailsPresent()) {
-			final double SIGMA = 5.67E-8;
 			final double nSq = 4;
-			final double lambda = a*cP*rho;
-			//planckNumber = lambda/(4*nSq*SIGMA*Math.pow(T, 3)*l);
+			final double lambda = thermalConductivity();
+			planckNumber = lambda/(4*nSq*STEFAN_BOTLZMAN*Math.pow(T, 3)*l);
 			evaluateDependentParameters();
 		}
-	}
-	
-	private void evaluateDependentParameters() {		
-		/*
-		final double lambda = a*cP*rho;
-		final double sigma = 5.6703E-08; //Stephan-Boltzmann constant
-		emissivity =  Bi1*lambda/(4.*Math.pow(T, 3)*l*sigma);*/
 	}
 	
 }

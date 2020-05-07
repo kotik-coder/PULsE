@@ -1,6 +1,9 @@
 package pulse.problem.schemes.solvers;
 
 import static java.lang.Math.pow;
+import static pulse.properties.NumericPropertyKeyword.NONLINEAR_PRECISION;
+
+import java.util.List;
 
 import pulse.HeatingCurve;
 import pulse.problem.schemes.DifferenceScheme;
@@ -8,6 +11,8 @@ import pulse.problem.schemes.ExplicitScheme;
 import pulse.problem.statements.NonlinearProblem;
 import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
+import pulse.properties.NumericPropertyKeyword;
+import pulse.properties.Property;
 
 public class ExplicitNonlinearSolver 
 				extends ExplicitScheme 
@@ -28,6 +33,8 @@ public class ExplicitNonlinearSolver
 	private final static double EPS = 1e-7; // a small value ensuring numeric stability
 	
 	private double T, dT;
+	
+	private double nonlinearPrecision = (double)NumericProperty.def(NONLINEAR_PRECISION).getValue();	
 	
 	public ExplicitNonlinearSolver() {
 		super();
@@ -72,7 +79,7 @@ public class ExplicitNonlinearSolver
 		final double fN1 = 0.25*Bi2*T/dT;
 		double f0, fN;	
 		
-		final double fixedPointPrecisionSq  = pow( (double) problem.getNonlinearPrecision().getValue(), 2);
+		final double fixedPointPrecisionSq  = pow( nonlinearPrecision, 2);
 		
 		for (w = 1; w < counts; w++) {
 			
@@ -130,6 +137,29 @@ public class ExplicitNonlinearSolver
 	@Override
 	public Class<? extends Problem> domain() {
 		return NonlinearProblem.class;
+	}
+	
+	public NumericProperty getNonlinearPrecision() {
+		return NumericProperty.derive(NONLINEAR_PRECISION, nonlinearPrecision);
+	}
+
+	public void setNonlinearPrecision(NumericProperty nonlinearPrecision) {
+		this.nonlinearPrecision = (double)nonlinearPrecision.getValue(); 
+	}
+	
+	@Override
+	public List<Property> listedTypes() {
+		List<Property> list = super.listedTypes();
+		list.add(NumericProperty.def(NumericPropertyKeyword.NONLINEAR_PRECISION));
+		return list;
+	}
+	
+	@Override
+	public void set(NumericPropertyKeyword type, NumericProperty property) {
+		switch(type) {
+		case NONLINEAR_PRECISION : setNonlinearPrecision(property); break;
+		default : throw new IllegalArgumentException("Property not recognised: " + property);
+		}
 	}
 	
 }

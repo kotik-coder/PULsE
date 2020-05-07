@@ -178,7 +178,7 @@ public class ProblemStatementFrame extends JInternalFrame {
 					return;
 					}
 				}						
-
+				
 				( (Solver)t.getScheme() ).solve(t.getProblem());				
 		
 				Chart.plot(t, true);				

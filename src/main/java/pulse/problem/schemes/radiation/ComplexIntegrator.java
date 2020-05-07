@@ -1,5 +1,7 @@
 package pulse.problem.schemes.radiation;
 
+import java.util.stream.IntStream;
+
 public class ComplexIntegrator extends Integrator {
 
 	private double min;
@@ -7,9 +9,9 @@ public class ComplexIntegrator extends Integrator {
 	private double rMax;
 	private double rMin;
 	
-	private double[] U;
+	protected double[] U;
 	private double tau0;
-	private double hx;
+	protected double hx;
 
 	private double stepSize;
 		
@@ -18,10 +20,10 @@ public class ComplexIntegrator extends Integrator {
 	private final static int T_INDEX = 2;
 	
 	private static ExponentialFunctionIntegrator expIntegrator = ExponentialFunctionIntegrator.getDefaultIntegrator();
-	private EmissionFunction emissionFunction;
+	protected EmissionFunction emissionFunction;
 
-	private final static double DEFAULT_CUTOFF = 9.0;
-	private final static int DEFAULT_PRECISION = 128;
+	private final static double DEFAULT_CUTOFF = 6.5;
+	private final static int DEFAULT_PRECISION = 64;
 	
 	public ComplexIntegrator() {
 		super(DEFAULT_CUTOFF, 0, DEFAULT_PRECISION);
@@ -67,18 +69,14 @@ public class ComplexIntegrator extends Integrator {
 	
 	@Override
 	public double integrate(int order, double... params) {
-		if(max - min < 1E-10)
-			return 0;
-		
+	
 		double bound = (cutoff - params[A_INDEX])/params[B_INDEX];
+				
+		double a = 0.5 - params[B_INDEX]/2;
+		double b = 1. - a;
 		
-		if(params[B_INDEX] < 0) {
-			rMax = max;
-			rMin = Math.max( bound, min );
-		} else {
-			rMax = Math.min( bound, max );
-			rMin = min;
-		}
+		rMax = max * a + Math.min( bound, max ) * b;
+		rMin = Math.max( bound, min ) * a + min * b;
 				
 		stepSize = (rMax - rMin)/integrationSegments;
 		
@@ -102,23 +100,52 @@ public class ComplexIntegrator extends Integrator {
 	
 	public double integrateSimpson(int order, double... params) {
 	   double fa = integrand(order, params[0], params[1], rMin);
-	   double fb = rMax < tau0 ? 
-			   	   integrand(order, params[0], params[1], rMax) :
-		   		   integrandNoInterpolation(order, params[0], params[1], rMax);
+	   double fb = integrandNoInterpolation(order, params[0], params[1], rMax);
 	  
 	   // 1/3 terms
 	   double sum = (fa + fb);
 	  
+	   double x = 0;
+	   double y = 0;
+	   
 	   // 4/3 terms
-	   for (int i = 1; i < integrationSegments; i += 2) 
-		   sum += 4.0 * integrand( order, params[0], params[1], rMin + stepSize * i);
-
+	   for (int i = 1; i < integrationSegments; i += 2) { 
+		   x += integrand( order, params[0], params[1], rMin + stepSize * i);
+	   }
+		   
 	   // 2/3 terms
 	   for (int i = 2; i < integrationSegments; i += 2) 
-	      sum += 2.0 * integrand( order, params[0], params[1], rMin + stepSize * i);
+	      y += integrand( order, params[0], params[1], rMin + stepSize * i);
 
+	   sum += x*4.0 + y*2.0;
+	   
 	   return sum * stepSize/3.0;
 	}
+	
+	public double integrateBoole(int order, double... params) {
+		   double fa = integrand(order, params[0], params[1], rMin);
+		   double fb = integrandNoInterpolation(order, params[0], params[1], rMax);
+			   		   
+		   // 1/90 terms
+		   double sum = (fa + fb);
+		   
+		   //1/32 terms
+		   sum += 32.*IntStream.range(0, integrationSegments ).mapToDouble(i -> 
+		   				integrand( order, params[0], params[1], rMin + stepSize*(i + 0.25) ) +
+				   	    integrand( order, params[0], params[1], rMin + stepSize*(i + 0.75)) ) .sum();
+		   
+		   //1/12 terms
+		   sum += 12.*IntStream.range(0, integrationSegments )
+				   .mapToDouble(i -> integrand( order, params[0], params[1], 
+				   rMin + stepSize*(i + 0.5) ) ).sum();
+
+		   //1/14 terms
+		   sum += 14.*IntStream.range(1, integrationSegments )
+				   .mapToDouble(i -> integrand( order, params[0], params[1], 
+				   rMin + stepSize*i ) ).sum();
+		   
+		   return sum * stepSize/90.;
+		}
 
 	/*
 	 * a - params[0]

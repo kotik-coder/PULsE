@@ -35,7 +35,6 @@ import pulse.tasks.Log;
 import pulse.tasks.Result;
 import pulse.tasks.TaskManager;
 import pulse.ui.Launcher;
-import pulse.util.Group;
 
 @SuppressWarnings("serial")
 public class ExportDialog extends JDialog {

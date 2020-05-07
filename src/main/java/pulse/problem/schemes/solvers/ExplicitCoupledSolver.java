@@ -1,6 +1,9 @@
 package pulse.problem.schemes.solvers;
 
 import static java.lang.Math.pow;
+import static pulse.properties.NumericPropertyKeyword.NONLINEAR_PRECISION;
+
+import java.util.List;
 
 import pulse.HeatingCurve;
 import pulse.problem.schemes.DifferenceScheme;
@@ -10,6 +13,8 @@ import pulse.problem.schemes.radiation.RadiativeTransfer;
 import pulse.problem.statements.AbsorbingEmittingProblem;
 import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
+import pulse.properties.NumericPropertyKeyword;
+import pulse.properties.Property;
 
 public class ExplicitCoupledSolver 
 					extends ExplicitScheme 
@@ -36,6 +41,8 @@ public class ExplicitCoupledSolver
 	private final static double EPS = 1e-7; // a small value ensuring numeric stability
 	
 	private Mode mode = Mode.GENERAL;
+	
+	private double nonlinearPrecision = (double)NumericProperty.def(NONLINEAR_PRECISION).getValue();	
 	
 	public ExplicitCoupledSolver() {
 		this(GRID_DENSITY, TAU_FACTOR);
@@ -97,7 +104,7 @@ public class ExplicitCoupledSolver
 		
 		double V_0, V_N;
 				
-		final double errorSq  = pow( (double) problem.getNonlinearPrecision().getValue(), 2);
+		final double errorSq  = pow( nonlinearPrecision, 2);
 		
 		double wFactor = timeInterval * tau * problem.timeFactor();
 		
@@ -127,7 +134,7 @@ public class ExplicitCoupledSolver
 				
 				for(i = 1; i < N; i++) 
 					V[i] =	U[i] +  TAU_HH*( U[i+1] - 2.*U[i] + U[i-1] )
-							+ prefactor*rte.fluxDerivative(U,i);
+							+ prefactor*rte.fluxDerivativeDiscrete(i);
 				
 				/*
 				 * Calculates boundary values
@@ -183,7 +190,7 @@ public class ExplicitCoupledSolver
 		
 		double V_0, V_N;
 				
-		final double errorSq  = pow( (double) problem.getNonlinearPrecision().getValue(), 2);
+		final double errorSq  = pow( nonlinearPrecision, 2);
 		
 		double wFactor = timeInterval * tau * problem.timeFactor();
 		
@@ -266,7 +273,7 @@ public class ExplicitCoupledSolver
 		double V_0, V_N;
 		double x;		
 		
-		final double errorSq  = pow( (double) problem.getNonlinearPrecision().getValue(), 2);
+		final double errorSq  = pow( nonlinearPrecision, 2);
 		
 		double wFactor = timeInterval * tau * problem.timeFactor();
 		
@@ -369,6 +376,29 @@ public class ExplicitCoupledSolver
 
 	public RadiativeTransfer getRadiativeTransferEquation() {
 		return rte;
+	}
+		
+	public NumericProperty getNonlinearPrecision() {
+		return NumericProperty.derive(NONLINEAR_PRECISION, nonlinearPrecision);
+	}
+
+	public void setNonlinearPrecision(NumericProperty nonlinearPrecision) {
+		this.nonlinearPrecision = (double)nonlinearPrecision.getValue(); 
+	}
+	
+	@Override
+	public List<Property> listedTypes() {
+		List<Property> list = super.listedTypes();
+		list.add(NumericProperty.def(NumericPropertyKeyword.NONLINEAR_PRECISION));
+		return list;
+	}
+	
+	@Override
+	public void set(NumericPropertyKeyword type, NumericProperty property) {
+		switch(type) {
+		case NONLINEAR_PRECISION : setNonlinearPrecision(property); break;
+		default : throw new IllegalArgumentException("Property not recognised: " + property);
+		}
 	}
 	
 }

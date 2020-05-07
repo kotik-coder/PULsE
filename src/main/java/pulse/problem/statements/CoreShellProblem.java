@@ -1,9 +1,10 @@
 package pulse.problem.statements;
 
 import static java.lang.Math.pow;
-import static pulse.properties.NumericPropertyKeyword.COATING_DIFFUSIVITY;
 import static pulse.properties.NumericPropertyKeyword.AXIAL_COATING_THICKNESS;
+import static pulse.properties.NumericPropertyKeyword.COATING_DIFFUSIVITY;
 import static pulse.properties.NumericPropertyKeyword.RADIAL_COATING_THICKNESS;
+
 import java.util.ArrayList;
 import java.util.List;
 

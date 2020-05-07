@@ -36,10 +36,10 @@ public class ExponentialFunctionIntegrator extends Integrator {
 	
 	public double e1_Approximation(double t) {
 		final double gamma = 0.5772156649;
-		double result = -gamma - Math.log(t);
+		double result = -gamma - MathUtils.fastLog(t);
 		
 		for(int i = 1; i < APPROXIMATION_TERMS; i++) 
-			result -= Math.pow(-t, i)/(i*CombinatoricsUtils.factorial(i));
+			result -= MathUtils.fastPowLoop(-t, i)/(i*CombinatoricsUtils.factorial(i));
 		
 		return result;
 		
@@ -51,7 +51,7 @@ public class ExponentialFunctionIntegrator extends Integrator {
 		eApprox[0] = e1_Approximation(t);
 		
 		for(int i = 1; i < order; i++) 
-			eApprox[i] = (Math.exp(-t) - t*eApprox[i-1])/i;
+			eApprox[i] = (MathUtils.fastExp(-t) - t*eApprox[i-1])/i;
 	
 		return eApprox[order-1];
 		
@@ -63,7 +63,7 @@ public class ExponentialFunctionIntegrator extends Integrator {
 		eApprox[0] = e1_Ramanujan(t);
 		
 		for(int i = 1; i < order; i++) 
-			eApprox[i] = (Math.exp(-t) - t*eApprox[i-1])/i;
+			eApprox[i] = (MathUtils.fastExp(-t) - t*eApprox[i-1])/i;
 	
 		return eApprox[order-1];
 		
@@ -71,7 +71,7 @@ public class ExponentialFunctionIntegrator extends Integrator {
 	
 	public double e1_Ramanujan(double t) {
 		final double gamma = 0.5772156649;
-		double result = -gamma - Math.log(t);
+		double result = -gamma - MathUtils.fastLog(t);
 		double sum1 = 0;
 		double sum2 = 0;
 		
@@ -80,33 +80,34 @@ public class ExponentialFunctionIntegrator extends Integrator {
 			for(int k = 0, kindex = (int)( (i-1)/2.0 ) + 1; k < kindex; k++) 
 				sum2 += 1.0/(2.0*k + 1.0); 
 			
-			sum1 += sum2*Math.pow(-1, i-1)*Math.pow(t, i)/(Math.pow(2, i-1)*CombinatoricsUtils.factorial(i));
+			sum1 += sum2*MathUtils.fastPowSgn(i-1)*MathUtils.fastPowLoop(t, i)/
+					(MathUtils.fastPowInt(2, i-1)*CombinatoricsUtils.factorial(i));
 		}
 			
-		return result + sum1*Math.exp(t/2.0);
+		return result + sum1*MathUtils.fastExp(t/2.0);
 		
 	}
 	
 	public double e1_SwameeOhija(double t) {
-		double a = Math.log( (0.56146/t + 0.65)*(1 + t) );
-		double b = Math.pow(t, 4)*Math.exp(t*7.7)*Math.pow(2 + t, 3.7);
+		double a = MathUtils.fastLog( (0.56146/t + 0.65)*(1 + t) );
+		double b = MathUtils.fastPowLoop(t, 4)*MathUtils.fastExp(t*7.7)*MathUtils.fastPowGeneral(2 + t, 3.7);
 		
-		return Math.pow( (Math.pow(a, -7.7) + b), -0.13);
+		return MathUtils.fastPowGeneral( (MathUtils.fastPowGeneral(a, -7.7) + b), -0.13);
 	}
 	
 	public double e2_SwameeOhija(double t) {
-		return (Math.exp(-t) - t*this.e1_SwameeOhija(t));
+		return (MathUtils.fastExp(-t) - t*this.e1_SwameeOhija(t));
 	}
 	
 	public double e3_SwameeOhija(double t) {
-		return (Math.exp(-t) - t*this.e_SwameeOhija(2, t))/2.0;
+		return (MathUtils.fastExp(-t) - t*this.e_SwameeOhija(2, t))/2.0;
 	}
 	
 	public double e_SwameeOhija(int order, double t) {
 		if(order == 1) 
 			return e1_SwameeOhija(t);
 		else
-			return (Math.exp(-t) - t*this.e_SwameeOhija(order - 1, t))/(order - 1);
+			return (MathUtils.fastExp(-t) - t*this.e_SwameeOhija(order - 1, t))/(order - 1);
 	}
 	
 	public double integrateMidpoint(int order, double t, double a, double b) {	
@@ -131,23 +132,22 @@ public class ExponentialFunctionIntegrator extends Integrator {
 	   double fb = t < EPS ? integralAtZero(order) : integrand( order, b, t);
 	      
 	   // 1/3 terms
-	   double sum = 1.0 / 3.0 * (fa + fb);
+	   double sum = (fa + fb);
 
+	   double x = 0;
+	   double y = 0;
+	   
 	   // 4/3 terms
-	   for (int i = 1; i < EXP_INT_PRECISION; i += 2) {
-	      double x = a + h * i;
-	      double fx = integrand( order, x, t);
-	      sum += 4.0 / 3.0 * fx;
-	   }
+	   for (int i = 1; i < EXP_INT_PRECISION; i += 2) 
+	      x += integrand( order, a + h * i, t);
+	   
+	   //2/3
+	   for (int i = 2; i < EXP_INT_PRECISION; i += 2) 
+		  y += integrand( order, a + h * (i+1), t);
 
-	   // 2/3 terms
-	   for (int i = 2; i < EXP_INT_PRECISION; i += 2) {
-	      double x = a + h * i;
-	      double fx = integrand( order, x, t);
-	      sum += 2.0 / 3.0 * fx;
-	   }
-
-	   return sum * h;
+	   sum += x*4.0 + y*2.0;
+	   	   
+	   return sum * h/3.0;
 	}
 	
 	public double integralAtZero(int order) {
@@ -166,7 +166,7 @@ public class ExponentialFunctionIntegrator extends Integrator {
 	*/
 	@Override
 	public double integrand(int order, double... params) {
-		return Math.pow(params[0], order - 2)*Math.exp(-params[1]/params[0]);
+		return MathUtils.fastPowLoop(params[0], order - 2)*Math.exp(-params[1]/params[0]);
 	}
 	
 	public IntegrationMethod getMethod() {
@@ -180,17 +180,16 @@ public class ExponentialFunctionIntegrator extends Integrator {
 	public enum IntegrationMethod {
 		SIMPSON, MIDPOINT;
 	}
-	
+
+	public static ExponentialFunctionIntegrator getDefaultIntegrator() {
+		return expIntegral;
+	}
 	
 	public static void main(String[] args) {
 		var e = new ExponentialFunctionIntegrator();
 		System.out.println(e.e1_SwameeOhija(0.1) + " ; " + e.integralAt(0.1, 1) + " ; " + e.integrate(1, 0.1) + " ; " + e.e1_Approximation(0.1) + " ; " + e.e1_Ramanujan(0.1));
 		System.out.println(e.e3_SwameeOhija(0.25) + " ; " + e.integrate(3, 0.25) + " ; " + e.e_Approximation(3, 0.25));	
 		System.out.println(e.integralAt(0.5, 3) + " ; " + e.integrate(3, 0.5) + " ; " + e.e_Approximation(3, 0.5));	
-	}
-
-	public static ExponentialFunctionIntegrator getDefaultIntegrator() {
-		return expIntegral;
 	}
 	
 }

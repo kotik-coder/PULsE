@@ -1,6 +1,21 @@
 package pulse.properties;
 
-import static pulse.properties.NumericPropertyKeyword.*;
+import static pulse.properties.NumericPropertyKeyword.BASELINE_INTERCEPT;
+import static pulse.properties.NumericPropertyKeyword.BASELINE_SLOPE;
+import static pulse.properties.NumericPropertyKeyword.DIATHERMIC_COEFFICIENT;
+import static pulse.properties.NumericPropertyKeyword.DIFFUSIVITY;
+import static pulse.properties.NumericPropertyKeyword.FOV_INNER;
+import static pulse.properties.NumericPropertyKeyword.FOV_OUTER;
+import static pulse.properties.NumericPropertyKeyword.HEAT_LOSS;
+import static pulse.properties.NumericPropertyKeyword.LASER_ABSORPTIVITY;
+import static pulse.properties.NumericPropertyKeyword.LOWER_BOUND;
+import static pulse.properties.NumericPropertyKeyword.MAXTEMP;
+import static pulse.properties.NumericPropertyKeyword.OPTICAL_THICKNESS;
+import static pulse.properties.NumericPropertyKeyword.PLANCK_NUMBER;
+import static pulse.properties.NumericPropertyKeyword.SPOT_DIAMETER;
+import static pulse.properties.NumericPropertyKeyword.THERMAL_ABSORPTIVITY;
+import static pulse.properties.NumericPropertyKeyword.TIME_SHIFT;
+import static pulse.properties.NumericPropertyKeyword.UPPER_BOUND;
 
 import java.util.ArrayList;
 import java.util.List;

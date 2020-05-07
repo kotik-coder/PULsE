@@ -258,7 +258,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 		curve.getBaseline().fitTo(c); //used to estimate the floor of the signal range 				
 		estimateSignalRange(c); 		
 		updateProperties(this, c.getMetadata());
-		useTheoreticalEstimates(c);		
+		useTheoreticalEstimates(c);			
 	}
 	
 	/**
@@ -332,7 +332,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 					output[1].set(i, 1000);
 					break;	
 				case HEAT_LOSS			:	
-					output[0].set(i, Bi1 );
+					output[0].set(i, Math.log(Bi1) );
 					output[1].set(i, 2.0);
 					break;
 				case TIME_SHIFT			:	
@@ -363,7 +363,11 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 											setParameter(0, params.get(i)); break;
 				case BASELINE_SLOPE		:	(curve.getBaseline()).
 											setParameter(1, params.get(i)); break;
-				case HEAT_LOSS			:	Bi1 = params.get(i); Bi2 = params.get(i); break;
+				case HEAT_LOSS			:	
+					double heatLoss = Math.exp(params.get(i));
+					Bi1 = heatLoss; 
+					Bi2 = heatLoss; 
+					break;
 				case TIME_SHIFT			:	curve.set(NumericPropertyKeyword.TIME_SHIFT,
 													  NumericProperty.derive(
 													  NumericPropertyKeyword.TIME_SHIFT, 

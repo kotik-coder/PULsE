@@ -1,12 +1,13 @@
 package pulse.problem.schemes.solvers;
 
-import static java.lang.Math.pow;
+import static pulse.properties.NumericPropertyKeyword.NONLINEAR_PRECISION;
 
 import java.util.List;
 
 import pulse.HeatingCurve;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.MixedScheme;
+import pulse.problem.schemes.radiation.MathUtils;
 import pulse.problem.schemes.radiation.RadiativeTransfer;
 import pulse.problem.statements.AbsorbingEmittingProblem;
 import pulse.problem.statements.Problem;
@@ -24,7 +25,7 @@ public class MixedCoupledSolver
 	 * scheme.
 	 */
 
-	public final static NumericProperty TAU_FACTOR = NumericProperty.derive(NumericPropertyKeyword.TAU_FACTOR, 0.66667);
+	public final static NumericProperty TAU_FACTOR = NumericProperty.derive(NumericPropertyKeyword.TAU_FACTOR, 1.0);
 
 	/**
 	 * The default value of {@code gridDensity}, which is set to {@code 30} for this
@@ -59,6 +60,8 @@ public class MixedCoupledSolver
 	private double Bi1, Bi2;
 	
 	private double HX2;
+	
+	private double nonlinearPrecision = (double)NumericProperty.def(NONLINEAR_PRECISION).getValue();	
 	
 	public MixedCoupledSolver() {
 		this(GRID_DENSITY, TAU_FACTOR);
@@ -100,17 +103,19 @@ public class MixedCoupledSolver
 		V = new double[N + 1];
 		alpha = new double[N + 2];
 		beta = new double[N + 2];
-
-		HX2 = pow(hx,2);
 		
-		if(sigma == 0) 
-			setWeight(NumericProperty.derive(NumericPropertyKeyword.SCHEME_WEIGHT,0.5 - hx*hx/(12.0*tau)));
+		adjustSchemeWeight();
+			
+		HX2 = hx*hx;
 		
 		a = sigma / HX2;
 		b = 1. / tau + 2.*sigma / HX2;
 		c = sigma / HX2;	
 						
 		alpha[1] = 1.0/(HX2/(2.0*tau*sigma) + 1. + hx*Bi1);
+		
+		for (int i = 1; i < N; i++)
+			alpha[i + 1] = c / (b - a * alpha[i]);
 		
 	}
 	
@@ -120,13 +125,10 @@ public class MixedCoupledSolver
 		prepare(problem);
 		
 		final double wFactor = timeInterval * tau * problem.timeFactor();
-		final double errorSq = pow((double) problem.getNonlinearPrecision().getValue(), 2);
+		final double errorSq = MathUtils.fastPowLoop( nonlinearPrecision, 2);
 						
 		rte.radiosities(U);
 		rte.fluxes(U);
-		
-		for (int i = 1; i < N; i++)
-			alpha[i + 1] = c / (b - a * alpha[i]);
 		
 		// time cycle
 
@@ -141,6 +143,7 @@ public class MixedCoupledSolver
 		final double _2TAU_ONE_MINUS_SIGMA = 2.0*tau*(1.0 - sigma);
 		final double ONE_PLUS_Bi1_HX = (1. + Bi1*hx);
 		final double BETA1_FACTOR = 1.0/(HX2 + 2.0*tau*sigma*(1 + hx*Bi1)); 
+		final double ONE_MINUS_SIGMA = 1.0 - sigma;
 		
 		double phi;
 		
@@ -152,12 +155,12 @@ public class MixedCoupledSolver
 
 			for (m = (w - 1) * timeInterval + 1; m < w * timeInterval + 1; m++) {
 
-				pls 	 = discretePulse.evaluateAt( (m - 1 + EPS)*tau )*(1.0 - sigma)
+				pls 	 = discretePulse.evaluateAt( (m - 1 + EPS)*tau )*ONE_MINUS_SIGMA
 						 + discretePulse.evaluateAt( (m - EPS)*tau )*sigma; 
 
 				for( V_0 = errorSq + 1, V_N = errorSq + 1; 
-						   (pow((V[0] - V_0), 2) > errorSq) ||
-						   (pow((V[N] - V_N), 2) > errorSq)
+						   (MathUtils.fastPowLoop((V[0] - V_0), 2) > errorSq) ||
+						   (MathUtils.fastPowLoop((V[N] - V_N), 2) > errorSq)
 						 ; rte.radiosities(V), rte.fluxes(V)) {
 					
 					//i = 0
@@ -168,24 +171,24 @@ public class MixedCoupledSolver
 
 					//i = 1
 					phi = TAU0_NP*phiFront();
-					F = U[1] / tau + phi + (1 - sigma)*(U[2] - 2*U[1] + U[0])/HX2;
+					F = U[1] / tau + phi + ONE_MINUS_SIGMA*(U[2] - 2*U[1] + U[0])/HX2;
 					beta[2] = (F + a * beta[1]) / (b - a * alpha[1]);
 					
 					for (i = 2; i < N-1; i++) {
 						phi = TAU0_NP*phi(i);
-						F = U[i] / tau + phi + (1 - sigma)*(U[i+1] - 2*U[i] + U[i-1])/HX2;
+						F = U[i] / tau + phi + ONE_MINUS_SIGMA*(U[i+1] - 2*U[i] + U[i-1])/HX2;
 						beta[i + 1] = (F + a * beta[i]) / (b - a * alpha[i]);
 					}
 					
 					//i = N-1
 					phi = TAU0_NP*phiRear();
-					F = U[N-1] / tau + phi + (1 - sigma)*(U[N] - 2*U[N-1] + U[N-2])/HX2;
+					F = U[N-1] / tau + phi + ONE_MINUS_SIGMA*(U[N] - 2*U[N-1] + U[N-2])/HX2;
 					beta[N] = (F + a * beta[N-1]) / (b - a * alpha[N-1]);
 					
 					V_N = V[N];
 					phi = _NPHX*(rte.getFlux(N-1) - rte.getFlux(N));
-					V[N] = (sigma*beta[N] + HX2_2TAU*U[N] + 0.5*HX2*phi + (1. - sigma)*(U[N-1] - U[N]*(1. + hx*Bi2) ) 
-							+ HX_NP*(sigma*rte.getFlux(N) + (1. - sigma)*rte.getStoredFlux(N) ) )
+					V[N] = (sigma*beta[N] + HX2_2TAU*U[N] + 0.5*HX2*phi + ONE_MINUS_SIGMA*(U[N-1] - U[N]*(1. + hx*Bi2) ) 
+							+ HX_NP*(sigma*rte.getFlux(N) + ONE_MINUS_SIGMA*rte.getStoredFlux(N) ) )
 							/(HX2_2TAU + sigma*(1. - alpha[N] + Bi2HX ));
 
 					V_0 = V[0]; 
@@ -258,6 +261,7 @@ public class MixedCoupledSolver
 	public List<Property> listedTypes() {
 		List<Property> list = super.listedTypes();
 		list.add(NumericProperty.def(NumericPropertyKeyword.SCHEME_WEIGHT));
+		list.add(NumericProperty.def(NumericPropertyKeyword.NONLINEAR_PRECISION));
 		return list;
 	}
 	
@@ -265,8 +269,22 @@ public class MixedCoupledSolver
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
 		switch(type) {
 		case SCHEME_WEIGHT : setWeight(property); break;
+		case NONLINEAR_PRECISION : setNonlinearPrecision(property); break;
 		default : super.set(type,property);
 		}
 	}
+	
+	public NumericProperty getNonlinearPrecision() {
+		return NumericProperty.derive(NONLINEAR_PRECISION, nonlinearPrecision);
+	}
 
+	public void setNonlinearPrecision(NumericProperty nonlinearPrecision) {
+		this.nonlinearPrecision = (double)nonlinearPrecision.getValue(); 
+	}
+	
+	private void adjustSchemeWeight() {
+		double newSigma = 0.5 - hx*hx/(12.0*tau);
+		setWeight(NumericProperty.derive(NumericPropertyKeyword.SCHEME_WEIGHT, newSigma > 0 ? newSigma : 0.5));
+	}
+	
 }
