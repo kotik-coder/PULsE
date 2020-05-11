@@ -4,7 +4,7 @@ import org.apache.commons.math3.util.CombinatoricsUtils;
 
 public class ExponentialFunctionIntegrator extends Integrator {
 
-	private final static int EXP_INT_PRECISION = 256;
+	private final static int EXP_INT_PRECISION = 1024;
 	private final static int NUM_PARTITIONS = 10000;
 	private final static double CUTOFF = 9.2; //corresponds to a precision of about 10^{-5}
 	private final static int APPROXIMATION_TERMS = 5;

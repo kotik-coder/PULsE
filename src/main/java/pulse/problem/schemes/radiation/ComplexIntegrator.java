@@ -1,29 +1,39 @@
 package pulse.problem.schemes.radiation;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Scanner;
 import java.util.stream.IntStream;
+
+/**
+ * A class with simple quadrature methods for evaluating the definite integral $\int_a^b{f(x) E_n (\alpha + \beta x) dx}$
+ *
+ */
 
 public class ComplexIntegrator extends Integrator {
 
-	private double min;
-	private double max;
-	private double rMax;
-	private double rMin;
+	protected double min;
+	protected double max;
+	protected double rMax;
+	protected double rMin;
 	
 	protected double[] U;
-	private double tau0;
+	protected double tau0;
 	protected double hx;
 
 	private double stepSize;
 		
-	private final static int A_INDEX = 0;
-	private final static int B_INDEX = 1;
-	private final static int T_INDEX = 2;
+	protected final static int A_INDEX = 0;
+	protected final static int B_INDEX = 1;
+	protected final static int T_INDEX = 2;
 	
-	private static ExponentialFunctionIntegrator expIntegrator = ExponentialFunctionIntegrator.getDefaultIntegrator();
+	protected static ExponentialFunctionIntegrator expIntegrator = ExponentialFunctionIntegrator.getDefaultIntegrator();
 	protected EmissionFunction emissionFunction;
 
-	private final static double DEFAULT_CUTOFF = 6.5;
-	private final static int DEFAULT_PRECISION = 64;
+	private final static double DEFAULT_CUTOFF = 9;
+	private final static int DEFAULT_PRECISION = 32;
 	
 	public ComplexIntegrator() {
 		super(DEFAULT_CUTOFF, 0, DEFAULT_PRECISION);
@@ -186,6 +196,75 @@ public class ComplexIntegrator extends Integrator {
 
 	public void setEmissionFunction(EmissionFunction emissionFunction) {
 		this.emissionFunction = emissionFunction;
+	}
+	
+	public static void main(String[] args) { 
+		
+		var integrator = new ComplexIntegrator();
+		var cIntegrator = new ChandrasekharsQuadrature();
+
+		integrator.setRange(0.5, 3.0);
+		cIntegrator.setRange(0.5, 3.0);
+		
+		double alpha = -0.5;
+		double beta = 1.0;
+		
+		File f = null;
+		try {
+			f = new File(ComplexIntegrator.class.getResource("/test/TestSolution.dat").toURI());
+		} catch (URISyntaxException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		var data = new ArrayList<Double>();
+		
+		try (Scanner scanner = new Scanner(f)) {
+		    while (scanner.hasNextLine()) {
+		        data.add(Double.parseDouble(scanner.nextLine()));
+		    }
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		double[] U = data.stream().mapToDouble(x -> x).toArray();
+		
+		integrator.setTemperatureArray(U);
+		cIntegrator.setTemperatureArray(U);
+		
+		double hx = 1./(U.length-1);
+		double tFactor = 0.1/800;
+		
+		integrator.setXStep(hx);
+		cIntegrator.setXStep(hx);
+		
+		var ef = new EmissionFunction(tFactor, hx);
+		integrator.setEmissionFunction(ef);
+		integrator.setOpticalThickness(integrator.max);
+		cIntegrator.setEmissionFunction(ef);
+		cIntegrator.setOpticalThickness(integrator.max);
+		
+		long time = -System.currentTimeMillis();
+		
+		double integral = 0;
+		
+		for(int i = 0; i < 10000; i++)
+			integral = cIntegrator.integrate(3, alpha, beta);
+		
+		time += System.currentTimeMillis();
+		
+		long time2 = -System.currentTimeMillis();
+		
+		double sum = 0;
+		
+		for(int i = 0; i < 10000; i++)
+			sum = integrator.integrate(3, alpha, beta);
+		
+		time2 += System.currentTimeMillis();
+		
+		System.out.printf("%nInt (quadrature): %2.5f. Time taken: %5d", integral, time);
+		System.out.printf("%nInt (numerical): %2.5f. Time taken: %5d", sum, time2);
+			
 	}
 	
 }

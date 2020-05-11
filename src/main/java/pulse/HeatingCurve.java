@@ -322,6 +322,10 @@ public class HeatingCurve extends PropertyHolder {
 		return time.get(time.size() - 1) - startTime;
 	}
 	
+	public double[] temperatureArray() {
+		return temperature.stream().mapToDouble(t -> t).toArray();
+	}
+	
 	@Override
 	public String toString() {
 		if(name != null)

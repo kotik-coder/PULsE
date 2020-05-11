@@ -1,5 +1,8 @@
 package pulse.search.math;
 
+import org.apache.commons.math3.linear.Array2DRowRealMatrix;
+import org.apache.commons.math3.linear.MatrixUtils;
+
 import pulse.ui.Messages;
 
 /**
@@ -48,8 +51,9 @@ public final class Matrix {
     }
     
     /**
-     * Constructs a {@code Matrix} copying the contents of {@code args}.
-     * @param args a two-dimensional array
+     * Constructs a {@code Matrix} with the elements copied from {@code args}. 
+     * The elements are copied by invoking System.arraycopy(...).
+     * @param args a two-dimensional double array
      */
         
     public Matrix(double[][] args) {
@@ -58,9 +62,8 @@ public final class Matrix {
     	
     	x = new double[m][n];
     	
-    	for(int i = 0; i < m; i++) 
-    		for(int j = 0; j < n; j++) 
-    			x[i][j] = args[i][j];
+    	for(int i = 0; i < m; i++)
+    		System.arraycopy(args[i], 0, x[i], 0, n);
     	
     }
     
@@ -254,7 +257,11 @@ public final class Matrix {
      */
     
     public Matrix inverse() {
-    	return adjugate().multiply(1.0/det());
+    	if(x.length > 6) {
+	    	var m = new Array2DRowRealMatrix(x);
+	    	return new Matrix(MatrixUtils.inverse(m).getData());
+    	} else 
+    		return adjugate().multiply(1.0/det());
     }
     
     /**

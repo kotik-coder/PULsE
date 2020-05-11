@@ -25,7 +25,7 @@ public class RadiativeTransfer extends Group {
 	private double _h, _2h, _05h, HX_TAU0;
 	
 	public RadiativeTransfer(Grid grid) {
-		complexIntegrator = new ComplexIntegrator();
+		complexIntegrator = new ChandrasekharsQuadrature();
 		this.hx = grid.getXStep();	
 		this.N = (int)grid.getGridDensity().getValue();	
 		complexIntegrator.setXStep(hx);

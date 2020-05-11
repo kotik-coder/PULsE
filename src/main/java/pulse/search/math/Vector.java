@@ -12,6 +12,11 @@ public class Vector {
     
     private double[] x;
      
+    public Vector(double[] x) {
+    	this.x = new double[x.length];
+    	System.arraycopy(x, 0, this.x, 0, x.length);
+    }  
+    
     /**
      * Creates a zero {@code Vector}.
      * @param n the dimension of the {@code Vector}.
@@ -49,10 +54,10 @@ public class Vector {
      */
    
     public Vector inverted() {
-    	Vector v = new Vector(this);
+    	Vector v = new Vector(x.length);
     	
     	for(int i = 0; i < v.x.length; i++)
-    		v.x[i] = -v.x[i];
+    		v.x[i] = -this.x[i];
     	
         return v;
     }
@@ -257,6 +262,10 @@ public class Vector {
 
 	    return true;
 	    
+	}
+	
+	public double[] getData() {
+		return x;
 	}
 
 }
