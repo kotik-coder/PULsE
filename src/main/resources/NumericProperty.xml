@@ -1,19 +1,25 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <NumericProperties>
+	<NumericProperty abbreviation="&lt;i&gt;m&lt;/i&gt;"
+		auto-adjustable="true"
+		descriptor="Quadrature points, &lt;i&gt;m&lt;/i&gt;"
+		dimensionfactor="1" discreet="false" keyword="QUADRATURE_POINTS"
+		maximum="32" minimum="2" value="2" primitive-type="int">
+	</NumericProperty>
 	<NumericProperty abbreviation="&amp;sigma;" auto-adjustable="true"
 		descriptor="Weight, &amp;sigma;" dimensionfactor="1" discreet="true"
 		keyword="SCHEME_WEIGHT" maximum="1" minimum="0" value="0"
 		primitive-type="double">
 	</NumericProperty>
 	<NumericProperty abbreviation="&amp;tau;&lt;sub&gt;cut&lt;/sub&gt;"
-		auto-adjustable="false"
+		auto-adjustable="true"
 		descriptor="Integration cutoff, &lt;i&gt;x&lt;/i&gt;&lt;sub&gt;cut&lt;/sub&gt;"
 		dimensionfactor="1" discreet="false" keyword="INTEGRATION_CUTOFF"
 		maximum="100" minimum="2" primitive-type="double" value="3.5">
 	</NumericProperty>
 	<NumericProperty
 		abbreviation="&lt;i&gt;n&lt;/i&gt;&lt;sub&gt;int&lt;/sub&gt;"
-		auto-adjustable="false"
+		auto-adjustable="true"
 		descriptor="Integration segments, &lt;i&gt;n&lt;/i&gt;&lt;sub&gt;int&lt;/sub&gt;"
 		dimensionfactor="1" discreet="false" keyword="INTEGRATION_SEGMENTS"
 		maximum="1024" minimum="8" primitive-type="int" value="64">
@@ -124,7 +130,7 @@
 		value="1.0" primitive-type="double" discreet="false">
 	</NumericProperty>
 	<NumericProperty abbreviation="Fixed-point error"
-		auto-adjustable="false"
+		auto-adjustable="true"
 		descriptor="Fixed-point iteration solver error" dimensionfactor="1.0"
 		keyword="NONLINEAR_PRECISION" maximum="1e-2" minimum="1.0E-12"
 		value="1e-8" primitive-type="double" discreet="false">
@@ -265,7 +271,7 @@
 		abbreviation="Bi&lt;sub&gt;2&lt;/sub&gt;" auto-adjustable="true"
 		descriptor="Heat loss (rear surface), Bi&lt;sub&gt;2&lt;/sub&gt;"
 		dimensionfactor="1.0" keyword="HEAT_LOSS_REAR" maximum="10.0"
-		minimum="1e-10" value="0.1" primitive-type="double" discreet="false" />
+		minimum="1e-10" value="0.1" primitive-type="double" discreet="false" ></NumericProperty>
 	<NumericProperty abbreviation="Gain"
 		auto-adjustable="false" descriptor="Detector Gain" dimensionfactor="1"
 		keyword="DETECTOR_GAIN" maximum="200" minimum="1" value="10"

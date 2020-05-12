@@ -56,4 +56,9 @@ public class EmissionFunction {
 		this.hx = hx;
 	}
 	
+	@Override
+	public String toString() {
+		return "[" +getClass().getSimpleName() + ": Rel. heating = " + tFactor + "]"; 
+	}
+	
 }

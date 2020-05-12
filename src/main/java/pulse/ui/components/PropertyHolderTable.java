@@ -95,7 +95,7 @@ public class PropertyHolderTable extends JTable {
 				if(! (changedObject instanceof Property))  
 					return;
 				
-				Property changedProperty = (Property)changedObject;				
+				Property changedProperty = (Property)changedObject;	
 				propertyHolder.updateProperty(reference, changedProperty);
 				
 			}

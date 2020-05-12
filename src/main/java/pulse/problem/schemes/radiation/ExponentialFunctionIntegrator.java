@@ -4,9 +4,9 @@ import org.apache.commons.math3.util.CombinatoricsUtils;
 
 public class ExponentialFunctionIntegrator extends Integrator {
 
-	private final static int EXP_INT_PRECISION = 1024;
-	private final static int NUM_PARTITIONS = 10000;
-	private final static double CUTOFF = 9.2; //corresponds to a precision of about 10^{-5}
+	private final static int EXP_INT_PRECISION = 256;
+	private final static int NUM_PARTITIONS = 21000;
+	private final static double CUTOFF = 21.0;
 	private final static int APPROXIMATION_TERMS = 5;
 
 	private static ExponentialFunctionIntegrator expIntegral = new ExponentialFunctionIntegrator();
@@ -187,9 +187,15 @@ public class ExponentialFunctionIntegrator extends Integrator {
 	
 	public static void main(String[] args) {
 		var e = new ExponentialFunctionIntegrator();
-		System.out.println(e.e1_SwameeOhija(0.1) + " ; " + e.integralAt(0.1, 1) + " ; " + e.integrate(1, 0.1) + " ; " + e.e1_Approximation(0.1) + " ; " + e.e1_Ramanujan(0.1));
+		System.out.println(e.e_SwameeOhija(1,0.001) + " ; " + e.integralAt(0.001, 1) + " ; " + e.integrate(1, 0.001) + " ; " + e.e_Approximation(1,0.001) + " ; " + e.e_Ramanujan(1,0.001));
 		System.out.println(e.e3_SwameeOhija(0.25) + " ; " + e.integrate(3, 0.25) + " ; " + e.e_Approximation(3, 0.25));	
 		System.out.println(e.integralAt(0.5, 3) + " ; " + e.integrate(3, 0.5) + " ; " + e.e_Approximation(3, 0.5));	
 	}
+	
+	@Override
+	public String toString() {
+		return super.toString() + " - uses " + method;
+	}
+	
 	
 }

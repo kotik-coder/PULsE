@@ -49,7 +49,7 @@ public class DataFrame extends JFrame {
 		setType(Type.UTILITY);
 		setResizable(false);
 		setAlwaysOnTop(true);
-		setTitle(dataObject.getClass().getSimpleName() + " properties"); //$NON-NLS-1$
+		setTitle(dataObject.getClass().getSimpleName() + " properties");
 		setBounds(100, 100, 450, 300);
 
 		contentPane = new JPanel();

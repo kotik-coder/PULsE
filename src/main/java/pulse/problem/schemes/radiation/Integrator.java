@@ -98,7 +98,6 @@ public abstract class Integrator extends PropertyHolder {
 			throw new IllegalArgumentException("Illegal type: " + integrationSegments.getType());
 		this.integrationSegments = (int)integrationSegments.getValue();
 	}
-
 	
 	@Override
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
@@ -122,7 +121,7 @@ public abstract class Integrator extends PropertyHolder {
 	
 	@Override
 	public String toString() {
-		return getClass().getSimpleName() + " : " + getCutoff();
+		return "[" +getClass().getSimpleName() + " ; " + getIntegrationSegments() + " ; " + getNumPartitions() + "]";
 	}
-	
+		
 }

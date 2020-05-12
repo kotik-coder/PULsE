@@ -1,12 +1,18 @@
 package pulse.problem.schemes.radiation;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.math3.analysis.solvers.LaguerreSolver;
+
+import pulse.properties.NumericProperty;
+import pulse.properties.NumericPropertyKeyword;
+import pulse.properties.Property;
 import pulse.search.math.Matrix;
 import pulse.search.math.Vector;
 
-public class ChandrasekharsQuadrature extends ComplexIntegrator {
+public class ChandrasekharsQuadrature extends SpecialIntegrator {
 
-	private final static int DEFAULT_PRECISION = 2;
 	private int m;
 	private double expLower, expUpper;
 	private LaguerreSolver solver;
@@ -14,10 +20,13 @@ public class ChandrasekharsQuadrature extends ComplexIntegrator {
 	
 	private double[] moments;
 	
+	private final static double DEFAULT_CUTOFF = 20.0;
+	
 	public ChandrasekharsQuadrature() {
 		super();
-		this.integrationSegments = DEFAULT_PRECISION;
-		m = integrationSegments;
+		this.cutoff = DEFAULT_CUTOFF;
+		m = (int)NumericProperty.theDefault(NumericPropertyKeyword.QUADRATURE_POINTS).getValue();
+		this.integrationSegments = m - 1;
 		solver = new LaguerreSolver(PRECISION);
 	}
 	
@@ -39,11 +48,17 @@ public class ChandrasekharsQuadrature extends ComplexIntegrator {
 	}
 	
 	@Override
+	public void adjustRange(double alpha, double beta) {
+		super.adjustRange(alpha, beta);
+		rMin = alpha + beta*rMin;
+		rMax = alpha + beta*rMax;
+	}
+	
+	@Override
 	public double integrate(int n, double... params) {
 		
-		rMin = params[A_INDEX] + params[B_INDEX]*min;
-		rMax = params[A_INDEX] + params[B_INDEX]*max;
-		
+		adjustRange(params[A_INDEX], params[B_INDEX]);
+	
 		expLower = -Math.exp(-rMin);
 		expUpper = -Math.exp(-rMax);
 		
@@ -216,6 +231,52 @@ public class ChandrasekharsQuadrature extends ComplexIntegrator {
 	
 		return f*exp;
 		
+	}
+	
+	@Override
+	public void setIntegrationSegments(NumericProperty integrationSegments) {
+		super.setIntegrationSegments(integrationSegments);
+		m = this.integrationSegments + 1;
+	}
+	
+	public NumericProperty getQuadraturePoints() {
+		return NumericProperty.derive(NumericPropertyKeyword.QUADRATURE_POINTS, m);
+	}
+	
+	public void setQuadraturePoints(NumericProperty m) {
+		if(m.getType() != NumericPropertyKeyword.QUADRATURE_POINTS)
+			throw new IllegalArgumentException("Illegal type: " + m.getType());
+		this.m = (int)m.getValue();
+	}
+	
+	@Override
+	public void set(NumericPropertyKeyword type, NumericProperty property) {
+		switch(type) {
+			case INTEGRATION_CUTOFF : setCutoff(property); break;
+			case QUADRATURE_POINTS : setQuadraturePoints(property); break;
+			default: return;
+		}
+		
+		notifyListeners(this, property);
+		 
+	}
+	
+	@Override
+	public List<Property> listedTypes() {
+		List<Property> list = new ArrayList<Property>();
+		list.add(NumericProperty.def(NumericPropertyKeyword.INTEGRATION_CUTOFF));
+		list.add(NumericProperty.def(NumericPropertyKeyword.QUADRATURE_POINTS));
+		return list;				
+	}
+	
+	@Override
+	public String getDescriptor() {
+		return "Chandrasekhar's Quadrature";
+	}
+	
+	@Override
+	public String toString() {
+		return getDescriptor() + " : " + getQuadraturePoints() + " ; " + getCutoff();
 	}
 
 }

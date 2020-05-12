@@ -7,8 +7,9 @@ import java.util.List;
 import pulse.HeatingCurve;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.ImplicitScheme;
+import pulse.problem.schemes.radiation.DiscreteDerivativeCalculator;
 import pulse.problem.schemes.radiation.MathUtils;
-import pulse.problem.schemes.radiation.RadiativeTransfer;
+import pulse.problem.schemes.radiation.RadiativeFluxCalculator;
 import pulse.problem.statements.AbsorbingEmittingProblem;
 import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
@@ -44,7 +45,7 @@ public class ImplicitCoupledSolver
 	private double[] U, V;
 	private double[] alpha, beta;
 	
-	private RadiativeTransfer rte;
+	private RadiativeFluxCalculator rte;
 	private double Np;
 	
 	private final static double EPS = 1e-7; // a small value ensuring numeric stability
@@ -67,8 +68,7 @@ public class ImplicitCoupledSolver
 	
 	public ImplicitCoupledSolver(NumericProperty N, NumericProperty timeFactor) {
 		super(GRID_DENSITY, TAU_FACTOR);
-		rte = new RadiativeTransfer(grid);
-		rte.setParent(this);
+		initRTE();
 	}
 	
 	public ImplicitCoupledSolver(NumericProperty N, NumericProperty timeFactor, NumericProperty timeLimit) {
@@ -130,7 +130,7 @@ public class ImplicitCoupledSolver
 		double wFactor = timeInterval * tau * problem.timeFactor();
 
 		rte.radiosities(U);
-		rte.fluxes(U);
+		rte.compute(U);
 		
 		for (i = 1; i < N; i++)
 			alpha[i + 1] = c / (b - a * alpha[i]);
@@ -146,7 +146,7 @@ public class ImplicitCoupledSolver
 				for( V_0 = errorSq + 1, V_N = errorSq + 1; 
 						   (MathUtils.fastPowLoop((V[0] - V_0), 2) > errorSq) ||
 						   (MathUtils.fastPowLoop((V[N] - V_N), 2) > errorSq)
-						 ; rte.radiosities(V), rte.fluxes(V)) {
+						 ; rte.radiosities(V), rte.compute(V)) {
 					
 					beta[1] = (HX2_2TAU * U[0] + hx*pls - HX_2NP*(rte.getFlux(0) + rte.getFlux(1)) )*alpha[1];
 
@@ -193,7 +193,7 @@ public class ImplicitCoupledSolver
 		return AbsorbingEmittingProblem.class;
 	}
 	
-	public RadiativeTransfer getRadiativeTransferEquation() {
+	public RadiativeFluxCalculator getRadiativeTransferEquation() {
 		return rte;
 	}
 	
@@ -218,6 +218,11 @@ public class ImplicitCoupledSolver
 		case NONLINEAR_PRECISION : setNonlinearPrecision(property); break;
 		default : throw new IllegalArgumentException("Property not recognised: " + property);
 		}
+	}
+	
+	public void initRTE() {
+		rte = new DiscreteDerivativeCalculator(grid);	
+		rte.setParent(this);
 	}
 
 }

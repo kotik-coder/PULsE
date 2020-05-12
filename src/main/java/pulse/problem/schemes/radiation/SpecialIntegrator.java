@@ -12,7 +12,7 @@ import java.util.stream.IntStream;
  *
  */
 
-public class ComplexIntegrator extends Integrator {
+public class SpecialIntegrator extends Integrator {
 
 	protected double min;
 	protected double max;
@@ -32,14 +32,14 @@ public class ComplexIntegrator extends Integrator {
 	protected static ExponentialFunctionIntegrator expIntegrator = ExponentialFunctionIntegrator.getDefaultIntegrator();
 	protected EmissionFunction emissionFunction;
 
-	private final static double DEFAULT_CUTOFF = 9;
-	private final static int DEFAULT_PRECISION = 32;
+	private final static double DEFAULT_CUTOFF = 6.5;
+	private final static int DEFAULT_PRECISION = 64;
 	
-	public ComplexIntegrator() {
+	public SpecialIntegrator() {
 		super(DEFAULT_CUTOFF, 0, DEFAULT_PRECISION);
 	}
 	
-	public ComplexIntegrator(double cutoff, int segments) {
+	public SpecialIntegrator(double cutoff, int segments) {
 		super(cutoff, 0, segments);
 	}
 	
@@ -77,21 +77,21 @@ public class ComplexIntegrator extends Integrator {
 	 * A , B as params
 	 */
 	
-	@Override
-	public double integrate(int order, double... params) {
-	
-		double bound = (cutoff - params[A_INDEX])/params[B_INDEX];
-				
-		double a = 0.5 - params[B_INDEX]/2;
+	public void adjustRange(double alpha, double beta) {
+		double bound = (cutoff - alpha)/beta;
+		
+		double a = 0.5 - beta/2;
 		double b = 1. - a;
 		
 		rMax = max * a + Math.min( bound, max ) * b;
 		rMin = Math.max( bound, min ) * a + min * b;
-				
+	}
+	
+	@Override
+	public double integrate(int order, double... params) {
+		adjustRange(params[A_INDEX], params[B_INDEX]);				
 		stepSize = (rMax - rMin)/integrationSegments;
-		
 		return integrateSimpson(order, params);
-		
 	}
 	
 	public double integrateMidpoint(int order, double... params) {	
@@ -200,18 +200,18 @@ public class ComplexIntegrator extends Integrator {
 	
 	public static void main(String[] args) { 
 		
-		var integrator = new ComplexIntegrator();
+		var integrator = new SpecialIntegrator();
 		var cIntegrator = new ChandrasekharsQuadrature();
 
-		integrator.setRange(0.5, 3.0);
-		cIntegrator.setRange(0.5, 3.0);
+		integrator.setRange(0.0, 0.123);
+		cIntegrator.setRange(0.0, 0.123);
 		
-		double alpha = -0.5;
-		double beta = 1.0;
+		double alpha = 0.2;
+		double beta = -1.0;
 		
 		File f = null;
 		try {
-			f = new File(ComplexIntegrator.class.getResource("/test/TestSolution.dat").toURI());
+			f = new File(SpecialIntegrator.class.getResource("/test/TestSolution.dat").toURI());
 		} catch (URISyntaxException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -249,7 +249,7 @@ public class ComplexIntegrator extends Integrator {
 		double integral = 0;
 		
 		for(int i = 0; i < 10000; i++)
-			integral = cIntegrator.integrate(3, alpha, beta);
+			integral = cIntegrator.integrate(2, alpha, beta);
 		
 		time += System.currentTimeMillis();
 		
@@ -258,13 +258,18 @@ public class ComplexIntegrator extends Integrator {
 		double sum = 0;
 		
 		for(int i = 0; i < 10000; i++)
-			sum = integrator.integrate(3, alpha, beta);
+			sum = integrator.integrate(2, alpha, beta);
 		
 		time2 += System.currentTimeMillis();
 		
 		System.out.printf("%nInt (quadrature): %2.5f. Time taken: %5d", integral, time);
 		System.out.printf("%nInt (numerical): %2.5f. Time taken: %5d", sum, time2);
 			
+	}
+
+	@Override
+	public String getDescriptor() {
+		return "Simpson's Rule";
 	}
 	
 }

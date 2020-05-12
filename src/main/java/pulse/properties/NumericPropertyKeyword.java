@@ -264,6 +264,8 @@ public enum NumericPropertyKeyword {
 	
 	INTEGRATION_CUTOFF,
 	
-	SCHEME_WEIGHT;
+	SCHEME_WEIGHT,
+	
+	QUADRATURE_POINTS;
 	
 }
