@@ -1,5 +1,7 @@
 package pulse.search.math;
 
+import java.util.Arrays;
+
 import pulse.ui.Messages;
 
 /**
@@ -34,8 +36,7 @@ public class Vector {
     
     public Vector(int n, double fill) {
     	x = new double[n];
-    	for(int i = 0; i < x.length; i++)
-    		x[i] = fill;
+    	Arrays.fill(x, fill);
     }
     
     /** Copy constructor. Uses {@code System.arraycopy()}.
@@ -47,7 +48,7 @@ public class Vector {
         System.arraycopy(v.x, 0, x, 0, v.x.length);
     }  
     
-    /**
+	/**
      * Creates a new {@code Vector} based on {@code this} one, all elements of 
      * which are inverted, i.e. <math><i>b</i><sub>i</sub> = -<i>a</i><sub>i</sub></math>. 
      * @return a generalised inversion of {@code this Vector}.

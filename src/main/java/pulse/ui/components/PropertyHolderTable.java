@@ -9,6 +9,7 @@ import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 
 import javax.swing.AbstractButton;
 import javax.swing.AbstractCellEditor;
@@ -32,10 +33,11 @@ import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 import pulse.ui.Messages;
 import pulse.ui.components.buttons.IconCheckBox;
-import pulse.ui.components.controllers.AccesibleTableRenderer;
+import pulse.ui.components.controllers.AccessibleTableRenderer;
 import pulse.ui.components.controllers.NumberEditor;
 import pulse.ui.frames.DataFrame;
 import pulse.util.Group;
+import pulse.util.InstanceDescriptor;
 import pulse.util.PropertyHolder;
 
 @SuppressWarnings("serial")
@@ -92,11 +94,38 @@ public class PropertyHolderTable extends JTable {
 		      
 				Object changedObject = (((DefaultTableModel)e.getSource()).getValueAt(row, column));
 				
-				if(! (changedObject instanceof Property))  
-					return;
+				if(changedObject instanceof Property) {
+					Property changedProperty = (Property)changedObject;	
+					propertyHolder.updateProperty(reference, changedProperty);
+				}
 				
-				Property changedProperty = (Property)changedObject;	
-				propertyHolder.updateProperty(reference, changedProperty);
+				else {
+					
+					//try to find property by name
+					Object propertyName = (((DefaultTableModel)e.getSource()).getValueAt(row, column - 1));
+					if(propertyName != null) {
+						Optional<Property> potentialChangedProperty = reference.getPropertyHolder().genericProperties().stream().
+						 		filter( p -> p.getDescriptor(true).equals( propertyName ) 
+						 				|| p.getClass().getSimpleName().equals( propertyName ) )
+						 					.findAny();
+						
+						if( potentialChangedProperty.isEmpty() )
+								return;
+						else {
+							Property changedProperty = potentialChangedProperty.get();
+							
+							if(changedProperty.attemptUpdate(changedObject)) {
+							
+								propertyHolder.update(changedProperty);		
+								propertyHolder.notifyListeners(reference, changedProperty);
+								
+							}
+							
+						}
+						
+					}
+					
+				}
 				
 			}
 			
@@ -199,6 +228,11 @@ public class PropertyHolderTable extends JTable {
 	      if(value instanceof Enum) 
 	    	  return new DefaultCellEditor(new JComboBox<Object>(((Enum<?>)value).getDeclaringClass().getEnumConstants()));
 	
+	      if(value instanceof InstanceDescriptor) 
+	    	  return new DefaultCellEditor(new JComboBox<Object>(
+	    			  ((InstanceDescriptor<?>)value).getAllDescriptors().toArray() )
+	    			  );
+	      
 	      if((value instanceof PropertyHolder)) 
 	    	  return new ButtonEditor( 
 	    			  (AbstractButton) getCellRenderer(row, column).getTableCellRendererComponent(this, value, false, false, row, column),
@@ -221,7 +255,7 @@ public class PropertyHolderTable extends JTable {
 		   
 		Object value = super.getValueAt(row, column);
 		
-		return value != null ? new AccesibleTableRenderer() :
+		return value != null ? new AccessibleTableRenderer() :
 							   super.getCellRenderer(row, column);
 		  
 	}		

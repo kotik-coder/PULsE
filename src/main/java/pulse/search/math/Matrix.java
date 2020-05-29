@@ -402,4 +402,8 @@ public final class Matrix {
     	
     }
     
+    public double get(int m, int k) {
+    	return x[m][k];
+    }
+  
 }

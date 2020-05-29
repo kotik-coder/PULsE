@@ -155,7 +155,7 @@ public abstract class PropertyHolder extends Accessible {
 		
 		if(existing.equals(updatedProperty))
 			return;	
-		
+				
 		super.update(updatedProperty);		
 		
 		notifyListeners(sourceComponent, updatedProperty);				

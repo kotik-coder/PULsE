@@ -1,4 +1,4 @@
-package pulse.problem.schemes.radiation;
+package pulse.problem.schemes.rte;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -7,8 +7,9 @@ import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 import pulse.util.PropertyHolder;
+import pulse.util.Reflexive;
 
-public abstract class Integrator extends PropertyHolder {
+public abstract class Integrator extends PropertyHolder implements Reflexive {
 
 	protected double cutoff;
 	private double cutoffMinusDx;

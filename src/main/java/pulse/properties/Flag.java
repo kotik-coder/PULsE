@@ -12,6 +12,8 @@ import static pulse.properties.NumericPropertyKeyword.LOWER_BOUND;
 import static pulse.properties.NumericPropertyKeyword.MAXTEMP;
 import static pulse.properties.NumericPropertyKeyword.OPTICAL_THICKNESS;
 import static pulse.properties.NumericPropertyKeyword.PLANCK_NUMBER;
+import static pulse.properties.NumericPropertyKeyword.SCATTERING_ALBEDO;
+import static pulse.properties.NumericPropertyKeyword.SCATTERING_ANISOTROPY;
 import static pulse.properties.NumericPropertyKeyword.SPOT_DIAMETER;
 import static pulse.properties.NumericPropertyKeyword.THERMAL_ABSORPTIVITY;
 import static pulse.properties.NumericPropertyKeyword.TIME_SHIFT;
@@ -94,6 +96,8 @@ public class Flag implements Property {
 		flags.add(new Flag(UPPER_BOUND, NumericProperty.def(UPPER_BOUND).getDescriptor(true), false));
 		flags.add(new Flag(OPTICAL_THICKNESS, NumericProperty.def(OPTICAL_THICKNESS).getDescriptor(true), false));
 		flags.add(new Flag(PLANCK_NUMBER, NumericProperty.def(PLANCK_NUMBER).getDescriptor(true), false));
+		flags.add(new Flag(SCATTERING_ALBEDO, NumericProperty.def(SCATTERING_ALBEDO).getDescriptor(true), false));
+		flags.add(new Flag(SCATTERING_ANISOTROPY, NumericProperty.def(SCATTERING_ANISOTROPY).getDescriptor(true), false));
 		return flags;
 	}	
 	
@@ -158,6 +162,12 @@ public class Flag implements Property {
 
 	public void setAbbreviation(String abbreviation) {
 		this.descriptor = abbreviation;
+	}
+
+	@Override
+	public boolean attemptUpdate(Object value) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 }

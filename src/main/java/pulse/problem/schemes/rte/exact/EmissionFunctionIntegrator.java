@@ -1,6 +1,8 @@
-package pulse.problem.schemes.radiation;
+package pulse.problem.schemes.rte.exact;
 
 import pulse.problem.schemes.Grid;
+import pulse.problem.schemes.rte.EmissionFunction;
+import pulse.problem.schemes.rte.Integrator;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 
@@ -61,7 +63,7 @@ public class EmissionFunctionIntegrator extends Integrator {
 	public double integrand(int order, double... params) {
 		int floor = (int) ( params[0]/hx ); //floor index
 		double alpha = params[0]/hx - floor;
-		return emissionFunction.function( (1.0 - alpha)*U[floor] + alpha*U[floor+1] );
+		return emissionFunction.power( (1.0 - alpha)*U[floor] + alpha*U[floor+1] );
 	}
 	
 	public double integrateMidpoint(int order, double... params) {	

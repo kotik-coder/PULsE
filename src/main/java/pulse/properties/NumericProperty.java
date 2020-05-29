@@ -420,5 +420,18 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
 	public void setDiscreet(boolean discreet) {
 		this.discreet = discreet;
 	}
+
+	@Override
+	public boolean attemptUpdate(Object value) {
+		if( ! (value instanceof Number) )
+			return false;
+		
+		if(! (NumericProperty.derive(this.getType(), (Number)value).validate() ) )
+			return false;
+		
+		this.value = (Number)value;
+		return true;
+		
+	}
 	
 }

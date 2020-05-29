@@ -191,6 +191,11 @@ public class Pulse extends PropertyHolder {
 			return valueOf(string);
 		}
 
+		@Override
+		public boolean attemptUpdate(Object value) {
+			return false;
+		}
+
 	}
 
 }

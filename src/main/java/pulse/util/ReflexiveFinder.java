@@ -78,9 +78,16 @@ public class ReflexiveFinder {
        	if(root.isDirectory()) {
        		List<File> files = listf(root); 
        		
-       		files.stream().map(f -> f.getParentFile().equals(root) ? 
-       									f.getName() :
-       									f.getParentFile().getName() + "." + f.getName()  
+       		files.stream().map(f -> {
+       			
+       			String pathName = f.getName();
+       			
+       			for(File parent = f.getParentFile(); !parent.equals(root) ; parent = parent.getParentFile())  
+       				pathName = parent.getName() + "." + pathName;
+       			
+       			return pathName; 
+       			
+       		} 
        								).forEach(path ->
        			{       		
        			if(path.endsWith(".class"))
@@ -140,7 +147,7 @@ public class ReflexiveFinder {
 	 */
 	
 	@SuppressWarnings("unchecked")
-	public static <V extends Reflexive> List<V> simpleInstances(String pckgname) {
+	public static <V extends Reflexive> List<V> simpleInstances(String pckgname, Object... params) {
 		List<V> instances = new LinkedList<V>();
 		
         for (Class<?> aClass : ReflexiveFinder.classesIn(pckgname)) {
@@ -154,20 +161,30 @@ public class ReflexiveFinder {
                     	Constructor<?>[] ctrs = aClass.getDeclaredConstructors();
                     	V instance = null;
                     	                                   	
-                    	for (Constructor<?> ctr : ctrs) {
-                    		if (!Modifier.isPublic(ctr.getModifiers()))
-                    			continue;
-                    	    if (ctr.getGenericParameterTypes().length == 0) {                    		                    	                  	
-                    	    	try {
-                    	    		Object o = ctr.newInstance();
+                    	outer : for (Constructor<?> ctr : ctrs) {
+                    		
+	                    		if (!Modifier.isPublic(ctr.getModifiers()))
+	                    			continue outer;
+	                    		
+	                    		var types = ctr.getParameterTypes();
+	                    		
+	                    	    if (types.length != params.length)
+	                    	    	continue outer; 
+	                    	    
+	                    	    for(int i = 0; i < types.length; i++)
+	                    	    	if(! types[i].equals(params[i].getClass()) ) 
+	                    	    		continue outer;
+	                    	    
+	                    	    try {
+	                    	    	Object o = ctr.newInstance(params);
 									if(o instanceof Reflexive)
-                    	    			instance = (V) o;
+	                    	    		instance = (V) o;
 								} catch (InstantiationException e) {
 									System.err.println(Messages.getString("ReflexiveFinder.ConstructorAccessError") + ctr); 
 									e.printStackTrace();
 								}    
-                    	    	break;
-                    	    }
+	                    	    
+	                    	    break;
                     	  
                     	}                    	
                     	
@@ -211,6 +228,10 @@ public class ReflexiveFinder {
         
         return instances;
         
+	}
+	
+	public static <V extends Reflexive> List<V> simpleInstances(String pckgname) {
+		return simpleInstances(pckgname, new Object[0]);
 	}
 	
 }

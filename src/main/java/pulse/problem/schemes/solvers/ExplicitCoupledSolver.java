@@ -8,24 +8,25 @@ import java.util.List;
 import pulse.HeatingCurve;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.ExplicitScheme;
-import pulse.problem.schemes.radiation.DiscreteDerivativeCalculator;
-import pulse.problem.schemes.radiation.RadiativeFluxCalculator;
-import pulse.problem.statements.AbsorbingEmittingProblem;
+import pulse.problem.schemes.Grid;
+import pulse.problem.schemes.rte.RadiativeTransferSolver;
+import pulse.problem.schemes.rte.exact.AnalyticalDerivativeCalculator;
+import pulse.problem.statements.ParticipatingMedium;
 import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
+import pulse.util.InstanceDescriptor;
 
 public class ExplicitCoupledSolver 
 					extends ExplicitScheme 
-						implements Solver<AbsorbingEmittingProblem> {
+						implements Solver<ParticipatingMedium> {
 
 	
 	private double[] U;
 	private double[] V;
 	
-	private RadiativeFluxCalculator rte;
-//	private EmissionFunction blackbody;
+	private RadiativeTransferSolver rte;
 	private double opticalThickness;
 	private double Np;
 	private double Bi1, Bi2;	
@@ -44,13 +45,19 @@ public class ExplicitCoupledSolver
 	
 	private double nonlinearPrecision = (double)NumericProperty.def(NONLINEAR_PRECISION).getValue();	
 	
+	private static InstanceDescriptor<? extends RadiativeTransferSolver> instanceDescriptor
+					= new InstanceDescriptor<RadiativeTransferSolver>("RTE Solver Selector", RadiativeTransferSolver.class);
+
+	static { 
+		instanceDescriptor.setSelectedDescriptor( AnalyticalDerivativeCalculator.class.getSimpleName() );
+	}
+	
 	public ExplicitCoupledSolver() {
 		this(GRID_DENSITY, TAU_FACTOR);
 	}
 	
 	public ExplicitCoupledSolver(NumericProperty N, NumericProperty timeFactor) {
 		super(GRID_DENSITY, TAU_FACTOR);
-		initRTE();
 	}
 	
 	public ExplicitCoupledSolver(NumericProperty N, NumericProperty timeFactor, NumericProperty timeLimit) {
@@ -60,7 +67,11 @@ public class ExplicitCoupledSolver
 	
 	@Override
 	public void prepare(Problem problem) {
-		super.prepare(problem);		
+		super.prepare(problem);	
+		
+		if(rte == null)
+			initRTE( (ParticipatingMedium) problem, grid);
+		
 		curve = problem.getHeatingCurve();
 		
 		N	= (int)grid.getGridDensity().getValue();
@@ -79,19 +90,18 @@ public class ExplicitCoupledSolver
 		a = 1./(1. + Bi1*hx);
 		b = 1./(1. + Bi2*hx);
 		
-		if(problem instanceof AbsorbingEmittingProblem) {
+		if(problem instanceof ParticipatingMedium) {
 		
-			var p = (AbsorbingEmittingProblem)problem;
-			rte.init(p,grid);
-			
+			var p = (ParticipatingMedium)problem;
+			rte.init(p, grid);
 			opticalThickness = (double)p.getOpticalThickness().getValue();
 			Np = (double)p.getPlanckNumber().getValue();
-
+			
 		}
 		
 	}
 	
-	public void solveGeneral(AbsorbingEmittingProblem problem) {
+	public void solveGeneral(ParticipatingMedium problem) {
 		prepare(problem);
 		
 		int i, m, w;
@@ -107,7 +117,7 @@ public class ExplicitCoupledSolver
 		
 		double wFactor = timeInterval * tau * problem.timeFactor();
 		
-		rte.radiosities(U);
+		rte.compute(U);
 		
 		/*
 		 * The outer cycle iterates over the number of points of the HeatingCurve
@@ -124,7 +134,19 @@ public class ExplicitCoupledSolver
 			
 			for (m = (w - 1)*timeInterval + 1; m < w*timeInterval + 1; m++) {
 				
-				rte.compute(V);
+				/*
+				 * Do the iterations
+				 */
+				
+				/*
+				 * Temperature at boundaries will strongly change the radiosities.
+				 * This recalculates the latter using the solution at previous iteration
+				 */
+				
+				for( V_0 = Double.POSITIVE_INFINITY, V_N = Double.POSITIVE_INFINITY; 
+					   (pow((V[0] - V_0), 2) > errorSq) ||
+					   (pow((V[N] - V_N), 2) > errorSq)
+					 ; rte.compute(V) ) {
 				
 				/*
 				 * Uses the heat equation explicitly to calculate the 
@@ -140,20 +162,6 @@ public class ExplicitCoupledSolver
 				 */
 				
 				pls  = discretePulse.evaluateAt( (m - EPS)*tau );
-				
-				/*
-				 * Do the iterations
-				 */
-				
-				/*
-				 * Temperature at boundaries will strongly change the radiosities.
-				 * This recalculates the latter using the solution at previous iteration
-				 */
-				
-				for( V_0 = Double.POSITIVE_INFINITY, V_N = Double.POSITIVE_INFINITY; 
-					   (pow((V[0] - V_0), 2) > errorSq) ||
-					   (pow((V[N] - V_N), 2) > errorSq)
-					 ; rte.radiosities(V), rte.boundaryFluxes(V)) {
 					
 					// Front face
 					V_0 = V[0];
@@ -177,177 +185,6 @@ public class ExplicitCoupledSolver
 		curve.scale( maxTemp/curve.apparentMaximum() );
 	}
 	
-//	private void solveThin(AbsorbingEmittingProblem problem) {
-//		prepare(problem);
-//		
-//		int i, m, w;
-//		double pls;
-//		final double TAU_HH = tau/pow(hx,2);	
-//		final double HX_NP = hx/Np; 
-//		
-//		final double prefactor = tau*opticalThickness/Np;
-//		
-//		double V_0, V_N;
-//				
-//		final double errorSq  = pow( nonlinearPrecision, 2);
-//		
-//		double wFactor = timeInterval * tau * problem.timeFactor();
-//		
-//		/*
-//		 * The outer cycle iterates over the number of points of the HeatingCurve
-//		 */
-//		
-//		for (w = 1; w < counts; w++) {
-//			
-//			/*
-//			 * Two adjacent points of the heating curves are 
-//			 * separated by timeInterval on the time grid. Thus, to calculate
-//			 * the next point on the heating curve, timeInterval/tau time steps
-//			 * have to be made first.
-//			 */
-//			
-//			for (m = (w - 1)*timeInterval + 1; m < w*timeInterval + 1; m++) {
-//				
-//				rte.radiosities(U);
-//				
-//				/*
-//				 * Uses the heat equation explicitly to calculate the 
-//				 * grid-function everywhere except the boundaries
-//				 */
-//				
-//				for(i = 1; i < N; i++) 
-//					V[i] =	U[i] +  TAU_HH*( U[i+1] - 2.*U[i] + U[i-1] )
-//							+ prefactor*rte.fluxDerivativeThin(U, i); //+ tau_0/Np * (-dF*/d\tau) --> CHECK SIGN!!!
-//				
-//				/*
-//				 * Calculates boundary values
-//				 */
-//				
-//				pls  = discretePulse.evaluateAt( (m - EPS)*tau );
-//				
-//				/*
-//				 * Do the iterations
-//				 */
-//				
-//				/*
-//				 * Temperature at boundaries will strongly change the radiosities.
-//				 * This recalculates the latter using the solution at previous iteration
-//				 */
-//				
-//				for( V_0 = Double.POSITIVE_INFINITY, V_N = Double.POSITIVE_INFINITY; 
-//					   (pow((V[0] - V_0), 2) > errorSq) ||
-//					   (pow((V[N] - V_N), 2) > errorSq)
-//					 ; rte.radiosities(V)) {
-//					
-//					// Front face
-//					V_0 = V[0];
-//					V[0] = ( V[1] + hx*pls 
-//							 - HX_NP*rte.fluxFrontThin(V) )*a;
-//					// Rear face
-//					V_N = V[N];
-//					V[N] = ( V[N-1] 
-//							 + HX_NP*rte.fluxRearThin(V) )*b;
-//					
-//			    }	
-//				
-//				System.arraycopy(V, 0, U, 0, N + 1);
-//							
-//			}
-//			
-//			curve.addPoint( w * wFactor, V[N] );
-//			
-//		}			
-//		
-//		curve.scale( maxTemp/curve.apparentMaximum() );
-//		
-//	}
-//	
-//	private void solveRosseland(AbsorbingEmittingProblem problem) {
-//		prepare(problem);
-//				
-//		int i, m, w;
-//		double pls;
-//		final double TAU_HH = tau/pow(hx,2);	
-//
-//		double V_0, V_N;
-//		double x;		
-//		
-//		final double errorSq  = pow( nonlinearPrecision, 2);
-//		
-//		double wFactor = timeInterval * tau * problem.timeFactor();
-//		
-//		final double a1 = 4.0/(Np*3.0*opticalThickness);
-//		final double prefactor = tau*opticalThickness/Np;
-//		
-//		/*
-//		 * The outer cycle iterates over the number of points of the HeatingCurve
-//		 */
-//		
-//		for (w = 1; w < counts; w++) {
-//			
-//			/*
-//			 * Two adjacent points of the heating curves are 
-//			 * separated by timeInterval on the time grid. Thus, to calculate
-//			 * the next point on the heating curve, timeInterval/tau time steps
-//			 * have to be made first.
-//			 */
-//			
-//			for (m = (w - 1)*timeInterval + 1; m < w*timeInterval + 1; m++) {
-//				
-//				rte.radiosities(U);
-//				
-//				/*
-//				 * Uses the heat equation explicitly to calculate the 
-//				 * grid-function everywhere except the boundaries
-//				 */
-//				
-//				for(i = 1; i < N; i++) 
-//					V[i] =	U[i] +  TAU_HH*( U[i+1] - 2.*U[i] + U[i-1] )
-//							+ prefactor*rte.fluxDerivativeRosseland(U, i); //+ tau_0/Np * (-dF*/d\tau) --> CHECK SIGN!!!
-//				
-//				/*
-//				 * Calculates boundary values
-//				 */
-//				
-//				pls  = discretePulse.evaluateAt( (m - EPS)*tau );
-//				
-//				/*
-//				 * Do the iterations
-//				 */
-//				
-//				/*
-//				 * Temperature at boundaries will strongly change the radiosities.
-//				 * This recalculates the latter using the solution at previous iteration
-//				 */
-//				
-//				for( x = 0, V_0 = Double.POSITIVE_INFINITY, V_N = Double.POSITIVE_INFINITY; 
-//					   (pow((V[0] - V_0), 2) > errorSq) ||
-//					   (pow((V[N] - V_N), 2) > errorSq)
-//					 ; rte.radiosities(V)) {
-//					
-//					// Front face
-//					x = a1*blackbody.firstDerivative_1(V[0]);
-//					V_0 = V[0];
-//					V[0] = ( pls*hx + V[1]*(1.0 + x) )/(1.0/a + x);
-//					// Rear face
-//					x = a1*blackbody.firstDerivative_1(V[N]);
-//					V_N = V[N];
-//					V[N] = ( V[N-1]*(1.0 + x) )/(1.0/b + x);
-//					
-//			    }	
-//				
-//				System.arraycopy(V, 0, U, 0, N + 1);
-//							
-//			}
-//			
-//			curve.addPoint( w * wFactor, V[N] );
-//			
-//		}			
-//		
-//		curve.scale( maxTemp/curve.apparentMaximum() );
-//		
-//	}
-
 	@Override
 	public DifferenceScheme copy() {
 		return new ExplicitCoupledSolver(grid.getGridDensity(),
@@ -356,11 +193,11 @@ public class ExplicitCoupledSolver
 
 	@Override
 	public Class<? extends Problem> domain() {
-		return AbsorbingEmittingProblem.class;
+		return ParticipatingMedium.class;
 	}
 
 	@Override
-	public void solve(AbsorbingEmittingProblem problem) {
+	public void solve(ParticipatingMedium problem) {
 		switch(mode) {
 		case GENERAL : solveGeneral(problem); break;
 //		case OPTICALLY_THIN : solveThin(problem); break;
@@ -373,7 +210,7 @@ public class ExplicitCoupledSolver
 		GENERAL, OPTICALLY_THIN, OPTICALLY_THICK;
 	}
 
-	public RadiativeFluxCalculator getRadiativeTransferEquation() {
+	public RadiativeTransferSolver getRadiativeTransferEquation() {
 		return rte;
 	}
 		
@@ -389,6 +226,7 @@ public class ExplicitCoupledSolver
 	public List<Property> listedTypes() {
 		List<Property> list = super.listedTypes();
 		list.add(NumericProperty.def(NumericPropertyKeyword.NONLINEAR_PRECISION));
+		list.add(instanceDescriptor);
 		return list;
 	}
 	
@@ -400,9 +238,17 @@ public class ExplicitCoupledSolver
 		}
 	}
 	
-	public void initRTE() {
-		rte = new DiscreteDerivativeCalculator(grid);	
+	public void initRTE(ParticipatingMedium problem, Grid grid) {
+		rte = instanceDescriptor.newInstance(RadiativeTransferSolver.class, problem, grid);
 		rte.setParent(this);
+	}
+	
+	public static InstanceDescriptor<? extends RadiativeTransferSolver> getInstanceDescriptor() {
+		return instanceDescriptor;
+	}
+	
+	public static void setInstanceDescriptor( InstanceDescriptor<? extends RadiativeTransferSolver> instanceDescriptor) {
+		ExplicitCoupledSolver.instanceDescriptor = instanceDescriptor;
 	}
 	
 }

@@ -215,7 +215,7 @@ public abstract class Accessible extends Group {
 		
 		Method[] methods = this.getClass().getMethods();
 	    
-	    for(Method m : methods) {	    	
+	    outer: for(Method m : methods) {	    	
 	    	
 	    	if (m.getParameterCount() == 2) {
 	    		
@@ -260,17 +260,49 @@ public abstract class Accessible extends Group {
 	    	}
 	    	
 		    /*
-		     * For generic Properties: use a simple setter method with enum value as argument
+		     * For generic Properties: check first if the setter method in this class actually 
+		     * corresponds to the same Property we are setting by comparing the descriptor of the latter
+		     * and the results of the 'get' method
 		     */
 		    
 	    	else if (m.getParameterCount() == 1 &&
-	    			 m.getParameterTypes()[0].equals(property.getClass()))
+	    			 m.getParameterTypes()[0].equals(property.getClass())) {
+	    			
+	    			//the suspect method has been identified. does it deal with the same property we have?
+	    		
+	    			Property correspondingProperty = null;
+	    		
+	    			for(Method mm : methods) { 
+	    				if(mm.getParameterCount() == 0)
+	    					if(mm.getReturnType().equals(property.getClass())) { 
+	    						try {
+									correspondingProperty = (Property) mm.invoke(this);
+									
+									if(correspondingProperty != null) {
+										if(!correspondingProperty.getDescriptor(true).
+												equalsIgnoreCase(property.getDescriptor(true)))
+											//false suspect found!
+											continue outer;
+									}
+									
+								} catch (IllegalAccessException | IllegalArgumentException
+										| InvocationTargetException e) {
+									System.err.println("Unable to verify if the property " + property + " is defined in " + getClass());
+									e.printStackTrace();
+								}
+	    					}
+	    			}
+	    		
+	    			//otherwise proceed to changing the property
+	    		
 					try {
 						m.invoke(this, property);
 					} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 						System.err.println("Cannot invoked method " + m);
 						e.printStackTrace();
 					}
+					
+	    	}
 	    			        		
 	        }	   	    
 	        	

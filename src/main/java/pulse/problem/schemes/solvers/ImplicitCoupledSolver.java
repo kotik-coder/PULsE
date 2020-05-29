@@ -6,19 +6,21 @@ import java.util.List;
 
 import pulse.HeatingCurve;
 import pulse.problem.schemes.DifferenceScheme;
+import pulse.problem.schemes.Grid;
 import pulse.problem.schemes.ImplicitScheme;
-import pulse.problem.schemes.radiation.DiscreteDerivativeCalculator;
-import pulse.problem.schemes.radiation.MathUtils;
-import pulse.problem.schemes.radiation.RadiativeFluxCalculator;
-import pulse.problem.statements.AbsorbingEmittingProblem;
+import pulse.problem.schemes.rte.MathUtils;
+import pulse.problem.schemes.rte.RadiativeTransferSolver;
+import pulse.problem.schemes.rte.exact.AnalyticalDerivativeCalculator;
+import pulse.problem.statements.ParticipatingMedium;
 import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
+import pulse.util.InstanceDescriptor;
 
 public class ImplicitCoupledSolver 
 					extends ImplicitScheme 
-							implements Solver<AbsorbingEmittingProblem> {
+							implements Solver<ParticipatingMedium> {
 
 	/**
 	 * The default value of {@code tauFactor}, which is set to {@code 1.0} for this
@@ -45,7 +47,7 @@ public class ImplicitCoupledSolver
 	private double[] U, V;
 	private double[] alpha, beta;
 	
-	private RadiativeFluxCalculator rte;
+	private RadiativeTransferSolver rte;
 	private double Np;
 	
 	private final static double EPS = 1e-7; // a small value ensuring numeric stability
@@ -62,13 +64,19 @@ public class ImplicitCoupledSolver
 	
 	private double nonlinearPrecision = (double)NumericProperty.def(NONLINEAR_PRECISION).getValue();	
 	
+	private static InstanceDescriptor<? extends RadiativeTransferSolver> instanceDescriptor
+					= new InstanceDescriptor<RadiativeTransferSolver>("RTE Solver Selector", RadiativeTransferSolver.class);
+	
+	static { 
+		instanceDescriptor.setSelectedDescriptor( AnalyticalDerivativeCalculator.class.getSimpleName() );
+	}
+	
 	public ImplicitCoupledSolver() {
 		this(GRID_DENSITY, TAU_FACTOR);
 	}
 	
 	public ImplicitCoupledSolver(NumericProperty N, NumericProperty timeFactor) {
 		super(GRID_DENSITY, TAU_FACTOR);
-		initRTE();
 	}
 	
 	public ImplicitCoupledSolver(NumericProperty N, NumericProperty timeFactor, NumericProperty timeLimit) {
@@ -76,8 +84,16 @@ public class ImplicitCoupledSolver
 		setTimeLimit(timeLimit);
 	}
 	
-	private void prepare(AbsorbingEmittingProblem problem) {
+	private void prepare(ParticipatingMedium problem) {
 		super.prepare(problem);
+		
+		if(rte == null)
+			initRTE(problem, grid);
+		else {
+			if(!rte.getSimpleName().equals( instanceDescriptor.getValue() ))
+				initRTE(problem,grid);
+		}
+		
 		curve = problem.getHeatingCurve();
 		
 		N	= (int)grid.getGridDensity().getValue();
@@ -115,7 +131,7 @@ public class ImplicitCoupledSolver
 	}
 	
 	@Override
-	public void solve(AbsorbingEmittingProblem problem) {
+	public void solve(ParticipatingMedium problem) {
 
 		prepare(problem);
 		
@@ -129,7 +145,6 @@ public class ImplicitCoupledSolver
 		
 		double wFactor = timeInterval * tau * problem.timeFactor();
 
-		rte.radiosities(U);
 		rte.compute(U);
 		
 		for (i = 1; i < N; i++)
@@ -146,7 +161,7 @@ public class ImplicitCoupledSolver
 				for( V_0 = errorSq + 1, V_N = errorSq + 1; 
 						   (MathUtils.fastPowLoop((V[0] - V_0), 2) > errorSq) ||
 						   (MathUtils.fastPowLoop((V[N] - V_N), 2) > errorSq)
-						 ; rte.radiosities(V), rte.compute(V)) {
+						 ; rte.compute(V) ) {
 					
 					beta[1] = (HX2_2TAU * U[0] + hx*pls - HX_2NP*(rte.getFlux(0) + rte.getFlux(1)) )*alpha[1];
 
@@ -190,10 +205,10 @@ public class ImplicitCoupledSolver
 	
 	@Override
 	public Class<? extends Problem> domain() {
-		return AbsorbingEmittingProblem.class;
+		return ParticipatingMedium.class;
 	}
 	
-	public RadiativeFluxCalculator getRadiativeTransferEquation() {
+	public RadiativeTransferSolver getRadiativeTransferEquation() {
 		return rte;
 	}
 	
@@ -209,6 +224,7 @@ public class ImplicitCoupledSolver
 	public List<Property> listedTypes() {
 		List<Property> list = super.listedTypes();
 		list.add(NumericProperty.def(NumericPropertyKeyword.NONLINEAR_PRECISION));
+		list.add(instanceDescriptor);
 		return list;
 	}
 	
@@ -220,9 +236,17 @@ public class ImplicitCoupledSolver
 		}
 	}
 	
-	public void initRTE() {
-		rte = new DiscreteDerivativeCalculator(grid);	
+	public void initRTE(ParticipatingMedium problem, Grid grid) {
+		rte = instanceDescriptor.newInstance(RadiativeTransferSolver.class, problem, grid);
 		rte.setParent(this);
+	}
+	
+	public static InstanceDescriptor<? extends RadiativeTransferSolver> getInstanceDescriptor() {
+		return instanceDescriptor;
+	}
+	
+	public static void setInstanceDescriptor( InstanceDescriptor<? extends RadiativeTransferSolver> instanceDescriptor) {
+		ImplicitCoupledSolver.instanceDescriptor = instanceDescriptor;
 	}
 
 }

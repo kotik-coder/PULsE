@@ -32,4 +32,6 @@ public interface Property {
 	
 	public String getDescriptor(boolean addHtmlTags);
 
+	public boolean attemptUpdate(Object value);
+	
 }

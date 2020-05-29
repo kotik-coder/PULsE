@@ -13,14 +13,14 @@ import pulse.properties.Property;
 import pulse.ui.components.buttons.IconCheckBox;
 import pulse.util.PropertyHolder;
 
-public class AccesibleTableRenderer extends NumericPropertyRenderer {
+public class AccessibleTableRenderer extends NumericPropertyRenderer {
 	
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 2269077862064919825L;
 
-	public AccesibleTableRenderer() {
+	public AccessibleTableRenderer() {
 		super();
 	}
 	

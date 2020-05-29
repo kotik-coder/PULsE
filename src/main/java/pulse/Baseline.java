@@ -348,6 +348,11 @@ public class Baseline extends PropertyHolder {
 			return valueOf(string);
 		}
 
+		@Override
+		public boolean attemptUpdate(Object value) {
+			return false;
+		}
+
 	}
 
 	/**

@@ -1,4 +1,4 @@
-package pulse.problem.schemes.radiation;
+package pulse.problem.schemes.rte;
 
 /**
  * Largely based on https://martin.ankerl.com
@@ -24,16 +24,18 @@ public class MathUtils {
 		return n % 2 == 0 ? 1 : -1;
 	}
 	
-    public static int fastPowInt(int a, long b) {
-        int re = 1;
-        while (b > 0) {
-            if ((b & 1) == 1) {
-                re *= a;        
+    public static long fastPowInt(long x, int y) {
+        long result = 1;
+        while (y > 0) {
+            if ((y & 1) == 0) {
+                x *= x;
+                y >>>= 1;
+            } else {
+                result *= x;
+                y--;
             }
-            b >>= 1;
-            a *= a; 
         }
-        return re;
+        return result;
     }
 	
 	public static double fastExp(double val) {

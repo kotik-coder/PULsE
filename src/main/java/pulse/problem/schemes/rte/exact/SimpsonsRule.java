@@ -1,4 +1,4 @@
-package pulse.problem.schemes.radiation;
+package pulse.problem.schemes.rte.exact;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -7,12 +7,15 @@ import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.stream.IntStream;
 
+import pulse.problem.schemes.rte.EmissionFunction;
+import pulse.problem.schemes.rte.Integrator;
+
 /**
  * A class with simple quadrature methods for evaluating the definite integral $\int_a^b{f(x) E_n (\alpha + \beta x) dx}$
  *
  */
 
-public class SpecialIntegrator extends Integrator {
+public class SimpsonsRule extends Integrator {
 
 	protected double min;
 	protected double max;
@@ -34,12 +37,12 @@ public class SpecialIntegrator extends Integrator {
 
 	private final static double DEFAULT_CUTOFF = 6.5;
 	private final static int DEFAULT_PRECISION = 64;
-	
-	public SpecialIntegrator() {
+		
+	public SimpsonsRule() {
 		super(DEFAULT_CUTOFF, 0, DEFAULT_PRECISION);
 	}
 	
-	public SpecialIntegrator(double cutoff, int segments) {
+	public SimpsonsRule(double cutoff, int segments) {
 		super(cutoff, 0, segments);
 	}
 	
@@ -170,7 +173,7 @@ public class SpecialIntegrator extends Integrator {
 		int floor = (int) ( tdim/hx ); //floor index
 		double alpha = tdim/hx - floor;
 		
-		return emissionFunction.function( (1.0 - alpha)*U[floor] + alpha*U[floor+1] )  
+		return emissionFunction.power( (1.0 - alpha)*U[floor] + alpha*U[floor+1] )  
 			    * expIntegrator.integralAt( params[A_INDEX] + params[B_INDEX]*params[T_INDEX], order );
 	}
 	
@@ -178,7 +181,7 @@ public class SpecialIntegrator extends Integrator {
 		double tdim = params[T_INDEX]/tau0;
 		int floor = (int) ( tdim/hx ); //floor index
 		
-		return emissionFunction.function( U[floor] )  
+		return emissionFunction.power( U[floor] )  
 			    * expIntegrator.integralAt( params[A_INDEX] + params[B_INDEX]*params[T_INDEX], order );
 	}
 
@@ -200,7 +203,7 @@ public class SpecialIntegrator extends Integrator {
 	
 	public static void main(String[] args) { 
 		
-		var integrator = new SpecialIntegrator();
+		var integrator = new SimpsonsRule();
 		var cIntegrator = new ChandrasekharsQuadrature();
 
 		integrator.setRange(0.0, 0.123);
@@ -211,7 +214,7 @@ public class SpecialIntegrator extends Integrator {
 		
 		File f = null;
 		try {
-			f = new File(SpecialIntegrator.class.getResource("/test/TestSolution.dat").toURI());
+			f = new File(SimpsonsRule.class.getResource("/test/TestSolution.dat").toURI());
 		} catch (URISyntaxException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -268,8 +271,8 @@ public class SpecialIntegrator extends Integrator {
 	}
 
 	@Override
-	public String getDescriptor() {
-		return "Simpson's Rule";
+	public String getPrefix() {
+		return "Numerical Quadrature";
 	}
 	
 }

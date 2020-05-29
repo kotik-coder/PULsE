@@ -1,59 +1,72 @@
-package pulse.problem.schemes.radiation;
+package pulse.problem.schemes.rte.exact;
 
 import pulse.problem.schemes.Grid;
-import pulse.problem.statements.AbsorbingEmittingProblem;
+import pulse.problem.statements.ParticipatingMedium;
 
-public class AnalyticalDerivativeCalculator extends RadiativeFluxCalculator {
+public class AnalyticalDerivativeCalculator extends NonscatteringRadiativeTransfer {
 
 	private double FD[], FDP[];
 	
-	public AnalyticalDerivativeCalculator(Grid grid) {
-		super(grid);
-		FD = new double[N+1];	
-		FDP = new double[N+1];
+	public AnalyticalDerivativeCalculator(ParticipatingMedium problem, Grid grid) {
+		super(problem, grid);
 	}
 	
 	@Override 
-	public void init(AbsorbingEmittingProblem p, Grid grid) {
-		super.init(p, grid);
+	public void reinitArrays(int N) {
+		super.reinitArrays(N);
 		FD = new double[N+1];	
 		FDP = new double[N+1];
-	}
-	
-	public double getFluxDerivative(int index) {
-		return FD[index];
 	}
 	
 	public double getStoredFluxDerivative(int index) {
 		return FDP[index];
 	}
-
+	
 	@Override
-	public void storeFluxes() {
-		super.storeFluxes();
-		System.arraycopy(FD, 0, FDP, 0, N + 1); //store previous results
+	public double getFluxDerivative(int index) {
+		return FD[index];
 	}
 	
+	@Override
+	public double getFluxDerivativeRear() {
+		return FD[this.getExternalGridDensity()];
+	}
+	
+	@Override
+	public double getFluxDerivativeFront() {
+		return FD[0];
+	}
+
+	@Override
+	public void store() {
+		super.store();
+		System.arraycopy(FD, 0, FDP, 0, this.getExternalGridDensity() + 1); //store previous results
+	}
+	
+	@Override
 	public double getFluxMeanDerivative(int uIndex) {
 		return 0.5*( FD[uIndex] + FDP[uIndex] );
 	}
 	
+	@Override
 	public double getFluxMeanDerivativeFront() {
 		return 0.5*( FD[0] + FDP[0] );
 	}
 	
+	@Override
 	public double getFluxMeanDerivativeRear() {
+		int N = this.getExternalGridDensity();
 		return 0.5*( FD[N] + FDP[N] );
 	}
-
 	
 	@Override
 	public void compute(double U[]) {
 		radiosities(U);
-		FD[0] = fluxDerivativeFront(U);
-		for(int i = 1; i < N; i++)
-			FD[i] = fluxDerivative(U, i);
-		FD[N] = fluxDerivativeRear(U);
+		complexIntegrator.U = U;
+		fluxDerivativeFront(U);
+		for(int i = 1, N = this.getExternalGridDensity(); i < N; i++)
+			fluxDerivative(U, i);
+		fluxDerivativeRear(U);
 		boundaryFluxes(U);
 	}
 
@@ -64,32 +77,32 @@ public class AnalyticalDerivativeCalculator extends RadiativeFluxCalculator {
 	 *
 	 */
 	
-	public double fluxDerivative(double U[], int uIndex) {
+	private void fluxDerivative(double U[], int uIndex) {
 		double t = hx*uIndex*tau0;
 				
 		double value = r1*simpleIntegrator.integralAt(t, 2) + r2*simpleIntegrator.integralAt(tau0 - t, 2)
-		   - 2.0*emissionFunction.function(U[uIndex]) + integrateFirstOrder(t);
+		   - 2.0*emissionFunction.power(U[uIndex]) + integrateFirstOrder(t);
 		
-		return 2*value;
+		FD[uIndex] = 2.0*value;
 		
 	}
 	
-	private double fluxDerivativeFront(double[] U) {
+	private void fluxDerivativeFront(double[] U) {
 		double value = r1*simpleIntegrator.integralAt(0, 2) + r2*simpleIntegrator.integralAt(tau0, 2)
-		   - 2.0*emissionFunction.function(U[0]) + integrateFirstOrderFront();
+		   - 2.0*emissionFunction.power(U[0]) + integrateFirstOrderFront();
 		
-		return 2*value;
+		FD[0] = 2.0*value;
 		
 	}
 
-	private double fluxDerivativeRear(double[] U) {
+	private void fluxDerivativeRear(double[] U) {
+		int N = this.getExternalGridDensity();
 		double t = hx*N*tau0;
 				
 		double value = r1*simpleIntegrator.integralAt(t, 2) + r2*simpleIntegrator.integralAt(tau0 - t, 2)
-		   - 2.0*emissionFunction.function(U[N]) + integrateFirstOrderRear();
+		   - 2.0*emissionFunction.power(U[N]) + integrateFirstOrderRear();
 		
-		return 2*value;
-		
+		FD[N] = 2.0*value;		
 	}
 	
 	
@@ -114,11 +127,6 @@ public class AnalyticalDerivativeCalculator extends RadiativeFluxCalculator {
 	private double integrateFirstOrderRear() {
 		complexIntegrator.setRange(0, tau0);
 		return complexIntegrator.integrate(1, tau0, -1);
-	}
-
-	@Override
-	public String getDescriptor() {
-		return "Analytical Flux Calculator";
 	}
 	
 }

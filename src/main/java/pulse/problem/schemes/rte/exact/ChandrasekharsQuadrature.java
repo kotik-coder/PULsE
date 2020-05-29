@@ -1,17 +1,18 @@
-package pulse.problem.schemes.radiation;
+package pulse.problem.schemes.rte.exact;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.math3.analysis.solvers.LaguerreSolver;
 
+import pulse.problem.schemes.rte.MathUtils;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 import pulse.search.math.Matrix;
 import pulse.search.math.Vector;
 
-public class ChandrasekharsQuadrature extends SpecialIntegrator {
+public class ChandrasekharsQuadrature extends SimpsonsRule {
 
 	private int m;
 	private double expLower, expUpper;
@@ -40,7 +41,7 @@ public class ChandrasekharsQuadrature extends SpecialIntegrator {
 			tdim = roots[i]/tau0;
 			floor = (int) ( tdim/hx ); //floor index
 			alpha = tdim/hx - floor;
-			f[i] = emissionFunction.function( (1.0 - alpha)*U[floor] + alpha*U[floor+1] ); 
+			f[i] = emissionFunction.power( (1.0 - alpha)*U[floor] + alpha*U[floor+1] ); 
 		}
 				
 		return new Vector(f);
@@ -63,6 +64,7 @@ public class ChandrasekharsQuadrature extends SpecialIntegrator {
 		expUpper = -Math.exp(-rMax);
 		
 		double[] roots = roots(m,n,params[A_INDEX],params[B_INDEX]);
+		
 		Vector weights = weights(m,n,roots,params[A_INDEX],params[B_INDEX]);
 		
 		return f(n, roots, params[A_INDEX], params[B_INDEX]).dot(weights)/params[B_INDEX];
@@ -268,12 +270,7 @@ public class ChandrasekharsQuadrature extends SpecialIntegrator {
 		list.add(NumericProperty.def(NumericPropertyKeyword.QUADRATURE_POINTS));
 		return list;				
 	}
-	
-	@Override
-	public String getDescriptor() {
-		return "Chandrasekhar's Quadrature";
-	}
-	
+		
 	@Override
 	public String toString() {
 		return getDescriptor() + " : " + getQuadraturePoints() + " ; " + getCutoff();

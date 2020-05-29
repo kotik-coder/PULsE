@@ -18,7 +18,7 @@ import pulse.ui.Messages;
 public class NonlinearProblem extends Problem {
 	
 	protected double T;
-	private double emissivity;
+	protected double emissivity;
 	
 	protected final static double STEFAN_BOTLZMAN = 5.6703E-08; //Stephan-Boltzmann constant
 	
