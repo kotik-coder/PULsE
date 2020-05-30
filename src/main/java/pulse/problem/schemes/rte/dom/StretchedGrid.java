@@ -1,14 +1,10 @@
 package pulse.problem.schemes.rte.dom;
 
-import java.util.Arrays;
-
 public class StretchedGrid {
 
 	private double[] nodes;
-	private LegendrePoly generatingPolynom;
-	
 	private final static double STRETCHING_FACTOR = 1.0;
-	private final static int GRID_DENSITY = 16;
+	private final static int GRID_DENSITY = 8;
 	
 	private double stretchingFactor;
 	private double dimension;
@@ -55,19 +51,6 @@ public class StretchedGrid {
 		//apply stretching function
 		for(int i = 0; i < uniform.length; i++) 
 			nodes[i] = dimension*sinh(uniform[i], stretchingFactor);
-		
-	}
-	
-	private void generateLobatto(int n, double dimension) { 
-		generatingPolynom = new LobattoQuadrature(n);
-		generatingPolynom.init();
-		int N = generatingPolynom.getRoots().length;
-		nodes = new double[N];
-		
-		for(int i = 0; i < N; i++)
-			nodes[i] = 0.5*(generatingPolynom.getRoots()[i] + 1.0)*dimension;
-
-		Arrays.sort(nodes);
 		
 	}
 	
@@ -131,6 +114,10 @@ public class StretchedGrid {
 	
 	public double step(int i, double sign) {
 		return nodes[i + (int) ((1. + sign)*0.5)] - nodes[i - (int) ((1. - sign)*0.5)];
+	}
+
+	public double getDimension() {
+		return dimension;
 	}
 
 }

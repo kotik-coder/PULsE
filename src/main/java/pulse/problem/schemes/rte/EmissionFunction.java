@@ -9,15 +9,27 @@ public class EmissionFunction {
 
 	protected double tFactor;
 	protected double hx;
+	private int nT;
 	
 	public EmissionFunction(NonlinearProblem p, Grid grid) {
 		init(p);
 		this.hx = grid.getXStep();
+		this.nT = (int)grid.getGridDensity().getValue();
 	}
 	
 	public EmissionFunction(double tFactor, double hx) {
 		this.tFactor = tFactor;
 		this.hx = hx;
+		this.nT = (int)(1.0/hx);
+	}
+	
+	public double J(double[] U, double x) {
+		double hx = 1.0/nT;
+		
+		int floor = (int) ( x/hx ); //floor index
+		double alpha = x/hx - floor;
+		
+		return radiance( (1.0 - alpha)*U[floor] + alpha*U[floor + 1]);
 	}
 	
 	public void init(NonlinearProblem p) {
@@ -67,6 +79,14 @@ public class EmissionFunction {
 	@Override
 	public String toString() {
 		return "[" +getClass().getSimpleName() + ": Rel. heating = " + tFactor + "]"; 
+	}
+
+	public int getGridDensity() {
+		return nT;
+	}
+
+	public void setGridDensity(int nT) {
+		this.nT = nT;
 	}
 	
 }

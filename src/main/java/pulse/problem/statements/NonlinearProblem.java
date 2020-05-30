@@ -103,7 +103,7 @@ public class NonlinearProblem extends Problem {
 		double Q	= (double)pulse.getLaserEnergy().getValue();
 		double dLas = (double)pulse.getSpotDiameter().getValue();
 		
-		evaluateDependentParameters();
+		//evaluateDependentParameters();
 		
 		return 4.0*emissivity*Q/(Math.PI*dLas*dLas*l*cP*rho);
 	}

@@ -32,7 +32,7 @@
 		auto-adjustable="true"
 		descriptor="Single-scattering albedo, &amp;omega;&lt;sub&gt;0&lt;/sub&gt;"
 		dimensionfactor="1" discreet="false" keyword="SCATTERING_ALBEDO"
-		maximum="1" minimum="0.01" primitive-type="double" value="0.01">
+		maximum="1" minimum="0.1" primitive-type="double" value="0.01">
 	</NumericProperty>
 	<NumericProperty abbreviation="&lt;i&gt;m&lt;/i&gt;"
 		auto-adjustable="true"

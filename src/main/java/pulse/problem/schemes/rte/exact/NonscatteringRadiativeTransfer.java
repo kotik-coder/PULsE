@@ -206,12 +206,12 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 	public static void main(String[] args) { 
 		
 		var problem = new ParticipatingMedium();
-		problem.setOpticalThickness(NumericProperty.derive(NumericPropertyKeyword.OPTICAL_THICKNESS, 100.0));
+		problem.setOpticalThickness(NumericProperty.derive(NumericPropertyKeyword.OPTICAL_THICKNESS, 0.1));
 		problem.setEmissivity(NumericProperty.derive(NumericPropertyKeyword.EMISSIVITY, 0.85));
 		
 		File f = null;
 		try {
-			f = new File(NonscatteringRadiativeTransfer.class.getResource("/test/TestSolution_Sharp.dat").toURI());
+			f = new File(NonscatteringRadiativeTransfer.class.getResource("/test/TestSolution.dat").toURI());
 		} catch (URISyntaxException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
