@@ -19,7 +19,7 @@ public class ButcherTableau {
 	protected Matrix coefs;
 
 	private static List<ButcherTableau> tableaux;
-	
+
 	private boolean fsal;
 
 	static {
@@ -96,7 +96,7 @@ public class ButcherTableau {
 	public String getName() {
 		return name;
 	}
-	
+
 	public boolean isFSAL() {
 		return fsal;
 	}

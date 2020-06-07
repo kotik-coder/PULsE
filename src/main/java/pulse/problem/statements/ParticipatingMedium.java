@@ -8,7 +8,6 @@ import static pulse.properties.NumericPropertyKeyword.SCATTERING_ANISOTROPY;
 import java.util.List;
 
 import pulse.input.ExperimentalData;
-import pulse.problem.schemes.rte.MathUtils;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;

@@ -101,18 +101,18 @@ public class LegendrePoly {
 		return poly;
 
 	}
-	
+
 	public double[] roots() {
 		var complexRoots = solver.solveAllComplex(c, 1.0);
 		var roots = new double[n];
-		
+
 		// the last roots is always zero, so we have n non-zero roots in total
 		// in case of even n, the first n/2 roots are positive and the rest are negative
 		for (int i = 0; i < n; i++) {
 			roots[i] = complexRoots[i].getReal();
 			System.out.println(roots[i]);
 		}
-		
+
 		return roots;
 
 	}

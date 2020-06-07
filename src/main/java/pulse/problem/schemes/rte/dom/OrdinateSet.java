@@ -16,7 +16,7 @@ public class OrdinateSet {
 
 	private static List<OrdinateSet> allSets;
 	private boolean hasZeroNode;
-	
+
 	private int firstPositiveNode, firstNegativeNode;
 
 	static {
@@ -51,25 +51,25 @@ public class OrdinateSet {
 		this.name = name;
 		this.mu = mu;
 		this.w = w;
-		
-		if( ! approximatelyEquals(summedWeights(), 2.0) )
+
+		if (!approximatelyEquals(summedWeights(), 2.0))
 			throw new IllegalStateException("Summed quadrature weights != 2.0");
-		
+
 		hasZeroNode = Double.compare(mu[0], 0.0) == 0;
-		
+
 		firstPositiveNode = 0;
-		firstNegativeNode = mu.length/2;
-		
-		if(hasZeroNode) {
+		firstNegativeNode = mu.length / 2;
+
+		if (hasZeroNode) {
 			firstPositiveNode += 1;
 			firstNegativeNode += 1;
 		}
-			
+
 	}
-	
+
 	private static boolean approximatelyEquals(double a, double b) {
 		final double tolerance = 1E-5;
-		return Math.abs(a - b) < tolerance; 		
+		return Math.abs(a - b) < tolerance;
 	}
 
 	public String getName() {

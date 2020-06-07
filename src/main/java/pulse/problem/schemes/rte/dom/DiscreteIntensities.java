@@ -9,10 +9,10 @@ public class DiscreteIntensities {
 	protected double[][] I;
 	protected double[] mu;
 	protected double[] w;
-	
+
 	protected double[] localFlux, localFluxDerivative;
 	protected double[] storedF, storedFD;
-	
+
 	protected int n;
 
 	protected StretchedGrid grid;
@@ -25,11 +25,11 @@ public class DiscreteIntensities {
 	public DiscreteIntensities(double opticalThickness) {
 		quadratureSet = OrdinateSet.DEFAULT_SET;
 
-		this.mu	= quadratureSet.getNodes();
-		this.w	= quadratureSet.getWeights();
+		this.mu = quadratureSet.getNodes();
+		this.w = quadratureSet.getWeights();
 
-		this.n		= mu.length;
-		this.grid	= new StretchedGrid(opticalThickness);
+		this.n = mu.length;
+		this.grid = new StretchedGrid(opticalThickness);
 
 		this.reinitInternalArrays();
 	}
@@ -37,13 +37,13 @@ public class DiscreteIntensities {
 	public void clear() {
 		for (int i = 0, j = 0, N = grid.getDensity() + 1; i < n; i++)
 			for (j = 0; j < N; j++)
-				I[i][j] = 0;
+				I[j][i] = 0;
 		clearBoundaryFluxes();
 	}
 
 	public void clearBoundaryFluxes() {
-		qLeft	= 0.0;
-		qRight	= 0.0;
+		qLeft = 0.0;
+		qRight = 0.0;
 	}
 
 	public void fluxes() {
@@ -52,7 +52,7 @@ public class DiscreteIntensities {
 		for (int i = 0; i < N + 1; i++)
 			localFlux[i] = DOUBLE_PI * q(i);
 	}
-	
+
 	public void fluxDerivatives() {
 		int N = grid.getDensity();
 		localFluxDerivative[0] = (localFlux[0] - localFlux[1]) / grid.stepRight(0);
@@ -64,18 +64,18 @@ public class DiscreteIntensities {
 
 	public double g(int j) {
 		double integral = 0;
-		
+
 		final int nHalf = quadratureSet.getFirstNegativeNode();
 		final int nStart = quadratureSet.getFirstPositiveNode();
 
 		for (int i = nStart; i < nHalf; i++)
-			integral += w[i] * ( I[i][j] + I[i + nHalf][j] );
+			integral += w[i] * (I[j][i] + I[j][i + nHalf]);
 
-		if(quadratureSet.hasZeroNode())
-			integral += w[0] * I[0][j];
-		
-		return integral;	
-		
+		if (quadratureSet.hasZeroNode())
+			integral += w[0] * I[j][0];
+
+		return integral;
+
 	}
 
 	/**
@@ -90,20 +90,20 @@ public class DiscreteIntensities {
 		double integral = 0;
 
 		for (int i = startInclusive; i < endExclusive; i++)
-			integral += w[i] * I[i][j];
+			integral += w[i] * I[j][i];
 
 		return integral;
 
 	}
-	
+
 	public double q(int j) {
 		double integral = 0;
 
 		final int nHalf = quadratureSet.getFirstNegativeNode();
 		final int nStart = quadratureSet.getFirstPositiveNode();
-		
+
 		for (int i = nStart; i < nHalf; i++)
-			integral += w[i] * ( I[i][j] - I[i + nHalf][j] ) * mu[i];
+			integral += w[i] * (I[j][i] - I[j][i + nHalf]) * mu[i];
 
 		return integral;
 	}
@@ -112,7 +112,7 @@ public class DiscreteIntensities {
 		double integral = 0;
 
 		for (int i = startInclusive; i < endExclusive; i++)
-			integral += w[i] * I[i][j] * mu[i];
+			integral += w[i] * I[j][i] * mu[i];
 
 		return integral;
 	}
@@ -138,39 +138,38 @@ public class DiscreteIntensities {
 	 * at the left boundary (tau = 0).
 	 */
 
-	public void left(double[] uExtended, EmissionFunction ef) {
+	public void left(EmissionFunction ef) {
 
 		final int nHalf = quadratureSet.getFirstNegativeNode();
 		final int nStart = quadratureSet.getFirstPositiveNode();
-		
+
 		for (int i = nStart; i < nHalf; i++) // for positive streams
-			I[i][0] = ef.radiance(uExtended[0]) - boundaryFluxFactor * qLeft(ef, uExtended);
-			
+			I[0][i] = ef.J(0.0) - boundaryFluxFactor * qLeft(ef);
+
 	}
 
-	private double qLeft(EmissionFunction emissionFunction, double[] uExtended) {
+	private double qLeft(EmissionFunction emissionFunction) {
 		final int nHalf = quadratureSet.getFirstNegativeNode();
-		return qLeft = emissivity * (emissionFunction.power(uExtended[0]) 
-				 	 + DOUBLE_PI * q(0, nHalf, n));
+		return qLeft = emissivity * (Math.PI * emissionFunction.J(0.0) + DOUBLE_PI * q(0, nHalf, n));
 	}
 
-	private double qRight(EmissionFunction emissionFunction, double[] uExtended) {
+	private double qRight(EmissionFunction emissionFunction) {
 		final int nHalf = quadratureSet.getFirstNegativeNode();
 		final int nStart = quadratureSet.getFirstPositiveNode();
-		return qRight = -emissivity * (emissionFunction.power(uExtended[uExtended.length - 2]) 
-					  - DOUBLE_PI * q(grid.getDensity(), nStart, nHalf));
+		return qRight = -emissivity
+				* (Math.PI * emissionFunction.J(grid.getDimension()) - DOUBLE_PI * q(grid.getDensity(), nStart, nHalf));
 	}
 
 	public void reinitInternalArrays() {
 		int N = grid.getDensity() + 1;
-		
-		I = new double[n][N];
-		
-		localFlux			= new double[N];
+
+		I = new double[N][n];
+
+		localFlux = new double[N];
 		localFluxDerivative = new double[N];
-		
-		storedF		= new double[N];
-		storedFD	= new double[N];
+
+		storedF = new double[N];
+		storedFD = new double[N];
 	}
 
 	/**
@@ -178,16 +177,15 @@ public class DiscreteIntensities {
 	 * at the right boundary (tau = tau_0).
 	 */
 
-	public void right(double[] uExtended, EmissionFunction ef) {
+	public void right(EmissionFunction ef) {
 
-		int nT	= uExtended.length - 2;
-		int N	= grid.getDensity();
-		
+		int N = grid.getDensity();
+
 		final int nHalf = quadratureSet.getFirstNegativeNode();
-		
+
 		for (int i = nHalf; i < n; i++) // for negative streams
-			I[i][N] = ef.radiance(uExtended[nT]) + boundaryFluxFactor * qRight(ef, uExtended);
-		
+			I[N][i] = ef.J(grid.getDimension()) + boundaryFluxFactor * qRight(ef);
+
 	}
 
 	public void setEmissivity(double emissivity) {
@@ -197,7 +195,7 @@ public class DiscreteIntensities {
 
 	public void setOpticalThickness(double tau0) {
 		this.grid = new StretchedGrid(tau0);
-		this.I = new double[n][grid.getDensity() + 1];
+		this.I = new double[grid.getDensity() + 1][n];
 	}
 
 	public void store() {

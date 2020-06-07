@@ -38,7 +38,7 @@ public class StretchedGrid {
 
 		// apply stretching function
 		for (int i = 0; i < uniform.length; i++)
-			nodes[i] = dimension * sinh(uniform[i], stretchingFactor);
+			nodes[i] = dimension * tanh(uniform[i], stretchingFactor);
 	}
 
 	public void generateUniform(int n, boolean scaled) {

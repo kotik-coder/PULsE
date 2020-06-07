@@ -2,6 +2,8 @@ package pulse.problem.schemes.rte;
 
 import static pulse.problem.schemes.rte.MathUtils.fastPowLoop;
 
+import org.apache.commons.math3.analysis.UnivariateFunction;
+
 import pulse.problem.schemes.Grid;
 import pulse.problem.statements.NonlinearProblem;
 
@@ -9,26 +11,21 @@ public class EmissionFunction {
 
 	protected double tFactor;
 	protected double hx;
-	private int nT;
+	
+	private UnivariateFunction interpolation;
 
 	public EmissionFunction(NonlinearProblem p, Grid grid) {
 		init(p);
 		this.hx = grid.getXStep();
-		this.nT = (int) grid.getGridDensity().getValue();
 	}
 
 	public EmissionFunction(double tFactor, double hx) {
 		this.tFactor = tFactor;
 		this.hx = hx;
-		this.nT = (int) (1.0 / hx);
 	}
 
-	public double J(double[] U, double x) {
-		double hx = 1.0 / nT;
-
-		int floor = (int) (x / hx); // floor index
-		double alpha = x / hx - floor;
-		return radiance((1.0 - alpha) * U[floor] + alpha * U[floor + 1]);
+	public double J(double x) {
+		return radiance( interpolation.value(x) );
 	}
 
 	public void init(NonlinearProblem p) {
@@ -80,12 +77,12 @@ public class EmissionFunction {
 		return "[" + getClass().getSimpleName() + ": Rel. heating = " + tFactor + "]";
 	}
 
-	public int getGridDensity() {
-		return nT;
+	public UnivariateFunction getInterpolation() {
+		return interpolation;
 	}
 
-	public void setGridDensity(int nT) {
-		this.nT = nT;
+	public void setInterpolation(UnivariateFunction interpolation) {
+		this.interpolation = interpolation;
 	}
 
 }

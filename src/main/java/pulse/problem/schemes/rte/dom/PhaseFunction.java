@@ -12,19 +12,27 @@ public abstract class PhaseFunction {
 	public double integrate(int i, int j) {
 		return integratePartial(i, j, 0, intensities.n);
 	}
-	
+
 	public double integrateWithoutPoint(int i, int j, int index) {
 		return integratePartial(i, j, 0, index) + integratePartial(i, j, index + 1, intensities.n);
 	}
-	
+
 	public double integratePartial(int i, int j, int kStart, int kEndExclusive) {
 		double result = 0;
 		
-		for (int k = kStart; k < kEndExclusive; k++)
-			result += intensities.w[k] * intensities.I[k][j] * function(i, k);
+		for (int k = kStart; k < kEndExclusive; k++) 
+	 		result += intensities.w[k] * intensities.I[j][k] * function(i, k);
 		return result;
 	}
 	
+	public double integratePartial(int i, double I, int kStart, int kEndExclusive) {
+		double result = 0;
+
+		for (int k = kStart; k < kEndExclusive; k++)
+			result += intensities.w[k] * I * function(i, k);
+		return result;
+	}
+
 	public abstract double function(int i, int k);
 
 	public double getAnisotropyFactor() {

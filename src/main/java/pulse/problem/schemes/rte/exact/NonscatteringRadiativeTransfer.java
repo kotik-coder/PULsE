@@ -204,7 +204,7 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 	public static void main(String[] args) {
 
 		var problem = new ParticipatingMedium();
-		problem.setOpticalThickness(NumericProperty.derive(NumericPropertyKeyword.OPTICAL_THICKNESS, 100.0));
+		problem.setOpticalThickness(NumericProperty.derive(NumericPropertyKeyword.OPTICAL_THICKNESS, 1.0));
 		problem.setEmissivity(NumericProperty.derive(NumericPropertyKeyword.EMISSIVITY, 0.85));
 
 		File f = null;
@@ -249,10 +249,10 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 
 		rte.complexIntegrator.U = U;
 		rte.complexIntegrator.setRange(0, 0);
-		double I_1 = rte.complexIntegrator.integrate(2, 0, -1.0);
+		//double I_1 = rte.complexIntegrator.integrate(2, 0, -1.0);
 
 		rte.complexIntegrator.setRange(0, rte.tau0);
-		double I_2 = rte.complexIntegrator.integrate(2, 0.0, 1.0);
+		//double I_2 = rte.complexIntegrator.integrate(2, 0.0, 1.0);
 
 		simpleIntegrator.integralAt(0.0, 3);
 		simpleIntegrator.integralAt(rte.tau0, 3);

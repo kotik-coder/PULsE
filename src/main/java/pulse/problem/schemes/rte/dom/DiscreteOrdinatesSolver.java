@@ -57,23 +57,23 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 
 		var rte = new DiscreteOrdinatesSolver(problem, grid);
 		rte.integrator.emissionFunction.setReductionFactor(tFactor);
-		rte.integrator.setAlbedo(0.5);
-		rte.integrator.ipf.setAnisotropyFactor(0.5);
+		rte.integrator.setAlbedo(0.4);
+		rte.integrator.ipf.setAnisotropyFactor(0.9);
 		rte.compute(U);
 
-		for(int i = 0; i < rte.discrete.n; i++)
-			System.out.println(rte.discrete.I[i][rte.getExternalGridDensity()]);
-		
+		for (int i = 0; i < rte.discrete.n; i++)
+			System.out.println(rte.discrete.I[rte.getExternalGridDensity()][i]);
+
 		System.out.printf("%n%2.4f %4.5f %4.5f", rte.discrete.grid.getNode(0), rte.getFlux(0),
 				rte.getFluxDerivativeFront());
 
 		for (int i = 1; i < U.length - 1; i++)
 			System.out.printf("%n%2.4f %4.5f %4.5f", i * (1.0 / (U.length - 1) * rte.getOpticalThickness()),
 					rte.getFlux(i), rte.getFluxDerivative(i));
-		
+
 		System.out.printf("%n%2.4f %4.5f %4.5f", (U.length - 1) * (1.0 / (U.length - 1) * rte.getOpticalThickness()),
-				rte.getFlux( (U.length - 1) ), rte.getFluxDerivativeRear());
-		
+				rte.getFlux((U.length - 1)), rte.getFluxDerivativeRear());
+
 	}
 
 	private double iterationError;
@@ -82,6 +82,7 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 	private NumericIntegrator integrator;
 
 	private DiscreteIntensities discrete;
+	private int nT;
 
 	/**
 	 * Constructs a discrete ordinates solver using the parameters (emissivity,
@@ -106,25 +107,40 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 
 		discrete = new DiscreteIntensities((double) problem.getOpticalThickness().getValue());
 		ipf = new HenyeyGreensteinIPF(discrete);
-		integrator = new TRBDF2(discrete, emissionFunction, ipf);
+		integrator = new EmbeddedRK(discrete, emissionFunction, ipf);
 
 		interpolator = new SplineInterpolator();
 
 		init(problem, grid);
 	}
 
-	private double[] arrayWithExtraPoint(final double[] tempArray) {
-		double[] uExtended = new double[tempArray.length + 1]; // create an array with an extra element to avoid
-																// conditional statements in the source(...) method
-		System.arraycopy(tempArray, 0, uExtended, 0, tempArray.length); // copy all elements
-		uExtended[tempArray.length] = uExtended[tempArray.length - 1]; // copy the last element
-		return uExtended;
+//	private double[] arrayWithExtraPoint(final double[] tempArray) {
+//		double[] uExtended = new double[tempArray.length + 1]; // create an array with an extra element to avoid
+//																// conditional statements in the source(...) method
+//		System.arraycopy(tempArray, 0, uExtended, 0, tempArray.length); // copy all elements
+//		uExtended[tempArray.length] = uExtended[tempArray.length - 1]; // copy the last element
+//		return uExtended;
+//	}
+
+	private void temperatureInterpolation(double[] tempArray) {
+		nT = tempArray.length - 1;
+
+		double[] xArray = new double[nT + 1];
+		double h = 1.0 / nT;
+		double tau0 = discrete.grid.getDimension();
+
+		for (int i = 0; i < xArray.length; i++)
+			xArray[i] = tau0 * i * h;
+
+		var interpolator = new SplineInterpolator();
+		UnivariateFunction function = interpolator.interpolate(xArray, tempArray);
+		integrator.emissionFunction.setInterpolation(function);
 	}
 
 	@Override
 	public void compute(double[] tempArray) {
 
-		integrator.setTemperatureArray(arrayWithExtraPoint(tempArray));
+		temperatureInterpolation(tempArray);
 		discrete.clear();
 
 		for (double iterationErrorSq = iterationError * iterationError, ql = 1, qr = 1; (MathUtils
@@ -145,10 +161,9 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 
 	public void fluxes() {
 		discrete.fluxes();
-		
-		int N		= discrete.grid.getDensity();
-		double hx	= integrator.emissionFunction.getGridStep();
-		int nT		= integrator.uExtended.length - 2;
+
+		int N = discrete.grid.getDensity();
+		double hx = integrator.emissionFunction.getGridStep();
 
 		setFlux(0, discrete.localFlux[0]);
 
@@ -222,11 +237,11 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 		ipf.setAnisotropyFactor((double) problem.getScatteringAnisostropy().getValue());
 		discrete.setEmissivity(problem.getEmissivity());
 		integrator.init(problem, grid);
-		
+
 		super.reinitArrays((int) grid.getGridDensity().getValue());
-		discrete.grid.setDimension( (double) problem.getOpticalThickness().getValue() );
+		discrete.grid.setDimension((double) problem.getOpticalThickness().getValue());
 		discrete.grid.generateUniform(StretchedGrid.DEFAULT_GRID_DENSITY, true);
-		
+
 	}
 
 	@Override
