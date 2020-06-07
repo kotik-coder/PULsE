@@ -6,9 +6,9 @@ public class PearsonCorrelation extends CorrelationTest {
 
 	@Override
 	public double evaluate(double[] x, double[] y) {
-		return (new PearsonsCorrelation()).correlation(x,y);
+		return (new PearsonsCorrelation()).correlation(x, y);
 	}
-	
+
 	@Override
 	public String getDescriptor() {
 		return "Pearson's Product-Moment Correlation";

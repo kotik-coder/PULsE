@@ -13,15 +13,23 @@ import pulse.util.ImmutableDataEntry;
 
 /**
  * A {@code DatasetReader} capable of reading {@code .tbl} files.
- * <p> The format of these files is simply two tab-delimited numeric column. The first column represents the
- * 'keys', and the second -- the corresponding 'values'. </p>
- * <p>Specific heat capacity and density at different temperatures can be read as 
- * ASCII files with a .tbl suffix, where the first column is temperature 
- * (in degrees Celsius) and the second column is the specific heat capacity 
- * (in J kg<sup>-1</sup> K<sup>-1</sup>) or density (in kg m<sup>-3</sup>).
+ * <p>
+ * The format of these files is simply two tab-delimited numeric column. The
+ * first column represents the 'keys', and the second -- the corresponding
+ * 'values'.
  * </p>
- * <p>Below is an example of a valid {@code .tbl} file:</p>
- * <pre><code>
+ * <p>
+ * Specific heat capacity and density at different temperatures can be read as
+ * ASCII files with a .tbl suffix, where the first column is temperature (in
+ * degrees Celsius) and the second column is the specific heat capacity (in J
+ * kg<sup>-1</sup> K<sup>-1</sup>) or density (in kg m<sup>-3</sup>).
+ * </p>
+ * <p>
+ * Below is an example of a valid {@code .tbl} file:
+ * </p>
+ * 
+ * <pre>
+ * <code>
  * -273	11000.00
  * 0	10959.84
  * 50	10943.82
@@ -35,57 +43,56 @@ import pulse.util.ImmutableDataEntry;
  * 450	10814.93
  * 500	10798.58
  * 550	10782.14
- </code></pre>
+ </code>
+ * </pre>
  */
 
 public class TBLReader implements DatasetReader {
-	
+
 	private static DatasetReader instance = new TBLReader();
-	
-	private TBLReader() {}
+
+	private TBLReader() {
+	}
 
 	/**
 	 * @return a String equal to '{@code tbl}'
 	 */
-	
+
 	@Override
 	public String getSupportedExtension() {
 		return Messages.getString("TBLReader.0");
 	}
-	
+
 	/**
 	 * As this class is built using a singleton pattern, only one instance exists.
+	 * 
 	 * @return the static instance of this class
 	 */
 
 	public static DatasetReader getInstance() {
 		return instance;
 	}
-	
+
 	@Override
 	public InterpolationDataset read(File file) throws IOException {
-			Objects.requireNonNull(file, Messages.getString("TBLReader.1")); 
-			
-			InterpolationDataset curve = new InterpolationDataset();
-			
-			BufferedReader reader = new BufferedReader(new FileReader(file));
-			String delims = Messages.getString("TBLReader.2"); 
-			StringTokenizer tokenizer;
-			
-			for(String line = reader.readLine(); line != null; line = reader.readLine()) {
-				tokenizer = new StringTokenizer(line);
-				curve.add(
-						new ImmutableDataEntry<Double,Double>(
-						Double.parseDouble(tokenizer.nextToken(delims)), 
-						Double.parseDouble(tokenizer.nextToken(delims)))
-						);
-			}
-			
-			reader.close();
-			
-			return curve;
-					
-	}
+		Objects.requireNonNull(file, Messages.getString("TBLReader.1"));
 
+		InterpolationDataset curve = new InterpolationDataset();
+
+		BufferedReader reader = new BufferedReader(new FileReader(file));
+		String delims = Messages.getString("TBLReader.2");
+		StringTokenizer tokenizer;
+
+		for (String line = reader.readLine(); line != null; line = reader.readLine()) {
+			tokenizer = new StringTokenizer(line);
+			curve.add(new ImmutableDataEntry<Double, Double>(Double.parseDouble(tokenizer.nextToken(delims)),
+					Double.parseDouble(tokenizer.nextToken(delims))));
+		}
+
+		reader.close();
+
+		return curve;
+
+	}
 
 }

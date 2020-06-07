@@ -46,222 +46,215 @@ public class PropertyHolderTable extends JTable {
 	private PropertyHolder propertyHolder;
 
 	private final static Font font = new Font(Messages.getString("PropertyHolderTable.FontName"), Font.BOLD, 12);
-	private	final static int ROW_HEIGHT = 40;
-	
+	private final static int ROW_HEIGHT = 40;
+
 	private TableRowSorter<DefaultTableModel> sorter;
-	
+
 	public PropertyHolderTable(PropertyHolder p) {
 		super();
-		
-		this.propertyHolder = p;				
-		
+
+		this.propertyHolder = p;
+
 		DefaultTableModel model = new DefaultTableModel(dataArray(p),
-				new String[] {Messages.getString("PropertyHolderTable.ParameterColumn"), Messages.getString("PropertyHolderTable.ValueColumn")} //$NON-NLS-1$ //$NON-NLS-2$
-				);
-		
+				new String[] { Messages.getString("PropertyHolderTable.ParameterColumn"), //$NON-NLS-1$
+						Messages.getString("PropertyHolderTable.ValueColumn") } //$NON-NLS-1$
+		);
+
 		setModel(model);
-		
+
 		setAutoResizeMode(AUTO_RESIZE_ALL_COLUMNS);
-	
+
 		setShowGrid(false);
 		setFont(font);
-		setRowHeight(ROW_HEIGHT);	
-		
+		setRowHeight(ROW_HEIGHT);
+
 		sorter = new TableRowSorter<DefaultTableModel>();
 		sorter.setModel(model);
-		ArrayList<SortKey> list	= new ArrayList<SortKey>();
-	    list.add( new SortKey(0, SortOrder.ASCENDING) );
-	    sorter.setSortKeys(list);		
+		ArrayList<SortKey> list = new ArrayList<SortKey>();
+		list.add(new SortKey(0, SortOrder.ASCENDING));
+		sorter.setSortKeys(list);
 		sorter.sort();
-		
+
 		setRowSorter(sorter);
-		
+
 		/*
 		 * Update properties of the PropertyHolder when table is changed by the user
 		 */
-		
+
 		final PropertyHolderTable reference = this;
-		
+
 		model.addTableModelListener(new TableModelListener() {
 
 			@Override
 			public void tableChanged(TableModelEvent e) {
-				int row    = e.getFirstRow();
-		        int column = e.getColumn();		        
-				
-		        if( (row < 0) || (column < 0)) 
-					return;	
-		      
-				Object changedObject = (((DefaultTableModel)e.getSource()).getValueAt(row, column));
-				
-				if(changedObject instanceof Property) {
-					Property changedProperty = (Property)changedObject;	
+				int row = e.getFirstRow();
+				int column = e.getColumn();
+
+				if ((row < 0) || (column < 0))
+					return;
+
+				Object changedObject = (((DefaultTableModel) e.getSource()).getValueAt(row, column));
+
+				if (changedObject instanceof Property) {
+					Property changedProperty = (Property) changedObject;
 					propertyHolder.updateProperty(reference, changedProperty);
 				}
-				
+
 				else {
-					
-					//try to find property by name
-					Object propertyName = (((DefaultTableModel)e.getSource()).getValueAt(row, column - 1));
-					if(propertyName != null) {
-						Optional<Property> potentialChangedProperty = reference.getPropertyHolder().genericProperties().stream().
-						 		filter( p -> p.getDescriptor(true).equals( propertyName ) 
-						 				|| p.getClass().getSimpleName().equals( propertyName ) )
-						 					.findAny();
-						
-						if( potentialChangedProperty.isEmpty() )
-								return;
+
+					// try to find property by name
+					Object propertyName = (((DefaultTableModel) e.getSource()).getValueAt(row, column - 1));
+					if (propertyName != null) {
+						Optional<Property> potentialChangedProperty = reference.getPropertyHolder().genericProperties()
+								.stream().filter(p -> p.getDescriptor(true).equals(propertyName)
+										|| p.getClass().getSimpleName().equals(propertyName))
+								.findAny();
+
+						if (potentialChangedProperty.isEmpty())
+							return;
 						else {
 							Property changedProperty = potentialChangedProperty.get();
-							
-							if(changedProperty.attemptUpdate(changedObject)) {
-							
-								propertyHolder.update(changedProperty);		
+
+							if (changedProperty.attemptUpdate(changedObject)) {
+
+								propertyHolder.update(changedProperty);
 								propertyHolder.notifyListeners(reference, changedProperty);
-								
+
 							}
-							
+
 						}
-						
+
 					}
-					
+
 				}
-				
+
 			}
-			
+
 		});
-		
+
 		addListeners();
-		
+
 	}
-	
+
 	private void addListeners() {
-		if(propertyHolder == null)
+		if (propertyHolder == null)
 			return;
-		
-		propertyHolder.addListener( 
-					event -> { 
-						if(! (event.getSource() instanceof PropertyHolderTable))
-							updateTable(); } 
-				);		
-		
+
+		propertyHolder.addListener(event -> {
+			if (!(event.getSource() instanceof PropertyHolderTable))
+				updateTable();
+		});
+
 	}
-	
+
 	private Object[][] dataArray(PropertyHolder p) {
-		if(p == null) 
+		if (p == null)
 			return null;
-	
+
 		List<Object[]> dataList = new ArrayList<Object[]>();
-		
-		var data = ( (PropertyHolder)p ).data();
-		
+
+		var data = p.data();
+
 		Property property;
 
-		for(Iterator<Property> it = data.iterator(); it.hasNext(); ) {
+		for (Iterator<Property> it = data.iterator(); it.hasNext();) {
 			property = it.next();
-			dataList.add(new Object[] {
-							property.getDescriptor(true),
-							property
-							});
-			}
-		
-		if(p.ignoreSiblings())
+			dataList.add(new Object[] { property.getDescriptor(true), property });
+		}
+
+		if (p.ignoreSiblings())
 			return dataList.toArray(new Object[dataList.size()][2]);
 
-		List<Group> internalHolders = p.subgroups();	
-		
+		List<Group> internalHolders = p.subgroups();
+
 		PropertyHolder propertyHolder;
-		
-		for(Group g : internalHolders) {
-			if(g instanceof PropertyHolder) {
+
+		for (Group g : internalHolders) {
+			if (g instanceof PropertyHolder) {
 				propertyHolder = (PropertyHolder) g;
-				dataList.add(new Object[] { 
-								propertyHolder.getPrefix() != null ? 
-										propertyHolder.getPrefix() : propertyHolder.getDescriptor(),
-								propertyHolder});
+				dataList.add(new Object[] { propertyHolder.getPrefix() != null ? propertyHolder.getPrefix()
+						: propertyHolder.getDescriptor(), propertyHolder });
 			}
 		}
-				
+
 		return dataList.toArray(new Object[dataList.size()][2]);
-		
+
 	}
-	
+
 	public void setPropertyHolder(PropertyHolder propertyHolder) {
 		this.propertyHolder = propertyHolder;
-		if(propertyHolder != null)
+		if (propertyHolder != null)
 			updateTable();
 		addListeners();
 	}
-	
-	public void updateTable() {				
-		if(propertyHolder == null)
+
+	public void updateTable() {
+		if (propertyHolder == null)
 			return;
-				
+
 		this.editCellAt(-1, -1);
-		this.clearSelection();		
-			
+		this.clearSelection();
+
 		DefaultTableModel model = ((DefaultTableModel) getModel());
-		model.setDataVector(dataArray(propertyHolder), new String[]{model.getColumnName(0), model.getColumnName(1)});
-	
+		model.setDataVector(dataArray(propertyHolder), new String[] { model.getColumnName(0), model.getColumnName(1) });
+
 		sorter.sort();
-		
+
 	}
-	
+
 	@Override
 	public TableCellEditor getCellEditor(int row, int column) {
-	   
-		Object value = super.getValueAt(row, column);
-	   
-	   if(value != null) {			   
-		  
-		   //do not edit labels
-		   
-		  if(value instanceof String) 
-			  return null;		
-		  
-		  if(value instanceof NumericProperty)
-			  return new NumberEditor( (NumericProperty) value);
-		  
-		  if(value instanceof JComboBox) 
-	          return new DefaultCellEditor((JComboBox<?>)value);
-		  
-	      if(value instanceof Enum) 
-	    	  return new DefaultCellEditor(new JComboBox<Object>(((Enum<?>)value).getDeclaringClass().getEnumConstants()));
-	
-	      if(value instanceof InstanceDescriptor) 
-	    	  return new DefaultCellEditor(new JComboBox<Object>(
-	    			  ((InstanceDescriptor<?>)value).getAllDescriptors().toArray() )
-	    			  );
-	      
-	      if((value instanceof PropertyHolder)) 
-	    	  return new ButtonEditor( 
-	    			  (AbstractButton) getCellRenderer(row, column).getTableCellRendererComponent(this, value, false, false, row, column),
-	    			  (PropertyHolder)value);	      
-	      
-	      if(value instanceof Flag)
-	    	  return new ButtonEditor((IconCheckBox) getCellRenderer(row, column).getTableCellRendererComponent(this, value, false, false, row, column)
-	    			  , ((Flag)value).getType() );	    	  	      
 
-	      return getDefaultEditor(value.getClass());
-	      
-	   }
-	   
-	   return super.getCellEditor(row, column);
-	   
+		Object value = super.getValueAt(row, column);
+
+		if (value != null) {
+
+			// do not edit labels
+
+			if (value instanceof String)
+				return null;
+
+			if (value instanceof NumericProperty)
+				return new NumberEditor((NumericProperty) value);
+
+			if (value instanceof JComboBox)
+				return new DefaultCellEditor((JComboBox<?>) value);
+
+			if (value instanceof Enum)
+				return new DefaultCellEditor(
+						new JComboBox<Object>(((Enum<?>) value).getDeclaringClass().getEnumConstants()));
+
+			if (value instanceof InstanceDescriptor)
+				return new DefaultCellEditor(
+						new JComboBox<Object>(((InstanceDescriptor<?>) value).getAllDescriptors().toArray()));
+
+			if ((value instanceof PropertyHolder))
+				return new ButtonEditor((AbstractButton) getCellRenderer(row, column)
+						.getTableCellRendererComponent(this, value, false, false, row, column), (PropertyHolder) value);
+
+			if (value instanceof Flag)
+				return new ButtonEditor((IconCheckBox) getCellRenderer(row, column).getTableCellRendererComponent(this,
+						value, false, false, row, column), ((Flag) value).getType());
+
+			return getDefaultEditor(value.getClass());
+
+		}
+
+		return super.getCellEditor(row, column);
+
 	}
-	
+
 	@Override
 	public TableCellRenderer getCellRenderer(int row, int column) {
-		   
+
 		Object value = super.getValueAt(row, column);
-		
-		return value != null ? new AccessibleTableRenderer() :
-							   super.getCellRenderer(row, column);
-		  
-	}		
-	
+
+		return value != null ? new AccessibleTableRenderer() : super.getCellRenderer(row, column);
+
+	}
+
 	protected class ButtonEditor extends AbstractCellEditor implements TableCellEditor {
-		
+
 		/**
 		 * 
 		 */
@@ -269,11 +262,11 @@ public class PropertyHolderTable extends JTable {
 		AbstractButton btn;
 		PropertyHolder dat;
 		NumericPropertyKeyword type;
-				
+
 		public ButtonEditor(AbstractButton btn, PropertyHolder dat) {
-			this.btn = btn;						
+			this.btn = btn;
 			this.dat = dat;
-			
+
 			btn.addActionListener(new ActionListener() {
 
 				@Override
@@ -289,10 +282,10 @@ public class PropertyHolderTable extends JTable {
 						}
 					});
 				}
-			});			
-			
+			});
+
 		}
-		
+
 		public ButtonEditor(IconCheckBox btn, NumericPropertyKeyword index) {
 			this.btn = btn;
 			this.type = index;
@@ -303,32 +296,31 @@ public class PropertyHolderTable extends JTable {
 				public void actionPerformed(ActionEvent e) {
 					IconCheckBox source = (IconCheckBox) e.getSource();
 					source.setHorizontalAlignment(SwingConstants.CENTER);
-					((JTable) ( source.getParent()) ).getCellEditor().stopCellEditing();
+					((JTable) (source.getParent())).getCellEditor().stopCellEditing();
 				}
-				
+
 			});
-			
+
 		}
 
 		@Override
 		public Object getCellEditorValue() {
-			if(dat != null)
-				return dat;					
+			if (dat != null)
+				return dat;
 			Flag f = new Flag(type);
-			f.setValue( btn.isSelected() );
+			f.setValue(btn.isSelected());
 			return f;
 		}
 
 		@Override
 		public Component getTableCellEditorComponent(JTable arg0, Object value, boolean arg2, int arg3, int arg4) {
 			return btn;
-		}		
-		
-		
+		}
+
 	}
-	
+
 	public PropertyHolder getPropertyHolder() {
 		return propertyHolder;
 	}
-	
+
 }

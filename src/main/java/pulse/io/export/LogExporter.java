@@ -8,7 +8,7 @@ import pulse.tasks.Log;
 public class LogExporter implements Exporter<Log> {
 
 	private static LogExporter instance = new LogExporter();
-	
+
 	private LogExporter() {
 		// TODO Auto-generated constructor stub
 	}
@@ -16,10 +16,10 @@ public class LogExporter implements Exporter<Log> {
 	public static LogExporter getInstance() {
 		return instance;
 	}
-	
+
 	/**
-	 * Prints all the data contained in this {@code Log} using {@code fos}. By default, this will
-	 * output all data in an {@code html} format.
+	 * Prints all the data contained in this {@code Log} using {@code fos}. By
+	 * default, this will output all data in an {@code html} format.
 	 */
 
 	@Override
@@ -32,10 +32,10 @@ public class LogExporter implements Exporter<Log> {
 	public Class<Log> target() {
 		return Log.class;
 	}
-	
+
 	@Override
 	public Extension[] getSupportedExtensions() {
-		return new Extension[] {Extension.HTML};
+		return new Extension[] { Extension.HTML };
 	}
-	
+
 }

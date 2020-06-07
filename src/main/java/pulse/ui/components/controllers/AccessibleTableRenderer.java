@@ -14,7 +14,7 @@ import pulse.ui.components.buttons.IconCheckBox;
 import pulse.util.PropertyHolder;
 
 public class AccessibleTableRenderer extends NumericPropertyRenderer {
-	
+
 	/**
 	 * 
 	 */
@@ -23,43 +23,44 @@ public class AccessibleTableRenderer extends NumericPropertyRenderer {
 	public AccessibleTableRenderer() {
 		super();
 	}
-	
+
 	@Override
-	
-	public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-		
-		if(value instanceof NumericProperty) 
+
+	public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
+			int row, int column) {
+
+		if (value instanceof NumericProperty)
 			return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-		
-		if(value instanceof Flag) {
-			IconCheckBox btn = new IconCheckBox( (boolean)((Flag)value).getValue() );
+
+		if (value instanceof Flag) {
+			IconCheckBox btn = new IconCheckBox((boolean) ((Flag) value).getValue());
 			btn.setHorizontalAlignment(CENTER);
-			if(isSelected) 
+			if (isSelected)
 				btn.setBackground(LIGHT_BLUE);
 			else
 				btn.setBackground(Color.WHITE);
 			return btn;
 		}
-		
-		if(value instanceof PropertyHolder) {
+
+		if (value instanceof PropertyHolder) {
 			JButton button = initButton(value.toString());
-			return button;  
+			return button;
 		}
-		
-		if(value instanceof Property) {
+
+		if (value instanceof Property) {
 			JFormattedTextField jtf = initTextField(value.toString(), table.isRowSelected(row));
 			return jtf;
 		}
-		
+
 		return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-    
+
 	}
-	
+
 	private JButton initButton(String str) {
 		JButton button = new JButton(str);
 		button.setContentAreaFilled(false);
 		button.setFont(button.getFont().deriveFont(9.0f));
 		return button;
 	}
-	
-}	
+
+}

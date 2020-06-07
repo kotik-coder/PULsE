@@ -39,287 +39,276 @@ import pulse.ui.components.models.ResultTableModel;
 import pulse.util.Describable;
 
 @SuppressWarnings("serial")
-public class ResultTable extends JTable implements Describable {		
-	
-	private final static Font font = new Font(
-			Messages.getString("ResultTable.FontName"), Font.PLAIN, 12);  
-	
+public class ResultTable extends JTable implements Describable {
+
+	private final static Font font = new Font(Messages.getString("ResultTable.FontName"), Font.PLAIN, 12);
+
 	private final static int ROW_HEIGHT = 25;
-	
+
 	private NumericPropertyRenderer renderer;
 	private final static int RESULTS_HEADER_HEIGHT = 30;
-	
+
 	public ResultTable(ResultFormat fmt) {
 		super();
-		
-		renderer = new NumericPropertyRenderer();		
-		renderer.setVerticalAlignment( SwingConstants.TOP );
-		
+
+		renderer = new NumericPropertyRenderer();
+		renderer.setVerticalAlignment(SwingConstants.TOP);
+
 		ResultTableModel model = new ResultTableModel(fmt);
 		setModel(model);
 		setRowSorter(sorter());
-		
-		model.addListener(event -> setRowSorter(sorter()) );
-		
+
+		model.addListener(event -> setRowSorter(sorter()));
+
 		this.setRowHeight(ROW_HEIGHT);
 		setShowHorizontalLines(false);
 		setFillsViewportHeight(true);
-		
+
 		getTableHeader().setFont(font);
-	    
+
 		setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
-	    setRowSelectionAllowed(false);
-	    setColumnSelectionAllowed(true);
-	    
+		setRowSelectionAllowed(false);
+		setColumnSelectionAllowed(true);
+
 		Dimension headersSize = getPreferredSize();
 		headersSize.height = RESULTS_HEADER_HEIGHT;
-		getTableHeader().setPreferredSize(headersSize);		
-	    
-	    /*
-	     * Listen to TaskTable and select appropriate results when task selection changes
-	     */
-	    
-	    TaskManager.addSelectionListener(new TaskSelectionListener() {
+		getTableHeader().setPreferredSize(headersSize);
+
+		/*
+		 * Listen to TaskTable and select appropriate results when task selection
+		 * changes
+		 */
+
+		TaskManager.addSelectionListener(new TaskSelectionListener() {
 
 			@Override
 			public void onSelectionChanged(TaskSelectionEvent e) {
-				
+
 				Identifier id = e.getSelection().getIdentifier();
 				getSelectionModel().clearSelection();
-				
-				List<AbstractResult> results = ((ResultTableModel)getModel()).getResults();
+
+				List<AbstractResult> results = ((ResultTableModel) getModel()).getResults();
 				int jj = 0;
-				
-				for(AbstractResult r : results) {
-					
-					if(! (r instanceof Result) ) 
+
+				for (AbstractResult r : results) {
+
+					if (!(r instanceof Result))
 						continue;
 
-					Identifier rid = ((Result)r).identify();
-					
-					if(! rid.equals(id) )
+					Identifier rid = ((Result) r).identify();
+
+					if (!rid.equals(id))
 						continue;
-						
+
 					jj = convertRowIndexToView(results.indexOf(r));
-						
-					if(jj < -1)
+
+					if (jj < -1)
 						continue;
-						
+
 					getSelectionModel().addSelectionInterval(jj, jj);
-					scrollToSelection(jj);					
-					
+					scrollToSelection(jj);
+
 				}
-					
-			}		
-	    	
-	    });
-	    
-	    /*
-	     * Automatically add finished tasks to this result table
-	     * Automatically remove results if corresponding task is removed
-	     */
-	    
+
+			}
+
+		});
+
+		/*
+		 * Automatically add finished tasks to this result table Automatically remove
+		 * results if corresponding task is removed
+		 */
+
 		TaskManager.addTaskRepositoryListener(new TaskRepositoryListener() {
 
 			@Override
 			public void onTaskListChanged(TaskRepositoryEvent e) {
-				
-				switch(e.getState()) {
-				
-					case TASK_FINISHED :
-						SearchTask t = TaskManager.getTask(e.getId());
-						Result r = TaskManager.getResult(t);						
-						SwingUtilities.invokeLater( () -> 
-							((ResultTableModel)getModel()).addRow( r ));	
+
+				switch (e.getState()) {
+
+				case TASK_FINISHED:
+					SearchTask t = TaskManager.getTask(e.getId());
+					Result r = TaskManager.getResult(t);
+					SwingUtilities.invokeLater(() -> ((ResultTableModel) getModel()).addRow(r));
 					break;
-					case TASK_REMOVED :
-					case TASK_RESET :
-						((ResultTableModel)getModel()).removeAll( e.getId() );
-						getSelectionModel().clearSelection();						
+				case TASK_REMOVED:
+				case TASK_RESET:
+					((ResultTableModel) getModel()).removeAll(e.getId());
+					getSelectionModel().clearSelection();
 					break;
-					default:
-						break;	
-				}				
-				
+				default:
+					break;
 				}
-			
+
+			}
+
 		});
-	    
+
 	}
-	
+
 	public void clear() {
 		ResultTableModel model = (ResultTableModel) getModel();
 		model.clear();
 	}
-	
+
 	private TableRowSorter<ResultTableModel> sorter() {
-		TableRowSorter<ResultTableModel> sorter = 
-				new TableRowSorter<ResultTableModel>((ResultTableModel)getModel()); 
-	    ArrayList<RowSorter.SortKey> list = new ArrayList<SortKey>();
+		TableRowSorter<ResultTableModel> sorter = new TableRowSorter<ResultTableModel>((ResultTableModel) getModel());
+		ArrayList<RowSorter.SortKey> list = new ArrayList<SortKey>();
 		Comparator<NumericProperty> numericComparator = (i1, i2) -> i1.compareTo(i2);
 
-	    for(int i = 0; i < getColumnCount(); i++) {
-		    list.add( 
-		    		new RowSorter.SortKey(i, SortOrder.ASCENDING) 
-		    		);
-		    sorter.setComparator(i, numericComparator);
-	    }
-	    
-	    sorter.setSortKeys(list);
-	    sorter.sort();
-	    return sorter;
+		for (int i = 0; i < getColumnCount(); i++) {
+			list.add(new RowSorter.SortKey(i, SortOrder.ASCENDING));
+			sorter.setComparator(i, numericComparator);
+		}
+
+		sorter.setSortKeys(list);
+		sorter.sort();
+		return sorter;
 	}
-	
+
 	public double[][][] data() {
 		double[][][] data = new double[getColumnCount()][2][getRowCount()];
 		NumericProperty property = null;
-		
-		for(int i = 0; i < data.length; i++) 
-			for(int j = 0; j < data[0][0].length; j++) {
-				property = (NumericProperty)getValueAt(j, i);
-				data[i][0][j] = ((Number) property.getValue()).doubleValue() * property.getDimensionFactor().doubleValue();
-				if(property.getError() != null)
-					data[i][1][j] = property.getError().doubleValue() * 
-									property.getDimensionFactor().doubleValue();
+
+		for (int i = 0; i < data.length; i++)
+			for (int j = 0; j < data[0][0].length; j++) {
+				property = (NumericProperty) getValueAt(j, i);
+				data[i][0][j] = ((Number) property.getValue()).doubleValue()
+						* property.getDimensionFactor().doubleValue();
+				if (property.getError() != null)
+					data[i][1][j] = property.getError().doubleValue() * property.getDimensionFactor().doubleValue();
 				else
 					data[i][1][j] = 0;
-			}	
+			}
 		return data;
 	}
-	
+
 	private void scrollToSelection(int rowIndex) {
 		scrollRectToVisible(getCellRect(rowIndex, rowIndex, true));
 	}
-	
+
 	@Override
 	public TableCellRenderer getCellRenderer(int row, int column) {
-		   Object value = getValueAt(row, column);
-		    			   			   			   
-		   if(value instanceof NumericProperty)
-			   return renderer;	   
-		   
-		   return super.getCellRenderer(row, column);
-		   
+		Object value = getValueAt(row, column);
+
+		if (value instanceof NumericProperty)
+			return renderer;
+
+		return super.getCellRenderer(row, column);
+
 	}
-	
+
 	/*
 	 * Merges data withing a temperature interval
 	 */
-	
+
 	public void merge(double temperatureDelta) {
 		ResultTableModel model = (ResultTableModel) this.getModel();
-		int temperatureIndex = model.getFormat().
-									indexOf(NumericPropertyKeyword.TEST_TEMPERATURE);
-		
-		if(temperatureIndex < 0)
+		int temperatureIndex = model.getFormat().indexOf(NumericPropertyKeyword.TEST_TEMPERATURE);
+
+		if (temperatureIndex < 0)
 			return;
 
 		Number val;
-		
-		List<Integer> indices;
-		
-		List<AbstractResult> newRows	= new LinkedList<AbstractResult>();
-		List<Integer> skipList			= new ArrayList<Integer>();
-		
-		for(int i = 0; i < this.getRowCount(); i++) {
-			if(skipList.contains(convertRowIndexToModel(i)))
-				continue; //check if value is independent (does not belong to a group)
-				
-			val		= ((Number) (  (NumericProperty) this.
-					getValueAt(i, temperatureIndex) ).getValue());
-			
-			indices	= group(val.doubleValue(), temperatureIndex, temperatureDelta); //get indices of results in table
-			skipList.addAll(indices); //skip those indices if they refer to the same group
 
-			if(indices.size() < 2) 
-				newRows.add( model.getResults().get( indices.get(0) ) );
-			else	
-				newRows.add( new AverageResult(
-						indices.stream().map(model.getResults()::get).
-						collect(Collectors.toList())
-						, model.getFormat() ) );
-			
+		List<Integer> indices;
+
+		List<AbstractResult> newRows = new LinkedList<AbstractResult>();
+		List<Integer> skipList = new ArrayList<Integer>();
+
+		for (int i = 0; i < this.getRowCount(); i++) {
+			if (skipList.contains(convertRowIndexToModel(i)))
+				continue; // check if value is independent (does not belong to a group)
+
+			val = ((Number) ((NumericProperty) this.getValueAt(i, temperatureIndex)).getValue());
+
+			indices = group(val.doubleValue(), temperatureIndex, temperatureDelta); // get indices of results in table
+			skipList.addAll(indices); // skip those indices if they refer to the same group
+
+			if (indices.size() < 2)
+				newRows.add(model.getResults().get(indices.get(0)));
+			else
+				newRows.add(new AverageResult(
+						indices.stream().map(model.getResults()::get).collect(Collectors.toList()), model.getFormat()));
+
 		}
-		
-		SwingUtilities.invokeLater( () -> 
-			{				
-				model.setRowCount(0);
-				model.getResults().clear();
-				
-				for(AbstractResult row : newRows) 
-					model.addRow( row );
-				
-			}			
-		);
-		
+
+		SwingUtilities.invokeLater(() -> {
+			model.setRowCount(0);
+			model.getResults().clear();
+
+			for (AbstractResult row : newRows)
+				model.addRow(row);
+
+		});
+
 	}
-	
+
 	public List<Integer> group(double val, int index, double precision) {
-		
+
 		List<Integer> selection = new ArrayList<Integer>();
 		Number valNumber;
-		
-		for(int i = 0; i < getRowCount(); i++) {
-			
+
+		for (int i = 0; i < getRowCount(); i++) {
+
 			valNumber = (Number) ((NumericProperty) getValueAt(i, index)).getValue();
-			
-			if( Math.abs( valNumber.doubleValue() - val) < precision)
+
+			if (Math.abs(valNumber.doubleValue() - val) < precision)
 				selection.add(convertRowIndexToModel(i));
-			
+
 		}
-		
+
 		return selection;
-		
+
 	}
-	
-	 //Implement table header tool tips.
+
+	// Implement table header tool tips.
 	@Override
-    protected JTableHeader createDefaultTableHeader() {
-        return new JTableHeader(columnModel) {
-            @Override
+	protected JTableHeader createDefaultTableHeader() {
+		return new JTableHeader(columnModel) {
+			@Override
 			public String getToolTipText(MouseEvent e) {
-                int index = columnModel.getColumnIndexAtX(e.getPoint().x);
-                int realIndex = 
-                        columnModel.getColumn(index).getModelIndex();
-                return ((ResultTableModel)getModel()).getTooltips().get(realIndex);
-            }
-        };
+				int index = columnModel.getColumnIndexAtX(e.getPoint().x);
+				int realIndex = columnModel.getColumn(index).getModelIndex();
+				return ((ResultTableModel) getModel()).getTooltips().get(realIndex);
+			}
+		};
 	}
-	
+
 	@Override
 	public String describe() {
 		return "SummaryTable";
 	}
-	
+
 	public boolean isSelectionEmpty() {
 		return getSelectedRows().length < 1;
 	}
-	
+
 	public boolean hasEnoughElements(int elements) {
 		return getRowCount() >= elements;
-	}	
-	
+	}
+
 	public void deleteSelected() {
 
 		ResultTableModel rtm = (ResultTableModel) getModel();
-			
-		int[] selection = getSelectedRows();								
-			
-		if(selection.length < 0)
+
+		int[] selection = getSelectedRows();
+
+		if (selection.length < 0)
 			return;
-		
-		for(int i = selection.length - 1; i >= 0; i--) 
-			rtm.remove( rtm.getResults().get(convertRowIndexToModel(selection[i])) );
-			
+
+		for (int i = selection.length - 1; i >= 0; i--)
+			rtm.remove(rtm.getResults().get(convertRowIndexToModel(selection[i])));
+
 	}
-	
+
 	public void undo() {
 		ResultTableModel dtm = (ResultTableModel) getModel();
-		
-		for(int i = dtm.getRowCount()-1; i >= 0; i--) 
-			dtm.remove( dtm.getResults().get(convertRowIndexToModel(i)) );
-		
-		TaskManager.getTaskList().stream().map(t -> TaskManager.getResult(t)).forEach(r -> dtm.addRow(r));	
+
+		for (int i = dtm.getRowCount() - 1; i >= 0; i--)
+			dtm.remove(dtm.getResults().get(convertRowIndexToModel(i)));
+
+		TaskManager.getTaskList().stream().map(t -> TaskManager.getResult(t)).forEach(r -> dtm.addRow(r));
 	}
-	
+
 }

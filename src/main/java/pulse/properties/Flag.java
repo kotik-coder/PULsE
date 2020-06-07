@@ -24,10 +24,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * A {@code Flag} is a {@code Property} that has a {@code type} represented by 
- * a {@code NumericPropertyKeyword}, a {@code boolean value}, and a {@code String}
- * with a short abbreviation describing the type of this flag (this is usually defined by the corresponding 
- * {@code NumericProperty}).
+ * A {@code Flag} is a {@code Property} that has a {@code type} represented by a
+ * {@code NumericPropertyKeyword}, a {@code boolean value}, and a {@code String}
+ * with a short abbreviation describing the type of this flag (this is usually
+ * defined by the corresponding {@code NumericProperty}).
  */
 
 public class Flag implements Property {
@@ -35,49 +35,60 @@ public class Flag implements Property {
 	private NumericPropertyKeyword index;
 	private boolean value;
 	private String descriptor;
-	
+
 	/**
-	 * Creates a {@code Flag} with the type {@code type}. The default {@code value} is set to {@code false}. 
-	 * @param type the {@code NumericPropertyKeyword} associated with this {@code Flag} 
+	 * Creates a {@code Flag} with the type {@code type}. The default {@code value}
+	 * is set to {@code false}.
+	 * 
+	 * @param type the {@code NumericPropertyKeyword} associated with this
+	 *             {@code Flag}
 	 */
-	
+
 	public Flag(NumericPropertyKeyword type) {
 		this.index = type;
 		value = false;
 	}
-	
+
 	/**
-	 * Creates a {@code Flag} with the following pre-specified parameters: type {@code type}, short description {@code abbreviations},
-	 * and {@code value}. 
-	 * @param type the {@code NumericPropertyKeyword} associated with this {@code Flag} 
-	 * @param abbreviation an abbreviation (short description, usually symbolic only) associated with this {@code type}
-	 * @param value the {@code boolean} value of this {@code flag}
+	 * Creates a {@code Flag} with the following pre-specified parameters: type
+	 * {@code type}, short description {@code abbreviations}, and {@code value}.
+	 * 
+	 * @param type         the {@code NumericPropertyKeyword} associated with this
+	 *                     {@code Flag}
+	 * @param abbreviation an abbreviation (short description, usually symbolic
+	 *                     only) associated with this {@code type}
+	 * @param value        the {@code boolean} value of this {@code flag}
 	 */
-	
+
 	public Flag(NumericPropertyKeyword type, String abbreviation, boolean value) {
 		this.index = type;
 		this.descriptor = abbreviation;
 		this.value = value;
 	}
-	
+
 	/**
-	 * A static method for converting enabled flags to a {@code List} of {@code NumericPropertyKeyword}s. 
-	 * Each keyword in this list corresponds to an enabled flag in the {@code flags} {@code List}.
+	 * A static method for converting enabled flags to a {@code List} of
+	 * {@code NumericPropertyKeyword}s. Each keyword in this list corresponds to an
+	 * enabled flag in the {@code flags} {@code List}.
+	 * 
 	 * @param flags the list of flags that needs to be analysed
-	 * @return a list of {@code NumericPropertyKeyword}s corresponding to enabled {@code flag}s.
+	 * @return a list of {@code NumericPropertyKeyword}s corresponding to enabled
+	 *         {@code flag}s.
 	 */
 
 	public static List<NumericPropertyKeyword> convert(List<Flag> flags) {
-		List<Flag> filtered = flags.stream().filter(flag -> (boolean) flag.getValue() ).collect(Collectors.toList());
+		List<Flag> filtered = flags.stream().filter(flag -> (boolean) flag.getValue()).collect(Collectors.toList());
 		return filtered.stream().map(flag -> flag.getType()).collect(Collectors.toList());
 	}
-	
+
 	/**
-	 * The default list of {@code Flag}s used in finding the reverse solution of the heat conduction problem contains:
+	 * The default list of {@code Flag}s used in finding the reverse solution of the
+	 * heat conduction problem contains:
 	 * <code>DIFFUSIVITY (true), HEAT_LOSS (true), MAXTEMP (true), BASELINE_INTERCEPT (false), BASELINE_SLOPE (false) </code>.
+	 * 
 	 * @return a {@code List} of default {@code Flag}s
 	 */
-	
+
 	public static List<Flag> defaultList() {
 		List<Flag> flags = new ArrayList<Flag>();
 		flags.add(new Flag(DIFFUSIVITY, NumericProperty.def(DIFFUSIVITY).getDescriptor(true), true));
@@ -88,7 +99,8 @@ public class Flag implements Property {
 		flags.add(new Flag(FOV_OUTER, NumericProperty.def(FOV_OUTER).getDescriptor(true), false));
 		flags.add(new Flag(FOV_INNER, NumericProperty.def(FOV_INNER).getDescriptor(true), false));
 		flags.add(new Flag(SPOT_DIAMETER, NumericProperty.def(SPOT_DIAMETER).getDescriptor(true), false));
-		flags.add(new Flag(DIATHERMIC_COEFFICIENT, NumericProperty.def(DIATHERMIC_COEFFICIENT).getDescriptor(true), false));
+		flags.add(new Flag(DIATHERMIC_COEFFICIENT, NumericProperty.def(DIATHERMIC_COEFFICIENT).getDescriptor(true),
+				false));
 		flags.add(new Flag(LASER_ABSORPTIVITY, NumericProperty.def(LASER_ABSORPTIVITY).getDescriptor(true), false));
 		flags.add(new Flag(THERMAL_ABSORPTIVITY, NumericProperty.def(THERMAL_ABSORPTIVITY).getDescriptor(true), false));
 		flags.add(new Flag(TIME_SHIFT, NumericProperty.def(TIME_SHIFT).getDescriptor(true), false));
@@ -97,60 +109,68 @@ public class Flag implements Property {
 		flags.add(new Flag(OPTICAL_THICKNESS, NumericProperty.def(OPTICAL_THICKNESS).getDescriptor(true), false));
 		flags.add(new Flag(PLANCK_NUMBER, NumericProperty.def(PLANCK_NUMBER).getDescriptor(true), false));
 		flags.add(new Flag(SCATTERING_ALBEDO, NumericProperty.def(SCATTERING_ALBEDO).getDescriptor(true), false));
-		flags.add(new Flag(SCATTERING_ANISOTROPY, NumericProperty.def(SCATTERING_ANISOTROPY).getDescriptor(true), false));
+		flags.add(
+				new Flag(SCATTERING_ANISOTROPY, NumericProperty.def(SCATTERING_ANISOTROPY).getDescriptor(true), false));
 		return flags;
-	}	
-	
+	}
+
 	/**
 	 * Returns the type of this {@code Flag}.
-	 * @return a {@code NumericPropertyKeyword} representing the type of this {@code Flag}.
+	 * 
+	 * @return a {@code NumericPropertyKeyword} representing the type of this
+	 *         {@code Flag}.
 	 */
 
 	public NumericPropertyKeyword getType() {
 		return index;
 	}
-	
+
 	/**
-	 * Creates a new {@code Flag} object based on this {@code Flag}, but with a different {@code value}.
+	 * Creates a new {@code Flag} object based on this {@code Flag}, but with a
+	 * different {@code value}.
+	 * 
 	 * @param value either {@code true} or {@code false}
-	 * @return a {@code Flag} that replicates the {@code type} and {@code abbreviation} of this {@code Flag}, but sets a new {@code value}
+	 * @return a {@code Flag} that replicates the {@code type} and
+	 *         {@code abbreviation} of this {@code Flag}, but sets a new
+	 *         {@code value}
 	 */
-	
+
 	public Flag derive(boolean value) {
 		return new Flag(this.index, this.descriptor, value);
 	}
-		
+
 	/**
 	 * Creates a short description for the GUI.
 	 */
-	
+
 	@Override
 	public String getDescriptor(boolean addHtmlTags) {
-		return addHtmlTags ? "<html><b>Search for </b>" + descriptor + "</html>" :
-			"<b>Search for </b>" + descriptor;
+		return addHtmlTags ? "<html><b>Search for </b>" + descriptor + "</html>" : "<b>Search for </b>" + descriptor;
 	}
 
 	/**
-	 * The value for this {@code Property} is a {@code boolean}. 
+	 * The value for this {@code Property} is a {@code boolean}.
 	 */
-	
+
 	@Override
 	public Object getValue() {
 		return value;
 	}
 
 	/**
-	 * Attempts to set the value of this {@code flag} to {@code value}. 
+	 * Attempts to set the value of this {@code flag} to {@code value}.
+	 * 
 	 * @param value a {@code boolean}
-	 * @throws IllegalArgumentException If the {@code value} is not a {@code boolean}
+	 * @throws IllegalArgumentException If the {@code value} is not a
+	 *                                  {@code boolean}
 	 */
-	
+
 	public void setValue(Object value) throws IllegalArgumentException {
-		if(! (value instanceof Boolean))
+		if (!(value instanceof Boolean))
 			throw new IllegalArgumentException("Illegal argument: " + value);
 		this.value = (boolean) value;
 	}
-	
+
 	@Override
 	public String toString() {
 		return getClass().getSimpleName() + ": " + index.name();

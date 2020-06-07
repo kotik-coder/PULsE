@@ -16,94 +16,91 @@ public class DistributedAbsorptionProblem extends LinearisedProblem {
 
 	public DistributedAbsorptionProblem() {
 		super();
-		absorption		= new BeerLambertAbsorption();
-	}	
+		absorption = new BeerLambertAbsorption();
+	}
 
 	public DistributedAbsorptionProblem(AbsorptionModel laserAbsorption) {
 		super();
-		this.absorption	= laserAbsorption;
-	}	
-	
+		this.absorption = laserAbsorption;
+	}
+
 	public DistributedAbsorptionProblem(Problem sdd) {
 		super(sdd);
-		if(sdd instanceof DistributedAbsorptionProblem) {
-			DistributedAbsorptionProblem tp = (DistributedAbsorptionProblem)sdd; 
-			this.absorption	= tp.absorption;			
-		}
-		else 
-			absorption		= new BeerLambertAbsorption();	
+		if (sdd instanceof DistributedAbsorptionProblem) {
+			DistributedAbsorptionProblem tp = (DistributedAbsorptionProblem) sdd;
+			this.absorption = tp.absorption;
+		} else
+			absorption = new BeerLambertAbsorption();
 	}
-	
+
 	public DistributedAbsorptionProblem(DistributedAbsorptionProblem tp) {
 		super(tp);
-		this.absorption	= tp.absorption;
+		this.absorption = tp.absorption;
 	}
-	
+
 	public AbsorptionModel getAbsorptionModel() {
 		return absorption;
-	}	
-	
+	}
+
 	public void setAbsorptionModel(AbsorptionModel model) {
 		this.absorption = model;
 	}
-	
+
 	@Override
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
 		super.set(type, property);
 		absorption.set(type, property);
 	}
-	
+
 	@Override
 	public boolean isEnabled() {
 		return !DEBUG;
 	}
-	
+
 	@Override
 	public void optimisationVector(IndexedVector[] output, List<Flag> flags) {
 		super.optimisationVector(output, flags);
-		
-		for(int i = 0, size = output[0].dimension(); i < size; i++) {
-			switch( output[0].getIndex(i) ) {
-				case LASER_ABSORPTIVITY		:	
-					output[0].set(i, 
-							(double) (absorption.getLaserAbsorptivity()).getValue()/SENSITIVITY  );
-					output[1].set(i, 
-							0.1 );
-					break;
-				case THERMAL_ABSORPTIVITY		:	
-					output[0].set(i, 
-							(double) (absorption.getThermalAbsorptivity()).getValue()/SENSITIVITY );
-					output[0].set(i, 
-							0.1 );
-					break;						
-				default 				: 	continue;
+
+		for (int i = 0, size = output[0].dimension(); i < size; i++) {
+			switch (output[0].getIndex(i)) {
+			case LASER_ABSORPTIVITY:
+				output[0].set(i, (double) (absorption.getLaserAbsorptivity()).getValue() / SENSITIVITY);
+				output[1].set(i, 0.1);
+				break;
+			case THERMAL_ABSORPTIVITY:
+				output[0].set(i, (double) (absorption.getThermalAbsorptivity()).getValue() / SENSITIVITY);
+				output[0].set(i, 0.1);
+				break;
+			default:
+				continue;
 			}
 		}
-		
+
 	}
-		
+
 	@Override
 	public void assign(IndexedVector params) {
 		super.assign(params);
-		
-		for(int i = 0, size = params.dimension(); i < size; i++) {
-			switch( params.getIndex(i) ) {
-				case LASER_ABSORPTIVITY		:	
-					absorption.setLaserAbsorptivity( 
-							NumericProperty.derive(NumericPropertyKeyword.LASER_ABSORPTIVITY, params.get(i)*SENSITIVITY) );
-					break;
-				case THERMAL_ABSORPTIVITY		:	
-					absorption.setThermalAbsorptivity( 
-							NumericProperty.derive(NumericPropertyKeyword.THERMAL_ABSORPTIVITY, params.get(i)*SENSITIVITY) );
-					break;		
-				default 				: 	continue;
+
+		for (int i = 0, size = params.dimension(); i < size; i++) {
+			switch (params.getIndex(i)) {
+			case LASER_ABSORPTIVITY:
+				absorption.setLaserAbsorptivity(
+						NumericProperty.derive(NumericPropertyKeyword.LASER_ABSORPTIVITY, params.get(i) * SENSITIVITY));
+				break;
+			case THERMAL_ABSORPTIVITY:
+				absorption.setThermalAbsorptivity(NumericProperty.derive(NumericPropertyKeyword.THERMAL_ABSORPTIVITY,
+						params.get(i) * SENSITIVITY));
+				break;
+			default:
+				continue;
 			}
 		}
 	}
-	
+
 	@Override
 	public String toString() {
-		return Messages.getString("DistributedProblem.Descriptor"); 
+		return Messages.getString("DistributedProblem.Descriptor");
 	}
-	
+
 }

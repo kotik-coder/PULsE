@@ -11,18 +11,20 @@ import pulse.input.InterpolationDataset;
  *
  */
 
-public interface DatasetReader extends AbstractReader {
-	
+public interface DatasetReader extends AbstractReader<InterpolationDataset> {
+
 	/**
-	 * Creates an {@code InterpolationDataset} using the dataset stored in
-	 * the {@code file}.
+	 * Creates an {@code InterpolationDataset} using the dataset stored in the
+	 * {@code file}.
+	 * 
 	 * @param file a file with a supported extension containing the information
-	 * needed to create an {@code InterpolationDataset}.  
-	 * @return an {@code InterpolationDataset}, which not only stores the information
-	 * contained in {@code file}, but also provides means of interpolation.
+	 *             needed to create an {@code InterpolationDataset}.
+	 * @return an {@code InterpolationDataset}, which not only stores the
+	 *         information contained in {@code file}, but also provides means of
+	 *         interpolation.
 	 * @throws IOException if something goes wrong with reading the {@code file}
 	 */
-	
+
 	public abstract InterpolationDataset read(File file) throws IOException;
 
 }

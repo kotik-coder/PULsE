@@ -32,28 +32,28 @@ public class ResultFrame extends JInternalFrame {
 	private ResultTable resultTable;
 	private List<PreviewFrameCreationListener> listeners;
 	private FormattedInputDialog averageWindowDialog;
-	
+
 	public ResultFrame() {
 		super("Results", true, false, true, true);
 		initComponents();
 		listeners = new ArrayList<PreviewFrameCreationListener>();
 		addListeners();
-        setVisible(true);
+		setVisible(true);
 	}
-	
-	private void initComponents() {				
-        JScrollPane resultsScroller = new JScrollPane();
-        
-        resultTable = new ResultTable(ResultFormat.DEFAULT_FORMAT);
-        resultsScroller.setViewportView(resultTable);
-        getContentPane().add(resultsScroller, BorderLayout.CENTER);
-        
-        resultToolbar = new ResultToolbar();                                            
-        getContentPane().add(resultToolbar, BorderLayout.EAST);
-        
-        averageWindowDialog = new FormattedInputDialog(NumericProperty.theDefault(NumericPropertyKeyword.WINDOW));        
+
+	private void initComponents() {
+		JScrollPane resultsScroller = new JScrollPane();
+
+		resultTable = new ResultTable(ResultFormat.DEFAULT_FORMAT);
+		resultsScroller.setViewportView(resultTable);
+		getContentPane().add(resultsScroller, BorderLayout.CENTER);
+
+		resultToolbar = new ResultToolbar();
+		getContentPane().add(resultToolbar, BorderLayout.EAST);
+
+		averageWindowDialog = new FormattedInputDialog(NumericProperty.theDefault(NumericPropertyKeyword.WINDOW));
 	}
-	
+
 	private void addListeners() {
 		resultToolbar.addResultRequestListener(new ResultRequestListener() {
 
@@ -64,19 +64,18 @@ public class ResultFrame extends JInternalFrame {
 
 			@Override
 			public void onPreviewRequest() {
-				if(!resultTable.hasEnoughElements(1)) {
+				if (!resultTable.hasEnoughElements(1)) {
 					JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(resultTable),
-						    Messages.getString("ResultsToolBar.NoDataError"), 
-						    Messages.getString("ResultsToolBar.NoResultsError"),
-						    JOptionPane.ERROR_MESSAGE);			
-				} else										
+							Messages.getString("ResultsToolBar.NoDataError"),
+							Messages.getString("ResultsToolBar.NoResultsError"), JOptionPane.ERROR_MESSAGE);
+				} else
 					notifyPreview();
-			}		
-			
+			}
+
 			@Override
 			public void onMergeRequest() {
-				if(resultTable.hasEnoughElements(1))				
-					showInputDialog();				
+				if (resultTable.hasEnoughElements(1))
+					showInputDialog();
 			}
 
 			@Override
@@ -86,54 +85,53 @@ public class ResultFrame extends JInternalFrame {
 
 			@Override
 			public void onExportRequest() {
-				if(resultTable.hasEnoughElements(1)) {
+				if (resultTable.hasEnoughElements(1)) {
 					JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(resultTable),
-						    Messages.getString("ResultsToolBar.7"),
-						    Messages.getString("ResultsToolBar.8"), 
-						    JOptionPane.ERROR_MESSAGE);			
+							Messages.getString("ResultsToolBar.7"), Messages.getString("ResultsToolBar.8"),
+							JOptionPane.ERROR_MESSAGE);
 					return;
 				}
-				
-				ExportManager.askToExport(resultTable, (JFrame)SwingUtilities.getWindowAncestor(resultTable), "Calculation results");
-			}						
-			
+
+				ExportManager.askToExport(resultTable, (JFrame) SwingUtilities.getWindowAncestor(resultTable),
+						"Calculation results");
+			}
+
 		});
-		
-		resultTable.getSelectionModel().addListSelectionListener( new ListSelectionListener() {
+
+		resultTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 
 			@Override
 			public void valueChanged(ListSelectionEvent arg0) {
 				resultToolbar.setDeleteEnabled(!resultTable.isSelectionEmpty());
 			}
-					
-			}
-		);
-		
+
+		});
+
 		resultTable.getModel().addTableModelListener(new TableModelListener() {
 
 			@Override
 			public void tableChanged(TableModelEvent arg0) {
-				resultToolbar.setPreviewEnabled(	resultTable.hasEnoughElements(3));
-				resultToolbar.setMergeEnabled(	resultTable.hasEnoughElements(2) );				
-				resultToolbar.setExportEnabled( resultTable.hasEnoughElements(1) );
-				resultToolbar.setUndoEnabled( resultTable.hasEnoughElements(1) );
+				resultToolbar.setPreviewEnabled(resultTable.hasEnoughElements(3));
+				resultToolbar.setMergeEnabled(resultTable.hasEnoughElements(2));
+				resultToolbar.setExportEnabled(resultTable.hasEnoughElements(1));
+				resultToolbar.setUndoEnabled(resultTable.hasEnoughElements(1));
 			}
-			
+
 		});
 	}
-	
+
 	public void notifyPreview() {
 		listeners.stream().forEach(l -> l.onPreviewFrameRequest());
 	}
-	
+
 	public void addFrameCreationListener(PreviewFrameCreationListener l) {
 		listeners.add(l);
 	}
-	
-    private void showInputDialog() {
+
+	private void showInputDialog() {
 		averageWindowDialog.setLocationRelativeTo(null);
 		averageWindowDialog.setVisible(true);
-		averageWindowDialog.setConfirmAction( () -> resultTable.merge(averageWindowDialog.value().doubleValue()) );
+		averageWindowDialog.setConfirmAction(() -> resultTable.merge(averageWindowDialog.value().doubleValue()));
 	}
 
 	public ResultTable getResultTable() {

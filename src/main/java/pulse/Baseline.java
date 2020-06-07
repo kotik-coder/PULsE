@@ -148,11 +148,11 @@ public class Baseline extends PropertyHolder {
 
 	public void fitTo(ExperimentalData data, double rangeMin, double rangeMax) {
 		IndexRange indexRange = data.getIndexRange();
-		
-		if(indexRange == null)
+
+		if (indexRange == null)
 			return;
-		
-		if(!indexRange.isValid())
+
+		if (!indexRange.isValid())
 			return;
 
 		List<Double> x = new ArrayList<Double>();
@@ -161,9 +161,9 @@ public class Baseline extends PropertyHolder {
 		double t;
 
 		int size = 0;
-		
+
 		int startIndex = indexRange.getLowerBound();
-		
+
 		for (int i = 0; i < startIndex; i++) {
 			t = data.time.get(i);
 
@@ -177,8 +177,8 @@ public class Baseline extends PropertyHolder {
 			y.add(data.temperature.get(i));
 			size++;
 		}
-		
-		if(size < 1) //no data to process - exit
+
+		if (size < 1) // no data to process - exit
 			return;
 
 		// first pass: compute xbar and ybar

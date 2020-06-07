@@ -34,40 +34,39 @@ public class ResultChangeDialog extends JDialog {
 	 */
 	private static final long serialVersionUID = 1L;
 	private JTextField textField;
-	
+
 	private final static int WIDTH = 500;
 	private final static int HEIGHT = 500;
-	
+
 	public ResultChangeDialog() {
-		
+
 		JDialog reference = this;
-		
+
 		setTitle("Change of Output Format");
-		
+
 		setSize(WIDTH, HEIGHT);
-				
-		BufferedReader reader = new BufferedReader( new InputStreamReader(
-				getClass().getResourceAsStream("/ResultFormatDescription.html"))
-				);
-		
-		 StringBuilder sb = new StringBuilder();
-		 String str; 
-		 
-		 try {
-			while ((str = reader.readLine()) != null)     
-			     sb.append(str);
+
+		BufferedReader reader = new BufferedReader(
+				new InputStreamReader(getClass().getResourceAsStream("/ResultFormatDescription.html")));
+
+		StringBuilder sb = new StringBuilder();
+		String str;
+
+		try {
+			while ((str = reader.readLine()) != null)
+				sb.append(str);
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		
+
 		JTextPane textPane = new JTextPane();
 		textPane.setFont(new Font("Arial", Font.PLAIN, 14));
 		textPane.setBackground(UIManager.getColor("Panel.background"));
 		textPane.setEditable(false);
 		textPane.setContentType("text/html");
-		
-		final HTMLDocument doc	= (HTMLDocument) textPane.getDocument();
+
+		final HTMLDocument doc = (HTMLDocument) textPane.getDocument();
 		final HTMLEditorKit kit = (HTMLEditorKit) textPane.getEditorKit();
 		try {
 			kit.insertHTML(doc, doc.getLength(), sb.toString(), 0, 0, null);
@@ -78,115 +77,115 @@ public class ResultChangeDialog extends JDialog {
 			System.err.println(Messages.getString("LogPane.PrintError")); //$NON-NLS-1$
 			e.printStackTrace();
 		}
-		
+
 		getContentPane().add(new JScrollPane(textPane), BorderLayout.CENTER);
-		
+
 		JPanel panel = new JPanel();
 		panel.setPreferredSize(new Dimension(this.getWidth(), 35));
 		getContentPane().add(panel, BorderLayout.SOUTH);
 		panel.setLayout(new GridLayout(0, 2, 0, 0));
-		
-		textField = new JTextField();
-		AbstractDocument absDoct = (AbstractDocument)textField.getDocument();
-		absDoct.setDocumentFilter(new DocumentFilter() {
-			
-		    @Override
-		    public void insertString(DocumentFilter.FilterBypass fb, int offset,
-		            String text, AttributeSet attr)
-		            throws BadLocationException {
-		        
-		    	StringBuilder buffer = new StringBuilder(text.length());
-		        char[] allowedChars = ResultFormat.getAllowedCharacters();
-		        
-		        for (char ch : text.toCharArray()) {
-			             
-			        for(char allowedCh : allowedChars) {
-			        	if(Character.toLowerCase(ch) == Character.toLowerCase(allowedCh)) {
-			        	
-			        		buffer.append(Character.toUpperCase(ch));
-			        		break;
-			        		
-			        	}
-			        }
-		        
-		        }
-		        
-		        super.insertString(fb, offset, buffer.toString(), attr);
-		    
-		    }
 
-		    @Override
-		    public void replace(DocumentFilter.FilterBypass fb,
-		            int offset, int length, String string, AttributeSet attr) throws BadLocationException {
-		        if (length > 0) {
-		        fb.remove(offset, length);
-		        }
-		        insertString(fb, offset, string, attr);
-		    }
-		
-			
+		textField = new JTextField();
+		AbstractDocument absDoct = (AbstractDocument) textField.getDocument();
+		absDoct.setDocumentFilter(new DocumentFilter() {
+
+			@Override
+			public void insertString(DocumentFilter.FilterBypass fb, int offset, String text, AttributeSet attr)
+					throws BadLocationException {
+
+				StringBuilder buffer = new StringBuilder(text.length());
+				char[] allowedChars = ResultFormat.getAllowedCharacters();
+
+				for (char ch : text.toCharArray()) {
+
+					for (char allowedCh : allowedChars) {
+						if (Character.toLowerCase(ch) == Character.toLowerCase(allowedCh)) {
+
+							buffer.append(Character.toUpperCase(ch));
+							break;
+
+						}
+					}
+
+				}
+
+				super.insertString(fb, offset, buffer.toString(), attr);
+
+			}
+
+			@Override
+			public void replace(DocumentFilter.FilterBypass fb, int offset, int length, String string,
+					AttributeSet attr) throws BadLocationException {
+				if (length > 0) {
+					fb.remove(offset, length);
+				}
+				insertString(fb, offset, string, attr);
+			}
+
 		});
-		
+
 		textField.setText(ResultFormat.getInstance().toString());
 		panel.add(textField);
 		textField.setColumns(10);
-		
+
 		JButton btnApply = new JButton("Apply");
 		panel.add(btnApply);
-		
+
 		btnApply.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				
+
 				char[] fmt = textField.getText().toCharArray();
-				
-				//search for duplicates
-				
+
+				// search for duplicates
+
 				boolean duplicateFound = false;
-				
-				outer : for(int i = 0; i < fmt.length; i++) {
-					
-					for(int j = i + 1; j < fmt.length; j++) {
-						
-						if(fmt[i] == fmt[j]) {
+
+				outer: for (int i = 0; i < fmt.length; i++) {
+
+					for (int j = i + 1; j < fmt.length; j++) {
+
+						if (fmt[i] == fmt[j]) {
 							duplicateFound = true;
 							break outer;
 						}
-						
+
 					}
-					
-				}				
-				
-				if(duplicateFound) {
-					JOptionPane.showMessageDialog(reference, "Duplicate symbol found in format string. Please correct!", "Duplicate Symbol", JOptionPane.WARNING_MESSAGE);
+
+				}
+
+				if (duplicateFound) {
+					JOptionPane.showMessageDialog(reference, "Duplicate symbol found in format string. Please correct!",
+							"Duplicate Symbol", JOptionPane.WARNING_MESSAGE);
 					textField.setText(ResultFormat.getInstance().toString());
 					return;
 				}
-			
+
 				boolean formatError = false;
-				
-				for(char cm : ResultFormat.getMinimumAllowedFormat()) {
-					if( textField.getText().indexOf(cm) < 0) {
+
+				for (char cm : ResultFormat.getMinimumAllowedFormat()) {
+					if (textField.getText().indexOf(cm) < 0) {
 						formatError = true;
 						break;
 					}
 				}
-				
-				if(formatError) {
-					JOptionPane.showMessageDialog(reference, "The following characters are required: " + 
-							new String(ResultFormat.getMinimumAllowedFormat()), "Wrong Format", JOptionPane.WARNING_MESSAGE);
+
+				if (formatError) {
+					JOptionPane.showMessageDialog(reference,
+							"The following characters are required: "
+									+ new String(ResultFormat.getMinimumAllowedFormat()),
+							"Wrong Format", JOptionPane.WARNING_MESSAGE);
 					textField.setText(ResultFormat.getInstance().toString());
 					return;
 				}
-				
+
 				ResultFormat.generateFormat(textField.getText());
-				
+
 			}
-			
+
 		});
-		
-		
+
 	}
 
 }

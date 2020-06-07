@@ -22,15 +22,15 @@ public class DataFrame extends JFrame {
 	private Component ancestorFrame;
 	private PropertyHolder dataObject;
 	private final static Font TABLE_FONT = new Font(Messages.getString("DataFrame.FontName"), Font.PLAIN, 16);
-	private	final static int ROW_HEIGHT = 50;
+	private final static int ROW_HEIGHT = 50;
 
-	@Override 
+	@Override
 	public void dispose() {
-		if(ancestorFrame != null) {
+		if (ancestorFrame != null) {
 			ancestorFrame.setEnabled(true);
-			if(ancestorFrame.getParent() != null)
+			if (ancestorFrame.getParent() != null)
 				ancestorFrame.getParent().setEnabled(true);
-		}		
+		}
 		super.dispose();
 	}
 
@@ -41,9 +41,9 @@ public class DataFrame extends JFrame {
 		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		this.ancestorFrame = ancestor.getParent();
 		this.dataObject = dataObject;
-		if(ancestor != null) {
+		if (ancestor != null) {
 			ancestor.setEnabled(false);
-			if(ancestorFrame != null)
+			if (ancestorFrame != null)
 				ancestorFrame.setEnabled(false);
 		}
 		setType(Type.UTILITY);
@@ -59,14 +59,14 @@ public class DataFrame extends JFrame {
 		setContentPane(contentPane);
 		JScrollPane scrollPane = new JScrollPane();
 		contentPane.add(scrollPane, BorderLayout.CENTER);
-		
+
 		dataTable = new PropertyHolderTable(dataObject);
-		dataTable.setFont(TABLE_FONT); 
+		dataTable.setFont(TABLE_FONT);
 		dataTable.setRowHeight(ROW_HEIGHT);
-		
+
 		scrollPane.setViewportView(dataTable);
 	}
-	
+
 	public PropertyHolder getDataObject() {
 		return dataObject;
 	}

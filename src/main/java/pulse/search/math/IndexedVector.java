@@ -23,142 +23,163 @@ public class IndexedVector extends Vector {
 
 	private List<NumericPropertyKeyword> indices;
 	private double[] prefactors;
-	
-	 private IndexedVector(int n) {
+
+	private IndexedVector(int n) {
 		super(n);
 		prefactors = new double[n];
-		Arrays.fill(prefactors, 1.0); //by default, the prefactor is unity
+		Arrays.fill(prefactors, 1.0); // by default, the prefactor is unity
 		indices = new ArrayList<NumericPropertyKeyword>(n);
-	 }
-	 
-	 /**
-	  * Constructs an {@code IndexedVector} with the specified list of keywords.
-	  * @param indices a list of keywords
-	  */
-	 
-	 public IndexedVector(List<NumericPropertyKeyword> indices) {
+	}
+
+	/**
+	 * Constructs an {@code IndexedVector} with the specified list of keywords.
+	 * 
+	 * @param indices a list of keywords
+	 */
+
+	public IndexedVector(List<NumericPropertyKeyword> indices) {
 		this(indices.size());
 		assign(indices);
-	 }
-	 
-	 /**
-	  * Constructs an {@code IndexedVector} based on {@code v}
-	  * and a list of keyword {@code indices}
-	  * @param v the vector to be copied
-	  * @param indices a list of keyword
-	  */
-	 
-	 public IndexedVector(Vector v, List<NumericPropertyKeyword> indices) {
+	}
+
+	/**
+	 * Constructs an {@code IndexedVector} based on {@code v} and a list of keyword
+	 * {@code indices}
+	 * 
+	 * @param v       the vector to be copied
+	 * @param indices a list of keyword
+	 */
+
+	public IndexedVector(Vector v, List<NumericPropertyKeyword> indices) {
 		super(v);
 		this.indices = indices;
-	 }
-	 
-	 /**
-	  * Finds the component of this vector that corresponds to {@code index}
-	  * and sets its value to {@code x}
-	  * @param index the keyword associated with a component of this {@code IndexedVector}
-	  * @param x the new value of this component
-	  */
-	 
-	 public void set(NumericPropertyKeyword index, double x) {
-		 set(index, x, 1.0);
-	 }
-	 
-	 public void set(NumericPropertyKeyword index, double x, double prefactor) {
-		 int i = getDataIndex(index);
-		 super.set( i, x);
-		 prefactors[i] = prefactor;
-	 }
-	 
-	 public double getRawValue(int i) {
-		 return super.get(i)/prefactors[i];
-	 }
-	 
-	 public double getRawValue(NumericPropertyKeyword index) {
-		 return getRawValue( getDataIndex(index) );
-	 }
-	 
-	 public void set(int i, double x, double prefactor) {
-		 super.set( i, x);
-		 prefactors[i] = prefactor;
-	 }
-	 
-	 public List<NumericPropertyKeyword> getIndices() {
-		 return indices;
-	 }
-	 
-	 /**
-	  * Retrieves the keyword associated with the {@code dataIndex}
-	  * @param dataIndex an index pointing to a component of this vector
-	  * @return a keyword describing this component
-	  */
-	 
-	 public NumericPropertyKeyword getIndex(int dataIndex) {
-		 return indices.get(dataIndex);
-	 }
-	 
-	 /**
-	  * Gets the data index that corresponds to the keyword {@code index}
-	  * @param index a keyword-index of the component 
-	  * @return a numeric index associated with the original {@code Vector} 
-	  */
-	 
-	 public int getDataIndex(NumericPropertyKeyword index) {
-		 return indices.indexOf(index);
-	 }
-	 
-	 /**
-	  * Gets the component at this {@code index}
-	  * @param index a keyword-index of a component 
-	  * @return the respective component
-	  */
-	 
-	 public double get(NumericPropertyKeyword index) {
-		 return super.get( getDataIndex(index) );
-	 }
-	 
-	 public double getPrefactor(NumericPropertyKeyword index) {
-		 return prefactors[getDataIndex(index)];
-	 }
-	
-	 private void assign(List<NumericPropertyKeyword> indices) {
-		 this.indices.addAll(indices);
-	 }
-	 
-	 /**
-	  * Creates an {@code IndexedVector} with its components set as the maximum sensible (ceiling) 
-	  * values that can ever occur for each of the listed {@code activeParameters}.
-	  * @param activeParameters a list of keywords which correspond to some default values (as loaded from .xml)
-	  * @return an {@code IndexedVector} representing the 'ceiling', all components of which
-	  * represent the maximum sensible values for each of the {@code activeParameters}. 
-	  */
-	 
+	}
+
+	/**
+	 * Finds the component of this vector that corresponds to {@code index} and sets
+	 * its value to {@code x}
+	 * 
+	 * @param index the keyword associated with a component of this
+	 *              {@code IndexedVector}
+	 * @param x     the new value of this component
+	 */
+
+	public void set(NumericPropertyKeyword index, double x) {
+		set(index, x, 1.0);
+	}
+
+	public void set(NumericPropertyKeyword index, double x, double prefactor) {
+		int i = getDataIndex(index);
+		super.set(i, x);
+		prefactors[i] = prefactor;
+	}
+
+	public double getRawValue(int i) {
+		return super.get(i) / prefactors[i];
+	}
+
+	public double getRawValue(NumericPropertyKeyword index) {
+		return getRawValue(getDataIndex(index));
+	}
+
+	public void set(int i, double x, double prefactor) {
+		super.set(i, x);
+		prefactors[i] = prefactor;
+	}
+
+	public List<NumericPropertyKeyword> getIndices() {
+		return indices;
+	}
+
+	/**
+	 * Retrieves the keyword associated with the {@code dataIndex}
+	 * 
+	 * @param dataIndex an index pointing to a component of this vector
+	 * @return a keyword describing this component
+	 */
+
+	public NumericPropertyKeyword getIndex(int dataIndex) {
+		return indices.get(dataIndex);
+	}
+
+	/**
+	 * Gets the data index that corresponds to the keyword {@code index}
+	 * 
+	 * @param index a keyword-index of the component
+	 * @return a numeric index associated with the original {@code Vector}
+	 */
+
+	public int getDataIndex(NumericPropertyKeyword index) {
+		return indices.indexOf(index);
+	}
+
+	/**
+	 * Gets the component at this {@code index}
+	 * 
+	 * @param index a keyword-index of a component
+	 * @return the respective component
+	 */
+
+	public double get(NumericPropertyKeyword index) {
+		return super.get(getDataIndex(index));
+	}
+
+	public double getPrefactor(NumericPropertyKeyword index) {
+		return prefactors[getDataIndex(index)];
+	}
+
+	private void assign(List<NumericPropertyKeyword> indices) {
+		this.indices.addAll(indices);
+	}
+
+	/**
+	 * Creates an {@code IndexedVector} with its components set as the maximum
+	 * sensible (ceiling) values that can ever occur for each of the listed
+	 * {@code activeParameters}.
+	 * 
+	 * @param activeParameters a list of keywords which correspond to some default
+	 *                         values (as loaded from .xml)
+	 * @return an {@code IndexedVector} representing the 'ceiling', all components
+	 *         of which represent the maximum sensible values for each of the
+	 *         {@code activeParameters}.
+	 */
+
 	public static IndexedVector ceiling(List<NumericPropertyKeyword> activeParameters) {
-			IndexedVector v = new IndexedVector(activeParameters);
-			double lSq = Math.pow((double)NumericProperty.def(THICKNESS).getValue(), 2);
-			
-			for(NumericPropertyKeyword activeIndex : activeParameters) { 
-			
-				switch(activeIndex) {
-					case HEAT_LOSS			: v.set(activeIndex, (double) NumericProperty.theDefault(HEAT_LOSS).getMaximum()); break; 
-					case DIFFUSIVITY		: v.set(activeIndex, (double) NumericProperty.theDefault(DIFFUSIVITY).getMaximum()/lSq); break;
-					case BASELINE_INTERCEPT	: v.set(activeIndex, (double) NumericProperty.theDefault(BASELINE_INTERCEPT).getMaximum()); break;
-					case BASELINE_SLOPE		: v.set(activeIndex, (double) NumericProperty.theDefault(BASELINE_SLOPE).getMaximum()); break;
-					case MAXTEMP	 		: v.set(activeIndex, (double) NumericProperty.theDefault(MAXTEMP).getMaximum()); break;
-					default			 		: throw new IllegalArgumentException("Type " + activeIndex + " unknown");
-				}
-				
+		IndexedVector v = new IndexedVector(activeParameters);
+		double lSq = Math.pow((double) NumericProperty.def(THICKNESS).getValue(), 2);
+
+		for (NumericPropertyKeyword activeIndex : activeParameters) {
+
+			switch (activeIndex) {
+			case HEAT_LOSS:
+				v.set(activeIndex, (double) NumericProperty.theDefault(HEAT_LOSS).getMaximum());
+				break;
+			case DIFFUSIVITY:
+				v.set(activeIndex, (double) NumericProperty.theDefault(DIFFUSIVITY).getMaximum() / lSq);
+				break;
+			case BASELINE_INTERCEPT:
+				v.set(activeIndex, (double) NumericProperty.theDefault(BASELINE_INTERCEPT).getMaximum());
+				break;
+			case BASELINE_SLOPE:
+				v.set(activeIndex, (double) NumericProperty.theDefault(BASELINE_SLOPE).getMaximum());
+				break;
+			case MAXTEMP:
+				v.set(activeIndex, (double) NumericProperty.theDefault(MAXTEMP).getMaximum());
+				break;
+			default:
+				throw new IllegalArgumentException("Type " + activeIndex + " unknown");
 			}
-			
-			return v;
-				
+
+		}
+
+		return v;
+
 	}
-	
+
 	public static IndexedVector concat(IndexedVector v1, IndexedVector v2) {
-		List<NumericPropertyKeyword> allIndices = 
-				new ArrayList<NumericPropertyKeyword>(v1.indices);
+		List<NumericPropertyKeyword> allIndices = new ArrayList<NumericPropertyKeyword>(v1.indices);
 		allIndices.addAll(v2.indices);
-		return new IndexedVector( allIndices );
+		return new IndexedVector(allIndices);
 	}
-	
+
 }

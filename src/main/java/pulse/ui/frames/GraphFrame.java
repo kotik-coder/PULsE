@@ -17,28 +17,28 @@ public class GraphFrame extends JInternalFrame {
 		initComponents();
 		setVisible(true);
 	}
-	
+
 	private void initComponents() {
 		var chart = Chart.createEmptyPanel();
-        getContentPane().add(chart, BorderLayout.CENTER);   
-        
-        chart.setMaximumDrawHeight(2000);
-        chart.setMaximumDrawWidth(2000);
-        chart.setMinimumDrawWidth(10);
-        chart.setMinimumDrawHeight(10);       
-        
-        var opacitySlider = new OpacitySlider();
-        opacitySlider.addPlotRequestListener(() -> plot());
-        getContentPane().add(opacitySlider, BorderLayout.LINE_END);
-        var chartToolbar = new ChartToolbar();
-        chartToolbar.addPlotRequestListener(() -> plot());
-        getContentPane().add(chartToolbar, BorderLayout.PAGE_END);  
+		getContentPane().add(chart, BorderLayout.CENTER);
+
+		chart.setMaximumDrawHeight(2000);
+		chart.setMaximumDrawWidth(2000);
+		chart.setMinimumDrawWidth(10);
+		chart.setMinimumDrawHeight(10);
+
+		var opacitySlider = new OpacitySlider();
+		opacitySlider.addPlotRequestListener(() -> plot());
+		getContentPane().add(opacitySlider, BorderLayout.LINE_END);
+		var chartToolbar = new ChartToolbar();
+		chartToolbar.addPlotRequestListener(() -> plot());
+		getContentPane().add(chartToolbar, BorderLayout.PAGE_END);
 	}
-	
+
 	public void plot() {
 		var task = TaskManager.getSelectedTask();
-		if(task != null)
-			Chart.plot(task, false);		
+		if (task != null)
+			Chart.plot(task, false);
 	}
 
 }

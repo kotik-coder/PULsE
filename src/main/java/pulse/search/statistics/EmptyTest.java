@@ -7,12 +7,12 @@ public class EmptyTest extends NormalityTest {
 	/**
 	 * Always returns true
 	 */
-	
+
 	@Override
 	public boolean test(SearchTask task) {
 		return true;
 	}
-	
+
 	@Override
 	public String getDescriptor() {
 		return "Don't test please";
@@ -20,7 +20,7 @@ public class EmptyTest extends NormalityTest {
 
 	@Override
 	public void evaluate(SearchTask t) {
-		//deliberately empty
+		// deliberately empty
 	}
 
 }

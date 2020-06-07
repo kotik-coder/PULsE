@@ -16,11 +16,11 @@ public class TaskSelectionEvent extends EventObject {
 		super(source);
 		// TODO Auto-generated constructor stub
 	}
-	
+
 	public void setSource(Object source) {
 		this.source = source;
 	}
-	
+
 	public SearchTask getSelection() {
 		return TaskManager.getSelectedTask();
 	}

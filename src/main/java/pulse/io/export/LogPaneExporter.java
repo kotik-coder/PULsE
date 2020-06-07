@@ -11,9 +11,9 @@ import pulse.ui.components.LogPane;
 public class LogPaneExporter implements Exporter<LogPane> {
 
 	private static LogPaneExporter instance = new LogPaneExporter();
-	
+
 	private LogPaneExporter() {
-		//intentionally blank
+		// intentionally blank
 	}
 
 	@Override
@@ -35,10 +35,10 @@ public class LogPaneExporter implements Exporter<LogPane> {
 	public Class<LogPane> target() {
 		return LogPane.class;
 	}
-	
+
 	@Override
 	public Extension[] getSupportedExtensions() {
-		return new Extension[] {Extension.HTML};
+		return new Extension[] { Extension.HTML };
 	}
-	
+
 }

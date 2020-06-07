@@ -28,30 +28,28 @@ import pulse.properties.NumericProperty;
  * @see super.solve(Problem)
  */
 
-public class ImplicitLinearisedSolver 
-					extends ImplicitScheme 
-							implements Solver<LinearisedProblem> {		
-	
+public class ImplicitLinearisedSolver extends ImplicitScheme implements Solver<LinearisedProblem> {
+
 	private double maxTemp;
 	private double Bi1HTAU, Bi2HTAU;
-	
+
 	private int N;
 	private int counts;
 	private double hx;
 	private double tau;
-	
+
 	private HeatingCurve curve;
-	
-	private double a,b,c;
-	
+
+	private double a, b, c;
+
 	private double[] U;
 	private double[] V;
 	private double[] alpha;
 	private double[] beta;
-	private double maxVal;	
-	
+	private double maxVal;
+
 	private final static double EPS = 1e-7; // a small value ensuring numeric stability
-	
+
 	public ImplicitLinearisedSolver() {
 		super();
 	}
@@ -63,48 +61,48 @@ public class ImplicitLinearisedSolver
 	public ImplicitLinearisedSolver(NumericProperty N, NumericProperty timeFactor, NumericProperty timeLimit) {
 		super(N, timeFactor, timeLimit);
 	}
-	
-	@Override 
+
+	@Override
 	public void prepare(Problem problem) {
 		super.prepare(problem);
-		curve = problem.getHeatingCurve();		
-		
-		N	= (int)grid.getGridDensity().getValue();
-		hx	= grid.getXStep();
-		tau	= grid.getTimeStep();
-		
+		curve = problem.getHeatingCurve();
+
+		N = (int) grid.getGridDensity().getValue();
+		hx = grid.getXStep();
+		tau = grid.getTimeStep();
+
 		double Bi1 = (double) problem.getFrontHeatLoss().getValue();
 		double Bi2 = (double) problem.getHeatLossRear().getValue();
 		maxTemp = (double) problem.getMaximumTemperature().getValue();
-		
-		U		= new double[N + 1];
-		V		= new double[N + 1];
-		alpha	= new double[N + 1];
-		beta	= new double[N + 1];
-				
-		counts = (int) curve.getNumPoints().getValue();		
+
+		U = new double[N + 1];
+		V = new double[N + 1];
+		alpha = new double[N + 1];
+		beta = new double[N + 1];
+
+		counts = (int) curve.getNumPoints().getValue();
 
 		// coefficients for difference equation
 
 		a = 1. / pow(hx, 2);
 		b = 1. / tau + 2. / pow(hx, 2);
 		c = 1. / pow(hx, 2);
-		
-		Bi1HTAU	= Bi1 * hx * tau;
-		Bi2HTAU	= Bi2 * hx * tau;
-		
-		maxVal = 0;		
+
+		Bi1HTAU = Bi1 * hx * tau;
+		Bi2HTAU = Bi2 * hx * tau;
+
+		maxVal = 0;
 	}
-	
+
 	@Override
 	public void solve(LinearisedProblem problem) {
 
 		prepare(problem);
-		
+
 		// precalculated constants
 
-		double HH		= pow(hx, 2);
-		double _2HTAU	= 2. * hx * tau;
+		double HH = pow(hx, 2);
+		double _2HTAU = 2. * hx * tau;
 
 		double F;
 		double pls;
@@ -125,7 +123,7 @@ public class ImplicitLinearisedSolver
 			for (m = (w - 1) * timeInterval + 1; m < w * timeInterval + 1; m++) {
 
 				pls = discretePulse.evaluateAt((m - EPS) * tau); // NOTE: EPS is very important here and ensures
-																		// numeric stability!
+																	// numeric stability!
 
 				alpha[1] = 2. * tau / (2. * Bi1HTAU + 2. * tau + HH);
 				beta[1] = (HH * U[0] + _2HTAU * pls) / (2. * Bi1HTAU + 2. * tau + HH);
@@ -136,10 +134,9 @@ public class ImplicitLinearisedSolver
 					beta[i + 1] = (F - a * beta[i]) / (a * alpha[i] - b);
 				}
 
-				V[N] = (HH * U[N] + 2. * tau * beta[N])
-						/ (2 * Bi2HTAU + HH - 2. * tau * (alpha[N] - 1));
+				V[N] = (HH * U[N] + 2. * tau * beta[N]) / (2 * Bi2HTAU + HH - 2. * tau * (alpha[N] - 1));
 
-				for (j = N - 1; j >= 0; j--) 
+				for (j = N - 1; j >= 0; j--)
 					V[j] = alpha[j + 1] * V[j + 1] + beta[j + 1];
 
 				System.arraycopy(V, 0, U, 0, N + 1);
@@ -147,28 +144,25 @@ public class ImplicitLinearisedSolver
 			}
 
 			maxVal = Math.max(maxVal, V[N]);
-			curve.addPoint(
-					(w * timeInterval) * tau * problem.timeFactor(),
-					V[N] );
+			curve.addPoint((w * timeInterval) * tau * problem.timeFactor(), V[N]);
 
 			/*
 			 * UNCOMMENT TO DEBUG
 			 */
 
-			//debug(problem, V, w);
+			// debug(problem, V, w);
 
 		}
 
 		curve.scale(maxTemp / maxVal);
 
 	}
-	
+
 	@Override
 	public DifferenceScheme copy() {
-		return new ImplicitLinearisedSolver(grid.getGridDensity(),
-				grid.getTimeFactor(), getTimeLimit());
+		return new ImplicitLinearisedSolver(grid.getGridDensity(), grid.getTimeFactor(), getTimeLimit());
 	}
-	
+
 	@Override
 	public Class<? extends Problem> domain() {
 		return LinearisedProblem.class;
