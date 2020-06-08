@@ -13,7 +13,6 @@ import org.apache.commons.math3.analysis.interpolation.UnivariateInterpolator;
 
 import pulse.problem.schemes.Grid;
 import pulse.problem.schemes.rte.EmissionFunction;
-import pulse.problem.schemes.rte.MathUtils;
 import pulse.problem.schemes.rte.RadiativeTransferSolver;
 import pulse.problem.statements.ParticipatingMedium;
 import pulse.properties.NumericProperty;

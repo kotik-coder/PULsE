@@ -8,6 +8,8 @@ import pulse.search.math.Vector;
 public abstract class NumericIntegrator {
 
 	protected DiscreteIntensities intensities;
+	protected int nNegativeStart;
+	protected int nPositiveStart;
 
 	public DiscreteIntensities getIntensities() {
 		return intensities;
@@ -35,6 +37,8 @@ public abstract class NumericIntegrator {
 		this.intensities = intensities;
 		this.emissionFunction = ef;
 		this.pf = ipf;
+		nNegativeStart	= intensities.quadratureSet.getFirstNegativeNode();
+		nPositiveStart	= intensities.quadratureSet.getFirstPositiveNode();
 	}
 
 	public double getAlbedo() {

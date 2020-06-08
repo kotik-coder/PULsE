@@ -21,15 +21,13 @@ public class TRBDF2 extends AdaptiveIntegrator {
 	 * for Ordinary Differential Equations. A Review. NASA/TM–2016–219173, p. 72
 	 */
 	
-	private static double bHat2;
-	private static double bHat3;
-	private static double bHat1;
+	private static double[] bHat = new double[3];
 	
 	static {
 		double g	= gamma / 2.0;
-		bHat2		= g*(-2.0 + 7.0*g - 5.0*g*g + 4.0*g*g*g)/(2.0*(2.0*g - 1.0));
-		bHat3		= (-2.0*g*g)*(1.0 - g + g*g)/(2.0*g - 1.0);
-		bHat1		= 1.0 - bHat2 - bHat3;
+		bHat[1]		= g*(-2.0 + 7.0*g - 5.0*g*g + 4.0*g*g*g)/(2.0*(2.0*g - 1.0));
+		bHat[2]		= (-2.0*g*g)*(1.0 - g + g*g)/(2.0*g - 1.0);
+		bHat[0]		= 1.0 - bHat[1] - bHat[2];
 	}
 	
 	/*
@@ -38,13 +36,8 @@ public class TRBDF2 extends AdaptiveIntegrator {
 	
 	private double k[][];
 
-	private int nPositiveStart;
-	private int nNegativeStart;
-
 	public TRBDF2(DiscreteIntensities intensities, EmissionFunction ef, PhaseFunction ipf) {
 		super(intensities, ef, ipf);
-		nNegativeStart	= intensities.quadratureSet.getFirstNegativeNode();
-		nPositiveStart	= intensities.quadratureSet.getFirstPositiveNode();
 	}
 
 	/**
@@ -91,6 +84,24 @@ public class TRBDF2 extends AdaptiveIntegrator {
 		int n5 = nNegativeStart - n3;		//either 0 or first negative index
 
 		/*
+		 * Try to use FSAL
+		 */
+		
+		if( !firstRun ) { //if this is not the first step
+			
+			for(int l = n1; l < n2; l++) 
+				k[0][l - n1] = qLast[l - n1];	
+		
+		} else { 
+			
+			for(int l = n1; l < n2; l++) 
+				k[0][l - n1] = super.derivative(l, j, t, intensities.I[j][l] ); //first-stage right-hand side: f( t, I[i+n1] )
+			
+			firstRun = false;
+			
+		} 
+		
+		/*
 		 * =============================
 		 * 1st and 2nd stages begin here
 		 * =============================
@@ -118,10 +129,8 @@ public class TRBDF2 extends AdaptiveIntegrator {
 		 */
 		
 		for (int i = 0; i < aMatrix.length; i++) {
+			f[j][i + n1] = k[0][i];	//store derivatives for Hermite interpolation
 			
-			k[0][i] = super.derivative(i + n1, j, t, intensities.I[j][i + n1] ); //first-stage right-hand side: f( t, I[i+n1] )
-			f[j][i + n1] = k[0][i];
-
 			bVector[i] = intensities.I[j][i + n1] + hd*( k[0][i] + partial(i + n1, tPlusGamma, inward, n3, n4) ); //only INWARD intensities
 
 			matrixPrefactor = -hd * halfAlbedo / intensities.mu[i + n1];
@@ -158,8 +167,9 @@ public class TRBDF2 extends AdaptiveIntegrator {
 		i3 = invA.multiply(new Vector(bVector));
 
 		for (int i = 0; i < aMatrix.length; i++) {
-			k[2][i] = (i3.get(i) - intensities.I[j][i + n1] - w / d * (i2.get(i) - intensities.I[j][i + n1])) / hd;
-			est[i] += ((w - bHat1) * k[0][i] + (w - bHat2) * k[1][i] + (d - bHat3) * k[2][i]) * h;
+			k[2][i]		= (i3.get(i) - intensities.I[j][i + n1] - w / d * (i2.get(i) - intensities.I[j][i + n1])) / hd;
+			qLast[i]	= k[2][i];
+			est[i] 	 	+= ((w - bHat[0]) * k[0][i] + (w - bHat[1]) * k[1][i] + (d - bHat[2]) * k[2][i]) * h;
 		}
 
 		return new Vector[] { i3, invA.multiply(new Vector(est)) };

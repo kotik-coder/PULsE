@@ -9,6 +9,13 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 	private final static double DENSITY_FACTOR = 1.5;
 		
 	protected double[][] f;
+	protected double[] qLast;
+	
+	protected boolean firstRun;
+
+	public boolean isFirstRun() {
+		return firstRun;
+	}
 
 	@Override
 	public void integrate() {
@@ -18,10 +25,12 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 		final int nHalf		= intensities.quadratureSet.getFirstNegativeNode();
 		final int nStart	= intensities.quadratureSet.getFirstPositiveNode();
 
+		qLast	= new double[intensities.n];
+		
 		for ( double erSq = 1.0, iSq = 0.0; erSq > rtolSq; N = intensities.grid.getDensity() ) {
 
 			erSq = 0;
-			f = new double[N + 1][intensities.n];
+			f		= new double[N + 1][intensities.n];
 
 			treatZeroIndex();
 
@@ -32,6 +41,7 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 
 			intensities.left(emissionFunction); // initial value for tau = 0
 			iSq = ( intensities.I[0][nStart] * intensities.I[0][nStart] );
+			firstRun = true;
 			
 			for (int j = 0; j < N && erSq < rtolSq; j++) {
 				v = step(j, 1.0);
@@ -46,6 +56,7 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 
 			intensities.right(emissionFunction); // initial value for tau = tau_0
 			iSq = ( intensities.I[N][nHalf] * intensities.I[N][nHalf] );
+			firstRun = true;
 			
 			for (int j = N; j > 0 && erSq < rtolSq; j--) {
 
