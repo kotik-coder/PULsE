@@ -24,8 +24,8 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 	public static void main(String[] args) {
 
 		var problem = new ParticipatingMedium();
-		problem.setOpticalThickness(NumericProperty.derive(NumericPropertyKeyword.OPTICAL_THICKNESS, 10.0));
-		problem.setEmissivity(NumericProperty.derive(NumericPropertyKeyword.EMISSIVITY, 0.85));
+		problem.setOpticalThickness(NumericProperty.derive(NumericPropertyKeyword.OPTICAL_THICKNESS, 30.0));
+		problem.setEmissivity(NumericProperty.derive(NumericPropertyKeyword.EMISSIVITY, 1.0));
 
 		File f = null;
 		try {
@@ -56,16 +56,22 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 
 		var rte = new DiscreteOrdinatesSolver(problem, grid);
 		rte.integrator.emissionFunction.setReductionFactor(tFactor);
-		rte.integrator.setAlbedo(0.4);
-		rte.integrator.pf.setAnisotropyFactor(0.9);
+		rte.integrator.setAlbedo(0.0);
+		rte.integrator.pf.setAnisotropyFactor(0.0);
 		rte.compute(U);
 
 		for (int i = 0; i < rte.discrete.n; i++)
 			System.out.println(rte.discrete.I[rte.getExternalGridDensity()][i]);
-
+		
 		System.out.printf("%n%2.4f %4.5f %4.5f", rte.discrete.grid.getNode(0), rte.getFlux(0),
 				rte.getFluxDerivativeFront());
 
+		//
+		
+		for (int i = 0; i < rte.discrete.grid.getDensity(); i++)
+			System.out.printf("%n%2.4f %4.5f %4.5f %4.5f %4.5f", rte.discrete.grid.getNode(i),
+					rte.discrete.I[i][0], rte.discrete.I[i][1], rte.discrete.I[i][2], rte.discrete.I[i][3]);
+		
 		for (int i = 1; i < U.length - 1; i++)
 			System.out.printf("%n%2.4f %4.5f %4.5f", i * (1.0 / (U.length - 1) * rte.getOpticalThickness()),
 					rte.getFlux(i), rte.getFluxDerivative(i));
@@ -106,20 +112,12 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 
 		discrete = new DiscreteIntensities((double) problem.getOpticalThickness().getValue());
 		ipf = new HenyeyGreensteinIPF(discrete);
-		integrator = new TRBDF2(discrete, emissionFunction, ipf);
+		integrator = new ExplicitRungeKutta(discrete, emissionFunction, ipf);
 
 		interpolator = new SplineInterpolator();
 
 		init(problem, grid);
 	}
-
-//	private double[] arrayWithExtraPoint(final double[] tempArray) {
-//		double[] uExtended = new double[tempArray.length + 1]; // create an array with an extra element to avoid
-//																// conditional statements in the source(...) method
-//		System.arraycopy(tempArray, 0, uExtended, 0, tempArray.length); // copy all elements
-//		uExtended[tempArray.length] = uExtended[tempArray.length - 1]; // copy the last element
-//		return uExtended;
-//	}
 
 	private void temperatureInterpolation(double[] tempArray) {
 		nT = tempArray.length - 1;

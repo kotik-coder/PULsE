@@ -54,10 +54,10 @@ public class ButcherTableau {
 		this.coefs = new Matrix(coefs);
 		this.c = new Vector(c);
 		this.b = new Vector(b);
-		this.bHat = new Vector(bHat);
+		this.bHat = new Vector(bHat);		
 	}
 
-	public int stages() {
+	public int numberOfStages() {
 		return b.dimension();
 	}
 

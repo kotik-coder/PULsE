@@ -143,7 +143,7 @@ public class TRBDF2 extends AdaptiveIntegrator {
 			aMatrix[i][i] += 1.0 + hd / intensities.mu[i + n1];
 
 		}
-
+		
 		invA = (new Matrix(aMatrix)).inverse();		//this matrix is re-used for subsequent stages
 		i2 = invA.multiply(new Vector(bVector));	//intensity vector at 2nd stage
 

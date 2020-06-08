@@ -26,15 +26,18 @@ public class ExplicitRungeKutta extends AdaptiveIntegrator {
 		 * Indices of outward (n1 to n2) and inward (> n3) intensities
 		 */
 		
-		final int n1 = sign > 0 ? nPositiveStart : nNegativeStart;			//either first positive index or first negative (n/2)
+		final int n1 = sign > 0 ? nPositiveStart : nNegativeStart;			//either first positive index (e.g. 0) or first negative (n/2)
 		final int n2 = sign > 0 ? nNegativeStart : intensities.n;			//either first negative index (n/2) or n
 		final int n3 = intensities.n - n2; 									//either nNegativeStart or 0
 		final int nH = n2 - n1;
 		
 		var error		= new double[nH];
 		var iOutward	= new double[nH];
-		var iInward = new double[nH];
-		var q			= new double[nH][tableau.stages()];	
+		var iInward		= new double[nH];
+		
+		int stages		= tableau.numberOfStages();
+		
+		var q			= new double[nH][stages];					//first index - cosine node, second index - stage
 		
 		double bDotQ;
 		double sum;
@@ -52,7 +55,7 @@ public class ExplicitRungeKutta extends AdaptiveIntegrator {
 		if(tableau.isFSAL() && !firstRun) { //if FSAL
 			
 			for(int l = n1; l < n2; l++) 
-				q[l - n1][0]	= qLast[l - n1];	
+				q[l - n1][0]	= qLast[l - n1];	//assume first stage is the last stage of last step
 		
 		} else { //if not FSAL or on first run
 			
@@ -74,7 +77,7 @@ public class ExplicitRungeKutta extends AdaptiveIntegrator {
 		 * Next stages
 		 */
 		
-		for (int m = 1; m < q.length; m++) {
+		for (int m = 1; m < stages; m++) { 		// <-------	STAGES
 			
 			/*
 			 * Calculate interpolated (OUTWARD and INCOMING) intensities at each stage from m = 1 onwards
@@ -88,9 +91,9 @@ public class ExplicitRungeKutta extends AdaptiveIntegrator {
 				 * OUTWARD
 				 */
 			
-				sum = tableau.coefs.get(m, 0) * q[0][l - n1];
+				sum = tableau.coefs.get(m, 0) * q[l - n1][0];
 				for (int k = 1; k < m; k++)
-					sum += tableau.coefs.get(m, k) * q[k][l - n1];
+					sum += tableau.coefs.get(m, k) * q[l - n1][k]; //TODO check (m, k)
 	
 				iOutward[l - n1] = intensities.I[j][l] + hSigned*sum;		//outward intensities are simply found from the RK explicit expressions
 				
@@ -112,14 +115,14 @@ public class ExplicitRungeKutta extends AdaptiveIntegrator {
 			 */
 			
 			for(int l = n1; l < n2; l++) {
-				q[l - n1][m]	= derivative( l, tm, iOutward, iInward, n1, n2 );
+				q[l - n1][m]	= derivative( l, tm, iOutward, iInward, n1, n2 ); //TODO check function
 				qLast[l - n1]	= q[l - n1][m];
 				error[l - n1] += (tableau.b.get(m) - tableau.bHat.get(m)) * q[l - n1][m] * hSigned;
 			}
 				
 		}
 		
-		double[] Is = new double[n2 - n1];
+		double[] Is = new double[nH];
 		
 		/*
 		 * Value at next step

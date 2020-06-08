@@ -3,7 +3,7 @@ package pulse.problem.schemes.rte.dom;
 public class StretchedGrid {
 
 	private final static double STRETCHING_FACTOR = 1.0;
-	public final static int DEFAULT_GRID_DENSITY = 8;
+	public final static int DEFAULT_GRID_DENSITY = 64;
 	private double[] nodes;
 
 	private double stretchingFactor;
