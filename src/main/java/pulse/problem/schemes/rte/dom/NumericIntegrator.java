@@ -27,14 +27,14 @@ public abstract class NumericIntegrator {
 		this.emissionFunction = emissionFunction;
 	}
 
-	protected PhaseFunction ipf;
+	protected PhaseFunction pf;
 
 	private double albedo;
 
 	public NumericIntegrator(DiscreteIntensities intensities, EmissionFunction ef, PhaseFunction ipf) {
 		this.intensities = intensities;
 		this.emissionFunction = ef;
-		this.ipf = ipf;
+		this.pf = ipf;
 	}
 
 	public double getAlbedo() {
@@ -64,9 +64,9 @@ public abstract class NumericIntegrator {
 			for (int j = 0; j < intensities.grid.getDensity() + 1; j++) {
 
 				// solve I_k = S_k for mu[k] = 0
-				denominator = 1.0 - 0.5 * albedo * intensities.w[0] * ipf.function(0, 0);
-				intensities.I[j][0] = (sourceEmission(intensities.grid.getNode(j))
-						+ 0.5 * albedo * ipf.integrateWithoutPoint(0, j, 0)) / denominator;
+				denominator = 1.0 - 0.5 * albedo * intensities.w[0] * pf.function(0, 0);
+				intensities.I[j][0] = (emission(intensities.grid.getNode(j))
+						+ 0.5 * albedo * pf.sumExcludingIndex(0, j, 0)) / denominator;
 
 			}
 
@@ -74,43 +74,45 @@ public abstract class NumericIntegrator {
 
 	}
 	
-	public double rhs(int i, int j, double t, double I) {	
+	public double derivative(int i, int j, double t, double I) {	
 		return 1.0 / intensities.mu[i] * ( source(i, j, t, I) - I );
 	}
 	
-	public double rhs(int i, int j, double t, double[] outwardIntensities, double sign) {	
-		
-		final int nHalf		= intensities.quadratureSet.getFirstNegativeNode();
-		final int nStart	= intensities.quadratureSet.getFirstPositiveNode();
-		final int l1 = sign > 0 ? nStart : nHalf;			//either first positive index or first negative (n/2)
-		final int l2 = sign > 0 ? nHalf : intensities.n;	//either first negative index (n/2) or n
-		
-		return 1.0 / intensities.mu[i] * ( 
-				source(i, j, outwardIntensities, t, l1, l2) 
-				- outwardIntensities[i - l1] );
-		
+	public double derivative(int i, double t, double[] out, double[] in, int l1, int l2) {	
+		return 1.0 / intensities.mu[i] * ( source(i, out, in, t, l1, l2) - out[i - l1] );		
+	}
+	
+	public double partial(int i, double t, double[] inward, int l1, int l2) { 
+		return ( emission(t) + 0.5* albedo * pf.inwardPartialSum(i, inward, l1, l2) ) / intensities.mu[i];
+	}
+	
+	public double partial(int i, int j, double t, int l1, int l2) { 
+		return ( emission(t) + 0.5* albedo * pf.partialSum(i, j, l1, l2) ) / intensities.mu[i];
 	}
 	
 	public double source(int i, int j, double t, double I) {
-		return sourceEmission(t) + 0.5 * albedo * ( ipf.integrateWithoutPoint(i, j, i) + 
-				ipf.function(i, i) * intensities.w[i] * I ); //contains sum over the incoming rays	
+		return emission(t) + 0.5 * albedo * ( pf.sumExcludingIndex(i, j, i) + 
+				pf.function(i, i) * intensities.w[i] * I ); //contains sum over the incoming rays	
 	}
 
-	public double source(int i, int j, double[] iOut, double t, int l1, int l2) {
+	public double source(int i, double[] iOut, double[] iIn, double t, int l1, int l2) {
 		
 		double sumOut = 0;
 		
-		for(int l = l1; l < l2; l++)		//sum over the outward intensities iOut
-			sumOut += iOut[l - l1] * intensities.w[l] * ipf.function(i, l);
+		for(int l = l1; l < l2; l++)		//sum over the OUTWARD intensities iOut
+			sumOut += iOut[l - l1] * intensities.w[l] * pf.function(i, l);
+	
+		double sumIn = 0;
 		
-		int l3 = intensities.n - l2; //either nHalf or nStart
-		int l4 = intensities.n - l1; //either n or nHalf
+		for(int start = intensities.n - l2, l = start, end = intensities.n - l1; 
+				l < end; l++)				//sum over the INWARD intensities iIn
+			sumIn += iIn[l - start] * intensities.w[l] * pf.function(i, l);
 		
-		return sourceEmission(t) + 0.5 * albedo * ( ipf.integratePartial(i, j, l3, l4) + sumOut ); //contains sum over the incoming rays
+		return emission(t) + 0.5 * albedo * ( sumIn + sumOut ); //contains sum over the incoming rays
 	
 	}
 
-	public double sourceEmission(double t) {
+	public double emission(double t) {
 		return (1.0 - albedo) * emissionFunction.J(t);
 	}
 

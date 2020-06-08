@@ -132,6 +132,11 @@ public class DiscreteIntensities {
 	public double getQRight() {
 		return qRight;
 	}
+	
+	public double averageIntensity() {
+		int N = grid.getDensity();
+		return ( I[0][0] + I[N/2][0] + I[N][0] + I[0][n-1] + I[N/2][n-1] + I[N][n-1] ) / 6.0;
+	}
 
 	/**
 	 * Calculates the reflected intensity (positive angles, first half of indices)

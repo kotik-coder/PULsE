@@ -58,7 +58,7 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 		var rte = new DiscreteOrdinatesSolver(problem, grid);
 		rte.integrator.emissionFunction.setReductionFactor(tFactor);
 		rte.integrator.setAlbedo(0.4);
-		rte.integrator.ipf.setAnisotropyFactor(0.9);
+		rte.integrator.pf.setAnisotropyFactor(0.9);
 		rte.compute(U);
 
 		for (int i = 0; i < rte.discrete.n; i++)
@@ -107,7 +107,7 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 
 		discrete = new DiscreteIntensities((double) problem.getOpticalThickness().getValue());
 		ipf = new HenyeyGreensteinIPF(discrete);
-		integrator = new EmbeddedRK(discrete, emissionFunction, ipf);
+		integrator = new TRBDF2(discrete, emissionFunction, ipf);
 
 		interpolator = new SplineInterpolator();
 
@@ -142,13 +142,26 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 
 		temperatureInterpolation(tempArray);
 		discrete.clear();
+		
+		double relativeError = 100;
+		
+		double qld = 0;
+		double qrd = 0;
+		double qav = 0;
 
-		for (double iterationErrorSq = iterationError * iterationError, ql = 1, qr = 1; (MathUtils
-				.fastPowLoop(discrete.getQLeft() - ql, 2)
-				* (MathUtils.fastPowLoop(discrete.getQRight() - qr, 2)) > iterationErrorSq);) {
+		for (double relTolSq = iterationError * iterationError, ql = 1, qr = 1; relativeError > relTolSq; ) {
 			ql = discrete.getQLeft();
 			qr = discrete.getQRight();
+			
 			integrator.integrate();
+			
+			qld = (discrete.getQLeft()	- ql);
+			qrd = (discrete.getQRight()	- qr);
+			qav = ql + qr;
+			
+			relativeError = (qld*qld + qrd*qrd)/(qav*qav);
+			System.out.printf("%1.2e", relativeError);
+					
 		}
 
 		this.fluxes();

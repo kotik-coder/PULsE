@@ -7,7 +7,7 @@ public class LinearAnisotropicIPF extends PhaseFunction {
 	}
 
 	@Override
-	public double integratePartial(int i, int j, int n1, int n2Exclusive) {
+	public double partialSum(int i, int j, int n1, int n2Exclusive) {
 		return intensities.g(j, n1, n2Exclusive) + A1 * intensities.mu[i] * intensities.q(j, n1, n2Exclusive);
 	}
 
