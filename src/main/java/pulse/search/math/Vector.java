@@ -147,19 +147,12 @@ public class Vector {
 	 * 
 	 * @param v another {@code Vector} with the same dimension.
 	 * @return the dot product of {@code this} and {@code v}.
-	 * @throws IllegalArgumentException f the dimension of {@code this} and
-	 *                                  {@code v} are different.
 	 */
 
-	public double dot(Vector v) throws IllegalArgumentException {
-		if (v.x.length != x.length)
-			throw new IllegalArgumentException(
-					Messages.getString("Vector.DimensionError1") + x.length + " != " + v.x.length); //$NON-NLS-1$ //$NON-NLS-2$
-
+	public double dot(Vector v) {
 		double dotProduct = 0;
 		for (int i = 0; i < v.x.length; i++)
 			dotProduct += this.x[i] * v.x[i];
-
 		return dotProduct;
 	}
 

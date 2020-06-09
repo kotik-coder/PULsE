@@ -17,7 +17,7 @@ public class DiscreteIntensities {
 	protected double[] storedF, storedFD;
 
 	protected UnivariateFunction interpolatedFlux, interpolatedFluxDerivative;
-	protected UnivariateFunction storedFluxInterpolation, storedFluxDerivativeInterpolation; 
+	protected UnivariateFunction storedFluxInterpolation, storedFluxDerivativeInterpolation;
 	protected int n;
 
 	protected StretchedGrid grid;
@@ -138,10 +138,10 @@ public class DiscreteIntensities {
 	public double getQRight() {
 		return qRight;
 	}
-	
+
 	public double averageIntensity() {
 		int N = grid.getDensity();
-		return ( I[0][0] + I[N/2][0] + I[N][0] + I[0][n-1] + I[N/2][n-1] + I[N][n-1] ) / 6.0;
+		return (I[0][0] + I[N / 2][0] + I[N][0] + I[0][n - 1] + I[N / 2][n - 1] + I[N][n - 1]) / 6.0;
 	}
 
 	/**
@@ -213,16 +213,17 @@ public class DiscreteIntensities {
 		System.arraycopy(localFlux, 0, storedF, 0, storedF.length);
 		System.arraycopy(localFluxDerivative, 0, storedFD, 0, storedFD.length);
 		var interpolator = new SplineInterpolator();
-		storedFluxInterpolation		   		= interpolator.interpolate(grid.getNodes(), storedF);
-		storedFluxDerivativeInterpolation	= interpolator.interpolate(grid.getNodes(), storedFD);
+		storedFluxInterpolation = interpolator.interpolate(grid.getNodes(), storedF);
+		storedFluxDerivativeInterpolation = interpolator.interpolate(grid.getNodes(), storedFD);
 	}
-	//TODO interpolation
+
+	// TODO interpolation
 	public void interpolate() {
 		var interpolator = new SplineInterpolator();
-		interpolatedFlux		   = interpolator.interpolate(grid.getNodes(), localFlux);
+		interpolatedFlux = interpolator.interpolate(grid.getNodes(), localFlux);
 		interpolatedFluxDerivative = interpolator.interpolate(grid.getNodes(), localFluxDerivative);
 	}
-	
+
 	public UnivariateFunction getInterpolatedFlux() {
 		return interpolatedFlux;
 	}
@@ -230,29 +231,9 @@ public class DiscreteIntensities {
 	public UnivariateFunction getInterpolatedFluxDerivative() {
 		return interpolatedFluxDerivative;
 	}
-	
+
 	public UnivariateFunction getStoredFluxDerivativeInterpolation() {
 		return storedFluxDerivativeInterpolation;
 	}
-
-//	public NumericProperty getQuadraturePoints() {
-//		return NumericProperty.derive(NumericPropertyKeyword.DOM_DIRECTIONS, n);
-//	}
-//	
-//	public void setQuadraturePoints(NumericProperty m) {
-//		if(m.getType() != NumericPropertyKeyword.DOM_DIRECTIONS)
-//			throw new IllegalArgumentException("Illegal type: " + m.getType());
-//		this.n = (int)m.getValue();
-//		
-//		discreteDirections = new GaussianQuadrature(n);
-//		discreteDirections.init();
-//		discreteDirections.setParent(this);
-//		
-//		mu = S8QuadratureSet.getNodes();
-//		w = S8QuadratureSet.getWeights();
-//		
-//		I = new double[n][this.getExternalGridDensity() + 1];
-//		
-//	}
 
 }

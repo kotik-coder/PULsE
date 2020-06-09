@@ -3,7 +3,7 @@ package pulse.problem.schemes.rte.dom;
 public class StretchedGrid {
 
 	private final static double STRETCHING_FACTOR = 3.0;
-	public final static int DEFAULT_GRID_DENSITY = 64;
+	public final static int DEFAULT_GRID_DENSITY = 8;
 	private double[] nodes;
 
 	private double stretchingFactor;
@@ -30,14 +30,18 @@ public class StretchedGrid {
 			generate(n);
 	}
 
+	public void reset() {
+		generate(DEFAULT_GRID_DENSITY);
+	}
+
 	public void generate(int n) {
 		generateUniform(n, false);
 
 		// apply stretching function
-		
-		for (int i = 0; i < nodes.length; i++) 
+
+		for (int i = 0; i < nodes.length; i++)
 			nodes[i] = 0.5 * dimension * tanh(nodes[i], stretchingFactor);
-		
+
 	}
 
 	public void generateUniform(int n, boolean scaled) {
@@ -97,7 +101,7 @@ public class StretchedGrid {
 	}
 
 	public double tanh(final double x, final double stretchingFactor) {
-		return 1.0 - Math.tanh(stretchingFactor * (1.0 - 2.0*x)) / Math.tanh(stretchingFactor);
+		return 1.0 - Math.tanh(stretchingFactor * (1.0 - 2.0 * x)) / Math.tanh(stretchingFactor);
 	}
 
 }

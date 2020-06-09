@@ -5,12 +5,13 @@ import pulse.search.math.Vector;
 
 public abstract class AdaptiveIntegrator extends NumericIntegrator {
 
-	protected final static double rtolSq = 1e-2;
+	protected final static double rtol = 1e-2;
+	private double rtolSq;
 	protected final static double DENSITY_FACTOR = 1.5;
-		
+
 	protected double[][] f;
 	protected double[] qLast;
-	
+
 	protected boolean firstRun;
 
 	public boolean isFirstRun() {
@@ -21,16 +22,17 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 	public void integrate() {
 		Vector[] v;
 
-		int N				= intensities.grid.getDensity();
-		final int nHalf		= intensities.quadratureSet.getFirstNegativeNode();
-		final int nStart	= intensities.quadratureSet.getFirstPositiveNode();
+		int N = intensities.grid.getDensity();
+		final int nHalf = intensities.quadratureSet.getFirstNegativeNode();
+		final int nStart = intensities.quadratureSet.getFirstPositiveNode();
 
 		qLast	= new double[intensities.n];
-		
-		for ( double erSq = 1.0, iSq = 0.0; erSq > rtolSq; N = intensities.grid.getDensity() ) {
+		rtolSq	= rtol*rtol;
+
+		for (double erSq = 1.0, iSq = 0.0; erSq > rtolSq; N = intensities.grid.getDensity()) {
 
 			erSq = 0;
-			f		= new double[N + 1][intensities.n];	//first index - spatial steps, second index - quadrature points
+			f = new double[N + 1][intensities.n]; // first index - spatial steps, second index - quadrature points
 
 			treatZeroIndex();
 
@@ -40,13 +42,13 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 			 */
 
 			intensities.left(emissionFunction); // initial value for tau = 0
-			iSq = ( intensities.I[0][nStart] * intensities.I[0][nStart] );
+			iSq = ( new Vector(intensities.I[0] )).lengthSq();
 			firstRun = true;
-			
-			for (int j = 0; j < N && erSq < rtolSq; j++) {
+
+			for (int j = 0; j < N && -erSq < rtolSq; j++) {
 				v = step(j, 1.0);
 				System.arraycopy(v[0].getData(), 0, intensities.I[j + 1], nStart, nHalf - nStart);
-				erSq = v[1].lengthSq() / iSq;
+				erSq = Math.max(erSq, v[1].lengthSq() / iSq );
 			}
 
 			/*
@@ -54,33 +56,33 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 			 * streams propagate in the negative hemisphere
 			 */
 
-//			intensities.right(emissionFunction); // initial value for tau = tau_0
-//			iSq = ( intensities.I[N][nHalf] * intensities.I[N][nHalf] );
-//			firstRun = true;
-//			
-//			for (int j = N; j > 0 && erSq < rtolSq; j--) {
-//
-//				v = step(j, -1.0);
-//				System.arraycopy(v[0].getData(), 0, intensities.I[j - 1], nHalf, nHalf - nStart);
-//				erSq = v[1].lengthSq() / iSq;
-//			}
+			intensities.right(emissionFunction); // initial value for tau = tau_0
+			iSq = ( new Vector(intensities.I[N] )).lengthSq();
+			firstRun = true;
+			
+			for (int j = N; j > 0 && -erSq < rtolSq; j--) {
+
+				v = step(j, -1.0);
+				System.arraycopy(v[0].getData(), 0, intensities.I[j - 1], nHalf, nHalf - nStart);
+				erSq = Math.max( erSq, v[1].lengthSq() / iSq );
+			}
 
 			System.out.printf("%n Steps: %5d Error: %1.5e, h = %3.6f", N, erSq, intensities.grid.stepRight(0));
 
-			break;
-			
-//			if (erSq > rtolSq) {
-//				reduceStepSize();
-//				f = new double[0][0]; //clear derivatives
-//				HermiteInterpolator.clear();
-//			}
-				
+			if (erSq > rtolSq) {
+				reduceStepSize();
+				f = new double[0][0]; //clear derivatives
+				HermiteInterpolator.clear();
+			}
+
 		}
+		
+		System.exit(1);
 
 	}
-	
+
 	public abstract Vector[] step(final int j, final double sign);
-	
+
 	public AdaptiveIntegrator(DiscreteIntensities intensities, EmissionFunction ef, PhaseFunction ipf) {
 		super(intensities, ef, ipf);
 	}
@@ -91,7 +93,7 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 		this.intensities.reinitInternalArrays();
 		intensities.clearBoundaryFluxes();
 	}
-	
+
 	public void generateGrid(int nNew) {
 		intensities.grid.generateUniform(nNew, true);
 	}

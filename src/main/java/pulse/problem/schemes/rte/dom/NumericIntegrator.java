@@ -36,8 +36,8 @@ public abstract class NumericIntegrator {
 		this.intensities = intensities;
 		this.emissionFunction = ef;
 		this.pf = ipf;
-		nNegativeStart	= intensities.quadratureSet.getFirstNegativeNode();
-		nPositiveStart	= intensities.quadratureSet.getFirstPositiveNode();
+		nNegativeStart = intensities.quadratureSet.getFirstNegativeNode();
+		nPositiveStart = intensities.quadratureSet.getFirstPositiveNode();
 	}
 
 	public double getAlbedo() {
@@ -76,47 +76,51 @@ public abstract class NumericIntegrator {
 		}
 
 	}
-	
-	public double derivative(int i, int j, double t, double I) {	
-		return 1.0 / intensities.mu[i] * ( source(i, j, t, I) - I );
+
+	public double derivative(int i, int j, double t, double I) {
+		return 1.0 / intensities.mu[i] * (source(i, j, t, I) - I);
 	}
-	
-	public double derivative(int i, double t, double[] out, double[] in, int l1, int l2) {	
-		return 1.0 / intensities.mu[i] * ( source(i, out, in, t, l1, l2) - out[i - l1] );		
+
+	public double derivative(int i, double t, double[] out, double[] in, int l1, int l2) {
+		return 1.0 / intensities.mu[i] * (source(i, out, in, t, l1, l2) - out[i - l1]);
 	}
-	
-	public double partial(int i, double t, double[] inward, int l1, int l2) { 
-		return ( emission(t) + 0.5* albedo * pf.inwardPartialSum(i, inward, l1, l2) ) / intensities.mu[i];
+
+	public double partial(int i, double t, double[] inward, int l1, int l2) {
+		return (emission(t) + 0.5 * albedo * pf.inwardPartialSum(i, inward, l1, l2)) / intensities.mu[i];
 	}
-	
-	public double partial(int i, int j, double t, int l1, int l2) { 
-		return ( emission(t) + 0.5* albedo * pf.partialSum(i, j, l1, l2) ) / intensities.mu[i];
+
+	public double partial(int i, int j, double t, int l1, int l2) {
+		return (emission(t) + 0.5 * albedo * pf.partialSum(i, j, l1, l2)) / intensities.mu[i];
 	}
-	
+
 	public double source(int i, int j, double t, double I) {
-		return emission(t) + 0.5 * albedo * ( pf.sumExcludingIndex(i, j, i) + 
-				pf.function(i, i) * intensities.w[i] * I ); //contains sum over the incoming rays	
+		return emission(t) + 0.5 * albedo * (pf.sumExcludingIndex(i, j, i) + pf.function(i, i) * intensities.w[i] * I); // contains
+																														// sum
+																														// over
+																														// the
+																														// incoming
+																														// rays
 	}
 
 	public double source(int i, double[] iOut, double[] iIn, double t, int l1, int l2) {
-		
+
 		double sumOut = 0;
-		
-		for(int l = l1; l < l2; l++)		//sum over the OUTWARD intensities iOut
+
+		for (int l = l1; l < l2; l++) // sum over the OUTWARD intensities iOut
 			sumOut += iOut[l - l1] * intensities.w[l] * pf.function(i, l);
-	
+
 		double sumIn = 0;
-		
-		for(int start = intensities.n - l2, l = start, end = intensities.n - l1; 
-				l < end; l++)				//sum over the INWARD intensities iIn
+
+		for (int start = intensities.n - l2, l = start, end = intensities.n - l1; l < end; l++) // sum over the INWARD
+																								// intensities iIn
 			sumIn += iIn[l - start] * intensities.w[l] * pf.function(i, l);
-		
-		return emission(t) + 0.5 * albedo * ( sumIn + sumOut ); //contains sum over the incoming rays
-	
+
+		return emission(t) + 0.5 * albedo * (sumIn + sumOut); // contains sum over the incoming rays
+
 	}
 
 	public double emission(double t) {
-		return 0.0*(1.0 - albedo) * emissionFunction.J(t);
+		return (1.0 - albedo) * emissionFunction.J(t);
 	}
 
 }
