@@ -3,7 +3,7 @@ package pulse.problem.schemes.rte.dom;
 public class StretchedGrid {
 
 	private final static double STRETCHING_FACTOR = 3.0;
-	public final static int DEFAULT_GRID_DENSITY = 8;
+	public final static int DEFAULT_GRID_DENSITY = 64;
 	private double[] nodes;
 
 	private double stretchingFactor;
@@ -65,41 +65,24 @@ public class StretchedGrid {
 		return nodes;
 	}
 
-	public double interpolateStretched(double[] array, double hx, int index) {
-		double t = index * hx * dimension;
-
-		// loops through nodes sorted in ascending order
-		for (int i = 0; i < nodes.length; i++)
-			/*
-			 * if node is greater than t, then the associated function can be interpolated
-			 * between points f_i and f_i-1, since t lies between nodes n_i and n_i-1
-			 */
-			if (nodes[i] > t) {
-				double mu = (t - nodes[i - 1]) / stepRight(i - 1);
-				return array[i] * mu + array[i - 1] * (1.0 - mu);
-			}
-
-		// return last element if the condition has still not been satisfied
-		return array[nodes.length - 1];
-
-	}
-
-	/**
-	 * Assumes uniform grid
-	 * 
-	 * @param array
-	 * @param hx
-	 * @param index
-	 * @return
-	 */
-
-	public double interpolateUniform(double[] array, double hx, int index) {
-		double t = index * hx * dimension;
-		double h = nodes[1] - nodes[0];
-		int floor = (int) (t / h);
-		double alpha = t - floor * h;
-		return (1.0 - alpha) * array[floor] + alpha * array[floor + 1];
-	}
+//	public double interpolateStretched(double[] array, double hx, int index) {
+//		double t = index * hx * dimension;
+//
+//		// loops through nodes sorted in ascending order
+//		for (int i = 0; i < nodes.length; i++)
+//			/*
+//			 * if node is greater than t, then the associated function can be interpolated
+//			 * between points f_i and f_i-1, since t lies between nodes n_i and n_i-1
+//			 */
+//			if (nodes[i] > t) {
+//				double mu = (t - nodes[i - 1]) / stepRight(i - 1);
+//				return array[i] * mu + array[i - 1] * (1.0 - mu);
+//			}
+//
+//		// return last element if the condition has still not been satisfied
+//		return array[nodes.length - 1];
+//
+//	}
 
 	public double step(int i, double sign) {
 		return nodes[i + (int) ((1. + sign) * 0.5)] - nodes[i - (int) ((1. - sign) * 0.5)];

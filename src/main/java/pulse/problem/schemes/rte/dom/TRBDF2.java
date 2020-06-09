@@ -35,7 +35,7 @@ public class TRBDF2 extends AdaptiveIntegrator {
 		bHat[2]		= (-2.0*g*g)*(1.0 - g + g*g)/(2.0*g - 1.0);
 		bHat[0]		= 1.0 - bHat[1] - bHat[2];
 	}
-	
+
 	/*
 	 * ===
 	 */
@@ -44,6 +44,11 @@ public class TRBDF2 extends AdaptiveIntegrator {
 
 	public TRBDF2(DiscreteIntensities intensities, EmissionFunction ef, PhaseFunction ipf) {
 		super(intensities, ef, ipf);
+	}
+	
+	@Override
+	public void generateGrid(int nNew) {
+		intensities.grid.generate(nNew);
 	}
 
 	/**

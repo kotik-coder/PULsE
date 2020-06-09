@@ -116,7 +116,7 @@ public abstract class NumericIntegrator {
 	}
 
 	public double emission(double t) {
-		return (1.0 - albedo) * emissionFunction.J(t);
+		return 0.0*(1.0 - albedo) * emissionFunction.J(t);
 	}
 
 }

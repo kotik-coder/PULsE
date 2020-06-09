@@ -1,5 +1,8 @@
 package pulse.problem.schemes.rte.dom;
 
+import org.apache.commons.math3.analysis.UnivariateFunction;
+import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
+
 import pulse.problem.schemes.rte.EmissionFunction;
 
 public class DiscreteIntensities {
@@ -13,6 +16,8 @@ public class DiscreteIntensities {
 	protected double[] localFlux, localFluxDerivative;
 	protected double[] storedF, storedFD;
 
+	protected UnivariateFunction interpolatedFlux, interpolatedFluxDerivative;
+	protected UnivariateFunction storedFluxInterpolation, storedFluxDerivativeInterpolation; 
 	protected int n;
 
 	protected StretchedGrid grid;
@@ -51,6 +56,7 @@ public class DiscreteIntensities {
 		// calculate fluxes on DOM grid
 		for (int i = 0; i < N + 1; i++)
 			localFlux[i] = DOUBLE_PI * q(i);
+		interpolate();
 	}
 
 	public void fluxDerivatives() {
@@ -206,6 +212,27 @@ public class DiscreteIntensities {
 	public void store() {
 		System.arraycopy(localFlux, 0, storedF, 0, storedF.length);
 		System.arraycopy(localFluxDerivative, 0, storedFD, 0, storedFD.length);
+		var interpolator = new SplineInterpolator();
+		storedFluxInterpolation		   		= interpolator.interpolate(grid.getNodes(), storedF);
+		storedFluxDerivativeInterpolation	= interpolator.interpolate(grid.getNodes(), storedFD);
+	}
+	//TODO interpolation
+	public void interpolate() {
+		var interpolator = new SplineInterpolator();
+		interpolatedFlux		   = interpolator.interpolate(grid.getNodes(), localFlux);
+		interpolatedFluxDerivative = interpolator.interpolate(grid.getNodes(), localFluxDerivative);
+	}
+	
+	public UnivariateFunction getInterpolatedFlux() {
+		return interpolatedFlux;
+	}
+
+	public UnivariateFunction getInterpolatedFluxDerivative() {
+		return interpolatedFluxDerivative;
+	}
+	
+	public UnivariateFunction getStoredFluxDerivativeInterpolation() {
+		return storedFluxDerivativeInterpolation;
 	}
 
 //	public NumericProperty getQuadraturePoints() {

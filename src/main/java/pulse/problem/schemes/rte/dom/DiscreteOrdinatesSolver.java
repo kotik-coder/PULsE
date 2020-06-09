@@ -25,7 +25,7 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 
 		var problem = new ParticipatingMedium();
 		problem.setOpticalThickness(NumericProperty.derive(NumericPropertyKeyword.OPTICAL_THICKNESS, 100.0));
-		problem.setEmissivity(NumericProperty.derive(NumericPropertyKeyword.EMISSIVITY, 0.85));
+		problem.setEmissivity(NumericProperty.derive(NumericPropertyKeyword.EMISSIVITY, 1.0));
 
 		File f = null;
 		try {
@@ -68,10 +68,10 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 
 		//
 		
-//		for (int i = 0; i < rte.discrete.grid.getDensity(); i++)
-//			System.out.printf("%n%2.4f %4.5f %4.5f %4.5f %4.5f", rte.discrete.grid.getNode(i),
-//					rte.discrete.I[i][0], rte.discrete.I[i][1], rte.discrete.I[i][2], rte.discrete.I[i][3]);
-//		
+		for (int i = 0; i < rte.discrete.grid.getDensity(); i++)
+			System.out.printf("%n%2.4f %4.5f %4.5f %4.5f %4.5f", rte.discrete.grid.getNode(i),
+					rte.discrete.I[i][0], rte.discrete.I[i][1], rte.discrete.I[i][2], rte.discrete.I[i][3]);
+		
 		for (int i = 1; i < U.length - 1; i++)
 			System.out.printf("%n%2.4f %4.5f %4.5f", i * (1.0 / (U.length - 1) * rte.getOpticalThickness()),
 					rte.getFlux(i), rte.getFluxDerivative(i));
@@ -175,23 +175,15 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 		discrete.fluxes();
 
 		int N = discrete.grid.getDensity();
-		double hx = integrator.emissionFunction.getGridStep();
 
 		setFlux(0, discrete.localFlux[0]);
-
-		if (discrete.grid.getDensity() > nT) {
-			// try linear interpolation (finite-difference) if the number of points is
-			// sufficient
-			for (int i = 1; i < nT; i++)
-				setFlux(i, discrete.grid.interpolateStretched(discrete.localFlux, hx, i));
-		} else {
-			UnivariateFunction function = interpolator.interpolate(discrete.grid.getNodes(), discrete.localFlux);
-			double hxd = hx * this.getOpticalThickness();
-			for (int i = 1; i < nT; i++)
-				setFlux(i, function.value(hxd * i));
-		}
-
 		setFlux(nT, discrete.localFlux[N]);
+		
+		var		flux	= discrete.getInterpolatedFlux();
+		double	hxd		=  integrator.emissionFunction.getGridStep() * this.getOpticalThickness();
+		
+		for (int i = 1; i < nT; i++)
+			setFlux(i, flux.value(hxd * i));
 	}
 
 	@Override
@@ -206,8 +198,8 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 
 	@Override
 	public double getFluxDerivative(int u) {
-		double hx = integrator.emissionFunction.getGridStep();
-		return discrete.grid.interpolateStretched(discrete.localFluxDerivative, hx, u);
+		double	hxd		=  integrator.emissionFunction.getGridStep() * this.getOpticalThickness();
+		return discrete.getInterpolatedFluxDerivative().value(u*hxd);
 	}
 
 	@Override
@@ -222,9 +214,9 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 
 	@Override
 	public double getFluxMeanDerivative(int u) {
-		double hx = integrator.emissionFunction.getGridStep();
-		return 0.5 * (discrete.grid.interpolateUniform(discrete.localFluxDerivative, hx, u)
-				+ discrete.grid.interpolateUniform(discrete.storedFD, hx, u));
+		double	hxd	= integrator.emissionFunction.getGridStep() * this.getOpticalThickness();
+		return 0.5 * (discrete.getInterpolatedFluxDerivative().value(u*hxd)
+				   +  discrete.getStoredFluxDerivativeInterpolation().value(u*hxd) );
 	}
 
 	@Override

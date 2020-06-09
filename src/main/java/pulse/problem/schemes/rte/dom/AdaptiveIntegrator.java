@@ -6,7 +6,7 @@ import pulse.search.math.Vector;
 public abstract class AdaptiveIntegrator extends NumericIntegrator {
 
 	protected final static double rtolSq = 1e-2;
-	private final static double DENSITY_FACTOR = 1.5;
+	protected final static double DENSITY_FACTOR = 1.5;
 		
 	protected double[][] f;
 	protected double[] qLast;
@@ -54,24 +54,26 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 			 * streams propagate in the negative hemisphere
 			 */
 
-			intensities.right(emissionFunction); // initial value for tau = tau_0
-			iSq = ( intensities.I[N][nHalf] * intensities.I[N][nHalf] );
-			firstRun = true;
-			
-			for (int j = N; j > 0 && erSq < rtolSq; j--) {
-
-				v = step(j, -1.0);
-				System.arraycopy(v[0].getData(), 0, intensities.I[j - 1], nHalf, nHalf - nStart);
-				erSq = v[1].lengthSq() / iSq;
-			}
+//			intensities.right(emissionFunction); // initial value for tau = tau_0
+//			iSq = ( intensities.I[N][nHalf] * intensities.I[N][nHalf] );
+//			firstRun = true;
+//			
+//			for (int j = N; j > 0 && erSq < rtolSq; j--) {
+//
+//				v = step(j, -1.0);
+//				System.arraycopy(v[0].getData(), 0, intensities.I[j - 1], nHalf, nHalf - nStart);
+//				erSq = v[1].lengthSq() / iSq;
+//			}
 
 			System.out.printf("%n Steps: %5d Error: %1.5e, h = %3.6f", N, erSq, intensities.grid.stepRight(0));
 
-			if (erSq > rtolSq) {
-				reduceStepSize();
-				f = new double[0][0]; //clear derivatives
-				HermiteInterpolator.clear();
-			}
+			break;
+			
+//			if (erSq > rtolSq) {
+//				reduceStepSize();
+//				f = new double[0][0]; //clear derivatives
+//				HermiteInterpolator.clear();
+//			}
 				
 		}
 
@@ -85,9 +87,13 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 
 	public void reduceStepSize() {
 		int nNew = (roundEven(DENSITY_FACTOR * intensities.grid.getDensity()));
-		intensities.grid.generateUniform(nNew, true);
+		generateGrid(nNew);
 		this.intensities.reinitInternalArrays();
 		intensities.clearBoundaryFluxes();
+	}
+	
+	public void generateGrid(int nNew) {
+		intensities.grid.generateUniform(nNew, true);
 	}
 
 	private int roundEven(double a) {
