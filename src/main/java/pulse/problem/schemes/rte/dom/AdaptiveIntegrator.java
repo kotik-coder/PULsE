@@ -44,7 +44,6 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 			intensities.left(emissionFunction); // initial value for tau = 0
 			i0Max = (new Vector(intensities.I[0])).maxAbsComponent();
 			
-			relFactor = (new Vector(intensities.I[0])).maxAbsComponent();
 			firstRun = true;
 
 			for (int j = 0; j < N && error < atol + relFactor * rtol; j++) {
@@ -68,7 +67,6 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 			intensities.right(emissionFunction); // initial value for tau = tau_0
 			i0Max = (new Vector(intensities.I[N])).maxAbsComponent();
 			
-			relFactor = ( new Vector(intensities.I[N] )).lengthSq();
 			firstRun = true;
 			
 			for (int j = N; j > 0 && error < atol + relFactor * rtol; j--) {
