@@ -6,6 +6,7 @@ import pulse.search.math.Vector;
 public abstract class AdaptiveIntegrator extends NumericIntegrator {
 	
 	protected final static double rtol = 1e-2;
+	protected final static double atol = 1e-3;
 	
 	protected final static double DENSITY_FACTOR = 1.5;
 
@@ -14,8 +15,6 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 
 	protected boolean firstRun;
 
-	private double rtolSq;
-	
 	public boolean isFirstRun() {
 		return firstRun;
 	}
@@ -29,11 +28,10 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 		final int nStart = intensities.quadratureSet.getFirstPositiveNode();
 
 		qLast	= new double[intensities.n];
-		rtolSq	= rtol*rtol;
 		
-		for (double erSq = 1.0, relFactor = 0.0, i0Max = 0; erSq > relFactor * rtolSq; N = intensities.grid.getDensity()) {
+		for (double error = 1.0, relFactor = 0.0, i0Max = 0, i1Max = 0; error > atol + relFactor * rtol; N = intensities.grid.getDensity()) {
 
-			erSq = 0;
+			error = 0;
 			f = new double[N + 1][intensities.n]; // first index - spatial steps, second index - quadrature points
 
 			treatZeroIndex();
@@ -44,17 +42,22 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 			 */
 
 			intensities.left(emissionFunction); // initial value for tau = 0
-			i0Max = (new Vector(intensities.I[0])).maxSqComponent();
+			i0Max = (new Vector(intensities.I[0])).maxAbsComponent();
 			
-			relFactor = (new Vector(intensities.I[0])).maxSqComponent();
+			relFactor = (new Vector(intensities.I[0])).maxAbsComponent();
 			firstRun = true;
 
-			for (int j = 0; j < N && erSq < relFactor * rtolSq; j++) {
+			for (int j = 0; j < N && error < atol + relFactor * rtol; j++) {
+				
 				v = step(j, 1.0);
 				System.arraycopy(v[0].getData(), 0, intensities.I[j + 1], nStart, nHalf - nStart);
 				
-				relFactor	= Math.max( i0Max, (new Vector(intensities.I[j + 1])).maxSqComponent() ); 
-				erSq		= v[1].maxSqComponent();
+				i1Max		= (new Vector(intensities.I[j + 1])).maxAbsComponent();
+				relFactor	= Math.max( i0Max, i1Max );
+				i0Max		= i1Max;
+				
+				error		= v[1].maxAbsComponent();
+			
 			}
 
 			/*
@@ -63,22 +66,27 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 			 */
 
 			intensities.right(emissionFunction); // initial value for tau = tau_0
-			i0Max = (new Vector(intensities.I[N])).maxSqComponent();
+			i0Max = (new Vector(intensities.I[N])).maxAbsComponent();
 			
 			relFactor = ( new Vector(intensities.I[N] )).lengthSq();
 			firstRun = true;
 			
-			for (int j = N; j > 0 && erSq < relFactor * rtolSq; j--) {
+			for (int j = N; j > 0 && error < atol + relFactor * rtol; j--) {
+				
 				v = step(j, -1.0);
 				System.arraycopy(v[0].getData(), 0, intensities.I[j - 1], nHalf, nHalf - nStart);
 				
-				relFactor	= Math.max( i0Max, (new Vector(intensities.I[j - 1])).maxSqComponent() ); 
-				erSq		= v[1].maxSqComponent();
+				i1Max		= (new Vector(intensities.I[j - 1])).maxAbsComponent();
+				relFactor	= Math.max( i0Max, i1Max );
+				i0Max		= i1Max;
+				
+				error		= v[1].maxAbsComponent();
+			
 			}
 
-			System.out.printf("%n Steps: %5d Error: %1.5e, h = %3.6f", N, erSq, intensities.grid.stepRight(0));
+			System.out.printf("%n Steps: %5d Error: %1.5e, h = %3.6f", N, error, intensities.grid.stepRight(0));
 
-			if (erSq > relFactor * rtolSq) {
+			if (error > atol + relFactor * rtol) {
 				reduceStepSize();
 				f = new double[0][0]; //clear derivatives
 				HermiteInterpolator.clear();

@@ -112,7 +112,7 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 
 		discrete = new DiscreteIntensities((double) problem.getOpticalThickness().getValue());
 		ipf = new HenyeyGreensteinIPF(discrete);
-		integrator = new TRBDF2(discrete, emissionFunction, ipf);
+		integrator = new ExplicitRungeKutta(discrete, emissionFunction, ipf);
 
 		interpolator = new SplineInterpolator();
 
