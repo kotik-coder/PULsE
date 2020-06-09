@@ -38,7 +38,7 @@ public class ButcherTableau {
 
 	}
 
-	public static ButcherTableau DEFAULT_TABLEAU = ButcherTableau.get("BS23");
+	public static ButcherTableau DEFAULT_TABLEAU = ButcherTableau.get("DP5");
 
 	public ButcherTableau(String name, double[][] coefs, double[] c, double[] b, double[] bHat, boolean fsal) {
 

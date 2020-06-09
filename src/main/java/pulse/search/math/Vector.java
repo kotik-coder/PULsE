@@ -298,6 +298,17 @@ public class Vector {
 		return true;
 
 	}
+	
+	public double maxSqComponent() {
+		double maxSq = x[0]*x[0];
+		double sq = 0;
+		for(int i = 1; i < x.length; i++) {
+			sq = x[i]*x[i];
+			if(sq > maxSq) 
+				maxSq = sq;
+		}
+		return maxSq;
+	}
 
 	public double[] getData() {
 		return x;

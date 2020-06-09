@@ -50,10 +50,10 @@ public class TRBDF2 extends AdaptiveIntegrator {
 		super(intensities, ef, ipf);
 	}
 
-//	@Override
-//	public void generateGrid(int nNew) {
-//		intensities.grid.generate(nNew);
-//	}
+	@Override
+	public void generateGrid(int nNew) {
+		intensities.grid.generate(nNew);
+	}
 
 	/**
 	 * Performs a TRBDF2 step.
