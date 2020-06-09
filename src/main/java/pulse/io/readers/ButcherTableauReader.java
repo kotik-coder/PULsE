@@ -70,9 +70,9 @@ public class ButcherTableauReader implements AbstractReader<ButcherTableau> {
 			double[][] aMatrix = new double[dimension][dimension];
 	
 			for (int i = 0; i < dimension; i++)
-				for (int j = 0; j < dimension; j++)
+				for (int j = 0; j < dimension; j++) 
 					aMatrix[i][j] = lineDouble.get(i * dimension + j);
-	
+					
 			/*
 			 * Read vectors
 			 */

@@ -2,8 +2,8 @@ package pulse.problem.schemes.rte.dom;
 
 public class StretchedGrid {
 
-	private final static double STRETCHING_FACTOR = 1.0;
-	public final static int DEFAULT_GRID_DENSITY = 64;
+	private final static double STRETCHING_FACTOR = 3.0;
+	public final static int DEFAULT_GRID_DENSITY = 8;
 	private double[] nodes;
 
 	private double stretchingFactor;
@@ -32,13 +32,12 @@ public class StretchedGrid {
 
 	public void generate(int n) {
 		generateUniform(n, false);
-		double[] uniform = new double[nodes.length];
-		System.arraycopy(nodes, 0, uniform, 0, nodes.length);
-		nodes = new double[n + 1];
 
 		// apply stretching function
-		for (int i = 0; i < uniform.length; i++)
-			nodes[i] = dimension * tanh(uniform[i], stretchingFactor);
+		
+		for (int i = 0; i < nodes.length; i++) 
+			nodes[i] = 0.5 * dimension * tanh(nodes[i], stretchingFactor);
+		
 	}
 
 	public void generateUniform(int n, boolean scaled) {
@@ -102,10 +101,6 @@ public class StretchedGrid {
 		return (1.0 - alpha) * array[floor] + alpha * array[floor + 1];
 	}
 
-	public double sinh(double x, double stretchingFactor) {
-		return Math.sinh(stretchingFactor * x) / Math.sinh(stretchingFactor);
-	}
-
 	public double step(int i, double sign) {
 		return nodes[i + (int) ((1. + sign) * 0.5)] - nodes[i - (int) ((1. - sign) * 0.5)];
 	}
@@ -118,8 +113,8 @@ public class StretchedGrid {
 		return nodes[i + 1] - nodes[i];
 	}
 
-	public double tanh(double x, double stretchingFactor) {
-		return 1.0 - Math.tanh(stretchingFactor * (1.0 - x)) / Math.tanh(stretchingFactor);
+	public double tanh(final double x, final double stretchingFactor) {
+		return 1.0 - Math.tanh(stretchingFactor * (1.0 - 2.0*x)) / Math.tanh(stretchingFactor);
 	}
 
 }

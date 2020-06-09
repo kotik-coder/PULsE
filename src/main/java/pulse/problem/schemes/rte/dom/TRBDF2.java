@@ -4,6 +4,12 @@ import pulse.problem.schemes.rte.EmissionFunction;
 import pulse.search.math.Matrix;
 import pulse.search.math.Vector;
 
+/**
+ * TRBDF2 Scheme
+ * @author Artem Lunev, Vadim Zborovskii
+ *
+ */
+
 public class TRBDF2 extends AdaptiveIntegrator {
 
 	/*
@@ -46,16 +52,18 @@ public class TRBDF2 extends AdaptiveIntegrator {
 	
 	public Vector[] step(final int j, final double sign) {
 
-		double[] bVector	= new double[nNegativeStart - nPositiveStart];	//right-hand side of linear set A * x = B
-		double[] est		= new double[bVector.length];	//error estimator
-		double[][] aMatrix	= new double[bVector.length][bVector.length];	//matrix of linear set A * x = B
+		final int nH = nNegativeStart - nPositiveStart;
+		
+		double[] bVector	= new double[nH];		//right-hand side of linear set A * x = B
+		double[] est		= new double[nH];		//error estimator
+		double[][] aMatrix	= new double[nH][nH];	//matrix of linear set A * x = B
 
 		Matrix invA;	//inverse matrix
 		
 		Vector i2;		//second stage (trapezoidal)
 		Vector i3;		//third stage (backward-difference second order)
 
-		k = new double[3][bVector.length];
+		k = new double[3][nH];
 
 		double matrixPrefactor;
 
@@ -95,7 +103,7 @@ public class TRBDF2 extends AdaptiveIntegrator {
 		} else { 
 			
 			for(int l = n1; l < n2; l++) 
-				k[0][l - n1] = super.derivative(l, j, t, intensities.I[j][l] ); //first-stage right-hand side: f( t, I[i+n1] )
+				k[0][l - n1] = super.derivative(l, j, t, intensities.I[j][l] ); //first-stage right-hand side: f( t, In) )
 			
 			firstRun = false;
 			
@@ -114,7 +122,7 @@ public class TRBDF2 extends AdaptiveIntegrator {
 		 * Interpolate INWARD intensities at t + gamma*h (second stage)
 		 */
 		
-		double[] inward = new double[nNegativeStart - nPositiveStart];
+		double[] inward = new double[nH];
 		
 		for(int i = 0; i < inward.length; i++) {
 			HermiteInterpolator.y0 = intensities.I[j][i + n3];
@@ -128,10 +136,11 @@ public class TRBDF2 extends AdaptiveIntegrator {
 		 * Trapezoidal step
 		 */
 		
-		for (int i = 0; i < aMatrix.length; i++) {
+		for (int i = 0; i < nH; i++) {
+			
 			f[j][i + n1] = k[0][i];	//store derivatives for Hermite interpolation
 			
-			bVector[i] = intensities.I[j][i + n1] + hd*( k[0][i] + partial(i + n1, tPlusGamma, inward, n3, n4) ); //only INWARD intensities
+			bVector[i] = intensities.I[j][i + n1] + hd*( k[0][i] + partial(i + n1, tPlusGamma, inward, n3, n4) ); //only INWARD intensities TODO check
 
 			matrixPrefactor = -hd * halfAlbedo / intensities.mu[i + n1];
 
@@ -159,7 +168,7 @@ public class TRBDF2 extends AdaptiveIntegrator {
 		for (int i = 0; i < aMatrix.length; i++) {
 
 			bVector[i] = intensities.I[j][i + n1] * _1w_d + w_d * i2.get(i)	
-					   + hd * partial(i + n1, j + increment, th, n3, n4); //only INWARD intensities at node j + 1 (i.e. no interpolation)
+					   + hd * partial(i + n1, j + increment, th, n3, n4); //only INWARD intensities at node j + 1 (i.e. no interpolation) //TODO check
 			k[1][i] = (i2.get(i) - intensities.I[j][i + n1]) / hd - k[0][i];
 		
 		}

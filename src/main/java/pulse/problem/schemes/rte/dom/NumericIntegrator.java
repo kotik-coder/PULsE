@@ -86,15 +86,15 @@ public abstract class NumericIntegrator {
 	}
 	
 	public double partial(int i, double t, double[] inward, int l1, int l2) { 
-		return ( 0.0*emission(t) + 0.5* albedo * pf.inwardPartialSum(i, inward, l1, l2) ) / intensities.mu[i];
+		return ( emission(t) + 0.5* albedo * pf.inwardPartialSum(i, inward, l1, l2) ) / intensities.mu[i];
 	}
 	
 	public double partial(int i, int j, double t, int l1, int l2) { 
-		return ( 0.0*emission(t) + 0.5* albedo * pf.partialSum(i, j, l1, l2) ) / intensities.mu[i];
+		return ( emission(t) + 0.5* albedo * pf.partialSum(i, j, l1, l2) ) / intensities.mu[i];
 	}
 	
 	public double source(int i, int j, double t, double I) {
-		return 0.0*emission(t) + 0.5 * albedo * ( pf.sumExcludingIndex(i, j, i) + 
+		return emission(t) + 0.5 * albedo * ( pf.sumExcludingIndex(i, j, i) + 
 				pf.function(i, i) * intensities.w[i] * I ); //contains sum over the incoming rays	
 	}
 
@@ -111,12 +111,12 @@ public abstract class NumericIntegrator {
 				l < end; l++)				//sum over the INWARD intensities iIn
 			sumIn += iIn[l - start] * intensities.w[l] * pf.function(i, l);
 		
-		return 0.0*emission(t) + 0.5 * albedo * ( sumIn + sumOut ); //contains sum over the incoming rays
+		return emission(t) + 0.5 * albedo * ( sumIn + sumOut ); //contains sum over the incoming rays
 	
 	}
 
 	public double emission(double t) {
-		return 0.0*(1.0 - albedo) * emissionFunction.J(t);
+		return (1.0 - albedo) * emissionFunction.J(t);
 	}
 
 }

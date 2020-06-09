@@ -3,6 +3,12 @@ package pulse.problem.schemes.rte.dom;
 import pulse.problem.schemes.rte.EmissionFunction;
 import pulse.search.math.Vector;
 
+/**
+ * Explicit Runge-Kutta.
+ * @author Artem Lunev, Vadim Zborovskii
+ *
+ */
+
 public class ExplicitRungeKutta extends AdaptiveIntegrator {
 
 	private ButcherTableau tableau;
@@ -77,10 +83,10 @@ public class ExplicitRungeKutta extends AdaptiveIntegrator {
 		 * Next stages
 		 */
 		
-		for (int m = 1; m < stages; m++) { 		// <-------	STAGES
+		for (int m = 1; m < stages; m++) { 		// <-------	STAGES (1...s)
 			
 			/*
-			 * Calculate interpolated (OUTWARD and INCOMING) intensities at each stage from m = 1 onwards
+			 * Calculate interpolated (OUTWARD and INWARD) intensities at each stage from m = 1 onwards
 			 */
 			
 			double tm = t + hSigned * tableau.c.get(m); //interpolation point for stage m
@@ -93,7 +99,7 @@ public class ExplicitRungeKutta extends AdaptiveIntegrator {
 			
 				sum = tableau.coefs.get(m, 0) * q[l - n1][0];
 				for (int k = 1; k < m; k++)
-					sum += tableau.coefs.get(m, k) * q[l - n1][k]; //TODO check (m, k)
+					sum += tableau.coefs.get(m, k) * q[l - n1][k];
 	
 				iOutward[l - n1] = intensities.I[j][l] + hSigned*sum;		//outward intensities are simply found from the RK explicit expressions
 				
@@ -115,7 +121,7 @@ public class ExplicitRungeKutta extends AdaptiveIntegrator {
 			 */
 			
 			for(int l = n1; l < n2; l++) {
-				q[l - n1][m]	= derivative( l, tm, iOutward, iInward, n1, n2 ); //TODO check function
+				q[l - n1][m]	= derivative( l, tm, iOutward, iInward, n1, n2 );
 				qLast[l - n1]	= q[l - n1][m];
 				error[l - n1] += (tableau.b.get(m) - tableau.bHat.get(m)) * q[l - n1][m] * hSigned;
 			}
