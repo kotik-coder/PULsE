@@ -9,6 +9,11 @@ public class MathUtils {
 
 	private MathUtils() {
 	}
+	
+	public static double fastTanh(double a) {
+		double e2x = MathUtils.fastExp(2.0*a);
+		return (e2x - 1.0)/(e2x + 1.0);
+	}
 
 	public static double atanh(double a) {
 		return 0.5*Math.log( (1+a)/(1-a) );

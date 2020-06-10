@@ -69,25 +69,6 @@ public class StretchedGrid {
 		return nodes;
 	}
 
-//	public double interpolateStretched(double[] array, double hx, int index) {
-//		double t = index * hx * dimension;
-//
-//		// loops through nodes sorted in ascending order
-//		for (int i = 0; i < nodes.length; i++)
-//			/*
-//			 * if node is greater than t, then the associated function can be interpolated
-//			 * between points f_i and f_i-1, since t lies between nodes n_i and n_i-1
-//			 */
-//			if (nodes[i] > t) {
-//				double mu = (t - nodes[i - 1]) / stepRight(i - 1);
-//				return array[i] * mu + array[i - 1] * (1.0 - mu);
-//			}
-//
-//		// return last element if the condition has still not been satisfied
-//		return array[nodes.length - 1];
-//
-//	}
-
 	public double step(int i, double sign) {
 		return nodes[i + (int) ((1. + sign) * 0.5)] - nodes[i - (int) ((1. - sign) * 0.5)];
 	}

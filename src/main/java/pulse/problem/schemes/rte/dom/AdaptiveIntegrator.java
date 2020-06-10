@@ -5,8 +5,8 @@ import pulse.search.math.Vector;
 
 public abstract class AdaptiveIntegrator extends NumericIntegrator {
 	
-	protected final static double rtol = 1e-2;
-	protected final static double atol = 1e-3;
+	protected final static double rtol = 1e-3;
+	protected final static double atol = 1e-4;
 	
 	protected final static double DENSITY_FACTOR = 1.5;
 
@@ -14,20 +14,20 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 	protected double[] qLast;
 
 	protected boolean firstRun;
-
+	
 	public boolean isFirstRun() {
 		return firstRun;
+	}
+	
+	public void init() {
+		qLast	= new double[intensities.n];
 	}
 
 	@Override
 	public void integrate() {
 		Vector[] v;
-
 		int N = intensities.grid.getDensity();
-		final int nHalf = intensities.quadratureSet.getFirstNegativeNode();
-		final int nStart = intensities.quadratureSet.getFirstPositiveNode();
-
-		qLast	= new double[intensities.n];
+		init();
 		
 		for (double error = 1.0, relFactor = 0.0, i0Max = 0, i1Max = 0; error > atol + relFactor * rtol; N = intensities.grid.getDensity()) {
 
@@ -49,7 +49,7 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 			for (int j = 0; j < N && error < atol + relFactor * rtol; j++) {
 				
 				v = step(j, 1.0);
-				System.arraycopy(v[0].getData(), 0, intensities.I[j + 1], nStart, nHalf - nStart);
+				System.arraycopy(v[0].getData(), 0, intensities.I[j + 1], nPositiveStart, nH);
 				
 				i1Max		= (new Vector(intensities.I[j + 1])).maxAbsComponent();
 				relFactor	= Math.max( i0Max, i1Max );
@@ -58,7 +58,7 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 				error		= v[1].maxAbsComponent();
 			
 			}
-
+			
 			/*
 			 * Second set of ODE. Initial condition corresponds to I(tau0) /0 <---- t The
 			 * streams propagate in the negative hemisphere
@@ -72,17 +72,22 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 			for (int j = N; j > 0 && error < atol + relFactor * rtol; j--) {
 				
 				v = step(j, -1.0);
-				System.arraycopy(v[0].getData(), 0, intensities.I[j - 1], nHalf, nHalf - nStart);
+				System.arraycopy(v[0].getData(), 0, intensities.I[j - 1], nNegativeStart, nH);
 				
 				i1Max		= (new Vector(intensities.I[j - 1])).maxAbsComponent();
 				relFactor	= Math.max( i0Max, i1Max );
 				i0Max		= i1Max;
 				
 				error		= v[1].maxAbsComponent();
+			}
 			
+			// store derivatives for Hermite interpolation
+			for (int i = 0; i < intensities.n; i++) {
+				f[N][i] = f[N - 1][i]; 
+				f[0][i] = f[1][i]; 
 			}
 
-			System.out.printf("%n Steps: %5d Error: %1.5e, h = %3.6f", N, error, intensities.grid.stepRight(0));
+			//System.out.printf("%n Steps: %5d Error: %1.5e, h_min = %3.6f, h_max = %3.6f", N, error, intensities.grid.stepRight(0), intensities.grid.stepLeft(N/2));
 
 			if (error > atol + relFactor * rtol) {
 				reduceStepSize();
@@ -92,8 +97,6 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 
 		}
 		
-		System.exit(1);
-
 	}
 
 	public abstract Vector[] step(final int j, final double sign);

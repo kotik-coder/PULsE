@@ -1,8 +1,5 @@
 package pulse.problem.schemes.rte.dom;
 
-import org.apache.commons.math3.analysis.UnivariateFunction;
-import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
-
 import pulse.problem.schemes.rte.EmissionFunction;
 
 public class DiscreteIntensities {
@@ -12,13 +9,8 @@ public class DiscreteIntensities {
 	protected double[][] I;
 	protected double[] mu;
 	protected double[] w;
-
-	protected double[] localFlux, localFluxDerivative;
-	protected double[] storedF, storedFD;
-
-	protected UnivariateFunction interpolatedFlux, interpolatedFluxDerivative;
-	protected UnivariateFunction storedFluxInterpolation, storedFluxDerivativeInterpolation;
 	protected int n;
+	protected int nT;
 
 	protected StretchedGrid grid;
 	protected OrdinateSet quadratureSet;
@@ -27,9 +19,10 @@ public class DiscreteIntensities {
 	private double boundaryFluxFactor;
 	private double qLeft, qRight;
 
-	public DiscreteIntensities(double opticalThickness) {
+	public DiscreteIntensities(int externalGridDensity, double opticalThickness) {
 		quadratureSet = OrdinateSet.DEFAULT_SET;
 
+		this.nT = externalGridDensity;
 		this.mu = quadratureSet.getNodes();
 		this.w = quadratureSet.getWeights();
 
@@ -50,25 +43,67 @@ public class DiscreteIntensities {
 		qLeft = 0.0;
 		qRight = 0.0;
 	}
-
-	public void fluxes() {
-		int N = grid.getDensity();
-		// calculate fluxes on DOM grid
-		for (int i = 0; i < N + 1; i++)
-			localFlux[i] = DOUBLE_PI * q(i);
-		interpolate();
+	
+	/*
+	 * Interpolates intensities and their derivatives w.r.t. tau on EXTERNAL grid points of the heat problem solver
+	 * based on the derivatives on INTERNAL grid points of DOM solver.
+	 */
+	
+	public double[][][] interpolateOnExternalGrid(final double[][] derivatives) {
+		var Iext = new double[2][nT + 1][n];
+		double t;
+		
+		final double hx = grid.getDimension()/((double)nT);
+		final int N = grid.getDensity() + 1;
+		
+		/*
+		 * Loop through the external grid points
+		 */
+		outer : for(int i = 0, j = 0, k = 0; i < Iext[0].length; i++) {
+			t = i * hx;
+			
+			// loops through nodes sorted in ascending order
+			for (j = 0; j < N; j++) {
+				
+				/*
+				 * if node is greater than t, then the associated function can be interpolated
+				 * between points f_i and f_i-1, since t lies between nodes n_i and n_i-1
+				 */
+				if (grid.getNode(j) > t) { //nearest points on internal grid have been found -> j - 1 and j
+				
+					HermiteInterpolator.a		= grid.getNode(j - 1); 			 
+					HermiteInterpolator.bMinusA = grid.stepLeft(j); 
+					
+					/*
+					 * Loops through ordinate set
+					 */
+					
+					for(k = 0; k < n; k++) {
+						HermiteInterpolator.y0 = I[j - 1][k];
+						HermiteInterpolator.y1 = I[j][k];
+						HermiteInterpolator.d0 = derivatives[j - 1][k];
+						HermiteInterpolator.d1 = derivatives[j][k];
+						Iext[0][i][k] = HermiteInterpolator.interpolate(t);		//intensity
+						Iext[1][i][k] = HermiteInterpolator.derivative(t);		//derivative
+					}
+					
+					continue outer; //move to next point t
+					
+				}
+							
+			}
+			
+			for(k = 0; k < n; k++) {
+				Iext[0][i][k] = I[grid.getDensity()][k];
+				Iext[1][i][k] = derivatives[grid.getDensity()][k];
+			}
+				
+		}
+		
+		return Iext;
 	}
 
-	public void fluxDerivatives() {
-		int N = grid.getDensity();
-		localFluxDerivative[0] = (localFlux[0] - localFlux[1]) / grid.stepRight(0);
-		for (int i = 1; i < N; i++)
-			localFluxDerivative[i] = (localFlux[i - 1] - localFlux[i + 1])
-					/ (grid.stepRight(i - 1) + grid.stepLeft(i + 1));
-		localFluxDerivative[N] = (localFlux[N - 1] - localFlux[N]) / grid.stepLeft(N);
-	}
-
-	public double g(int j) {
+	public double g(final int j) {
 		double integral = 0;
 
 		final int nHalf = quadratureSet.getFirstNegativeNode();
@@ -92,7 +127,7 @@ public class DiscreteIntensities {
 	 * @return incident radiation (positive hemisphere)
 	 */
 
-	public double g(int j, int startInclusive, int endExclusive) {
+	public double g(final int j, final int startInclusive, final int endExclusive) {
 		double integral = 0;
 
 		for (int i = startInclusive; i < endExclusive; i++)
@@ -102,19 +137,23 @@ public class DiscreteIntensities {
 
 	}
 
-	public double q(int j) {
+	public double q(final double[][] Iext, final int j) {
 		double integral = 0;
 
 		final int nHalf = quadratureSet.getFirstNegativeNode();
 		final int nStart = quadratureSet.getFirstPositiveNode();
 
 		for (int i = nStart; i < nHalf; i++)
-			integral += w[i] * (I[j][i] - I[j][i + nHalf]) * mu[i];
+			integral += w[i] * (Iext[j][i] - Iext[j][i + nHalf]) * mu[i];
 
 		return integral;
 	}
+	
+	public double q(final int j) {
+		return q(I, j);
+	}
 
-	public double q(int j, int startInclusive, int endExclusive) {
+	public double q(final int j, final int startInclusive, final int endExclusive) {
 		double integral = 0;
 
 		for (int i = startInclusive; i < endExclusive; i++)
@@ -149,7 +188,7 @@ public class DiscreteIntensities {
 	 * at the left boundary (tau = 0).
 	 */
 
-	public void left(EmissionFunction ef) {
+	public void left(final EmissionFunction ef) {
 
 		final int nHalf = quadratureSet.getFirstNegativeNode();
 		final int nStart = quadratureSet.getFirstPositiveNode();
@@ -159,12 +198,12 @@ public class DiscreteIntensities {
 
 	}
 
-	private double qLeft(EmissionFunction emissionFunction) {
+	private double qLeft(final EmissionFunction emissionFunction) {
 		final int nHalf = quadratureSet.getFirstNegativeNode();
 		return qLeft = emissivity * (Math.PI * emissionFunction.J(0.0) + DOUBLE_PI * q(0, nHalf, n));
 	}
 
-	private double qRight(EmissionFunction emissionFunction) {
+	private double qRight(final EmissionFunction emissionFunction) {
 		final int nHalf = quadratureSet.getFirstNegativeNode();
 		final int nStart = quadratureSet.getFirstPositiveNode();
 		return qRight = -emissivity
@@ -172,15 +211,8 @@ public class DiscreteIntensities {
 	}
 
 	public void reinitInternalArrays() {
-		int N = grid.getDensity() + 1;
-
-		I = new double[N][n];
-
-		localFlux = new double[N];
-		localFluxDerivative = new double[N];
-
-		storedF = new double[N];
-		storedFD = new double[N];
+		int N	= grid.getDensity() + 1;
+		I		= new double[N][n];
 	}
 
 	/**
@@ -188,7 +220,7 @@ public class DiscreteIntensities {
 	 * at the right boundary (tau = tau_0).
 	 */
 
-	public void right(EmissionFunction ef) {
+	public void right(final EmissionFunction ef) {
 
 		int N = grid.getDensity();
 
@@ -207,33 +239,6 @@ public class DiscreteIntensities {
 	public void setOpticalThickness(double tau0) {
 		this.grid = new StretchedGrid(tau0);
 		this.I = new double[grid.getDensity() + 1][n];
-	}
-
-	public void store() {
-		System.arraycopy(localFlux, 0, storedF, 0, storedF.length);
-		System.arraycopy(localFluxDerivative, 0, storedFD, 0, storedFD.length);
-		var interpolator = new SplineInterpolator();
-		storedFluxInterpolation = interpolator.interpolate(grid.getNodes(), storedF);
-		storedFluxDerivativeInterpolation = interpolator.interpolate(grid.getNodes(), storedFD);
-	}
-
-	// TODO interpolation
-	public void interpolate() {
-		var interpolator = new SplineInterpolator();
-		interpolatedFlux = interpolator.interpolate(grid.getNodes(), localFlux);
-		interpolatedFluxDerivative = interpolator.interpolate(grid.getNodes(), localFluxDerivative);
-	}
-
-	public UnivariateFunction getInterpolatedFlux() {
-		return interpolatedFlux;
-	}
-
-	public UnivariateFunction getInterpolatedFluxDerivative() {
-		return interpolatedFluxDerivative;
-	}
-
-	public UnivariateFunction getStoredFluxDerivativeInterpolation() {
-		return storedFluxDerivativeInterpolation;
 	}
 
 }

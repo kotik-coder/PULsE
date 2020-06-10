@@ -34,7 +34,7 @@ public class OrdinateSet {
 
 	}
 
-	public static OrdinateSet DEFAULT_SET = OrdinateSet.get("G8M");
+	public static OrdinateSet DEFAULT_SET = OrdinateSet.get("S8");
 
 	public double[] getNodes() {
 		return mu;

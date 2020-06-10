@@ -9,7 +9,8 @@ public abstract class NumericIntegrator {
 	protected DiscreteIntensities intensities;
 	protected int nNegativeStart;
 	protected int nPositiveStart;
-
+	protected int nH;
+	
 	public DiscreteIntensities getIntensities() {
 		return intensities;
 	}
@@ -36,8 +37,6 @@ public abstract class NumericIntegrator {
 		this.intensities = intensities;
 		this.emissionFunction = ef;
 		this.pf = ipf;
-		nNegativeStart = intensities.quadratureSet.getFirstNegativeNode();
-		nPositiveStart = intensities.quadratureSet.getFirstPositiveNode();
 	}
 
 	public double getAlbedo() {
@@ -49,6 +48,9 @@ public abstract class NumericIntegrator {
 		this.emissionFunction.init(problem);
 		emissionFunction.setGridStep(grid.getXStep());
 		intensities.setEmissivity((double) problem.getEmissivityProperty().getValue());
+		nNegativeStart = intensities.quadratureSet.getFirstNegativeNode();
+		nPositiveStart = intensities.quadratureSet.getFirstPositiveNode();
+		nH = nNegativeStart - nPositiveStart;
 	}
 
 	public abstract void integrate();

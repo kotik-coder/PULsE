@@ -160,7 +160,7 @@ public final class Matrix {
 	 */
 
 	public Matrix multiply(Matrix m) throws IllegalArgumentException {
-		if (this.x[0].length != m.x.length)
+		if (!this.hasSameDimensions(m))
 			throw new IllegalArgumentException(Messages.getString("Matrix.MultiplicationError") + this + " and " + m);
 
 		int mm = this.x.length;
@@ -207,16 +207,13 @@ public final class Matrix {
 	 */
 
 	public Vector multiply(Vector v) {
-		Matrix vm = new Matrix(v);
-
-		Matrix result = this.multiply(vm);
-
-		Vector vv = new Vector(v.dimension());
-
-		for (int i = 0; i < vv.dimension(); i++)
-			vv.set(i, result.x[i][0]);
-
-		return vv;
+		double[] r = new double[v.dimension()];
+		
+		for(int i = 0, j = 0; i < r.length; i++)
+			for(j = 0; j < r.length; j++)
+				r[i] += x[i][j] * v.get(j);
+				
+		return new Vector(r);
 	}
 
 	/**
@@ -295,9 +292,104 @@ public final class Matrix {
 	 * @see adjugate
 	 */
 
-	public Matrix inverse() {
-		var m = new Array2DRowRealMatrix(x);
-		return new Matrix(MatrixUtils.inverse(m).getData());
+	public Matrix inverse() {		
+		Matrix m;
+		switch(x.length) {
+			case 2 : m = fastInverse2(); break;
+			case 3 : m = fastInverse3(); break;
+			case 4 : m = fastInverse4(); break;
+			default : 
+				var mx = new Array2DRowRealMatrix(x);
+				m = new Matrix(MatrixUtils.inverse(mx).getData());
+		}
+		return m;
+	}
+	
+	private Matrix fastInverse3() {
+		
+		double[][] minv = new double[3][3];
+		
+		// computes the inverse of a matrix m
+		double det = x[0][0] * (x[1][1] * x[2][2] - x[2][1] * x[1][2] ) -
+					 x[0][1] * (x[1][0] * x[2][2] - x[1][2] * x[2][0] ) +
+					 x[0][2] * (x[1][0] * x[2][1] - x[1][1] * x[2][0] );
+
+		double invdet = 1 / det;
+
+		minv[0][0] = (x[1][1] * x[2][2] - x[2][1] * x[1][2]) * invdet;
+		minv[0][1] = (x[0][2] * x[2][1] - x[0][1] * x[2][2]) * invdet;
+		minv[0][2] = (x[0][1] * x[1][2] - x[0][2] * x[1][1]) * invdet;
+		minv[1][0] = (x[1][2] * x[2][0] - x[1][0] * x[2][2]) * invdet;
+		minv[1][1] = (x[0][0] * x[2][2] - x[0][2] * x[2][0]) * invdet;
+		minv[1][2] = (x[1][0] * x[0][2] - x[0][0] * x[1][2]) * invdet;
+		minv[2][0] = (x[1][0] * x[2][1] - x[2][0] * x[1][1]) * invdet;
+		minv[2][1] = (x[2][0] * x[0][1] - x[0][0] * x[2][1]) * invdet;
+		minv[2][2] = (x[0][0] * x[1][1] - x[1][0] * x[0][1]) * invdet;
+		
+		return new Matrix(minv);
+	}
+	
+	private Matrix fastInverse2() {
+		Matrix m = new Matrix(2);
+		
+		double det = x[0][0]*x[1][1] - x[0][1]*x[1][0];
+		
+		m.x[0][0] = x[1][1]/det;
+		m.x[0][1] = -x[0][1]/det;
+		m.x[1][0] = -x[1][0]/det;
+		m.x[1][1] = x[0][0]/det;
+		
+		return m;
+	}
+	
+	/*
+	 * Fast inverse procedure for 4x4 matrix. Credit to Robin Hilliard.
+	 * @return inverse of a 4x4 matrix
+	 */
+	
+	private Matrix fastInverse4() {
+		Matrix m = new Matrix(4);
+
+	    double s0 = x[0][0] * x[1][1] - x[1][0] * x[0][1];
+	    double s1 = x[0][0] * x[1][2] - x[1][0] * x[0][2];
+	    double s2 = x[0][0] * x[1][3] - x[1][0] * x[0][3];
+	    double s3 = x[0][1] * x[1][2] - x[1][1] * x[0][2];
+	    double s4 = x[0][1] * x[1][3] - x[1][1] * x[0][3];
+	    double s5 = x[0][2] * x[1][3] - x[1][2] * x[0][3];
+	    
+	    double c5 = x[2][2] * x[3][3] - x[3][2] * x[2][3];
+	    double c4 = x[2][1] * x[3][3] - x[3][1] * x[2][3];
+	    double c3 = x[2][1] * x[3][2] - x[3][1] * x[2][2];
+	    double c2 = x[2][0] * x[3][3] - x[3][0] * x[2][3];
+	    double c1 = x[2][0] * x[3][2] - x[3][0] * x[2][2];
+	    double c0 = x[2][0] * x[3][1] - x[3][0] * x[2][1];
+	    
+		// Should check for 0 determinant
+
+		double invdet = 1.0 / (s0 * c5 - s1 * c4 + s2 * c3 + s3 * c2 - s4 * c1 + s5 * c0);
+		
+	    m.x[0][0] = (x[1][1] * c5 - x[1][2] * c4 + x[1][3] * c3) * invdet;
+		m.x[0][1] = (-x[0][1] * c5 + x[0][2] * c4 - x[0][3] * c3) * invdet;
+		m.x[0][2] = (x[3][1] * s5 - x[3][2] * s4 + x[3][3] * s3) * invdet;
+		m.x[0][3] = (-x[2][1] * s5 + x[2][2] * s4 - x[2][3] * s3) * invdet;
+
+		m.x[1][0] = (-x[1][0] * c5 + x[1][2] * c2 - x[1][3] * c1) * invdet;
+		m.x[1][1] = (x[0][0] * c5 - x[0][2] * c2 + x[0][3] * c1) * invdet;
+		m.x[1][2] = (-x[3][0] * s5 + x[3][2] * s2 - x[3][3] * s1) * invdet;
+		m.x[1][3] = (x[2][0] * s5 - x[2][2] * s2 + x[2][3] * s1) * invdet;
+
+		m.x[2][0] = (x[1][0] * c4 - x[1][1] * c2 + x[1][3] * c0) * invdet;
+		m.x[2][1] = (-x[0][0] * c4 + x[0][1] * c2 - x[0][3] * c0) * invdet;
+		m.x[2][2] = (x[3][0] * s4 - x[3][1] * s2 + x[3][3] * s0) * invdet;
+		m.x[2][3] = (-x[2][0] * s4 + x[2][1] * s2 - x[2][3] * s0) * invdet;
+
+		m.x[3][0] = (-x[1][0] * c3 + x[1][1] * c1 - x[1][2] * c0) * invdet;
+		m.x[3][1] = (x[0][0] * c3 - x[0][1] * c1 + x[0][2] * c0) * invdet;
+		m.x[3][2] = (-x[3][0] * s3 + x[3][1] * s1 - x[3][2] * s0) * invdet;
+		m.x[3][3] = (x[2][0] * s3 - x[2][1] * s1 + x[2][2] * s0) * invdet;
+
+		return m;
+		
 	}
 
 	/**
@@ -404,6 +496,29 @@ public final class Matrix {
 	public static Matrix outerProduct(Vector a, Vector b) {
 		return (new Matrix(a)).multiply((new Matrix(b)).transpose());
 	}
+	
+	@Override
+	public boolean equals(Object o) {
+		if(! (o instanceof Matrix) )
+			return false;
+		
+		if(o == this)
+			return true;
+		
+		var m = (Matrix)o;
+		
+		if(m.x.length != m.x[0].length)
+			return false;
+		
+		final double EPS = 1E-8;
+		
+		for(int i = 0; i < x.length; i++)
+			for(int j = 0; j < x.length; j++)
+				if(Math.abs(this.x[i][j] - m.x[i][j]) > EPS )
+					return false;
+		
+		return true;
+	}
 
 	/**
 	 * Prints out matrix dimensions and all the elements contained in it.
@@ -447,5 +562,5 @@ public final class Matrix {
 	public double get(int m, int k) {
 		return x[m][k];
 	}
-
+	
 }

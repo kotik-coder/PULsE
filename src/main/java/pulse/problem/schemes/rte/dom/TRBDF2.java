@@ -23,29 +23,67 @@ public class TRBDF2 extends AdaptiveIntegrator {
 	private final static double d = gamma / 2.0;
 
 	/*
-	 * Coefficients for the error estimator. These are taken from: Christopher A.
+	 * Uncomment this for coefficients for the error estimator from: Christopher A.
 	 * Kennedy, Mark H. Carpenter. Diagonally Implicit Runge-Kutta Methods for
 	 * Ordinary Differential Equations. A Review. NASA/TM–2016–219173, p. 72
+	 * 
+	 * 	double g = gamma / 2.0;
+	 *	bHat[1] = g * (-2.0 + 7.0 * g - 5.0 * g * g + 4.0 * g * g * g) / (2.0 * (2.0 * g - 1.0));
+	 *  bHat[2] = (-2.0 * g * g) * (1.0 - g + g * g) / (2.0 * g - 1.0);
+	 *	bHat[0] = 1.0 - bHat[1] - bHat[2];
+	 *
+	 * 
 	 */
 
 	private static double[] bHat = new double[3];
-
+	
+	/*
+	 * These are the original error estimator coefficients.
+	 */
+	
 	static {
-//		double g = gamma / 2.0;
-//		bHat[1] = g * (-2.0 + 7.0 * g - 5.0 * g * g + 4.0 * g * g * g) / (2.0 * (2.0 * g - 1.0));
-//		bHat[2] = (-2.0 * g * g) * (1.0 - g + g * g) / (2.0 * g - 1.0);
-//		bHat[0] = 1.0 - bHat[1] - bHat[2];
 		 bHat[0] = (1.0 - w) / 3.0;
 		 bHat[1] = (3.0 * w + 1.0) / 3.0;
 		 bHat[2] = d / 3.0;
 	}
-
-	/*
-	 * ===
-	 */
+	
+	private final static double[] bbHat = new double[] {
+			w - bHat[0],
+			w - bHat[1],
+			d - bHat[2] };
 
 	private double k[][];
-
+	
+	private double[] inward;
+	
+	private double halfAlbedo;
+	private double[] bVector;		// right-hand side of linear set A * x = B
+	private double[] est;			// error estimator
+	private double[][] aMatrix;		// matrix of linear set A * x = B
+	
+	private Matrix invA;	// inverse matrix
+	private Vector i2;		// second stage (trapezoidal)
+	private Vector i3;		// third stage (backward-difference second order)
+	
+	/*
+	 * Constants for third-stage calculation
+	 */
+	
+	private double w_d		= w / d;
+	private double _1w_d	= (1.0 - w_d);
+	
+	public void init() {
+		super.init();
+		halfAlbedo = getAlbedo() * 0.5;
+		
+		bVector	= new double[nH]; 
+		est		= new double[nH];
+		aMatrix	= new double[nH][nH]; 
+		inward	= new double[nH];
+		
+		k = new double[3][nH];
+	}
+	
 	public TRBDF2(DiscreteIntensities intensities, EmissionFunction ef, PhaseFunction ipf) {
 		super(intensities, ef, ipf);
 	}
@@ -54,51 +92,33 @@ public class TRBDF2 extends AdaptiveIntegrator {
 	public void generateGrid(int nNew) {
 		intensities.grid.generate(nNew);
 	}
-
+	
 	/**
 	 * Performs a TRBDF2 step.
 	 */
 
 	public Vector[] step(final int j, final double sign) {
-
-		final int nH = nNegativeStart - nPositiveStart;
-
-		double[] bVector = new double[nH]; // right-hand side of linear set A * x = B
-		double[] est = new double[nH]; // error estimator
-		double[][] aMatrix = new double[nH][nH]; // matrix of linear set A * x = B
-
-		Matrix invA; // inverse matrix
-
-		Vector i2; // second stage (trapezoidal)
-		Vector i3; // third stage (backward-difference second order)
-
-		k = new double[3][nH];
-
-		double matrixPrefactor;
-
-		double h = sign * intensities.grid.step(j, sign);
+		final double h				= sign * intensities.grid.step(j, sign);
 		HermiteInterpolator.bMinusA = h; // <---- for Hermite interpolation
 
-		int increment = (int) (1 * sign);
-		double t = intensities.grid.getNode(j); // TODO interpolate
-		HermiteInterpolator.a = t; // <---- for Hermite interpolation
-
-		double halfAlbedo = getAlbedo() * 0.5;
+		final int increment		= (int) (1 * sign);
+		final double t			= intensities.grid.getNode(j); 
+		HermiteInterpolator.a	= t; // <---- for Hermite interpolation
 
 		/*
 		 * Indices of OUTWARD intensities (n1 <= i < n2)
 		 */
 
-		int n1 = sign > 0 ? nPositiveStart : nNegativeStart; // either first positive index or first negative
-		int n2 = sign > 0 ? nNegativeStart : intensities.n; // either first negative index or n
+		final int n1 = sign > 0 ? nPositiveStart : nNegativeStart; // either first positive index or first negative
+		final int n2 = sign > 0 ? nNegativeStart : intensities.n; // either first negative index or n
 
 		/*
 		 * Indices of INWARD intensities (n3 <= i < n4)
 		 */
 
-		int n3 = intensities.n - n2; // either first negative index or 0 (for INWARD intensities)
-		int n4 = intensities.n - n1; // either n or first negative index (for INWARD intensities)
-		int n5 = nNegativeStart - n3; // either 0 or first negative index
+		final int n3 = intensities.n - n2; // either first negative index or 0 (for INWARD intensities)
+		final int n4 = intensities.n - n1; // either n or first negative index (for INWARD intensities)
+		final int n5 = nNegativeStart - n3; // either 0 or first negative index
 
 		/*
 		 * Try to use FSAL
@@ -131,8 +151,6 @@ public class TRBDF2 extends AdaptiveIntegrator {
 		 * Interpolate INWARD intensities at t + gamma*h (second stage)
 		 */
 
-		double[] inward = new double[nH];
-
 		for (int i = 0; i < inward.length; i++) {
 			HermiteInterpolator.y0 = intensities.I[j][i + n3];
 			HermiteInterpolator.y1 = intensities.I[j + increment][i + n3];
@@ -144,6 +162,9 @@ public class TRBDF2 extends AdaptiveIntegrator {
 		/*
 		 * Trapezoidal step
 		 */
+		
+		final double prefactorNumerator = -hd * halfAlbedo;
+		double matrixPrefactor;
 
 		for (int i = 0; i < nH; i++) {
 
@@ -152,10 +173,8 @@ public class TRBDF2 extends AdaptiveIntegrator {
 			bVector[i] = intensities.I[j][i + n1] + hd * (k[0][i] + partial(i + n1, tPlusGamma, inward, n3, n4)); // only
 																													// INWARD
 																													// intensities
-																													// TODO
-																													// check
 
-			matrixPrefactor = -hd * halfAlbedo / intensities.mu[i + n1];
+			matrixPrefactor = prefactorNumerator / intensities.mu[i + n1];
 
 			// all elements
 			for (int k = 0; k < aMatrix[0].length; k++)
@@ -175,15 +194,13 @@ public class TRBDF2 extends AdaptiveIntegrator {
 		 * ================== Third stage (BDF2) ==================
 		 */
 
-		final double w_d = w / d;
-		final double _1w_d = (1.0 - w_d);
-		final double th = t + h;
+		final double th		= t + h;
 
 		for (int i = 0; i < aMatrix.length; i++) {
 
 			bVector[i] = intensities.I[j][i + n1] * _1w_d + w_d * i2.get(i)
 					+ hd * partial(i + n1, j + increment, th, n3, n4); // only INWARD intensities at node j + 1 (i.e. no
-																		// interpolation) //TODO check
+																		// interpolation) 
 			k[1][i] = (i2.get(i) - intensities.I[j][i + n1]) / hd - k[0][i];
 
 		}
@@ -191,9 +208,9 @@ public class TRBDF2 extends AdaptiveIntegrator {
 		i3 = invA.multiply(new Vector(bVector));
 
 		for (int i = 0; i < aMatrix.length; i++) {
-			k[2][i]		= (i3.get(i) - intensities.I[j][i + n1] - w / d * (i2.get(i) - intensities.I[j][i + n1])) / hd;
+			k[2][i]		= (i3.get(i) - intensities.I[j][i + n1] - w_d * (i2.get(i) - intensities.I[j][i + n1])) / hd;
 			qLast[i]	= k[2][i];
-			est[i] 	+= ((w - bHat[0]) * k[0][i] + (w - bHat[1]) * k[1][i] + (d - bHat[2]) * k[2][i]) * h;
+			est[i] 		= ( bbHat[0] * k[0][i] + bbHat[1] * k[1][i] + bbHat[2] * k[2][i] ) * h;
 		}
 		
 		return new Vector[] { i3, invA.multiply(new Vector(est)) };
