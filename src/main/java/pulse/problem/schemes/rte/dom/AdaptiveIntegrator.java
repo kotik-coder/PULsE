@@ -16,8 +16,8 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 	private double scalingFactor;
 
 	protected double[][] f;
-	private double[][] Ik;
-	private double[][] fk;
+	protected double[][] Ik;
+	protected double[][] fk;
 	protected double[] qLast;
 
 	protected boolean firstRun;
@@ -41,9 +41,6 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 	}
 	
 	public void storeIteration() {
-		Ik = new double[0][0];
-		fk = new double[0][0];
-		
 		Ik = new double[intensities.grid.getDensity() + 1][intensities.mu.length];
 		fk = new double[intensities.grid.getDensity() + 1][intensities.mu.length];
 		

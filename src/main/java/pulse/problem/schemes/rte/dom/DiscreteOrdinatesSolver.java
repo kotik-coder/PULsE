@@ -24,6 +24,8 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 	private double[] fluxDerivative;
 	private double[] storedFluxDerivative;
 	
+	private final static double W = 1.52; //for successive after-relaxation
+	
 	public static void main(String[] args) {
 
 		var problem = new ParticipatingMedium();
@@ -59,7 +61,7 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 
 		var rte = new DiscreteOrdinatesSolver(problem, grid);
 		rte.integrator.emissionFunction.setReductionFactor(tFactor);
-		rte.integrator.setAlbedo(1.0);
+		rte.integrator.setAlbedo(0.5);
 		rte.integrator.pf.setAnisotropyFactor(0.0);
 		rte.compute(U);
 
@@ -139,8 +141,8 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 	public void compute(double[] tempArray) {
 		temperatureInterpolation(tempArray);
 		discrete.clear();
-		computeSuccessiveOverrelaxation();
-//		this.computeFixedIterations();
+//		computeSuccessiveOverrelaxation();
+		this.computeFixedIterations();
 		fluxesAndDerivatives();
 	}
 	
@@ -150,9 +152,7 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 
 		double qld = 0;
 		double qrd = 0;
-		
-		final double W = 1.0;
-		
+				
 		for (double ql = 1e8, qr = ql; relativeError > iterationError;) {
 			ql = discrete.getQLeft();
 			qr = discrete.getQRight();
@@ -164,13 +164,13 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 			if(integrator.wasRescaled()) {
 				relativeError = Double.POSITIVE_INFINITY;
 			} else { //calculate the (k+1) iteration as: I_k+1 = I_k * (1 - W) + I*
+				//double ik = discrete.I[1][5];
 				integrator.successiveOverrelaxation(W);
 				qld = Math.abs(discrete.qLeft(integrator.emissionFunction) - ql);
 				qrd = Math.abs(discrete.qRight(integrator.emissionFunction) - qr);
 				relativeError = (qld + qrd)/(Math.abs(ql) + Math.abs(qr));
 			}
 			
-			System.out.printf("%nRelative error: %1.2e", Math.sqrt( relativeError ) );
 		}
 		
 	}
@@ -188,13 +188,12 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 
 			integrator.integrate();
 
-			qld = Math.abs(discrete.getQLeft() - ql);
-			qrd = Math.abs(discrete.getQRight() - qr);
+			qld = Math.abs(discrete.qLeft(integrator.emissionFunction) - ql);
+			qrd = Math.abs(discrete.qRight(integrator.emissionFunction) - qr);
 			
 			//if the integrator attempted rescaling, last iteration is not valid anymore
 			relativeError = integrator.wasRescaled() ? Double.POSITIVE_INFINITY : (qld + qrd)/(Math.abs(ql) + Math.abs(qr));
 						
-			System.out.printf("%nRelative error: %1.2e", Math.sqrt( relativeError ) );
 		}
 		
 	}

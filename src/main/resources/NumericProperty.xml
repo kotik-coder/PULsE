@@ -36,7 +36,7 @@
 		auto-adjustable="false"
 		descriptor="DOM iteration error tolerance, &lt;i&gt;e&lt;/i&gt;&lt;sub&gt;DOM&lt;/sub&gt;"
 		dimensionfactor="1" discreet="false" keyword="DOM_ITERATION_ERROR"
-		maximum="1E-3" minimum="1E-10" primitive-type="double" value="1E-2">
+		maximum="1E-3" minimum="1E-10" primitive-type="double" value="1E-4">
 	</NumericProperty>
 	<NumericProperty
 		abbreviation="&lt;i&gt;A&lt;/i&gt;&lt;sub&gt;1&lt;/sub&gt;"
