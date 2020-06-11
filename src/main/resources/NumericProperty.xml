@@ -1,6 +1,23 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <NumericProperties>
 	<NumericProperty
+		abbreviation="&lt;i&gt;N&lt;/i&gt;&lt;sup&gt;k+1&lt;/sup&gt;/&lt;i&gt;N&lt;/i&gt;&lt;sup&gt;k&lt;/sup&gt;"
+		auto-adjustable="false"
+		descriptor="Grid scaling factor, &lt;i&gt;N&lt;/i&gt;&lt;sup&gt;k+1&lt;/sup&gt;/&lt;i&gt;N&lt;/i&gt;&lt;sup&gt;k&lt;/sup&gt;"
+		dimensionfactor="1" discreet="false" keyword="GRID_SCALING_FACTOR"
+		maximum="3.0" minimum="1.1" value="1.5" primitive-type="double">
+	</NumericProperty>
+	<NumericProperty abbreviation="atol" auto-adjustable="false"
+		descriptor="Absolute tolerance, atol" dimensionfactor="1"
+		discreet="false" keyword="ATOL" maximum="1E-2" minimum="1E-10"
+		value="1E-3" primitive-type="double">
+	</NumericProperty>
+	<NumericProperty abbreviation="rtol" auto-adjustable="false"
+		descriptor="Relative tolerance, rtol" dimensionfactor="1"
+		discreet="false" keyword="RTOL" maximum="1E-1" minimum="1E-8"
+		value="1E-2" primitive-type="double">
+	</NumericProperty>
+	<NumericProperty
 		abbreviation="&lt;i&gt;E&lt;/i&gt;&lt;sub&gt;L&lt;/sub&gt;"
 		keyword="LAGUERRE_SOLVER_ERROR" auto-adjustable="false"
 		descriptor="Laguerre solver error, &lt;i&gt;E&lt;/i&gt;&lt;sub&gt;L&lt;/sub&gt;"

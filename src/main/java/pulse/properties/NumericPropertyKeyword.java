@@ -278,6 +278,12 @@ public enum NumericPropertyKeyword {
 
 	DOM_DIRECTIONS,
 
-	LAGUERRE_SOLVER_ERROR;
+	LAGUERRE_SOLVER_ERROR,
+	
+	ATOL,
+	
+	RTOL,
+	
+	GRID_SCALING_FACTOR;
 
 }

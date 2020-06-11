@@ -1,26 +1,70 @@
 package pulse.problem.schemes.rte.dom;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import pulse.problem.schemes.rte.EmissionFunction;
+import pulse.properties.NumericProperty;
+import pulse.properties.NumericPropertyKeyword;
+import pulse.properties.Property;
 import pulse.search.math.Vector;
 
 public abstract class AdaptiveIntegrator extends NumericIntegrator {
 	
-	protected final static double rtol = 1e-3;
-	protected final static double atol = 1e-4;
-	
-	protected final static double DENSITY_FACTOR = 1.5;
+	private double atol;
+	private double rtol;
+	private double scalingFactor;
 
 	protected double[][] f;
+	private double[][] Ik;
+	private double[][] fk;
 	protected double[] qLast;
 
 	protected boolean firstRun;
+	private boolean rescaled;
+	
+	public AdaptiveIntegrator(DiscreteIntensities intensities, EmissionFunction ef, PhaseFunction ipf) {
+		super(intensities, ef, ipf);
+		atol = (double) NumericProperty.theDefault(NumericPropertyKeyword.ATOL).getValue();
+		rtol = (double) NumericProperty.theDefault(NumericPropertyKeyword.RTOL).getValue();
+		scalingFactor = (double) NumericProperty.theDefault(NumericPropertyKeyword.GRID_SCALING_FACTOR).getValue();
+		f = new double[intensities.grid.getDensity() + 1][intensities.n]; // first index - spatial steps, second index - quadrature points
+	}
 	
 	public boolean isFirstRun() {
 		return firstRun;
 	}
 	
-	public void init() {
+	protected void init() {
 		qLast	= new double[intensities.n];
+		rescaled = false;
+	}
+	
+	public void storeIteration() {
+		Ik = new double[0][0];
+		fk = new double[0][0];
+		
+		Ik = new double[intensities.grid.getDensity() + 1][intensities.mu.length];
+		fk = new double[intensities.grid.getDensity() + 1][intensities.mu.length];
+		
+		//store k-th components
+		for(int j = 0; j < Ik.length; j++) {
+			System.arraycopy(intensities.I[j], 0, Ik[j], 0, Ik[0].length);
+			System.arraycopy(f[j], 0, fk[j], 0, fk[0].length);
+		}
+		
+	}
+	
+	public void successiveOverrelaxation(double W) {
+		
+		double ONE_MINUS_W = 1.0 - W;
+		
+		for(int i = 0, N = intensities.grid.getDensity() + 1; i < N; i++) 
+			for(int j = 0; j < intensities.n; j++) {
+				intensities.I[i][j] = ONE_MINUS_W*Ik[i][j] + W*intensities.I[i][j];
+				f[i][j]				= ONE_MINUS_W*fk[i][j] + W*f[i][j];
+			}
+	
 	}
 
 	@Override
@@ -87,7 +131,7 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 				f[0][i] = f[1][i]; 
 			}
 
-			//System.out.printf("%n Steps: %5d Error: %1.5e, h_min = %3.6f, h_max = %3.6f", N, error, intensities.grid.stepRight(0), intensities.grid.stepLeft(N/2));
+//			System.out.printf("%n Steps: %5d Error: %1.5e, h_min = %3.6f, h_max = %3.6f", N, error, intensities.grid.stepRight(0), intensities.grid.stepLeft(N/2));
 
 			if (error > atol + relFactor * rtol) {
 				reduceStepSize();
@@ -101,23 +145,83 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 
 	public abstract Vector[] step(final int j, final double sign);
 
-	public AdaptiveIntegrator(DiscreteIntensities intensities, EmissionFunction ef, PhaseFunction ipf) {
-		super(intensities, ef, ipf);
-	}
-
 	public void reduceStepSize() {
-		int nNew = (roundEven(DENSITY_FACTOR * intensities.grid.getDensity()));
+		int nNew = (roundEven(scalingFactor * intensities.grid.getDensity()));
 		generateGrid(nNew);
 		this.intensities.reinitInternalArrays();
 		intensities.clearBoundaryFluxes();
+		rescaled = true;
 	}
-
+	
+	public boolean wasRescaled() {
+		return rescaled;
+	}
+	
 	public void generateGrid(int nNew) {
 		intensities.grid.generateUniform(nNew, true);
 	}
 
 	private int roundEven(double a) {
 		return (int) (a / 2 * 2);
+	}
+	
+	public NumericProperty getRelativeTolerance() {
+		return NumericProperty.derive(NumericPropertyKeyword.RTOL, rtol);
+	}
+	
+	public NumericProperty getAbsoluteTolerance() {
+		return NumericProperty.derive(NumericPropertyKeyword.ATOL, atol);
+	}
+	
+	public NumericProperty getGridScalingFactor() {
+		return NumericProperty.derive(NumericPropertyKeyword.GRID_SCALING_FACTOR, scalingFactor);
+	}
+	
+	public void setRelativeTolerance(NumericProperty p) {
+		if(p.getType() != NumericPropertyKeyword.RTOL)
+			throw new IllegalArgumentException("Illegal type: " + p.getType());
+		this.rtol = (double)p.getValue();
+	}
+	
+	public void setAbsoluteTolerance(NumericProperty p) {
+		if(p.getType() != NumericPropertyKeyword.ATOL)
+			throw new IllegalArgumentException("Illegal type: " + p.getType());
+		this.atol = (double)p.getValue();
+	}
+	
+	public void setGridScalingFactor(NumericProperty p) {
+		if(p.getType() != NumericPropertyKeyword.GRID_SCALING_FACTOR)
+			throw new IllegalArgumentException("Illegal type: " + p.getType());
+		this.scalingFactor = (double)p.getValue();
+	}
+	
+	@Override
+	public void set(NumericPropertyKeyword type, NumericProperty property) {
+		switch (type) {
+		case RTOL:
+			setRelativeTolerance(property);
+			break;
+		case ATOL:
+			setAbsoluteTolerance(property);
+			break;
+		case GRID_SCALING_FACTOR:
+			setGridScalingFactor(property);
+			break;
+		default:
+			return;
+		}
+
+		notifyListeners(this, property);
+
+	}
+
+	@Override
+	public List<Property> listedTypes() {
+		List<Property> list = new ArrayList<Property>();
+		list.add(NumericProperty.def(NumericPropertyKeyword.RTOL));
+		list.add(NumericProperty.def(NumericPropertyKeyword.ATOL));
+		list.add(NumericProperty.def(NumericPropertyKeyword.GRID_SCALING_FACTOR));
+		return list;
 	}
 
 }

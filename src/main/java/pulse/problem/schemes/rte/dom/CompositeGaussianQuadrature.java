@@ -2,7 +2,13 @@ package pulse.problem.schemes.rte.dom;
 
 import pulse.problem.schemes.rte.MathUtils;
 
-public class GaussianQuadrature {
+/**
+ * 
+ * @author Teymur Aliev, Vadim Zborovskii, Artem Lunev
+ *
+ */
+
+public class CompositeGaussianQuadrature {
 
 	private LegendrePoly poly;
 
@@ -13,7 +19,7 @@ public class GaussianQuadrature {
 
 	private int n;
 
-	public GaussianQuadrature(final int n) {
+	public CompositeGaussianQuadrature(final int n) {
 		poly = new LegendrePoly(n / 2);
 		roots = poly.roots();
 		this.n = n;
@@ -50,7 +56,7 @@ public class GaussianQuadrature {
 	}
 
 	public static void main(String[] args) {
-		var q = new GaussianQuadrature(4);
+		var q = new CompositeGaussianQuadrature(4);
 		q.init();
 		for (int i = 0; i < q.n; i++)
 			System.out.printf("%n{%3.15f \t %3.15f}", q.nodes[i], q.weights[i]);

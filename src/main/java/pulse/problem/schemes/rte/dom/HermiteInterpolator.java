@@ -1,5 +1,11 @@
 package pulse.problem.schemes.rte.dom;
 
+/**
+ * 
+ * @author Vadim Zborovskii, Artem Lunev
+ *
+ */
+
 public class HermiteInterpolator {
 
 	protected static double y1;

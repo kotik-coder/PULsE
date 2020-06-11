@@ -72,7 +72,11 @@ public class TRBDF2 extends AdaptiveIntegrator {
 	private double w_d		= w / d;
 	private double _1w_d	= (1.0 - w_d);
 	
-	public void init() {
+	public TRBDF2(DiscreteIntensities intensities, EmissionFunction ef, PhaseFunction ipf) {
+		super(intensities, ef, ipf);
+	}
+	
+	protected void init() {
 		super.init();
 		halfAlbedo = getAlbedo() * 0.5;
 		
@@ -82,10 +86,6 @@ public class TRBDF2 extends AdaptiveIntegrator {
 		inward	= new double[nH];
 		
 		k = new double[3][nH];
-	}
-	
-	public TRBDF2(DiscreteIntensities intensities, EmissionFunction ef, PhaseFunction ipf) {
-		super(intensities, ef, ipf);
 	}
 
 	@Override
@@ -157,6 +157,7 @@ public class TRBDF2 extends AdaptiveIntegrator {
 			HermiteInterpolator.d0 = f[j][i + n3];
 			HermiteInterpolator.d1 = f[j + increment][i + n3];
 			inward[i] = HermiteInterpolator.interpolate(tPlusGamma);
+			//inward[i] = intensities.I[j][i + n3];
 		}
 
 		/*

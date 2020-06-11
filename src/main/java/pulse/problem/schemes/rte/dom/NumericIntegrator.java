@@ -3,8 +3,10 @@ package pulse.problem.schemes.rte.dom;
 import pulse.problem.schemes.Grid;
 import pulse.problem.schemes.rte.EmissionFunction;
 import pulse.problem.statements.ParticipatingMedium;
+import pulse.util.PropertyHolder;
+import pulse.util.Reflexive;
 
-public abstract class NumericIntegrator {
+public abstract class NumericIntegrator extends PropertyHolder implements Reflexive {
 
 	protected DiscreteIntensities intensities;
 	protected int nNegativeStart;
@@ -96,12 +98,7 @@ public abstract class NumericIntegrator {
 	}
 
 	public double source(int i, int j, double t, double I) {
-		return emission(t) + 0.5 * albedo * (pf.sumExcludingIndex(i, j, i) + pf.function(i, i) * intensities.w[i] * I); // contains
-																														// sum
-																														// over
-																														// the
-																														// incoming
-																														// rays
+		return emission(t) + 0.5 * albedo * (pf.sumExcludingIndex(i, j, i) + pf.function(i, i) * intensities.w[i] * I); 
 	}
 
 	public double source(int i, double[] iOut, double[] iIn, double t, int l1, int l2) {

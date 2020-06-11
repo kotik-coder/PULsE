@@ -198,12 +198,12 @@ public class DiscreteIntensities {
 
 	}
 
-	private double qLeft(final EmissionFunction emissionFunction) {
+	public double qLeft(final EmissionFunction emissionFunction) {
 		final int nHalf = quadratureSet.getFirstNegativeNode();
 		return qLeft = emissivity * (Math.PI * emissionFunction.J(0.0) + DOUBLE_PI * q(0, nHalf, n));
 	}
 
-	private double qRight(final EmissionFunction emissionFunction) {
+	public double qRight(final EmissionFunction emissionFunction) {
 		final int nHalf = quadratureSet.getFirstNegativeNode();
 		final int nStart = quadratureSet.getFirstPositiveNode();
 		return qRight = -emissivity

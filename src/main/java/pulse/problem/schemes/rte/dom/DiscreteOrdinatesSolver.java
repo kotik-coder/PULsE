@@ -27,7 +27,7 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 	public static void main(String[] args) {
 
 		var problem = new ParticipatingMedium();
-		problem.setOpticalThickness(NumericProperty.derive(NumericPropertyKeyword.OPTICAL_THICKNESS, 0.1));
+		problem.setOpticalThickness(NumericProperty.derive(NumericPropertyKeyword.OPTICAL_THICKNESS, 10.0));
 		problem.setEmissivity(NumericProperty.derive(NumericPropertyKeyword.EMISSIVITY, 0.85));
 
 		File f = null;
@@ -59,28 +59,28 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 
 		var rte = new DiscreteOrdinatesSolver(problem, grid);
 		rte.integrator.emissionFunction.setReductionFactor(tFactor);
-		rte.integrator.setAlbedo(0.0);
+		rte.integrator.setAlbedo(1.0);
 		rte.integrator.pf.setAnisotropyFactor(0.0);
 		rte.compute(U);
 
-		for (int i = 0; i < rte.discrete.n; i++)
-			System.out.println(rte.discrete.I[rte.getExternalGridDensity()][i]);
-
-		System.out.printf("%n%2.4f %4.5f %4.5f", rte.discrete.grid.getNode(0), rte.getFlux(0),
-				rte.getFluxDerivativeFront());
+//		for (int i = 0; i < rte.discrete.n; i++)
+//			System.out.println(rte.discrete.I[rte.getExternalGridDensity()][i]);
+//
+//		System.out.printf("%n%2.4f %4.5f %4.5f", rte.discrete.grid.getNode(0), rte.getFlux(0),
+//				rte.getFluxDerivativeFront());
 
 		//
 
 //		for (int i = 0; i < rte.discrete.grid.getDensity(); i++)
 //			System.out.printf("%n%2.4f %4.5f %4.5f %4.5f %4.5f", rte.discrete.grid.getNode(i), rte.discrete.I[i][0],
 //					rte.discrete.I[i][1], rte.discrete.I[i][2], rte.discrete.I[i][3]);
-
+		
 		for (int i = 1; i < U.length - 1; i++)
 			System.out.printf("%n%2.4f %4.5f %4.5f", i * (1.0 / (U.length - 1) * rte.getOpticalThickness()),
 					rte.getFlux(i), rte.getFluxDerivative(i));
 
-		System.out.printf("%n%2.4f %4.5f %4.5f", (U.length - 1) * (1.0 / (U.length - 1) * rte.getOpticalThickness()),
-				rte.getFlux((U.length - 1)), rte.getFluxDerivativeRear());
+//		System.out.printf("%n%2.4f %4.5f %4.5f", (U.length - 1) * (1.0 / (U.length - 1) * rte.getOpticalThickness()),
+//				rte.getFlux((U.length - 1)), rte.getFluxDerivativeRear());
 
 	}
 
@@ -97,7 +97,7 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 	 * object. The nodes and weights of the quadrature are initialised using an
 	 * instance of the {@code LegendrePoly class}.
 	 * 
-	 * @see pulse.problem.schemes.rte.dom.GaussianQuadrature
+	 * @see pulse.problem.schemes.rte.dom.CompositeGaussianQuadrature
 	 * @param problem statement
 	 * @param n       even number of direction pairs for DOM passed to the
 	 *                {@Code LegendrePoly constructor}
@@ -114,7 +114,8 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 
 		discrete = new DiscreteIntensities((int)grid.getGridDensity().getValue(), (double) problem.getOpticalThickness().getValue());
 		ipf = new HenyeyGreensteinIPF(discrete);
-		integrator = new ExplicitRungeKutta(discrete, emissionFunction, ipf);
+		integrator = new TRBDF2(discrete, emissionFunction, ipf);
+		integrator.setParent(this);
 
 		init(problem, grid);
 	}
@@ -136,31 +137,66 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 
 	@Override
 	public void compute(double[] tempArray) {
-
 		temperatureInterpolation(tempArray);
 		discrete.clear();
+		computeSuccessiveOverrelaxation();
+//		this.computeFixedIterations();
+		fluxesAndDerivatives();
+	}
+	
+	private void computeSuccessiveOverrelaxation() {
 
 		double relativeError = 100;
 
 		double qld = 0;
 		double qrd = 0;
-		double qav = 0;
+		
+		final double W = 1.0;
+		
+		for (double ql = 1e8, qr = ql; relativeError > iterationError;) {
+			ql = discrete.getQLeft();
+			qr = discrete.getQRight();
+				
+			integrator.storeIteration();
+			integrator.integrate();
+			
+			//if the integrator attempted rescaling, last iteration is not valid anymore
+			if(integrator.wasRescaled()) {
+				relativeError = Double.POSITIVE_INFINITY;
+			} else { //calculate the (k+1) iteration as: I_k+1 = I_k * (1 - W) + I*
+				integrator.successiveOverrelaxation(W);
+				qld = Math.abs(discrete.qLeft(integrator.emissionFunction) - ql);
+				qrd = Math.abs(discrete.qRight(integrator.emissionFunction) - qr);
+				relativeError = (qld + qrd)/(Math.abs(ql) + Math.abs(qr));
+			}
+			
+			System.out.printf("%nRelative error: %1.2e", Math.sqrt( relativeError ) );
+		}
+		
+	}
+	
+	private void computeFixedIterations() {
 
-		for (double relTolSq = iterationError * iterationError, ql = 1, qr = 1; relativeError > relTolSq;) {
+		double relativeError = 100;
+
+		double qld = 0;
+		double qrd = 0;
+		
+		for (double ql = 1e8, qr = ql; relativeError > iterationError;) {
 			ql = discrete.getQLeft();
 			qr = discrete.getQRight();
 
 			integrator.integrate();
 
-			qld = (discrete.getQLeft() - ql);
-			qrd = (discrete.getQRight() - qr);
-			qav = ql + qr;
-
-			relativeError = (qld * qld + qrd * qrd) / (qav * qav);
-			//System.out.printf("%nRelative error: %1.2e", Math.sqrt( relativeError ) );
+			qld = Math.abs(discrete.getQLeft() - ql);
+			qrd = Math.abs(discrete.getQRight() - qr);
+			
+			//if the integrator attempted rescaling, last iteration is not valid anymore
+			relativeError = integrator.wasRescaled() ? Double.POSITIVE_INFINITY : (qld + qrd)/(Math.abs(ql) + Math.abs(qr));
+						
+			System.out.printf("%nRelative error: %1.2e", Math.sqrt( relativeError ) );
 		}
-
-		fluxesAndDerivatives();
+		
 	}
 	
 	public void fluxesAndDerivatives() {
@@ -237,7 +273,6 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 	@Override
 	public List<Property> listedTypes() {
 		List<Property> list = super.listedTypes();
-		list.add(NumericProperty.def(NumericPropertyKeyword.DOM_DIRECTIONS));
 		list.add(NumericProperty.def(NumericPropertyKeyword.DOM_ITERATION_ERROR));
 		return list;
 	}
