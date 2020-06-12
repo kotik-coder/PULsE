@@ -28,7 +28,7 @@ import pulse.util.UpwardsNavigable;
  * 
  * @see pulse.HeatingCurve
  * @see pulse.tasks.SearchTask
- * @see pulse.search.math.IndexedVector
+ * @see pulse.algebra.IndexedVector
  */
 public class Baseline extends PropertyHolder {
 

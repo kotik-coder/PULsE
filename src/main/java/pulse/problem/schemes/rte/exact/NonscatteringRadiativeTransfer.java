@@ -14,6 +14,7 @@ import pulse.problem.statements.ParticipatingMedium;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
+import pulse.util.DescriptorChangeListener;
 import pulse.util.InstanceDescriptor;
 
 public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSolver {
@@ -45,6 +46,16 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 		initQuadrature();
 		emissionIntegrator = new EmissionFunctionIntegrator();
 		emissionIntegrator.emissionFunction = emissionFunction;
+
+		instanceDescriptor.addListener(new DescriptorChangeListener() {
+
+			@Override
+			public void onDescriptorChanged() {
+				initQuadrature();
+			}
+
+		});
+
 	}
 
 	@Override
@@ -249,10 +260,10 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 
 		rte.complexIntegrator.U = U;
 		rte.complexIntegrator.setRange(0, 0);
-		//double I_1 = rte.complexIntegrator.integrate(2, 0, -1.0);
+		// double I_1 = rte.complexIntegrator.integrate(2, 0, -1.0);
 
 		rte.complexIntegrator.setRange(0, rte.tau0);
-		//double I_2 = rte.complexIntegrator.integrate(2, 0.0, 1.0);
+		// double I_2 = rte.complexIntegrator.integrate(2, 0.0, 1.0);
 
 		simpleIntegrator.integralAt(0.0, 3);
 		simpleIntegrator.integralAt(rte.tau0, 3);
@@ -260,9 +271,8 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 		System.out.printf("%n%2.6f %4.4f %4.4f", 0.0, rte.getFlux(0), rte.getFluxDerivativeFront());
 
 		for (int i = 1; i < U.length - 2; i++)
-			System.out.printf("%n%2.6f %4.4f %4.4f",
-					((double) problem.getOpticalThickness().getValue() / N) * i, rte.flux(U, i),
-					rte.getFluxDerivative(i));
+			System.out.printf("%n%2.6f %4.4f %4.4f", ((double) problem.getOpticalThickness().getValue() / N) * i,
+					rte.flux(U, i), rte.getFluxDerivative(i));
 
 		System.out.printf("%n%2.6f %4.4f %4.4f", (double) problem.getOpticalThickness().getValue(), rte.getFlux(N),
 				rte.getFluxDerivativeRear());
@@ -271,10 +281,6 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 
 	public static InstanceDescriptor<SimpsonsRule> getInstanceDescriptor() {
 		return instanceDescriptor;
-	}
-
-	public static void setInstanceDescriptor(InstanceDescriptor<SimpsonsRule> instanceDescriptor) {
-		NonscatteringRadiativeTransfer.instanceDescriptor = instanceDescriptor;
 	}
 
 	@Override

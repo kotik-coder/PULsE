@@ -36,10 +36,10 @@ import pulse.tasks.listeners.TaskSelectionListener;
 import pulse.ui.Messages;
 import pulse.ui.components.controllers.NumericPropertyRenderer;
 import pulse.ui.components.models.ResultTableModel;
-import pulse.util.Describable;
+import pulse.util.Descriptive;
 
 @SuppressWarnings("serial")
-public class ResultTable extends JTable implements Describable {
+public class ResultTable extends JTable implements Descriptive {
 
 	private final static Font font = new Font(Messages.getString("ResultTable.FontName"), Font.PLAIN, 12);
 

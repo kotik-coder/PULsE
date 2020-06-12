@@ -1,9 +1,9 @@
 package pulse.search.direction;
 
-import static pulse.search.math.Matrix.outerProduct;
+import static pulse.algebra.Matrix.outerProduct;
 
-import pulse.search.math.Matrix;
-import pulse.search.math.Vector;
+import pulse.algebra.Matrix;
+import pulse.algebra.Vector;
 import pulse.tasks.SearchTask;
 import pulse.ui.Messages;
 

@@ -8,7 +8,7 @@ import java.util.Set;
 import javax.swing.JFrame;
 
 import pulse.tasks.TaskManager;
-import pulse.util.Describable;
+import pulse.util.Descriptive;
 import pulse.util.Group;
 import pulse.util.Reflexive;
 
@@ -19,12 +19,12 @@ public class ExportManager {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static <T extends Describable> Exporter<T> findExporter(T target) {
+	public static <T extends Descriptive> Exporter<T> findExporter(T target) {
 		return target == null ? null : (Exporter<T>) findExporter(target.getClass());
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public static <T extends Describable> Exporter<T> findExporter(Class<T> target) {
+	public static <T extends Descriptive> Exporter<T> findExporter(Class<T> target) {
 		List<Exporter> allExporters = Reflexive.instancesOf(Exporter.class);
 		var exporter = allExporters.stream().filter(e -> e.target() == target).findFirst();
 
@@ -36,7 +36,7 @@ public class ExportManager {
 		}
 	}
 
-	public static <T extends Describable> void askToExport(T target, JFrame parentWindow, String fileTypeLabel) {
+	public static <T extends Descriptive> void askToExport(T target, JFrame parentWindow, String fileTypeLabel) {
 		Exporter<T> exporter = ExportManager.findExporter(target);
 		if (exporter != null)
 			exporter.askToExport(target, parentWindow, fileTypeLabel);
@@ -44,7 +44,7 @@ public class ExportManager {
 			throw new IllegalArgumentException("No exporter for " + target.getClass().getSimpleName());
 	}
 
-	public static <T extends Describable> void export(T target, File directory, Extension extension) {
+	public static <T extends Descriptive> void export(T target, File directory, Extension extension) {
 		var exporter = findExporter(target);
 
 		if (exporter != null) {

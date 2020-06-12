@@ -9,7 +9,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-import pulse.util.Describable;
+import pulse.util.Descriptive;
 import pulse.util.Reflexive;
 
 /**
@@ -18,7 +18,7 @@ import pulse.util.Reflexive;
  *
  */
 
-public interface Exporter<T extends Describable> extends Reflexive {
+public interface Exporter<T extends Descriptive> extends Reflexive {
 
 	/**
 	 * Gets the default export extension for this {@code Saveable}.

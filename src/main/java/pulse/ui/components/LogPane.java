@@ -19,10 +19,10 @@ import pulse.tasks.SearchTask;
 import pulse.tasks.Status;
 import pulse.tasks.TaskManager;
 import pulse.ui.Messages;
-import pulse.util.Describable;
+import pulse.util.Descriptive;
 
 @SuppressWarnings("serial")
-public class LogPane extends JEditorPane implements Describable {
+public class LogPane extends JEditorPane implements Descriptive {
 
 	private ExecutorService updateExecutor = Executors.newSingleThreadExecutor();
 

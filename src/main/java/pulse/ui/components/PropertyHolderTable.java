@@ -27,6 +27,8 @@ import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableRowSorter;
 
+import pulse.problem.schemes.rte.dom.ButcherTableau;
+import pulse.problem.schemes.rte.dom.OrdinateSet;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
@@ -116,7 +118,6 @@ public class PropertyHolderTable extends JTable {
 							Property changedProperty = potentialChangedProperty.get();
 
 							if (changedProperty.attemptUpdate(changedObject)) {
-
 								propertyHolder.update(changedProperty);
 								propertyHolder.notifyListeners(reference, changedProperty);
 
@@ -227,6 +228,14 @@ public class PropertyHolderTable extends JTable {
 			if (value instanceof InstanceDescriptor)
 				return new DefaultCellEditor(
 						new JComboBox<Object>(((InstanceDescriptor<?>) value).getAllDescriptors().toArray()));
+
+			if (value instanceof ButcherTableau) {
+				return new DefaultCellEditor(new JComboBox<Object>(ButcherTableau.getAllOptions().toArray()));
+			}
+
+			if (value instanceof OrdinateSet) {
+				return new DefaultCellEditor(new JComboBox<Object>(OrdinateSet.getAllOptions().toArray()));
+			}
 
 			if ((value instanceof PropertyHolder))
 				return new ButtonEditor((AbstractButton) getCellRenderer(row, column)

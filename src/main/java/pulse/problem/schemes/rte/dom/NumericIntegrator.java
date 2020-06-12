@@ -12,7 +12,10 @@ public abstract class NumericIntegrator extends PropertyHolder implements Reflex
 	protected int nNegativeStart;
 	protected int nPositiveStart;
 	protected int nH;
-	
+
+	protected PhaseFunction pf;
+	private double albedo;
+
 	public DiscreteIntensities getIntensities() {
 		return intensities;
 	}
@@ -31,10 +34,6 @@ public abstract class NumericIntegrator extends PropertyHolder implements Reflex
 		this.emissionFunction = emissionFunction;
 	}
 
-	protected PhaseFunction pf;
-
-	private double albedo;
-
 	public NumericIntegrator(DiscreteIntensities intensities, EmissionFunction ef, PhaseFunction ipf) {
 		this.intensities = intensities;
 		this.emissionFunction = ef;
@@ -50,8 +49,8 @@ public abstract class NumericIntegrator extends PropertyHolder implements Reflex
 		this.emissionFunction.init(problem);
 		emissionFunction.setGridStep(grid.getXStep());
 		intensities.setEmissivity((double) problem.getEmissivityProperty().getValue());
-		nNegativeStart = intensities.quadratureSet.getFirstNegativeNode();
-		nPositiveStart = intensities.quadratureSet.getFirstPositiveNode();
+		nNegativeStart = intensities.ordinates.getFirstNegativeNode();
+		nPositiveStart = intensities.ordinates.getFirstPositiveNode();
 		nH = nNegativeStart - nPositiveStart;
 	}
 
@@ -63,7 +62,7 @@ public abstract class NumericIntegrator extends PropertyHolder implements Reflex
 
 	public void treatZeroIndex() {
 
-		if (intensities.quadratureSet.hasZeroNode()) {
+		if (intensities.ordinates.hasZeroNode()) {
 
 			double denominator = 0;
 
@@ -71,7 +70,7 @@ public abstract class NumericIntegrator extends PropertyHolder implements Reflex
 			for (int j = 0; j < intensities.grid.getDensity() + 1; j++) {
 
 				// solve I_k = S_k for mu[k] = 0
-				denominator = 1.0 - 0.5 * albedo * intensities.w[0] * pf.function(0, 0);
+				denominator = 1.0 - 0.5 * albedo * intensities.ordinates.w[0] * pf.function(0, 0);
 				intensities.I[j][0] = (emission(intensities.grid.getNode(j))
 						+ 0.5 * albedo * pf.sumExcludingIndex(0, j, 0)) / denominator;
 
@@ -82,23 +81,23 @@ public abstract class NumericIntegrator extends PropertyHolder implements Reflex
 	}
 
 	public double derivative(int i, int j, double t, double I) {
-		return 1.0 / intensities.mu[i] * (source(i, j, t, I) - I);
+		return 1.0 / intensities.ordinates.mu[i] * (source(i, j, t, I) - I);
 	}
 
 	public double derivative(int i, double t, double[] out, double[] in, int l1, int l2) {
-		return 1.0 / intensities.mu[i] * (source(i, out, in, t, l1, l2) - out[i - l1]);
+		return 1.0 / intensities.ordinates.mu[i] * (source(i, out, in, t, l1, l2) - out[i - l1]);
 	}
 
 	public double partial(int i, double t, double[] inward, int l1, int l2) {
-		return (emission(t) + 0.5 * albedo * pf.inwardPartialSum(i, inward, l1, l2)) / intensities.mu[i];
+		return (emission(t) + 0.5 * albedo * pf.inwardPartialSum(i, inward, l1, l2)) / intensities.ordinates.mu[i];
 	}
 
 	public double partial(int i, int j, double t, int l1, int l2) {
-		return (emission(t) + 0.5 * albedo * pf.partialSum(i, j, l1, l2)) / intensities.mu[i];
+		return (emission(t) + 0.5 * albedo * pf.partialSum(i, j, l1, l2)) / intensities.ordinates.mu[i];
 	}
 
 	public double source(int i, int j, double t, double I) {
-		return emission(t) + 0.5 * albedo * (pf.sumExcludingIndex(i, j, i) + pf.function(i, i) * intensities.w[i] * I); 
+		return emission(t) + 0.5 * albedo * (pf.sumExcludingIndex(i, j, i) + pf.function(i, i) * intensities.ordinates.w[i] * I);
 	}
 
 	public double source(int i, double[] iOut, double[] iIn, double t, int l1, int l2) {
@@ -106,13 +105,13 @@ public abstract class NumericIntegrator extends PropertyHolder implements Reflex
 		double sumOut = 0;
 
 		for (int l = l1; l < l2; l++) // sum over the OUTWARD intensities iOut
-			sumOut += iOut[l - l1] * intensities.w[l] * pf.function(i, l);
+			sumOut += iOut[l - l1] * intensities.ordinates.w[l] * pf.function(i, l);
 
 		double sumIn = 0;
 
-		for (int start = intensities.n - l2, l = start, end = intensities.n - l1; l < end; l++) // sum over the INWARD
+		for (int start = intensities.ordinates.total - l2, l = start, end = intensities.ordinates.total - l1; l < end; l++) // sum over the INWARD
 																								// intensities iIn
-			sumIn += iIn[l - start] * intensities.w[l] * pf.function(i, l);
+			sumIn += iIn[l - start] * intensities.ordinates.w[l] * pf.function(i, l);
 
 		return emission(t) + 0.5 * albedo * (sumIn + sumOut); // contains sum over the incoming rays
 
@@ -120,6 +119,29 @@ public abstract class NumericIntegrator extends PropertyHolder implements Reflex
 
 	public double emission(double t) {
 		return (1.0 - albedo) * emissionFunction.J(t);
+	}
+
+	public PhaseFunction getPhaseFunction() {
+		return pf;
+	}
+
+	public void setPhaseFunction(PhaseFunction pf) {
+		this.pf = pf;
+	}
+
+	@Override
+	public String getDescriptor() {
+		return "Numeric integrator";
+	}
+
+	@Override
+	public String toString() {
+		return getClass().getSimpleName();
+	}
+
+	@Override
+	public boolean ignoreSiblings() {
+		return true;
 	}
 
 }

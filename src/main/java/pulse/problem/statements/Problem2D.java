@@ -9,6 +9,7 @@ import static pulse.properties.NumericPropertyKeyword.SPOT_DIAMETER;
 import java.util.ArrayList;
 import java.util.List;
 
+import pulse.algebra.IndexedVector;
 import pulse.problem.schemes.DiscretePulse;
 import pulse.problem.schemes.DiscretePulse2D;
 import pulse.problem.schemes.Grid;
@@ -17,7 +18,6 @@ import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
-import pulse.search.math.IndexedVector;
 
 public abstract class Problem2D extends Problem implements TwoDimensional {
 

@@ -7,12 +7,12 @@ import static pulse.properties.NumericPropertyKeyword.SCATTERING_ANISOTROPY;
 
 import java.util.List;
 
+import pulse.algebra.IndexedVector;
 import pulse.input.ExperimentalData;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
-import pulse.search.math.IndexedVector;
 import pulse.ui.Messages;
 
 public class ParticipatingMedium extends NonlinearProblem {
@@ -141,7 +141,7 @@ public class ParticipatingMedium extends NonlinearProblem {
 				output[1].set(i, 100.0);
 				break;
 			case SCATTERING_ALBEDO:
-				output[0].set(i, scatteringAlbedo );
+				output[0].set(i, scatteringAlbedo);
 				output[1].set(i, 0.1);
 				break;
 			case SCATTERING_ANISOTROPY:

@@ -175,7 +175,8 @@ public class ReflexiveFinder {
 
 					for (int i = 0; i < types.length; i++)
 						if (!types[i].equals(params[i].getClass()))
-							continue outer;
+							if (!types[i].isAssignableFrom(params[i].getClass()))
+								continue outer;
 
 					try {
 						Object o = ctr.newInstance(params);

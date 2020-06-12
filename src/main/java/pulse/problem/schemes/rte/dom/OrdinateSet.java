@@ -3,24 +3,26 @@ package pulse.problem.schemes.rte.dom;
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import pulse.io.readers.ReaderManager;
+import pulse.properties.Property;
 
-public class OrdinateSet {
+public class OrdinateSet implements Property {
 
-	private double[] mu;
-	private double[] w;
+	protected double[] mu;
+	protected double[] w;
+
+	private boolean hasZeroNode;
+	protected int firstPositiveNode, firstNegativeNode, total;
+
+	private static Set<OrdinateSet> allOptions;
+	private final static String DEFAULT_SET = "G8M";
+
 	private String name;
 
-	private static List<OrdinateSet> allSets;
-	private boolean hasZeroNode;
-
-	private int firstPositiveNode, firstNegativeNode;
-
 	static {
-
 		URI uri = null;
 		try {
 			uri = OrdinateSet.class.getResource("/quadratures/").toURI();
@@ -29,12 +31,9 @@ public class OrdinateSet {
 			e.printStackTrace();
 		}
 
-		allSets = ReaderManager.readDirectory(new File(uri)).stream().filter(object -> object instanceof OrdinateSet)
-				.map(obj -> (OrdinateSet) obj).collect(Collectors.toList());
-
+		allOptions = ReaderManager.readDirectory(new File(uri)).stream().filter(object -> object instanceof OrdinateSet)
+				.map(obj -> (OrdinateSet) obj).collect(Collectors.toSet());
 	}
-
-	public static OrdinateSet DEFAULT_SET = OrdinateSet.get("G8M");
 
 	public double[] getNodes() {
 		return mu;
@@ -48,8 +47,9 @@ public class OrdinateSet {
 		if (mu.length != w.length)
 			throw new IllegalArgumentException("Arrays size do not match: " + mu.length + " != " + w.length);
 
-		this.name = name;
+		setName(name);
 		this.mu = mu;
+		total = mu.length;
 		this.w = w;
 
 		if (!approximatelyEquals(summedWeights(), 2.0))
@@ -58,7 +58,8 @@ public class OrdinateSet {
 		hasZeroNode = Double.compare(mu[0], 0.0) == 0;
 
 		firstPositiveNode = 0;
-		firstNegativeNode = mu.length / 2;
+		
+		firstNegativeNode = this.mu.length / 2;
 
 		if (hasZeroNode) {
 			firstPositiveNode += 1;
@@ -72,11 +73,12 @@ public class OrdinateSet {
 		return Math.abs(a - b) < tolerance;
 	}
 
-	public String getName() {
-		return name;
+	@Override
+	public String toString() {
+		return this.getName();
 	}
 
-	public String toString() {
+	public String printOrdinateSet() {
 		StringBuilder sb = new StringBuilder();
 
 		sb.append("Quadrature set: " + this.getName());
@@ -87,14 +89,6 @@ public class OrdinateSet {
 
 		return sb.toString();
 
-	}
-
-	public static OrdinateSet get(String name) {
-		var optional = allSets.stream().filter(t -> t.getName().equalsIgnoreCase(name)).findFirst();
-		if (optional.isEmpty())
-			throw new IllegalArgumentException("Quadrature not found: " + name);
-
-		return optional.get();
 	}
 
 	private double summedWeights() {
@@ -114,6 +108,52 @@ public class OrdinateSet {
 
 	public int getFirstNegativeNode() {
 		return firstNegativeNode;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	@Override
+	public String getDescriptor(boolean addHtmlTags) {
+		return "Ordinate set";
+	}
+
+	@Override
+	public Object getValue() {
+		return this;
+	}
+
+	@Override
+	public boolean attemptUpdate(Object value) {
+		if (!(value instanceof String))
+			return false;
+		find((String) value);
+		return true;
+	}
+
+	public static OrdinateSet find(String name) {
+		var optional = allOptions.stream().filter(t -> t.getName().equalsIgnoreCase(name)).findFirst();
+		if (optional.isEmpty())
+			throw new IllegalArgumentException("Set element not found: " + name);
+
+		return optional.get();
+	}
+
+	public static OrdinateSet getDefaultInstance() {
+		return find(DEFAULT_SET);
+	}
+
+	public static Set<OrdinateSet> getAllOptions() {
+		return allOptions;
+	}
+
+	public int getNumberOfNodes() {
+		return total;
 	}
 
 }

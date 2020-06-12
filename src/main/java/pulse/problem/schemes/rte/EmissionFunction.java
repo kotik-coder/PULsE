@@ -11,7 +11,7 @@ public class EmissionFunction {
 
 	protected double tFactor;
 	protected double hx;
-	
+
 	private UnivariateFunction interpolation;
 
 	public EmissionFunction(NonlinearProblem p, Grid grid) {
@@ -25,7 +25,7 @@ public class EmissionFunction {
 	}
 
 	public double J(double x) {
-		return radiance( interpolation.value(x) );
+		return radiance(interpolation.value(x));
 	}
 
 	public void init(NonlinearProblem p) {

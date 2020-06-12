@@ -24,42 +24,44 @@ public class QuadratureReader implements AbstractReader<OrdinateSet> {
 
 	public OrdinateSet read(File file) throws IOException {
 		Objects.requireNonNull(file, Messages.getString("TBLReader.1"));
-		
-		if(! AbstractReader.super.isExtensionSupported(file) )
+
+		if (!AbstractReader.super.isExtensionSupported(file))
 			throw new IllegalArgumentException("Extension not supported for: " + file);
 
 		String name = file.getName();
-		if( name.indexOf(".") > 0 )
+		if (name.indexOf(".") > 0)
 			name = name.substring(0, name.lastIndexOf("."));
-		
+
 		OrdinateSet set = null;
-		
-		try(var fr = new FileReader(file); var reader = new BufferedReader(fr) ) {
-		
+
+		try (var fr = new FileReader(file); var reader = new BufferedReader(fr)) {
+
 			String delims = Messages.getString("}{,\t ");
 			StringTokenizer tokenizer;
-	
+
 			List<Double> nodes = new ArrayList<Double>();
 			List<Double> weights = new ArrayList<Double>();
-			
-			/*
-			 * Read matrix first
-			 */
-	
+
 			String line = "";
-	
+
+			// first line with declarations (e.g. IGNORE, etc.)
+			tokenizer = new StringTokenizer(reader.readLine());
+
+			while (tokenizer.hasMoreTokens())
+				if (tokenizer.nextToken(delims).equalsIgnoreCase("IGNORE"))
+					return null;
+
 			for (line = reader.readLine(); line != null; line = reader.readLine()) {
 				tokenizer = new StringTokenizer(line);
 				nodes.add((Double) (ExpressionParser.evaluate(tokenizer.nextToken(delims))));
 				weights.add((Double) (ExpressionParser.evaluate(tokenizer.nextToken(delims))));
 			}
-	
-			set = new OrdinateSet(name, 
-					nodes.stream().mapToDouble(d -> d).toArray(), 
-					weights.stream().mapToDouble(d -> d).toArray() );
+
+			set = new OrdinateSet(name, nodes.stream().mapToDouble(d -> d).toArray(),
+					weights.stream().mapToDouble(d -> d).toArray());
 			
 			reader.close();
-			
+
 		}
 
 		return set;
@@ -85,7 +87,7 @@ public class QuadratureReader implements AbstractReader<OrdinateSet> {
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} 
+		}
 
 	}
 

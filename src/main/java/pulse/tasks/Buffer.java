@@ -3,10 +3,10 @@ package pulse.tasks;
 import java.util.ArrayList;
 import java.util.List;
 
+import pulse.algebra.IndexedVector;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
-import pulse.search.math.IndexedVector;
 import pulse.util.PropertyHolder;
 
 /**

@@ -1,8 +1,8 @@
 package pulse.search.linear;
 
-import pulse.search.math.IndexedVector;
-import pulse.search.math.Segment2D;
-import pulse.search.math.Vector;
+import pulse.algebra.IndexedVector;
+import pulse.algebra.Segment2D;
+import pulse.algebra.Vector;
 import pulse.tasks.SearchTask;
 import pulse.ui.Messages;
 

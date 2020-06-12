@@ -2,11 +2,11 @@ package pulse.search.linear;
 
 import static java.lang.Math.abs;
 
+import pulse.algebra.IndexedVector;
+import pulse.algebra.Segment2D;
+import pulse.algebra.Vector;
 import pulse.search.direction.Path;
 import pulse.search.direction.PathOptimiser;
-import pulse.search.math.IndexedVector;
-import pulse.search.math.Segment2D;
-import pulse.search.math.Vector;
 import pulse.tasks.SearchTask;
 import pulse.ui.Messages;
 

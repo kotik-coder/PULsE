@@ -1,14 +1,18 @@
 package pulse.util;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import pulse.properties.Property;
 
-public class InstanceDescriptor<T extends PropertyHolder & Reflexive> implements Property {
+public class InstanceDescriptor<T extends Reflexive> implements Property {
 
 	private String selectedDescriptor = "";
 	private Set<String> allDescriptors;
 	private String generalDescriptor;
+
+	private List<DescriptorChangeListener> listeners = new ArrayList<DescriptorChangeListener>();
 
 	public InstanceDescriptor(String generalDescriptor, Class<T> c, Object... arguments) {
 		allDescriptors = Reflexive.allSubclassesNames(c);
@@ -32,6 +36,8 @@ public class InstanceDescriptor<T extends PropertyHolder & Reflexive> implements
 
 	public void setSelectedDescriptor(String selectedDescriptor) {
 		this.selectedDescriptor = selectedDescriptor;
+		for (DescriptorChangeListener l : listeners)
+			l.onDescriptorChanged();
 	}
 
 	@Override
@@ -59,6 +65,14 @@ public class InstanceDescriptor<T extends PropertyHolder & Reflexive> implements
 	@Override
 	public String toString() {
 		return selectedDescriptor;
+	}
+
+	public void addListener(DescriptorChangeListener l) {
+		this.listeners.add(l);
+	}
+
+	public List<DescriptorChangeListener> getListeners() {
+		return listeners;
 	}
 
 }

@@ -46,7 +46,7 @@ public class HeatingCurve extends PropertyHolder {
 	private final static int DEFAULT_CLASSIC_PRECISION = 200;
 
 	private List<DataListener> dataListeners;
-	
+
 	private UnivariateInterpolator splineInterpolator;
 	private UnivariateFunction splineInterpolation;
 
@@ -333,11 +333,10 @@ public class HeatingCurve extends PropertyHolder {
 			temperature.set(i, tmp * scale);
 		}
 		apply(baseline);
-		
-		splineInterpolation = splineInterpolator.interpolate(
-					time.stream().mapToDouble(d -> d).toArray(), 
-					baselineAdjustedTemperature.stream().mapToDouble(d -> d).toArray() );
-	
+
+		splineInterpolation = splineInterpolator.interpolate(time.stream().mapToDouble(d -> d).toArray(),
+				baselineAdjustedTemperature.stream().mapToDouble(d -> d).toArray());
+
 	}
 
 	/**

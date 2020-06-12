@@ -219,23 +219,23 @@ public final class ReaderManager {
 		return optional.get().read(file);
 
 	}
-	
+
 	public static List<Object> readDirectory(File file) throws IllegalArgumentException {
-		if(!file.isDirectory())
+		if (!file.isDirectory())
 			throw new IllegalArgumentException("Not a directory: " + file);
-		
+
 		var list = new ArrayList<Object>();
-		
-		for(File f : file.listFiles())
+
+		for (File f : file.listFiles())
 			try {
-				list.add( read(f) );
+				list.add(read(f));
 			} catch (IOException e) {
 				System.err.println("Failed to read file: " + f);
 				e.printStackTrace();
 			}
-		
+
 		return list;
-		
+
 	}
 
 }

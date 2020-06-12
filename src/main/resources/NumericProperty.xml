@@ -1,9 +1,28 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <NumericProperties>
+	<NumericProperty abbreviation="&lt;i&gt;W&lt;/i&gt;"
+		auto-adjustable="false"
+		descriptor="Relaxation parameter, &lt;i&gt;W&lt;/i&gt;"
+		dimensionfactor="1" discreet="false" keyword="RELAXATION_PARAMETER"
+		maximum="2" minimum="1" value="1.7" primitive-type="double">
+	</NumericProperty>
+	<NumericProperty
+		abbreviation="&lt;i&gt;N&lt;/i&gt;&lt;sub&gt;int&lt;/sub&gt;"
+		auto-adjustable="true"
+		descriptor="Internal grid density, &lt;i&gt;N&lt;/i&gt;&lt;sub&gt;int&lt;/sub&gt;"
+		dimensionfactor="1" discreet="false" keyword="DOM_GRID_DENSITY"
+		maximum="1024" minimum="8" primitive-type="int" value="8">
+	</NumericProperty>
+	<NumericProperty abbreviation="&lt;i&gt;S&lt;/i&gt;"
+		auto-adjustable="false"
+		descriptor="Stretching factor, &lt;i&gt;S&lt;/i&gt;"
+		dimensionfactor="1" discreet="false" keyword="GRID_STRETCHING_FACTOR"
+		maximum="5" minimum="1.0" primitive-type="double" value="3.0">
+	</NumericProperty>
 	<NumericProperty
 		abbreviation="&lt;i&gt;N&lt;/i&gt;&lt;sup&gt;k+1&lt;/sup&gt;/&lt;i&gt;N&lt;/i&gt;&lt;sup&gt;k&lt;/sup&gt;"
 		auto-adjustable="false"
-		descriptor="Grid scaling factor, &lt;i&gt;N&lt;/i&gt;&lt;sup&gt;k+1&lt;/sup&gt;/&lt;i&gt;N&lt;/i&gt;&lt;sup&gt;k&lt;/sup&gt;"
+		descriptor="Scaling factor, &lt;i&gt;N&lt;/i&gt;&lt;sup&gt;k+1&lt;/sup&gt;/&lt;i&gt;N&lt;/i&gt;&lt;sup&gt;k&lt;/sup&gt;"
 		dimensionfactor="1" discreet="false" keyword="GRID_SCALING_FACTOR"
 		maximum="3.0" minimum="1.1" value="1.5" primitive-type="double">
 	</NumericProperty>
@@ -34,7 +53,7 @@
 	<NumericProperty
 		abbreviation="&lt;i&gt;e&lt;/i&gt;&lt;sub&gt;DOM&lt;/sub&gt;"
 		auto-adjustable="false"
-		descriptor="DOM iteration error tolerance, &lt;i&gt;e&lt;/i&gt;&lt;sub&gt;DOM&lt;/sub&gt;"
+		descriptor="Iteration relative tolerance, &lt;i&gt;e&lt;/i&gt;&lt;sub&gt;DOM&lt;/sub&gt;"
 		dimensionfactor="1" discreet="false" keyword="DOM_ITERATION_ERROR"
 		maximum="1E-3" minimum="1E-10" primitive-type="double" value="1E-4">
 	</NumericProperty>
@@ -43,7 +62,7 @@
 		auto-adjustable="true"
 		descriptor="Scattering anisotropy, &lt;i&gt;A&lt;/i&gt;&lt;sub&gt;1&lt;/sub&gt;"
 		dimensionfactor="1" discreet="false" keyword="SCATTERING_ANISOTROPY"
-		maximum="1" minimum="-1" primitive-type="double" value="0.2">
+		maximum="2" minimum="-2" primitive-type="double" value="0.2">
 	</NumericProperty>
 	<NumericProperty abbreviation="&amp;omega;&lt;sub&gt;0&lt;/sub&gt;"
 		auto-adjustable="true"

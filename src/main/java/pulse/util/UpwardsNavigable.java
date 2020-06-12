@@ -17,7 +17,7 @@ import pulse.tasks.SearchTask;
  *
  */
 
-public abstract class UpwardsNavigable implements Describable {
+public abstract class UpwardsNavigable implements Descriptive {
 
 	private UpwardsNavigable parent;
 	private List<HierarchyListener> listeners = new ArrayList<HierarchyListener>();

@@ -2,11 +2,11 @@ package pulse.problem.statements;
 
 import java.util.List;
 
+import pulse.algebra.IndexedVector;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
-import pulse.search.math.IndexedVector;
 import pulse.ui.Messages;
 
 public class DiathermicMaterialProblem extends LinearisedProblem {

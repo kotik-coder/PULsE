@@ -1,37 +1,42 @@
 package pulse.problem.schemes.rte.dom;
 
-public class StretchedGrid {
+import java.util.ArrayList;
+import java.util.List;
 
-	private final static double STRETCHING_FACTOR = 3.0;
-	public final static int DEFAULT_GRID_DENSITY = 8;
+import pulse.properties.NumericProperty;
+import pulse.properties.NumericPropertyKeyword;
+import pulse.properties.Property;
+import pulse.util.PropertyHolder;
+
+public class StretchedGrid extends PropertyHolder {
+
 	private double[] nodes;
 
 	private double stretchingFactor;
 	private double dimension;
+	private int n;
 
 	public void setDimension(double dimension) {
 		this.dimension = dimension;
 	}
 
 	public StretchedGrid(double dimension) {
-		this(DEFAULT_GRID_DENSITY, dimension, STRETCHING_FACTOR);
+		this(NumericProperty.theDefault(NumericPropertyKeyword.DOM_GRID_DENSITY), dimension,
+				NumericProperty.theDefault(NumericPropertyKeyword.GRID_STRETCHING_FACTOR));
 	}
 
-	public StretchedGrid(int n, double dimension) {
-		this(n, dimension, STRETCHING_FACTOR);
+	public StretchedGrid(NumericProperty gridDensity, double dimension) {
+		this(gridDensity, dimension, NumericProperty.theDefault(NumericPropertyKeyword.GRID_STRETCHING_FACTOR));
 	}
 
-	public StretchedGrid(int n, double dimension, double stretchingFactor) {
-		this.stretchingFactor = stretchingFactor;
+	public StretchedGrid(NumericProperty gridDensity, double dimension, NumericProperty stretchingFactor) {
+		this.stretchingFactor = (double) stretchingFactor.getValue();
 		this.dimension = dimension;
-		if (Double.compare(stretchingFactor, 1.0) == 0)
+		this.n = (int) gridDensity.getValue();
+		if (Double.compare(this.stretchingFactor, 1.0) == 0)
 			generateUniform(n, true);
 		else
 			generate(n);
-	}
-
-	public void reset() {
-		generate(DEFAULT_GRID_DENSITY);
 	}
 
 	public void generate(int n) {
@@ -42,6 +47,10 @@ public class StretchedGrid {
 		for (int i = 0; i < nodes.length; i++)
 			nodes[i] = 0.5 * dimension * tanh(nodes[i], stretchingFactor);
 
+	}
+
+	public void generateUniform(boolean scaled) {
+		generateUniform(n, scaled);
 	}
 
 	public void generateUniform(int n, boolean scaled) {
@@ -55,6 +64,26 @@ public class StretchedGrid {
 
 	public int getDensity() {
 		return nodes.length - 1;
+	}
+
+	public NumericProperty getStretchingFactor() {
+		return NumericProperty.derive(NumericPropertyKeyword.GRID_STRETCHING_FACTOR, stretchingFactor);
+	}
+
+	public NumericProperty getDensityProperty() {
+		return NumericProperty.derive(NumericPropertyKeyword.DOM_GRID_DENSITY, n);
+	}
+
+	public void setStretchingFactor(NumericProperty p) {
+		if (p.getType() != NumericPropertyKeyword.GRID_STRETCHING_FACTOR)
+			throw new IllegalArgumentException("Illegal type: " + p.getType());
+		this.stretchingFactor = (double) p.getValue();
+	}
+
+	public void setGridDensity(NumericProperty p) {
+		if (p.getType() != NumericPropertyKeyword.DOM_GRID_DENSITY)
+			throw new IllegalArgumentException("Illegal type: " + p.getType());
+		this.n = (int) p.getValue();
 	}
 
 	public double getDimension() {
@@ -83,6 +112,38 @@ public class StretchedGrid {
 
 	public double tanh(final double x, final double stretchingFactor) {
 		return 1.0 - Math.tanh(stretchingFactor * (1.0 - 2.0 * x)) / Math.tanh(stretchingFactor);
+	}
+
+	@Override
+	public void set(NumericPropertyKeyword type, NumericProperty property) {
+		switch (type) {
+		case GRID_STRETCHING_FACTOR:
+			setStretchingFactor(property);
+			break;
+		case DOM_GRID_DENSITY:
+			setGridDensity(property);
+			break;
+		default:
+			throw new IllegalArgumentException("Unknown type: " + type);
+		}
+	}
+
+	@Override
+	public List<Property> listedTypes() {
+		List<Property> list = new ArrayList<Property>();
+		list.add(NumericProperty.theDefault(NumericPropertyKeyword.GRID_STRETCHING_FACTOR));
+		list.add(NumericProperty.theDefault(NumericPropertyKeyword.DOM_GRID_DENSITY));
+		return list;
+	}
+
+	@Override
+	public String toString() {
+		return "{ " + getDensityProperty() + " ; " + getStretchingFactor() + " }";
+	}
+
+	@Override
+	public String getDescriptor() {
+		return "Adaptive grid";
 	}
 
 }

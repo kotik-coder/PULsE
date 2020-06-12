@@ -1,4 +1,4 @@
-package pulse.search.math;
+package pulse.algebra;
 
 import java.util.Arrays;
 
@@ -298,11 +298,11 @@ public class Vector {
 		return true;
 
 	}
-	
+
 	public double maxAbsComponent() {
 		double max = Math.abs(x[0]);
 		double abs = 0;
-		for(int i = 1; i < x.length; i++) {
+		for (int i = 1; i < x.length; i++) {
 			abs = Math.abs(x[i]);
 			max = abs > max ? abs : max;
 		}

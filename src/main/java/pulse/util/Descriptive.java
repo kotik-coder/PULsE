@@ -6,7 +6,7 @@ package pulse.util;
  * @see pulse.io.export.Exporter
  */
 
-public interface Describable {
+public interface Descriptive {
 
 	/**
 	 * Creates a {@code String} 'describing' this object, usually for exporting

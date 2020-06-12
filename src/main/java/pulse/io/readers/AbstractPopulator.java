@@ -5,6 +5,6 @@ import java.io.IOException;
 
 public interface AbstractPopulator<T> extends AbstractHandler {
 
-	public void populate(File f, T t) throws IOException;	
-	
+	public void populate(File f, T t) throws IOException;
+
 }

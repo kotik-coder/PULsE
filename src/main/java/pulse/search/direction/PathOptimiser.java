@@ -8,13 +8,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import pulse.algebra.IndexedVector;
+import pulse.algebra.Vector;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 import pulse.search.linear.LinearOptimiser;
-import pulse.search.math.IndexedVector;
-import pulse.search.math.Vector;
 import pulse.tasks.SearchTask;
 import pulse.tasks.Status;
 import pulse.tasks.TaskManager;

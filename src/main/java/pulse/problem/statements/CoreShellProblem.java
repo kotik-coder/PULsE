@@ -8,17 +8,17 @@ import static pulse.properties.NumericPropertyKeyword.RADIAL_COATING_THICKNESS;
 import java.util.ArrayList;
 import java.util.List;
 
+import pulse.algebra.IndexedVector;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
-import pulse.search.math.IndexedVector;
 import pulse.ui.Messages;
 
 public class CoreShellProblem extends LinearisedProblem2D {
 
 	protected double tA, tR, coatingDiffusivity;
-	private final static boolean DEBUG = false;
+	private final static boolean DEBUG = true;
 
 	public CoreShellProblem() {
 		super();

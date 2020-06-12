@@ -2,11 +2,11 @@ package pulse.problem.schemes.rte;
 
 import pulse.problem.schemes.Grid;
 import pulse.problem.statements.ParticipatingMedium;
-import pulse.util.Describable;
+import pulse.util.Descriptive;
 import pulse.util.PropertyHolder;
 import pulse.util.Reflexive;
 
-public abstract class RadiativeTransferSolver extends PropertyHolder implements Reflexive, Describable {
+public abstract class RadiativeTransferSolver extends PropertyHolder implements Reflexive, Descriptive {
 
 	private double[] fluxes;
 	private double[] storedFluxes;

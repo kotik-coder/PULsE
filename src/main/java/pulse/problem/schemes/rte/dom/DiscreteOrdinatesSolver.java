@@ -9,6 +9,7 @@ import java.util.Scanner;
 
 import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
+
 import pulse.problem.schemes.Grid;
 import pulse.problem.schemes.rte.EmissionFunction;
 import pulse.problem.schemes.rte.RadiativeTransferSolver;
@@ -16,16 +17,29 @@ import pulse.problem.statements.ParticipatingMedium;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
+import pulse.util.DescriptorChangeListener;
+import pulse.util.InstanceDescriptor;
 
 public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 
 	private final static double DOUBLE_PI = 2.0 * Math.PI;
-	
+
 	private double[] fluxDerivative;
 	private double[] storedFluxDerivative;
-	
-	private final static double W = 1.52; //for successive after-relaxation
-	
+
+	private static InstanceDescriptor<AdaptiveIntegrator> integratorDescriptor = new InstanceDescriptor<AdaptiveIntegrator>(
+			"Integrator selector", AdaptiveIntegrator.class);
+	private static InstanceDescriptor<PhaseFunction> phaseFunctionSelector = new InstanceDescriptor<PhaseFunction>(
+			"Phase function selector", PhaseFunction.class);
+	private static InstanceDescriptor<IterativeSolver> iterativeSolverSelector = new InstanceDescriptor<IterativeSolver>(
+			"Iterative solver selector", IterativeSolver.class);
+
+	static {
+		integratorDescriptor.setSelectedDescriptor(TRBDF2.class.getSimpleName());
+		phaseFunctionSelector.setSelectedDescriptor(HenyeyGreensteinIPF.class.getSimpleName());
+		iterativeSolverSelector.setSelectedDescriptor(FixedIterations.class.getSimpleName());
+	}
+
 	public static void main(String[] args) {
 
 		var problem = new ParticipatingMedium();
@@ -76,7 +90,7 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 //		for (int i = 0; i < rte.discrete.grid.getDensity(); i++)
 //			System.out.printf("%n%2.4f %4.5f %4.5f %4.5f %4.5f", rte.discrete.grid.getNode(i), rte.discrete.I[i][0],
 //					rte.discrete.I[i][1], rte.discrete.I[i][2], rte.discrete.I[i][3]);
-		
+
 		for (int i = 1; i < U.length - 1; i++)
 			System.out.printf("%n%2.4f %4.5f %4.5f", i * (1.0 / (U.length - 1) * rte.getOpticalThickness()),
 					rte.getFlux(i), rte.getFluxDerivative(i));
@@ -86,9 +100,9 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 
 	}
 
-	private double iterationError;
-	private PhaseFunction ipf;
+	private PhaseFunction phaseFunction;
 	private AdaptiveIntegrator integrator;
+	private IterativeSolver iterativeSolver;
 
 	private DiscreteIntensities discrete;
 	private int nT;
@@ -109,17 +123,49 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 
 	public DiscreteOrdinatesSolver(ParticipatingMedium problem, Grid grid) {
 		super(problem, grid);
-
-		iterationError = (double) NumericProperty.theDefault(NumericPropertyKeyword.DOM_ITERATION_ERROR).getValue();
-
+		
 		var emissionFunction = new EmissionFunction(problem, grid);
 
-		discrete = new DiscreteIntensities((int)grid.getGridDensity().getValue(), (double) problem.getOpticalThickness().getValue());
-		ipf = new HenyeyGreensteinIPF(discrete);
-		integrator = new TRBDF2(discrete, emissionFunction, ipf);
+		discrete = new DiscreteIntensities((int) grid.getGridDensity().getValue(),
+				(double) problem.getOpticalThickness().getValue());
+		discrete.setParent(this);
+		phaseFunction = phaseFunctionSelector.newInstance(PhaseFunction.class, discrete);
+		integrator = integratorDescriptor.newInstance(AdaptiveIntegrator.class, discrete, emissionFunction,
+				phaseFunction);
+		iterativeSolver = iterativeSolverSelector.newInstance(IterativeSolver.class);
+		
 		integrator.setParent(this);
-
 		init(problem, grid);
+
+		integratorDescriptor.addListener(new DescriptorChangeListener() {
+
+			@Override
+			public void onDescriptorChanged() {
+				setIntegrator(integratorDescriptor.newInstance(AdaptiveIntegrator.class, discrete, emissionFunction,
+						phaseFunction) );
+			}
+
+		});
+
+		phaseFunctionSelector.addListener(new DescriptorChangeListener() {
+
+			@Override
+			public void onDescriptorChanged() {
+				setPhaseFunction(phaseFunctionSelector.newInstance(PhaseFunction.class, discrete));
+			}
+
+		});
+		
+		iterativeSolverSelector.addListener(new DescriptorChangeListener() {
+
+			@Override
+			public void onDescriptorChanged() {
+				setIterativeSolver(iterativeSolverSelector.newInstance(IterativeSolver.class));
+			}
+			
+			
+		});
+
 	}
 
 	private void temperatureInterpolation(double[] tempArray) {
@@ -141,70 +187,17 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 	public void compute(double[] tempArray) {
 		temperatureInterpolation(tempArray);
 		discrete.clear();
-//		computeSuccessiveOverrelaxation();
-		this.computeFixedIterations();
+		iterativeSolver.doIterations(discrete, integrator);
 		fluxesAndDerivatives();
 	}
-	
-	private void computeSuccessiveOverrelaxation() {
 
-		double relativeError = 100;
-
-		double qld = 0;
-		double qrd = 0;
-				
-		for (double ql = 1e8, qr = ql; relativeError > iterationError;) {
-			ql = discrete.getQLeft();
-			qr = discrete.getQRight();
-				
-			integrator.storeIteration();
-			integrator.integrate();
-			
-			//if the integrator attempted rescaling, last iteration is not valid anymore
-			if(integrator.wasRescaled()) {
-				relativeError = Double.POSITIVE_INFINITY;
-			} else { //calculate the (k+1) iteration as: I_k+1 = I_k * (1 - W) + I*
-				//double ik = discrete.I[1][5];
-				integrator.successiveOverrelaxation(W);
-				qld = Math.abs(discrete.qLeft(integrator.emissionFunction) - ql);
-				qrd = Math.abs(discrete.qRight(integrator.emissionFunction) - qr);
-				relativeError = (qld + qrd)/(Math.abs(ql) + Math.abs(qr));
-			}
-			
-		}
-		
-	}
-	
-	private void computeFixedIterations() {
-
-		double relativeError = 100;
-
-		double qld = 0;
-		double qrd = 0;
-		
-		for (double ql = 1e8, qr = ql; relativeError > iterationError;) {
-			ql = discrete.getQLeft();
-			qr = discrete.getQRight();
-
-			integrator.integrate();
-
-			qld = Math.abs(discrete.qLeft(integrator.emissionFunction) - ql);
-			qrd = Math.abs(discrete.qRight(integrator.emissionFunction) - qr);
-			
-			//if the integrator attempted rescaling, last iteration is not valid anymore
-			relativeError = integrator.wasRescaled() ? Double.POSITIVE_INFINITY : (qld + qrd)/(Math.abs(ql) + Math.abs(qr));
-						
-		}
-		
-	}
-	
 	public void fluxesAndDerivatives() {
-		var interpolation = discrete.interpolateOnExternalGrid( integrator.f );
+		var interpolation = discrete.interpolateOnExternalGrid(integrator.f);
 		fluxDerivative = new double[nT + 1];
-		
+
 		for (int i = 0; i < nT + 1; i++) {
-			setFlux(i, DOUBLE_PI * discrete.q( interpolation[0], i));
-			fluxDerivative[i] = -DOUBLE_PI * discrete.q( interpolation[1], i);
+			setFlux(i, DOUBLE_PI * discrete.q(interpolation[0], i));
+			fluxDerivative[i] = -DOUBLE_PI * discrete.q(interpolation[1], i);
 		}
 	}
 
@@ -235,71 +228,97 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 
 	@Override
 	public double getFluxMeanDerivative(int u) {
-		return 0.5*(fluxDerivative[u] 
-				+ storedFluxDerivative[u]);
+		return 0.5 * (fluxDerivative[u] + storedFluxDerivative[u]);
 	}
 
 	@Override
 	public double getFluxMeanDerivativeFront() {
-		return 0.5*(fluxDerivative[0] + storedFluxDerivative[0]);
-	}
-	
-	@Override
-	public double getFluxMeanDerivativeRear() {
-		return 0.5*(fluxDerivative[nT] + storedFluxDerivative[nT]);
+		return 0.5 * (fluxDerivative[0] + storedFluxDerivative[0]);
 	}
 
-	public NumericProperty getIterationErrorTolerance() {
-		return NumericProperty.derive(NumericPropertyKeyword.DOM_ITERATION_ERROR, this.iterationError);
+	@Override
+	public double getFluxMeanDerivativeRear() {
+		return 0.5 * (fluxDerivative[nT] + storedFluxDerivative[nT]);
 	}
 
 	@Override
 	public void init(ParticipatingMedium problem, Grid grid) {
 		super.init(problem, grid);
 
-		ipf.setAnisotropyFactor((double) problem.getScatteringAnisostropy().getValue());
+		phaseFunction.setAnisotropyFactor((double) problem.getScatteringAnisostropy().getValue());
 		discrete.setEmissivity(problem.getEmissivity());
 		integrator.init(problem, grid);
 
 		super.reinitArrays((int) grid.getGridDensity().getValue());
 		discrete.grid.setDimension((double) problem.getOpticalThickness().getValue());
-		discrete.grid.generateUniform(StretchedGrid.DEFAULT_GRID_DENSITY, true);
-		
+		discrete.grid.generateUniform(true);
+
 		discrete.reinitInternalArrays();
-		storedFluxDerivative = new double[(int)grid.getGridDensity().getValue() + 1];
+		storedFluxDerivative = new double[(int) grid.getGridDensity().getValue() + 1];
 	}
 
 	@Override
 	public List<Property> listedTypes() {
 		List<Property> list = super.listedTypes();
-		list.add(NumericProperty.def(NumericPropertyKeyword.DOM_ITERATION_ERROR));
+		list.add(integratorDescriptor);
+		list.add(phaseFunctionSelector);
+		list.add(iterativeSolverSelector);
 		return list;
 	}
 
-	@Override
-	public void set(NumericPropertyKeyword type, NumericProperty property) {
-		switch (type) {
-		case DOM_ITERATION_ERROR:
-			setIterationErrorTolerance(property);
-			break;
-		default:
-			return;
-		}
-
-		notifyListeners(this, property);
-
-	}
-
-	public void setIterationErrorTolerance(NumericProperty e) {
-		if (e.getType() != NumericPropertyKeyword.DOM_ITERATION_ERROR)
-			throw new IllegalArgumentException("Illegal type: " + e.getType());
-		this.iterationError = (double) e.getValue();
+	public AdaptiveIntegrator getIntegrator() {
+		return integrator;
 	}
 
 	@Override
 	public void store() {
 		super.store();
 		System.arraycopy(fluxDerivative, 0, storedFluxDerivative, 0, fluxDerivative.length);
+	}
+
+	public PhaseFunction getPhaseFunction() {
+		return phaseFunction;
+	}
+
+	public void setPhaseFunction(PhaseFunction phaseFunction) {
+		this.phaseFunction = phaseFunction;
+		integrator.setPhaseFunction(phaseFunction);
+	}
+
+	public static InstanceDescriptor<AdaptiveIntegrator> getIntegratorDescriptor() {
+		return integratorDescriptor;
+	}
+
+	public static InstanceDescriptor<PhaseFunction> getPhaseFunctionSelector() {
+		return phaseFunctionSelector;
+	}
+
+	public void setIntegrator(AdaptiveIntegrator integrator) {
+		this.integrator = integrator;
+		integrator.setParent(this);
+	}
+	
+	public IterativeSolver getIterativeSolver() {
+		return iterativeSolver;
+	}
+	
+	public static InstanceDescriptor<IterativeSolver> getIterativeSolverSelector() {
+		return iterativeSolverSelector;
+	}
+	
+	public void setIterativeSolver(IterativeSolver solver) {
+		this.iterativeSolver = solver;
+		solver.setParent(this);
+	}
+
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + " : " + this.getPhaseFunction();
+	}
+
+	@Override
+	public void set(NumericPropertyKeyword type, NumericProperty property) {
+		//intentionally left blank
 	}
 
 }

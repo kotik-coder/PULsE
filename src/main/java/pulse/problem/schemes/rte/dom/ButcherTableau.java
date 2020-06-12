@@ -3,27 +3,28 @@ package pulse.problem.schemes.rte.dom;
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
+import pulse.algebra.Matrix;
+import pulse.algebra.Vector;
 import pulse.io.readers.ReaderManager;
-import pulse.search.math.Matrix;
-import pulse.search.math.Vector;
+import pulse.properties.Property;
 
-public class ButcherTableau {
-
-	private String name;
+public class ButcherTableau implements Property {
 
 	protected Vector b, bHat;
 	protected Vector c;
 	protected Matrix coefs;
 
-	private static List<ButcherTableau> tableaux;
-
 	private boolean fsal;
 
-	static {
+	private static Set<ButcherTableau> allOptions;
+	private String name;
 
+	private final static String DEFAULT_TABLEAU = "BS23";
+
+	static {
 		URI uri = null;
 		try {
 			uri = ButcherTableau.class.getResource("/solvers/").toURI();
@@ -32,13 +33,10 @@ public class ButcherTableau {
 			e.printStackTrace();
 		}
 
-		tableaux = ReaderManager.readDirectory(new File(uri)).stream()
+		allOptions = ReaderManager.readDirectory(new File(uri)).stream()
 				.filter(object -> object instanceof ButcherTableau).map(obj -> (ButcherTableau) obj)
-				.collect(Collectors.toList());
-
+				.collect(Collectors.toSet());
 	}
-
-	public static ButcherTableau DEFAULT_TABLEAU = ButcherTableau.get("BS23");
 
 	public ButcherTableau(String name, double[][] coefs, double[] c, double[] b, double[] bHat, boolean fsal) {
 
@@ -48,7 +46,7 @@ public class ButcherTableau {
 		if (coefs.length != coefs[0].length || coefs.length != c.length)
 			throw new IllegalArgumentException("Check dimensions of the input matrix array");
 
-		this.name = name;
+		setName(name);
 		this.fsal = fsal;
 
 		this.coefs = new Matrix(coefs);
@@ -93,16 +91,23 @@ public class ButcherTableau {
 		this.c = c;
 	}
 
-	public String getName() {
-		return name;
-	}
-
 	public boolean isFSAL() {
 		return fsal;
 	}
 
-	@Override
 	public String toString() {
+		return getName();
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String printTableau() {
 
 		StringBuilder sb = new StringBuilder();
 
@@ -134,12 +139,38 @@ public class ButcherTableau {
 
 	}
 
-	public static ButcherTableau get(String name) {
-		var optional = tableaux.stream().filter(t -> t.getName().equalsIgnoreCase(name)).findFirst();
+	@Override
+	public String getDescriptor(boolean addHtmlTags) {
+		return "Butcher tableau";
+	}
+
+	@Override
+	public Object getValue() {
+		return this;
+	}
+
+	@Override
+	public boolean attemptUpdate(Object value) {
+		if (!(value instanceof String))
+			return false;
+		find((String) value);
+		return true;
+	}
+
+	public static ButcherTableau find(String name) {
+		var optional = allOptions.stream().filter(t -> t.getName().equalsIgnoreCase(name)).findFirst();
 		if (optional.isEmpty())
-			throw new IllegalArgumentException("Tableau not found: " + name);
+			throw new IllegalArgumentException("Set element not found: " + name);
 
 		return optional.get();
+	}
+
+	public static ButcherTableau getDefaultInstance() {
+		return find(DEFAULT_TABLEAU);
+	}
+
+	public static Set<ButcherTableau> getAllOptions() {
+		return allOptions;
 	}
 
 }

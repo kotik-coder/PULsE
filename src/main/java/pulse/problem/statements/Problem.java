@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 
 import pulse.Baseline;
 import pulse.HeatingCurve;
+import pulse.algebra.IndexedVector;
 import pulse.input.ExperimentalData;
 import pulse.input.InterpolationDataset;
 import pulse.input.InterpolationDataset.StandartType;
@@ -28,7 +29,6 @@ import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
-import pulse.search.math.IndexedVector;
 import pulse.util.PropertyHolder;
 import pulse.util.Reflexive;
 

@@ -13,6 +13,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
+import pulse.algebra.IndexedVector;
 import pulse.input.ExperimentalData;
 import pulse.input.InterpolationDataset;
 import pulse.input.InterpolationDataset.StandartType;
@@ -26,7 +27,6 @@ import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.search.direction.Path;
 import pulse.search.direction.PathOptimiser;
-import pulse.search.math.IndexedVector;
 import pulse.search.statistics.CorrelationTest;
 import pulse.search.statistics.NormalityTest;
 import pulse.search.statistics.RSquaredTest;

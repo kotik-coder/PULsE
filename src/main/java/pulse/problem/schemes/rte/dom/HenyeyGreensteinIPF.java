@@ -18,7 +18,7 @@ public class HenyeyGreensteinIPF extends PhaseFunction {
 	}
 
 	public double function(int i, int k) {
-		double theta = intensities.mu[k] * intensities.mu[i];
+		double theta = intensities.ordinates.mu[k] * intensities.ordinates.mu[i];
 		double f = a2 - b1 * theta;
 		return a1 / (f * Math.sqrt(f));
 	}

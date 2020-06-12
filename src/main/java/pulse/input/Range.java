@@ -2,11 +2,11 @@ package pulse.input;
 
 import java.util.List;
 
+import pulse.algebra.IndexedVector;
+import pulse.algebra.Segment2D;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
-import pulse.search.math.IndexedVector;
-import pulse.search.math.Segment2D;
 import pulse.util.PropertyHolder;
 
 public class Range extends PropertyHolder {

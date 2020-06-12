@@ -79,7 +79,7 @@ public interface Reflexive {
 		return Reflexive.instancesOf(c).stream().map(t -> t.getDescriptor()).collect(Collectors.toSet());
 	}
 
-	public static <T extends PropertyHolder & Reflexive> Set<String> allSubclassesNames(Class<T> c) {
+	public static <T extends Reflexive> Set<String> allSubclassesNames(Class<T> c) {
 		var classes = ReflexiveFinder.classesIn(c.getPackageName());
 		return classes.stream().filter(cl -> c.isAssignableFrom(cl) && !Modifier.isAbstract(cl.getModifiers()))
 				.map(aClass -> aClass.getSimpleName()).collect(Collectors.toSet());

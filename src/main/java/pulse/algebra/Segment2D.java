@@ -1,4 +1,4 @@
-package pulse.search.math;
+package pulse.algebra;
 
 import java.util.Random;
 

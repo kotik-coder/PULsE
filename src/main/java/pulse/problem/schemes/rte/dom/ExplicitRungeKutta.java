@@ -1,7 +1,10 @@
 package pulse.problem.schemes.rte.dom;
 
+import java.util.List;
+
+import pulse.algebra.Vector;
 import pulse.problem.schemes.rte.EmissionFunction;
-import pulse.search.math.Vector;
+import pulse.properties.Property;
 
 /**
  * Explicit Runge-Kutta.
@@ -16,7 +19,7 @@ public class ExplicitRungeKutta extends AdaptiveIntegrator {
 
 	public ExplicitRungeKutta(DiscreteIntensities intensities, EmissionFunction ef, PhaseFunction ipf) {
 		super(intensities, ef, ipf);
-		tableau = ButcherTableau.DEFAULT_TABLEAU;
+		tableau = ButcherTableau.getDefaultInstance();
 	}
 
 	@Override
@@ -35,8 +38,8 @@ public class ExplicitRungeKutta extends AdaptiveIntegrator {
 
 		final int n1 = sign > 0 ? nPositiveStart : nNegativeStart; // either first positive index (e.g. 0) or first
 																	// negative (n/2)
-		final int n2 = sign > 0 ? nNegativeStart : intensities.n; // either first negative index (n/2) or n
-		final int n3 = intensities.n - n2; // either nNegativeStart or 0
+		final int n2 = sign > 0 ? nNegativeStart : intensities.ordinates.total; // either first negative index (n/2) or n
+		final int n3 = intensities.ordinates.total - n2; // either nNegativeStart or 0
 		final int nH = n2 - n1;
 
 		var error = new double[nH];
@@ -154,6 +157,18 @@ public class ExplicitRungeKutta extends AdaptiveIntegrator {
 
 	public void setButcherTableau(ButcherTableau coef) {
 		this.tableau = coef;
+	}
+
+	@Override
+	public List<Property> listedTypes() {
+		List<Property> list = super.listedTypes();
+		list.add(ButcherTableau.getDefaultInstance());
+		return list;
+	}
+
+	@Override
+	public String toString() {
+		return super.toString() + " ; " + tableau;
 	}
 
 }

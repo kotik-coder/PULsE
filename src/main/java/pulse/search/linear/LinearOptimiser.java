@@ -5,12 +5,12 @@ import static pulse.properties.NumericPropertyKeyword.LINEAR_RESOLUTION;
 import java.util.ArrayList;
 import java.util.List;
 
+import pulse.algebra.IndexedVector;
+import pulse.algebra.Segment2D;
+import pulse.algebra.Vector;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
-import pulse.search.math.IndexedVector;
-import pulse.search.math.Segment2D;
-import pulse.search.math.Vector;
 import pulse.tasks.SearchTask;
 import pulse.util.PropertyHolder;
 import pulse.util.Reflexive;

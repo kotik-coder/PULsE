@@ -5,12 +5,12 @@ import java.util.List;
 
 import org.apache.commons.math3.analysis.solvers.LaguerreSolver;
 
+import pulse.algebra.Matrix;
+import pulse.algebra.Vector;
 import pulse.problem.schemes.rte.MathUtils;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
-import pulse.search.math.Matrix;
-import pulse.search.math.Vector;
 
 public class ChandrasekharsQuadrature extends SimpsonsRule {
 

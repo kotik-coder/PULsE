@@ -54,5 +54,5 @@ public interface AbstractHandler extends Reflexive {
 	public default boolean isExtensionSupported(File file) {
 		return extensionsMatch(file, getSupportedExtension());
 	}
-	
+
 }

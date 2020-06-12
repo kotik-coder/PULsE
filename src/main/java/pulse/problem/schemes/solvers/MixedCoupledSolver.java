@@ -63,7 +63,7 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 	protected double HX2;
 
 	protected double nonlinearPrecision = (double) NumericProperty.def(NONLINEAR_PRECISION).getValue();
-	
+
 	double errorSq;
 
 	double HX_NP;
@@ -71,7 +71,7 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 	double Bi2HX;
 	double ONE_PLUS_Bi1_HX;
 	double SIGMA_NP;
-	
+
 	double _2TAUHX;
 	double HX2_2TAU;
 	double ONE_MINUS_SIGMA_NP;
@@ -139,7 +139,7 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 		init1();
 
 	}
-	
+
 	private void init1() {
 		a = sigma / HX2;
 		b = 1. / tau + 2. * sigma / HX2;
@@ -150,7 +150,7 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 		for (int i = 1; i < N; i++)
 			alpha[i + 1] = c / (b - a * alpha[i]);
 	}
-	
+
 	private void init2() {
 		_2TAUHX = 2.0 * tau * hx;
 		HX2_2TAU = HX2 / (2.0 * tau);
@@ -164,7 +164,7 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 	public void solve(ParticipatingMedium problem) {
 
 		prepare(problem);
-		
+
 		double wFactor = timeInterval * tau * problem.timeFactor();
 		errorSq = MathUtils.fastPowLoop(nonlinearPrecision, 2);
 
@@ -177,16 +177,16 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 		Bi2HX = Bi2 * hx;
 		ONE_PLUS_Bi1_HX = (1. + Bi1 * hx);
 		SIGMA_NP = sigma / Np;
-		
+
 		init2();
-		
-		int pulseEnd = (int)Math.rint( this.getDiscretePulse().getDiscretePulseWidth()/((double)wFactor) ) + 1;
-		
+
+		int pulseEnd = (int) Math.rint(this.getDiscretePulse().getDiscretePulseWidth() / ((double) wFactor)) + 1;
+
 		int w;
-		
+
 		for (w = 1; w < pulseEnd + 1; w++) {
-			
-			for (int m = (w - 1) * timeInterval + 1; m < w * timeInterval + 1; m++) 
+
+			for (int m = (w - 1) * timeInterval + 1; m < w * timeInterval + 1; m++)
 				timeStep(m, true);
 
 			curve.addPoint(w * wFactor, V[N]);
@@ -196,28 +196,28 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 			 */
 
 			// debug(problem, V, w);
-			
+
 		}
-		
-		double timeLeft = timeLimit - (w - 1)*wFactor;
-		
-		//adjust timestep to make calculations faster
+
+		double timeLeft = timeLimit - (w - 1) * wFactor;
+
+		// adjust timestep to make calculations faster
 		grid.setTimeFactor(TAU_FACTOR);
-			
+
 		tau = grid.getTimeStep();
 		adjustSchemeWeight();
-			
+
 		init1();
-		init2();		
-			
+		init2();
+
 		double numPoints = counts - (w - 1);
 		double dt = timeLeft / (problem.timeFactor() * (numPoints - 1));
-		
-		timeInterval = (int)(dt / tau) + 1;
+
+		timeInterval = (int) (dt / tau) + 1;
 
 		for (wFactor = timeInterval * tau * problem.timeFactor(); w < counts; w++) {
 
-			for (int m = (w - 1) * timeInterval + 1; m < w * timeInterval + 1; m++) 
+			for (int m = (w - 1) * timeInterval + 1; m < w * timeInterval + 1; m++)
 				timeStep(m, false);
 
 			curve.addPoint(w * wFactor, V[N]);
@@ -229,62 +229,64 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 			// debug(problem, V, w);
 
 		}
-		
+
 		curve.scale(maxTemp / curve.apparentMaximum());
-		
+
 	}
-	
+
 	private void timeStep(int m, boolean activePulse) {
 		double phi;
 
 		int i, j;
 		double F, pls;
 		double V_0, V_N;
-		
-			pls = activePulse ? (discretePulse.evaluateAt((m - 1 + EPS) * tau) * ONE_MINUS_SIGMA
-					+ discretePulse.evaluateAt((m - EPS) * tau) * sigma) : 0.0;
 
-			for (V_0 = errorSq + 1, V_N = errorSq + 1; (MathUtils.fastPowLoop((V[0] - V_0), 2) > errorSq)
-					|| (MathUtils.fastPowLoop((V[N] - V_N), 2) > errorSq); rte.compute(V)) {
+		pls = activePulse
+				? (discretePulse.evaluateAt((m - 1 + EPS) * tau) * ONE_MINUS_SIGMA
+						+ discretePulse.evaluateAt((m - EPS) * tau) * sigma)
+				: 0.0;
 
-				// i = 0
-				phi = TAU0_NP * rte.getFluxDerivativeFront();
-				beta[1] = (_2TAUHX * (pls - SIGMA_NP * rte.getFlux(0) - ONE_MINUS_SIGMA_NP * rte.getStoredFlux(0))
-						+ HX2 * (U[0] + phi * tau) + _2TAU_ONE_MINUS_SIGMA * (U[1] - U[0] * ONE_PLUS_Bi1_HX))
-						* BETA1_FACTOR;
+		for (V_0 = errorSq + 1, V_N = errorSq + 1; (MathUtils.fastPowLoop((V[0] - V_0), 2) > errorSq)
+				|| (MathUtils.fastPowLoop((V[N] - V_N), 2) > errorSq); rte.compute(V)) {
 
-				// i = 1
-				phi = TAU0_NP * phiNextToFront();
-				F = U[1] / tau + phi + ONE_MINUS_SIGMA * (U[2] - 2 * U[1] + U[0]) / HX2;
-				beta[2] = (F + a * beta[1]) / (b - a * alpha[1]);
+			// i = 0
+			phi = TAU0_NP * rte.getFluxDerivativeFront();
+			beta[1] = (_2TAUHX * (pls - SIGMA_NP * rte.getFlux(0) - ONE_MINUS_SIGMA_NP * rte.getStoredFlux(0))
+					+ HX2 * (U[0] + phi * tau) + _2TAU_ONE_MINUS_SIGMA * (U[1] - U[0] * ONE_PLUS_Bi1_HX))
+					* BETA1_FACTOR;
 
-				for (i = 2; i < N - 1; i++) {
-					phi = TAU0_NP * phi(i);
-					F = U[i] / tau + phi + ONE_MINUS_SIGMA * (U[i + 1] - 2 * U[i] + U[i - 1]) / HX2;
-					beta[i + 1] = (F + a * beta[i]) / (b - a * alpha[i]);
-				}
+			// i = 1
+			phi = TAU0_NP * phiNextToFront();
+			F = U[1] / tau + phi + ONE_MINUS_SIGMA * (U[2] - 2 * U[1] + U[0]) / HX2;
+			beta[2] = (F + a * beta[1]) / (b - a * alpha[1]);
 
-				// i = N - 1
-
-				phi = TAU0_NP * phiNextToRear();
-				F = U[N - 1] / tau + phi + ONE_MINUS_SIGMA * (U[N] - 2 * U[N - 1] + U[N - 2]) / HX2;
-				beta[N] = (F + a * beta[N - 1]) / (b - a * alpha[N - 1]);
-
-				V_N = V[N];
-				phi = TAU0_NP * rte.getFluxDerivativeRear();
-				V[N] = (sigma * beta[N] + HX2_2TAU * U[N] + 0.5 * HX2 * phi
-						+ ONE_MINUS_SIGMA * (U[N - 1] - U[N] * (1. + hx * Bi2))
-						+ HX_NP * (sigma * rte.getFlux(N) + ONE_MINUS_SIGMA * rte.getStoredFlux(N)))
-						/ (HX2_2TAU + sigma * (1. - alpha[N] + Bi2HX));
-
-				V_0 = V[0];
-				for (j = N - 1; j >= 0; j--)
-					V[j] = alpha[j + 1] * V[j + 1] + beta[j + 1];
+			for (i = 2; i < N - 1; i++) {
+				phi = TAU0_NP * phi(i);
+				F = U[i] / tau + phi + ONE_MINUS_SIGMA * (U[i + 1] - 2 * U[i] + U[i - 1]) / HX2;
+				beta[i + 1] = (F + a * beta[i]) / (b - a * alpha[i]);
 			}
 
-			System.arraycopy(V, 0, U, 0, N + 1);
-			rte.store();
-		
+			// i = N - 1
+
+			phi = TAU0_NP * phiNextToRear();
+			F = U[N - 1] / tau + phi + ONE_MINUS_SIGMA * (U[N] - 2 * U[N - 1] + U[N - 2]) / HX2;
+			beta[N] = (F + a * beta[N - 1]) / (b - a * alpha[N - 1]);
+
+			V_N = V[N];
+			phi = TAU0_NP * rte.getFluxDerivativeRear();
+			V[N] = (sigma * beta[N] + HX2_2TAU * U[N] + 0.5 * HX2 * phi
+					+ ONE_MINUS_SIGMA * (U[N - 1] - U[N] * (1. + hx * Bi2))
+					+ HX_NP * (sigma * rte.getFlux(N) + ONE_MINUS_SIGMA * rte.getStoredFlux(N)))
+					/ (HX2_2TAU + sigma * (1. - alpha[N] + Bi2HX));
+
+			V_0 = V[0];
+			for (j = N - 1; j >= 0; j--)
+				V[j] = alpha[j + 1] * V[j + 1] + beta[j + 1];
+		}
+
+		System.arraycopy(V, 0, U, 0, N + 1);
+		rte.store();
+
 	}
 
 	@Override
