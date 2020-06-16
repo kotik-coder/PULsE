@@ -17,6 +17,7 @@ import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 import pulse.ui.Messages;
+import pulse.util.DescriptorChangeListener;
 import pulse.util.InstanceDescriptor;
 
 public class MixedCoupledSolver extends MixedScheme implements Solver<ParticipatingMedium> {
@@ -103,8 +104,17 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 	protected void prepare(ParticipatingMedium problem) {
 		super.prepare(problem);
 
-		if (rte == null)
+		if (rte == null) {
 			initRTE(problem, grid);
+			instanceDescriptor.addListener(new DescriptorChangeListener() {
+
+				@Override
+				public void onDescriptorChanged() {
+					initRTE(problem, grid);
+				}
+				
+			});
+		}
 		else {
 			if (!rte.getSimpleName().equals(instanceDescriptor.getValue()))
 				initRTE(problem, grid);

@@ -1,6 +1,6 @@
 package pulse.search.direction;
 
-import pulse.algebra.Matrix;
+import pulse.math.Matrix;
 import pulse.tasks.SearchTask;
 
 /**

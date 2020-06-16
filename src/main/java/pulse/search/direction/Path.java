@@ -1,6 +1,6 @@
 package pulse.search.direction;
 
-import pulse.algebra.Vector;
+import pulse.math.Vector;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.tasks.SearchTask;

@@ -4,4 +4,4 @@
  * matrices.
  */
 
-package pulse.algebra;
+package pulse.math;

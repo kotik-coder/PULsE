@@ -1,12 +1,12 @@
 package pulse.problem.schemes.rte.dom;
 
-public class HenyeyGreensteinIPF extends PhaseFunction {
+public class HenyeyGreensteinPF extends PhaseFunction {
 
 	private double a1;
 	private double a2;
 	private double b1;
 
-	public HenyeyGreensteinIPF(DiscreteIntensities intensities) {
+	public HenyeyGreensteinPF(DiscreteIntensities intensities) {
 		super(intensities);
 		init();
 	}

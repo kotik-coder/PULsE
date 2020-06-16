@@ -34,7 +34,6 @@ public class SuccessiveOverrelaxation extends IterativeSolver {
 			if (integrator.wasRescaled()) {
 				relativeError = Double.POSITIVE_INFINITY;
 			} else { // calculate the (k+1) iteration as: I_k+1 = I_k * (1 - W) + I*
-				// double ik = discrete.I[1][5];
 				integrator.successiveOverrelaxation(W);
 				qld = Math.abs(discrete.qLeft(integrator.emissionFunction) - ql);
 				qrd = Math.abs(discrete.qRight(integrator.emissionFunction) - qr);

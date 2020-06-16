@@ -1,5 +1,6 @@
 package pulse.problem.schemes.rte.dom;
 
+import pulse.math.LegendrePoly;
 import pulse.problem.schemes.rte.MathUtils;
 
 /**

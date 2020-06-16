@@ -7,8 +7,9 @@ import static pulse.properties.NumericPropertyKeyword.SCATTERING_ANISOTROPY;
 
 import java.util.List;
 
-import pulse.algebra.IndexedVector;
 import pulse.input.ExperimentalData;
+import pulse.math.IndexedVector;
+import pulse.problem.schemes.rte.MathUtils;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
@@ -138,15 +139,15 @@ public class ParticipatingMedium extends NonlinearProblem {
 				break;
 			case OPTICAL_THICKNESS:
 				output[0].set(i, Math.log(opticalThickness));
-				output[1].set(i, 100.0);
+				output[1].set(i, Double.POSITIVE_INFINITY);
 				break;
 			case SCATTERING_ALBEDO:
-				output[0].set(i, scatteringAlbedo);
-				output[1].set(i, 0.1);
+				output[0].set(i, MathUtils.atanh(2.0*scatteringAlbedo - 1) );
+				output[1].set(i, Double.POSITIVE_INFINITY);
 				break;
 			case SCATTERING_ANISOTROPY:
-				output[0].set(i, scatteringAnisotropy);
-				output[1].set(i, 1.0);
+				output[0].set(i, MathUtils.atanh(scatteringAnisotropy) );
+				output[1].set(i, Double.POSITIVE_INFINITY);
 				break;
 			default:
 				continue;
@@ -168,10 +169,10 @@ public class ParticipatingMedium extends NonlinearProblem {
 				opticalThickness = Math.exp(params.get(i));
 				break;
 			case SCATTERING_ALBEDO:
-				scatteringAlbedo = params.get(i);
+				scatteringAlbedo = 0.5*(Math.tanh( params.get(i) ) + 1.0 );
 				break;
 			case SCATTERING_ANISOTROPY:
-				scatteringAnisotropy = params.get(i);
+				scatteringAnisotropy = Math.tanh( params.get(i) );
 				break;
 			case HEAT_LOSS:
 			case DIFFUSIVITY:

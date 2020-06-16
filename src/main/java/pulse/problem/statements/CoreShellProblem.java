@@ -8,7 +8,7 @@ import static pulse.properties.NumericPropertyKeyword.RADIAL_COATING_THICKNESS;
 import java.util.ArrayList;
 import java.util.List;
 
-import pulse.algebra.IndexedVector;
+import pulse.math.IndexedVector;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;

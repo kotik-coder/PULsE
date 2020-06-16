@@ -3,7 +3,7 @@ package pulse.tasks;
 import java.util.ArrayList;
 import java.util.List;
 
-import pulse.algebra.IndexedVector;
+import pulse.math.IndexedVector;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;

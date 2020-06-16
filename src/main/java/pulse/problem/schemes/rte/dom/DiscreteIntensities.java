@@ -192,7 +192,7 @@ public class DiscreteIntensities extends PropertyHolder {
 
 		for (int i = nStart; i < nHalf; i++) // for positive streams
 			I[0][i] = ef.J(0.0) - boundaryFluxFactor * qLeft(ef);
-
+	
 	}
 
 	public double qLeft(final EmissionFunction emissionFunction) {

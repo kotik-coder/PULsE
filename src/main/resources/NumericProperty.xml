@@ -62,13 +62,13 @@
 		auto-adjustable="true"
 		descriptor="Scattering anisotropy, &lt;i&gt;A&lt;/i&gt;&lt;sub&gt;1&lt;/sub&gt;"
 		dimensionfactor="1" discreet="false" keyword="SCATTERING_ANISOTROPY"
-		maximum="2" minimum="-2" primitive-type="double" value="0.2">
+		maximum="1" minimum="-1" primitive-type="double" value="0.2">
 	</NumericProperty>
 	<NumericProperty abbreviation="&amp;omega;&lt;sub&gt;0&lt;/sub&gt;"
 		auto-adjustable="true"
 		descriptor="Single-scattering albedo, &amp;omega;&lt;sub&gt;0&lt;/sub&gt;"
 		dimensionfactor="1" discreet="false" keyword="SCATTERING_ALBEDO"
-		maximum="1" minimum="0" primitive-type="double" value="0.1">
+		maximum="1" minimum="0" primitive-type="double" value="0.2">
 	</NumericProperty>
 	<NumericProperty abbreviation="&lt;i&gt;m&lt;/i&gt;"
 		auto-adjustable="true"

@@ -17,10 +17,10 @@ import java.util.stream.Collectors;
 
 import pulse.Baseline;
 import pulse.HeatingCurve;
-import pulse.algebra.IndexedVector;
 import pulse.input.ExperimentalData;
 import pulse.input.InterpolationDataset;
 import pulse.input.InterpolationDataset.StandartType;
+import pulse.math.IndexedVector;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.DiscretePulse;
 import pulse.problem.schemes.Grid;

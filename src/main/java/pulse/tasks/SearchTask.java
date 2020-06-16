@@ -13,12 +13,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
-import pulse.algebra.IndexedVector;
 import pulse.input.ExperimentalData;
 import pulse.input.InterpolationDataset;
 import pulse.input.InterpolationDataset.StandartType;
 import pulse.input.Metadata;
 import pulse.input.listeners.DataEventType;
+import pulse.math.IndexedVector;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.solvers.Solver;
 import pulse.problem.statements.Problem;
@@ -198,6 +198,9 @@ public class SearchTask extends Accessible implements Runnable {
 
 	public void calculateThermalProperties() {
 
+		if(problem == null)
+			return;
+			
 		var cpCurve = InterpolationDataset.getDataset(StandartType.SPECIFIC_HEAT);
 
 		if (cpCurve != null) {

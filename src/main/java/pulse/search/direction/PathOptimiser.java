@@ -8,8 +8,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import pulse.algebra.IndexedVector;
-import pulse.algebra.Vector;
+import pulse.math.IndexedVector;
+import pulse.math.Vector;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;

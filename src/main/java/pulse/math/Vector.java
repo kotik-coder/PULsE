@@ -1,4 +1,4 @@
-package pulse.algebra;
+package pulse.math;
 
 import java.util.Arrays;
 

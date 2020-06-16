@@ -1,4 +1,4 @@
-package pulse.algebra;
+package pulse.math;
 
 import static pulse.properties.NumericPropertyKeyword.BASELINE_INTERCEPT;
 import static pulse.properties.NumericPropertyKeyword.BASELINE_SLOPE;

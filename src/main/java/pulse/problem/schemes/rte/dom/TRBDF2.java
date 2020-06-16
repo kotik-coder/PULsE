@@ -1,7 +1,7 @@
 package pulse.problem.schemes.rte.dom;
 
-import pulse.algebra.Matrix;
-import pulse.algebra.Vector;
+import pulse.math.Matrix;
+import pulse.math.Vector;
 import pulse.problem.schemes.rte.EmissionFunction;
 
 /**
@@ -153,7 +153,6 @@ public class TRBDF2 extends AdaptiveIntegrator {
 			HermiteInterpolator.d0 = f[j][i + n3];
 			HermiteInterpolator.d1 = f[j + increment][i + n3];
 			inward[i] = HermiteInterpolator.interpolate(tPlusGamma);
-			// inward[i] = intensities.I[j][i + n3];
 		}
 
 		/*

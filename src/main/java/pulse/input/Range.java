@@ -2,8 +2,8 @@ package pulse.input;
 
 import java.util.List;
 
-import pulse.algebra.IndexedVector;
-import pulse.algebra.Segment2D;
+import pulse.math.IndexedVector;
+import pulse.math.Segment2D;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;

@@ -6,9 +6,9 @@ import java.net.URISyntaxException;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import pulse.algebra.Matrix;
-import pulse.algebra.Vector;
 import pulse.io.readers.ReaderManager;
+import pulse.math.Matrix;
+import pulse.math.Vector;
 import pulse.properties.Property;
 
 public class ButcherTableau implements Property {

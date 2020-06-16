@@ -2,7 +2,7 @@ package pulse.problem.schemes.rte.dom;
 
 import java.util.List;
 
-import pulse.algebra.Vector;
+import pulse.math.Vector;
 import pulse.problem.schemes.rte.EmissionFunction;
 import pulse.properties.Property;
 

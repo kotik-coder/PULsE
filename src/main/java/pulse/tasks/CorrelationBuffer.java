@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import pulse.algebra.IndexedVector;
+import pulse.math.IndexedVector;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.search.statistics.CorrelationTest;
 import pulse.search.statistics.EmptyCorrelationTest;

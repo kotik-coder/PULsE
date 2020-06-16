@@ -5,9 +5,9 @@ import static pulse.properties.NumericPropertyKeyword.LINEAR_RESOLUTION;
 import java.util.ArrayList;
 import java.util.List;
 
-import pulse.algebra.IndexedVector;
-import pulse.algebra.Segment2D;
-import pulse.algebra.Vector;
+import pulse.math.IndexedVector;
+import pulse.math.Segment2D;
+import pulse.math.Vector;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;

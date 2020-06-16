@@ -1,4 +1,4 @@
-package pulse.problem.schemes.rte.dom;
+package pulse.math;
 
 import org.apache.commons.math3.analysis.solvers.LaguerreSolver;
 

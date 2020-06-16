@@ -3,7 +3,7 @@ package pulse.problem.schemes.rte.dom;
 import java.util.ArrayList;
 import java.util.List;
 
-import pulse.algebra.Vector;
+import pulse.math.Vector;
 import pulse.problem.schemes.rte.EmissionFunction;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;

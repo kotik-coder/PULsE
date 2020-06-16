@@ -215,7 +215,7 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 	public static void main(String[] args) {
 
 		var problem = new ParticipatingMedium();
-		problem.setOpticalThickness(NumericProperty.derive(NumericPropertyKeyword.OPTICAL_THICKNESS, 0.1));
+		problem.setOpticalThickness(NumericProperty.derive(NumericPropertyKeyword.OPTICAL_THICKNESS, 100.0));
 		problem.setEmissivity(NumericProperty.derive(NumericPropertyKeyword.EMISSIVITY, 0.85));
 
 		File f = null;
