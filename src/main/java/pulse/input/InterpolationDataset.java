@@ -5,6 +5,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.math3.analysis.UnivariateFunction;
+import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
+
 import pulse.util.ImmutableDataEntry;
 
 /**
@@ -20,6 +23,7 @@ public class InterpolationDataset {
 
 	private List<ImmutableDataEntry<Double, Double>> dataset;
 	private static Map<StandartType, InterpolationDataset> standartDatasets = new HashMap<StandartType, InterpolationDataset>();
+	private UnivariateFunction interpolation;
 
 	/**
 	 * Creates an empty {@code InterpolationDataset}.
@@ -43,17 +47,8 @@ public class InterpolationDataset {
 
 	/**
 	 * Provides an interpolated value at {@code key} based on the available data in
-	 * the {@code DataEntry List}.
-	 * <p>
-	 * The interpolation is linear, i.e. {@code result = k*key + b}, where {@code k}
-	 * and {@code b} are the parameters of the linear function calculated based on
-	 * the value of the adjacent {@code DataEntry} objects. The adjacent
-	 * {@code DataEntries} are calculated using the {@code previousTo} method. When
-	 * found, a simple set of equations (<math>2x2</math>) is solved to calculate
-	 * the {@code k} and {@code b} values, which are then substituted in the linear
-	 * equation.
-	 * </p>
-	 * 
+	 * the {@code DataEntry List}. The interpolation is done using natural cubic
+	 * splines, hence it is important that the input dataset has minimal noise.
 	 * @param key the argument, at which interpolation needs to be done (e.g.
 	 *            temperature)
 	 * @return a double, representing the interpolated value
@@ -61,15 +56,7 @@ public class InterpolationDataset {
 	 */
 
 	public double interpolateAt(double key) {
-		var entry = previousTo(key);
-		var next = dataset.get(dataset.indexOf(entry) + 1);
-
-		double k = (next.getValue() - entry.getValue()) / (next.getKey() - entry.getKey());
-
-		double b = (entry.getValue() * next.getKey() - next.getValue() * entry.getKey())
-				/ (next.getKey() - entry.getKey());
-
-		return k * key + b;
+		return interpolation.value(key);
 
 	}
 
@@ -83,6 +70,12 @@ public class InterpolationDataset {
 		dataset.add(entry);
 	}
 
+	public void finalize() {
+		var interpolator = new SplineInterpolator();
+		interpolation = interpolator.interpolate(dataset.stream().map(a -> a.getKey()).mapToDouble(d -> d).toArray(),
+								 dataset.stream().map(a -> a.getValue()).mapToDouble(d -> d).toArray()); 
+	}
+	
 	/**
 	 * Extracts all data available in this {@code InterpolationDataset}.
 	 * 
