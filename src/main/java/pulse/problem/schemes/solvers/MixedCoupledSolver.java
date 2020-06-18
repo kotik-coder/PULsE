@@ -49,7 +49,7 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 	protected double[] U, V;
 	protected double[] alpha, beta;
 
-	protected RadiativeTransferSolver rte;
+	private RadiativeTransferSolver rte;
 	protected double opticalThickness;
 	protected double Np;
 
@@ -114,10 +114,6 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 				}
 				
 			});
-		}
-		else {
-			if (!rte.getSimpleName().equals(instanceDescriptor.getValue()))
-				initRTE(problem, grid);
 		}
 
 		curve = problem.getHeatingCurve();

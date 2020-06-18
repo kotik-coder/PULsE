@@ -1,5 +1,8 @@
 package pulse.problem.schemes.rte;
 
+import org.apache.commons.math3.analysis.UnivariateFunction;
+import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
+
 import pulse.problem.schemes.Grid;
 import pulse.problem.statements.ParticipatingMedium;
 import pulse.util.Descriptive;
@@ -82,6 +85,11 @@ public abstract class RadiativeTransferSolver extends PropertyHolder implements 
 		return storedFluxes[i];
 	}
 
+	public UnivariateFunction temperatureInterpolation(double[] xArray, double[] tempArray) {
+		var interpolator = new SplineInterpolator();
+		return interpolator.interpolate(xArray, tempArray);
+	}
+	
 	public abstract void compute(double[] temperatureArray);
 
 	public int getExternalGridDensity() {

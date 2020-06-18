@@ -11,7 +11,7 @@
 		auto-adjustable="true"
 		descriptor="Internal grid density, &lt;i&gt;N&lt;/i&gt;&lt;sub&gt;int&lt;/sub&gt;"
 		dimensionfactor="1" discreet="false" keyword="DOM_GRID_DENSITY"
-		maximum="1024" minimum="8" primitive-type="int" value="8">
+		maximum="4096" minimum="8" primitive-type="int" value="8">
 	</NumericProperty>
 	<NumericProperty abbreviation="&lt;i&gt;S&lt;/i&gt;"
 		auto-adjustable="false"
@@ -99,7 +99,7 @@
 		auto-adjustable="true"
 		descriptor="Optical thickness, &lt;i&gt;&amp;tau;&lt;/i&gt;&lt;sub&gt;0&lt;/sub&gt;"
 		dimensionfactor="1" discreet="false" keyword="OPTICAL_THICKNESS"
-		maximum="100000" minimum="0" primitive-type="double" value="0.1">
+		maximum="100000" minimum="1e-4" primitive-type="double" value="0.1">
 	</NumericProperty>
 	<NumericProperty
 		abbreviation="&lt;i&gt;N&lt;/i&gt;&lt;sub&gt;Pl&lt;/sub&gt;"
@@ -326,22 +326,22 @@
 		abbreviation="Bi&lt;sub&gt;3&lt;/sub&gt;" auto-adjustable="true"
 		descriptor="Heat loss (side surface), Bi&lt;sub&gt;3&lt;/sub&gt;"
 		dimensionfactor="1.0" keyword="HEAT_LOSS_SIDE" maximum="10.0"
-		minimum="1e-10" value="0.1" primitive-type="double" discreet="false" />
+		minimum="1e-10" value="1E-2" primitive-type="double" discreet="false" />
 	<NumericProperty
 		abbreviation="Bi&lt;sub&gt;1&lt;/sub&gt;" auto-adjustable="true"
 		descriptor="Heat loss (front surface), Bi&lt;sub&gt;1&lt;/sub&gt;"
 		dimensionfactor="1.0" keyword="HEAT_LOSS_FRONT" maximum="10.0"
-		minimum="1e-10" value="0.1" primitive-type="double" discreet="false" />
+		minimum="1e-10" value="1E-2" primitive-type="double" discreet="false" />
 	<NumericProperty keyword="HEAT_LOSS" abbreviation="Bi"
 		auto-adjustable="true" descriptor="Heat loss, Bi" dimensionfactor="1"
-		maximum="10" minimum="1e-10" primitive-type="double" value="0.1"
+		maximum="10" minimum="1e-10" primitive-type="double" value="1E-2"
 		discreet="false">
 	</NumericProperty>
 	<NumericProperty
 		abbreviation="Bi&lt;sub&gt;2&lt;/sub&gt;" auto-adjustable="true"
 		descriptor="Heat loss (rear surface), Bi&lt;sub&gt;2&lt;/sub&gt;"
 		dimensionfactor="1.0" keyword="HEAT_LOSS_REAR" maximum="10.0"
-		minimum="1e-10" value="0.1" primitive-type="double" discreet="false" ></NumericProperty>
+		minimum="1e-10" value="1E-2" primitive-type="double" discreet="false" ></NumericProperty>
 	<NumericProperty abbreviation="Gain"
 		auto-adjustable="false" descriptor="Detector Gain" dimensionfactor="1"
 		keyword="DETECTOR_GAIN" maximum="200" minimum="1" value="10"

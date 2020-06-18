@@ -61,13 +61,13 @@ public class AnalyticalDerivativeCalculator extends NonscatteringRadiativeTransf
 
 	@Override
 	public void compute(double U[]) {
-		radiosities(U);
-		complexIntegrator.U = U;
+		super.compute(U);
+		radiosities();
 		fluxDerivativeFront(U);
 		for (int i = 1, N = this.getExternalGridDensity(); i < N; i++)
 			fluxDerivative(U, i);
 		fluxDerivativeRear(U);
-		boundaryFluxes(U);
+		boundaryFluxes();
 	}
 
 	/*

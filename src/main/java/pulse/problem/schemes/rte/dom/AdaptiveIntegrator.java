@@ -38,6 +38,8 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 
 	protected void init() {
 		qLast = new double[intensities.ordinates.total];
+		int N = intensities.grid.getDensity();
+		f = new double[N + 1][intensities.ordinates.total]; // first index - spatial steps, second index - quadrature points
 		rescaled = false;
 	}
 
@@ -72,10 +74,9 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 		init();
 		
 		for (double error = 1.0, relFactor = 0.0, i0Max = 0, i1Max = 0; error > atol
-				+ relFactor * rtol; N = intensities.grid.getDensity()) {
+				+ relFactor * rtol && sanityCheck(); N = intensities.grid.getDensity()) {
 
 			error = 0;
-			f = new double[N + 1][intensities.ordinates.total]; // first index - spatial steps, second index - quadrature points
 
 			treatZeroIndex();
 
@@ -99,7 +100,6 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 				i0Max = i1Max;
 
 				error = v[1].maxAbsComponent();
-
 			}
 
 			/*
@@ -129,17 +129,18 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 				f[N][i] = f[N - 1][i];
 				f[0][i] = f[1][i];
 			}
-
-//			System.out.printf("%n Steps: %5d Error: %1.5e, h_min = %3.6f, h_max = %3.6f", N, error, intensities.grid.stepRight(0), intensities.grid.stepLeft(N/2));
-
+			
 			if (error > atol + relFactor * rtol) {
 				reduceStepSize();
-				f = new double[0][0]; // clear derivatives
 				HermiteInterpolator.clear();
 			}
 
 		}
 
+	}
+	
+	private boolean sanityCheck() {
+		return NumericProperty.isValueSensible( intensities.grid.getDensityProperty(), intensities.grid.getDensity() );
 	}
 
 	public abstract Vector[] step(final int j, final double sign);
@@ -150,6 +151,8 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 		this.intensities.reinitInternalArrays();
 		intensities.clearBoundaryFluxes();
 		rescaled = true;
+		int N = intensities.grid.getDensity();
+		f = new double[N + 1][intensities.ordinates.total]; // first index - spatial steps, second index - quadrature points
 	}
 
 	public boolean wasRescaled() {

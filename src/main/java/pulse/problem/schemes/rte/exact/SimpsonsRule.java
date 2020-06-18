@@ -1,10 +1,5 @@
 package pulse.problem.schemes.rte.exact;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Scanner;
 import java.util.stream.IntStream;
 
 import pulse.problem.schemes.rte.EmissionFunction;
@@ -23,7 +18,6 @@ public class SimpsonsRule extends Integrator {
 	protected double rMax;
 	protected double rMin;
 
-	protected double[] U;
 	protected double tau0;
 	protected double hx;
 
@@ -66,14 +60,6 @@ public class SimpsonsRule extends Integrator {
 	public void setRange(double min, double max) {
 		this.min = min;
 		this.max = max;
-	}
-
-	public void setTemperatureArray(double[] U) {
-		this.U = U;
-	}
-
-	public double[] getTemperatureArray() {
-		return U;
 	}
 
 	/*
@@ -165,20 +151,12 @@ public class SimpsonsRule extends Integrator {
 
 	@Override
 	public double integrand(int order, double... params) {
-		double tdim = params[T_INDEX] / tau0;
-
-		int floor = (int) (tdim / hx); // floor index
-		double alpha = tdim / hx - floor;
-
-		return emissionFunction.power((1.0 - alpha) * U[floor] + alpha * U[floor + 1])
+		return emissionFunction.powerInterpolated(params[T_INDEX])
 				* expIntegrator.integralAt(params[A_INDEX] + params[B_INDEX] * params[T_INDEX], order);
 	}
 
 	public double integrandNoInterpolation(int order, double... params) {
-		double tdim = params[T_INDEX] / tau0;
-		int floor = (int) (tdim / hx); // floor index
-
-		return emissionFunction.power(U[floor])
+		return emissionFunction.powerInterpolated(params[T_INDEX])
 				* expIntegrator.integralAt(params[A_INDEX] + params[B_INDEX] * params[T_INDEX], order);
 	}
 
@@ -196,75 +174,6 @@ public class SimpsonsRule extends Integrator {
 
 	public void setEmissionFunction(EmissionFunction emissionFunction) {
 		this.emissionFunction = emissionFunction;
-	}
-
-	public static void main(String[] args) {
-
-		var integrator = new SimpsonsRule();
-		var cIntegrator = new ChandrasekharsQuadrature();
-
-		integrator.setRange(0.0, 0.123);
-		cIntegrator.setRange(0.0, 0.123);
-
-		double alpha = 0.2;
-		double beta = -1.0;
-
-		File f = null;
-		try {
-			f = new File(SimpsonsRule.class.getResource("/test/TestSolution.dat").toURI());
-		} catch (URISyntaxException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		var data = new ArrayList<Double>();
-
-		try (Scanner scanner = new Scanner(f)) {
-			while (scanner.hasNextLine()) {
-				data.add(Double.parseDouble(scanner.nextLine()));
-			}
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		double[] U = data.stream().mapToDouble(x -> x).toArray();
-
-		integrator.setTemperatureArray(U);
-		cIntegrator.setTemperatureArray(U);
-
-		double hx = 1. / (U.length - 1);
-		double tFactor = 0.1 / 800;
-
-		integrator.setXStep(hx);
-		cIntegrator.setXStep(hx);
-
-		var ef = new EmissionFunction(tFactor, hx);
-		integrator.setEmissionFunction(ef);
-		integrator.setOpticalThickness(integrator.max);
-		cIntegrator.setEmissionFunction(ef);
-		cIntegrator.setOpticalThickness(integrator.max);
-
-		long time = -System.currentTimeMillis();
-
-		double integral = 0;
-
-		for (int i = 0; i < 10000; i++)
-			integral = cIntegrator.integrate(2, alpha, beta);
-
-		time += System.currentTimeMillis();
-
-		long time2 = -System.currentTimeMillis();
-
-		double sum = 0;
-
-		for (int i = 0; i < 10000; i++)
-			sum = integrator.integrate(2, alpha, beta);
-
-		time2 += System.currentTimeMillis();
-
-		System.out.printf("%nInt (quadrature): %2.5f. Time taken: %5d", integral, time);
-		System.out.printf("%nInt (numerical): %2.5f. Time taken: %5d", sum, time2);
-
 	}
 
 	@Override

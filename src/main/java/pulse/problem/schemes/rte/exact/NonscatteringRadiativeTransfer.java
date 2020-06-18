@@ -57,6 +57,16 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 		});
 
 	}
+	
+	@Override
+	public void compute(double[] tempArray) {
+		double[] xArray = new double[tempArray.length];
+
+		for (int i = 0; i < xArray.length; i++)
+			xArray[i] = tau0 * i * hx;
+		
+		emissionFunction.setInterpolation(this.temperatureInterpolation(xArray, tempArray));
+	}
 
 	@Override
 	public void init(ParticipatingMedium p, Grid grid) {
@@ -84,25 +94,24 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 	 * -R_2 + 2R_1 E_3(\tau_0) + 2 int
 	 */
 
-	private double fluxRear(double[] U) {
+	private double fluxRear() {
 		int N = this.getExternalGridDensity();
 		this.setFlux(N,
-				-r2 + 2.0 * r1 * simpleIntegrator.integralAt(tau0, 3) + 2.0 * integrateSecondOrder(U, tau0, -1.0));
+				-r2 + 2.0 * r1 * simpleIntegrator.integralAt(tau0, 3) + 2.0 * integrateSecondOrder(tau0, -1.0));
 		return getFlux(N);
 	}
 
-	public void boundaryFluxes(double[] U) {
-		complexIntegrator.U = U;
-		fluxFront(U);
-		fluxRear(U);
+	public void boundaryFluxes() {
+		fluxFront();
+		fluxRear();
 	}
 
-	public double fluxFront(double U[]) {
-		this.setFlux(0, r1 - 2.0 * r2 * simpleIntegrator.integralAt(tau0, 3) - 2.0 * integrateSecondOrder(U, 0.0, 1.0));
+	public double fluxFront() {
+		this.setFlux(0, r1 - 2.0 * r2 * simpleIntegrator.integralAt(tau0, 3) - 2.0 * integrateSecondOrder(0.0, 1.0));
 		return getFlux(0);
 	}
 
-	protected double flux(double U[], int uIndex) {
+	protected double flux(int uIndex) {
 		double t = getOpticalGridStep() * uIndex;
 
 		complexIntegrator.setRange(0, t);
@@ -125,12 +134,11 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 	 * diffuse and opaque boundaries
 	 */
 
-	public void radiosities(double[] U) {
-		complexIntegrator.U = U;
+	public void radiosities() {
 		double _b = b();
 		double sq = 1.0 - _b * _b;
-		r1 = (a1(U) + _b * a2(U)) / sq;
-		r2 = (a2(U) + _b * a1(U)) / sq;
+		r1 = (a1() + _b * a2()) / sq;
+		r2 = (a2() + _b * a1()) / sq;
 	}
 
 	/*
@@ -147,8 +155,8 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 	 * a1 = \varepsilon*J*(0) + integral = int_0^1 { J*(t) E_2(\tau_0 t) dt }
 	 */
 
-	private double a1(double[] U) {
-		return emissivity * emissionFunction.power(U[0]) + doubleReflectivity * integrateSecondOrder(U, 0.0, 1.0);
+	private double a1() {
+		return emissivity * emissionFunction.powerInterpolated(0.0) + doubleReflectivity * integrateSecondOrder(0.0, 1.0);
 	}
 
 	/*
@@ -157,9 +165,8 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 	 * a2 = \varepsilon*J*(0) + ... integral = int_0^1 { J*(t) E_2(\tau_0 t) dt }
 	 */
 
-	private double a2(double[] U) {
-		int N = this.getExternalGridDensity();
-		return emissivity * emissionFunction.power(U[N]) + doubleReflectivity * integrateSecondOrder(U, tau0, -1.0);
+	private double a2() {
+		return emissivity * emissionFunction.powerInterpolated(tau0) + doubleReflectivity * integrateSecondOrder(tau0, -1.0);
 	}
 
 	/*
@@ -167,7 +174,7 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 	 * (tMax/t0)
 	 */
 
-	private double integrateSecondOrder(double[] U, double a, double b) {
+	private double integrateSecondOrder(double a, double b) {
 		complexIntegrator.setRange(0, tau0);
 		return complexIntegrator.integrate(2, a, b);
 	}
@@ -244,7 +251,6 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 		Grid grid = new Grid(density, tauFactor);
 
 		var rte = new AnalyticalDerivativeCalculator(problem, grid);
-		rte.complexIntegrator.U = U;
 
 		double tFactor = 10.0 / 800.0;
 		var emissionFunction = new EmissionFunction(tFactor, 1.0 / N);
@@ -255,10 +261,9 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 		rte.init(problem, grid);
 
 		rte.emissionFunction.setReductionFactor(tFactor);
-		rte.radiosities(U);
+		rte.radiosities();
 		rte.compute(U);
 
-		rte.complexIntegrator.U = U;
 		rte.complexIntegrator.setRange(0, 0);
 		// double I_1 = rte.complexIntegrator.integrate(2, 0, -1.0);
 
@@ -272,7 +277,7 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 
 		for (int i = 1; i < U.length - 2; i++)
 			System.out.printf("%n%2.6f %4.4f %4.4f", ((double) problem.getOpticalThickness().getValue() / N) * i,
-					rte.flux(U, i), rte.getFluxDerivative(i));
+					rte.flux(i), rte.getFluxDerivative(i));
 
 		System.out.printf("%n%2.6f %4.4f %4.4f", (double) problem.getOpticalThickness().getValue(), rte.getFlux(N),
 				rte.getFluxDerivativeRear());

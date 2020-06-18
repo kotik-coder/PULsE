@@ -25,7 +25,6 @@ public class ParticipatingMedium extends NonlinearProblem {
 	private double scatteringAlbedo;
 	private double scatteringAnisotropy;
 
-	private final static double DEFAULT_BIOT = 0.1;
 	private final static int DEFAULT_CURVE_POINTS = 300;
 
 	public ParticipatingMedium() {
@@ -36,9 +35,6 @@ public class ParticipatingMedium extends NonlinearProblem {
 		scatteringAnisotropy = (double) NumericProperty.theDefault(NumericPropertyKeyword.SCATTERING_ANISOTROPY)
 				.getValue();
 		scatteringAlbedo = (double) NumericProperty.theDefault(NumericPropertyKeyword.SCATTERING_ALBEDO).getValue();
-		Bi1 = DEFAULT_BIOT;
-		Bi2 = DEFAULT_BIOT;
-		emissivity = 1.0;
 	}
 
 	public ParticipatingMedium(Problem p) {
@@ -48,7 +44,6 @@ public class ParticipatingMedium extends NonlinearProblem {
 		scatteringAlbedo = (double) NumericProperty.theDefault(NumericPropertyKeyword.SCATTERING_ALBEDO).getValue();
 		scatteringAnisotropy = (double) NumericProperty.theDefault(NumericPropertyKeyword.SCATTERING_ANISOTROPY)
 				.getValue();
-		emissivity = 1.0;
 	}
 
 	public ParticipatingMedium(ParticipatingMedium p) {
@@ -126,6 +121,10 @@ public class ParticipatingMedium extends NonlinearProblem {
 		list.add(NumericProperty.def(SCATTERING_ANISOTROPY));
 		return list;
 	}
+	
+	private double maxNp() {
+		return thermalConductivity()/(4.0*NonlinearProblem.STEFAN_BOTLZMAN*MathUtils.fastPowLoop(T, 3)*l );
+	}
 
 	@Override
 	public void optimisationVector(IndexedVector[] output, List<Flag> flags) {
@@ -134,20 +133,20 @@ public class ParticipatingMedium extends NonlinearProblem {
 		for (int i = 0, size = output[0].dimension(); i < size; i++) {
 			switch (output[0].getIndex(i)) {
 			case PLANCK_NUMBER:
-				output[0].set(i, planckNumber);
-				output[1].set(i, 2.0);
+				output[0].set(i, MathUtils.atanh(2.0*planckNumber/maxNp() - 1.0) );
+				output[1].set(i, 1.0);
 				break;
 			case OPTICAL_THICKNESS:
 				output[0].set(i, Math.log(opticalThickness));
-				output[1].set(i, Double.POSITIVE_INFINITY);
+				output[1].set(i, 10.0);
 				break;
 			case SCATTERING_ALBEDO:
-				output[0].set(i, MathUtils.atanh(2.0*scatteringAlbedo - 1) );
-				output[1].set(i, Double.POSITIVE_INFINITY);
+				output[0].set(i, MathUtils.atanh(2.0*scatteringAlbedo - 1.0) );
+				output[1].set(i, 10.0);
 				break;
 			case SCATTERING_ANISOTROPY:
 				output[0].set(i, MathUtils.atanh(scatteringAnisotropy) );
-				output[1].set(i, Double.POSITIVE_INFINITY);
+				output[1].set(i, 10.0);
 				break;
 			default:
 				continue;
@@ -163,7 +162,7 @@ public class ParticipatingMedium extends NonlinearProblem {
 		for (int i = 0, size = params.dimension(); i < size; i++) {
 			switch (params.getIndex(i)) {
 			case PLANCK_NUMBER:
-				planckNumber = params.get(i);
+				planckNumber = 0.5*maxNp()*(Math.tanh( params.get(i) ) + 1.0 );
 				break;
 			case OPTICAL_THICKNESS:
 				opticalThickness = Math.exp(params.get(i));
@@ -211,7 +210,7 @@ public class ParticipatingMedium extends NonlinearProblem {
 		if (this.allDetailsPresent()) {
 			final double nSq = 4;
 			final double lambda = thermalConductivity();
-			planckNumber = lambda / (4 * nSq * STEFAN_BOTLZMAN * Math.pow(T, 3) * l);
+			planckNumber = lambda / (4.0 * nSq * STEFAN_BOTLZMAN * Math.pow(T, 3) * l);
 			evaluateDependentParameters();
 		}
 	}

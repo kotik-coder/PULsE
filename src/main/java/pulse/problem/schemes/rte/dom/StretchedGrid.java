@@ -50,7 +50,8 @@ public class StretchedGrid extends PropertyHolder {
 	}
 
 	public void generateUniform(boolean scaled) {
-		generateUniform(n, scaled);
+		int n1 = (int)NumericProperty.theDefault(NumericPropertyKeyword.DOM_GRID_DENSITY).getValue();
+		generateUniform(n1, scaled);
 	}
 
 	public void generateUniform(int n, boolean scaled) {

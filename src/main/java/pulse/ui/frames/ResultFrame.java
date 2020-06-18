@@ -85,7 +85,7 @@ public class ResultFrame extends JInternalFrame {
 
 			@Override
 			public void onExportRequest() {
-				if (resultTable.hasEnoughElements(1)) {
+				if (!resultTable.hasEnoughElements(1)) {
 					JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(resultTable),
 							Messages.getString("ResultsToolBar.7"), Messages.getString("ResultsToolBar.8"),
 							JOptionPane.ERROR_MESSAGE);

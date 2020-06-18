@@ -16,11 +16,11 @@ public class DiscreteDerivativeCalculator extends NonscatteringRadiativeTransfer
 
 	@Override
 	public void compute(double U[]) {
-		radiosities(U);
-		complexIntegrator.U = U;
+		super.compute(U);
+		radiosities();
 		for (int i = 1, N = this.getExternalGridDensity(); i < N; i++)
-			flux(U, i);
-		boundaryFluxes(U);
+			flux(i);
+		boundaryFluxes();
 	}
 
 }

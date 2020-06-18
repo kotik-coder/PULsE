@@ -43,12 +43,12 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 	public static void main(String[] args) {
 
 		var problem = new ParticipatingMedium();
-		problem.setOpticalThickness(NumericProperty.derive(NumericPropertyKeyword.OPTICAL_THICKNESS, 10.0));
-		problem.setEmissivity(NumericProperty.derive(NumericPropertyKeyword.EMISSIVITY, 1.0));
+		problem.setOpticalThickness(NumericProperty.derive(NumericPropertyKeyword.OPTICAL_THICKNESS, 0.1));
+		problem.setEmissivity(NumericProperty.derive(NumericPropertyKeyword.EMISSIVITY, 0.85));
 
 		File f = null;
 		try {
-			f = new File(DiscreteOrdinatesSolver.class.getResource("/test/TestSolution_Sharp.dat").toURI());
+			f = new File(DiscreteOrdinatesSolver.class.getResource("/test/TestSolution.dat").toURI());
 		} catch (URISyntaxException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -75,7 +75,7 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 
 		var rte = new DiscreteOrdinatesSolver(problem, grid);
 		rte.integrator.emissionFunction.setReductionFactor(tFactor);
-		rte.integrator.setAlbedo(0.4);
+		rte.integrator.setAlbedo(0.0);
 		rte.integrator.pf.setAnisotropyFactor(0.0);
 		rte.compute(U);
 
@@ -102,8 +102,6 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 
 		System.out.printf("%n%2.4f %4.5f %4.5f", (U.length - 1) * (1.0 / (U.length - 1) * rte.getOpticalThickness()),
 				rte.getFlux((U.length - 1)), rte.getFluxDerivativeRear());
-
-		System.exit(1);
 		
 	}
 
@@ -136,12 +134,14 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 		discrete = new DiscreteIntensities((int) grid.getGridDensity().getValue(),
 				(double) problem.getOpticalThickness().getValue());
 		discrete.setParent(this);
+		
 		phaseFunction = phaseFunctionSelector.newInstance(PhaseFunction.class, discrete);
 		integrator = integratorDescriptor.newInstance(AdaptiveIntegrator.class, discrete, emissionFunction,
 				phaseFunction);
 		iterativeSolver = iterativeSolverSelector.newInstance(IterativeSolver.class);
 		
 		integrator.setParent(this);
+		iterativeSolver.setParent(this);
 		init(problem, grid);
 
 		integratorDescriptor.addListener(new DescriptorChangeListener() {
@@ -178,16 +178,20 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 	private void temperatureInterpolation(double[] tempArray) {
 		nT = tempArray.length - 1;
 
-		double[] xArray = new double[nT + 1];
+		double[] xArray = new double[nT + 3];
 		double h = 1.0 / nT;
 		double tau0 = discrete.grid.getDimension();
 
-		for (int i = 0; i < xArray.length; i++)
-			xArray[i] = tau0 * i * h;
+		for (int i = -1; i < nT + 2; i++)
+			xArray[i+1] = tau0 * i * h;
+		
+		double[] tArray = new double[xArray.length];
+		System.arraycopy(tempArray, 0, tArray, 1, tempArray.length);
 
-		var interpolator = new SplineInterpolator();
-		UnivariateFunction function = interpolator.interpolate(xArray, tempArray);
-		integrator.emissionFunction.setInterpolation(function);
+		tArray[0]		= tArray[1];
+		tArray[nT + 2]	= tArray[nT+1];
+		
+		integrator.emissionFunction.setInterpolation(super.temperatureInterpolation(xArray, tArray));
 	}
 
 	@Override

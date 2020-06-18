@@ -186,7 +186,6 @@ public class DiscreteIntensities extends PropertyHolder {
 	 */
 
 	public void left(final EmissionFunction ef) {
-
 		final int nHalf = ordinates.getFirstNegativeNode();
 		final int nStart = ordinates.getFirstPositiveNode();
 
@@ -209,6 +208,7 @@ public class DiscreteIntensities extends PropertyHolder {
 
 	public void reinitInternalArrays() {
 		int N = grid.getDensity() + 1;
+		I = new double[0][0];
 		I = new double[N][ordinates.total];
 	}
 

@@ -31,18 +31,11 @@ public class ChandrasekharsQuadrature extends SimpsonsRule {
 		solver = new LaguerreSolver(PRECISION);
 	}
 
-	private Vector f(int n, double[] roots, double alpha, double beta) {
+	private Vector f(double[] roots) {
 		double f[] = new double[roots.length];
 
-		double tdim;
-		int floor;
-
-		for (int i = 0; i < f.length; i++) {
-			tdim = roots[i] / tau0;
-			floor = (int) (tdim / hx); // floor index
-			alpha = tdim / hx - floor;
-			f[i] = emissionFunction.power((1.0 - alpha) * U[floor] + alpha * U[floor + 1]);
-		}
+		for (int i = 0; i < f.length; i++) 
+			f[i] = emissionFunction.powerInterpolated(roots[i]);
 
 		return new Vector(f);
 
@@ -67,7 +60,7 @@ public class ChandrasekharsQuadrature extends SimpsonsRule {
 
 		Vector weights = weights(m, n, roots, params[A_INDEX], params[B_INDEX]);
 
-		return f(n, roots, params[A_INDEX], params[B_INDEX]).dot(weights) / params[B_INDEX];
+		return f(roots).dot(weights) / params[B_INDEX];
 
 	}
 
