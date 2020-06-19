@@ -34,7 +34,7 @@ public class ChandrasekharsQuadrature extends SimpsonsRule {
 	private Vector f(double[] roots) {
 		double f[] = new double[roots.length];
 
-		for (int i = 0; i < f.length; i++) 
+		for (int i = 0; i < f.length; i++)
 			f[i] = emissionFunction.powerInterpolated(roots[i]);
 
 		return new Vector(f);

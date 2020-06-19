@@ -12,11 +12,11 @@ import pulse.util.Reflexive;
 public abstract class IterativeSolver extends PropertyHolder implements Reflexive {
 
 	protected double iterationError;
-	
+
 	public abstract void doIterations(DiscreteIntensities discrete, AdaptiveIntegrator integrator);
-	
+
 	public IterativeSolver() {
-		iterationError = (double)NumericProperty.theDefault(NumericPropertyKeyword.DOM_ITERATION_ERROR).getValue();
+		iterationError = (double) NumericProperty.theDefault(NumericPropertyKeyword.DOM_ITERATION_ERROR).getValue();
 	}
 
 	public NumericProperty getIterationErrorTolerance() {
@@ -28,7 +28,7 @@ public abstract class IterativeSolver extends PropertyHolder implements Reflexiv
 			throw new IllegalArgumentException("Illegal type: " + e.getType());
 		this.iterationError = (double) e.getValue();
 	}
-	
+
 	@Override
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
 		switch (type) {
@@ -42,17 +42,17 @@ public abstract class IterativeSolver extends PropertyHolder implements Reflexiv
 		notifyListeners(this, property);
 
 	}
-	
+
 	@Override
 	public List<Property> listedTypes() {
 		List<Property> list = new ArrayList<Property>();
 		list.add(NumericProperty.def(NumericPropertyKeyword.DOM_ITERATION_ERROR));
 		return list;
 	}
-	
+
 	@Override
 	public String toString() {
 		return getClass().getSimpleName() + " : " + this.getIterationErrorTolerance();
 	}
-	
+
 }

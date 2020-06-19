@@ -38,7 +38,8 @@ public class ExplicitRungeKutta extends AdaptiveIntegrator {
 
 		final int n1 = sign > 0 ? nPositiveStart : nNegativeStart; // either first positive index (e.g. 0) or first
 																	// negative (n/2)
-		final int n2 = sign > 0 ? nNegativeStart : intensities.ordinates.total; // either first negative index (n/2) or n
+		final int n2 = sign > 0 ? nNegativeStart : intensities.ordinates.total; // either first negative index (n/2) or
+																				// n
 		final int n3 = intensities.ordinates.total - n2; // either nNegativeStart or 0
 		final int nH = n2 - n1;
 

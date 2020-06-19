@@ -289,7 +289,7 @@ public enum NumericPropertyKeyword {
 	DOM_GRID_DENSITY,
 
 	GRID_STRETCHING_FACTOR,
-	
+
 	RELAXATION_PARAMETER;
 
 }

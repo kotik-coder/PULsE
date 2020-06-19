@@ -121,9 +121,9 @@ public class ParticipatingMedium extends NonlinearProblem {
 		list.add(NumericProperty.def(SCATTERING_ANISOTROPY));
 		return list;
 	}
-	
+
 	private double maxNp() {
-		return thermalConductivity()/(4.0*NonlinearProblem.STEFAN_BOTLZMAN*MathUtils.fastPowLoop(T, 3)*l );
+		return thermalConductivity() / (4.0 * NonlinearProblem.STEFAN_BOTLZMAN * MathUtils.fastPowLoop(T, 3) * l);
 	}
 
 	@Override
@@ -133,7 +133,8 @@ public class ParticipatingMedium extends NonlinearProblem {
 		for (int i = 0, size = output[0].dimension(); i < size; i++) {
 			switch (output[0].getIndex(i)) {
 			case PLANCK_NUMBER:
-				output[0].set(i, MathUtils.atanh(2.0*planckNumber/maxNp() - 1.0) );
+				double max = maxNp();
+				output[0].set(i, MathUtils.atanh(2.0 * planckNumber / maxNp() - 1.0));
 				output[1].set(i, 1.0);
 				break;
 			case OPTICAL_THICKNESS:
@@ -141,11 +142,11 @@ public class ParticipatingMedium extends NonlinearProblem {
 				output[1].set(i, 10.0);
 				break;
 			case SCATTERING_ALBEDO:
-				output[0].set(i, MathUtils.atanh(2.0*scatteringAlbedo - 1.0) );
+				output[0].set(i, MathUtils.atanh(2.0 * scatteringAlbedo - 1.0));
 				output[1].set(i, 10.0);
 				break;
 			case SCATTERING_ANISOTROPY:
-				output[0].set(i, MathUtils.atanh(scatteringAnisotropy) );
+				output[0].set(i, MathUtils.atanh(scatteringAnisotropy));
 				output[1].set(i, 10.0);
 				break;
 			default:
@@ -162,20 +163,20 @@ public class ParticipatingMedium extends NonlinearProblem {
 		for (int i = 0, size = params.dimension(); i < size; i++) {
 			switch (params.getIndex(i)) {
 			case PLANCK_NUMBER:
-				planckNumber = 0.5*maxNp()*(Math.tanh( params.get(i) ) + 1.0 );
+				planckNumber = 0.5 * maxNp() * (Math.tanh(params.get(i)) + 1.0);
 				break;
 			case OPTICAL_THICKNESS:
 				opticalThickness = Math.exp(params.get(i));
 				break;
 			case SCATTERING_ALBEDO:
-				scatteringAlbedo = 0.5*(Math.tanh( params.get(i) ) + 1.0 );
+				scatteringAlbedo = 0.5 * (Math.tanh(params.get(i)) + 1.0);
 				break;
 			case SCATTERING_ANISOTROPY:
-				scatteringAnisotropy = Math.tanh( params.get(i) );
+				scatteringAnisotropy = Math.tanh(params.get(i));
 				break;
 			case HEAT_LOSS:
 			case DIFFUSIVITY:
-				evaluateDependentParameters();
+				super.evaluateDependentParameters();
 				break;
 			default:
 				continue;
@@ -211,7 +212,8 @@ public class ParticipatingMedium extends NonlinearProblem {
 			final double nSq = 4;
 			final double lambda = thermalConductivity();
 			planckNumber = lambda / (4.0 * nSq * STEFAN_BOTLZMAN * Math.pow(T, 3) * l);
-			evaluateDependentParameters();
+			Bi1 = super.biot();
+			Bi2 = Bi1;
 		}
 	}
 

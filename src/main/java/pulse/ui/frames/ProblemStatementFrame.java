@@ -164,6 +164,9 @@ public class ProblemStatementFrame extends JInternalFrame {
 
 				SearchTask t = TaskManager.getSelectedTask();
 
+				if (t == null)
+					return;
+
 				if (t.checkProblems() == Status.INCOMPLETE) {
 					Details d = t.getStatus().getDetails();
 					if (d == Details.MISSING_PROBLEM_STATEMENT || d == Details.MISSING_DIFFERENCE_SCHEME

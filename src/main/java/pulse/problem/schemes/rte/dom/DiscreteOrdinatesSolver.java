@@ -7,9 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-import org.apache.commons.math3.analysis.UnivariateFunction;
-import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
-
 import pulse.problem.schemes.Grid;
 import pulse.problem.schemes.rte.EmissionFunction;
 import pulse.problem.schemes.rte.RadiativeTransferSolver;
@@ -40,71 +37,6 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 		iterativeSolverSelector.setSelectedDescriptor(FixedIterations.class.getSimpleName());
 	}
 
-	public static void main(String[] args) {
-
-		var problem = new ParticipatingMedium();
-		problem.setOpticalThickness(NumericProperty.derive(NumericPropertyKeyword.OPTICAL_THICKNESS, 0.1));
-		problem.setEmissivity(NumericProperty.derive(NumericPropertyKeyword.EMISSIVITY, 0.85));
-
-		File f = null;
-		try {
-			f = new File(DiscreteOrdinatesSolver.class.getResource("/test/TestSolution.dat").toURI());
-		} catch (URISyntaxException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		var data = new ArrayList<Double>();
-
-		try (Scanner scanner = new Scanner(f)) {
-			while (scanner.hasNextLine())
-				data.add(Double.parseDouble(scanner.nextLine()));
-
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		double[] U = data.stream().mapToDouble(x -> x).toArray();
-		int N = U.length - 1;
-
-		var density = NumericProperty.derive(NumericPropertyKeyword.GRID_DENSITY, N);
-		var tauFactor = NumericProperty.derive(NumericPropertyKeyword.TAU_FACTOR, 0.0);
-		Grid grid = new Grid(density, tauFactor);
-
-		double tFactor = 36.7 / 800.0;
-
-		var rte = new DiscreteOrdinatesSolver(problem, grid);
-		rte.integrator.emissionFunction.setReductionFactor(tFactor);
-		rte.integrator.setAlbedo(0.0);
-		rte.integrator.pf.setAnisotropyFactor(0.0);
-		rte.compute(U);
-
-//		for (int i = 0; i < rte.discrete.n; i++)
-//			System.out.println(rte.discrete.I[rte.getExternalGridDensity()][i]);
-//
-
-		for(int i = 0; i < rte.discrete.grid.getDensity() + 1; i++) 
-			System.out.printf("%n%4.5f %1.6e %1.6e", rte.discrete.grid.getNode(i), rte.discrete.getIntensities()[i][0], rte.discrete.getIntensities()[i][1]);
-		
-		System.out.println();
-		System.out.println();
-		
-//		for (int i = 0; i < rte.discrete.grid.getDensity(); i++)
-//			System.out.printf("%n%2.4f %4.5f %4.5f", rte.discrete.grid.getNode(i), rte.discrete.I[i][0],
-//					rte.discrete.I[i][1]);
-
-		System.out.printf("%n%2.4f %4.5f %4.5f", rte.discrete.grid.getNode(0), rte.getFlux(0),
-		rte.getFluxDerivativeFront());
-		
-		for (int i = 1; i < U.length - 1; i++)
-			System.out.printf("%n%2.4f %4.5f %4.5f", i * (1.0 / (U.length - 1) * rte.getOpticalThickness()),
-					rte.getFlux(i), rte.getFluxDerivative(i));
-
-		System.out.printf("%n%2.4f %4.5f %4.5f", (U.length - 1) * (1.0 / (U.length - 1) * rte.getOpticalThickness()),
-				rte.getFlux((U.length - 1)), rte.getFluxDerivativeRear());
-		
-	}
-
 	private PhaseFunction phaseFunction;
 	private AdaptiveIntegrator integrator;
 	private IterativeSolver iterativeSolver;
@@ -128,18 +60,18 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 
 	public DiscreteOrdinatesSolver(ParticipatingMedium problem, Grid grid) {
 		super(problem, grid);
-		
+
 		var emissionFunction = new EmissionFunction(problem, grid);
 
 		discrete = new DiscreteIntensities((int) grid.getGridDensity().getValue(),
 				(double) problem.getOpticalThickness().getValue());
 		discrete.setParent(this);
-		
+
 		phaseFunction = phaseFunctionSelector.newInstance(PhaseFunction.class, discrete);
 		integrator = integratorDescriptor.newInstance(AdaptiveIntegrator.class, discrete, emissionFunction,
 				phaseFunction);
 		iterativeSolver = iterativeSolverSelector.newInstance(IterativeSolver.class);
-		
+
 		integrator.setParent(this);
 		iterativeSolver.setParent(this);
 		init(problem, grid);
@@ -149,7 +81,7 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 			@Override
 			public void onDescriptorChanged() {
 				setIntegrator(integratorDescriptor.newInstance(AdaptiveIntegrator.class, discrete, emissionFunction,
-						phaseFunction) );
+						phaseFunction));
 			}
 
 		});
@@ -162,15 +94,14 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 			}
 
 		});
-		
+
 		iterativeSolverSelector.addListener(new DescriptorChangeListener() {
 
 			@Override
 			public void onDescriptorChanged() {
 				setIterativeSolver(iterativeSolverSelector.newInstance(IterativeSolver.class));
 			}
-			
-			
+
 		});
 
 	}
@@ -183,14 +114,14 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 		double tau0 = discrete.grid.getDimension();
 
 		for (int i = -1; i < nT + 2; i++)
-			xArray[i+1] = tau0 * i * h;
-		
+			xArray[i + 1] = tau0 * i * h;
+
 		double[] tArray = new double[xArray.length];
 		System.arraycopy(tempArray, 0, tArray, 1, tempArray.length);
 
-		tArray[0]		= tArray[1];
-		tArray[nT + 2]	= tArray[nT+1];
-		
+		tArray[0] = tArray[1];
+		tArray[nT + 2] = tArray[nT + 1];
+
 		integrator.emissionFunction.setInterpolation(super.temperatureInterpolation(xArray, tArray));
 	}
 
@@ -308,15 +239,15 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 		this.integrator = integrator;
 		integrator.setParent(this);
 	}
-	
+
 	public IterativeSolver getIterativeSolver() {
 		return iterativeSolver;
 	}
-	
+
 	public static InstanceDescriptor<IterativeSolver> getIterativeSolverSelector() {
 		return iterativeSolverSelector;
 	}
-	
+
 	public void setIterativeSolver(IterativeSolver solver) {
 		this.iterativeSolver = solver;
 		solver.setParent(this);
@@ -329,7 +260,73 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 
 	@Override
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
-		//intentionally left blank
+		// intentionally left blank
+	}
+
+	public static void main(String[] args) {
+
+		var problem = new ParticipatingMedium();
+		problem.setOpticalThickness(NumericProperty.derive(NumericPropertyKeyword.OPTICAL_THICKNESS, 0.1));
+		problem.setEmissivity(NumericProperty.derive(NumericPropertyKeyword.EMISSIVITY, 0.85));
+
+		File f = null;
+		try {
+			f = new File(DiscreteOrdinatesSolver.class.getResource("/test/TestSolution.dat").toURI());
+		} catch (URISyntaxException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		var data = new ArrayList<Double>();
+
+		try (Scanner scanner = new Scanner(f)) {
+			while (scanner.hasNextLine())
+				data.add(Double.parseDouble(scanner.nextLine()));
+
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		double[] U = data.stream().mapToDouble(x -> x).toArray();
+		int N = U.length - 1;
+
+		var density = NumericProperty.derive(NumericPropertyKeyword.GRID_DENSITY, N);
+		var tauFactor = NumericProperty.derive(NumericPropertyKeyword.TAU_FACTOR, 0.0);
+		Grid grid = new Grid(density, tauFactor);
+
+		double tFactor = 36.7 / 800.0;
+
+		var rte = new DiscreteOrdinatesSolver(problem, grid);
+		rte.integrator.emissionFunction.setReductionFactor(tFactor);
+		rte.integrator.setAlbedo(0.0);
+		rte.integrator.pf.setAnisotropyFactor(0.0);
+		rte.compute(U);
+
+//		for (int i = 0; i < rte.discrete.n; i++)
+//			System.out.println(rte.discrete.I[rte.getExternalGridDensity()][i]);
+//
+
+		for (int i = 0; i < rte.discrete.grid.getDensity() + 1; i++)
+			System.out.printf("%n%4.5f %1.6e %1.6e", rte.discrete.grid.getNode(i), rte.discrete.getIntensities()[i][0],
+					rte.discrete.getIntensities()[i][1]);
+
+		System.out.println();
+		System.out.println();
+
+//		for (int i = 0; i < rte.discrete.grid.getDensity(); i++)
+//			System.out.printf("%n%2.4f %4.5f %4.5f", rte.discrete.grid.getNode(i), rte.discrete.I[i][0],
+//					rte.discrete.I[i][1]);
+
+		System.out.printf("%n%2.4f %4.5f %4.5f", rte.discrete.grid.getNode(0), rte.getFlux(0),
+				rte.getFluxDerivativeFront());
+
+		for (int i = 1; i < U.length - 1; i++)
+			System.out.printf("%n%2.4f %4.5f %4.5f", i * (1.0 / (U.length - 1) * rte.getOpticalThickness()),
+					rte.getFlux(i), rte.getFluxDerivative(i));
+
+		System.out.printf("%n%2.4f %4.5f %4.5f", (U.length - 1) * (1.0 / (U.length - 1) * rte.getOpticalThickness()),
+				rte.getFlux((U.length - 1)), rte.getFluxDerivativeRear());
+
 	}
 
 }

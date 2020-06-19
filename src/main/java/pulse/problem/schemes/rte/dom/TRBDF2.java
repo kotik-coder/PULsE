@@ -174,9 +174,10 @@ public class TRBDF2 extends AdaptiveIntegrator {
 
 			// all elements
 			for (int k = 0; k < aMatrix[0].length; k++)
-				aMatrix[i][k] = matrixPrefactor * intensities.ordinates.w[k + n5] * pf.function(i + n1, k + n5); // only OUTWARD
-																										// (and zero)
-																										// intensities
+				aMatrix[i][k] = matrixPrefactor * intensities.ordinates.w[k + n5] * pf.function(i + n1, k + n5); // only
+																													// OUTWARD
+			// (and zero)
+			// intensities
 
 			// additionally for the diagonal elements
 			aMatrix[i][i] += 1.0 + hd / intensities.ordinates.mu[i + n1];

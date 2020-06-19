@@ -49,6 +49,7 @@ public class InterpolationDataset {
 	 * Provides an interpolated value at {@code key} based on the available data in
 	 * the {@code DataEntry List}. The interpolation is done using natural cubic
 	 * splines, hence it is important that the input dataset has minimal noise.
+	 * 
 	 * @param key the argument, at which interpolation needs to be done (e.g.
 	 *            temperature)
 	 * @return a double, representing the interpolated value
@@ -73,9 +74,9 @@ public class InterpolationDataset {
 	public void doInterpolation() {
 		var interpolator = new SplineInterpolator();
 		interpolation = interpolator.interpolate(dataset.stream().map(a -> a.getKey()).mapToDouble(d -> d).toArray(),
-								 dataset.stream().map(a -> a.getValue()).mapToDouble(d -> d).toArray()); 
+				dataset.stream().map(a -> a.getValue()).mapToDouble(d -> d).toArray());
 	}
-	
+
 	/**
 	 * Extracts all data available in this {@code InterpolationDataset}.
 	 * 

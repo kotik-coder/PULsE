@@ -90,7 +90,7 @@ public class TBLReader implements DatasetReader {
 		}
 
 		reader.close();
-		
+
 		curve.doInterpolation();
 		return curve;
 

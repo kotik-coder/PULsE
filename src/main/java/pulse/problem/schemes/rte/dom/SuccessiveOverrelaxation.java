@@ -9,15 +9,15 @@ import pulse.properties.Property;
 public class SuccessiveOverrelaxation extends IterativeSolver {
 
 	private double W;
-	
+
 	public SuccessiveOverrelaxation() {
 		super();
-		this.W = (double)NumericProperty.theDefault(NumericPropertyKeyword.RELAXATION_PARAMETER).getValue();
+		this.W = (double) NumericProperty.theDefault(NumericPropertyKeyword.RELAXATION_PARAMETER).getValue();
 	}
-	
+
 	@Override
 	public void doIterations(DiscreteIntensities discrete, AdaptiveIntegrator integrator) {
-		
+
 		double relativeError = 100;
 
 		double qld = 0;
@@ -41,41 +41,41 @@ public class SuccessiveOverrelaxation extends IterativeSolver {
 			}
 
 		}
-		
+
 	}
-	
+
 	public NumericProperty getRelaxationParameter() {
 		return NumericProperty.derive(NumericPropertyKeyword.RELAXATION_PARAMETER, W);
 	}
-	
+
 	public void setRelaxationParameter(NumericProperty p) {
-		if(p.getType() != NumericPropertyKeyword.RELAXATION_PARAMETER)
+		if (p.getType() != NumericPropertyKeyword.RELAXATION_PARAMETER)
 			throw new IllegalArgumentException("Unknown type: " + p.getType());
-		W = (double)p.getValue();
+		W = (double) p.getValue();
 	}
-	
+
 	@Override
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
-		
+
 		super.set(type, property);
-		
-		if(type == NumericPropertyKeyword.RELAXATION_PARAMETER)
+
+		if (type == NumericPropertyKeyword.RELAXATION_PARAMETER)
 			setRelaxationParameter(property);
 		else
 			throw new IllegalArgumentException("Unknown type: " + type);
 
 	}
-	
+
 	@Override
 	public List<Property> listedTypes() {
 		List<Property> list = super.listedTypes();
 		list.add(NumericProperty.theDefault(NumericPropertyKeyword.RELAXATION_PARAMETER));
 		return list;
 	}
-	
+
 	@Override
 	public String toString() {
 		return super.toString() + " ; " + getRelaxationParameter();
 	}
-	
+
 }

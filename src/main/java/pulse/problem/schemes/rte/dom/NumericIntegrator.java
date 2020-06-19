@@ -59,7 +59,7 @@ public abstract class NumericIntegrator extends PropertyHolder implements Reflex
 
 	public void setAlbedo(double albedo) {
 		this.albedo = albedo;
-		this.halfAlbedo = 0.5*albedo;
+		this.halfAlbedo = 0.5 * albedo;
 	}
 
 	public void treatZeroIndex() {
@@ -99,7 +99,8 @@ public abstract class NumericIntegrator extends PropertyHolder implements Reflex
 	}
 
 	public double source(int i, int j, double t, double I) {
-		return emission(t) + halfAlbedo * (pf.sumExcludingIndex(i, j, i) + pf.function(i, i) * intensities.ordinates.w[i] * I);
+		return emission(t)
+				+ halfAlbedo * (pf.sumExcludingIndex(i, j, i) + pf.function(i, i) * intensities.ordinates.w[i] * I);
 	}
 
 	public double source(int i, double[] iOut, double[] iIn, double t, int l1, int l2) {
@@ -111,8 +112,9 @@ public abstract class NumericIntegrator extends PropertyHolder implements Reflex
 
 		double sumIn = 0;
 
-		for (int start = intensities.ordinates.total - l2, l = start, end = intensities.ordinates.total - l1; l < end; l++) // sum over the INWARD
-																								// intensities iIn
+		for (int start = intensities.ordinates.total - l2, l = start, end = intensities.ordinates.total
+				- l1; l < end; l++) // sum over the INWARD
+			// intensities iIn
 			sumIn += iIn[l - start] * intensities.ordinates.w[l] * pf.function(i, l);
 
 		return emission(t) + halfAlbedo * (sumIn + sumOut); // contains sum over the incoming rays

@@ -326,22 +326,22 @@
 		abbreviation="Bi&lt;sub&gt;3&lt;/sub&gt;" auto-adjustable="true"
 		descriptor="Heat loss (side surface), Bi&lt;sub&gt;3&lt;/sub&gt;"
 		dimensionfactor="1.0" keyword="HEAT_LOSS_SIDE" maximum="10.0"
-		minimum="1e-10" value="1E-2" primitive-type="double" discreet="false" />
+		minimum="1e-10" value="0.1" primitive-type="double" discreet="false" />
 	<NumericProperty
 		abbreviation="Bi&lt;sub&gt;1&lt;/sub&gt;" auto-adjustable="true"
 		descriptor="Heat loss (front surface), Bi&lt;sub&gt;1&lt;/sub&gt;"
 		dimensionfactor="1.0" keyword="HEAT_LOSS_FRONT" maximum="10.0"
-		minimum="1e-10" value="1E-2" primitive-type="double" discreet="false" />
+		minimum="1e-10" value="0.1" primitive-type="double" discreet="false" />
 	<NumericProperty keyword="HEAT_LOSS" abbreviation="Bi"
 		auto-adjustable="true" descriptor="Heat loss, Bi" dimensionfactor="1"
-		maximum="10" minimum="1e-10" primitive-type="double" value="1E-2"
+		maximum="10" minimum="1e-10" primitive-type="double" value="0.1"
 		discreet="false">
 	</NumericProperty>
 	<NumericProperty
 		abbreviation="Bi&lt;sub&gt;2&lt;/sub&gt;" auto-adjustable="true"
 		descriptor="Heat loss (rear surface), Bi&lt;sub&gt;2&lt;/sub&gt;"
 		dimensionfactor="1.0" keyword="HEAT_LOSS_REAR" maximum="10.0"
-		minimum="1e-10" value="1E-2" primitive-type="double" discreet="false" ></NumericProperty>
+		minimum="1e-10" value="0.1" primitive-type="double" discreet="false" ></NumericProperty>
 	<NumericProperty abbreviation="Gain"
 		auto-adjustable="false" descriptor="Detector Gain" dimensionfactor="1"
 		keyword="DETECTOR_GAIN" maximum="200" minimum="1" value="10"

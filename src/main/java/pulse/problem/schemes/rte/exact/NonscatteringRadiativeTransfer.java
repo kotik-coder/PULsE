@@ -57,14 +57,14 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 		});
 
 	}
-	
+
 	@Override
 	public void compute(double[] tempArray) {
 		double[] xArray = new double[tempArray.length];
 
 		for (int i = 0; i < xArray.length; i++)
 			xArray[i] = tau0 * i * hx;
-		
+
 		emissionFunction.setInterpolation(this.temperatureInterpolation(xArray, tempArray));
 	}
 
@@ -96,8 +96,7 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 
 	private double fluxRear() {
 		int N = this.getExternalGridDensity();
-		this.setFlux(N,
-				-r2 + 2.0 * r1 * simpleIntegrator.integralAt(tau0, 3) + 2.0 * integrateSecondOrder(tau0, -1.0));
+		this.setFlux(N, -r2 + 2.0 * r1 * simpleIntegrator.integralAt(tau0, 3) + 2.0 * integrateSecondOrder(tau0, -1.0));
 		return getFlux(N);
 	}
 
@@ -156,7 +155,8 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 	 */
 
 	private double a1() {
-		return emissivity * emissionFunction.powerInterpolated(0.0) + doubleReflectivity * integrateSecondOrder(0.0, 1.0);
+		return emissivity * emissionFunction.powerInterpolated(0.0)
+				+ doubleReflectivity * integrateSecondOrder(0.0, 1.0);
 	}
 
 	/*
@@ -166,7 +166,8 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 	 */
 
 	private double a2() {
-		return emissivity * emissionFunction.powerInterpolated(tau0) + doubleReflectivity * integrateSecondOrder(tau0, -1.0);
+		return emissivity * emissionFunction.powerInterpolated(tau0)
+				+ doubleReflectivity * integrateSecondOrder(tau0, -1.0);
 	}
 
 	/*

@@ -59,7 +59,7 @@ public class QuadratureReader implements AbstractReader<OrdinateSet> {
 
 			set = new OrdinateSet(name, nodes.stream().mapToDouble(d -> d).toArray(),
 					weights.stream().mapToDouble(d -> d).toArray());
-			
+
 			reader.close();
 
 		}

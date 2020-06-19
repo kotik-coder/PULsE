@@ -27,7 +27,7 @@ public class EmissionFunction {
 	public double J(double x) {
 		return radiance(interpolation.value(x));
 	}
-	
+
 	public double powerInterpolated(double x) {
 		return power(interpolation.value(x));
 	}

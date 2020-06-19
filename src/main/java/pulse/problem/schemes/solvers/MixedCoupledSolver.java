@@ -17,7 +17,6 @@ import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 import pulse.ui.Messages;
-import pulse.util.DescriptorChangeListener;
 import pulse.util.InstanceDescriptor;
 
 public class MixedCoupledSolver extends MixedScheme implements Solver<ParticipatingMedium> {
@@ -104,17 +103,7 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 	protected void prepare(ParticipatingMedium problem) {
 		super.prepare(problem);
 
-		if (rte == null) {
-			initRTE(problem, grid);
-			instanceDescriptor.addListener(new DescriptorChangeListener() {
-
-				@Override
-				public void onDescriptorChanged() {
-					initRTE(problem, grid);
-				}
-				
-			});
-		}
+		initRTE(problem, grid);
 
 		curve = problem.getHeatingCurve();
 
@@ -365,9 +354,24 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 				+ 0.083333333 * (rte.getFluxMeanDerivative(i - 1) + rte.getFluxMeanDerivative(i + 1));
 	}
 
-	public void initRTE(ParticipatingMedium problem, Grid grid) {
+	private void newRTE(ParticipatingMedium problem, Grid grid) {
 		rte = instanceDescriptor.newInstance(RadiativeTransferSolver.class, problem, grid);
 		rte.setParent(this);
+	}
+
+	private void initRTE(ParticipatingMedium problem, Grid grid) {
+
+		if (rte == null) {
+			newRTE(problem, grid);
+			instanceDescriptor.addListener(() -> {
+				newRTE(problem, grid);
+				rte.init(problem, grid);
+			});
+
+		}
+
+		rte.init(problem, grid);
+
 	}
 
 	@Override

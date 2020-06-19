@@ -198,9 +198,9 @@ public class SearchTask extends Accessible implements Runnable {
 
 	public void calculateThermalProperties() {
 
-		if(problem == null)
+		if (problem == null)
 			return;
-			
+
 		var cpCurve = InterpolationDataset.getDataset(StandartType.SPECIFIC_HEAT);
 
 		if (cpCurve != null) {

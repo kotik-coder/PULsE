@@ -58,7 +58,7 @@ public class OrdinateSet implements Property {
 		hasZeroNode = Double.compare(mu[0], 0.0) == 0;
 
 		firstPositiveNode = 0;
-		
+
 		firstNegativeNode = this.mu.length / 2;
 
 		if (hasZeroNode) {

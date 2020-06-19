@@ -89,7 +89,7 @@ public abstract class RadiativeTransferSolver extends PropertyHolder implements 
 		var interpolator = new SplineInterpolator();
 		return interpolator.interpolate(xArray, tempArray);
 	}
-	
+
 	public abstract void compute(double[] temperatureArray);
 
 	public int getExternalGridDensity() {

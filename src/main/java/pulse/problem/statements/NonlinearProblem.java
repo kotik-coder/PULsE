@@ -1,6 +1,5 @@
 package pulse.problem.statements;
 
-import static java.lang.Math.pow;
 import static pulse.properties.NumericPropertyKeyword.CONDUCTIVITY;
 import static pulse.properties.NumericPropertyKeyword.DENSITY;
 import static pulse.properties.NumericPropertyKeyword.SPECIFIC_HEAT;
@@ -8,7 +7,6 @@ import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
 
 import java.util.List;
 
-import pulse.Baseline;
 import pulse.input.ExperimentalData;
 import pulse.input.InterpolationDataset;
 import pulse.input.InterpolationDataset.StandartType;
@@ -23,7 +21,7 @@ import pulse.ui.Messages;
 public class NonlinearProblem extends Problem {
 
 	protected double T;
-	protected double emissivity = 1.0;
+	protected double emissivity = 0.85;
 
 	protected final static double STEFAN_BOTLZMAN = 5.6703E-08; // Stephan-Boltzmann constant
 
@@ -115,10 +113,15 @@ public class NonlinearProblem extends Problem {
 
 		return 4.0 * emissivity * Q / (Math.PI * dLas * dLas * l * cP * rho);
 	}
-	
-	public double estimateMaximumBiot() {
+
+	private double maxBiot() {
 		double lambda = thermalConductivity();
-		return 4.0*STEFAN_BOTLZMAN*Math.pow(T, 3)*l/lambda;
+		return 4.0 * STEFAN_BOTLZMAN * Math.pow(T, 3) * l / lambda;
+	}
+
+	protected double biot() {
+		double lambda = thermalConductivity();
+		return 4.0 * emissivity * STEFAN_BOTLZMAN * Math.pow(T, 3) * l / lambda;
 	}
 
 	@Override
@@ -129,8 +132,6 @@ public class NonlinearProblem extends Problem {
 	public void evaluateDependentParameters() {
 		final double lambda = thermalConductivity();
 		emissivity = Bi1 * lambda / (4. * Math.pow(T, 3) * l * STEFAN_BOTLZMAN);
-		if(emissivity > 1 || emissivity < 0)
-			System.err.println("WARNING. Illegal emissivity value: " + emissivity);
 	}
 
 	public double thermalConductivity() {
@@ -149,8 +150,10 @@ public class NonlinearProblem extends Problem {
 		if (e.getType() != NumericPropertyKeyword.EMISSIVITY)
 			throw new IllegalArgumentException("Illegal type: " + e.getType());
 		this.emissivity = (double) e.getValue();
+		Bi1 = biot();
+		Bi2 = Bi1;
 	}
-	
+
 	public void optimisationVector(IndexedVector[] output, List<Flag> flags) {
 		super.optimisationVector(output, flags);
 		int size = output[0].dimension();
@@ -158,7 +161,7 @@ public class NonlinearProblem extends Problem {
 		for (int i = 0; i < size; i++) {
 
 			if (output[0].getIndex(i) == NumericPropertyKeyword.HEAT_LOSS) {
-				output[0].set(i, MathUtils.atanh( 2.0*Bi1/estimateMaximumBiot() - 1.0 ) ) ;
+				output[0].set(i, MathUtils.atanh(2.0 * Bi1 / maxBiot() - 1.0));
 				output[1].set(i, 10.0);
 			}
 		}
@@ -177,15 +180,15 @@ public class NonlinearProblem extends Problem {
 
 	public void assign(IndexedVector params) {
 		super.assign(params);
-		
+
 		for (int i = 0, size = params.dimension(); i < size; i++) {
 
-			if(params.getIndex(i) == NumericPropertyKeyword.HEAT_LOSS) {
-				double heatLoss = 0.5*estimateMaximumBiot()*(Math.tanh( params.get(i) ) + 1.0 );
+			if (params.getIndex(i) == NumericPropertyKeyword.HEAT_LOSS) {
+				double heatLoss = 0.5 * maxBiot() * (Math.tanh(params.get(i)) + 1.0);
 				Bi1 = heatLoss;
 				Bi2 = heatLoss;
 			}
-			
+
 		}
 
 	}

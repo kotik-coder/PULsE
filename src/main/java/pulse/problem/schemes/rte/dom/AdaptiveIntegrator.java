@@ -28,8 +28,9 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 		atol = (double) NumericProperty.theDefault(NumericPropertyKeyword.ATOL).getValue();
 		rtol = (double) NumericProperty.theDefault(NumericPropertyKeyword.RTOL).getValue();
 		scalingFactor = (double) NumericProperty.theDefault(NumericPropertyKeyword.GRID_SCALING_FACTOR).getValue();
-		f = new double[intensities.grid.getDensity() + 1][intensities.ordinates.total]; // first index - spatial steps, second index -
-																			// quadrature points
+		f = new double[intensities.grid.getDensity() + 1][intensities.ordinates.total]; // first index - spatial steps,
+																						// second index -
+		// quadrature points
 	}
 
 	public boolean isFirstRun() {
@@ -39,7 +40,8 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 	protected void init() {
 		qLast = new double[intensities.ordinates.total];
 		int N = intensities.grid.getDensity();
-		f = new double[N + 1][intensities.ordinates.total]; // first index - spatial steps, second index - quadrature points
+		f = new double[N + 1][intensities.ordinates.total]; // first index - spatial steps, second index - quadrature
+															// points
 		rescaled = false;
 	}
 
@@ -72,9 +74,9 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 		Vector[] v;
 		int N = intensities.grid.getDensity();
 		init();
-		
-		for (double error = 1.0, relFactor = 0.0, i0Max = 0, i1Max = 0; error > atol
-				+ relFactor * rtol && sanityCheck(); N = intensities.grid.getDensity()) {
+
+		for (double error = 1.0, relFactor = 0.0, i0Max = 0, i1Max = 0; error > atol + relFactor * rtol
+				&& sanityCheck(); N = intensities.grid.getDensity()) {
 
 			error = 0;
 
@@ -129,7 +131,7 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 				f[N][i] = f[N - 1][i];
 				f[0][i] = f[1][i];
 			}
-			
+
 			if (error > atol + relFactor * rtol) {
 				reduceStepSize();
 				HermiteInterpolator.clear();
@@ -138,9 +140,9 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 		}
 
 	}
-	
+
 	private boolean sanityCheck() {
-		return NumericProperty.isValueSensible( intensities.grid.getDensityProperty(), intensities.grid.getDensity() );
+		return NumericProperty.isValueSensible(intensities.grid.getDensityProperty(), intensities.grid.getDensity());
 	}
 
 	public abstract Vector[] step(final int j, final double sign);
@@ -152,7 +154,8 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 		intensities.clearBoundaryFluxes();
 		rescaled = true;
 		int N = intensities.grid.getDensity();
-		f = new double[N + 1][intensities.ordinates.total]; // first index - spatial steps, second index - quadrature points
+		f = new double[N + 1][intensities.ordinates.total]; // first index - spatial steps, second index - quadrature
+															// points
 	}
 
 	public boolean wasRescaled() {
