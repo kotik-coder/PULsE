@@ -5,11 +5,11 @@ import static java.lang.Math.pow;
 import pulse.HeatingCurve;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.ImplicitScheme;
-import pulse.problem.statements.DiathermicMaterialProblem;
+import pulse.problem.statements.DiathermicMedium;
 import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
 
-public class ImplicitDiathermicSolver extends ImplicitScheme implements Solver<DiathermicMaterialProblem> {
+public class ImplicitDiathermicSolver extends ImplicitScheme implements Solver<DiathermicMedium> {
 
 	private final static double EPS = 1e-7; // a small value ensuring numeric stability
 
@@ -43,7 +43,7 @@ public class ImplicitDiathermicSolver extends ImplicitScheme implements Solver<D
 		super(N, timeFactor, timeLimit);
 	}
 
-	private void prepare(DiathermicMaterialProblem problem) {
+	private void prepare(DiathermicMedium problem) {
 		super.prepare(problem);
 		curve = problem.getHeatingCurve();
 
@@ -74,7 +74,7 @@ public class ImplicitDiathermicSolver extends ImplicitScheme implements Solver<D
 	}
 
 	@Override
-	public void solve(DiathermicMaterialProblem problem) {
+	public void solve(DiathermicMedium problem) {
 
 		prepare(problem);
 
@@ -163,7 +163,7 @@ public class ImplicitDiathermicSolver extends ImplicitScheme implements Solver<D
 
 	@Override
 	public Class<? extends Problem> domain() {
-		return DiathermicMaterialProblem.class;
+		return DiathermicMedium.class;
 	}
 
 }

@@ -10,6 +10,7 @@ import static pulse.properties.NumericPropertyKeyword.HEAT_LOSS_FRONT;
 import static pulse.properties.NumericPropertyKeyword.HEAT_LOSS_REAR;
 import static pulse.properties.NumericPropertyKeyword.MAXTEMP;
 import static pulse.properties.NumericPropertyKeyword.SPECIFIC_HEAT;
+import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
 import static pulse.properties.NumericPropertyKeyword.THICKNESS;
 
 import java.util.List;
@@ -24,6 +25,7 @@ import pulse.math.IndexedVector;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.DiscretePulse;
 import pulse.problem.schemes.Grid;
+import pulse.problem.schemes.rte.MathUtils;
 import pulse.problem.schemes.solvers.Solver;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
@@ -51,7 +53,8 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 	protected double Bi1, Bi2;
 	protected double signalHeight;
 	protected double cP, rho;
-
+	protected double T;
+	
 	private static boolean singleStatement = true;
 	private static boolean hideDetailedAdjustment = true;
 
@@ -67,7 +70,8 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 	 */
 
 	public final double PARKERS_COEFFICIENT = 0.1370; // in mm
-
+	public final static double STEFAN_BOTLZMAN = 5.6703E-08; // Stephan-Boltzmann constant
+	
 	/**
 	 * Creates a {@code Problem} with default parameters (as found in the .XML
 	 * file).
@@ -90,6 +94,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 		curve = new HeatingCurve();
 		curve.setParent(this);
 		pulse.setParent(this);
+		this.T = (double) NumericProperty.def(TEST_TEMPERATURE).getValue();
 	}
 
 	/**
@@ -110,6 +115,8 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 		this.a = p.a;
 		this.Bi1 = p.Bi1;
 		this.Bi2 = p.Bi2;
+		
+		this.T = p.T;
 	}
 
 	/**
@@ -199,6 +206,9 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 			break;
 		case DENSITY:
 			setDensity(value);
+			break;
+		case TEST_TEMPERATURE:
+			setTestTemperature(value);
 			break;
 		default:
 			break;
@@ -335,6 +345,10 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 	public void useTheoreticalEstimates(ExperimentalData c) {
 		double t0 = c.halfRiseTime();
 		this.a = PARKERS_COEFFICIENT * l * l / t0;
+		if (areThermalPropertiesLoaded()) {
+			Bi1 = biot();
+			Bi2 = Bi1;
+		}
 	}
 
 	/**
@@ -355,7 +369,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 	 * @return an {@code IndexedVector} object, representing the objective function.
 	 * @see listedTypes()
 	 */
-
+	
 	/*
 	 * TODO put relative bounds in a constant field Consider creating a Bounds
 	 * class, or putting them in the XML file
@@ -388,7 +402,9 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 				output[1].set(i, 1000);
 				break;
 			case HEAT_LOSS:
-				output[0].set(i, Math.log(Bi1));
+				output[0].set(i, areThermalPropertiesLoaded() ?
+									MathUtils.atanh(2.0 * Bi1 / maxBiot() - 1.0) : 
+									Math.log(Bi1));
 				output[1].set(i, 2.0);
 				break;
 			case TIME_SHIFT:
@@ -430,7 +446,9 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 				(curve.getBaseline()).setParameter(1, params.get(i));
 				break;
 			case HEAT_LOSS:
-				double heatLoss = Math.exp(params.get(i));
+				double heatLoss = areThermalPropertiesLoaded() ? 
+									0.5 * maxBiot() * (Math.tanh(params.get(i)) + 1.0) :
+									Math.exp(params.get(i));
 				Bi1 = heatLoss;
 				Bi2 = heatLoss;
 				break;
@@ -530,6 +548,25 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 	public String shortName() {
 		return getClass().getSimpleName();
 	}
+	
+	public NumericProperty getTestTemperature() {
+		return NumericProperty.derive(TEST_TEMPERATURE, T);
+	}
+
+	public void setTestTemperature(NumericProperty T) {
+		this.T = (double) T.getValue();
+
+		var heatCapacity = InterpolationDataset.getDataset(StandartType.SPECIFIC_HEAT);
+
+		if (heatCapacity != null)
+			cP = heatCapacity.interpolateAt(this.T);
+
+		var density = InterpolationDataset.getDataset(StandartType.DENSITY);
+
+		if (density != null)
+			rho = density.interpolateAt(this.T);
+
+	}
 
 	/**
 	 * Used for debugging. Initially, the nonlinear and two-dimensional problem
@@ -576,5 +613,32 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 	public String toString() {
 		return this.getClass().getSimpleName();
 	}
+	
+	public final boolean areThermalPropertiesLoaded() { 
+		return (Double.compare(cP, 0.0) > 0 && Double.compare(rho, 0.0) > 0);
+	}
+	
+	public double thermalConductivity() {
+		return a * cP * rho;
+	}
+	
+	public double emissivity() {
+		final double lambda = thermalConductivity();
+		return Bi1 * lambda / (4. * Math.pow(T, 3) * l * STEFAN_BOTLZMAN);
+	}
 
+	protected double maxBiot() {
+		double lambda = thermalConductivity();
+		return 4.0 * STEFAN_BOTLZMAN * Math.pow(T, 3) * l / lambda;
+	}
+	
+	protected double biot(double emissivity) {
+		double lambda = thermalConductivity();
+		return 4.0 * emissivity * STEFAN_BOTLZMAN * Math.pow(T, 3) * l / lambda;
+	}
+	
+	protected double biot() {
+		return biot((double)NumericProperty.theDefault(NumericPropertyKeyword.EMISSIVITY).getValue());
+	}
+	
 }

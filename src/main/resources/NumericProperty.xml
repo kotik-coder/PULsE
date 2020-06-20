@@ -140,7 +140,7 @@
 	<NumericProperty abbreviation="&amp;eta;"
 		auto-adjustable="true" dimensionfactor="1"
 		keyword="DIATHERMIC_COEFFICIENT" maximum="1" minimum="0"
-		primitive-type="double" value="0"
+		primitive-type="double" value="0.2"
 		descriptor="Diathermic coefficient, &amp;eta;" discreet="false">
 	</NumericProperty>
 	<NumericProperty abbreviation="&lt;i&gt;r&lt;/i&gt;"
@@ -263,7 +263,7 @@
 		abbreviation="&lt;i&gt;&amp;#949;&lt;/i&gt;" auto-adjustable="false"
 		descriptor="Integral emissivity, &lt;i&gt;&amp;#949;&lt;/i&gt;"
 		dimensionfactor="1.0" keyword="EMISSIVITY" maximum="1" minimum="0.001"
-		value="1.0" primitive-type="double" discreet="false" />
+		value="0.8" primitive-type="double" discreet="false" />
 	<NumericProperty
 		abbreviation="&amp;rho; (kg/m&lt;sup&gt;3&lt;/sup&gt;)"
 		auto-adjustable="true"

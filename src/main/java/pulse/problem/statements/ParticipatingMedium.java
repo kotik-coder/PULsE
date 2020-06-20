@@ -133,7 +133,6 @@ public class ParticipatingMedium extends NonlinearProblem {
 		for (int i = 0, size = output[0].dimension(); i < size; i++) {
 			switch (output[0].getIndex(i)) {
 			case PLANCK_NUMBER:
-				double max = maxNp();
 				output[0].set(i, MathUtils.atanh(2.0 * planckNumber / maxNp() - 1.0));
 				output[1].set(i, 1.0);
 				break;
@@ -142,7 +141,7 @@ public class ParticipatingMedium extends NonlinearProblem {
 				output[1].set(i, 10.0);
 				break;
 			case SCATTERING_ALBEDO:
-				output[0].set(i, MathUtils.atanh(2.0 * scatteringAlbedo - 1.0));
+				output[0].set(i, MathUtils.atanh(2.0 * scatteringAlbedo - 1.0) );
 				output[1].set(i, 10.0);
 				break;
 			case SCATTERING_ANISOTROPY:
@@ -212,8 +211,6 @@ public class ParticipatingMedium extends NonlinearProblem {
 			final double nSq = 4;
 			final double lambda = thermalConductivity();
 			planckNumber = lambda / (4.0 * nSq * STEFAN_BOTLZMAN * Math.pow(T, 3) * l);
-			Bi1 = super.biot();
-			Bi2 = Bi1;
 		}
 	}
 

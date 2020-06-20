@@ -3,38 +3,39 @@ package pulse.problem.statements;
 import java.util.List;
 
 import pulse.math.IndexedVector;
+import pulse.problem.schemes.rte.MathUtils;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 import pulse.ui.Messages;
 
-public class DiathermicMaterialProblem extends LinearisedProblem {
+public class DiathermicMedium extends LinearisedProblem {
 
 	private double diathermicCoefficient;
 	private final static boolean DEBUG = false;
 
-	public DiathermicMaterialProblem() {
+	public DiathermicMedium() {
 		super();
 		this.diathermicCoefficient = (double) NumericProperty.def(NumericPropertyKeyword.DIATHERMIC_COEFFICIENT)
 				.getValue();
 	}
 
-	public DiathermicMaterialProblem(NumericProperty diathermicCoefficient) {
+	public DiathermicMedium(NumericProperty diathermicCoefficient) {
 		super();
 		this.diathermicCoefficient = (double) (diathermicCoefficient.getValue());
 	}
 
-	public DiathermicMaterialProblem(Problem sdd) {
+	public DiathermicMedium(Problem sdd) {
 		super(sdd);
-		if (sdd instanceof DiathermicMaterialProblem)
-			this.diathermicCoefficient = ((DiathermicMaterialProblem) sdd).diathermicCoefficient;
+		if (sdd instanceof DiathermicMedium)
+			this.diathermicCoefficient = ((DiathermicMedium) sdd).diathermicCoefficient;
 		else
 			this.diathermicCoefficient = (double) NumericProperty.def(NumericPropertyKeyword.DIATHERMIC_COEFFICIENT)
 					.getValue();
 	}
 
-	public DiathermicMaterialProblem(DiathermicMaterialProblem sdd) {
+	public DiathermicMedium(DiathermicMedium sdd) {
 		super(sdd);
 		this.diathermicCoefficient = sdd.diathermicCoefficient;
 	}
@@ -75,8 +76,8 @@ public class DiathermicMaterialProblem extends LinearisedProblem {
 		for (int i = 0, size = output[0].dimension(); i < size; i++) {
 			switch (output[0].getIndex(i)) {
 			case DIATHERMIC_COEFFICIENT:
-				output[0].set(i, diathermicCoefficient);
-				output[1].set(i, 0.5);
+				output[0].set(i, MathUtils.atanh(2.0 * diathermicCoefficient - 1.0) );
+				output[1].set(i, 10.0);
 				break;
 			default:
 				continue;
@@ -92,7 +93,15 @@ public class DiathermicMaterialProblem extends LinearisedProblem {
 		for (int i = 0, size = params.dimension(); i < size; i++) {
 			switch (params.getIndex(i)) {
 			case DIATHERMIC_COEFFICIENT:
-				diathermicCoefficient = params.get(i);
+				diathermicCoefficient = 0.5 * (Math.tanh(params.get(i)) + 1.0);
+				break;
+			case HEAT_LOSS:
+				if( areThermalPropertiesLoaded() ) {
+					double emissivity = emissivity();
+					if(emissivity > 1.0)
+						System.out.println(emissivity);
+					diathermicCoefficient = emissivity/(2.0 - emissivity);
+				}
 				break;
 			default:
 				continue;
