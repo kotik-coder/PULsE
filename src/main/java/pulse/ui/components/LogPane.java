@@ -26,7 +26,7 @@ public class LogPane extends JEditorPane implements Descriptive {
 
 	private ExecutorService updateExecutor = Executors.newSingleThreadExecutor();
 
-	private final static boolean DEBUG = false;
+	private final static boolean DEBUG = true;
 
 	private PrintStream outStream, errStream;
 

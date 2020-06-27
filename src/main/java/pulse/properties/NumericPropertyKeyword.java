@@ -179,7 +179,8 @@ public enum NumericPropertyKeyword {
 	HEAT_LOSS_SIDE,
 
 	/**
-	 * A general keyword for the coefficient of heat losses. Indicates primarily those on the front and rear faces.
+	 * A general keyword for the coefficient of heat losses. Indicates primarily
+	 * those on the front and rear faces.
 	 */
 
 	HEAT_LOSS,

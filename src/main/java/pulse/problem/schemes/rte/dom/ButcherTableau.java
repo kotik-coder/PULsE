@@ -1,11 +1,8 @@
 package pulse.problem.schemes.rte.dom;
 
-import java.io.File;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Set;
-import java.util.stream.Collectors;
 
+import pulse.io.readers.ButcherTableauReader;
 import pulse.io.readers.ReaderManager;
 import pulse.math.Matrix;
 import pulse.math.Vector;
@@ -19,24 +16,10 @@ public class ButcherTableau implements Property {
 
 	private boolean fsal;
 
-	private static Set<ButcherTableau> allOptions;
+	private static Set<ButcherTableau> allOptions = ReaderManager.load(ButcherTableauReader.getInstance(), "/solvers/", "Solvers.list");
 	private String name;
 
 	private final static String DEFAULT_TABLEAU = "BS23";
-
-	static {
-		URI uri = null;
-		try {
-			uri = ButcherTableau.class.getResource("/solvers/").toURI();
-		} catch (URISyntaxException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		allOptions = ReaderManager.readDirectory(new File(uri)).stream()
-				.filter(object -> object instanceof ButcherTableau).map(obj -> (ButcherTableau) obj)
-				.collect(Collectors.toSet());
-	}
 
 	public ButcherTableau(String name, double[][] coefs, double[] c, double[] b, double[] bHat, boolean fsal) {
 

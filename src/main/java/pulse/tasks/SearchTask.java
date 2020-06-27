@@ -23,7 +23,6 @@ import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.solvers.Solver;
 import pulse.problem.schemes.solvers.SolverException;
 import pulse.problem.statements.Problem;
-import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.search.direction.Path;
@@ -143,7 +142,7 @@ public class SearchTask extends Accessible implements Runnable {
 	}
 
 	public List<NumericProperty> alteredParameters() {
-		return PathOptimiser.activeParameters(this).stream().map(key -> this.numericProperty(key) )
+		return PathOptimiser.activeParameters(this).stream().map(key -> this.numericProperty(key))
 				.collect(Collectors.toList());
 	}
 

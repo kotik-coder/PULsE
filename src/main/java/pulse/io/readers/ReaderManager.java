@@ -2,10 +2,15 @@ package pulse.io.readers;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Scanner;
+import java.util.Set;
 import java.util.stream.Collectors;
+
+import org.apache.commons.io.FileUtils;
 
 import pulse.input.ExperimentalData;
 import pulse.input.InterpolationDataset;
@@ -236,6 +241,37 @@ public final class ReaderManager {
 
 		return list;
 
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static <T> Set<T> load(AbstractReader<?> reader, String location, String listName) {
+		
+		InputStream stream = ReaderManager.class.getResourceAsStream(location + listName);
+
+		Scanner s = new Scanner(stream);
+		var names = new ArrayList<String>();
+		
+		while(s.hasNext())
+			names.add(s.next());
+		
+		s.close();
+		
+		return names.stream().map(name -> readSpecific(reader, location, name) ).map(obj -> (T)obj).collect(Collectors.toSet());
+		
+	}
+	
+	private static Object readSpecific(AbstractReader<?> reader, String location, String name) {
+		Object result = null;
+		try {
+			var f = File.createTempFile(name, ".tmp");
+			f.deleteOnExit();
+			FileUtils.copyInputStreamToFile( ReaderManager.class.getResourceAsStream(location + name) , f);
+			result = reader.read(f);
+		} catch(IOException e) {
+			System.err.println("Unable to read: " + name);
+			e.printStackTrace();
+		}
+		return result;
 	}
 
 }

@@ -154,9 +154,9 @@ public class PropertyHolderTable extends JTable {
 
 		List<Object[]> dataList = new ArrayList<Object[]>();
 		List<Property> listedProperties = p.listedTypes();
-		List<NumericPropertyKeyword> types = listedProperties.stream().filter(pp -> pp instanceof NumericProperty).
-				map(np -> ((NumericProperty)np).getType() ).collect(Collectors.toList());
-		
+		List<NumericPropertyKeyword> types = listedProperties.stream().filter(pp -> pp instanceof NumericProperty)
+				.map(np -> ((NumericProperty) np).getType()).collect(Collectors.toList());
+
 		var data = p.data();
 
 		Property property;
@@ -164,14 +164,14 @@ public class PropertyHolderTable extends JTable {
 		for (Iterator<Property> it = data.iterator(); it.hasNext();) {
 			property = it.next();
 
-			if(property instanceof NumericProperty) {
-				if(types.contains( ((NumericProperty)property).getType() ))
+			if (property instanceof NumericProperty) {
+				if (types.contains(((NumericProperty) property).getType()))
 					dataList.add(new Object[] { property.getDescriptor(true), property });
 			}
 
 			else if (listedProperties.contains(property))
 				dataList.add(new Object[] { property.getDescriptor(true), property });
-			
+
 		}
 
 		if (p.ignoreSiblings())

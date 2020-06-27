@@ -61,7 +61,7 @@ public class ExecutionButton extends JButton {
 					JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor((Component) e.getSource()),
 							t + " is " + t.getStatus().getMessage(), "Problems found", JOptionPane.ERROR_MESSAGE);
 				} else {
-					if ( TaskManager.getTaskList().stream().anyMatch(t -> ! t.getProblem().isBatchProcessingEnabled() ) )
+					if (TaskManager.getTaskList().stream().anyMatch(t -> !t.getProblem().isBatchProcessingEnabled()))
 						TaskManager.execute(TaskManager.getSelectedTask());
 					else {
 						TaskManager.executeAll();

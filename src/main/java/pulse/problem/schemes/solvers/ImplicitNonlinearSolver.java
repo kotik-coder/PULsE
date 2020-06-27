@@ -62,7 +62,7 @@ public class ImplicitNonlinearSolver extends ImplicitScheme implements Solver<No
 		double Bi2 = Bi1;
 		T = (double) problem.getTestTemperature().getValue();
 		dT = problem.maximumHeating();
-		
+
 		U = new double[N + 1];
 		V = new double[N + 1];
 		alpha = new double[N + 2];

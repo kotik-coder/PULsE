@@ -3,11 +3,14 @@ package pulse.problem.schemes.rte.dom;
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Paths;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import pulse.io.readers.QuadratureReader;
 import pulse.io.readers.ReaderManager;
 import pulse.properties.Property;
+import pulse.ui.Launcher;
 
 public class OrdinateSet implements Property {
 
@@ -17,23 +20,10 @@ public class OrdinateSet implements Property {
 	private boolean hasZeroNode;
 	protected int firstPositiveNode, firstNegativeNode, total;
 
-	private static Set<OrdinateSet> allOptions;
+	private static Set<OrdinateSet> allOptions = ReaderManager.load(QuadratureReader.getInstance(), "/quadratures/", "Quadratures.list");
 	private final static String DEFAULT_SET = "G8M";
 
 	private String name;
-
-	static {
-		URI uri = null;
-		try {
-			uri = OrdinateSet.class.getResource("/quadratures/").toURI();
-		} catch (URISyntaxException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		allOptions = ReaderManager.readDirectory(new File(uri)).stream().filter(object -> object instanceof OrdinateSet)
-				.map(obj -> (OrdinateSet) obj).collect(Collectors.toSet());
-	}
 
 	public double[] getNodes() {
 		return mu;

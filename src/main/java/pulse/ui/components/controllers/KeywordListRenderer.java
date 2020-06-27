@@ -6,6 +6,7 @@ import java.awt.Font;
 
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JList;
+
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 
@@ -24,14 +25,15 @@ public class KeywordListRenderer extends DefaultListCellRenderer {
 	public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected,
 			boolean cellHasFocus) {
 
-		var renderer =  super.getListCellRendererComponent(list, ( NumericProperty.def((NumericPropertyKeyword)value).getDescriptor(true) ), 
-				index, cellHasFocus, cellHasFocus  );
-		
+		var renderer = super.getListCellRendererComponent(list,
+				(NumericProperty.def((NumericPropertyKeyword) value).getDescriptor(true)), index, cellHasFocus,
+				cellHasFocus);
+
 		renderer.setForeground(Color.black);
-		if(isSelected) 
+		if (isSelected)
 			renderer.setFont(renderer.getFont().deriveFont(Font.BOLD));
 		return renderer;
-		
+
 	}
-		
+
 }

@@ -194,7 +194,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 		case THICKNESS:
 			setSampleThickness(value);
 			break;
-		case HEAT_LOSS :
+		case HEAT_LOSS:
 			this.Bi1 = (double) value.getValue();
 			this.Bi2 = Bi1;
 			break;
@@ -210,7 +210,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 		default:
 			return;
 		}
-		
+
 		notifyListeners(this, value);
 
 	}
@@ -560,7 +560,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 	public boolean isEnabled() {
 		return true;
 	}
-	
+
 	public boolean isBatchProcessingEnabled() {
 		return true;
 	}

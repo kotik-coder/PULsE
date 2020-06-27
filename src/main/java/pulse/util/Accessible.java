@@ -267,7 +267,7 @@ public abstract class Accessible extends Group {
 						&& property.getClass().equals(m.getParameterTypes()[1])) {
 
 					for (Method met : methods)
-						if (met.getReturnType().equals(m.getParameterTypes()[0]) && (met.getParameterCount() == 0) ) {
+						if (met.getReturnType().equals(m.getParameterTypes()[0]) && (met.getParameterCount() == 0)) {
 							Iterable<Property> returnType = null;
 							try {
 								returnType = (Iterable<Property>) met.invoke(this);

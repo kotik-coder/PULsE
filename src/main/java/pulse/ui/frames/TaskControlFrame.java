@@ -56,7 +56,7 @@ public class TaskControlFrame extends JFrame {
 	private TaskControlFrame() {
 		setTitle(Messages.getString("TaskControlFrame.SoftwareTitle"));
 		setPreferredSize(new Dimension(WIDTH, HEIGHT));
-		setExtendedState( getExtendedState()|JFrame.MAXIMIZED_BOTH );
+		setExtendedState(getExtendedState() | JFrame.MAXIMIZED_BOTH);
 		initComponents();
 		initListeners();
 		TaskManager.addSelectionListener(e -> graphFrame.plot());

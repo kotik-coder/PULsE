@@ -21,7 +21,7 @@ public class PenetrationProblem extends LinearisedProblem {
 	static {
 		instanceDescriptor.setSelectedDescriptor(BeerLambertAbsorption.class.getSimpleName());
 	}
-	
+
 	private AbsorptionModel absorption = instanceDescriptor.newInstance(AbsorptionModel.class);
 
 	private final static double SENSITIVITY = 100;
@@ -43,7 +43,7 @@ public class PenetrationProblem extends LinearisedProblem {
 		if (sdd instanceof PenetrationProblem) {
 			PenetrationProblem tp = (PenetrationProblem) sdd;
 			this.absorption = tp.absorption;
-		} 
+		}
 	}
 
 	public PenetrationProblem(PenetrationProblem tp) {

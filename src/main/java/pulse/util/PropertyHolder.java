@@ -41,7 +41,7 @@ public abstract class PropertyHolder extends Accessible {
 		for (Accessible accessible : accessibleChildren())
 			if (accessible instanceof PropertyHolder)
 				properties.addAll(((PropertyHolder) accessible).listedTypes());
-		
+
 		return properties;
 	}
 
@@ -62,13 +62,13 @@ public abstract class PropertyHolder extends Accessible {
 	private boolean isListedNumericType(NumericProperty p) {
 		return isListedNumericType(p.getType());
 	}
-	
+
 	public boolean isListedNumericType(NumericPropertyKeyword p) {
 		if (p == null)
 			return false;
 
 		return parameters.stream().filter(pr -> pr instanceof NumericProperty).map(prop -> (NumericProperty) prop)
-				.anyMatch(param -> param.getType() == p );
+				.anyMatch(param -> param.getType() == p);
 
 	}
 

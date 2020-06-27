@@ -237,7 +237,7 @@ public class ParticipatingMedium extends NonlinearProblem {
 	public Class<? extends DifferenceScheme> defaultScheme() {
 		return MixedScheme.class;
 	}
-	
+
 	public boolean isBatchProcessingEnabled() {
 		return false;
 	}

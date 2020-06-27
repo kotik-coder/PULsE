@@ -15,7 +15,7 @@ public class DiathermicMedium extends LinearisedProblem {
 	private double diathermicCoefficient;
 	private final static boolean DEBUG = false;
 	private final static int DEFAULT_CURVE_POINTS = 300;
-	
+
 	public DiathermicMedium() {
 		super();
 		this.diathermicCoefficient = (double) NumericProperty.def(NumericPropertyKeyword.DIATHERMIC_COEFFICIENT)

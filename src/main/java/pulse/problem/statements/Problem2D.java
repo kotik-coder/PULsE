@@ -57,11 +57,11 @@ public abstract class Problem2D extends Problem implements TwoDimensional {
 		this.fovInner = sdd.fovInner;
 		setComplexity(ProblemComplexity.MODERATE);
 	}
-	
+
 	public void useTheoreticalEstimates(ExperimentalData c) {
 		super.useTheoreticalEstimates(c);
-		if (areThermalPropertiesLoaded()) 
-			Bi3 = biot();	
+		if (areThermalPropertiesLoaded())
+			Bi3 = biot();
 	}
 
 	@Override

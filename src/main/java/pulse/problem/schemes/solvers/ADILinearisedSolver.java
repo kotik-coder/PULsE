@@ -241,13 +241,13 @@ public class ADILinearisedSolver extends ADIScheme implements Solver<LinearisedP
 			sum /= (lastIndex - firstIndex + 1);
 
 			curve.addPoint((w * timeInterval) * tau * problem.timeFactor(), sum);
-			
+
 			maxVal = max(maxVal, sum);
 
 		}
-		
+
 		curve.scale(maxTemp / maxVal);
-		
+
 	}
 
 	@Override

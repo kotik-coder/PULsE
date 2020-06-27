@@ -25,8 +25,8 @@ public class QuadratureReader implements AbstractReader<OrdinateSet> {
 	public OrdinateSet read(File file) throws IOException {
 		Objects.requireNonNull(file, Messages.getString("TBLReader.1"));
 
-		if (!AbstractReader.super.isExtensionSupported(file))
-			throw new IllegalArgumentException("Extension not supported for: " + file);
+//		if (!AbstractReader.super.isExtensionSupported(file))
+//			throw new IllegalArgumentException("Extension not supported for: " + file);
 
 		String name = file.getName();
 		if (name.indexOf(".") > 0)

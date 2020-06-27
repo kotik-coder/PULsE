@@ -7,7 +7,6 @@ import java.util.List;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
-import pulse.ui.Messages;
 
 public class Pulse2D extends Pulse {
 

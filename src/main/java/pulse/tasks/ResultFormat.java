@@ -23,9 +23,10 @@ public class ResultFormat {
 
 	private List<NumericPropertyKeyword> nameMap;
 
-	private final static NumericPropertyKeyword[] minimalArray = 
-			new NumericPropertyKeyword[] { NumericPropertyKeyword.IDENTIFIER, NumericPropertyKeyword.TEST_TEMPERATURE, NumericPropertyKeyword.DIFFUSIVITY }; 
-	
+	private final static NumericPropertyKeyword[] minimalArray = new NumericPropertyKeyword[] {
+			NumericPropertyKeyword.IDENTIFIER, NumericPropertyKeyword.TEST_TEMPERATURE,
+			NumericPropertyKeyword.DIFFUSIVITY };
+
 	/**
 	 * <p>
 	 * The default format specified by the
@@ -40,10 +41,10 @@ public class ResultFormat {
 	private ResultFormat() {
 		this(Arrays.asList(minimalArray));
 	}
-	
+
 	private ResultFormat(List<NumericPropertyKeyword> keys) {
 		nameMap = new ArrayList<NumericPropertyKeyword>();
-		for(NumericPropertyKeyword key : keys)
+		for (NumericPropertyKeyword key : keys)
 			nameMap.add(key);
 	}
 
@@ -129,7 +130,7 @@ public class ResultFormat {
 				.filter(keyword -> NumericProperty.theDefault(keyword).getAbbreviation(true).equals(descriptor))
 				.findFirst().get();
 	}
-	
+
 	/**
 	 * Calculates the length of the format string, which is the same as the size of
 	 * the keyword list.

@@ -384,9 +384,9 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
 
 	@Override
 	public boolean equals(Object o) {
-		if(o == null)
+		if (o == null)
 			return false;
-		
+
 		if (o == this)
 			return true;
 
@@ -397,9 +397,9 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
 
 		if (onp.getType() != this.getType())
 			return false;
-		
+
 		return compareValues(onp) == 0;
-	
+
 	}
 
 	@Override
@@ -424,8 +424,8 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
 		Double d1 = value.doubleValue();
 		Double d2 = ((Number) arg0.getValue()).doubleValue();
 
-		final double eps = 1E-8*(d1 + d2)/2.0;
-		
+		final double eps = 1E-8 * (d1 + d2) / 2.0;
+
 		return Math.abs(d1 - d2) < eps ? 0 : d1.compareTo(d2);
 	}
 

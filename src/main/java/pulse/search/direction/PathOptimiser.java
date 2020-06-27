@@ -307,29 +307,29 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 
 		return list;
 	}
-	
+
 	public static void listAvailableProperties(List<Property> list) {
 		list.addAll(problemIndependentFlags);
-		
+
 		var t = TaskManager.getSelectedTask();
 
 		if (t != null) {
 			var p = t.getProblem();
-		
-			if(p != null) {
-				
+
+			if (p != null) {
+
 				var params = p.listedTypes().stream().filter(pp -> pp instanceof NumericProperty)
-						.map(pMap -> ((NumericProperty)pMap).getType()).collect(Collectors.toList());
-	
+						.map(pMap -> ((NumericProperty) pMap).getType()).collect(Collectors.toList());
+
 				NumericPropertyKeyword key;
-				
+
 				for (Flag property : problemDependentFlags) {
 					key = property.getType();
-					if(params.contains(key)) 
+					if (params.contains(key))
 						list.add(property);
 
 				}
-				
+
 			}
 		} else {
 			for (Flag property : problemDependentFlags)
@@ -379,10 +379,9 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 		Problem p = t.getProblem();
 		var list = new ArrayList<NumericPropertyKeyword>();
 		var list1 = PathOptimiser.getProblemDependentFlags().stream()
-				.filter(flag -> ( (boolean) flag.getValue() ) && ( p.isListedNumericType( flag.getType() ) ) )
+				.filter(flag -> ((boolean) flag.getValue()) && (p.isListedNumericType(flag.getType())))
 				.map(flag -> flag.getType()).collect(Collectors.toList());
-		var list2 = PathOptimiser.getProblemIndependentFlags().stream()
-				.filter(flag -> ( (boolean) flag.getValue() ) )
+		var list2 = PathOptimiser.getProblemIndependentFlags().stream().filter(flag -> ((boolean) flag.getValue()))
 				.map(flag -> flag.getType()).collect(Collectors.toList());
 		list.addAll(list1);
 		list.addAll(list2);
