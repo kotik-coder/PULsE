@@ -46,9 +46,9 @@ public class ImplicitDiathermicSolver extends ImplicitScheme implements Solver<D
 	private void prepare(DiathermicMedium problem) {
 		super.prepare(problem);
 		curve = problem.getHeatingCurve();
+		maxTemp = (double)problem.getMaximumTemperature().getValue();
 
-		Bi1 = (double) problem.getFrontHeatLoss().getValue();
-		maxTemp = (double) problem.getMaximumTemperature().getValue();
+		Bi1 = (double) problem.getHeatLoss().getValue();
 		eta = (double) problem.getDiathermicCoefficient().getValue();
 
 		N = (int) grid.getGridDensity().getValue();
@@ -113,7 +113,7 @@ public class ImplicitDiathermicSolver extends ImplicitScheme implements Solver<D
 
 				pls = discretePulse.evaluateAt((m - EPS) * tau); // NOTE: EPS is very important here and ensures
 																	// numeric stability!
-
+				
 				beta[1] = (hx * hx / (2.0 * tau) * U[0] + hx * pls) / z0;
 
 				for (i = 1; i < N; i++) {
@@ -143,7 +143,7 @@ public class ImplicitDiathermicSolver extends ImplicitScheme implements Solver<D
 			maxVal = Math.max(maxVal, V[N]);
 
 			curve.addPoint((w * timeInterval) * tau * problem.timeFactor(), V[N]);
-
+			
 			/*
 			 * UNCOMMENT TO DEBUG
 			 */
@@ -151,7 +151,7 @@ public class ImplicitDiathermicSolver extends ImplicitScheme implements Solver<D
 			// debug(problem, V, w);
 
 		}
-
+		
 		curve.scale(maxTemp / maxVal);
 
 	}

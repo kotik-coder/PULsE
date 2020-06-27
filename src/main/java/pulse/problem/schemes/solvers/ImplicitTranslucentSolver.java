@@ -5,13 +5,13 @@ import static java.lang.Math.pow;
 import pulse.HeatingCurve;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.ImplicitScheme;
-import pulse.problem.statements.AbsorptionModel;
-import pulse.problem.statements.AbsorptionModel.SpectralRange;
-import pulse.problem.statements.DistributedAbsorptionProblem;
+import pulse.problem.statements.PenetrationProblem;
 import pulse.problem.statements.Problem;
+import pulse.problem.statements.penetration.AbsorptionModel;
+import pulse.problem.statements.penetration.AbsorptionModel.SpectralRange;
 import pulse.properties.NumericProperty;
 
-public class ImplicitTranslucentSolver extends ImplicitScheme implements Solver<DistributedAbsorptionProblem> {
+public class ImplicitTranslucentSolver extends ImplicitScheme implements Solver<PenetrationProblem> {
 
 	private double Bi1;
 	private double Bi2;
@@ -45,15 +45,15 @@ public class ImplicitTranslucentSolver extends ImplicitScheme implements Solver<
 		super(N, timeFactor, timeLimit);
 	}
 
-	private void prepare(DistributedAbsorptionProblem problem) {
+	private void prepare(PenetrationProblem problem) {
 		super.prepare(problem);
 
 		curve = problem.getHeatingCurve();
 
 		absorption = problem.getAbsorptionModel();
 
-		Bi1 = (double) problem.getFrontHeatLoss().getValue();
-		Bi2 = (double) problem.getHeatLossRear().getValue();
+		Bi1 = (double) problem.getHeatLoss().getValue();
+		Bi2 = Bi1;
 		maxTemp = (double) problem.getMaximumTemperature().getValue();
 
 		N = (int) grid.getGridDensity().getValue();
@@ -78,7 +78,7 @@ public class ImplicitTranslucentSolver extends ImplicitScheme implements Solver<
 	}
 
 	@Override
-	public void solve(DistributedAbsorptionProblem problem) {
+	public void solve(PenetrationProblem problem) {
 
 		prepare(problem);
 
@@ -164,7 +164,7 @@ public class ImplicitTranslucentSolver extends ImplicitScheme implements Solver<
 
 	@Override
 	public Class<? extends Problem> domain() {
-		return DistributedAbsorptionProblem.class;
+		return PenetrationProblem.class;
 	}
 
 }

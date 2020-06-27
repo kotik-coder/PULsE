@@ -4,6 +4,7 @@ import java.util.List;
 
 import pulse.math.Vector;
 import pulse.problem.schemes.rte.EmissionFunction;
+import pulse.problem.statements.ParticipatingMedium;
 import pulse.properties.Property;
 
 /**
@@ -17,8 +18,9 @@ public class ExplicitRungeKutta extends AdaptiveIntegrator {
 
 	private ButcherTableau tableau;
 
-	public ExplicitRungeKutta(DiscreteIntensities intensities, EmissionFunction ef, PhaseFunction ipf) {
-		super(intensities, ef, ipf);
+	public ExplicitRungeKutta(ParticipatingMedium medium, DiscreteIntensities intensities, EmissionFunction ef,
+			PhaseFunction ipf) {
+		super(medium, intensities, ef, ipf);
 		tableau = ButcherTableau.getDefaultInstance();
 	}
 

@@ -1,32 +1,12 @@
 package pulse.ui.frames.dialogs;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-
-import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JTextField;
-import javax.swing.JTextPane;
-import javax.swing.UIManager;
-import javax.swing.text.AbstractDocument;
-import javax.swing.text.AttributeSet;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.DocumentFilter;
-import javax.swing.text.html.HTMLDocument;
-import javax.swing.text.html.HTMLEditorKit;
-
+import pulse.properties.NumericPropertyKeyword;
 import pulse.tasks.ResultFormat;
-import pulse.ui.Messages;
+import pulse.ui.components.controllers.KeywordListRenderer;
+import pulse.ui.components.models.ParameterListModel;
+import pulse.ui.components.models.ResultListModel;
 
 public class ResultChangeDialog extends JDialog {
 	/**
@@ -42,150 +22,156 @@ public class ResultChangeDialog extends JDialog {
 
 		JDialog reference = this;
 
-		setTitle("Change of Output Format");
+		setTitle("Result output formatting");
 
 		setSize(WIDTH, HEIGHT);
 
-		BufferedReader reader = new BufferedReader(
-				new InputStreamReader(getClass().getResourceAsStream("/ResultFormatDescription.html")));
-
-		StringBuilder sb = new StringBuilder();
-		String str;
-
-		try {
-			while ((str = reader.readLine()) != null)
-				sb.append(str);
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-
-		JTextPane textPane = new JTextPane();
-		textPane.setFont(new Font("Arial", Font.PLAIN, 14));
-		textPane.setBackground(UIManager.getColor("Panel.background"));
-		textPane.setEditable(false);
-		textPane.setContentType("text/html");
-
-		final HTMLDocument doc = (HTMLDocument) textPane.getDocument();
-		final HTMLEditorKit kit = (HTMLEditorKit) textPane.getEditorKit();
-		try {
-			kit.insertHTML(doc, doc.getLength(), sb.toString(), 0, 0, null);
-		} catch (BadLocationException e) {
-			System.err.println(Messages.getString("LogPane.InsertError")); //$NON-NLS-1$
-			e.printStackTrace();
-		} catch (IOException e) {
-			System.err.println(Messages.getString("LogPane.PrintError")); //$NON-NLS-1$
-			e.printStackTrace();
-		}
-
-		getContentPane().add(new JScrollPane(textPane), BorderLayout.CENTER);
-
-		JPanel panel = new JPanel();
-		panel.setPreferredSize(new Dimension(this.getWidth(), 35));
-		getContentPane().add(panel, BorderLayout.SOUTH);
-		panel.setLayout(new GridLayout(0, 2, 0, 0));
-
-		textField = new JTextField();
-		AbstractDocument absDoct = (AbstractDocument) textField.getDocument();
-		absDoct.setDocumentFilter(new DocumentFilter() {
-
-			@Override
-			public void insertString(DocumentFilter.FilterBypass fb, int offset, String text, AttributeSet attr)
-					throws BadLocationException {
-
-				StringBuilder buffer = new StringBuilder(text.length());
-				char[] allowedChars = ResultFormat.getAllowedCharacters();
-
-				for (char ch : text.toCharArray()) {
-
-					for (char allowedCh : allowedChars) {
-						if (Character.toLowerCase(ch) == Character.toLowerCase(allowedCh)) {
-
-							buffer.append(Character.toUpperCase(ch));
-							break;
-
-						}
-					}
-
-				}
-
-				super.insertString(fb, offset, buffer.toString(), attr);
-
-			}
-
-			@Override
-			public void replace(DocumentFilter.FilterBypass fb, int offset, int length, String string,
-					AttributeSet attr) throws BadLocationException {
-				if (length > 0) {
-					fb.remove(offset, length);
-				}
-				insertString(fb, offset, string, attr);
-			}
-
-		});
-
-		textField.setText(ResultFormat.getInstance().toString());
-		panel.add(textField);
-		textField.setColumns(10);
-
-		JButton btnApply = new JButton("Apply");
-		panel.add(btnApply);
-
-		btnApply.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-
-				char[] fmt = textField.getText().toCharArray();
-
-				// search for duplicates
-
-				boolean duplicateFound = false;
-
-				outer: for (int i = 0; i < fmt.length; i++) {
-
-					for (int j = i + 1; j < fmt.length; j++) {
-
-						if (fmt[i] == fmt[j]) {
-							duplicateFound = true;
-							break outer;
-						}
-
-					}
-
-				}
-
-				if (duplicateFound) {
-					JOptionPane.showMessageDialog(reference, "Duplicate symbol found in format string. Please correct!",
-							"Duplicate Symbol", JOptionPane.WARNING_MESSAGE);
-					textField.setText(ResultFormat.getInstance().toString());
-					return;
-				}
-
-				boolean formatError = false;
-
-				for (char cm : ResultFormat.getMinimumAllowedFormat()) {
-					if (textField.getText().indexOf(cm) < 0) {
-						formatError = true;
-						break;
-					}
-				}
-
-				if (formatError) {
-					JOptionPane.showMessageDialog(reference,
-							"The following characters are required: "
-									+ new String(ResultFormat.getMinimumAllowedFormat()),
-							"Wrong Format", JOptionPane.WARNING_MESSAGE);
-					textField.setText(ResultFormat.getInstance().toString());
-					return;
-				}
-
-				ResultFormat.generateFormat(textField.getText());
-
-			}
-
-		});
-
+        initComponents();
+        
+    	var model = (ResultListModel)rightList.getModel();
+        
+        moveRightBtn.addActionListener(e -> {
+        	
+        	var key = leftList.getSelectedValue();
+        	
+        	if(key != null) 
+        		if( ! model.contains(key) )
+        			model.add(key);
+        	
+        });
+        
+        moveLeftBtn.addActionListener(e -> {
+        	
+        	var key = rightList.getSelectedValue();
+        			
+        	if(key != null) 
+        		model.remove(key);
+        	
+        });
+                
+		commitBtn.addActionListener( e -> ResultFormat.generateFormat( model.getData() ) );
+		cancelBtn.addActionListener( e -> this.setVisible(false) );
+				
 	}
+	
+	@Override
+	public void setVisible(boolean value) {
+		super.setVisible(value);
+		( (ResultListModel) rightList.getModel() ).update();
+		( (ParameterListModel) leftList.getModel() ).update();
+	}
+        
+    private void initComponents() {
+        java.awt.GridBagConstraints gridBagConstraints;
+
+        MainContainer = new javax.swing.JPanel();
+        leftScroller = new javax.swing.JScrollPane();
+        leftList = new javax.swing.JList<>();
+        rightScroller = new javax.swing.JScrollPane();
+        rightList = new javax.swing.JList<>();
+        moveToolbar = new javax.swing.JToolBar();
+        moveRightBtn = new javax.swing.JButton();
+        moveLeftBtn = new javax.swing.JButton();
+        MainToolbar = new javax.swing.JToolBar();
+        filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 0));
+        cancelBtn = new javax.swing.JButton();
+        filler3 = new javax.swing.Box.Filler(new java.awt.Dimension(25, 0), new java.awt.Dimension(25, 0), new java.awt.Dimension(25, 32767));
+        commitBtn = new javax.swing.JButton();
+        filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 0));
+
+        setDefaultCloseOperation(javax.swing.WindowConstants.HIDE_ON_CLOSE);
+
+        MainContainer.setPreferredSize(new java.awt.Dimension(650, 400));
+        MainContainer.setLayout(new java.awt.GridBagLayout());
+
+        leftScroller.setBorder(javax.swing.BorderFactory.createTitledBorder("Available properties"));
+        leftList.setModel(new ParameterListModel());
+        leftList.setCellRenderer(new KeywordListRenderer());
+        leftList.setFixedCellHeight(50);
+        leftScroller.setViewportView(leftList);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.weighty = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(8, 5, 8, 5);
+        MainContainer.add(leftScroller, gridBagConstraints);
+
+        rightScroller.setBorder(javax.swing.BorderFactory.createTitledBorder("Printed output"));
+
+        rightList.setModel(new ResultListModel());
+        rightList.setCellRenderer(new KeywordListRenderer());
+        rightList.setFixedCellHeight(50);
+        rightScroller.setViewportView(rightList);
+        
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.weighty = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(9, 5, 9, 5);
+        MainContainer.add(rightScroller, gridBagConstraints);
+
+        moveToolbar.setFloatable(false);
+        moveToolbar.setOrientation(javax.swing.SwingConstants.VERTICAL);
+        moveToolbar.setRollover(true);
+
+        moveRightBtn.setText(">>");
+        moveRightBtn.setFocusable(false);
+        moveRightBtn.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        moveRightBtn.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        moveToolbar.add(moveRightBtn);
+
+        moveLeftBtn.setText("<<");
+        moveLeftBtn.setFocusable(false);
+        moveLeftBtn.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        moveLeftBtn.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        moveToolbar.add(moveLeftBtn);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        MainContainer.add(moveToolbar, gridBagConstraints);
+
+        getContentPane().add(MainContainer, java.awt.BorderLayout.CENTER);
+
+        MainToolbar.setFloatable(false);
+        MainToolbar.setRollover(true);
+        MainToolbar.add(filler1);
+
+        cancelBtn.setFont(new java.awt.Font("Dialog", 1, 16)); // NOI18N
+        cancelBtn.setText("Cancel");
+        cancelBtn.setFocusable(false);
+        cancelBtn.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        cancelBtn.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        MainToolbar.add(cancelBtn);
+        MainToolbar.add(filler3);
+
+        commitBtn.setFont(new java.awt.Font("Dialog", 1, 16)); // NOI18N
+        commitBtn.setText("Commit");
+        commitBtn.setFocusable(false);
+        commitBtn.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        commitBtn.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        MainToolbar.add(commitBtn);
+        MainToolbar.add(filler2);
+
+        getContentPane().add(MainToolbar, java.awt.BorderLayout.SOUTH);
+
+        pack();
+    }
+    
+    private javax.swing.JPanel MainContainer;
+    private javax.swing.JToolBar MainToolbar;
+    private javax.swing.JButton cancelBtn;
+    private javax.swing.JButton commitBtn;
+    private javax.swing.Box.Filler filler1;
+    private javax.swing.Box.Filler filler2;
+    private javax.swing.Box.Filler filler3;
+    private javax.swing.JButton moveRightBtn;
+    private javax.swing.JButton moveLeftBtn;
+    private javax.swing.JToolBar moveToolbar;
+    private javax.swing.JList<NumericPropertyKeyword> leftList;
+    private javax.swing.JScrollPane leftScroller;
+    private javax.swing.JList<NumericPropertyKeyword> rightList;
+    private javax.swing.JScrollPane rightScroller;
 
 }

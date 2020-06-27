@@ -1,11 +1,12 @@
 package pulse.problem.schemes.rte.exact;
 
 import pulse.problem.schemes.Grid;
+import pulse.problem.schemes.rte.RTECalculationStatus;
 import pulse.problem.statements.ParticipatingMedium;
 
-public class DiscreteDerivativeCalculator extends NonscatteringRadiativeTransfer {
+public class NonscatteringDiscreteDerivatives extends NonscatteringRadiativeTransfer {
 
-	public DiscreteDerivativeCalculator(ParticipatingMedium problem, Grid grid) {
+	public NonscatteringDiscreteDerivatives(ParticipatingMedium problem, Grid grid) {
 		super(problem, grid);
 	}
 
@@ -15,12 +16,13 @@ public class DiscreteDerivativeCalculator extends NonscatteringRadiativeTransfer
 	}
 
 	@Override
-	public void compute(double U[]) {
+	public RTECalculationStatus compute(double U[]) {
 		super.compute(U);
 		radiosities();
 		for (int i = 1, N = this.getExternalGridDensity(); i < N; i++)
 			flux(i);
 		boundaryFluxes();
+		return RTECalculationStatus.NORMAL;
 	}
 
 }

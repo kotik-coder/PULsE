@@ -2,6 +2,7 @@ package pulse.ui.components.controllers;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Font;
 
 import javax.swing.JButton;
 import javax.swing.JFormattedTextField;
@@ -29,8 +30,11 @@ public class AccessibleTableRenderer extends NumericPropertyRenderer {
 	public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
 			int row, int column) {
 
-		if (value instanceof NumericProperty)
-			return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+		if (value instanceof NumericProperty) {
+			var renderer = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+			renderer.setForeground(Color.BLUE);
+			return renderer;
+		}
 
 		if (value instanceof Flag) {
 			IconCheckBox btn = new IconCheckBox((boolean) ((Flag) value).getValue());
@@ -49,6 +53,8 @@ public class AccessibleTableRenderer extends NumericPropertyRenderer {
 
 		if (value instanceof Property) {
 			JFormattedTextField jtf = initTextField(value.toString(), table.isRowSelected(row));
+			jtf.setForeground(Color.RED);
+			jtf.setFont(jtf.getFont().deriveFont(Font.BOLD));
 			return jtf;
 		}
 
@@ -58,8 +64,10 @@ public class AccessibleTableRenderer extends NumericPropertyRenderer {
 
 	private JButton initButton(String str) {
 		JButton button = new JButton(str);
-		button.setContentAreaFilled(false);
-		button.setFont(button.getFont().deriveFont(9.0f));
+		button.setContentAreaFilled(true);
+		button.setBackground(Color.LIGHT_GRAY);
+		button.setFont(button.getFont().deriveFont(12.0f).deriveFont(Font.ITALIC));
+		button.setToolTipText(str);
 		return button;
 	}
 

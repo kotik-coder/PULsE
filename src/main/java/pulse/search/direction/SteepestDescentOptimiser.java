@@ -1,6 +1,7 @@
 package pulse.search.direction;
 
 import pulse.math.Vector;
+import pulse.problem.schemes.solvers.SolverException;
 import pulse.tasks.SearchTask;
 import pulse.ui.Messages;
 
@@ -40,10 +41,12 @@ public class SteepestDescentOptimiser extends PathOptimiser {
 
 	/**
 	 * Calculates the gradient value at the end of each step.
+	 * 
+	 * @throws SolverException
 	 */
 
 	@Override
-	public void endOfStep(SearchTask task) {
+	public void endOfStep(SearchTask task) throws SolverException {
 		task.getPath().setGradient(gradient(task));
 	}
 

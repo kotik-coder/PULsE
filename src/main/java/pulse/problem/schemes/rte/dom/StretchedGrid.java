@@ -14,7 +14,6 @@ public class StretchedGrid extends PropertyHolder {
 
 	private double stretchingFactor;
 	private double dimension;
-	private int n;
 
 	public void setDimension(double dimension) {
 		this.dimension = dimension;
@@ -32,7 +31,7 @@ public class StretchedGrid extends PropertyHolder {
 	public StretchedGrid(NumericProperty gridDensity, double dimension, NumericProperty stretchingFactor) {
 		this.stretchingFactor = (double) stretchingFactor.getValue();
 		this.dimension = dimension;
-		this.n = (int) gridDensity.getValue();
+		int n = (int) gridDensity.getValue();
 		if (Double.compare(this.stretchingFactor, 1.0) == 0)
 			generateUniform(n, true);
 		else
@@ -56,7 +55,7 @@ public class StretchedGrid extends PropertyHolder {
 
 	public void generateUniform(int n, boolean scaled) {
 		nodes = new double[n + 1];
-		double h = (scaled ? dimension : 1.0) / (n);
+		double h = (scaled ? dimension : 1.0) / n;
 
 		for (int i = 0; i < nodes.length; i++)
 			nodes[i] = i * h;
@@ -71,20 +70,10 @@ public class StretchedGrid extends PropertyHolder {
 		return NumericProperty.derive(NumericPropertyKeyword.GRID_STRETCHING_FACTOR, stretchingFactor);
 	}
 
-	public NumericProperty getDensityProperty() {
-		return NumericProperty.derive(NumericPropertyKeyword.DOM_GRID_DENSITY, n);
-	}
-
 	public void setStretchingFactor(NumericProperty p) {
 		if (p.getType() != NumericPropertyKeyword.GRID_STRETCHING_FACTOR)
 			throw new IllegalArgumentException("Illegal type: " + p.getType());
 		this.stretchingFactor = (double) p.getValue();
-	}
-
-	public void setGridDensity(NumericProperty p) {
-		if (p.getType() != NumericPropertyKeyword.DOM_GRID_DENSITY)
-			throw new IllegalArgumentException("Illegal type: " + p.getType());
-		this.n = (int) p.getValue();
 	}
 
 	public double getDimension() {
@@ -121,9 +110,6 @@ public class StretchedGrid extends PropertyHolder {
 		case GRID_STRETCHING_FACTOR:
 			setStretchingFactor(property);
 			break;
-		case DOM_GRID_DENSITY:
-			setGridDensity(property);
-			break;
 		default:
 			throw new IllegalArgumentException("Unknown type: " + type);
 		}
@@ -139,7 +125,7 @@ public class StretchedGrid extends PropertyHolder {
 
 	@Override
 	public String toString() {
-		return "{ " + getDensityProperty() + " ; " + getStretchingFactor() + " }";
+		return "{ " + getDensity() + " ; " + getStretchingFactor() + " }";
 	}
 
 	@Override

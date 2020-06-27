@@ -1,23 +1,6 @@
 package pulse.properties;
 
-import static pulse.properties.NumericPropertyKeyword.BASELINE_INTERCEPT;
-import static pulse.properties.NumericPropertyKeyword.BASELINE_SLOPE;
-import static pulse.properties.NumericPropertyKeyword.DIATHERMIC_COEFFICIENT;
-import static pulse.properties.NumericPropertyKeyword.DIFFUSIVITY;
-import static pulse.properties.NumericPropertyKeyword.FOV_INNER;
-import static pulse.properties.NumericPropertyKeyword.FOV_OUTER;
-import static pulse.properties.NumericPropertyKeyword.HEAT_LOSS;
-import static pulse.properties.NumericPropertyKeyword.LASER_ABSORPTIVITY;
-import static pulse.properties.NumericPropertyKeyword.LOWER_BOUND;
-import static pulse.properties.NumericPropertyKeyword.MAXTEMP;
-import static pulse.properties.NumericPropertyKeyword.OPTICAL_THICKNESS;
-import static pulse.properties.NumericPropertyKeyword.PLANCK_NUMBER;
-import static pulse.properties.NumericPropertyKeyword.SCATTERING_ALBEDO;
-import static pulse.properties.NumericPropertyKeyword.SCATTERING_ANISOTROPY;
-import static pulse.properties.NumericPropertyKeyword.SPOT_DIAMETER;
-import static pulse.properties.NumericPropertyKeyword.THERMAL_ABSORPTIVITY;
-import static pulse.properties.NumericPropertyKeyword.TIME_SHIFT;
-import static pulse.properties.NumericPropertyKeyword.UPPER_BOUND;
+import static pulse.properties.NumericPropertyKeyword.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -89,28 +72,34 @@ public class Flag implements Property {
 	 * @return a {@code List} of default {@code Flag}s
 	 */
 
-	public static List<Flag> defaultList() {
+	public static List<Flag> allProblemDependentFlags() {
 		List<Flag> flags = new ArrayList<Flag>();
 		flags.add(new Flag(DIFFUSIVITY, NumericProperty.def(DIFFUSIVITY).getDescriptor(true), true));
 		flags.add(new Flag(HEAT_LOSS, NumericProperty.def(HEAT_LOSS).getDescriptor(true), true));
+		flags.add(new Flag(HEAT_LOSS_SIDE, NumericProperty.def(HEAT_LOSS_SIDE).getDescriptor(true), true));
 		flags.add(new Flag(MAXTEMP, NumericProperty.def(MAXTEMP).getDescriptor(true), true));
+		flags.add(new Flag(FOV_OUTER, NumericProperty.def(FOV_OUTER).getDescriptor(true), true));
+		flags.add(new Flag(FOV_INNER, NumericProperty.def(FOV_INNER).getDescriptor(true), true));
+		flags.add(new Flag(SPOT_DIAMETER, NumericProperty.def(SPOT_DIAMETER).getDescriptor(true), true));
+		flags.add(new Flag(DIATHERMIC_COEFFICIENT, NumericProperty.def(DIATHERMIC_COEFFICIENT).getDescriptor(true),
+				true));
+		flags.add(new Flag(LASER_ABSORPTIVITY, NumericProperty.def(LASER_ABSORPTIVITY).getDescriptor(true), true));
+		flags.add(new Flag(THERMAL_ABSORPTIVITY, NumericProperty.def(THERMAL_ABSORPTIVITY).getDescriptor(true), false));
+		flags.add(new Flag(OPTICAL_THICKNESS, NumericProperty.def(OPTICAL_THICKNESS).getDescriptor(true), true));
+		flags.add(new Flag(PLANCK_NUMBER, NumericProperty.def(PLANCK_NUMBER).getDescriptor(true), true));
+		flags.add(new Flag(SCATTERING_ALBEDO, NumericProperty.def(SCATTERING_ALBEDO).getDescriptor(true), true));
+		flags.add(
+				new Flag(SCATTERING_ANISOTROPY, NumericProperty.def(SCATTERING_ANISOTROPY).getDescriptor(true), true));
+		return flags;
+	}
+
+	public static List<Flag> allProblemIndependentFlags() {
+		List<Flag> flags = new ArrayList<Flag>();
 		flags.add(new Flag(BASELINE_INTERCEPT, NumericProperty.def(BASELINE_INTERCEPT).getDescriptor(true), false));
 		flags.add(new Flag(BASELINE_SLOPE, NumericProperty.def(BASELINE_SLOPE).getDescriptor(true), false));
-		flags.add(new Flag(FOV_OUTER, NumericProperty.def(FOV_OUTER).getDescriptor(true), false));
-		flags.add(new Flag(FOV_INNER, NumericProperty.def(FOV_INNER).getDescriptor(true), false));
-		flags.add(new Flag(SPOT_DIAMETER, NumericProperty.def(SPOT_DIAMETER).getDescriptor(true), false));
-		flags.add(new Flag(DIATHERMIC_COEFFICIENT, NumericProperty.def(DIATHERMIC_COEFFICIENT).getDescriptor(true),
-				false));
-		flags.add(new Flag(LASER_ABSORPTIVITY, NumericProperty.def(LASER_ABSORPTIVITY).getDescriptor(true), false));
-		flags.add(new Flag(THERMAL_ABSORPTIVITY, NumericProperty.def(THERMAL_ABSORPTIVITY).getDescriptor(true), false));
 		flags.add(new Flag(TIME_SHIFT, NumericProperty.def(TIME_SHIFT).getDescriptor(true), false));
 		flags.add(new Flag(LOWER_BOUND, NumericProperty.def(LOWER_BOUND).getDescriptor(true), false));
 		flags.add(new Flag(UPPER_BOUND, NumericProperty.def(UPPER_BOUND).getDescriptor(true), false));
-		flags.add(new Flag(OPTICAL_THICKNESS, NumericProperty.def(OPTICAL_THICKNESS).getDescriptor(true), false));
-		flags.add(new Flag(PLANCK_NUMBER, NumericProperty.def(PLANCK_NUMBER).getDescriptor(true), false));
-		flags.add(new Flag(SCATTERING_ALBEDO, NumericProperty.def(SCATTERING_ALBEDO).getDescriptor(true), false));
-		flags.add(
-				new Flag(SCATTERING_ANISOTROPY, NumericProperty.def(SCATTERING_ANISOTROPY).getDescriptor(true), false));
 		return flags;
 	}
 

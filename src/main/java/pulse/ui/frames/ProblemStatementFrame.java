@@ -30,6 +30,7 @@ import javax.swing.table.TableRowSorter;
 import pulse.input.InterpolationDataset;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.solvers.Solver;
+import pulse.problem.schemes.solvers.SolverException;
 import pulse.problem.statements.Problem;
 import pulse.tasks.SearchTask;
 import pulse.tasks.Status;
@@ -41,6 +42,7 @@ import pulse.ui.Messages;
 import pulse.ui.components.Chart;
 import pulse.ui.components.PropertyHolderTable;
 import pulse.ui.components.buttons.LoaderButton;
+import pulse.ui.components.controllers.ProblemListCellRenderer;
 import pulse.ui.components.panels.SettingsToolBar;
 import pulse.util.Reflexive;
 
@@ -59,8 +61,9 @@ public class ProblemStatementFrame extends JInternalFrame {
 	 * Create the frame.
 	 */
 	public ProblemStatementFrame() {
-		setResizable(false);
+		setResizable(true);
 		setClosable(true);
+		setMaximizable(true);
 		setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
 
 		setTitle(Messages.getString("ProblemStatementFrame.Title")); //$NON-NLS-1$
@@ -179,9 +182,16 @@ public class ProblemStatementFrame extends JInternalFrame {
 					}
 				}
 
-				((Solver) t.getScheme()).solve(t.getProblem());
+				try {
+					((Solver) t.getScheme()).solve(t.getProblem());
+				} catch (SolverException e) {
+					System.err.println("Solver of " + t + " has encountered an error. Details: ");
+					e.printStackTrace();
+				}
 
 				Chart.plot(t, true);
+				problemTable.updateTable();
+				schemeTable.updateTable();
 
 			}
 		});
@@ -305,6 +315,23 @@ public class ProblemStatementFrame extends JInternalFrame {
 
 	}
 
+	private static void selectDefaultScheme(JList<DifferenceScheme> list, Problem p) {
+		Class<? extends DifferenceScheme> defaultSchemeClass = p.defaultScheme();
+
+		var model = list.getModel();
+		DifferenceScheme element = null;
+
+		for (int i = 0, size = model.getSize(); i < size; i++) {
+			element = model.getElementAt(i);
+
+			if (defaultSchemeClass.isAssignableFrom(element.getClass())) {
+				list.setSelectedValue(element, true);
+				break;
+			}
+		}
+
+	}
+
 	private void changeScheme(SearchTask task, DifferenceScheme newScheme) {
 
 		// TODO
@@ -365,6 +392,7 @@ public class ProblemStatementFrame extends JInternalFrame {
 		public ProblemList() {
 			super();
 			setFont(getFont().deriveFont(LIST_FONT_SIZE));
+			this.setCellRenderer(new ProblemListCellRenderer());
 
 			DefaultListModel<Problem> listModel = new DefaultListModel<Problem>();
 
@@ -412,6 +440,8 @@ public class ProblemStatementFrame extends JInternalFrame {
 					List<DifferenceScheme> schemes = newlySelectedProblem.availableSolutions();
 
 					schemes.forEach(s -> defaultModel.addElement(s));
+
+					selectDefaultScheme(schemeSelectionList, selectedTask.getProblem());
 
 					schemeSelectionList.setToolTipText(null);
 
@@ -466,7 +496,6 @@ public class ProblemStatementFrame extends JInternalFrame {
 			super();
 			setFont(getFont().deriveFont(LIST_FONT_SIZE));
 			setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-
 			DefaultListModel<DifferenceScheme> m = new DefaultListModel<DifferenceScheme>();
 			setModel(m);
 			// scheme list listener

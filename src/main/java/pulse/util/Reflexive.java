@@ -43,9 +43,10 @@ public interface Reflexive {
 
 		ref.addAll(ReflexiveFinder.simpleInstances(pckgname, params));
 
-		for (Reflexive r : ref)
+		for (Reflexive r : ref) {
 			if (reflexiveType.isAssignableFrom(r.getClass()))
 				p.add((T) r);
+		}
 
 		return p;
 

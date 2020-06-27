@@ -9,8 +9,9 @@ import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.Grid;
 import pulse.problem.schemes.ImplicitScheme;
 import pulse.problem.schemes.rte.MathUtils;
+import pulse.problem.schemes.rte.RTECalculationStatus;
 import pulse.problem.schemes.rte.RadiativeTransferSolver;
-import pulse.problem.schemes.rte.exact.AnalyticalDerivativeCalculator;
+import pulse.problem.schemes.rte.exact.NonscatteringDiscreteDerivatives;
 import pulse.problem.statements.ParticipatingMedium;
 import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
@@ -21,14 +22,14 @@ import pulse.util.InstanceDescriptor;
 public class ImplicitCoupledSolver extends ImplicitScheme implements Solver<ParticipatingMedium> {
 
 	/**
-	 * The default value of {@code tauFactor}, which is set to {@code 1.0} for this
-	 * scheme.
+	 * The default value of {@code tauFactor}, which is set to {@code 0.66667} for
+	 * this scheme.
 	 */
 
 	public final static NumericProperty TAU_FACTOR = NumericProperty.derive(NumericPropertyKeyword.TAU_FACTOR, 0.66667);
 
 	/**
-	 * The default value of {@code gridDensity}, which is set to {@code 30} for this
+	 * The default value of {@code gridDensity}, which is set to {@code 20} for this
 	 * scheme.
 	 */
 
@@ -46,6 +47,7 @@ public class ImplicitCoupledSolver extends ImplicitScheme implements Solver<Part
 	private double[] alpha, beta;
 
 	private RadiativeTransferSolver rte;
+
 	private double Np;
 
 	private final static double EPS = 1e-7; // a small value ensuring numeric stability
@@ -66,7 +68,7 @@ public class ImplicitCoupledSolver extends ImplicitScheme implements Solver<Part
 			"RTE Solver Selector", RadiativeTransferSolver.class);
 
 	static {
-		instanceDescriptor.setSelectedDescriptor(AnalyticalDerivativeCalculator.class.getSimpleName());
+		instanceDescriptor.setSelectedDescriptor(NonscatteringDiscreteDerivatives.class.getSimpleName());
 	}
 
 	public ImplicitCoupledSolver() {
@@ -85,12 +87,7 @@ public class ImplicitCoupledSolver extends ImplicitScheme implements Solver<Part
 	private void prepare(ParticipatingMedium problem) {
 		super.prepare(problem);
 
-		if (rte == null)
-			initRTE(problem, grid);
-		else {
-			if (!rte.getSimpleName().equals(instanceDescriptor.getValue()))
-				initRTE(problem, grid);
-		}
+		initRTE(problem, grid);
 
 		curve = problem.getHeatingCurve();
 
@@ -101,11 +98,8 @@ public class ImplicitCoupledSolver extends ImplicitScheme implements Solver<Part
 
 		counts = (int) curve.getNumPoints().getValue();
 
-		double Bi1 = (double) problem.getFrontHeatLoss().getValue();
-		double Bi2 = (double) problem.getHeatLossRear().getValue();
-
-		rte.init(problem, grid);
-
+		double Bi1 = (double) problem.getHeatLoss().getValue();
+		double Bi2 = Bi1;
 		Np = (double) problem.getPlanckNumber().getValue();
 
 		U = new double[N + 1];
@@ -129,7 +123,7 @@ public class ImplicitCoupledSolver extends ImplicitScheme implements Solver<Part
 	}
 
 	@Override
-	public void solve(ParticipatingMedium problem) {
+	public void solve(ParticipatingMedium problem) throws SolverException {
 
 		prepare(problem);
 
@@ -143,7 +137,7 @@ public class ImplicitCoupledSolver extends ImplicitScheme implements Solver<Part
 
 		double wFactor = timeInterval * tau * problem.timeFactor();
 
-		rte.compute(U);
+		var status = rte.compute(U);
 
 		for (i = 1; i < N; i++)
 			alpha[i + 1] = c / (b - a * alpha[i]);
@@ -152,12 +146,13 @@ public class ImplicitCoupledSolver extends ImplicitScheme implements Solver<Part
 
 		for (w = 1; w < counts; w++) {
 
-			for (m = (w - 1) * timeInterval + 1; m < w * timeInterval + 1; m++) {
+			for (m = (w - 1) * timeInterval + 1; m < w * timeInterval + 1
+					&& status == RTECalculationStatus.NORMAL; m++) {
 
 				pls = discretePulse.evaluateAt((m - EPS) * tau);
 
 				for (V_0 = errorSq + 1, V_N = errorSq + 1; (MathUtils.fastPowLoop((V[0] - V_0), 2) > errorSq)
-						|| (MathUtils.fastPowLoop((V[N] - V_N), 2) > errorSq); rte.compute(V)) {
+						|| (MathUtils.fastPowLoop((V[N] - V_N), 2) > errorSq); status = rte.compute(V)) {
 
 					beta[1] = (HX2_2TAU * U[0] + hx * pls - HX_2NP * (rte.getFlux(0) + rte.getFlux(1))) * alpha[1];
 
@@ -189,6 +184,9 @@ public class ImplicitCoupledSolver extends ImplicitScheme implements Solver<Part
 			// debug(problem, V, w);
 
 		}
+
+		if (status != RTECalculationStatus.NORMAL)
+			throw new SolverException(status.toString());
 
 		curve.scale(maxTemp / curve.apparentMaximum());
 
@@ -235,17 +233,32 @@ public class ImplicitCoupledSolver extends ImplicitScheme implements Solver<Part
 		}
 	}
 
-	public void initRTE(ParticipatingMedium problem, Grid grid) {
-		rte = instanceDescriptor.newInstance(RadiativeTransferSolver.class, problem, grid);
-		rte.setParent(this);
-	}
-
 	public static InstanceDescriptor<? extends RadiativeTransferSolver> getInstanceDescriptor() {
 		return instanceDescriptor;
 	}
 
 	public static void setInstanceDescriptor(InstanceDescriptor<? extends RadiativeTransferSolver> instanceDescriptor) {
 		ImplicitCoupledSolver.instanceDescriptor = instanceDescriptor;
+	}
+
+	private void initRTE(ParticipatingMedium problem, Grid grid) {
+
+		if (rte == null) {
+			newRTE(problem, grid);
+			instanceDescriptor.addListener(() -> {
+				newRTE(problem, grid);
+				rte.init(problem, grid);
+			});
+
+		}
+
+		rte.init(problem, grid);
+
+	}
+
+	private void newRTE(ParticipatingMedium problem, Grid grid) {
+		rte = instanceDescriptor.newInstance(RadiativeTransferSolver.class, problem, grid);
+		rte.setParent(this);
 	}
 
 }

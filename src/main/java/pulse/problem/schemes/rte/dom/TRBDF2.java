@@ -3,6 +3,7 @@ package pulse.problem.schemes.rte.dom;
 import pulse.math.Matrix;
 import pulse.math.Vector;
 import pulse.problem.schemes.rte.EmissionFunction;
+import pulse.problem.statements.ParticipatingMedium;
 
 /**
  * TRBDF2 Scheme
@@ -68,8 +69,8 @@ public class TRBDF2 extends AdaptiveIntegrator {
 	private double w_d = w / d;
 	private double _1w_d = (1.0 - w_d);
 
-	public TRBDF2(DiscreteIntensities intensities, EmissionFunction ef, PhaseFunction ipf) {
-		super(intensities, ef, ipf);
+	public TRBDF2(ParticipatingMedium medium, DiscreteIntensities intensities, EmissionFunction ef, PhaseFunction ipf) {
+		super(medium, intensities, ef, ipf);
 	}
 
 	protected void init() {

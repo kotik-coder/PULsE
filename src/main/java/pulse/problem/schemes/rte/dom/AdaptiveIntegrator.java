@@ -5,6 +5,8 @@ import java.util.List;
 
 import pulse.math.Vector;
 import pulse.problem.schemes.rte.EmissionFunction;
+import pulse.problem.schemes.rte.RTECalculationStatus;
+import pulse.problem.statements.ParticipatingMedium;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
@@ -22,15 +24,19 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 
 	protected boolean firstRun;
 	private boolean rescaled;
+	private long calculationStartingTime;
 
-	public AdaptiveIntegrator(DiscreteIntensities intensities, EmissionFunction ef, PhaseFunction ipf) {
-		super(intensities, ef, ipf);
+	private long timeThreshold;
+
+	public AdaptiveIntegrator(ParticipatingMedium medium, DiscreteIntensities intensities, EmissionFunction ef,
+			PhaseFunction ipf) {
+		super(medium, intensities, ef, ipf);
 		atol = (double) NumericProperty.theDefault(NumericPropertyKeyword.ATOL).getValue();
 		rtol = (double) NumericProperty.theDefault(NumericPropertyKeyword.RTOL).getValue();
 		scalingFactor = (double) NumericProperty.theDefault(NumericPropertyKeyword.GRID_SCALING_FACTOR).getValue();
-		f = new double[intensities.grid.getDensity() + 1][intensities.ordinates.total]; // first index - spatial steps,
-																						// second index -
-		// quadrature points
+		f = new double[intensities.grid.getDensity() + 1][intensities.ordinates.total];
+		timeThreshold = ((Double) NumericProperty.theDefault(NumericPropertyKeyword.RTE_INTEGRATION_TIMEOUT).getValue())
+				.longValue();
 	}
 
 	public boolean isFirstRun() {
@@ -70,14 +76,17 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 	}
 
 	@Override
-	public void integrate() {
+	public RTECalculationStatus integrate() {
 		Vector[] v;
 		int N = intensities.grid.getDensity();
 		init();
 
-		for (double error = 1.0, relFactor = 0.0, i0Max = 0, i1Max = 0; error > atol + relFactor * rtol
-				&& sanityCheck(); N = intensities.grid.getDensity()) {
+		RTECalculationStatus status = RTECalculationStatus.NORMAL;
 
+		for (double error = 1.0, relFactor = 0.0, i0Max = 0, i1Max = 0; (error > atol + relFactor * rtol)
+				&& status == RTECalculationStatus.NORMAL; N = intensities.grid.getDensity(), status = sanityCheck()) {
+
+			calculationStartingTime = System.nanoTime();
 			error = 0;
 
 			treatZeroIndex();
@@ -139,10 +148,17 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 
 		}
 
+		return status;
+
 	}
 
-	private boolean sanityCheck() {
-		return NumericProperty.isValueSensible(intensities.grid.getDensityProperty(), intensities.grid.getDensity());
+	private RTECalculationStatus sanityCheck() {
+		if (!NumericProperty.isValueSensible(NumericProperty.theDefault(NumericPropertyKeyword.DOM_GRID_DENSITY),
+				intensities.grid.getDensity()))
+			return RTECalculationStatus.GRID_TOO_LARGE;
+		else if (System.nanoTime() - calculationStartingTime > timeThreshold)
+			return RTECalculationStatus.INTEGRATOR_TIMEOUT;
+		return RTECalculationStatus.NORMAL;
 	}
 
 	public abstract Vector[] step(final int j, final double sign);
@@ -212,6 +228,9 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 		case GRID_SCALING_FACTOR:
 			setGridScalingFactor(property);
 			break;
+		case RTE_INTEGRATION_TIMEOUT:
+			setTimeThreshold(property);
+			break;
 		default:
 			return;
 		}
@@ -226,6 +245,7 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 		list.add(NumericProperty.def(NumericPropertyKeyword.RTOL));
 		list.add(NumericProperty.def(NumericPropertyKeyword.ATOL));
 		list.add(NumericProperty.def(NumericPropertyKeyword.GRID_SCALING_FACTOR));
+		list.add(NumericProperty.def(NumericPropertyKeyword.RTE_INTEGRATION_TIMEOUT));
 		return list;
 	}
 
@@ -233,6 +253,15 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 	public String toString() {
 		return super.toString() + " : " + this.getRelativeTolerance() + " ; " + this.getAbsoluteTolerance() + " ; "
 				+ this.getGridScalingFactor();
+	}
+
+	public NumericProperty getTimeThreshold() {
+		return NumericProperty.derive(NumericPropertyKeyword.RTE_INTEGRATION_TIMEOUT, (double) timeThreshold);
+	}
+
+	public void setTimeThreshold(NumericProperty timeThreshold) {
+		if (timeThreshold.getType() == NumericPropertyKeyword.RTE_INTEGRATION_TIMEOUT)
+			this.timeThreshold = (long) ((Double) timeThreshold.getValue()).longValue();
 	}
 
 }

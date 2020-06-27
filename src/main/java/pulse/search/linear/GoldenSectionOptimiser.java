@@ -3,6 +3,7 @@ package pulse.search.linear;
 import pulse.math.IndexedVector;
 import pulse.math.Segment2D;
 import pulse.math.Vector;
+import pulse.problem.schemes.solvers.SolverException;
 import pulse.tasks.SearchTask;
 import pulse.ui.Messages;
 
@@ -41,10 +42,12 @@ public class GoldenSectionOptimiser extends LinearOptimiser {
 	 * &phi;*(b-a)</i></math>. This theoretically ensures the least number of steps
 	 * to reach the minimum (as compared to the standard dichotomy methods).
 	 * </p>
+	 * 
+	 * @throws SolverException
 	 */
 
 	@Override
-	public double linearStep(SearchTask task) {
+	public double linearStep(SearchTask task) throws SolverException {
 
 		final double EPS = 1e-14;
 

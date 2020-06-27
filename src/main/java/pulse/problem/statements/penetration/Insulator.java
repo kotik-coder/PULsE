@@ -1,4 +1,4 @@
-package pulse.problem.statements;
+package pulse.problem.statements.penetration;
 
 import java.util.List;
 

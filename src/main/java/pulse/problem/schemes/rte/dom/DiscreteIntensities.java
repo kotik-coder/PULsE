@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import pulse.problem.schemes.rte.EmissionFunction;
+import pulse.problem.statements.ParticipatingMedium;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
@@ -14,7 +15,6 @@ public class DiscreteIntensities extends PropertyHolder {
 	private final static double DOUBLE_PI = 2.0 * Math.PI;
 
 	protected double[][] I;
-	protected int nT;
 
 	protected StretchedGrid grid;
 	protected OrdinateSet ordinates;
@@ -23,12 +23,35 @@ public class DiscreteIntensities extends PropertyHolder {
 	private double boundaryFluxFactor;
 	private double qLeft, qRight;
 
-	public DiscreteIntensities(int externalGridDensity, double opticalThickness) {
+	public DiscreteIntensities(ParticipatingMedium medium, int externalGridDensity) {
 		ordinates = OrdinateSet.getDefaultInstance();
 
-		this.nT = externalGridDensity;
-		this.grid = new StretchedGrid(opticalThickness);
+		this.grid = new StretchedGrid((double) medium.getOpticalThickness().getValue());
+		setEmissivity(medium.getEmissivity());
+
 		grid.setParent(this);
+
+		medium.addListener(e -> {
+
+			var p = e.getProperty();
+			if (e.getProperty() instanceof NumericProperty) {
+				var np = (NumericProperty) p;
+
+				switch (np.getType()) {
+				case EMISSIVITY:
+					setEmissivity((double) np.getValue());
+					break;
+				case OPTICAL_THICKNESS:
+					this.grid = new StretchedGrid((double) np.getValue());
+					this.I = new double[grid.getDensity() + 1][ordinates.total];
+					break;
+				default:
+					break;
+				}
+
+			}
+
+		});
 
 		this.reinitInternalArrays();
 	}
@@ -51,11 +74,11 @@ public class DiscreteIntensities extends PropertyHolder {
 	 * points of DOM solver.
 	 */
 
-	public double[][][] interpolateOnExternalGrid(final double[][] derivatives) {
-		var Iext = new double[2][nT + 1][ordinates.total];
+	public double[][][] interpolateOnExternalGrid(final int nE, final double[][] derivatives) {
+		var Iext = new double[2][nE][ordinates.total];
 		double t;
 
-		final double hx = grid.getDimension() / ((double) nT);
+		final double hx = grid.getDimension() / (nE - 1.0);
 		final int N = grid.getDensity() + 1;
 
 		/*
@@ -228,14 +251,9 @@ public class DiscreteIntensities extends PropertyHolder {
 
 	}
 
-	public void setEmissivity(double emissivity) {
+	private void setEmissivity(double emissivity) {
 		this.emissivity = emissivity;
 		boundaryFluxFactor = (1.0 - emissivity) / (emissivity * Math.PI);
-	}
-
-	public void setOpticalThickness(double tau0) {
-		this.grid = new StretchedGrid(tau0);
-		this.I = new double[grid.getDensity() + 1][ordinates.total];
 	}
 
 	public OrdinateSet getOrdinateSet() {

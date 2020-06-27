@@ -1,11 +1,13 @@
 package pulse.problem.schemes.rte.dom;
 
+import pulse.problem.statements.ParticipatingMedium;
+
 public class LinearAnisotropicPF extends PhaseFunction {
 
 	private double g;
 
-	public LinearAnisotropicPF(DiscreteIntensities intensities) {
-		super(intensities);
+	public LinearAnisotropicPF(ParticipatingMedium medium, DiscreteIntensities intensities) {
+		super(medium, intensities);
 		g = 3.0 * A1;
 	}
 

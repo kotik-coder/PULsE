@@ -9,12 +9,13 @@ import java.util.Scanner;
 
 import pulse.problem.schemes.Grid;
 import pulse.problem.schemes.rte.EmissionFunction;
+import pulse.problem.schemes.rte.RTECalculationListener;
+import pulse.problem.schemes.rte.RTECalculationStatus;
 import pulse.problem.schemes.rte.RadiativeTransferSolver;
 import pulse.problem.statements.ParticipatingMedium;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
-import pulse.util.DescriptorChangeListener;
 import pulse.util.InstanceDescriptor;
 
 public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
@@ -42,7 +43,6 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 	private IterativeSolver iterativeSolver;
 
 	private DiscreteIntensities discrete;
-	private int nT;
 
 	/**
 	 * Constructs a discrete ordinates solver using the parameters (emissivity,
@@ -61,14 +61,12 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 	public DiscreteOrdinatesSolver(ParticipatingMedium problem, Grid grid) {
 		super(problem, grid);
 
-		var emissionFunction = new EmissionFunction(problem, grid);
-
-		discrete = new DiscreteIntensities((int) grid.getGridDensity().getValue(),
-				(double) problem.getOpticalThickness().getValue());
+		discrete = new DiscreteIntensities(problem, (int) grid.getGridDensity().getValue());
 		discrete.setParent(this);
 
-		phaseFunction = phaseFunctionSelector.newInstance(PhaseFunction.class, discrete);
-		integrator = integratorDescriptor.newInstance(AdaptiveIntegrator.class, discrete, emissionFunction,
+		phaseFunction = phaseFunctionSelector.newInstance(PhaseFunction.class, problem, discrete);
+		var emissionFunction = new EmissionFunction(problem, grid);
+		integrator = integratorDescriptor.newInstance(AdaptiveIntegrator.class, problem, discrete, emissionFunction,
 				phaseFunction);
 		iterativeSolver = iterativeSolverSelector.newInstance(IterativeSolver.class);
 
@@ -76,68 +74,65 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 		iterativeSolver.setParent(this);
 		init(problem, grid);
 
-		integratorDescriptor.addListener(new DescriptorChangeListener() {
+		integratorDescriptor.addListener(() -> setIntegrator(integratorDescriptor.newInstance(AdaptiveIntegrator.class,
+				problem, discrete, emissionFunction, phaseFunction)));
 
-			@Override
-			public void onDescriptorChanged() {
-				setIntegrator(integratorDescriptor.newInstance(AdaptiveIntegrator.class, discrete, emissionFunction,
-						phaseFunction));
-			}
+		phaseFunctionSelector.addListener(
+				() -> setPhaseFunction(phaseFunctionSelector.newInstance(PhaseFunction.class, problem, discrete)));
 
-		});
-
-		phaseFunctionSelector.addListener(new DescriptorChangeListener() {
-
-			@Override
-			public void onDescriptorChanged() {
-				setPhaseFunction(phaseFunctionSelector.newInstance(PhaseFunction.class, discrete));
-			}
-
-		});
-
-		iterativeSolverSelector.addListener(new DescriptorChangeListener() {
-
-			@Override
-			public void onDescriptorChanged() {
-				setIterativeSolver(iterativeSolverSelector.newInstance(IterativeSolver.class));
-			}
-
-		});
+		iterativeSolverSelector
+				.addListener(() -> setIterativeSolver(iterativeSolverSelector.newInstance(IterativeSolver.class)));
 
 	}
 
-	private void temperatureInterpolation(double[] tempArray) {
-		nT = tempArray.length - 1;
+	private void temperatureInterpolation(double dimension, double[] tempArray) {
+		int N = tempArray.length;
+		double h = 1.0 / (N - 1);
 
-		double[] xArray = new double[nT + 3];
-		double h = 1.0 / nT;
-		double tau0 = discrete.grid.getDimension();
+		double[] tArray = new double[N + 2];
+		System.arraycopy(tempArray, 0, tArray, 1, N);
 
-		for (int i = -1; i < nT + 2; i++)
-			xArray[i + 1] = tau0 * i * h;
+		double[] xArray = new double[N + 2];
 
-		double[] tArray = new double[xArray.length];
-		System.arraycopy(tempArray, 0, tArray, 1, tempArray.length);
+		for (int i = 0; i <= N; i++)
+			xArray[i + 1] = dimension * i * h;
 
+		/*
+		 * Safety margins are introduced below
+		 */
+
+		xArray[0] = -h;
 		tArray[0] = tArray[1];
-		tArray[nT + 2] = tArray[nT + 1];
+
+		xArray[N + 1] = dimension + h;
+		tArray[N + 1] = tArray[N];
 
 		integrator.emissionFunction.setInterpolation(super.temperatureInterpolation(xArray, tArray));
 	}
 
 	@Override
-	public void compute(double[] tempArray) {
-		temperatureInterpolation(tempArray);
-		discrete.clear();
-		iterativeSolver.doIterations(discrete, integrator);
-		fluxesAndDerivatives();
+	public RTECalculationStatus compute(double[] tempArray) {
+		discrete.grid.generateUniform(true);
+		discrete.reinitInternalArrays();
+
+		temperatureInterpolation(discrete.getStretchedGrid().getDimension(), tempArray);
+
+		var status = iterativeSolver.doIterations(discrete, integrator);
+
+		if (status == RTECalculationStatus.NORMAL)
+			fluxesAndDerivatives(tempArray.length);
+
+		for (RTECalculationListener l : getRTEListeners())
+			l.onStatusUpdate(status);
+
+		return status;
 	}
 
-	public void fluxesAndDerivatives() {
-		var interpolation = discrete.interpolateOnExternalGrid(integrator.f);
-		fluxDerivative = new double[nT + 1];
+	public void fluxesAndDerivatives(int nExclusive) {
+		var interpolation = discrete.interpolateOnExternalGrid(nExclusive, integrator.f);
+		fluxDerivative = new double[nExclusive];
 
-		for (int i = 0; i < nT + 1; i++) {
+		for (int i = 0; i < nExclusive; i++) {
 			setFlux(i, DOUBLE_PI * discrete.q(interpolation[0], i));
 			fluxDerivative[i] = -DOUBLE_PI * discrete.q(interpolation[1], i);
 		}
@@ -165,7 +160,7 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 
 	@Override
 	public double getFluxDerivativeRear() {
-		return fluxDerivative[nT];
+		return fluxDerivative[fluxDerivative.length - 1];
 	}
 
 	@Override
@@ -180,7 +175,8 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 
 	@Override
 	public double getFluxMeanDerivativeRear() {
-		return 0.5 * (fluxDerivative[nT] + storedFluxDerivative[nT]);
+		return 0.5
+				* (fluxDerivative[fluxDerivative.length - 1] + storedFluxDerivative[storedFluxDerivative.length - 1]);
 	}
 
 	@Override
@@ -188,15 +184,20 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 		super.init(problem, grid);
 
 		phaseFunction.setAnisotropyFactor((double) problem.getScatteringAnisostropy().getValue());
-		discrete.setEmissivity(problem.getEmissivity());
-		integrator.init(problem, grid);
 
-		super.reinitArrays((int) grid.getGridDensity().getValue());
-		discrete.grid.setDimension((double) problem.getOpticalThickness().getValue());
-		discrete.grid.generateUniform(true);
+		reinitArrays((int) grid.getGridDensity().getValue());
 
+		discrete.grid = new StretchedGrid((double) problem.getOpticalThickness().getValue());
 		discrete.reinitInternalArrays();
-		storedFluxDerivative = new double[(int) grid.getGridDensity().getValue() + 1];
+
+		integrator.init(problem, grid);
+	}
+
+	@Override
+	public void reinitArrays(int gridDensity) {
+		super.reinitArrays(gridDensity);
+		storedFluxDerivative = new double[gridDensity + 1];
+		fluxDerivative = new double[gridDensity + 1];
 	}
 
 	@Override
@@ -294,21 +295,22 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 		var tauFactor = NumericProperty.derive(NumericPropertyKeyword.TAU_FACTOR, 0.0);
 		Grid grid = new Grid(density, tauFactor);
 
-		double tFactor = 36.7 / 800.0;
+		double tFactor = 10.0 / 800.0;
 
 		var rte = new DiscreteOrdinatesSolver(problem, grid);
 		rte.integrator.emissionFunction.setReductionFactor(tFactor);
 		rte.integrator.setAlbedo(0.0);
 		rte.integrator.pf.setAnisotropyFactor(0.0);
-		rte.compute(U);
+
+		System.out.println(rte.compute(U));
 
 //		for (int i = 0; i < rte.discrete.n; i++)
 //			System.out.println(rte.discrete.I[rte.getExternalGridDensity()][i]);
 //
-
-		for (int i = 0; i < rte.discrete.grid.getDensity() + 1; i++)
-			System.out.printf("%n%4.5f %1.6e %1.6e", rte.discrete.grid.getNode(i), rte.discrete.getIntensities()[i][0],
-					rte.discrete.getIntensities()[i][1]);
+//
+//		for (int i = 0; i < rte.discrete.grid.getDensity() + 1; i++)
+//			System.out.printf("%n%4.5f %1.6e %1.6e", rte.discrete.grid.getNode(i), rte.discrete.getIntensities()[i][0],
+//					rte.discrete.getIntensities()[i][1]);
 
 		System.out.println();
 		System.out.println();

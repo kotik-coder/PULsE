@@ -31,7 +31,7 @@ public abstract class AbstractResult extends UpwardsNavigable {
 
 	public AbstractResult(ResultFormat format) {
 		this.format = format;
-		properties = new ArrayList<NumericProperty>(format.length());
+		properties = new ArrayList<NumericProperty>(format.size());
 	}
 
 	public ResultFormat getFormat() {

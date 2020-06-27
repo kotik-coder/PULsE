@@ -24,12 +24,13 @@ public class InstanceDescriptor<T extends Reflexive> implements Property {
 		this(c.getSimpleName(), c, arguments);
 	}
 
-	public <K extends Reflexive> T newInstance(Class<K> c, Object... arguments) {
+	public <K extends Reflexive> K newInstance(Class<K> c, Object... arguments) {
 		var instances = Reflexive.instancesOf(c, arguments);
 
-		for (K r : instances)
+		for (K r : instances) {
 			if (getValue().equals(r.getClass().getSimpleName()))
-				return (T) r;
+				return r;
+		}
 
 		return null; // this should never happen
 	}
@@ -49,6 +50,13 @@ public class InstanceDescriptor<T extends Reflexive> implements Property {
 	public boolean attemptUpdate(Object object) {
 		if (!(object instanceof String))
 			return false;
+
+		if (selectedDescriptor.equals((String) object))
+			return false;
+
+		if (!allDescriptors.contains(object))
+			return false;
+
 		setSelectedDescriptor((String) object);
 		return true;
 	}
@@ -73,6 +81,27 @@ public class InstanceDescriptor<T extends Reflexive> implements Property {
 
 	public List<DescriptorChangeListener> getListeners() {
 		return listeners;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+
+		if (o == null)
+			return false;
+
+		if (o == this)
+			return true;
+
+		if (!(o instanceof InstanceDescriptor))
+			return false;
+
+		var descriptor = (InstanceDescriptor<?>) o;
+
+		if (!allDescriptors.containsAll(descriptor.allDescriptors))
+			return false;
+
+		return selectedDescriptor.equals(descriptor.selectedDescriptor);
+
 	}
 
 }

@@ -1,6 +1,10 @@
-package pulse.problem.statements;
+package pulse.problem.statements.penetration;
 
 public class BeerLambertAbsorption extends AbsorptionModel {
+
+	public BeerLambertAbsorption() {
+		super();
+	}
 
 	@Override
 	public double absorption(SpectralRange range, double y) {

@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import pulse.properties.EnumProperty;
 import pulse.properties.NumericProperty;
+import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 import pulse.tasks.Identifier;
 
@@ -40,7 +41,7 @@ public abstract class PropertyHolder extends Accessible {
 		for (Accessible accessible : accessibleChildren())
 			if (accessible instanceof PropertyHolder)
 				properties.addAll(((PropertyHolder) accessible).listedTypes());
-
+		
 		return properties;
 	}
 
@@ -59,11 +60,15 @@ public abstract class PropertyHolder extends Accessible {
 	 */
 
 	private boolean isListedNumericType(NumericProperty p) {
+		return isListedNumericType(p.getType());
+	}
+	
+	public boolean isListedNumericType(NumericPropertyKeyword p) {
 		if (p == null)
 			return false;
 
 		return parameters.stream().filter(pr -> pr instanceof NumericProperty).map(prop -> (NumericProperty) prop)
-				.anyMatch(param -> param.getType() == p.getType());
+				.anyMatch(param -> param.getType() == p );
 
 	}
 
@@ -164,19 +169,19 @@ public abstract class PropertyHolder extends Accessible {
 	 * @see pulse.util.Accessible.update(Property)
 	 */
 
-	public void updateProperty(Object sourceComponent, Property updatedProperty) {
+	public boolean updateProperty(Object sourceComponent, Property updatedProperty) {
 		Property existing = property(updatedProperty);
 
 		if (existing == null)
-			return;
+			return false;
 
 		if (existing.equals(updatedProperty))
-			return;
+			return false;
 
 		super.update(updatedProperty);
 
 		notifyListeners(sourceComponent, updatedProperty);
-
+		return true;
 	}
 
 	public void notifyListeners(Object source, Property property) {

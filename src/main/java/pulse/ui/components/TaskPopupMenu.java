@@ -14,6 +14,7 @@ import javax.swing.JSeparator;
 import javax.swing.SwingUtilities;
 
 import pulse.problem.schemes.solvers.Solver;
+import pulse.problem.schemes.solvers.SolverException;
 import pulse.tasks.Result;
 import pulse.tasks.ResultFormat;
 import pulse.tasks.SearchTask;
@@ -235,7 +236,12 @@ public class TaskPopupMenu extends JPopupMenu {
 		}
 
 		if (t.getScheme() != null)
-			((Solver) t.getScheme()).solve(t.getProblem());
+			try {
+				((Solver) t.getScheme()).solve(t.getProblem());
+			} catch (SolverException e) {
+				System.err.println("Solver error for " + t + "Details: ");
+				e.printStackTrace();
+			}
 
 		Chart.plot(t, extended);
 	}

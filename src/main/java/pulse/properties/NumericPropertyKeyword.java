@@ -172,13 +172,6 @@ public enum NumericPropertyKeyword {
 	DETECTOR_IRIS,
 
 	/**
-	 * The coefficient of heat losses from the front (laser-facing) surface of the
-	 * sample.
-	 */
-
-	HEAT_LOSS_FRONT,
-
-	/**
 	 * The coefficient of heat losses from the side surface of the sample
 	 * (two-dimensional problems).
 	 */
@@ -186,14 +179,7 @@ public enum NumericPropertyKeyword {
 	HEAT_LOSS_SIDE,
 
 	/**
-	 * The coefficient of heat losses from the rear (pyrometer-facing) surface of
-	 * the sample.
-	 */
-
-	HEAT_LOSS_REAR,
-
-	/**
-	 * A general keyword for the coefficient of heat losses.
+	 * A general keyword for the coefficient of heat losses. Indicates primarily those on the front and rear faces.
 	 */
 
 	HEAT_LOSS,
@@ -290,6 +276,10 @@ public enum NumericPropertyKeyword {
 
 	GRID_STRETCHING_FACTOR,
 
-	RELAXATION_PARAMETER;
+	RELAXATION_PARAMETER,
+
+	RTE_MAX_ITERATIONS,
+
+	RTE_INTEGRATION_TIMEOUT;
 
 }

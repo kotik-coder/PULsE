@@ -72,8 +72,8 @@ public class ExplicitLinearisedSolver extends ExplicitScheme implements Solver<L
 		U = new double[N + 1];
 		V = new double[N + 1];
 
-		double Bi1 = (double) problem.getFrontHeatLoss().getValue();
-		double Bi2 = (double) problem.getHeatLossRear().getValue();
+		double Bi1 = (double) problem.getHeatLoss().getValue();
+		double Bi2 = Bi1;
 		maxTemp = (double) problem.getMaximumTemperature().getValue();
 
 		counts = (int) curve.getNumPoints().getValue();

@@ -21,6 +21,7 @@ import pulse.input.listeners.DataEventType;
 import pulse.math.IndexedVector;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.solvers.Solver;
+import pulse.problem.schemes.solvers.SolverException;
 import pulse.problem.statements.Problem;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
@@ -142,7 +143,7 @@ public class SearchTask extends Accessible implements Runnable {
 	}
 
 	public List<NumericProperty> alteredParameters() {
-		return PathOptimiser.activeParameters().stream().map(key -> this.numericProperty(key))
+		return PathOptimiser.activeParameters(this).stream().map(key -> this.numericProperty(key) )
 				.collect(Collectors.toList());
 	}
 
@@ -157,9 +158,9 @@ public class SearchTask extends Accessible implements Runnable {
 	 */
 
 	public IndexedVector[] searchVector() {
-		var flags = PathOptimiser.getSearchFlags();
-
-		var optimisationVector = new IndexedVector(Flag.convert(flags));
+		var flags = PathOptimiser.getAllFlags();
+		var keywords = PathOptimiser.activeParameters(this);
+		var optimisationVector = new IndexedVector(keywords);
 		var upperBound = new IndexedVector(optimisationVector.getIndices());
 
 		var array = new IndexedVector[] { optimisationVector, upperBound };
@@ -224,11 +225,18 @@ public class SearchTask extends Accessible implements Runnable {
 	 * {@code ExperimentalData}.
 	 * 
 	 * @return the value of SSR (sum of squared residuals).
+	 * @throws SolverException
 	 */
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public double solveProblemAndCalculateDeviation() {
-		((Solver) scheme).solve(problem);
+		try {
+			((Solver) scheme).solve(problem);
+		} catch (SolverException e) {
+			status = Status.FAILED;
+			System.err.println("Solver of " + this + " has encountered an error. Details: ");
+			e.printStackTrace();
+		}
 		rs.evaluate(this);
 		return (double) rs.getStatistic().getValue();
 	}
@@ -289,7 +297,13 @@ public class SearchTask extends Accessible implements Runnable {
 				if (status != Status.IN_PROGRESS)
 					break outer;
 
-				pathSolver.iteration(this);
+				try {
+					pathSolver.iteration(this);
+				} catch (SolverException e) {
+					status = Status.FAILED;
+					System.err.println(this + " failed during execution. Details: ");
+					e.printStackTrace();
+				}
 
 				final int j = i;
 

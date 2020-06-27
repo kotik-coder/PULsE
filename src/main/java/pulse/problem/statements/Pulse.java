@@ -2,7 +2,6 @@ package pulse.problem.statements;
 
 import static pulse.properties.NumericPropertyKeyword.LASER_ENERGY;
 import static pulse.properties.NumericPropertyKeyword.PULSE_WIDTH;
-import static pulse.properties.NumericPropertyKeyword.SPOT_DIAMETER;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +24,7 @@ import pulse.util.PropertyHolder;
 public class Pulse extends PropertyHolder {
 
 	private TemporalShape pulseShape;
-	protected double pulseWidth, spotDiameter;
+	protected double pulseWidth;
 	private double laserEnergy;
 
 	/**
@@ -46,7 +45,6 @@ public class Pulse extends PropertyHolder {
 	public Pulse(TemporalShape pform) {
 		this.pulseShape = pform;
 		pulseWidth = (double) NumericProperty.def(PULSE_WIDTH).getValue();
-		spotDiameter = (double) NumericProperty.def(SPOT_DIAMETER).getValue();
 		laserEnergy = (double) NumericProperty.def(LASER_ENERGY).getValue();
 	}
 
@@ -58,7 +56,6 @@ public class Pulse extends PropertyHolder {
 
 	public Pulse(Pulse p) {
 		this.pulseShape = p.getPulseShape();
-		this.spotDiameter = p.spotDiameter;
 		this.pulseWidth = p.pulseWidth;
 		this.laserEnergy = p.laserEnergy;
 	}
@@ -85,15 +82,6 @@ public class Pulse extends PropertyHolder {
 		this.pulseWidth = (double) pulseWidth.getValue();
 	}
 
-	public NumericProperty getSpotDiameter() {
-		return NumericProperty.derive(SPOT_DIAMETER, spotDiameter);
-	}
-
-	public void setSpotDiameter(NumericProperty spotDiameter) {
-		this.spotDiameter = (double) spotDiameter.getValue();
-		notifyListeners(this, spotDiameter);
-	}
-
 	public NumericProperty getLaserEnergy() {
 		return NumericProperty.derive(LASER_ENERGY, laserEnergy);
 	}
@@ -106,13 +94,7 @@ public class Pulse extends PropertyHolder {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(getPulseShape());
-		sb.append(" ");
-		sb.append(String.format("%3.2f", pulseWidth * 1E3));
-		sb.append(Messages.getString("Pulse.2"));
-		sb.append(String.format("%3.2f", spotDiameter * 1E3));
-		sb.append(Messages.getString("Pulse.3"));
-		sb.append(String.format("%3.2f", laserEnergy));
-		sb.append(Messages.getString("Pulse.4"));
+		sb.append(String.format("; %3.2f ; %3.2f", pulseWidth * 1E3, laserEnergy));
 		return sb.toString();
 	}
 
@@ -126,7 +108,6 @@ public class Pulse extends PropertyHolder {
 		List<Property> list = new ArrayList<Property>();
 		list.add(TemporalShape.RECTANGULAR);
 		list.add(NumericProperty.def(PULSE_WIDTH));
-		list.add(NumericProperty.def(SPOT_DIAMETER));
 		list.add(NumericProperty.def(LASER_ENERGY));
 		return list;
 	}
@@ -136,9 +117,6 @@ public class Pulse extends PropertyHolder {
 		switch (type) {
 		case PULSE_WIDTH:
 			setPulseWidth(property);
-			break;
-		case SPOT_DIAMETER:
-			setSpotDiameter(property);
 			break;
 		case LASER_ENERGY:
 			setLaserEnergy(property);

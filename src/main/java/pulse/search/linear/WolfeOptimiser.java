@@ -5,6 +5,7 @@ import static java.lang.Math.abs;
 import pulse.math.IndexedVector;
 import pulse.math.Segment2D;
 import pulse.math.Vector;
+import pulse.problem.schemes.solvers.SolverException;
 import pulse.search.direction.Path;
 import pulse.search.direction.PathOptimiser;
 import pulse.tasks.SearchTask;
@@ -59,10 +60,12 @@ public class WolfeOptimiser extends LinearOptimiser {
 	 * either the strong Wolfe conditions are strictly satisfied, or if the linear
 	 * precision has been reached.
 	 * </p>
+	 * 
+	 * @throws SolverException
 	 */
 
 	@Override
-	public double linearStep(SearchTask task) {
+	public double linearStep(SearchTask task) throws SolverException {
 
 		Path p = task.getPath();
 

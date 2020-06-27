@@ -2,6 +2,7 @@ package pulse.problem.schemes.rte.dom;
 
 import java.util.List;
 
+import pulse.problem.schemes.rte.RTECalculationStatus;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
@@ -16,19 +17,22 @@ public class SuccessiveOverrelaxation extends IterativeSolver {
 	}
 
 	@Override
-	public void doIterations(DiscreteIntensities discrete, AdaptiveIntegrator integrator) {
+	public RTECalculationStatus doIterations(DiscreteIntensities discrete, AdaptiveIntegrator integrator) {
 
 		double relativeError = 100;
 
 		double qld = 0;
 		double qrd = 0;
 
-		for (double ql = 1e8, qr = ql; relativeError > iterationError;) {
+		int iterations = 0;
+		RTECalculationStatus status = RTECalculationStatus.NORMAL;
+
+		for (double ql = 1e8, qr = ql; relativeError > iterationError; status = sanityCheck(status, ++iterations)) {
 			ql = discrete.getQLeft();
 			qr = discrete.getQRight();
 
 			integrator.storeIteration();
-			integrator.integrate();
+			status = integrator.integrate();
 
 			// if the integrator attempted rescaling, last iteration is not valid anymore
 			if (integrator.wasRescaled()) {
@@ -41,6 +45,8 @@ public class SuccessiveOverrelaxation extends IterativeSolver {
 			}
 
 		}
+
+		return status;
 
 	}
 

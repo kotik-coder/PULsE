@@ -334,7 +334,9 @@ public class HeatingCurve extends PropertyHolder {
 		}
 		apply(baseline);
 
-		splineInterpolation = splineInterpolator.interpolate(time.stream().mapToDouble(d -> d).toArray(),
+		var timeArray = time.stream().mapToDouble(d -> d + startTime).toArray();
+		
+		splineInterpolation = splineInterpolator.interpolate( timeArray,
 				baselineAdjustedTemperature.stream().mapToDouble(d -> d).toArray());
 
 	}

@@ -16,8 +16,9 @@ public interface Solver<T extends Problem> {
 	 * {@code HeatingCurve}.
 	 * 
 	 * @param problem - an accepted instance of {@code T}
+	 * @throws SolverException
 	 */
 
-	public void solve(T problem);
+	public void solve(T problem) throws SolverException;
 
 }

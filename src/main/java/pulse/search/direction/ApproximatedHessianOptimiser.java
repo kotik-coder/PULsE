@@ -4,6 +4,7 @@ import static pulse.math.Matrix.outerProduct;
 
 import pulse.math.Matrix;
 import pulse.math.Vector;
+import pulse.problem.schemes.solvers.SolverException;
 import pulse.tasks.SearchTask;
 import pulse.ui.Messages;
 
@@ -58,10 +59,12 @@ public class ApproximatedHessianOptimiser extends PathOptimiser {
 	 * calculated Hessian matrix on step <i>k</i>, and the result of the linear
 	 * search <i>&alpha;<sub>k</i>+1</sub>.
 	 * </p>
+	 * 
+	 * @throws SolverException
 	 */
 
 	@Override
-	public void endOfStep(SearchTask task) {
+	public void endOfStep(SearchTask task) throws SolverException {
 		ComplexPath p = (ComplexPath) task.getPath();
 		Vector dir = p.getDirection();
 

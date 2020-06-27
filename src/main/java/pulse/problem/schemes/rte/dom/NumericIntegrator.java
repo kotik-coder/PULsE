@@ -2,7 +2,11 @@ package pulse.problem.schemes.rte.dom;
 
 import pulse.problem.schemes.Grid;
 import pulse.problem.schemes.rte.EmissionFunction;
+import pulse.problem.schemes.rte.RTECalculationStatus;
 import pulse.problem.statements.ParticipatingMedium;
+import pulse.properties.NumericProperty;
+import pulse.properties.NumericPropertyKeyword;
+import pulse.properties.Property;
 import pulse.util.PropertyHolder;
 import pulse.util.Reflexive;
 
@@ -35,10 +39,24 @@ public abstract class NumericIntegrator extends PropertyHolder implements Reflex
 		this.emissionFunction = emissionFunction;
 	}
 
-	public NumericIntegrator(DiscreteIntensities intensities, EmissionFunction ef, PhaseFunction ipf) {
+	public NumericIntegrator(ParticipatingMedium medium, DiscreteIntensities intensities, EmissionFunction ef,
+			PhaseFunction ipf) {
 		this.intensities = intensities;
 		this.emissionFunction = ef;
 		this.pf = ipf;
+
+		medium.addListener(e -> {
+
+			Property p = e.getProperty();
+
+			if (p instanceof NumericProperty) {
+				var np = (NumericProperty) p;
+				if (np.getType() == NumericPropertyKeyword.SCATTERING_ALBEDO)
+					setAlbedo((double) np.getValue());
+			}
+
+		});
+
 	}
 
 	public double getAlbedo() {
@@ -46,16 +64,13 @@ public abstract class NumericIntegrator extends PropertyHolder implements Reflex
 	}
 
 	public void init(ParticipatingMedium problem, Grid grid) {
-		setAlbedo((double) problem.getScatteringAlbedo().getValue());
-		this.emissionFunction.init(problem);
-		emissionFunction.setGridStep(grid.getXStep());
-		intensities.setEmissivity((double) problem.getEmissivityProperty().getValue());
+		this.emissionFunction = new EmissionFunction(problem, grid);
 		nNegativeStart = intensities.ordinates.getFirstNegativeNode();
 		nPositiveStart = intensities.ordinates.getFirstPositiveNode();
 		nH = nNegativeStart - nPositiveStart;
 	}
 
-	public abstract void integrate();
+	public abstract RTECalculationStatus integrate();
 
 	public void setAlbedo(double albedo) {
 		this.albedo = albedo;

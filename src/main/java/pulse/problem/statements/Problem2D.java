@@ -9,11 +9,15 @@ import static pulse.properties.NumericPropertyKeyword.SPOT_DIAMETER;
 import java.util.ArrayList;
 import java.util.List;
 
+import pulse.input.ExperimentalData;
 import pulse.math.IndexedVector;
+import pulse.problem.schemes.ADIScheme;
+import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.DiscretePulse;
 import pulse.problem.schemes.DiscretePulse2D;
 import pulse.problem.schemes.Grid;
 import pulse.problem.schemes.Grid2D;
+import pulse.problem.schemes.rte.MathUtils;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
@@ -26,26 +30,38 @@ public abstract class Problem2D extends Problem implements TwoDimensional {
 
 	protected Problem2D() {
 		super();
+		this.pulse = new Pulse2D();
 		Bi3 = (double) NumericProperty.def(HEAT_LOSS_SIDE).getValue();
 		d = (double) NumericProperty.def(DIAMETER).getValue();
 		fovOuter = (double) NumericProperty.def(FOV_OUTER).getValue();
 		fovInner = (double) NumericProperty.def(FOV_INNER).getValue();
+		setComplexity(ProblemComplexity.MODERATE);
 	}
 
 	protected Problem2D(Problem sdd) {
 		super(sdd);
+		this.pulse = new Pulse2D(sdd.getPulse());
 		Bi3 = (double) NumericProperty.def(HEAT_LOSS_SIDE).getValue();
 		d = (double) NumericProperty.def(DIAMETER).getValue();
 		fovOuter = (double) NumericProperty.def(FOV_OUTER).getValue();
 		fovInner = (double) NumericProperty.def(FOV_INNER).getValue();
+		setComplexity(ProblemComplexity.MODERATE);
 	}
 
 	protected Problem2D(Problem2D sdd) {
 		super(sdd);
+		this.pulse = new Pulse2D(sdd.getPulse());
 		this.d = sdd.d;
 		this.Bi3 = sdd.Bi3;
 		this.fovOuter = sdd.fovOuter;
 		this.fovInner = sdd.fovInner;
+		setComplexity(ProblemComplexity.MODERATE);
+	}
+	
+	public void useTheoreticalEstimates(ExperimentalData c) {
+		super.useTheoreticalEstimates(c);
+		if (areThermalPropertiesLoaded()) 
+			Bi3 = biot();	
 	}
 
 	@Override
@@ -107,7 +123,7 @@ public abstract class Problem2D extends Problem implements TwoDimensional {
 		case DIAMETER:
 			setSampleDiameter(property);
 			break;
-		case HEAT_LOSS_SIDE:
+		case HEAT_LOSS:
 			setSideLosses(property);
 			break;
 		default:
@@ -122,7 +138,8 @@ public abstract class Problem2D extends Problem implements TwoDimensional {
 
 	@Override
 	public DiscretePulse discretePulseOn(Grid grid) {
-		return grid instanceof Grid2D ? new DiscretePulse2D(this, pulse, (Grid2D) grid) : super.discretePulseOn(grid);
+		return grid instanceof Grid2D ? new DiscretePulse2D(this, (Pulse2D) pulse, (Grid2D) grid)
+				: super.discretePulseOn(grid);
 	}
 
 	@Override
@@ -140,9 +157,14 @@ public abstract class Problem2D extends Problem implements TwoDimensional {
 				output[1].set(i, 0.25);
 				break;
 			case SPOT_DIAMETER:
-				double fov = (double) pulse.getSpotDiameter().getValue();
+				double fov = (double) ((Pulse2D) pulse).getSpotDiameter().getValue();
 				output[0].set(i, fov / d);
 				output[1].set(i, 0.25);
+				break;
+			case HEAT_LOSS_SIDE:
+				output[0].set(i,
+						areThermalPropertiesLoaded() ? MathUtils.atanh(2.0 * Bi3 / maxBiot() - 1.0) : Math.log(Bi3));
+				output[1].set(i, 2.0);
 				break;
 			default:
 				continue;
@@ -165,15 +187,21 @@ public abstract class Problem2D extends Problem implements TwoDimensional {
 				break;
 			case SPOT_DIAMETER:
 				NumericProperty spotDiameter = NumericProperty.derive(SPOT_DIAMETER, params.get(i) * d);
-				pulse.setSpotDiameter(spotDiameter);
+				((Pulse2D) pulse).setSpotDiameter(spotDiameter);
 				break;
-			case HEAT_LOSS:
-				Bi3 = Math.sqrt(params.get(i));
+			case HEAT_LOSS_SIDE:
+				Bi3 = areThermalPropertiesLoaded() ? 0.5 * maxBiot() * (Math.tanh(params.get(i)) + 1.0)
+						: Math.exp(params.get(i));
 				break;
 			default:
 				continue;
 			}
 		}
+	}
+
+	@Override
+	public Class<? extends DifferenceScheme> defaultScheme() {
+		return ADIScheme.class;
 	}
 
 }

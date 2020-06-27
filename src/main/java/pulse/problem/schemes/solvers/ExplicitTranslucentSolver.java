@@ -5,13 +5,13 @@ import static java.lang.Math.pow;
 import pulse.HeatingCurve;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.ExplicitScheme;
-import pulse.problem.statements.AbsorptionModel;
-import pulse.problem.statements.AbsorptionModel.SpectralRange;
-import pulse.problem.statements.DistributedAbsorptionProblem;
+import pulse.problem.statements.PenetrationProblem;
 import pulse.problem.statements.Problem;
+import pulse.problem.statements.penetration.AbsorptionModel;
+import pulse.problem.statements.penetration.AbsorptionModel.SpectralRange;
 import pulse.properties.NumericProperty;
 
-public class ExplicitTranslucentSolver extends ExplicitScheme implements Solver<DistributedAbsorptionProblem> {
+public class ExplicitTranslucentSolver extends ExplicitScheme implements Solver<PenetrationProblem> {
 
 	private double maxTemp;
 	private AbsorptionModel absorb;
@@ -43,7 +43,7 @@ public class ExplicitTranslucentSolver extends ExplicitScheme implements Solver<
 		super(N, timeFactor, timeLimit);
 	}
 
-	private void prepare(DistributedAbsorptionProblem problem) {
+	private void prepare(PenetrationProblem problem) {
 		super.prepare(problem);
 		curve = problem.getHeatingCurve();
 
@@ -56,8 +56,8 @@ public class ExplicitTranslucentSolver extends ExplicitScheme implements Solver<
 		U = new double[N + 1];
 		V = new double[N + 1];
 
-		double Bi1 = (double) problem.getFrontHeatLoss().getValue();
-		double Bi2 = (double) problem.getHeatLossRear().getValue();
+		double Bi1 = (double) problem.getHeatLoss().getValue();
+		double Bi2 = Bi1;
 		maxTemp = (double) problem.getMaximumTemperature().getValue();
 
 		counts = (int) curve.getNumPoints().getValue();
@@ -70,7 +70,7 @@ public class ExplicitTranslucentSolver extends ExplicitScheme implements Solver<
 	}
 
 	@Override
-	public void solve(DistributedAbsorptionProblem problem) {
+	public void solve(PenetrationProblem problem) {
 		prepare(problem);
 
 		double TAU_HH = tau / pow(hx, 2);
@@ -140,7 +140,7 @@ public class ExplicitTranslucentSolver extends ExplicitScheme implements Solver<
 
 	@Override
 	public Class<? extends Problem> domain() {
-		return DistributedAbsorptionProblem.class;
+		return PenetrationProblem.class;
 	}
 
 }

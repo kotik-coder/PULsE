@@ -8,6 +8,7 @@ import java.util.List;
 import pulse.math.IndexedVector;
 import pulse.math.Segment2D;
 import pulse.math.Vector;
+import pulse.problem.schemes.solvers.SolverException;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
@@ -41,9 +42,10 @@ public abstract class LinearOptimiser extends PropertyHolder implements Reflexiv
 	 *         by the direction of the search determined previously using the
 	 *         {@code PathSolver} to arrive at the next set of parameters
 	 *         corresponding to a lower SSR value of this {@code task}
+	 * @throws SolverException
 	 */
 
-	public abstract double linearStep(SearchTask task);
+	public abstract double linearStep(SearchTask task) throws SolverException;
 
 	/**
 	 * Sets the domain for this linear search on {@code p}.

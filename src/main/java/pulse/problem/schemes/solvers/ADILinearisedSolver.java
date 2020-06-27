@@ -55,8 +55,8 @@ public class ADILinearisedSolver extends ADIScheme implements Solver<LinearisedP
 		hy = ((Grid2D) getGrid()).getYStep();
 		tau = grid.getTimeStep();
 
-		Bi1 = (double) problem.getFrontHeatLoss().getValue();
-		Bi2 = (double) problem.getHeatLossRear().getValue();
+		Bi1 = (double) problem.getHeatLoss().getValue();
+		Bi2 = Bi1;
 		Bi3 = (double) problem.getSideLosses().getValue();
 
 		d = (double) problem.getSampleDiameter().getValue();
@@ -241,12 +241,13 @@ public class ADILinearisedSolver extends ADIScheme implements Solver<LinearisedP
 			sum /= (lastIndex - firstIndex + 1);
 
 			curve.addPoint((w * timeInterval) * tau * problem.timeFactor(), sum);
-
+			
 			maxVal = max(maxVal, sum);
 
 		}
-
+		
 		curve.scale(maxTemp / maxVal);
+		
 	}
 
 	@Override

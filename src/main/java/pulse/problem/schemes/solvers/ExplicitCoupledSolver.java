@@ -9,8 +9,9 @@ import pulse.HeatingCurve;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.ExplicitScheme;
 import pulse.problem.schemes.Grid;
+import pulse.problem.schemes.rte.RTECalculationStatus;
 import pulse.problem.schemes.rte.RadiativeTransferSolver;
-import pulse.problem.schemes.rte.exact.AnalyticalDerivativeCalculator;
+import pulse.problem.schemes.rte.exact.NonscatteringAnalyticalDerivatives;
 import pulse.problem.statements.ParticipatingMedium;
 import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
@@ -24,6 +25,7 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
 	private double[] V;
 
 	private RadiativeTransferSolver rte;
+
 	private double opticalThickness;
 	private double Np;
 	private double Bi1, Bi2;
@@ -46,7 +48,7 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
 			"RTE Solver Selector", RadiativeTransferSolver.class);
 
 	static {
-		instanceDescriptor.setSelectedDescriptor(AnalyticalDerivativeCalculator.class.getSimpleName());
+		instanceDescriptor.setSelectedDescriptor(NonscatteringAnalyticalDerivatives.class.getSimpleName());
 	}
 
 	public ExplicitCoupledSolver() {
@@ -62,12 +64,10 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
 		setTimeLimit(timeLimit);
 	}
 
-	@Override
-	public void prepare(Problem problem) {
+	private void prepare(ParticipatingMedium problem) {
 		super.prepare(problem);
 
-		if (rte == null)
-			initRTE((ParticipatingMedium) problem, grid);
+		initRTE(problem, grid);
 
 		curve = problem.getHeatingCurve();
 
@@ -78,8 +78,7 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
 		U = new double[N + 1];
 		V = new double[N + 1];
 
-		Bi1 = (double) problem.getFrontHeatLoss().getValue();
-		Bi2 = (double) problem.getHeatLossRear().getValue();
+		Bi1 = (double) problem.getHeatLoss().getValue();
 		maxTemp = (double) problem.getMaximumTemperature().getValue();
 
 		counts = (int) curve.getNumPoints().getValue();
@@ -87,18 +86,12 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
 		a = 1. / (1. + Bi1 * hx);
 		b = 1. / (1. + Bi2 * hx);
 
-		if (problem instanceof ParticipatingMedium) {
-
-			var p = (ParticipatingMedium) problem;
-			rte.init(p, grid);
-			opticalThickness = (double) p.getOpticalThickness().getValue();
-			Np = (double) p.getPlanckNumber().getValue();
-
-		}
+		opticalThickness = (double) problem.getOpticalThickness().getValue();
+		Np = (double) problem.getPlanckNumber().getValue();
 
 	}
 
-	public void solveGeneral(ParticipatingMedium problem) {
+	public void solve(ParticipatingMedium problem) throws SolverException {
 		prepare(problem);
 
 		int i, m, w;
@@ -114,7 +107,7 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
 
 		double wFactor = timeInterval * tau * problem.timeFactor();
 
-		rte.compute(U);
+		var status = rte.compute(U);
 
 		/*
 		 * The outer cycle iterates over the number of points of the HeatingCurve
@@ -128,7 +121,8 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
 			 * timeInterval/tau time steps have to be made first.
 			 */
 
-			for (m = (w - 1) * timeInterval + 1; m < w * timeInterval + 1; m++) {
+			for (m = (w - 1) * timeInterval + 1; m < w * timeInterval + 1
+					&& status == RTECalculationStatus.NORMAL; m++) {
 
 				/*
 				 * Do the iterations
@@ -140,7 +134,7 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
 				 */
 
 				for (V_0 = Double.POSITIVE_INFINITY, V_N = Double.POSITIVE_INFINITY; (pow((V[0] - V_0), 2) > errorSq)
-						|| (pow((V[N] - V_N), 2) > errorSq); rte.compute(V)) {
+						|| (pow((V[N] - V_N), 2) > errorSq); status = rte.compute(V)) {
 
 					/*
 					 * Uses the heat equation explicitly to calculate the grid-function everywhere
@@ -173,6 +167,9 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
 
 		}
 
+		if (status != RTECalculationStatus.NORMAL)
+			throw new SolverException(status.toString());
+
 		curve.scale(maxTemp / curve.apparentMaximum());
 	}
 
@@ -184,19 +181,6 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
 	@Override
 	public Class<? extends Problem> domain() {
 		return ParticipatingMedium.class;
-	}
-
-	@Override
-	public void solve(ParticipatingMedium problem) {
-		switch (mode) {
-		case GENERAL:
-			solveGeneral(problem);
-			break;
-//		case OPTICALLY_THIN : solveThin(problem); break;
-//		case OPTICALLY_THICK : solveRosseland(problem); break;
-		default:
-			throw new IllegalStateException("Mode not recognised: " + mode);
-		}
 	}
 
 	public enum Mode {
@@ -234,7 +218,22 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
 		}
 	}
 
-	public void initRTE(ParticipatingMedium problem, Grid grid) {
+	private void initRTE(ParticipatingMedium problem, Grid grid) {
+
+		if (rte == null) {
+			newRTE(problem, grid);
+			instanceDescriptor.addListener(() -> {
+				newRTE(problem, grid);
+				rte.init(problem, grid);
+			});
+
+		}
+
+		rte.init(problem, grid);
+
+	}
+
+	private void newRTE(ParticipatingMedium problem, Grid grid) {
 		rte = instanceDescriptor.newInstance(RadiativeTransferSolver.class, problem, grid);
 		rte.setParent(this);
 	}

@@ -1,5 +1,8 @@
 package pulse.problem.schemes.rte;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
 
@@ -22,8 +25,11 @@ public abstract class RadiativeTransferSolver extends PropertyHolder implements 
 	private double h;
 	private double opticalThickness;
 
+	private List<RTECalculationListener> rteListeners;
+
 	public RadiativeTransferSolver(ParticipatingMedium problem, Grid grid) {
 		reinitArrays((int) grid.getGridDensity().getValue());
+		rteListeners = new ArrayList<RTECalculationListener>();
 	}
 
 	public void reinitArrays(int N) {
@@ -90,7 +96,7 @@ public abstract class RadiativeTransferSolver extends PropertyHolder implements 
 		return interpolator.interpolate(xArray, tempArray);
 	}
 
-	public abstract void compute(double[] temperatureArray);
+	public abstract RTECalculationStatus compute(double[] temperatureArray);
 
 	public int getExternalGridDensity() {
 		return N;
@@ -116,6 +122,14 @@ public abstract class RadiativeTransferSolver extends PropertyHolder implements 
 	@Override
 	public String getPrefix() {
 		return "RTE Solver";
+	}
+
+	public List<RTECalculationListener> getRTEListeners() {
+		return rteListeners;
+	}
+
+	public void addRTEListener(RTECalculationListener listener) {
+		rteListeners.add(listener);
 	}
 
 }

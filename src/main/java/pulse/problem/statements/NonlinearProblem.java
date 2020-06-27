@@ -9,6 +9,8 @@ import java.util.List;
 
 import pulse.input.ExperimentalData;
 import pulse.math.IndexedVector;
+import pulse.problem.schemes.DifferenceScheme;
+import pulse.problem.schemes.ImplicitScheme;
 import pulse.problem.schemes.rte.MathUtils;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
@@ -24,14 +26,20 @@ public class NonlinearProblem extends Problem {
 
 	public NonlinearProblem() {
 		super();
+		pulse = new Pulse2D();
+		setComplexity(ProblemComplexity.MODERATE);
 	}
 
 	public NonlinearProblem(Problem p) {
 		super(p);
+		pulse = new Pulse2D(p.getPulse());
+		setComplexity(ProblemComplexity.MODERATE);
 	}
 
 	public NonlinearProblem(NonlinearProblem p) {
 		super(p);
+		pulse = new Pulse2D(p.getPulse());
+		setComplexity(ProblemComplexity.MODERATE);
 	}
 
 	@Override
@@ -66,7 +74,7 @@ public class NonlinearProblem extends Problem {
 
 	public double maximumHeating() {
 		double Q = (double) pulse.getLaserEnergy().getValue();
-		double dLas = (double) pulse.getSpotDiameter().getValue();
+		double dLas = (double) ((Pulse2D) pulse).getSpotDiameter().getValue();
 
 		evaluateDependentParameters();
 
@@ -80,6 +88,7 @@ public class NonlinearProblem extends Problem {
 
 	public void evaluateDependentParameters() {
 		emissivity = emissivity();
+		notifyListeners(this, getEmissivityProperty());
 	}
 
 	public NumericProperty getThermalConductivity() {
@@ -111,7 +120,7 @@ public class NonlinearProblem extends Problem {
 		}
 
 	}
-	
+
 	@Override
 	protected double biot() {
 		return biot(emissivity);
@@ -140,6 +149,11 @@ public class NonlinearProblem extends Problem {
 
 		}
 
+	}
+
+	@Override
+	public Class<? extends DifferenceScheme> defaultScheme() {
+		return ImplicitScheme.class;
 	}
 
 }

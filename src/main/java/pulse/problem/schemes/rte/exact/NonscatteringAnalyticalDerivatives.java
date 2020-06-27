@@ -1,13 +1,14 @@
 package pulse.problem.schemes.rte.exact;
 
 import pulse.problem.schemes.Grid;
+import pulse.problem.schemes.rte.RTECalculationStatus;
 import pulse.problem.statements.ParticipatingMedium;
 
-public class AnalyticalDerivativeCalculator extends NonscatteringRadiativeTransfer {
+public class NonscatteringAnalyticalDerivatives extends NonscatteringRadiativeTransfer {
 
 	private double FD[], FDP[];
 
-	public AnalyticalDerivativeCalculator(ParticipatingMedium problem, Grid grid) {
+	public NonscatteringAnalyticalDerivatives(ParticipatingMedium problem, Grid grid) {
 		super(problem, grid);
 	}
 
@@ -60,7 +61,7 @@ public class AnalyticalDerivativeCalculator extends NonscatteringRadiativeTransf
 	}
 
 	@Override
-	public void compute(double U[]) {
+	public RTECalculationStatus compute(double U[]) {
 		super.compute(U);
 		radiosities();
 		fluxDerivativeFront(U);
@@ -68,6 +69,7 @@ public class AnalyticalDerivativeCalculator extends NonscatteringRadiativeTransf
 			fluxDerivative(U, i);
 		fluxDerivativeRear(U);
 		boundaryFluxes();
+		return RTECalculationStatus.NORMAL;
 	}
 
 	/*

@@ -1,6 +1,7 @@
 package pulse.search.direction;
 
 import pulse.math.Matrix;
+import pulse.problem.schemes.solvers.SolverException;
 import pulse.tasks.SearchTask;
 
 /**
@@ -23,12 +24,14 @@ public class ComplexPath extends Path {
 	/**
 	 * In addition to the superclass method, resets the Hessian to an Identity
 	 * matrix.
+	 * 
+	 * @throws SolverException
 	 */
 
 	@Override
-	public void reset(SearchTask task) {
+	public void reset(SearchTask task) throws SolverException {
 		setGradient(PathOptimiser.gradient(task));
-		hessian = new Matrix(PathOptimiser.activeParameters().size(), 1.0);
+		hessian = new Matrix(PathOptimiser.activeParameters(task).size(), 1.0);
 		setDirection(PathOptimiser.getSelectedPathOptimiser().direction(this));
 	}
 

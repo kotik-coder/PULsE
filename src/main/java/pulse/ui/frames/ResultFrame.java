@@ -44,7 +44,7 @@ public class ResultFrame extends JInternalFrame {
 	private void initComponents() {
 		JScrollPane resultsScroller = new JScrollPane();
 
-		resultTable = new ResultTable(ResultFormat.DEFAULT_FORMAT);
+		resultTable = new ResultTable(ResultFormat.getInstance());
 		resultsScroller.setViewportView(resultTable);
 		getContentPane().add(resultsScroller, BorderLayout.CENTER);
 

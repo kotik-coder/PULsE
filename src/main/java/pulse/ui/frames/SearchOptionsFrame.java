@@ -96,6 +96,7 @@ public class SearchOptionsFrame extends JInternalFrame {
 		if (selected != null) {
 			pathList.setSelectedIndex(pathSolvers.indexOf(selected));
 			linearList.setSelectedIndex(linearSolvers.indexOf(PathOptimiser.getLinearSolver()));
+			pathTable.updateTable();
 		} else {
 			pathList.clearSelection();
 			linearList.clearSelection();

@@ -3,6 +3,8 @@ package pulse.input;
 import java.util.List;
 import java.util.Objects;
 
+import pulse.HeatingCurve;
+
 public class IndexRange {
 
 	private int iStart, iEnd;
@@ -103,7 +105,7 @@ public class IndexRange {
 				if (of < in.get(i + 1))
 					return i;
 		}
-		return -1;
+		return of > in.get(size - 1) ? size - 1 : -1;
 
 	}
 

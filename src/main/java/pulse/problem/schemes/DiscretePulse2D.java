@@ -1,7 +1,7 @@
 package pulse.problem.schemes;
 
 import pulse.problem.statements.Problem;
-import pulse.problem.statements.Pulse;
+import pulse.problem.statements.Pulse2D;
 import pulse.problem.statements.TwoDimensional;
 import pulse.properties.NumericPropertyKeyword;
 
@@ -34,7 +34,7 @@ public class DiscretePulse2D extends DiscretePulse {
 	 * @param grid    the two-dimensional grid
 	 */
 
-	public <T extends Problem & TwoDimensional> DiscretePulse2D(T problem, Pulse pulse, Grid2D grid) {
+	public <T extends Problem & TwoDimensional> DiscretePulse2D(T problem, Pulse2D pulse, Grid2D grid) {
 		super(problem, pulse, grid);
 		coordFactor = (double) problem.getSampleDiameter().getValue() / 2.0;
 		discretePulseSpot = grid.gridRadialDistance((double) pulse.getSpotDiameter().getValue() / 2.0, coordFactor);
@@ -71,8 +71,8 @@ public class DiscretePulse2D extends DiscretePulse {
 	@Override
 	public void recalculate(NumericPropertyKeyword keyword) {
 		if (keyword == NumericPropertyKeyword.SPOT_DIAMETER) {
-			discretePulseSpot = ((Grid2D) getGrid())
-					.gridRadialDistance((double) getPulse().getSpotDiameter().getValue() / 2.0, coordFactor);
+			discretePulseSpot = ((Grid2D) getGrid()).gridRadialDistance(
+					(double) ((Pulse2D) getPulse()).getSpotDiameter().getValue() / 2.0, coordFactor);
 		} else {
 			super.recalculate(keyword);
 		}

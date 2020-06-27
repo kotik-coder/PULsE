@@ -57,8 +57,7 @@ public class ExplicitNonlinearSolver extends ExplicitScheme implements Solver<No
 		T = (double) problem.getTestTemperature().getValue();
 		dT = problem.maximumHeating();
 
-		Bi1 = (double) problem.getFrontHeatLoss().getValue();
-		Bi2 = (double) problem.getHeatLossRear().getValue();
+		Bi1 = (double) problem.getHeatLoss().getValue();
 
 		counts = (int) curve.getNumPoints().getValue();
 	}

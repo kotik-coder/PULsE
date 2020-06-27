@@ -1,5 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <NumericProperties>
+	<NumericProperty abbreviation="Max iterations"
+		auto-adjustable="false" descriptor="Max iterations"
+		dimensionfactor="1" discreet="false" keyword="RTE_MAX_ITERATIONS"
+		maximum="10000" minimum="1" primitive-type="int" value="100">
+	</NumericProperty>
+	<NumericProperty abbreviation="Integration timeout (ms)"
+		auto-adjustable="false" descriptor="Integration timeout (ms)"
+		dimensionfactor="1E-6" discreet="false"
+		keyword="RTE_INTEGRATION_TIMEOUT" maximum="1e10" minimum="1e6"
+		primitive-type="double" value="1e8">
+	</NumericProperty>
 	<NumericProperty abbreviation="&lt;i&gt;W&lt;/i&gt;"
 		auto-adjustable="false"
 		descriptor="Relaxation parameter, &lt;i&gt;W&lt;/i&gt;"
@@ -323,25 +334,15 @@
 		dimensionfactor="1.0" keyword="BASELINE_INTERCEPT" maximum="10.0"
 		minimum="-10.0" value="0.0" primitive-type="double" discreet="false" />
 	<NumericProperty
-		abbreviation="Bi&lt;sub&gt;3&lt;/sub&gt;" auto-adjustable="true"
-		descriptor="Heat loss (side surface), Bi&lt;sub&gt;3&lt;/sub&gt;"
+		abbreviation="Bi&lt;sub&gt;s&lt;/sub&gt;" auto-adjustable="true"
+		descriptor="Heat loss (side surface), Bi&lt;sub&gt;s&lt;/sub&gt;"
 		dimensionfactor="1.0" keyword="HEAT_LOSS_SIDE" maximum="10.0"
-		minimum="1e-10" value="0.1" primitive-type="double" discreet="false" />
-	<NumericProperty
-		abbreviation="Bi&lt;sub&gt;1&lt;/sub&gt;" auto-adjustable="true"
-		descriptor="Heat loss (front surface), Bi&lt;sub&gt;1&lt;/sub&gt;"
-		dimensionfactor="1.0" keyword="HEAT_LOSS_FRONT" maximum="10.0"
 		minimum="1e-10" value="0.1" primitive-type="double" discreet="false" />
 	<NumericProperty keyword="HEAT_LOSS" abbreviation="Bi"
 		auto-adjustable="true" descriptor="Heat loss, Bi" dimensionfactor="1"
 		maximum="10" minimum="1e-10" primitive-type="double" value="0.1"
 		discreet="false">
 	</NumericProperty>
-	<NumericProperty
-		abbreviation="Bi&lt;sub&gt;2&lt;/sub&gt;" auto-adjustable="true"
-		descriptor="Heat loss (rear surface), Bi&lt;sub&gt;2&lt;/sub&gt;"
-		dimensionfactor="1.0" keyword="HEAT_LOSS_REAR" maximum="10.0"
-		minimum="1e-10" value="0.1" primitive-type="double" discreet="false" ></NumericProperty>
 	<NumericProperty abbreviation="Gain"
 		auto-adjustable="false" descriptor="Detector Gain" dimensionfactor="1"
 		keyword="DETECTOR_GAIN" maximum="200" minimum="1" value="10"

@@ -9,6 +9,8 @@ import java.util.List;
 
 import pulse.input.ExperimentalData;
 import pulse.math.IndexedVector;
+import pulse.problem.schemes.DifferenceScheme;
+import pulse.problem.schemes.MixedScheme;
 import pulse.problem.schemes.rte.MathUtils;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
@@ -35,6 +37,7 @@ public class ParticipatingMedium extends NonlinearProblem {
 		scatteringAnisotropy = (double) NumericProperty.theDefault(NumericPropertyKeyword.SCATTERING_ANISOTROPY)
 				.getValue();
 		scatteringAlbedo = (double) NumericProperty.theDefault(NumericPropertyKeyword.SCATTERING_ALBEDO).getValue();
+		setComplexity(ProblemComplexity.HIGH);
 	}
 
 	public ParticipatingMedium(Problem p) {
@@ -44,6 +47,7 @@ public class ParticipatingMedium extends NonlinearProblem {
 		scatteringAlbedo = (double) NumericProperty.theDefault(NumericPropertyKeyword.SCATTERING_ALBEDO).getValue();
 		scatteringAnisotropy = (double) NumericProperty.theDefault(NumericPropertyKeyword.SCATTERING_ANISOTROPY)
 				.getValue();
+		setComplexity(ProblemComplexity.HIGH);
 	}
 
 	public ParticipatingMedium(ParticipatingMedium p) {
@@ -53,6 +57,7 @@ public class ParticipatingMedium extends NonlinearProblem {
 		this.emissivity = p.emissivity;
 		this.scatteringAlbedo = p.scatteringAlbedo;
 		this.scatteringAnisotropy = p.scatteringAnisotropy;
+		setComplexity(ProblemComplexity.HIGH);
 	}
 
 	@Override
@@ -103,8 +108,10 @@ public class ParticipatingMedium extends NonlinearProblem {
 			setScatteringAnisotropy(value);
 			break;
 		default:
-			break;
+			return;
 		}
+
+		notifyListeners(this, value);
 
 	}
 
@@ -141,7 +148,7 @@ public class ParticipatingMedium extends NonlinearProblem {
 				output[1].set(i, 10.0);
 				break;
 			case SCATTERING_ALBEDO:
-				output[0].set(i, MathUtils.atanh(2.0 * scatteringAlbedo - 1.0) );
+				output[0].set(i, MathUtils.atanh(2.0 * scatteringAlbedo - 1.0));
 				output[1].set(i, 10.0);
 				break;
 			case SCATTERING_ANISOTROPY:
@@ -159,27 +166,39 @@ public class ParticipatingMedium extends NonlinearProblem {
 	public void assign(IndexedVector params) {
 		super.assign(params);
 
+		NumericProperty changed = null;
+
 		for (int i = 0, size = params.dimension(); i < size; i++) {
 			switch (params.getIndex(i)) {
+
 			case PLANCK_NUMBER:
 				planckNumber = 0.5 * maxNp() * (Math.tanh(params.get(i)) + 1.0);
+				changed = getPlanckNumber();
 				break;
 			case OPTICAL_THICKNESS:
 				opticalThickness = Math.exp(params.get(i));
+				changed = getOpticalThickness();
 				break;
 			case SCATTERING_ALBEDO:
 				scatteringAlbedo = 0.5 * (Math.tanh(params.get(i)) + 1.0);
+				changed = getScatteringAlbedo();
 				break;
 			case SCATTERING_ANISOTROPY:
 				scatteringAnisotropy = Math.tanh(params.get(i));
+				changed = getScatteringAnisostropy();
 				break;
 			case HEAT_LOSS:
+				changed = getHeatLoss();
 			case DIFFUSIVITY:
 				super.evaluateDependentParameters();
+				changed = getDiffusivity();
 				break;
 			default:
 				continue;
 			}
+
+			this.notifyListeners(this, changed);
+
 		}
 
 	}
@@ -212,6 +231,15 @@ public class ParticipatingMedium extends NonlinearProblem {
 			final double lambda = thermalConductivity();
 			planckNumber = lambda / (4.0 * nSq * STEFAN_BOTLZMAN * Math.pow(T, 3) * l);
 		}
+	}
+
+	@Override
+	public Class<? extends DifferenceScheme> defaultScheme() {
+		return MixedScheme.class;
+	}
+	
+	public boolean isBatchProcessingEnabled() {
+		return false;
 	}
 
 }

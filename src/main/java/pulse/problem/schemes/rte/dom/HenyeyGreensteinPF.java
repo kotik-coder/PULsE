@@ -1,13 +1,15 @@
 package pulse.problem.schemes.rte.dom;
 
+import pulse.problem.statements.ParticipatingMedium;
+
 public class HenyeyGreensteinPF extends PhaseFunction {
 
 	private double a1;
 	private double a2;
 	private double b1;
 
-	public HenyeyGreensteinPF(DiscreteIntensities intensities) {
-		super(intensities);
+	public HenyeyGreensteinPF(ParticipatingMedium medium, DiscreteIntensities intensities) {
+		super(medium, intensities);
 		init();
 	}
 

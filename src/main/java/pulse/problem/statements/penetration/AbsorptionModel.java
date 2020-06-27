@@ -1,6 +1,5 @@
-package pulse.problem.statements;
+package pulse.problem.statements.penetration;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,8 +65,14 @@ public abstract class AbsorptionModel extends PropertyHolder implements Reflexiv
 	}
 
 	@Override
+	public String toString() {
+		return getClass().getSimpleName() + " : " + absorptionMap.get(SpectralRange.LASER) + " ; "
+				+ absorptionMap.get(SpectralRange.THERMAL);
+	}
+
+	@Override
 	public List<Property> listedTypes() {
-		List<Property> list = new ArrayList<Property>();
+		List<Property> list = super.listedTypes();
 		list.add(NumericProperty.def(NumericPropertyKeyword.LASER_ABSORPTIVITY));
 		list.add(NumericProperty.def(NumericPropertyKeyword.THERMAL_ABSORPTIVITY));
 		return list;

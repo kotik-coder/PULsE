@@ -14,16 +14,19 @@ public class DiathermicMedium extends LinearisedProblem {
 
 	private double diathermicCoefficient;
 	private final static boolean DEBUG = false;
-
+	private final static int DEFAULT_CURVE_POINTS = 300;
+	
 	public DiathermicMedium() {
 		super();
 		this.diathermicCoefficient = (double) NumericProperty.def(NumericPropertyKeyword.DIATHERMIC_COEFFICIENT)
 				.getValue();
+		curve.setNumPoints(NumericProperty.derive(NumericPropertyKeyword.NUMPOINTS, DEFAULT_CURVE_POINTS));
 	}
 
 	public DiathermicMedium(NumericProperty diathermicCoefficient) {
 		super();
 		this.diathermicCoefficient = (double) (diathermicCoefficient.getValue());
+		curve.setNumPoints(NumericProperty.derive(NumericPropertyKeyword.NUMPOINTS, DEFAULT_CURVE_POINTS));
 	}
 
 	public DiathermicMedium(Problem sdd) {
@@ -33,11 +36,13 @@ public class DiathermicMedium extends LinearisedProblem {
 		else
 			this.diathermicCoefficient = (double) NumericProperty.def(NumericPropertyKeyword.DIATHERMIC_COEFFICIENT)
 					.getValue();
+		curve.setNumPoints(NumericProperty.derive(NumericPropertyKeyword.NUMPOINTS, DEFAULT_CURVE_POINTS));
 	}
 
 	public DiathermicMedium(DiathermicMedium sdd) {
 		super(sdd);
 		this.diathermicCoefficient = sdd.diathermicCoefficient;
+		curve.setNumPoints(NumericProperty.derive(NumericPropertyKeyword.NUMPOINTS, DEFAULT_CURVE_POINTS));
 	}
 
 	public NumericProperty getDiathermicCoefficient() {
@@ -76,7 +81,7 @@ public class DiathermicMedium extends LinearisedProblem {
 		for (int i = 0, size = output[0].dimension(); i < size; i++) {
 			switch (output[0].getIndex(i)) {
 			case DIATHERMIC_COEFFICIENT:
-				output[0].set(i, MathUtils.atanh(2.0 * diathermicCoefficient - 1.0) );
+				output[0].set(i, MathUtils.atanh(2.0 * diathermicCoefficient - 1.0));
 				output[1].set(i, 10.0);
 				break;
 			default:
@@ -96,11 +101,11 @@ public class DiathermicMedium extends LinearisedProblem {
 				diathermicCoefficient = 0.5 * (Math.tanh(params.get(i)) + 1.0);
 				break;
 			case HEAT_LOSS:
-				if( areThermalPropertiesLoaded() ) {
+				if (areThermalPropertiesLoaded()) {
 					double emissivity = emissivity();
-					if(emissivity > 1.0)
+					if (emissivity > 1.0)
 						System.out.println(emissivity);
-					diathermicCoefficient = emissivity/(2.0 - emissivity);
+					diathermicCoefficient = emissivity / (2.0 - emissivity);
 				}
 				break;
 			default:

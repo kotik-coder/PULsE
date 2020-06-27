@@ -6,8 +6,6 @@ import static java.lang.Math.pow;
 import static pulse.properties.NumericPropertyKeyword.DENSITY;
 import static pulse.properties.NumericPropertyKeyword.DIFFUSIVITY;
 import static pulse.properties.NumericPropertyKeyword.HEAT_LOSS;
-import static pulse.properties.NumericPropertyKeyword.HEAT_LOSS_FRONT;
-import static pulse.properties.NumericPropertyKeyword.HEAT_LOSS_REAR;
 import static pulse.properties.NumericPropertyKeyword.MAXTEMP;
 import static pulse.properties.NumericPropertyKeyword.SPECIFIC_HEAT;
 import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
@@ -54,9 +52,10 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 	protected double signalHeight;
 	protected double cP, rho;
 	protected double T;
-	
+
 	private static boolean singleStatement = true;
 	private static boolean hideDetailedAdjustment = true;
+	private ProblemComplexity complexity = ProblemComplexity.LOW;
 
 	/**
 	 * The <b>corrected</b> proportionality factor setting out the relation between
@@ -71,7 +70,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 
 	public final double PARKERS_COEFFICIENT = 0.1370; // in mm
 	public final static double STEFAN_BOTLZMAN = 5.6703E-08; // Stephan-Boltzmann constant
-	
+
 	/**
 	 * Creates a {@code Problem} with default parameters (as found in the .XML
 	 * file).
@@ -87,8 +86,8 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 		super();
 		a = (double) NumericProperty.def(DIFFUSIVITY).getValue();
 		l = (double) NumericProperty.def(THICKNESS).getValue();
-		Bi1 = (double) NumericProperty.def(HEAT_LOSS_FRONT).getValue();
-		Bi2 = (double) NumericProperty.def(HEAT_LOSS_REAR).getValue();
+		Bi1 = (double) NumericProperty.def(HEAT_LOSS).getValue();
+		Bi2 = (double) NumericProperty.def(HEAT_LOSS).getValue();
 		signalHeight = (double) NumericProperty.def(MAXTEMP).getValue();
 		pulse = new Pulse();
 		curve = new HeatingCurve();
@@ -115,7 +114,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 		this.a = p.a;
 		this.Bi1 = p.Bi1;
 		this.Bi2 = p.Bi2;
-		
+
 		this.T = p.T;
 	}
 
@@ -195,11 +194,9 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 		case THICKNESS:
 			setSampleThickness(value);
 			break;
-		case HEAT_LOSS_FRONT:
-			setFrontHeatLoss(value);
-			break;
-		case HEAT_LOSS_REAR:
-			setRearHeatLoss(value);
+		case HEAT_LOSS :
+			this.Bi1 = (double) value.getValue();
+			this.Bi2 = Bi1;
 			break;
 		case SPECIFIC_HEAT:
 			setSpecificHeat(value);
@@ -211,8 +208,10 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 			setTestTemperature(value);
 			break;
 		default:
-			break;
+			return;
 		}
+		
+		notifyListeners(this, value);
 
 	}
 
@@ -253,22 +252,6 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 
 	public NumericProperty getHeatLoss() {
 		return NumericProperty.derive(HEAT_LOSS, Bi1);
-	}
-
-	public NumericProperty getFrontHeatLoss() {
-		return NumericProperty.derive(HEAT_LOSS_FRONT, Bi1);
-	}
-
-	public void setFrontHeatLoss(NumericProperty bi1) {
-		this.Bi1 = (double) bi1.getValue();
-	}
-
-	public NumericProperty getHeatLossRear() {
-		return NumericProperty.derive(HEAT_LOSS_REAR, Bi2);
-	}
-
-	public void setRearHeatLoss(NumericProperty bi2) {
-		this.Bi2 = (double) bi2.getValue();
 	}
 
 	public HeatingCurve getHeatingCurve() {
@@ -369,7 +352,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 	 * @return an {@code IndexedVector} object, representing the objective function.
 	 * @see listedTypes()
 	 */
-	
+
 	/*
 	 * TODO put relative bounds in a constant field Consider creating a Bounds
 	 * class, or putting them in the XML file
@@ -402,9 +385,8 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 				output[1].set(i, 1000);
 				break;
 			case HEAT_LOSS:
-				output[0].set(i, areThermalPropertiesLoaded() ?
-									MathUtils.atanh(2.0 * Bi1 / maxBiot() - 1.0) : 
-									Math.log(Bi1));
+				output[0].set(i,
+						areThermalPropertiesLoaded() ? MathUtils.atanh(2.0 * Bi1 / maxBiot() - 1.0) : Math.log(Bi1));
 				output[1].set(i, 2.0);
 				break;
 			case TIME_SHIFT:
@@ -446,9 +428,8 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 				(curve.getBaseline()).setParameter(1, params.get(i));
 				break;
 			case HEAT_LOSS:
-				double heatLoss = areThermalPropertiesLoaded() ? 
-									0.5 * maxBiot() * (Math.tanh(params.get(i)) + 1.0) :
-									Math.exp(params.get(i));
+				double heatLoss = areThermalPropertiesLoaded() ? 0.5 * maxBiot() * (Math.tanh(params.get(i)) + 1.0)
+						: Math.exp(params.get(i));
 				Bi1 = heatLoss;
 				Bi2 = heatLoss;
 				break;
@@ -548,7 +529,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 	public String shortName() {
 		return getClass().getSimpleName();
 	}
-	
+
 	public NumericProperty getTestTemperature() {
 		return NumericProperty.derive(TEST_TEMPERATURE, T);
 	}
@@ -579,6 +560,10 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 	public boolean isEnabled() {
 		return true;
 	}
+	
+	public boolean isBatchProcessingEnabled() {
+		return true;
+	}
 
 	/**
 	 * Constructs a {@code DiscretePulse} on the specified {@code grid} using the
@@ -604,8 +589,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 		list.add(NumericProperty.def(MAXTEMP));
 		list.add(NumericProperty.def(DIFFUSIVITY));
 		list.add(NumericProperty.def(THICKNESS));
-		list.add(NumericProperty.def(HEAT_LOSS_FRONT));
-		list.add(NumericProperty.def(HEAT_LOSS_REAR));
+		list.add(NumericProperty.def(HEAT_LOSS));
 		return list;
 	}
 
@@ -613,15 +597,15 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 	public String toString() {
 		return this.getClass().getSimpleName();
 	}
-	
-	public final boolean areThermalPropertiesLoaded() { 
+
+	public final boolean areThermalPropertiesLoaded() {
 		return (Double.compare(cP, 0.0) > 0 && Double.compare(rho, 0.0) > 0);
 	}
-	
+
 	public double thermalConductivity() {
 		return a * cP * rho;
 	}
-	
+
 	public double emissivity() {
 		final double lambda = thermalConductivity();
 		return Bi1 * lambda / (4. * Math.pow(T, 3) * l * STEFAN_BOTLZMAN);
@@ -631,14 +615,24 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 		double lambda = thermalConductivity();
 		return 4.0 * STEFAN_BOTLZMAN * Math.pow(T, 3) * l / lambda;
 	}
-	
+
 	protected double biot(double emissivity) {
 		double lambda = thermalConductivity();
 		return 4.0 * emissivity * STEFAN_BOTLZMAN * Math.pow(T, 3) * l / lambda;
 	}
-	
+
 	protected double biot() {
-		return biot((double)NumericProperty.theDefault(NumericPropertyKeyword.EMISSIVITY).getValue());
+		return biot((double) NumericProperty.theDefault(NumericPropertyKeyword.EMISSIVITY).getValue());
 	}
-	
+
+	public ProblemComplexity getComplexity() {
+		return complexity;
+	}
+
+	public void setComplexity(ProblemComplexity complexity) {
+		this.complexity = complexity;
+	}
+
+	public abstract Class<? extends DifferenceScheme> defaultScheme();
+
 }

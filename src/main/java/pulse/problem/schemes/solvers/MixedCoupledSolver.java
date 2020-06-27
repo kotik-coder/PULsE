@@ -9,6 +9,7 @@ import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.Grid;
 import pulse.problem.schemes.MixedScheme;
 import pulse.problem.schemes.rte.MathUtils;
+import pulse.problem.schemes.rte.RTECalculationStatus;
 import pulse.problem.schemes.rte.RadiativeTransferSolver;
 import pulse.problem.schemes.rte.dom.DiscreteOrdinatesSolver;
 import pulse.problem.statements.ParticipatingMedium;
@@ -49,6 +50,7 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 	protected double[] alpha, beta;
 
 	private RadiativeTransferSolver rte;
+
 	protected double opticalThickness;
 	protected double Np;
 
@@ -113,11 +115,8 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 
 		counts = (int) curve.getNumPoints().getValue();
 
-		Bi1 = (double) problem.getFrontHeatLoss().getValue();
-		Bi2 = (double) problem.getHeatLossRear().getValue();
-
-		rte.init(problem, grid);
-
+		Bi1 = (double) problem.getHeatLoss().getValue();
+		Bi2 = Bi1;
 		opticalThickness = (double) problem.getOpticalThickness().getValue();
 		Np = (double) problem.getPlanckNumber().getValue();
 
@@ -126,16 +125,10 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 		alpha = new double[N + 2];
 		beta = new double[N + 2];
 
-		adjustSchemeWeight();
-
-		HX2 = hx * hx;
-
 		tau = grid.getTimeStep();
-		init1();
-
 	}
 
-	private void init1() {
+	private void initAlpha() {
 		a = sigma / HX2;
 		b = 1. / tau + 2. * sigma / HX2;
 		c = sigma / HX2;
@@ -146,52 +139,44 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 			alpha[i + 1] = c / (b - a * alpha[i]);
 	}
 
-	private void init2() {
+	private void initConst() {
+		HX2 = hx * hx;
 		_2TAUHX = 2.0 * tau * hx;
 		HX2_2TAU = HX2 / (2.0 * tau);
-		ONE_MINUS_SIGMA_NP = (1. - sigma) / Np;
-		_2TAU_ONE_MINUS_SIGMA = 2.0 * tau * (1.0 - sigma);
-		BETA1_FACTOR = 1.0 / (HX2 + 2.0 * tau * sigma * (1 + hx * Bi1));
 		ONE_MINUS_SIGMA = 1.0 - sigma;
-	}
-
-	@Override
-	public void solve(ParticipatingMedium problem) {
-
-		prepare(problem);
-
-		double wFactor = timeInterval * tau * problem.timeFactor();
-		errorSq = MathUtils.fastPowLoop(nonlinearPrecision, 2);
-
-		rte.compute(U);
-
-		// time cycle
-
+		ONE_MINUS_SIGMA_NP = ONE_MINUS_SIGMA / Np;
+		_2TAU_ONE_MINUS_SIGMA = 2.0 * tau * ONE_MINUS_SIGMA;
+		BETA1_FACTOR = 1.0 / (HX2 + 2.0 * tau * sigma * (1.0 + hx * Bi1));
+		SIGMA_NP = sigma / Np;
 		HX_NP = hx / Np;
 		TAU0_NP = opticalThickness / Np;
 		Bi2HX = Bi2 * hx;
 		ONE_PLUS_Bi1_HX = (1. + Bi1 * hx);
-		SIGMA_NP = sigma / Np;
+	}
 
-		init2();
+	@Override
+	public void solve(ParticipatingMedium problem) throws SolverException {
+		prepare(problem);
+		adjustSchemeWeight();
+
+		double wFactor = timeInterval * tau * problem.timeFactor();
+		errorSq = MathUtils.fastPowLoop(nonlinearPrecision, 2);
+
+		initConst();
+		initAlpha();
 
 		int pulseEnd = (int) Math.rint(this.getDiscretePulse().getDiscretePulseWidth() / ((double) wFactor)) + 1;
-
 		int w;
 
-		for (w = 1; w < pulseEnd + 1; w++) {
+		var status = rte.compute(U);
+
+		// time cycle
+
+		for (w = 1; w < pulseEnd + 1 && status == RTECalculationStatus.NORMAL; w++) {
 
 			for (int m = (w - 1) * timeInterval + 1; m < w * timeInterval + 1; m++)
-				timeStep(m, true);
-
+				status = timeStep(m, true);
 			curve.addPoint(w * wFactor, V[N]);
-
-			/*
-			 * UNCOMMENT TO DEBUG
-			 */
-
-			// debug(problem, V, w);
-
 		}
 
 		double timeLeft = timeLimit - (w - 1) * wFactor;
@@ -202,34 +187,31 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 		tau = grid.getTimeStep();
 		adjustSchemeWeight();
 
-		init1();
-		init2();
+		initConst();
+		initAlpha();
 
 		double numPoints = counts - (w - 1);
 		double dt = timeLeft / (problem.timeFactor() * (numPoints - 1));
 
 		timeInterval = (int) (dt / tau) + 1;
 
-		for (wFactor = timeInterval * tau * problem.timeFactor(); w < counts; w++) {
+		for (wFactor = timeInterval * tau * problem.timeFactor(); w < counts
+				&& status == RTECalculationStatus.NORMAL; w++) {
 
 			for (int m = (w - 1) * timeInterval + 1; m < w * timeInterval + 1; m++)
-				timeStep(m, false);
+				status = timeStep(m, false);
 
 			curve.addPoint(w * wFactor, V[N]);
-
-			/*
-			 * UNCOMMENT TO DEBUG
-			 */
-
-			// debug(problem, V, w);
-
 		}
+
+		if (status != RTECalculationStatus.NORMAL)
+			throw new SolverException(status.toString());
 
 		curve.scale(maxTemp / curve.apparentMaximum());
 
 	}
 
-	private void timeStep(int m, boolean activePulse) {
+	private RTECalculationStatus timeStep(int m, boolean activePulse) {
 		double phi;
 
 		int i, j;
@@ -241,8 +223,11 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 						+ discretePulse.evaluateAt((m - EPS) * tau) * sigma)
 				: 0.0;
 
-		for (V_0 = errorSq + 1, V_N = errorSq + 1; (MathUtils.fastPowLoop((V[0] - V_0), 2) > errorSq)
-				|| (MathUtils.fastPowLoop((V[N] - V_N), 2) > errorSq); rte.compute(V)) {
+		RTECalculationStatus status = RTECalculationStatus.NORMAL;
+
+		for (V_0 = errorSq + 1, V_N = errorSq + 1; ((MathUtils.fastPowLoop((V[0] - V_0), 2) > errorSq)
+				|| (MathUtils.fastPowLoop((V[N] - V_N), 2) > errorSq))
+				&& status == RTECalculationStatus.NORMAL; status = rte.compute(V)) {
 
 			// i = 0
 			phi = TAU0_NP * rte.getFluxDerivativeFront();
@@ -277,10 +262,52 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 			V_0 = V[0];
 			for (j = N - 1; j >= 0; j--)
 				V[j] = alpha[j + 1] * V[j + 1] + beta[j + 1];
+
 		}
 
 		System.arraycopy(V, 0, U, 0, N + 1);
 		rte.store();
+		return status;
+
+	}
+
+	private void adjustSchemeWeight() {
+		double newSigma = 0.5 - hx * hx / (12.0 * tau);
+		setWeight(NumericProperty.derive(NumericPropertyKeyword.SCHEME_WEIGHT, newSigma > 0 ? newSigma : 0.5));
+	}
+
+	protected double phiNextToFront() {
+		return 0.833333333 * rte.getFluxMeanDerivative(1)
+				+ 0.083333333 * (rte.getFluxMeanDerivativeFront() + rte.getFluxMeanDerivative(2));
+	}
+
+	protected double phiNextToRear() {
+		return 0.833333333 * rte.getFluxMeanDerivative(N - 1)
+				+ 0.083333333 * (rte.getFluxMeanDerivative(N - 2) + rte.getFluxMeanDerivativeRear());
+	}
+
+	protected double phi(int i) {
+		return 0.833333333 * rte.getFluxMeanDerivative(i)
+				+ 0.083333333 * (rte.getFluxMeanDerivative(i - 1) + rte.getFluxMeanDerivative(i + 1));
+	}
+
+	private void newRTE(ParticipatingMedium problem, Grid grid) {
+		rte = instanceDescriptor.newInstance(RadiativeTransferSolver.class, problem, grid);
+		rte.setParent(this);
+	}
+
+	private void initRTE(ParticipatingMedium problem, Grid grid) {
+
+		if (rte == null) {
+			newRTE(problem, grid);
+			instanceDescriptor.addListener(() -> {
+				newRTE(problem, grid);
+				rte.init(problem, grid);
+			});
+
+		}
+
+		rte.init(problem, grid);
 
 	}
 
@@ -332,46 +359,6 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 
 	public void setNonlinearPrecision(NumericProperty nonlinearPrecision) {
 		this.nonlinearPrecision = (double) nonlinearPrecision.getValue();
-	}
-
-	private void adjustSchemeWeight() {
-		double newSigma = 0.5 - hx * hx / (12.0 * tau);
-		setWeight(NumericProperty.derive(NumericPropertyKeyword.SCHEME_WEIGHT, newSigma > 0 ? newSigma : 0.5));
-	}
-
-	protected double phiNextToFront() {
-		return 0.833333333 * rte.getFluxMeanDerivative(1)
-				+ 0.083333333 * (rte.getFluxMeanDerivativeFront() + rte.getFluxMeanDerivative(2));
-	}
-
-	protected double phiNextToRear() {
-		return 0.833333333 * rte.getFluxMeanDerivative(N - 1)
-				+ 0.083333333 * (rte.getFluxMeanDerivative(N - 2) + rte.getFluxMeanDerivativeRear());
-	}
-
-	protected double phi(int i) {
-		return 0.833333333 * rte.getFluxMeanDerivative(i)
-				+ 0.083333333 * (rte.getFluxMeanDerivative(i - 1) + rte.getFluxMeanDerivative(i + 1));
-	}
-
-	private void newRTE(ParticipatingMedium problem, Grid grid) {
-		rte = instanceDescriptor.newInstance(RadiativeTransferSolver.class, problem, grid);
-		rte.setParent(this);
-	}
-
-	private void initRTE(ParticipatingMedium problem, Grid grid) {
-
-		if (rte == null) {
-			newRTE(problem, grid);
-			instanceDescriptor.addListener(() -> {
-				newRTE(problem, grid);
-				rte.init(problem, grid);
-			});
-
-		}
-
-		rte.init(problem, grid);
-
 	}
 
 	@Override

@@ -9,6 +9,7 @@ import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
+import pulse.tasks.Log;
 import pulse.tasks.Status;
 import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.TaskRepositoryEvent;
@@ -59,8 +60,14 @@ public class ExecutionButton extends JButton {
 					var t = problematicTask.get();
 					JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor((Component) e.getSource()),
 							t + " is " + t.getStatus().getMessage(), "Problems found", JOptionPane.ERROR_MESSAGE);
-				} else
-					TaskManager.executeAll();
+				} else {
+					if ( TaskManager.getTaskList().stream().anyMatch(t -> ! t.getProblem().isBatchProcessingEnabled() ) )
+						TaskManager.execute(TaskManager.getSelectedTask());
+					else {
+						TaskManager.executeAll();
+						Log.setVerbose(true);
+					}
+				}
 
 			}
 

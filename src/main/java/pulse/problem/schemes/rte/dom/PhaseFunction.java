@@ -1,5 +1,9 @@
 package pulse.problem.schemes.rte.dom;
 
+import pulse.problem.statements.ParticipatingMedium;
+import pulse.properties.NumericProperty;
+import pulse.properties.NumericPropertyKeyword;
+import pulse.properties.Property;
 import pulse.util.Reflexive;
 
 public abstract class PhaseFunction implements Reflexive {
@@ -7,8 +11,20 @@ public abstract class PhaseFunction implements Reflexive {
 	protected DiscreteIntensities intensities;
 	protected double A1;
 
-	public PhaseFunction(DiscreteIntensities intensities) {
+	public PhaseFunction(ParticipatingMedium medium, DiscreteIntensities intensities) {
 		this.intensities = intensities;
+
+		medium.addListener(e -> {
+
+			Property p = e.getProperty();
+
+			if (p instanceof NumericProperty) {
+				var np = (NumericProperty) p;
+				if (np.getType() == NumericPropertyKeyword.SCATTERING_ANISOTROPY)
+					setAnisotropyFactor((double) np.getValue());
+			}
+
+		});
 	}
 
 	public double fullSum(int i, int j) {

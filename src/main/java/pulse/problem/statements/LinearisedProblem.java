@@ -1,5 +1,7 @@
 package pulse.problem.statements;
 
+import pulse.problem.schemes.DifferenceScheme;
+import pulse.problem.schemes.ImplicitScheme;
 import pulse.ui.Messages;
 
 /**
@@ -16,6 +18,11 @@ public class LinearisedProblem extends Problem {
 
 	public LinearisedProblem(Problem lp) {
 		super(lp);
+	}
+
+	@Override
+	public Class<? extends DifferenceScheme> defaultScheme() {
+		return ImplicitScheme.class;
 	}
 
 	@Override

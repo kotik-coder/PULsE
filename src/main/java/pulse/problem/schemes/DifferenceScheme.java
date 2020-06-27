@@ -35,7 +35,6 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 	protected int timeInterval;
 
 	private static boolean hideDetailedAdjustment = true;
-	private boolean terminationRequested = false;
 
 	/**
 	 * Subclasses use this constructor to create a {@code DifferenceScheme} on a
@@ -221,14 +220,6 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 
 	public DiscretePulse getDiscretePulse() {
 		return discretePulse;
-	}
-
-	public void setTerminationRequested(boolean requested) {
-		this.terminationRequested = requested;
-	}
-
-	public boolean isTerminationRequested() {
-		return terminationRequested;
 	}
 
 	public abstract Class<? extends Problem> domain();

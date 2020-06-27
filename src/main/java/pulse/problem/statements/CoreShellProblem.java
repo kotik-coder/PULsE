@@ -25,6 +25,7 @@ public class CoreShellProblem extends LinearisedProblem2D {
 		tA = (double) NumericProperty.theDefault(AXIAL_COATING_THICKNESS).getValue();
 		tR = (double) NumericProperty.theDefault(RADIAL_COATING_THICKNESS).getValue();
 		coatingDiffusivity = (double) NumericProperty.theDefault(COATING_DIFFUSIVITY).getValue();
+		setComplexity(ProblemComplexity.HIGH);
 	}
 
 	public CoreShellProblem(Problem sdd) {
@@ -32,6 +33,7 @@ public class CoreShellProblem extends LinearisedProblem2D {
 		tA = (double) NumericProperty.theDefault(AXIAL_COATING_THICKNESS).getValue();
 		tR = (double) NumericProperty.theDefault(RADIAL_COATING_THICKNESS).getValue();
 		coatingDiffusivity = (double) NumericProperty.theDefault(COATING_DIFFUSIVITY).getValue();
+		setComplexity(ProblemComplexity.HIGH);
 	}
 
 	public CoreShellProblem(CoreShellProblem csp) {
@@ -39,6 +41,7 @@ public class CoreShellProblem extends LinearisedProblem2D {
 		tA = (double) csp.getCoatingAxialThickness().getValue();
 		tR = (double) csp.getCoatingRadialThickness().getValue();
 		coatingDiffusivity = (double) csp.getDiffusivity().getValue();
+		setComplexity(ProblemComplexity.HIGH);
 	}
 
 	@Override

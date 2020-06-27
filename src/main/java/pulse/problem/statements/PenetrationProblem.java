@@ -3,38 +3,52 @@ package pulse.problem.statements;
 import java.util.List;
 
 import pulse.math.IndexedVector;
+import pulse.problem.statements.penetration.AbsorptionModel;
+import pulse.problem.statements.penetration.BeerLambertAbsorption;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
+import pulse.properties.Property;
 import pulse.ui.Messages;
+import pulse.util.InstanceDescriptor;
 
-public class DistributedAbsorptionProblem extends LinearisedProblem {
+public class PenetrationProblem extends LinearisedProblem {
+	private final static int DEFAULT_CURVE_POINTS = 300;
 
-	private AbsorptionModel absorption;
-	private final static boolean DEBUG = false;
+	private static InstanceDescriptor<? extends AbsorptionModel> instanceDescriptor = new InstanceDescriptor<AbsorptionModel>(
+			"Absorption model selector", AbsorptionModel.class);
+
+	static {
+		instanceDescriptor.setSelectedDescriptor(BeerLambertAbsorption.class.getSimpleName());
+	}
+	
+	private AbsorptionModel absorption = instanceDescriptor.newInstance(AbsorptionModel.class);
+
 	private final static double SENSITIVITY = 100;
 
-	public DistributedAbsorptionProblem() {
+	public PenetrationProblem() {
 		super();
-		absorption = new BeerLambertAbsorption();
+		curve.setNumPoints(NumericProperty.derive(NumericPropertyKeyword.NUMPOINTS, DEFAULT_CURVE_POINTS));
+		absorption.setParent(this);
+		this.parameterListChanged();
+		instanceDescriptor.addListener(() -> {
+			absorption = instanceDescriptor.newInstance(AbsorptionModel.class);
+			absorption.setParent(this);
+		});
 	}
 
-	public DistributedAbsorptionProblem(AbsorptionModel laserAbsorption) {
-		super();
-		this.absorption = laserAbsorption;
-	}
-
-	public DistributedAbsorptionProblem(Problem sdd) {
+	public PenetrationProblem(Problem sdd) {
 		super(sdd);
-		if (sdd instanceof DistributedAbsorptionProblem) {
-			DistributedAbsorptionProblem tp = (DistributedAbsorptionProblem) sdd;
+		curve.setNumPoints(NumericProperty.derive(NumericPropertyKeyword.NUMPOINTS, DEFAULT_CURVE_POINTS));
+		if (sdd instanceof PenetrationProblem) {
+			PenetrationProblem tp = (PenetrationProblem) sdd;
 			this.absorption = tp.absorption;
-		} else
-			absorption = new BeerLambertAbsorption();
+		} 
 	}
 
-	public DistributedAbsorptionProblem(DistributedAbsorptionProblem tp) {
+	public PenetrationProblem(PenetrationProblem tp) {
 		super(tp);
+		curve.setNumPoints(NumericProperty.derive(NumericPropertyKeyword.NUMPOINTS, DEFAULT_CURVE_POINTS));
 		this.absorption = tp.absorption;
 	}
 
@@ -53,8 +67,14 @@ public class DistributedAbsorptionProblem extends LinearisedProblem {
 	}
 
 	@Override
-	public boolean isEnabled() {
-		return !DEBUG;
+	public List<Property> listedTypes() {
+		List<Property> list = super.listedTypes();
+		list.add(instanceDescriptor);
+		return list;
+	}
+
+	public InstanceDescriptor<? extends AbsorptionModel> getAbsorptionSelector() {
+		return instanceDescriptor;
 	}
 
 	@Override
