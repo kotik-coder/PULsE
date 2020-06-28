@@ -36,7 +36,7 @@ public class ChartToolbar extends JPanel {
 
 	public ChartToolbar() {
 		super();
-		listeners = new ArrayList<PlotRequestListener>();
+		listeners = new ArrayList<>();
 		initComponents();
 	}
 

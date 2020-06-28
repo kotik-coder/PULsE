@@ -91,7 +91,7 @@ public class Flag implements Property {
 	 */
 
 	public static List<Flag> allProblemDependentFlags() {
-		List<Flag> flags = new ArrayList<Flag>();
+		List<Flag> flags = new ArrayList<>();
 		flags.add(new Flag(DIFFUSIVITY, NumericProperty.def(DIFFUSIVITY).getDescriptor(true), true));
 		flags.add(new Flag(HEAT_LOSS, NumericProperty.def(HEAT_LOSS).getDescriptor(true), true));
 		flags.add(new Flag(HEAT_LOSS_SIDE, NumericProperty.def(HEAT_LOSS_SIDE).getDescriptor(true), true));
@@ -112,7 +112,7 @@ public class Flag implements Property {
 	}
 
 	public static List<Flag> allProblemIndependentFlags() {
-		List<Flag> flags = new ArrayList<Flag>();
+		List<Flag> flags = new ArrayList<>();
 		flags.add(new Flag(BASELINE_INTERCEPT, NumericProperty.def(BASELINE_INTERCEPT).getDescriptor(true), false));
 		flags.add(new Flag(BASELINE_SLOPE, NumericProperty.def(BASELINE_SLOPE).getDescriptor(true), false));
 		flags.add(new Flag(TIME_SHIFT, NumericProperty.def(TIME_SHIFT).getDescriptor(true), false));

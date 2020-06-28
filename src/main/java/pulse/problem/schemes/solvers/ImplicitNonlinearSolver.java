@@ -102,8 +102,9 @@ public class ImplicitNonlinearSolver extends ImplicitScheme implements Solver<No
 				pls = discretePulse.evaluateAt((m - EPS) * tau);
 				alpha[1] = a1;
 
-				for (i = 1; i < N; i++)
-					alpha[i + 1] = c / (b - a * alpha[i]);
+				for (i = 1; i < N; i++) {
+                                    alpha[i + 1] = c / (b - a * alpha[i]);
+                                }
 
 				c2 = 1. / (HH + 2. * tau - 2 * alpha[N] * tau);
 
@@ -121,8 +122,9 @@ public class ImplicitNonlinearSolver extends ImplicitScheme implements Solver<No
 
 					V[N] = c2 * (2. * beta[N] * tau + HH * U[N] + c1 * (pow(V[N] * dT / T + 1, 4) - 1));
 
-					for (j = N - 1; j >= 0; j--)
-						V[j] = alpha[j + 1] * V[j + 1] + beta[j + 1];
+					for (j = N - 1; j >= 0; j--) {
+                                            V[j] = alpha[j + 1] * V[j + 1] + beta[j + 1];
+                                        }
 
 				}
 

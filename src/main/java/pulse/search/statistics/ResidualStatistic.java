@@ -16,7 +16,7 @@ public abstract class ResidualStatistic extends Statistic {
 
 	public ResidualStatistic() {
 		super();
-		residuals = new LinkedList<double[]>();
+		residuals = new LinkedList<>();
 		setPrefix("Residuals");
 	}
 
@@ -32,7 +32,7 @@ public abstract class ResidualStatistic extends Statistic {
 
 		double interpolated, diff;
 
-		residuals = new ArrayList<double[]>();
+		residuals = new ArrayList<>();
 		IndexRange indexRange = reference.getIndexRange();
 
 		var s = estimate.getSplineInterpolation();

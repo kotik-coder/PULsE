@@ -22,8 +22,8 @@ public class CorrelationBuffer {
 	private static Set<NumericPropertyKeyword> excludeSingleList;
 
 	static {
-		excludePairList = new HashSet<ImmutablePair<NumericPropertyKeyword>>();
-		excludeSingleList = new HashSet<NumericPropertyKeyword>();
+		excludePairList = new HashSet<>();
+		excludeSingleList = new HashSet<>();
 		excludeSingle(NumericPropertyKeyword.DIFFUSIVITY);
 		excludePair(NumericPropertyKeyword.HEAT_LOSS, NumericPropertyKeyword.MAXTEMP);
 		excludePair(NumericPropertyKeyword.MAXTEMP, NumericPropertyKeyword.BASELINE_INTERCEPT);
@@ -33,7 +33,7 @@ public class CorrelationBuffer {
 	}
 
 	public CorrelationBuffer() {
-		params = new ArrayList<IndexedVector>();
+		params = new ArrayList<>();
 	}
 
 	public void inflate(SearchTask t) {
@@ -53,7 +53,7 @@ public class CorrelationBuffer {
 
 		var indices = params.get(0).getIndices();
 		var map = indices.stream()
-				.map(index -> new ImmutableDataEntry<NumericPropertyKeyword, double[]>(index,
+				.map(index -> new ImmutableDataEntry<>(index,
 						params.stream().mapToDouble(v -> v.get(index)).toArray()))
 				.collect(Collectors.toMap(x -> x.getKey(), x -> x.getValue()));
 
@@ -65,7 +65,7 @@ public class CorrelationBuffer {
 
 			if (!excludeSingleList.contains(indices.get(i)))
 				for (int j = i + 1; j < indicesSize; j++) {
-					pair = new ImmutablePair<NumericPropertyKeyword>(indices.get(i), indices.get(j));
+					pair = new ImmutablePair<>(indices.get(i), indices.get(j));
 					if (!excludeSingleList.contains(indices.get(j)) && !excludePairList.contains(pair))
 						correlationMap.put(pair, t.evaluate(map.get(indices.get(i)), map.get(indices.get(j))));
 				}
@@ -82,9 +82,10 @@ public class CorrelationBuffer {
 		if (map == null)
 			return false;
 
-		for (Double d : map.values())
-			if (t.compareToThreshold(d))
-				return true;
+		for (Double d : map.values()) {
+                    if (t.compareToThreshold(d))
+                        return true;
+                }
 		return false;
 	}
 
@@ -93,7 +94,7 @@ public class CorrelationBuffer {
 	}
 
 	public static void excludePair(NumericPropertyKeyword first, NumericPropertyKeyword second) {
-		excludePair(new ImmutablePair<NumericPropertyKeyword>(first, second));
+		excludePair(new ImmutablePair<>(first, second));
 	}
 
 	public static void excludeSingle(NumericPropertyKeyword key) {

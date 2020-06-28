@@ -27,6 +27,7 @@ import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 
 import pulse.problem.schemes.rte.dom.ButcherTableau;
@@ -74,9 +75,9 @@ public class PropertyHolderTable extends JTable {
 		setFont(font);
 		setRowHeight(ROW_HEIGHT);
 
-		sorter = new TableRowSorter<DefaultTableModel>();
+		sorter = new TableRowSorter<>();
 		sorter.setModel(model);
-		ArrayList<SortKey> list = new ArrayList<SortKey>();
+		ArrayList<SortKey> list = new ArrayList<>();
 		list.add(new SortKey(0, SortOrder.ASCENDING));
 		sorter.setSortKeys(list);
 		sorter.sort();
@@ -99,7 +100,7 @@ public class PropertyHolderTable extends JTable {
 				if ((row < 0) || (column < 0))
 					return;
 
-				Object changedObject = (((DefaultTableModel) e.getSource()).getValueAt(row, column));
+				Object changedObject = (((TableModel) e.getSource()).getValueAt(row, column));
 
 				if (changedObject instanceof Property) {
 					Property changedProperty = (Property) changedObject;
@@ -152,7 +153,7 @@ public class PropertyHolderTable extends JTable {
 		if (p == null)
 			return null;
 
-		List<Object[]> dataList = new ArrayList<Object[]>();
+		List<Object[]> dataList = new ArrayList<>();
 		List<Property> listedProperties = p.listedTypes();
 		List<NumericPropertyKeyword> types = listedProperties.stream().filter(pp -> pp instanceof NumericProperty)
 				.map(np -> ((NumericProperty) np).getType()).collect(Collectors.toList());
@@ -257,11 +258,11 @@ public class PropertyHolderTable extends JTable {
 			}
 
 			if (value instanceof ButcherTableau) {
-				return new DefaultCellEditor(new JComboBox<Object>(ButcherTableau.getAllOptions().toArray()));
+				return new DefaultCellEditor(new JComboBox<>(ButcherTableau.getAllOptions().toArray()));
 			}
 
 			if (value instanceof OrdinateSet) {
-				return new DefaultCellEditor(new JComboBox<Object>(OrdinateSet.getAllOptions().toArray()));
+				return new DefaultCellEditor(new JComboBox<>(OrdinateSet.getAllOptions().toArray()));
 			}
 
 			if ((value instanceof PropertyHolder))

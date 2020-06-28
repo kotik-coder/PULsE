@@ -109,7 +109,7 @@ public class ExperimentalData extends HeatingCurve {
 
 	public List<Point2D> crudeAverage(int reductionFactor) {
 
-		List<Point2D> crudeAverage = new ArrayList<Point2D>(count / reductionFactor);
+		List<Point2D> crudeAverage = new ArrayList<>(count / reductionFactor);
 
 		int start = indexRange.getLowerBound();
 		int end = indexRange.getUpperBound();
@@ -179,10 +179,11 @@ public class ExperimentalData extends HeatingCurve {
 		int size = degraded.size();
 		int index = -1;
 
-		for (int i = 0; i < size - 1; i++)
-			if (halfMax > degraded.get(i).getY())
-				if (halfMax <= degraded.get(i + 1).getY())
-					index = i;
+		for (int i = 0; i < size - 1; i++) {
+                    if (halfMax > degraded.get(i).getY())
+                        if (halfMax <= degraded.get(i + 1).getY())
+                            index = i;
+                }
 
 		if (index < 0) {
 			System.err.println(Messages.getString("ExperimentalData.HalfRiseError"));

@@ -38,8 +38,8 @@ public interface Reflexive {
 
 	@SuppressWarnings("unchecked")
 	public static <T extends Reflexive> List<T> instancesOf(Class<T> reflexiveType, String pckgname, Object... params) {
-		List<Reflexive> ref = new LinkedList<Reflexive>();
-		List<T> p = new ArrayList<T>();
+		List<Reflexive> ref = new LinkedList<>();
+		List<T> p = new ArrayList<>();
 
 		ref.addAll(ReflexiveFinder.simpleInstances(pckgname, params));
 

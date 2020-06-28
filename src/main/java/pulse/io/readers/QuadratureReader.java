@@ -21,6 +21,7 @@ public class QuadratureReader implements AbstractReader<OrdinateSet> {
 	private QuadratureReader() {
 	}
 
+        @Override
 	public OrdinateSet read(File file) throws IOException {
 		Objects.requireNonNull(file, Messages.getString("TBLReader.1"));
 
@@ -36,8 +37,8 @@ public class QuadratureReader implements AbstractReader<OrdinateSet> {
 			String delims = Messages.getString("}{,\t ");
 			StringTokenizer tokenizer;
 
-			List<Double> nodes = new ArrayList<Double>();
-			List<Double> weights = new ArrayList<Double>();
+			List<Double> nodes = new ArrayList<>();
+			List<Double> weights = new ArrayList<>();
 
 			String line = "";
 
@@ -50,8 +51,8 @@ public class QuadratureReader implements AbstractReader<OrdinateSet> {
 
 			for (line = reader.readLine(); line != null; line = reader.readLine()) {
 				tokenizer = new StringTokenizer(line);
-				nodes.add((Double) (ExpressionParser.evaluate(tokenizer.nextToken(delims))));
-				weights.add((Double) (ExpressionParser.evaluate(tokenizer.nextToken(delims))));
+				nodes.add((ExpressionParser.evaluate(tokenizer.nextToken(delims))));
+				weights.add((ExpressionParser.evaluate(tokenizer.nextToken(delims))));
 			}
 
 			set = new OrdinateSet(name, nodes.stream().mapToDouble(d -> d).toArray(),

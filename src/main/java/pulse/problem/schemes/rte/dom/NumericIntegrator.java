@@ -122,15 +122,19 @@ public abstract class NumericIntegrator extends PropertyHolder implements Reflex
 
 		double sumOut = 0;
 
-		for (int l = l1; l < l2; l++) // sum over the OUTWARD intensities iOut
-			sumOut += iOut[l - l1] * intensities.ordinates.w[l] * pf.function(i, l);
+		for (int l = l1; l < l2; l++) {
+                    // sum over the OUTWARD intensities iOut
+                    sumOut += iOut[l - l1] * intensities.ordinates.w[l] * pf.function(i, l);
+                }
 
 		double sumIn = 0;
 
 		for (int start = intensities.ordinates.total - l2, l = start, end = intensities.ordinates.total
-				- l1; l < end; l++) // sum over the INWARD
-			// intensities iIn
-			sumIn += iIn[l - start] * intensities.ordinates.w[l] * pf.function(i, l);
+				- l1; l < end; l++) {
+                    // sum over the INWARD
+                    // intensities iIn
+                    sumIn += iIn[l - start] * intensities.ordinates.w[l] * pf.function(i, l);
+                }
 
 		return emission(t) + halfAlbedo * (sumIn + sumOut); // contains sum over the incoming rays
 

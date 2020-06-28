@@ -118,13 +118,13 @@ public class HeatingCurve extends PropertyHolder {
 	public HeatingCurve(NumericProperty count) {
 		setPrefix("Solution");
 		setCount(count);
-		temperature = new ArrayList<Double>(this.count);
-		baselineAdjustedTemperature = new ArrayList<Double>(this.count);
-		time = new ArrayList<Double>(this.count);
+		temperature = new ArrayList<>(this.count);
+		baselineAdjustedTemperature = new ArrayList<>(this.count);
+		time = new ArrayList<>(this.count);
 		baseline = new Baseline();
 		baseline.setParent(this);
 		startTime = (double) NumericProperty.def(TIME_SHIFT).getValue();
-		dataListeners = new ArrayList<DataListener>();
+		dataListeners = new ArrayList<>();
 		reinit();
 		splineInterpolator = new SplineInterpolator();
 	}
@@ -232,9 +232,9 @@ public class HeatingCurve extends PropertyHolder {
 
 	public void setNumPoints(NumericProperty c) {
 		this.count = (int) c.getValue();
-		temperature = new ArrayList<Double>(Collections.nCopies(this.count, 0.0));
-		baselineAdjustedTemperature = new ArrayList<Double>(Collections.nCopies(this.count, 0.0));
-		time = new ArrayList<Double>(Collections.nCopies(this.count, 0.0));
+		temperature = new ArrayList<>(Collections.nCopies(this.count, 0.0));
+		baselineAdjustedTemperature = new ArrayList<>(Collections.nCopies(this.count, 0.0));
+		time = new ArrayList<>(Collections.nCopies(this.count, 0.0));
 	}
 
 	/**
@@ -463,10 +463,11 @@ public class HeatingCurve extends PropertyHolder {
 			return this;
 
 		List<Double> extendedTime = data.time.stream().filter(t -> t < 0).collect(Collectors.toList());
-		List<Double> extendedTemperature = new ArrayList<Double>(dataStartIndex + count);
+		List<Double> extendedTemperature = new ArrayList<>(dataStartIndex + count);
 
-		for (double time : extendedTime)
-			extendedTemperature.add(baseline.valueAt(time));
+		for (double time : extendedTime) {
+                    extendedTemperature.add(baseline.valueAt(time));
+                }
 
 		extendedTime.addAll(time);
 		extendedTemperature.addAll(baselineAdjustedTemperature);
@@ -571,7 +572,7 @@ public class HeatingCurve extends PropertyHolder {
 
 	@Override
 	public List<Property> listedTypes() {
-		List<Property> list = new ArrayList<Property>();
+		List<Property> list = new ArrayList<>();
 		list.add(getNumPoints());
 		list.add(NumericProperty.def(TIME_SHIFT));
 		return list;

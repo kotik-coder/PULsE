@@ -135,8 +135,9 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 
 		alpha[1] = 1.0 / (HX2 / (2.0 * tau * sigma) + 1. + hx * Bi1);
 
-		for (int i = 1; i < N; i++)
-			alpha[i + 1] = c / (b - a * alpha[i]);
+		for (int i = 1; i < N; i++) {
+                    alpha[i + 1] = c / (b - a * alpha[i]);
+                }
 	}
 
 	private void initConst() {
@@ -165,7 +166,7 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 		initConst();
 		initAlpha();
 
-		int pulseEnd = (int) Math.rint(this.getDiscretePulse().getDiscretePulseWidth() / ((double) wFactor)) + 1;
+		int pulseEnd = (int) Math.rint(this.getDiscretePulse().getDiscretePulseWidth() / wFactor) + 1;
 		int w;
 
 		var status = rte.compute(U);
@@ -174,8 +175,9 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 
 		for (w = 1; w < pulseEnd + 1 && status == RTECalculationStatus.NORMAL; w++) {
 
-			for (int m = (w - 1) * timeInterval + 1; m < w * timeInterval + 1; m++)
-				status = timeStep(m, true);
+			for (int m = (w - 1) * timeInterval + 1; m < w * timeInterval + 1; m++) {
+                            status = timeStep(m, true);
+                        }
 			curve.addPoint(w * wFactor, V[N]);
 		}
 
@@ -198,8 +200,9 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 		for (wFactor = timeInterval * tau * problem.timeFactor(); w < counts
 				&& status == RTECalculationStatus.NORMAL; w++) {
 
-			for (int m = (w - 1) * timeInterval + 1; m < w * timeInterval + 1; m++)
-				status = timeStep(m, false);
+			for (int m = (w - 1) * timeInterval + 1; m < w * timeInterval + 1; m++) {
+                            status = timeStep(m, false);
+                        }
 
 			curve.addPoint(w * wFactor, V[N]);
 		}
@@ -260,8 +263,9 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 					/ (HX2_2TAU + sigma * (1. - alpha[N] + Bi2HX));
 
 			V_0 = V[0];
-			for (j = N - 1; j >= 0; j--)
-				V[j] = alpha[j + 1] * V[j + 1] + beta[j + 1];
+			for (j = N - 1; j >= 0; j--) {
+                            V[j] = alpha[j + 1] * V[j + 1] + beta[j + 1];
+                        }
 
 		}
 

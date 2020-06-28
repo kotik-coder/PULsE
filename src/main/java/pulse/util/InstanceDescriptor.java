@@ -37,8 +37,9 @@ public class InstanceDescriptor<T extends Reflexive> implements Property {
 
 	public void setSelectedDescriptor(String selectedDescriptor) {
 		this.selectedDescriptor = selectedDescriptor;
-		for (DescriptorChangeListener l : listeners)
-			l.onDescriptorChanged();
+		for (DescriptorChangeListener l : listeners) {
+                    l.onDescriptorChanged();
+                }
 	}
 
 	@Override
@@ -51,7 +52,7 @@ public class InstanceDescriptor<T extends Reflexive> implements Property {
 		if (!(object instanceof String))
 			return false;
 
-		if (selectedDescriptor.equals((String) object))
+		if (selectedDescriptor.equals(object))
 			return false;
 
 		if (!allDescriptors.contains(object))

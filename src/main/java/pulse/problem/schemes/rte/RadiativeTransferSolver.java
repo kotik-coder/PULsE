@@ -29,7 +29,7 @@ public abstract class RadiativeTransferSolver extends PropertyHolder implements 
 
 	public RadiativeTransferSolver(ParticipatingMedium problem, Grid grid) {
 		reinitArrays((int) grid.getGridDensity().getValue());
-		rteListeners = new ArrayList<RTECalculationListener>();
+		rteListeners = new ArrayList<>();
 	}
 
 	public void reinitArrays(int N) {

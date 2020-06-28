@@ -43,13 +43,14 @@ public class ResultFormat {
 	}
 
 	private ResultFormat(List<NumericPropertyKeyword> keys) {
-		nameMap = new ArrayList<NumericPropertyKeyword>();
-		for (NumericPropertyKeyword key : keys)
-			nameMap.add(key);
+		nameMap = new ArrayList<>();
+		for (NumericPropertyKeyword key : keys) {
+                    nameMap.add(key);
+                }
 	}
 
 	private ResultFormat(ResultFormat fmt) {
-		nameMap = new ArrayList<NumericPropertyKeyword>(fmt.nameMap.size());
+		nameMap = new ArrayList<>(fmt.nameMap.size());
 		nameMap.addAll(fmt.nameMap);
 	}
 
@@ -62,8 +63,9 @@ public class ResultFormat {
 
 		ResultFormatEvent rfe = new ResultFormatEvent(format);
 
-		for (ResultFormatListener rfl : listeners)
-			rfl.resultFormatChanged(rfe);
+		for (ResultFormatListener rfl : listeners) {
+                    rfl.resultFormatChanged(rfe);
+                }
 
 		return format;
 	}

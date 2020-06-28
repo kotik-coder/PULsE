@@ -71,8 +71,9 @@ public class EmissionFunctionIntegrator extends Integrator {
 	public double integrateMidpoint(int order, double... params) {
 		double integral = 0;
 
-		for (int i = 0; i < integrationSegments; i++)
-			integral += integrand(order, min + (i + 0.5) * stepSize);
+		for (int i = 0; i < integrationSegments; i++) {
+                    integral += integrand(order, min + (i + 0.5) * stepSize);
+                }
 
 		return integral * stepSize;
 	}
@@ -89,12 +90,14 @@ public class EmissionFunctionIntegrator extends Integrator {
 		double sum = (fa + fb);
 
 		// 4/3 terms
-		for (int i = 1; i < integrationSegments; i += 2)
-			sum += 4.0 * integrand(order, min + stepSize * i);
+		for (int i = 1; i < integrationSegments; i += 2) {
+                    sum += 4.0 * integrand(order, min + stepSize * i);
+                }
 
 		// 2/3 terms
-		for (int i = 2; i < integrationSegments; i += 2)
-			sum += 2.0 * integrand(order, min + stepSize * i);
+		for (int i = 2; i < integrationSegments; i += 2) {
+                    sum += 2.0 * integrand(order, min + stepSize * i);
+                }
 
 		return sum * stepSize / 3.0;
 	}

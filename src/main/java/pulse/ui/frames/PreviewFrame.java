@@ -76,7 +76,7 @@ public class PreviewFrame extends JInternalFrame {
 		JLabel selectX = new JLabel("Bottom axis: ");
 		toolbar.add(selectX);
 
-		selectXBox = new JComboBox<String>();
+		selectXBox = new JComboBox<>();
 
 		toolbar.add(selectXBox);
 		toolbar.add(new JSeparator());
@@ -84,7 +84,7 @@ public class PreviewFrame extends JInternalFrame {
 		JLabel selectY = new JLabel("Vertical axis:");
 		toolbar.add(selectY);
 
-		selectYBox = new JComboBox<String>();
+		selectYBox = new JComboBox<>();
 		toolbar.add(selectYBox);
 
 		var drawSmoothBtn = new JToggleButton();
@@ -140,10 +140,10 @@ public class PreviewFrame extends JInternalFrame {
 	public void update(ResultFormat fmt, double[][][] data) {
 		this.data = data;
 		List<String> descriptors = fmt.descriptors();
-		List<String> htmlDescriptors = new ArrayList<String>();
+		List<String> htmlDescriptors = new ArrayList<>();
 		int size = descriptors.size();
 
-		propertyNames = new ArrayList<String>(size);
+		propertyNames = new ArrayList<>(size);
 		String tmp;
 
 		for (int i = 0; i < size; i++) {
@@ -154,15 +154,17 @@ public class PreviewFrame extends JInternalFrame {
 
 		selectXBox.removeAllItems();
 
-		for (String s : htmlDescriptors)
-			selectXBox.addItem(s);
+		for (String s : htmlDescriptors) {
+                    selectXBox.addItem(s);
+                }
 
 		selectXBox.setSelectedIndex(fmt.indexOf(NumericPropertyKeyword.TEST_TEMPERATURE));
 
 		selectYBox.removeAllItems();
 
-		for (String s : htmlDescriptors)
-			selectYBox.addItem(s);
+		for (String s : htmlDescriptors) {
+                    selectYBox.addItem(s);
+                }
 
 		selectYBox.setSelectedIndex(fmt.indexOf(NumericPropertyKeyword.DIFFUSIVITY));
 	}
@@ -221,8 +223,9 @@ public class PreviewFrame extends JInternalFrame {
 	private static XYIntervalSeries series(double[] x, double[] xerr, double[] y, double[] yerr) {
 		var series = new XYIntervalSeries("Preview");
 
-		for (int i = 0; i < x.length; i++)
-			series.add(x[i], x[i] - xerr[i], x[i] + xerr[i], y[i], y[i] - yerr[i], y[i] + yerr[i]);
+		for (int i = 0; i < x.length; i++) {
+                    series.add(x[i], x[i] - xerr[i], x[i] + xerr[i], y[i], y[i] - yerr[i], y[i] + yerr[i]);
+                }
 
 		return series;
 	}
@@ -234,8 +237,9 @@ public class PreviewFrame extends JInternalFrame {
 	private static XYSeries series(double[] x, double[] y) {
 		var series = new XYSeries("Preview");
 
-		for (int i = 0; i < x.length; i++)
-			series.add(x[i], y[i]);
+		for (int i = 0; i < x.length; i++) {
+                    series.add(x[i], y[i]);
+                }
 
 		return series;
 	}

@@ -86,8 +86,9 @@ public class SimpsonsRule extends Integrator {
 	public double integrateMidpoint(int order, double... params) {
 		double integral = 0;
 
-		for (int i = 0; i < integrationSegments; i++)
-			integral += integrand(order, params[A_INDEX], params[B_INDEX], rMin + (i + 0.5) * stepSize);
+		for (int i = 0; i < integrationSegments; i++) {
+                    integral += integrand(order, params[A_INDEX], params[B_INDEX], rMin + (i + 0.5) * stepSize);
+                }
 
 		return integral * stepSize;
 	}
@@ -113,8 +114,9 @@ public class SimpsonsRule extends Integrator {
 		}
 
 		// 2/3 terms
-		for (int i = 2; i < integrationSegments; i += 2)
-			y += integrand(order, params[0], params[1], rMin + stepSize * i);
+		for (int i = 2; i < integrationSegments; i += 2) {
+                    y += integrand(order, params[0], params[1], rMin + stepSize * i);
+                }
 
 		sum += x * 4.0 + y * 2.0;
 

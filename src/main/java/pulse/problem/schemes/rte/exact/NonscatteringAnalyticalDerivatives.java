@@ -65,8 +65,9 @@ public class NonscatteringAnalyticalDerivatives extends NonscatteringRadiativeTr
 		super.compute(U);
 		radiosities();
 		fluxDerivativeFront(U);
-		for (int i = 1, N = this.getExternalGridDensity(); i < N; i++)
-			fluxDerivative(U, i);
+		for (int i = 1, N = this.getExternalGridDensity(); i < N; i++) {
+                    fluxDerivative(U, i);
+                }
 		fluxDerivativeRear(U);
 		boundaryFluxes();
 		return RTECalculationStatus.NORMAL;

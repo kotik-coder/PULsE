@@ -15,7 +15,7 @@ public class LayeredGrid2D extends Grid2D {
 	private Map<Location, Partition> h;
 
 	public LayeredGrid2D(Map<Location, Partition> partitions, NumericProperty timeFactor) {
-		h = new HashMap<Location, Partition>(partitions);
+		h = new HashMap<>(partitions);
 		setGridDensity(
 				NumericProperty.derive(Location.CORE_Y.densityKeyword(), partitions.get(Location.CORE_Y).getDensity()));
 		setTimeFactor(timeFactor);
@@ -52,7 +52,7 @@ public class LayeredGrid2D extends Grid2D {
 
 	@Override
 	public List<Property> listedTypes() {
-		List<Property> list = new ArrayList<Property>(2);
+		List<Property> list = new ArrayList<>(2);
 		list.add(NumericProperty.def(NumericPropertyKeyword.SHELL_GRID_DENSITY));
 		return list;
 	}

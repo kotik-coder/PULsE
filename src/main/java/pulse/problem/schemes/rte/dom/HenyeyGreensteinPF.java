@@ -19,6 +19,7 @@ public class HenyeyGreensteinPF extends PhaseFunction {
 		a2 = 1.0 + getAnisotropyFactor() * getAnisotropyFactor();
 	}
 
+        @Override
 	public double function(int i, int k) {
 		double theta = intensities.ordinates.mu[k] * intensities.ordinates.mu[i];
 		double f = a2 - b1 * theta;

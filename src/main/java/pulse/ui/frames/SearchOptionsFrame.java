@@ -158,8 +158,9 @@ public class SearchOptionsFrame extends JInternalFrame {
 
 					linearList.setEnabled(true);
 
-					for (SearchTask t : TaskManager.getTaskList())
-						t.checkProblems();
+					for (SearchTask t : TaskManager.getTaskList()) {
+                                            t.checkProblems();
+                                        }
 
 				}
 			});
@@ -219,8 +220,9 @@ public class SearchOptionsFrame extends JInternalFrame {
 					pathTable.setPropertyHolder(pathSolver);
 					pathTable.setEnabled(true);
 
-					for (SearchTask t : TaskManager.getTaskList())
-						t.checkProblems();
+					for (SearchTask t : TaskManager.getTaskList()) {
+                                            t.checkProblems();
+                                        }
 
 				}
 			});

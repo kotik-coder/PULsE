@@ -126,8 +126,9 @@ public class ImplicitTranslucentSolver extends ImplicitScheme implements Solver<
 				V[N] = (HH * (U[N] + tau * pls * absorption.absorption(SpectralRange.LASER, (N - EPS) * hx))
 						+ 2. * tau * beta[N]) / (2 * Bi2H * tau + HH + 2. * tau * (1 - alpha[N]));
 
-				for (j = N - 1; j >= 0; j--)
-					V[j] = alpha[j + 1] * V[j + 1] + beta[j + 1];
+				for (j = N - 1; j >= 0; j--) {
+                                    V[j] = alpha[j + 1] * V[j + 1] + beta[j + 1];
+                                }
 
 				System.arraycopy(V, 0, U, 0, N + 1);
 
@@ -135,9 +136,10 @@ public class ImplicitTranslucentSolver extends ImplicitScheme implements Solver<
 
 			signal = 0;
 
-			for (i = 0; i < N; i++)
-				signal += V[N - i] * absorption.absorption(SpectralRange.THERMAL, i * hx)
-						+ V[N - 1 - i] * absorption.absorption(SpectralRange.THERMAL, (i + 1) * hx);
+			for (i = 0; i < N; i++) {
+                            signal += V[N - i] * absorption.absorption(SpectralRange.THERMAL, i * hx)
+                                    + V[N - 1 - i] * absorption.absorption(SpectralRange.THERMAL, (i + 1) * hx);
+                        }
 
 			signal *= hx / 2.0;
 

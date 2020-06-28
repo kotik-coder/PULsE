@@ -66,7 +66,7 @@ public class ReflexiveFinder {
 			name = File.separatorChar + name;
 		name = name.replace('.', File.separatorChar);
 
-		List<Class<?>> classes = new ArrayList<Class<?>>();
+		List<Class<?>> classes = new ArrayList<>();
 
 		String locationPath = null;
 
@@ -86,8 +86,9 @@ public class ReflexiveFinder {
 
 				String pathName = f.getName();
 
-				for (File parent = f.getParentFile(); !parent.equals(root); parent = parent.getParentFile())
-					pathName = parent.getName() + "." + pathName;
+				for (File parent = f.getParentFile(); !parent.equals(root); parent = parent.getParentFile()) {
+                                    pathName = parent.getName() + "." + pathName;
+                                }
 
 				return pathName;
 
@@ -123,12 +124,11 @@ public class ReflexiveFinder {
 						classes.add(Class.forName(className.substring(0, className.length() - ".class".length())));
 					}
 				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			} catch (ClassNotFoundException e) {
-				// TODO Auto-generated catch block
+			} catch (IOException | ClassNotFoundException e) {
 				e.printStackTrace();
 			}
+                    // TODO Auto-generated catch block
+                    
 
 		}
 
@@ -150,7 +150,7 @@ public class ReflexiveFinder {
 
 	@SuppressWarnings("unchecked")
 	public static <V extends Reflexive> List<V> simpleInstances(String pckgname, Object... params) {
-		List<V> instances = new LinkedList<V>();
+		List<V> instances = new LinkedList<>();
 
 		for (Class<?> aClass : ReflexiveFinder.classesIn(pckgname)) {
 
@@ -173,10 +173,11 @@ public class ReflexiveFinder {
 					if (types.length != params.length)
 						continue outer;
 
-					for (int i = 0; i < types.length; i++)
-						if (!types[i].equals(params[i].getClass()))
-							if (!types[i].isAssignableFrom(params[i].getClass()))
-								continue outer;
+					for (int i = 0; i < types.length; i++) {
+                                            if (!types[i].equals(params[i].getClass()))
+                                                if (!types[i].isAssignableFrom(params[i].getClass()))
+                                                    continue outer;
+                                        }
 
 					try {
 						Object o = ctr.newInstance(params);
@@ -213,12 +214,9 @@ public class ReflexiveFinder {
 				if (instance != null)
 					instances.add(instance);
 
-			} catch (IllegalAccessException iaex) {
+			} catch (IllegalAccessException | SecurityException iaex) {
 				System.err.println("Cannot access: " + aClass);
 				iaex.printStackTrace();
-			} catch (SecurityException e) {
-				System.err.println("Cannot access: " + aClass);
-				e.printStackTrace();
 			} catch (IllegalArgumentException e) {
 				System.err.println(Messages.getString("ReflexiveFinder.getInstanceArgumentError") + aClass);
 				e.printStackTrace();

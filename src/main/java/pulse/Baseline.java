@@ -109,7 +109,7 @@ public class Baseline extends PropertyHolder {
 
 	@Override
 	public List<Property> listedTypes() {
-		List<Property> list = new ArrayList<Property>();
+		List<Property> list = new ArrayList<>();
 		list.add(getSlope());
 		list.add(getIntercept());
 		list.add(BaselineType.CONSTANT);
@@ -155,8 +155,8 @@ public class Baseline extends PropertyHolder {
 		if (!indexRange.isValid())
 			return;
 
-		List<Double> x = new ArrayList<Double>();
-		List<Double> y = new ArrayList<Double>();
+		List<Double> x = new ArrayList<>();
+		List<Double> y = new ArrayList<>();
 
 		double t;
 

@@ -36,17 +36,18 @@ public abstract class PropertyHolder extends Accessible {
 
 	public List<Property> listedTypes() {
 
-		List<Property> properties = new ArrayList<Property>();
+		List<Property> properties = new ArrayList<>();
 
-		for (Accessible accessible : accessibleChildren())
-			if (accessible instanceof PropertyHolder)
-				properties.addAll(((PropertyHolder) accessible).listedTypes());
+		for (Accessible accessible : accessibleChildren()) {
+                    if (accessible instanceof PropertyHolder)
+                        properties.addAll(((PropertyHolder) accessible).listedTypes());
+                }
 
 		return properties;
 	}
 
 	public PropertyHolder() {
-		this.listeners = new ArrayList<PropertyHolderListener>();
+		this.listeners = new ArrayList<>();
 	}
 
 	/**

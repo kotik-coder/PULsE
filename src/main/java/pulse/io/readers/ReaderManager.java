@@ -35,7 +35,7 @@ import pulse.util.ReflexiveFinder;
  * @see pulse.io.readers.DatasetReader
  */
 
-public final class ReaderManager {
+public class ReaderManager {
 
 	@SuppressWarnings("rawtypes")
 	private static List<AbstractReader> allReaders = allReaders();
@@ -248,13 +248,12 @@ public final class ReaderManager {
 		
 		InputStream stream = ReaderManager.class.getResourceAsStream(location + listName);
 
-		Scanner s = new Scanner(stream);
-		var names = new ArrayList<String>();
-		
-		while(s.hasNext())
-			names.add(s.next());
-		
-		s.close();
+		java.util.ArrayList<java.lang.String> names;
+            try (Scanner s = new Scanner(stream)) {
+                names = new ArrayList<String>();
+                while(s.hasNext())
+                    names.add(s.next());
+            }
 		
 		return names.stream().map(name -> readSpecific(reader, location, name) ).map(obj -> (T)obj).collect(Collectors.toSet());
 		

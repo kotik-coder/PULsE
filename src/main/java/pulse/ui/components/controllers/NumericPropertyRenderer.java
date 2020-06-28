@@ -10,6 +10,7 @@ import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableCellRenderer;
 
 import pulse.properties.NumericProperty;
+import pulse.properties.Property;
 import pulse.ui.Messages;
 
 @SuppressWarnings("serial")
@@ -28,7 +29,7 @@ public class NumericPropertyRenderer extends DefaultTableCellRenderer {
 			int row, int column) {
 
 		if (value instanceof NumericProperty)
-			return initTextField(((NumericProperty) value).formattedValue(), table.isRowSelected(row));
+			return initTextField(((Property) value).formattedValue(), table.isRowSelected(row));
 
 		return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 

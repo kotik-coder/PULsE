@@ -104,7 +104,7 @@ public class Pulse extends PropertyHolder {
 
 	@Override
 	public List<Property> listedTypes() {
-		List<Property> list = new ArrayList<Property>();
+		List<Property> list = new ArrayList<>();
 		list.add(TemporalShape.RECTANGULAR);
 		list.add(NumericProperty.def(PULSE_WIDTH));
 		list.add(NumericProperty.def(LASER_ENERGY));

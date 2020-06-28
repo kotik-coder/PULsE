@@ -55,7 +55,7 @@ public abstract class IterativeSolver extends PropertyHolder implements Reflexiv
 
 	@Override
 	public List<Property> listedTypes() {
-		List<Property> list = new ArrayList<Property>();
+		List<Property> list = new ArrayList<>();
 		list.add(NumericProperty.def(NumericPropertyKeyword.DOM_ITERATION_ERROR));
 		list.add(NumericProperty.def(NumericPropertyKeyword.RTE_MAX_ITERATIONS));
 		return list;

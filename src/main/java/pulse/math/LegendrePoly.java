@@ -23,8 +23,9 @@ public class LegendrePoly {
 		long c = 1;
 
 		// Calculate value of Binomial Coefficient in bottom up manner
-		for (int i = 1; i < k + 1; i++, m--)
-			c = c / i * m + c % i * m / i; // split c * n / i into (c / i * i + c % i) * n / i
+		for (int i = 1; i < k + 1; i++, m--) {
+                    c = c / i * m + c % i * m / i; // split c * n / i into (c / i * i + c % i) * n / i
+                }
 
 		return c;
 
@@ -42,8 +43,9 @@ public class LegendrePoly {
 
 		double c = 1;
 
-		for (int i = 0; i < k; i++)
-			c *= (alpha - i) / (k - i);
+		for (int i = 0; i < k; i++) {
+                    c *= (alpha - i) / (k - i);
+                }
 
 		return c;
 
@@ -73,16 +75,18 @@ public class LegendrePoly {
 
 		long intFactor = MathUtils.fastPowInt(2, n);
 
-		for (int i = 0; i < c.length; i++)
-			c[i] = intFactor * binomial(n, i) * generalisedBinomial((n + i - 1) * 0.5, n);
+		for (int i = 0; i < c.length; i++) {
+                    c[i] = intFactor * binomial(n, i) * generalisedBinomial((n + i - 1) * 0.5, n);
+                }
 
 	}
 
 	public double derivative(double x) {
 		double d = 0;
 
-		for (int i = 1; i < c.length; i++)
-			d += i * c[i] * MathUtils.fastPowLoop(x, i - 1);
+		for (int i = 1; i < c.length; i++) {
+                    d += i * c[i] * MathUtils.fastPowLoop(x, i - 1);
+                }
 
 		return d;
 
@@ -95,8 +99,9 @@ public class LegendrePoly {
 	public double poly(double x) {
 		double poly = 0;
 
-		for (int i = 0; i < c.length; i++)
-			poly += c[i] * MathUtils.fastPowLoop(x, i);
+		for (int i = 0; i < c.length; i++) {
+                    poly += c[i] * MathUtils.fastPowLoop(x, i);
+                }
 
 		return poly;
 

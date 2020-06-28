@@ -21,6 +21,7 @@ public class ButcherTableauReader implements AbstractReader<ButcherTableau> {
 	private ButcherTableauReader() {
 	}
 
+        @Override
 	public ButcherTableau read(File file) throws IOException {
 		Objects.requireNonNull(file, Messages.getString("TBLReader.1"));
 
@@ -48,7 +49,7 @@ public class ButcherTableauReader implements AbstractReader<ButcherTableau> {
 			int lineno = 0;
 			int dimension = 1;
 
-			List<Double> lineDouble = new ArrayList<Double>();
+			List<Double> lineDouble = new ArrayList<>();
 
 			/*
 			 * Read matrix first
@@ -59,16 +60,18 @@ public class ButcherTableauReader implements AbstractReader<ButcherTableau> {
 			for (line = reader.readLine(); lineno < dimension; line = reader.readLine(), lineno++) {
 				tokenizer = new StringTokenizer(line);
 				while (tokenizer.hasMoreTokens())
-					lineDouble.add((Double) (ExpressionParser.evaluate(tokenizer.nextToken(delims))));
+					lineDouble.add((ExpressionParser.evaluate(tokenizer.nextToken(delims))));
 				if (lineno == 0)
 					dimension = lineDouble.size();
 			}
 
 			double[][] aMatrix = new double[dimension][dimension];
 
-			for (int i = 0; i < dimension; i++)
-				for (int j = 0; j < dimension; j++)
-					aMatrix[i][j] = lineDouble.get(i * dimension + j);
+			for (int i = 0; i < dimension; i++) {
+                            for (int j = 0; j < dimension; j++) {
+                                aMatrix[i][j] = lineDouble.get(i * dimension + j);
+                            }
+                        }
 
 			/*
 			 * Read vectors
@@ -81,8 +84,9 @@ public class ButcherTableauReader implements AbstractReader<ButcherTableau> {
 			for (; lineno < 3 && line != null; line = reader.readLine(), lineno++) {
 				tokenizer = new StringTokenizer(line);
 
-				for (int i = 0; i < dimension; i++)
-					v[lineno][i] = (Double) (ExpressionParser.evaluate(tokenizer.nextToken(delims)));
+				for (int i = 0; i < dimension; i++) {
+                                    v[lineno][i] = (ExpressionParser.evaluate(tokenizer.nextToken(delims)));
+                                }
 			}
 
 			bt = new ButcherTableau(name, aMatrix, v[0], v[1], v[2], fsal);

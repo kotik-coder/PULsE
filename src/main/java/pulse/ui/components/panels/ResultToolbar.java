@@ -25,7 +25,7 @@ public class ResultToolbar extends JPanel {
 
 	public ResultToolbar() {
 		initComponents();
-		listeners = new ArrayList<ResultRequestListener>();
+		listeners = new ArrayList<>();
 	}
 
 	public void initComponents() {

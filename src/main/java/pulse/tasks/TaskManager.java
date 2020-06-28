@@ -37,7 +37,7 @@ import pulse.util.UpwardsNavigable;
  *
  */
 
-public final class TaskManager extends UpwardsNavigable {
+public class TaskManager extends UpwardsNavigable {
 
 	private static TaskManager instance = new TaskManager();
 
@@ -231,8 +231,9 @@ public final class TaskManager extends UpwardsNavigable {
 	private static void fireTaskSelected(Object source) {
 		TaskSelectionEvent e = new TaskSelectionEvent(source);
 
-		for (TaskSelectionListener l : selectionListeners)
-			l.onSelectionChanged(e);
+		for (TaskSelectionListener l : selectionListeners) {
+                    l.onSelectionChanged(e);
+                }
 	}
 
 	/**

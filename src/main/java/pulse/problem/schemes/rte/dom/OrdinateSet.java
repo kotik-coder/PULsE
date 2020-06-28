@@ -68,8 +68,9 @@ public class OrdinateSet implements Property {
 		sb.append("Quadrature set: " + this.getName());
 		sb.append(System.lineSeparator());
 
-		for (int i = 0; i < mu.length; i++)
-			sb.append(String.format("%nmu[%1d] = %3.8f; w[%1d] = %3.8f", i, mu[i], i, w[i]));
+		for (int i = 0; i < mu.length; i++) {
+                    sb.append(String.format("%nmu[%1d] = %3.8f; w[%1d] = %3.8f", i, mu[i], i, w[i]));
+                }
 
 		return sb.toString();
 
@@ -77,8 +78,9 @@ public class OrdinateSet implements Property {
 
 	private double summedWeights() {
 		double sum = 0;
-		for (int i = 0; i < w.length; i++)
-			sum += w[i];
+		for (int i = 0; i < w.length; i++) {
+                    sum += w[i];
+                }
 		return sum;
 	}
 

@@ -58,8 +58,9 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 	public RTECalculationStatus compute(double[] tempArray) {
 		double[] xArray = new double[tempArray.length];
 
-		for (int i = 0; i < xArray.length; i++)
-			xArray[i] = tau0 * i * hx;
+		for (int i = 0; i < xArray.length; i++) {
+                    xArray[i] = tau0 * i * hx;
+                }
 
 		emissionFunction.setInterpolation(this.temperatureInterpolation(xArray, tempArray));
 		return RTECalculationStatus.NORMAL;

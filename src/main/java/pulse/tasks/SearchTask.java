@@ -284,7 +284,7 @@ public class SearchTask extends Accessible implements Runnable {
 
 		/* sets an independent thread for manipulating the buffer */
 
-		List<CompletableFuture<Void>> bufferFutures = new ArrayList<CompletableFuture<Void>>(bufferSize);
+		List<CompletableFuture<Void>> bufferFutures = new ArrayList<>(bufferSize);
 		ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
 
 		outer: do {
@@ -584,13 +584,15 @@ public class SearchTask extends Accessible implements Runnable {
 	}
 
 	private void notifyDataListeners(LogEntry e) {
-		for (DataCollectionListener l : listeners)
-			l.onDataCollected(e);
+		for (DataCollectionListener l : listeners) {
+                    l.onDataCollected(e);
+                }
 	}
 
 	private void notifyStatusListeners(StateEntry e) {
-		for (StatusChangeListener l : statusChangeListeners)
-			l.onStatusChange(e);
+		for (StatusChangeListener l : statusChangeListeners) {
+                    l.onStatusChange(e);
+                }
 	}
 
 	@Override

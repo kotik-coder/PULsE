@@ -144,8 +144,9 @@ public class MixedLinearisedSolver extends MixedScheme implements Solver<Lineari
 
 				V[N] = (c1 * U[N] + tau * beta[N] - tau * (U[N] - U[N - 1])) / (c2 - tau * (alpha[N] - 1));
 
-				for (j = N - 1; j >= 0; j--)
-					V[j] = alpha[j + 1] * V[j + 1] + beta[j + 1];
+				for (j = N - 1; j >= 0; j--) {
+                                    V[j] = alpha[j + 1] * V[j + 1] + beta[j + 1];
+                                }
 
 				System.arraycopy(V, 0, U, 0, N + 1);
 

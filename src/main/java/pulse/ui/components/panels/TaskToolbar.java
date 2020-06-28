@@ -27,7 +27,7 @@ public class TaskToolbar extends JPanel {
 
 	public TaskToolbar() {
 		initComponents();
-		listeners = new ArrayList<TaskActionListener>();
+		listeners = new ArrayList<>();
 		addButtonListeners();
 	}
 

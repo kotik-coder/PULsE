@@ -36,7 +36,7 @@ public class ResultFrame extends JInternalFrame {
 	public ResultFrame() {
 		super("Results", true, false, true, true);
 		initComponents();
-		listeners = new ArrayList<PreviewFrameCreationListener>();
+		listeners = new ArrayList<>();
 		addListeners();
 		setVisible(true);
 	}

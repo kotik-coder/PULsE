@@ -78,6 +78,7 @@ public class ButcherTableau implements Property {
 		return fsal;
 	}
 
+        @Override
 	public String toString() {
 		return getName();
 	}
@@ -98,25 +99,29 @@ public class ButcherTableau implements Property {
 
 			sb.append(String.format("%n%3.8f | ", c.get(i)));
 
-			for (int j = 0; j < b.dimension(); j++)
-				sb.append(String.format("%3.8f ", coefs.get(i, j)));
+			for (int j = 0; j < b.dimension(); j++) {
+                            sb.append(String.format("%3.8f ", coefs.get(i, j)));
+                        }
 
 		}
 
 		sb.append(System.lineSeparator());
 
-		for (int i = 0; i < b.dimension() + 1; i++)
-			sb.append(String.format("%-12s", "-"));
+		for (int i = 0; i < b.dimension() + 1; i++) {
+                    sb.append(String.format("%-12s", "-"));
+                }
 
 		sb.append(System.lineSeparator() + String.format("%-10s | ", "-"));
 
-		for (int i = 0; i < b.dimension(); i++)
-			sb.append(String.format("%3.8f ", b.get(i)));
+		for (int i = 0; i < b.dimension(); i++) {
+                    sb.append(String.format("%3.8f ", b.get(i)));
+                }
 
 		sb.append(System.lineSeparator() + String.format("%-10s | ", "-"));
 
-		for (int i = 0; i < b.dimension(); i++)
-			sb.append(String.format("%3.8f ", bHat.get(i)));
+		for (int i = 0; i < b.dimension(); i++) {
+                    sb.append(String.format("%3.8f ", bHat.get(i)));
+                }
 
 		return sb.toString();
 

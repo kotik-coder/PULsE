@@ -91,85 +91,86 @@ public class MetaFilePopulator implements AbstractPopulator<Metadata> {
 		return instance;
 	}
 
+        @Override
 	public void populate(File file, Metadata met) throws IOException {
 		Objects.requireNonNull(file, Messages.getString("MetaFileReader.1")); //$NON-NLS-1$
-
-		BufferedReader reader = new BufferedReader(new FileReader(file));
-
-		Map<Integer, String> metaFormat = new HashMap<Integer, String>();
-		metaFormat.put(0, "ID"); // id must always be the first entry of a row
-
-		List<String> tokens = new LinkedList<String>();
-
-		for (String line = reader.readLine(); line != null; line = reader.readLine()) {
-
-			StringTokenizer st = new StringTokenizer(line);
-
-			tokens.clear();
-			for (; st.hasMoreTokens();)
-				tokens.add(st.nextToken());
-			int size = tokens.size();
-
-			if (size < 1)
-				continue;
-
-			if (size == 2) {
-
-				List<ImmutableDataEntry<String, String>> val = new ArrayList<ImmutableDataEntry<String, String>>();
-				ImmutableDataEntry<String, String> entry = new ImmutableDataEntry<String, String>(tokens.get(0),
-						tokens.get(1));
-				val.add(entry);
-
-				switch (tokens.get(0)) {
-				case "Sample":
-					met.setSampleName(tokens.get(1));
-					break;
-				default:
-					try {
-						translate(val, met);
-					} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-						System.err.println("Error changing property in Metadata object. Details below.");
-						e.printStackTrace();
-					}
-					break;
-
-				}
-
-			} else {
-
-				if (tokens.get(0).equalsIgnoreCase(metaFormat.get(0))) {
-
-					for (int i = 1; i < size; i++)
-						metaFormat.put(i, tokens.get(i));
-
-				}
-
-				else {
-
-					if (Math.abs(Integer.valueOf(tokens.get(0)) - met.getExternalID()) > 0.5)
-						continue;
-
-					List<ImmutableDataEntry<String, String>> values = new ArrayList<ImmutableDataEntry<String, String>>(
-							size);
-
-					for (int i = 1; i < size; i++)
-						values.add(new ImmutableDataEntry<String, String>(metaFormat.get(i), tokens.get(i)));
-
-					try {
-						translate(values, met);
-					} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-						System.err.println("Error changing property in Metadata object. Details below.");
-						e.printStackTrace();
-					}
-					break;
-
-				}
-
-			}
-
-		}
-
-		reader.close();
+            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+                Map<Integer, String> metaFormat = new HashMap<>();
+                metaFormat.put(0, "ID"); // id must always be the first entry of a row
+                
+                List<String> tokens = new LinkedList<>();
+                
+                for (String line = reader.readLine(); line != null; line = reader.readLine()) {
+                    
+                    StringTokenizer st = new StringTokenizer(line);
+                    
+                    tokens.clear();
+                    for (; st.hasMoreTokens();) {
+                        tokens.add(st.nextToken());
+                    }
+                    int size = tokens.size();
+                    
+                    if (size < 1)
+                        continue;
+                    
+                    if (size == 2) {
+                        
+                        List<ImmutableDataEntry<String, String>> val = new ArrayList<>();
+                        ImmutableDataEntry<String, String> entry = new ImmutableDataEntry<>(tokens.get(0),
+                                tokens.get(1));
+                        val.add(entry);
+                        
+                        switch (tokens.get(0)) {
+                            case "Sample":
+                                met.setSampleName(tokens.get(1));
+                                break;
+                            default:
+                                try {
+                                    translate(val, met);
+                                } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+                                    System.err.println("Error changing property in Metadata object. Details below.");
+                                    e.printStackTrace();
+                                }
+                                break;
+                                
+                        }
+                        
+                    } else {
+                        
+                        if (tokens.get(0).equalsIgnoreCase(metaFormat.get(0))) {
+                            
+                            for (int i = 1; i < size; i++) {
+                                metaFormat.put(i, tokens.get(i));
+                            }
+                            
+                        }
+                        
+                        else {
+                            
+                            if (Math.abs(Integer.valueOf(tokens.get(0)) - met.getExternalID()) > 0.5)
+                                continue;
+                            
+                            List<ImmutableDataEntry<String, String>> values = new ArrayList<>(
+                                    size);
+                            
+                            for (int i = 1; i < size; i++) {
+                                values.add(new ImmutableDataEntry<>(metaFormat.get(i), tokens.get(i)));
+                            }
+                            
+                            try {
+                                translate(values, met);
+                            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+                                System.err.println("Error changing property in Metadata object. Details below.");
+                                e.printStackTrace();
+                            }
+                            break;
+                            
+                        }
+                        
+                    }
+                    
+                }
+            }
 
 	}
 

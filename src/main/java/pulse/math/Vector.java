@@ -65,8 +65,9 @@ public class Vector {
 	public Vector inverted() {
 		Vector v = new Vector(x.length);
 
-		for (int i = 0; i < v.x.length; i++)
-			v.x[i] = -this.x[i];
+		for (int i = 0; i < v.x.length; i++) {
+                    v.x[i] = -this.x[i];
+                }
 
 		return v;
 	}
@@ -97,8 +98,9 @@ public class Vector {
 
 		Vector sum = new Vector(this);
 
-		for (int i = 0; i < v.x.length; i++)
-			sum.x[i] += v.x[i];
+		for (int i = 0; i < v.x.length; i++) {
+                    sum.x[i] += v.x[i];
+                }
 
 		return sum;
 	}
@@ -118,8 +120,9 @@ public class Vector {
 					Messages.getString("Vector.DimensionError1") + x.length + " != " + v.x.length); //$NON-NLS-1$ //$NON-NLS-2$
 		Vector diff = new Vector(this);
 
-		for (int i = 0; i < v.x.length; i++)
-			diff.x[i] -= v.x[i];
+		for (int i = 0; i < v.x.length; i++) {
+                    diff.x[i] -= v.x[i];
+                }
 
 		return diff;
 
@@ -136,8 +139,9 @@ public class Vector {
 	public Vector multiply(double f) {
 		Vector factor = new Vector(this);
 
-		for (int i = 0; i < x.length; i++)
-			factor.x[i] *= f;
+		for (int i = 0; i < x.length; i++) {
+                    factor.x[i] *= f;
+                }
 
 		return factor;
 	}
@@ -151,8 +155,9 @@ public class Vector {
 
 	public double dot(Vector v) {
 		double dotProduct = 0;
-		for (int i = 0; i < v.x.length; i++)
-			dotProduct += this.x[i] * v.x[i];
+		for (int i = 0; i < v.x.length; i++) {
+                    dotProduct += this.x[i] * v.x[i];
+                }
 		return dotProduct;
 	}
 
@@ -208,8 +213,9 @@ public class Vector {
 
 		double distSq = 0;
 
-		for (int i = 0; i < v.x.length; i++)
-			distSq += Math.pow(this.x[i] - v.x[i], 2);
+		for (int i = 0; i < v.x.length; i++) {
+                    distSq += Math.pow(this.x[i] - v.x[i], 2);
+                }
 
 		return distSq;
 	}
@@ -263,8 +269,9 @@ public class Vector {
 	public String toString() {
 		final String f = Messages.getString("Math.DecimalFormat"); //$NON-NLS-1$
 		StringBuilder sb = new StringBuilder().append("("); //$NON-NLS-1$
-		for (double c : x)
-			sb.append(String.format(f, c) + " "); //$NON-NLS-1$
+		for (double c : x) {
+                    sb.append(String.format(f, c) + " "); //$NON-NLS-1$
+                }
 		sb.append(")"); //$NON-NLS-1$
 		return sb.toString();
 	}

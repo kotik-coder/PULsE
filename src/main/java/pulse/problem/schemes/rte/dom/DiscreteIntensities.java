@@ -57,9 +57,11 @@ public class DiscreteIntensities extends PropertyHolder {
 	}
 
 	public void clear() {
-		for (int i = 0, j = 0, N = grid.getDensity() + 1, n = ordinates.total; i < n; i++)
-			for (j = 0; j < N; j++)
-				I[j][i] = 0;
+		for (int i = 0, j = 0, N = grid.getDensity() + 1, n = ordinates.total; i < n; i++) {
+                    for (j = 0; j < N; j++) {
+                        I[j][i] = 0;
+                    }
+                }
 		clearBoundaryFluxes();
 	}
 
@@ -134,8 +136,9 @@ public class DiscreteIntensities extends PropertyHolder {
 		final int nHalf = ordinates.getFirstNegativeNode();
 		final int nStart = ordinates.getFirstPositiveNode();
 
-		for (int i = nStart; i < nHalf; i++)
-			integral += ordinates.w[i] * (I[j][i] + I[j][i + nHalf]);
+		for (int i = nStart; i < nHalf; i++) {
+                    integral += ordinates.w[i] * (I[j][i] + I[j][i + nHalf]);
+                }
 
 		if (ordinates.hasZeroNode())
 			integral += ordinates.w[0] * I[j][0];
@@ -155,8 +158,9 @@ public class DiscreteIntensities extends PropertyHolder {
 	public double g(final int j, final int startInclusive, final int endExclusive) {
 		double integral = 0;
 
-		for (int i = startInclusive; i < endExclusive; i++)
-			integral += ordinates.w[i] * I[j][i];
+		for (int i = startInclusive; i < endExclusive; i++) {
+                    integral += ordinates.w[i] * I[j][i];
+                }
 
 		return integral;
 
@@ -168,8 +172,9 @@ public class DiscreteIntensities extends PropertyHolder {
 		final int nHalf = ordinates.getFirstNegativeNode();
 		final int nStart = ordinates.getFirstPositiveNode();
 
-		for (int i = nStart; i < nHalf; i++)
-			integral += ordinates.w[i] * (Iext[j][i] - Iext[j][i + nHalf]) * ordinates.mu[i];
+		for (int i = nStart; i < nHalf; i++) {
+                    integral += ordinates.w[i] * (Iext[j][i] - Iext[j][i + nHalf]) * ordinates.mu[i];
+                }
 
 		return integral;
 	}
@@ -181,8 +186,9 @@ public class DiscreteIntensities extends PropertyHolder {
 	public double q(final int j, final int startInclusive, final int endExclusive) {
 		double integral = 0;
 
-		for (int i = startInclusive; i < endExclusive; i++)
-			integral += ordinates.w[i] * I[j][i] * ordinates.mu[i];
+		for (int i = startInclusive; i < endExclusive; i++) {
+                    integral += ordinates.w[i] * I[j][i] * ordinates.mu[i];
+                }
 
 		return integral;
 	}
@@ -212,8 +218,10 @@ public class DiscreteIntensities extends PropertyHolder {
 		final int nHalf = ordinates.getFirstNegativeNode();
 		final int nStart = ordinates.getFirstPositiveNode();
 
-		for (int i = nStart; i < nHalf; i++) // for positive streams
-			I[0][i] = ef.J(0.0) - boundaryFluxFactor * qLeft(ef);
+		for (int i = nStart; i < nHalf; i++) {
+                    // for positive streams
+                    I[0][i] = ef.J(0.0) - boundaryFluxFactor * qLeft(ef);
+                }
 
 	}
 
@@ -246,8 +254,10 @@ public class DiscreteIntensities extends PropertyHolder {
 
 		final int nHalf = ordinates.getFirstNegativeNode();
 
-		for (int i = nHalf; i < ordinates.total; i++) // for negative streams
-			I[N][i] = ef.J(grid.getDimension()) + boundaryFluxFactor * qRight(ef);
+		for (int i = nHalf; i < ordinates.total; i++) {
+                    // for negative streams
+                    I[N][i] = ef.J(grid.getDimension()) + boundaryFluxFactor * qRight(ef);
+                }
 
 	}
 
@@ -272,7 +282,7 @@ public class DiscreteIntensities extends PropertyHolder {
 
 	@Override
 	public List<Property> listedTypes() {
-		List<Property> list = new ArrayList<Property>();
+		List<Property> list = new ArrayList<>();
 		list.add(OrdinateSet.getDefaultInstance());
 		return list;
 	}

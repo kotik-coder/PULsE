@@ -35,8 +35,9 @@ public abstract class Integrator extends PropertyHolder implements Reflexive {
 		lookupTable = new double[lookupTableSize + 1][4];
 		dx = cutoff / lookupTableSize;
 		for (int i = 0; i < lookupTableSize; i++) {
-			for (int j = 1; j < 4; j++)
-				lookupTable[i][j] = integrate(j, i * dx);
+			for (int j = 1; j < 4; j++) {
+                            lookupTable[i][j] = integrate(j, i * dx);
+                        }
 		}
 	}
 
@@ -120,7 +121,7 @@ public abstract class Integrator extends PropertyHolder implements Reflexive {
 
 	@Override
 	public List<Property> listedTypes() {
-		List<Property> list = new ArrayList<Property>();
+		List<Property> list = new ArrayList<>();
 		list.add(NumericProperty.def(NumericPropertyKeyword.INTEGRATION_CUTOFF));
 		list.add(NumericProperty.def(NumericPropertyKeyword.INTEGRATION_SEGMENTS));
 		return list;

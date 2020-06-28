@@ -24,7 +24,7 @@ public class InstanceCellEditor extends DefaultCellEditor {
 
 	@Override
 	public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-		combobox = new JComboBox<Object>(((InstanceDescriptor<?>) value).getAllDescriptors().toArray());
+		combobox = new JComboBox<>(((InstanceDescriptor<?>) value).getAllDescriptors().toArray());
 		combobox.setSelectedItem(descriptor.getValue());
 
 		combobox.addItemListener(e -> {

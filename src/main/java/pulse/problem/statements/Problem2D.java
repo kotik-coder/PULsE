@@ -58,6 +58,7 @@ public abstract class Problem2D extends Problem implements TwoDimensional {
 		setComplexity(ProblemComplexity.MODERATE);
 	}
 
+        @Override
 	public void useTheoreticalEstimates(ExperimentalData c) {
 		super.useTheoreticalEstimates(c);
 		if (areThermalPropertiesLoaded())
@@ -101,7 +102,7 @@ public abstract class Problem2D extends Problem implements TwoDimensional {
 
 	@Override
 	public List<Property> listedTypes() {
-		List<Property> list = new ArrayList<Property>();
+		List<Property> list = new ArrayList<>();
 		list.addAll(super.listedTypes());
 		list.add(NumericProperty.def(HEAT_LOSS_SIDE));
 		list.add(NumericProperty.def(DIAMETER));

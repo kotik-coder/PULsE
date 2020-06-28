@@ -169,8 +169,9 @@ public class ADILinearisedSolver extends ADIScheme implements Solver<LinearisedP
 							+ HX2 * tau / (2.0 * HY2) * (U1_E[N + 1][j + 2] - 2 * U1_E[N + 1][j + 1] + U1_E[N + 1][j]))
 							/ ((1.0 - alpha[N] + hx * OMEGA * Bi3) * OMEGA_SQ * tau + HX2);
 
-					for (i = N - 1; i >= 0; i--)
-						U2[i][j] = alpha[i + 1] * U2[i + 1][j] + beta[i + 1];
+					for (i = N - 1; i >= 0; i--) {
+                                            U2[i][j] = alpha[i + 1] * U2[i + 1][j] + beta[i + 1];
+                                        }
 
 				}
 
@@ -180,8 +181,9 @@ public class ADILinearisedSolver extends ADIScheme implements Solver<LinearisedP
 
 				for (j = 0; j <= N; j++) {
 
-					for (i = 0; i <= N; i++)
-						U2_E[i + 1][j + 1] = U2[i][j];
+					for (i = 0; i <= N; i++) {
+                                            U2_E[i + 1][j + 1] = U2[i][j];
+                                        }
 
 					U2_E[N + 2][j + 1] = U2[N - 1][j] - 2.0 * hx * OMEGA * Bi3 * U2[N][j];
 				}
@@ -208,8 +210,9 @@ public class ADILinearisedSolver extends ADIScheme implements Solver<LinearisedP
 									+ (1 - 1.0 / (2.0 * i)) * U2_E[i][N + 1]))
 							/ ((1 - alpha[N] + hy * Bi2) * tau + HY2);
 
-					for (j = N - 1; j >= 0; j--)
-						U1[i][j] = alpha[j + 1] * U1[i][j + 1] + beta[j + 1];
+					for (j = N - 1; j >= 0; j--) {
+                                            U1[i][j] = alpha[j + 1] * U1[i][j + 1] + beta[j + 1];
+                                        }
 
 				}
 
@@ -226,8 +229,9 @@ public class ADILinearisedSolver extends ADIScheme implements Solver<LinearisedP
 				U1[0][N] = (tau * beta[N] + HY2 * U2_E[1][N + 1] + 2.0 * _c11 * (U2_E[2][N + 1] - U2_E[1][N + 1]))
 						/ ((1 - alpha[N] + hy * Bi2) * tau + HY2);
 
-				for (j = N - 1; j >= 0; j--)
-					U1[0][j] = alpha[j + 1] * U1[0][j + 1] + beta[j + 1];
+				for (j = N - 1; j >= 0; j--) {
+                                    U1[0][j] = alpha[j + 1] * U1[0][j + 1] + beta[j + 1];
+                                }
 
 			}
 
@@ -235,8 +239,9 @@ public class ADILinearisedSolver extends ADIScheme implements Solver<LinearisedP
 
 			double sum = 0;
 
-			for (i = firstIndex; i <= lastIndex; i++)
-				sum += U1[i][N];
+			for (i = firstIndex; i <= lastIndex; i++) {
+                            sum += U1[i][N];
+                        }
 
 			sum /= (lastIndex - firstIndex + 1);
 

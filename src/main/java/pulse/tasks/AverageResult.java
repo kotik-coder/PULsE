@@ -42,10 +42,11 @@ public class AverageResult extends AbstractResult {
 	public AverageResult(List<AbstractResult> res, ResultFormat resultFormat) {
 		super(resultFormat);
 
-		results = new ArrayList<AbstractResult>();
+		results = new ArrayList<>();
 
-		for (AbstractResult r : res)
-			results.add(r);
+		for (AbstractResult r : res) {
+                    results.add(r);
+                }
 
 		average();
 
@@ -62,8 +63,9 @@ public class AverageResult extends AbstractResult {
 		int size = results.size();
 
 		for (int i = 0; i < av.length; i++) {
-			for (AbstractResult r : results)
-				av[i] += ((Number) r.getProperty(i).getValue()).doubleValue();
+			for (AbstractResult r : results) {
+                            av[i] += ((Number) r.getProperty(i).getValue()).doubleValue();
+                        }
 			av[i] /= size;
 		}
 
@@ -74,8 +76,9 @@ public class AverageResult extends AbstractResult {
 		double[] std = new double[av.length];
 
 		for (int j = 0; j < av.length; j++) {
-			for (AbstractResult r : results)
-				std[j] += Math.pow(((Number) r.getProperty(j).getValue()).doubleValue() - av[j], 2);
+			for (AbstractResult r : results) {
+                            std[j] += Math.pow(((Number) r.getProperty(j).getValue()).doubleValue() - av[j], 2);
+                        }
 			std[j] /= size;
 		}
 
@@ -129,7 +132,7 @@ public class AverageResult extends AbstractResult {
 	 */
 
 	public List<AbstractResult> getIndividualResults() {
-		List<AbstractResult> indResults = new ArrayList<AbstractResult>();
+		List<AbstractResult> indResults = new ArrayList<>();
 
 		for (AbstractResult r : results) {
 			if (r instanceof AverageResult) {

@@ -11,7 +11,6 @@ public class Partition {
 	public Partition(int value, double multiplier, double shift) {
 		this.setDensity(value);
 		this.setShift(shift);
-		;
 		this.setGridMultiplier(multiplier);
 	}
 

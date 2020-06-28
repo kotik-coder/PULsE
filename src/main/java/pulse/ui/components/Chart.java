@@ -218,8 +218,9 @@ public class Chart {
 		List<double[]> residuals = task.getResidualStatistic().getResiduals();
 		int size = residuals.size();
 
-		for (int i = 0; i < size; i++)
-			series.add(residuals.get(i)[0], (Number) (residuals.get(i)[1] + offset));
+		for (int i = 0; i < size; i++) {
+                    series.add(residuals.get(i)[0], (Number) (residuals.get(i)[1] + offset));
+                }
 
 		return series;
 	}
@@ -247,5 +248,8 @@ public class Chart {
 	public static void setZeroApproximationShown(boolean zeroApproximationShown) {
 		Chart.zeroApproximationShown = zeroApproximationShown;
 	}
+
+    private Chart() {
+    }
 
 }

@@ -26,44 +26,43 @@ public class MetadataExporter implements Exporter<Metadata> {
 	}
 
 	private void printHTML(Metadata meta, FileOutputStream fos) {
-		PrintStream stream = new PrintStream(fos);
-
-		stream.print("<table>");
-		stream.print("<tr>");
-
-		final String METADATA_LABEL = "Metadata";
-		final String VALUE_LABEL = "Value";
-
-		stream.print("<html>");
-		stream.print("<td>");
-		stream.print(METADATA_LABEL + "\t");
-		stream.print("</td>");
-		stream.print("<td>");
-		stream.print(VALUE_LABEL + "\t");
-		stream.print("</td>");
-
-		stream.print("</tr>");
-
-		stream.println(" ");
-
-		List<Property> data = meta.data();
-
-		data.forEach(entry -> {
-			stream.print("<tr>");
-
-			stream.print("<td>");
-			stream.print(entry.getDescriptor(false));
-			stream.print("</td><td>");
-			stream.print(entry.formattedValue());
-			// possible error typecast property -> object
-			stream.print("</td>");
-
-			stream.println("</tr>");
-		});
-
-		stream.print("</table>");
-		stream.print("</html>");
-		stream.close();
+            try (PrintStream stream = new PrintStream(fos)) {
+                stream.print("<table>");
+                stream.print("<tr>");
+                
+                final String METADATA_LABEL = "Metadata";
+                final String VALUE_LABEL = "Value";
+                
+                stream.print("<html>");
+                stream.print("<td>");
+                stream.print(METADATA_LABEL + "\t");
+                stream.print("</td>");
+                stream.print("<td>");
+                stream.print(VALUE_LABEL + "\t");
+                stream.print("</td>");
+                
+                stream.print("</tr>");
+                
+                stream.println(" ");
+                
+                List<Property> data = meta.data();
+                
+                data.forEach(entry -> {
+                    stream.print("<tr>");
+                    
+                    stream.print("<td>");
+                    stream.print(entry.getDescriptor(false));
+                    stream.print("</td><td>");
+                    stream.print(entry.formattedValue());
+                    // possible error typecast property -> object
+                    stream.print("</td>");
+                    
+                    stream.println("</tr>");
+                });
+                
+                stream.print("</table>");
+                stream.print("</html>");
+            }
 	}
 
 	@Override

@@ -39,6 +39,7 @@ public interface CurveReader extends AbstractReader<List<ExperimentalData>> {
 	 * @throws IOException if something goes wrong with reading the file
 	 */
 
+        @Override
 	public abstract List<ExperimentalData> read(File file) throws IOException;
 
 	/**

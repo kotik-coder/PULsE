@@ -82,8 +82,9 @@ public class ExplicitNonlinearSolver extends ExplicitScheme implements Solver<No
 
 			for (m = (w - 1) * timeInterval + 1; m < w * timeInterval + 1; m++) {
 
-				for (i = 1; i < N; i++)
-					V[i] = U[i] + TAU_HH * (U[i + 1] - 2. * U[i] + U[i - 1]);
+				for (i = 1; i < N; i++) {
+                                    V[i] = U[i] + TAU_HH * (U[i + 1] - 2. * U[i] + U[i - 1]);
+                                }
 
 				pls = discretePulse.evaluateAt((m - EPS) * tau);
 

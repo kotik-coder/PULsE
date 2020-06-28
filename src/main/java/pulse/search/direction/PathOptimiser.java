@@ -332,8 +332,9 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 
 			}
 		} else {
-			for (Flag property : problemDependentFlags)
-				list.add(property);
+			for (Flag property : problemDependentFlags) {
+                            list.add(property);
+                        }
 		}
 	}
 

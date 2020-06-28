@@ -4,6 +4,7 @@ import java.awt.Font;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.AbstractButton;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JFileChooser;
@@ -70,8 +71,8 @@ public class PulseMainMenu extends JMenuBar {
 		assignMenuFunctions();
 		addListeners();
 
-		listeners = new ArrayList<FrameVisibilityRequestListener>();
-		exitListeners = new ArrayList<ExitRequestListener>();
+		listeners = new ArrayList<>();
+		exitListeners = new ArrayList<>();
 	}
 
 	private void addListeners() {
@@ -186,8 +187,8 @@ public class PulseMainMenu extends JMenuBar {
 			statisticsSubMenu.add(item);
 			item.addItemListener(e -> {
 
-				if (((JRadioButtonMenuItem) e.getItem()).isSelected()) {
-					var text = ((JMenuItem) e.getItem()).getText();
+				if (((AbstractButton) e.getItem()).isSelected()) {
+					var text = ((AbstractButton) e.getItem()).getText();
 					NormalityTest.setSelectedTestDescriptor(text);
 
 					TaskManager.getTaskList().stream().forEach(t -> t.initNormalityTest());
@@ -227,8 +228,8 @@ public class PulseMainMenu extends JMenuBar {
 			optimisersSubMenu.add(item);
 			item.addItemListener(e -> {
 
-				if (((JRadioButtonMenuItem) e.getItem()).isSelected()) {
-					var text = ((JMenuItem) e.getItem()).getText();
+				if (((AbstractButton) e.getItem()).isSelected()) {
+					var text = ((AbstractButton) e.getItem()).getText();
 					ResidualStatistic.setSelectedOptimiserDescriptor(text);
 					TaskManager.getTaskList().stream().forEach(t -> t.initOptimiser());
 				}
@@ -254,8 +255,8 @@ public class PulseMainMenu extends JMenuBar {
 			correlationsSubMenu.add(corrItem);
 			corrItem.addItemListener(e -> {
 
-				if (((JRadioButtonMenuItem) e.getItem()).isSelected()) {
-					var text = ((JMenuItem) e.getItem()).getText();
+				if (((AbstractButton) e.getItem()).isSelected()) {
+					var text = ((AbstractButton) e.getItem()).getText();
 					CorrelationTest.setSelectedTestDescriptor(text);
 					TaskManager.getTaskList().stream().forEach(t -> t.initCorrelationTest());
 				}

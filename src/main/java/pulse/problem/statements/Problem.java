@@ -144,8 +144,9 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 
 		double sum = 0;
 
-		for (int i = 1; i <= precision; i++)
-			sum += pow(-1, i) * exp(-pow(i * PI, 2) * Fo);
+		for (int i = 1; i <= precision; i++) {
+                    sum += pow(-1, i) * exp(-pow(i * PI, 2) * Fo);
+                }
 
 		return (1. + 2. * sum) * signalHeight;
 

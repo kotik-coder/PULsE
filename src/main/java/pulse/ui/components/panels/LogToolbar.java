@@ -22,7 +22,7 @@ public class LogToolbar extends JPanel {
 
 	public LogToolbar() {
 		initComponents();
-		listeners = new ArrayList<LogExportListener>();
+		listeners = new ArrayList<>();
 	}
 
 	public void initComponents() {

@@ -40,8 +40,8 @@ public class Log extends Group {
 		setParent(task);
 		id = task.getIdentifier();
 
-		this.logEntries = new CopyOnWriteArrayList<LogEntry>();
-		listeners = new CopyOnWriteArrayList<LogEntryListener>();
+		this.logEntries = new CopyOnWriteArrayList<>();
+		listeners = new CopyOnWriteArrayList<>();
 
 		task.addTaskListener(new DataCollectionListener() {
 

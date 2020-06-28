@@ -35,7 +35,7 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 		rtol = (double) NumericProperty.theDefault(NumericPropertyKeyword.RTOL).getValue();
 		scalingFactor = (double) NumericProperty.theDefault(NumericPropertyKeyword.GRID_SCALING_FACTOR).getValue();
 		f = new double[intensities.grid.getDensity() + 1][intensities.ordinates.total];
-		timeThreshold = ((Double) NumericProperty.theDefault(NumericPropertyKeyword.RTE_INTEGRATION_TIMEOUT).getValue())
+		timeThreshold = ((Number) NumericProperty.theDefault(NumericPropertyKeyword.RTE_INTEGRATION_TIMEOUT).getValue())
 				.longValue();
 	}
 
@@ -67,11 +67,12 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 
 		double ONE_MINUS_W = 1.0 - W;
 
-		for (int i = 0, N = intensities.grid.getDensity() + 1; i < N; i++)
-			for (int j = 0; j < intensities.ordinates.total; j++) {
-				intensities.I[i][j] = ONE_MINUS_W * Ik[i][j] + W * intensities.I[i][j];
-				f[i][j] = ONE_MINUS_W * fk[i][j] + W * f[i][j];
-			}
+		for (int i = 0, N = intensities.grid.getDensity() + 1; i < N; i++) {
+                    for (int j = 0; j < intensities.ordinates.total; j++) {
+                        intensities.I[i][j] = ONE_MINUS_W * Ik[i][j] + W * intensities.I[i][j];
+                        f[i][j] = ONE_MINUS_W * fk[i][j] + W * f[i][j];
+                    }
+                }
 
 	}
 
@@ -241,7 +242,7 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 
 	@Override
 	public List<Property> listedTypes() {
-		List<Property> list = new ArrayList<Property>();
+		List<Property> list = new ArrayList<>();
 		list.add(NumericProperty.def(NumericPropertyKeyword.RTOL));
 		list.add(NumericProperty.def(NumericPropertyKeyword.ATOL));
 		list.add(NumericProperty.def(NumericPropertyKeyword.GRID_SCALING_FACTOR));
@@ -261,7 +262,7 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 
 	public void setTimeThreshold(NumericProperty timeThreshold) {
 		if (timeThreshold.getType() == NumericPropertyKeyword.RTE_INTEGRATION_TIMEOUT)
-			this.timeThreshold = (long) ((Double) timeThreshold.getValue()).longValue();
+			this.timeThreshold = ((Number) timeThreshold.getValue()).longValue();
 	}
 
 }

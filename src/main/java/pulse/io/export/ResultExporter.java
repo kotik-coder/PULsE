@@ -33,25 +33,23 @@ public class ResultExporter implements Exporter<Result> {
 	}
 
 	private void printHTML(Result result, FileOutputStream fos) {
-		PrintStream stream = new PrintStream(fos);
-
-		stream.print("<table>");
-
-		for (NumericProperty p : result.getProperties()) {
-			stream.print("<tr>");
-			stream.print("<td>");
-
-			stream.print(p.getDescriptor(true));
-			stream.print("</td><td>");
-			stream.print(p.formattedValue(true));
-
-			stream.print("</td>");
-			stream.println("</tr>");
-		}
-
-		stream.print("</table>");
-
-		stream.close();
+            try (PrintStream stream = new PrintStream(fos)) {
+                stream.print("<table>");
+                
+                for (NumericProperty p : result.getProperties()) {
+                    stream.print("<tr>");
+                    stream.print("<td>");
+                    
+                    stream.print(p.getDescriptor(true));
+                    stream.print("</td><td>");
+                    stream.print(p.formattedValue(true));
+                    
+                    stream.print("</td>");
+                    stream.println("</tr>");
+                }
+                
+                stream.print("</table>");
+            }
 	}
 
 	/**
@@ -65,14 +63,14 @@ public class ResultExporter implements Exporter<Result> {
 	}
 
 	private void printCSV(Result result, FileOutputStream fos) {
-		PrintStream stream = new PrintStream(fos);
-		stream.print("(Results)");
-
-		for (NumericProperty p : result.getProperties()) {
-			stream.printf("%n%-20.10s", p.getType());
-			stream.printf("\t%-20.10s", p.formattedValue(true));
-		}
-		stream.close();
+            try (PrintStream stream = new PrintStream(fos)) {
+                stream.print("(Results)");
+                
+                for (NumericProperty p : result.getProperties()) {
+                    stream.printf("%n%-20.10s", p.getType());
+                    stream.printf("\t%-20.10s", p.formattedValue(true));
+                }
+            }
 	}
 
 	@Override

@@ -16,7 +16,7 @@ public abstract class AbsorptionModel extends PropertyHolder implements Reflexiv
 
 	protected AbsorptionModel() {
 		setPrefix("Absorption model");
-		absorptionMap = new HashMap<SpectralRange, NumericProperty>();
+		absorptionMap = new HashMap<>();
 		absorptionMap.put(SpectralRange.LASER, NumericProperty.theDefault(NumericPropertyKeyword.LASER_ABSORPTIVITY));
 		absorptionMap.put(SpectralRange.THERMAL,
 				NumericProperty.theDefault(NumericPropertyKeyword.THERMAL_ABSORPTIVITY));

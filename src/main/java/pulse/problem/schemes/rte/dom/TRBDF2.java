@@ -73,6 +73,7 @@ public class TRBDF2 extends AdaptiveIntegrator {
 		super(medium, intensities, ef, ipf);
 	}
 
+        @Override
 	protected void init() {
 		super.init();
 		halfAlbedo = getAlbedo() * 0.5;
@@ -94,6 +95,7 @@ public class TRBDF2 extends AdaptiveIntegrator {
 	 * Performs a TRBDF2 step.
 	 */
 
+        @Override
 	public Vector[] step(final int j, final double sign) {
 		final double h = sign * intensities.grid.step(j, sign);
 		HermiteInterpolator.bMinusA = h; // <---- for Hermite interpolation
@@ -123,14 +125,16 @@ public class TRBDF2 extends AdaptiveIntegrator {
 
 		if (!firstRun) { // if this is not the first step
 
-			for (int l = n1; l < n2; l++)
-				k[0][l - n1] = qLast[l - n1];
+			for (int l = n1; l < n2; l++) {
+                            k[0][l - n1] = qLast[l - n1];
+                        }
 
 		} else {
 
-			for (int l = n1; l < n2; l++)
-				k[0][l - n1] = super.derivative(l, j, t, intensities.I[j][l]); // first-stage right-hand side: f( t, In)
-																				// )
+			for (int l = n1; l < n2; l++) {
+                            k[0][l - n1] = super.derivative(l, j, t, intensities.I[j][l]); // first-stage right-hand side: f( t, In)
+                            // )
+                        }// )
 
 			firstRun = false;
 
@@ -174,9 +178,12 @@ public class TRBDF2 extends AdaptiveIntegrator {
 			matrixPrefactor = prefactorNumerator / intensities.ordinates.mu[i + n1];
 
 			// all elements
-			for (int k = 0; k < aMatrix[0].length; k++)
-				aMatrix[i][k] = matrixPrefactor * intensities.ordinates.w[k + n5] * pf.function(i + n1, k + n5); // only
-																													// OUTWARD
+			for (int k = 0; k < aMatrix[0].length; k++) {
+                            aMatrix[i][k] = matrixPrefactor * intensities.ordinates.w[k + n5] * pf.function(i + n1, k + n5); // only
+                            // OUTWARD
+                            // (and zero)
+                            // intensities
+                        }// OUTWARD
 			// (and zero)
 			// intensities
 

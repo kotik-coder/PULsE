@@ -25,9 +25,9 @@ public class ResultTableModel extends DefaultTableModel {
 	public ResultTableModel(ResultFormat fmt, int rowCount) {
 		super(fmt.abbreviations().toArray(), rowCount);
 		this.fmt = fmt;
-		results = new ArrayList<AbstractResult>();
+		results = new ArrayList<>();
 		tooltips = tooltips();
-		listeners = new ArrayList<ResultListener>();
+		listeners = new ArrayList<>();
 	}
 
 	public ResultTableModel(ResultFormat fmt) {
@@ -56,19 +56,21 @@ public class ResultTableModel extends DefaultTableModel {
 	public void changeFormat(ResultFormat fmt) {
 		this.fmt = fmt;
 
-		for (AbstractResult r : results)
-			r.setFormat(fmt);
+		for (AbstractResult r : results) {
+                    r.setFormat(fmt);
+                }
 
 		if (this.getRowCount() > 0) {
 			this.setRowCount(0);
 
-			List<AbstractResult> oldResults = new ArrayList<AbstractResult>(results);
+			List<AbstractResult> oldResults = new ArrayList<>(results);
 
 			results.clear();
 			this.setColumnIdentifiers(fmt.abbreviations().toArray());
 
-			for (AbstractResult r : oldResults)
-				addRow(r);
+			for (AbstractResult r : oldResults) {
+                            addRow(r);
+                        }
 
 		} else
 			this.setColumnIdentifiers(fmt.abbreviations().toArray());
@@ -102,7 +104,7 @@ public class ResultTableModel extends DefaultTableModel {
 			if (!(result instanceof Result))
 				continue;
 
-			if (((Result) result).identify().equals(id)) {
+			if (result.identify().equals(id)) {
 				results.remove(result);
 				super.removeRow(i);
 			}

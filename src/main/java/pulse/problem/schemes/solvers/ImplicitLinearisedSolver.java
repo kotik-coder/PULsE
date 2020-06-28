@@ -136,8 +136,9 @@ public class ImplicitLinearisedSolver extends ImplicitScheme implements Solver<L
 
 				V[N] = (HH * U[N] + 2. * tau * beta[N]) / (2 * Bi2HTAU + HH - 2. * tau * (alpha[N] - 1));
 
-				for (j = N - 1; j >= 0; j--)
-					V[j] = alpha[j + 1] * V[j + 1] + beta[j + 1];
+				for (j = N - 1; j >= 0; j--) {
+                                    V[j] = alpha[j + 1] * V[j + 1] + beta[j + 1];
+                                }
 
 				System.arraycopy(V, 0, U, 0, N + 1);
 

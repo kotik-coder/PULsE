@@ -34,7 +34,7 @@ public class TaskBox extends JComboBox<SearchTask> {
 			public void itemStateChanged(ItemEvent event) {
 
 				if (event.getStateChange() == ItemEvent.SELECTED) {
-					Identifier id = ((SearchTask) ((TaskBoxModel) reference.getModel()).getSelectedItem())
+					Identifier id = ((SearchTask) reference.getModel().getSelectedItem())
 							.getIdentifier();
 
 					/*

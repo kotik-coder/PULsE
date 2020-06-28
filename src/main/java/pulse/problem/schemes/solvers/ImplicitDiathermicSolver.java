@@ -133,8 +133,9 @@ public class ImplicitDiathermicSolver extends ImplicitScheme implements Solver<D
 
 				V[N] = (fN1 * U[N] - zN_1 * p[0] + p[N - 1]) / (z0 + zN_1 * q[0] - q[N - 1]);
 
-				for (i = N - 1; i >= 0; i--)
-					V[i] = p[i] + V[N] * q[i];
+				for (i = N - 1; i >= 0; i--) {
+                                    V[i] = p[i] + V[N] * q[i];
+                                }
 
 				System.arraycopy(V, 0, U, 0, N + 1);
 

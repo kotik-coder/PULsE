@@ -79,17 +79,16 @@ public class TBLReader implements DatasetReader {
 
 		InterpolationDataset curve = new InterpolationDataset();
 
-		BufferedReader reader = new BufferedReader(new FileReader(file));
-		String delims = Messages.getString("TBLReader.2");
-		StringTokenizer tokenizer;
-
-		for (String line = reader.readLine(); line != null; line = reader.readLine()) {
-			tokenizer = new StringTokenizer(line);
-			curve.add(new ImmutableDataEntry<Double, Double>(Double.parseDouble(tokenizer.nextToken(delims)),
-					Double.parseDouble(tokenizer.nextToken(delims))));
-		}
-
-		reader.close();
+            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+                String delims = Messages.getString("TBLReader.2");
+                StringTokenizer tokenizer;
+                
+                for (String line = reader.readLine(); line != null; line = reader.readLine()) {
+                    tokenizer = new StringTokenizer(line);
+                    curve.add(new ImmutableDataEntry<>(Double.parseDouble(tokenizer.nextToken(delims)),
+                            Double.parseDouble(tokenizer.nextToken(delims))));
+                }
+            }
 
 		curve.doInterpolation();
 		return curve;

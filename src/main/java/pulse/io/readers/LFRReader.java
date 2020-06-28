@@ -91,41 +91,41 @@ public class LFRReader implements CurveReader {
 	public List<ExperimentalData> read(File file) throws IOException {
 		Objects.requireNonNull(file, Messages.getString("LFRReader.1"));
 
-		BufferedReader reader = new BufferedReader(new FileReader(file));
-		final String directory = file.getAbsoluteFile().getParent();
-		String delims = Messages.getString("LFRReader.2");
-		String stringSplitter = Messages.getString("LFRReader.3");
-		StringTokenizer tokenizer;
+		final String directory;
+                String stringSplitter;
+                List<String> fileNames;
+                HashMap<String, Metadata> fileTempMap;
+            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+                directory = file.getAbsoluteFile().getParent();
+                String delims = Messages.getString("LFRReader.2");
+                stringSplitter = Messages.getString("LFRReader.3");
+                StringTokenizer tokenizer;
+                // skip two first lines
+                reader.readLine();
+                reader.readLine();
+                fileNames = new LinkedList<>();
+                fileTempMap = new HashMap<>();
+                String tmp;
+                for (String line = reader.readLine(); line != null; line = reader.readLine()) {
+                    tokenizer = new StringTokenizer(line);
+                    int id = Integer.parseInt(tokenizer.nextToken(delims)); // id
+                    
+                    tmp = tokenizer.nextToken(delims);
+                    tmp = tmp.split(stringSplitter)[0]; // write file names without extensions
+                    
+                    fileNames.add(tmp); // fileName
+                    
+                    tokenizer.nextToken(delims); // sample id
+                    NumericProperty temperature = NumericProperty.derive(NumericPropertyKeyword.TEST_TEMPERATURE,
+                            Double.parseDouble(tokenizer.nextToken()) + CONVERSION_TO_KELVIN); // test temperature
+                    
+                    fileTempMap.put(tmp, new Metadata(temperature, id)); // assign metadata object with external id and
+                    // temperature
+                    
+                }
+            }
 
-		// skip two first lines
-		reader.readLine();
-		reader.readLine();
-
-		List<String> fileNames = new LinkedList<String>();
-		HashMap<String, Metadata> fileTempMap = new HashMap<String, Metadata>();
-		String tmp;
-
-		for (String line = reader.readLine(); line != null; line = reader.readLine()) {
-			tokenizer = new StringTokenizer(line);
-			int id = Integer.parseInt(tokenizer.nextToken(delims)); // id
-
-			tmp = tokenizer.nextToken(delims);
-			tmp = tmp.split(stringSplitter)[0]; // write file names without extensions
-
-			fileNames.add(tmp); // fileName
-
-			tokenizer.nextToken(delims); // sample id
-			NumericProperty temperature = NumericProperty.derive(NumericPropertyKeyword.TEST_TEMPERATURE,
-					Double.parseDouble(tokenizer.nextToken()) + CONVERSION_TO_KELVIN); // test temperature
-
-			fileTempMap.put(tmp, new Metadata(temperature, id)); // assign metadata object with external id and
-																	// temperature
-
-		}
-
-		reader.close();
-
-		List<ExperimentalData> curves = new LinkedList<ExperimentalData>();
+		List<ExperimentalData> curves = new LinkedList<>();
 
 		String[] nameAndExtension;
 		String toReplace = Messages.getString("LFRReader.5");
@@ -177,28 +177,24 @@ public class LFRReader implements CurveReader {
 
 		ExperimentalData curve = new ExperimentalData();
 
-		BufferedReader reader = new BufferedReader(new FileReader(file));
-		String delims = Messages.getString("LFRReader.10");
-		StringTokenizer tokenizer;
-
-		curve.setMetadata(metadata);
-		curve.clear();
-		reader.readLine(); // skip first line
-
-		double time, temp;
-
-		for (String line = reader.readLine(); line != null; line = reader.readLine()) {
-			tokenizer = new StringTokenizer(line);
-
-			time = Double.parseDouble(tokenizer.nextToken(delims)) * 1E-3;
-			temp = Double.parseDouble(tokenizer.nextToken(delims));
-
-			curve.add(time, temp);
-
-		}
-
-		curve.setRange(new Range(curve.getTimeSequence()));
-		reader.close();
+            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+                String delims = Messages.getString("LFRReader.10");
+                StringTokenizer tokenizer;
+                curve.setMetadata(metadata);
+                curve.clear();
+                reader.readLine(); // skip first line
+                double time, temp;
+                for (String line = reader.readLine(); line != null; line = reader.readLine()) {
+                    tokenizer = new StringTokenizer(line);
+                    
+                    time = Double.parseDouble(tokenizer.nextToken(delims)) * 1E-3;
+                    temp = Double.parseDouble(tokenizer.nextToken(delims));
+                    
+                    curve.add(time, temp);
+                    
+                }
+                curve.setRange(new Range(curve.getTimeSequence()));
+            }
 
 		return curve;
 

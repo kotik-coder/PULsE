@@ -37,7 +37,7 @@ public class AccessibleTableRenderer extends NumericPropertyRenderer {
 		}
 
 		if (value instanceof Flag) {
-			IconCheckBox btn = new IconCheckBox((boolean) ((Flag) value).getValue());
+			IconCheckBox btn = new IconCheckBox((boolean) ((Property) value).getValue());
 			btn.setHorizontalAlignment(CENTER);
 			if (isSelected)
 				btn.setBackground(LIGHT_BLUE);

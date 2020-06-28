@@ -57,7 +57,7 @@ public class Grid extends PropertyHolder {
 
 	@Override
 	public List<Property> listedTypes() {
-		List<Property> list = new ArrayList<Property>(2);
+		List<Property> list = new ArrayList<>(2);
 		list.add(NumericProperty.def(NumericPropertyKeyword.GRID_DENSITY));
 		list.add(NumericProperty.def(NumericPropertyKeyword.TAU_FACTOR));
 		return list;

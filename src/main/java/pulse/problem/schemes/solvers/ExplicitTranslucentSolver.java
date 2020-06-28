@@ -100,9 +100,10 @@ public class ExplicitTranslucentSolver extends ExplicitScheme implements Solver<
 				 * Uses the heat equation explicitly to calculate the grid-function everywhere
 				 * except the boundaries
 				 */
-				for (i = 1; i < N; i++)
-					V[i] = U[i] + TAU_HH * (U[i + 1] - 2. * U[i] + U[i - 1])
-							+ tau * pls * absorb.absorption(SpectralRange.LASER, (i - EPS) * hx);
+				for (i = 1; i < N; i++) {
+                                    V[i] = U[i] + TAU_HH * (U[i + 1] - 2. * U[i] + U[i - 1])
+                                            + tau * pls * absorb.absorption(SpectralRange.LASER, (i - EPS) * hx);
+                                }
 
 				/*
 				 * Calculates boundary values
@@ -117,9 +118,10 @@ public class ExplicitTranslucentSolver extends ExplicitScheme implements Solver<
 
 			signal = 0;
 
-			for (i = 0; i < N; i++)
-				signal += V[N - i] * absorb.absorption(SpectralRange.THERMAL, i * hx)
-						+ V[N - 1 - i] * absorb.absorption(SpectralRange.THERMAL, (i + 1) * hx);
+			for (i = 0; i < N; i++) {
+                            signal += V[N - i] * absorb.absorption(SpectralRange.THERMAL, i * hx)
+                                    + V[N - 1 - i] * absorb.absorption(SpectralRange.THERMAL, (i + 1) * hx);
+                        }
 
 			signal *= hx / 2.0;
 

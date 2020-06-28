@@ -83,7 +83,7 @@ public class CoreShellProblem extends LinearisedProblem2D {
 
 	@Override
 	public List<Property> listedTypes() {
-		List<Property> list = new ArrayList<Property>();
+		List<Property> list = new ArrayList<>();
 		list.addAll(super.listedTypes());
 		list.add(NumericProperty.def(AXIAL_COATING_THICKNESS));
 		list.add(NumericProperty.def(RADIAL_COATING_THICKNESS));

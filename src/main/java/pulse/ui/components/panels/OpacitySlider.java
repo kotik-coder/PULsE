@@ -20,7 +20,7 @@ public class OpacitySlider extends JSlider {
 
 	public OpacitySlider() {
 		initComponents();
-		listeners = new ArrayList<PlotRequestListener>();
+		listeners = new ArrayList<>();
 	}
 
 	public void initComponents() {

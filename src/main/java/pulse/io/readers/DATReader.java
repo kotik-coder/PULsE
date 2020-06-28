@@ -71,30 +71,25 @@ public class DATReader implements CurveReader {
 
 		ExperimentalData curve = new ExperimentalData();
 
-		BufferedReader reader = new BufferedReader(new FileReader(file));
+            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+                double T = Double.parseDouble(reader.readLine()) + CONVERSION_TO_KELVIN;
+                Metadata met = new Metadata(-1);
+                met.setTestTemperature(NumericProperty.derive(NumericPropertyKeyword.TEST_TEMPERATURE, T));
+                curve.setMetadata(met);
+                double time, temp;
+                String delims = Messages.getString("DATReader.2"); //$NON-NLS-1$
+                StringTokenizer tokenizer;
+                for (String line = reader.readLine(); line != null; line = reader.readLine()) {
+                    tokenizer = new StringTokenizer(line, delims);
+                    time = Double.parseDouble(tokenizer.nextToken());
+                    temp = Double.parseDouble(tokenizer.nextToken());
+                    curve.add(time, temp);
+                    tokenizer = null;
+                }
+                curve.setRange(new Range(curve.getTimeSequence()));
+            }
 
-		double T = Double.parseDouble(reader.readLine()) + CONVERSION_TO_KELVIN;
-		Metadata met = new Metadata(-1);
-		met.setTestTemperature(NumericProperty.derive(NumericPropertyKeyword.TEST_TEMPERATURE, T));
-		curve.setMetadata(met);
-
-		double time, temp;
-
-		String delims = Messages.getString("DATReader.2"); //$NON-NLS-1$
-		StringTokenizer tokenizer;
-
-		for (String line = reader.readLine(); line != null; line = reader.readLine()) {
-			tokenizer = new StringTokenizer(line, delims);
-			time = Double.parseDouble(tokenizer.nextToken());
-			temp = Double.parseDouble(tokenizer.nextToken());
-			curve.add(time, temp);
-			tokenizer = null;
-		}
-
-		curve.setRange(new Range(curve.getTimeSequence()));
-		reader.close();
-
-		return new ArrayList<ExperimentalData>(Arrays.asList(curve));
+		return new ArrayList<>(Arrays.asList(curve));
 
 	}
 

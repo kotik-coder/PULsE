@@ -139,8 +139,9 @@ public class ImplicitCoupledSolver extends ImplicitScheme implements Solver<Part
 
 		var status = rte.compute(U);
 
-		for (i = 1; i < N; i++)
-			alpha[i + 1] = c / (b - a * alpha[i]);
+		for (i = 1; i < N; i++) {
+                    alpha[i + 1] = c / (b - a * alpha[i]);
+                }
 
 		// time cycle
 
@@ -166,8 +167,9 @@ public class ImplicitCoupledSolver extends ImplicitScheme implements Solver<Part
 							/ (v1 - alpha[N]);
 
 					V_0 = V[0];
-					for (j = N - 1; j >= 0; j--)
-						V[j] = alpha[j + 1] * V[j + 1] + beta[j + 1];
+					for (j = N - 1; j >= 0; j--) {
+                                            V[j] = alpha[j + 1] * V[j + 1] + beta[j + 1];
+                                        }
 
 				}
 

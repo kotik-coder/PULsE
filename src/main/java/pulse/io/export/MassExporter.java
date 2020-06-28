@@ -39,8 +39,9 @@ public class MassExporter {
 
 			);
 
-			for (Iterator<Group> it = contents.iterator(); it.hasNext();)
-				MassExporter.contents(it.next()).stream().forEach(a -> contents.add(a));
+			for (Iterator<Group> it = contents.iterator(); it.hasNext();) {
+                            MassExporter.contents(it.next()).stream().forEach(a -> contents.add(a));
+                        }
 
 		} catch (IllegalArgumentException e) {
 			System.err.println("Unable to generate saveable contents for " + root.getClass());

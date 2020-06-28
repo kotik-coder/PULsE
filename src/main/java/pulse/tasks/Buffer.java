@@ -101,8 +101,9 @@ public class Buffer extends PropertyHolder {
 
 		double av = 0;
 
-		for (IndexedVector v : data)
-			av += v.get(index);
+		for (IndexedVector v : data) {
+                    av += v.get(index);
+                }
 
 		return av / data.length;
 
@@ -118,8 +119,9 @@ public class Buffer extends PropertyHolder {
 
 		double av = 0;
 
-		for (double ss : statistic)
-			av += ss;
+		for (double ss : statistic) {
+                    av += ss;
+                }
 
 		return av / data.length;
 
@@ -139,8 +141,9 @@ public class Buffer extends PropertyHolder {
 		double sd = 0;
 		double av = average(index);
 
-		for (IndexedVector v : data)
-			sd += Math.pow(v.get(index) - av, 2);
+		for (IndexedVector v : data) {
+                    sd += Math.pow(v.get(index) - av, 2);
+                }
 
 		return sd / data.length;
 
@@ -192,7 +195,7 @@ public class Buffer extends PropertyHolder {
 
 	@Override
 	public List<Property> listedTypes() {
-		List<Property> list = new ArrayList<Property>();
+		List<Property> list = new ArrayList<>();
 		list.add(NumericProperty.def(NumericPropertyKeyword.BUFFER_SIZE));
 		return list;
 	}

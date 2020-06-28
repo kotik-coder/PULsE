@@ -59,7 +59,7 @@ public abstract class Accessible extends Group {
 	 */
 
 	public Set<NumericProperty> numericProperties() {
-		Set<NumericProperty> fields = new TreeSet<NumericProperty>();
+		Set<NumericProperty> fields = new TreeSet<>();
 
 		Method[] methods = this.getClass().getMethods();
 
@@ -85,8 +85,9 @@ public abstract class Accessible extends Group {
 		 * accessible
 		 */
 
-		for (Accessible a : accessibleChildren())
-			fields.addAll(a.numericProperties());
+		for (Accessible a : accessibleChildren()) {
+                    fields.addAll(a.numericProperties());
+                }
 
 		return fields;
 
@@ -102,7 +103,7 @@ public abstract class Accessible extends Group {
 	 */
 
 	public List<Property> genericProperties() {
-		List<Property> fields = new ArrayList<Property>();
+		List<Property> fields = new ArrayList<>();
 
 		Method[] methods = this.getClass().getMethods();
 
@@ -126,8 +127,9 @@ public abstract class Accessible extends Group {
 		 * Get access to the properties of accessibles contained in this accessible
 		 */
 
-		for (Accessible a : accessibleChildren())
-			fields.addAll(a.genericProperties());
+		for (Accessible a : accessibleChildren()) {
+                    fields.addAll(a.genericProperties());
+                }
 
 		return fields;
 
@@ -246,8 +248,9 @@ public abstract class Accessible extends Group {
 		if (property instanceof NumericProperty) {
 			NumericProperty p = (NumericProperty) property;
 			this.set(p.getType(), p);
-			for (Accessible a : children)
-				a.set(p.getType(), p);
+			for (Accessible a : children) {
+                            a.set(p.getType(), p);
+                        }
 			return;
 		}
 
@@ -266,30 +269,31 @@ public abstract class Accessible extends Group {
 				if (Iterable.class.isAssignableFrom(m.getParameterTypes()[0])
 						&& property.getClass().equals(m.getParameterTypes()[1])) {
 
-					for (Method met : methods)
-						if (met.getReturnType().equals(m.getParameterTypes()[0]) && (met.getParameterCount() == 0)) {
-							Iterable<Property> returnType = null;
-							try {
-								returnType = (Iterable<Property>) met.invoke(this);
-							} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-								System.err.println("Cannot invoke method: " + met);
-								e.printStackTrace();
-							}
-							Iterator<?> iterator = returnType.iterator();
-
-							if (!iterator.hasNext())
-								continue;
-
-							if (!iterator.next().getClass().equals(m.getParameterTypes()[1]))
-								continue;
-
-							try {
-								m.invoke(this, met.invoke(this), property);
-							} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-								System.err.println("Cannot invoked method " + m);
-								e.printStackTrace();
-							}
-						}
+					for (Method met : methods) {
+                                            if (met.getReturnType().equals(m.getParameterTypes()[0]) && (met.getParameterCount() == 0)) {
+                                                Iterable<Property> returnType = null;
+                                                try {
+                                                    returnType = (Iterable<Property>) met.invoke(this);
+                                                } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+                                                    System.err.println("Cannot invoke method: " + met);
+                                                    e.printStackTrace();
+                                                }
+                                                Iterator<?> iterator = returnType.iterator();
+                                                
+                                                if (!iterator.hasNext())
+                                                    continue;
+                                                
+                                                if (!iterator.next().getClass().equals(m.getParameterTypes()[1]))
+                                                    continue;
+                                                
+                                                try {
+                                                    m.invoke(this, met.invoke(this), property);
+                                                } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+                                                    System.err.println("Cannot invoked method " + m);
+                                                    e.printStackTrace();
+                                                }
+                                            }
+                                        }
 
 				}
 
@@ -346,8 +350,9 @@ public abstract class Accessible extends Group {
 		 * if above doesn't work: refer to children
 		 */
 
-		for (Accessible a : children)
-			a.update(property);
+		for (Accessible a : children) {
+                    a.update(property);
+                }
 
 	}
 

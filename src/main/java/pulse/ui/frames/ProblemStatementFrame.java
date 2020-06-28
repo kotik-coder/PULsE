@@ -15,6 +15,7 @@ import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.DefaultListSelectionModel;
+import javax.swing.DefaultRowSorter;
 import javax.swing.JButton;
 import javax.swing.JInternalFrame;
 import javax.swing.JList;
@@ -119,7 +120,7 @@ public class ProblemStatementFrame extends JInternalFrame {
 			@Override
 			public void updateTable() {
 				super.updateTable();
-				((TableRowSorter<?>) getRowSorter()).sort();
+				((DefaultRowSorter<?, Integer>) getRowSorter()).sort();
 			}
 
 		};
@@ -415,10 +416,11 @@ public class ProblemStatementFrame extends JInternalFrame {
 			setFont(getFont().deriveFont(LIST_FONT_SIZE));
 			this.setCellRenderer(new ProblemListCellRenderer());
 
-			DefaultListModel<Problem> listModel = new DefaultListModel<Problem>();
+			DefaultListModel<Problem> listModel = new DefaultListModel<>();
 
-			for (Problem p : knownProblems)
-				listModel.addElement(p);
+			for (Problem p : knownProblems) {
+                            listModel.addElement(p);
+                        }
 
 			setModel(listModel);
 			setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -443,8 +445,9 @@ public class ProblemStatementFrame extends JInternalFrame {
 					SearchTask selectedTask = TaskManager.getSelectedTask();
 
 					if (Problem.isSingleStatement())
-						for (SearchTask t : TaskManager.getTaskList())
-							changeProblem(t, newlySelectedProblem);
+						for (SearchTask t : TaskManager.getTaskList()) {
+                                                    changeProblem(t, newlySelectedProblem);
+                                        }
 					else
 						changeProblem(selectedTask, newlySelectedProblem);
 
@@ -517,7 +520,7 @@ public class ProblemStatementFrame extends JInternalFrame {
 			super();
 			setFont(getFont().deriveFont(LIST_FONT_SIZE));
 			setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-			DefaultListModel<DifferenceScheme> m = new DefaultListModel<DifferenceScheme>();
+			DefaultListModel<DifferenceScheme> m = new DefaultListModel<>();
 			setModel(m);
 			// scheme list listener
 
@@ -540,8 +543,9 @@ public class ProblemStatementFrame extends JInternalFrame {
 						return;
 
 					if (Problem.isSingleStatement())
-						for (SearchTask t : TaskManager.getTaskList())
-							changeScheme(t, newScheme);
+						for (SearchTask t : TaskManager.getTaskList()) {
+                                                    changeScheme(t, newScheme);
+                                        }
 					else
 						changeScheme(selectedTask, newScheme);
 

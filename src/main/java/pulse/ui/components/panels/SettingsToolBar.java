@@ -78,8 +78,9 @@ public class SettingsToolBar extends JToolBar {
 				boolean selected = cbHideDetails.isSelected();
 				Problem.setDetailsHidden(selected);
 				DifferenceScheme.setDetailsHidden(selected);
-				for (PropertyHolderTable table : tables)
-					table.updateTable();
+				for (PropertyHolderTable table : tables) {
+                                    table.updateTable();
+                                }
 			}
 
 		});

@@ -120,7 +120,7 @@ public abstract class LinearOptimiser extends PropertyHolder implements Reflexiv
 
 	@Override
 	public List<Property> listedTypes() {
-		List<Property> list = new ArrayList<Property>();
+		List<Property> list = new ArrayList<>();
 		list.add(NumericProperty.def(LINEAR_RESOLUTION));
 		return list;
 	}

@@ -28,7 +28,7 @@ public class IndexedVector extends Vector {
 		super(n);
 		prefactors = new double[n];
 		Arrays.fill(prefactors, 1.0); // by default, the prefactor is unity
-		indices = new ArrayList<NumericPropertyKeyword>(n);
+		indices = new ArrayList<>(n);
 	}
 
 	/**
@@ -177,7 +177,7 @@ public class IndexedVector extends Vector {
 	}
 
 	public static IndexedVector concat(IndexedVector v1, IndexedVector v2) {
-		List<NumericPropertyKeyword> allIndices = new ArrayList<NumericPropertyKeyword>(v1.indices);
+		List<NumericPropertyKeyword> allIndices = new ArrayList<>(v1.indices);
 		allIndices.addAll(v2.indices);
 		return new IndexedVector(allIndices);
 	}

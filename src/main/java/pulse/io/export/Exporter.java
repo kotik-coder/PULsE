@@ -89,9 +89,10 @@ public interface Exporter<T extends Descriptive> extends Reflexive {
 		fileChooser.setMultiSelectionEnabled(true);
 		fileChooser.setSelectedFile(new File(target.describe()));
 
-		for (Extension s : getSupportedExtensions())
-			fileChooser.addChoosableFileFilter(
-					new FileNameExtensionFilter(fileTypeLabel + " (." + s + ")", s.toString().toLowerCase()));
+		for (Extension s : getSupportedExtensions()) {
+                    fileChooser.addChoosableFileFilter(
+                            new FileNameExtensionFilter(fileTypeLabel + " (." + s + ")", s.toString().toLowerCase()));
+                }
 
 		fileChooser.setAcceptAllFileFilterUsed(false);
 

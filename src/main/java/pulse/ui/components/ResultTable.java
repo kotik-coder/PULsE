@@ -22,6 +22,7 @@ import javax.swing.table.TableRowSorter;
 
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
+import pulse.properties.Property;
 import pulse.tasks.AbstractResult;
 import pulse.tasks.AverageResult;
 import pulse.tasks.Identifier;
@@ -95,7 +96,7 @@ public class ResultTable extends JTable implements Descriptive {
 					if (!(r instanceof Result))
 						continue;
 
-					Identifier rid = ((Result) r).identify();
+					Identifier rid = r.identify();
 
 					if (!rid.equals(id))
 						continue;
@@ -152,8 +153,8 @@ public class ResultTable extends JTable implements Descriptive {
 	}
 
 	private TableRowSorter<ResultTableModel> sorter() {
-		TableRowSorter<ResultTableModel> sorter = new TableRowSorter<ResultTableModel>((ResultTableModel) getModel());
-		ArrayList<RowSorter.SortKey> list = new ArrayList<SortKey>();
+		TableRowSorter<ResultTableModel> sorter = new TableRowSorter<>((ResultTableModel) getModel());
+		ArrayList<RowSorter.SortKey> list = new ArrayList<>();
 		Comparator<NumericProperty> numericComparator = (i1, i2) -> i1.compareTo(i2);
 
 		for (int i = 0; i < getColumnCount(); i++) {
@@ -170,16 +171,17 @@ public class ResultTable extends JTable implements Descriptive {
 		double[][][] data = new double[getColumnCount()][2][getRowCount()];
 		NumericProperty property = null;
 
-		for (int i = 0; i < data.length; i++)
-			for (int j = 0; j < data[0][0].length; j++) {
-				property = (NumericProperty) getValueAt(j, i);
-				data[i][0][j] = ((Number) property.getValue()).doubleValue()
-						* property.getDimensionFactor().doubleValue();
-				if (property.getError() != null)
-					data[i][1][j] = property.getError().doubleValue() * property.getDimensionFactor().doubleValue();
-				else
-					data[i][1][j] = 0;
-			}
+		for (int i = 0; i < data.length; i++) {
+                    for (int j = 0; j < data[0][0].length; j++) {
+                        property = (NumericProperty) getValueAt(j, i);
+                        data[i][0][j] = ((Number) property.getValue()).doubleValue()
+                                * property.getDimensionFactor().doubleValue();
+                        if (property.getError() != null)
+                            data[i][1][j] = property.getError().doubleValue() * property.getDimensionFactor().doubleValue();
+                        else
+                            data[i][1][j] = 0;
+                    }
+                }
 		return data;
 	}
 
@@ -213,14 +215,14 @@ public class ResultTable extends JTable implements Descriptive {
 
 		List<Integer> indices;
 
-		List<AbstractResult> newRows = new LinkedList<AbstractResult>();
-		List<Integer> skipList = new ArrayList<Integer>();
+		List<AbstractResult> newRows = new LinkedList<>();
+		List<Integer> skipList = new ArrayList<>();
 
 		for (int i = 0; i < this.getRowCount(); i++) {
 			if (skipList.contains(convertRowIndexToModel(i)))
 				continue; // check if value is independent (does not belong to a group)
 
-			val = ((Number) ((NumericProperty) this.getValueAt(i, temperatureIndex)).getValue());
+			val = ((Number) ((Property) this.getValueAt(i, temperatureIndex)).getValue());
 
 			indices = group(val.doubleValue(), temperatureIndex, temperatureDelta); // get indices of results in table
 			skipList.addAll(indices); // skip those indices if they refer to the same group
@@ -237,8 +239,9 @@ public class ResultTable extends JTable implements Descriptive {
 			model.setRowCount(0);
 			model.getResults().clear();
 
-			for (AbstractResult row : newRows)
-				model.addRow(row);
+			for (AbstractResult row : newRows) {
+                            model.addRow(row);
+                        }
 
 		});
 
@@ -246,12 +249,12 @@ public class ResultTable extends JTable implements Descriptive {
 
 	public List<Integer> group(double val, int index, double precision) {
 
-		List<Integer> selection = new ArrayList<Integer>();
+		List<Integer> selection = new ArrayList<>();
 		Number valNumber;
 
 		for (int i = 0; i < getRowCount(); i++) {
 
-			valNumber = (Number) ((NumericProperty) getValueAt(i, index)).getValue();
+			valNumber = (Number) ((Property) getValueAt(i, index)).getValue();
 
 			if (Math.abs(valNumber.doubleValue() - val) < precision)
 				selection.add(convertRowIndexToModel(i));
@@ -297,16 +300,18 @@ public class ResultTable extends JTable implements Descriptive {
 		if (selection.length < 0)
 			return;
 
-		for (int i = selection.length - 1; i >= 0; i--)
-			rtm.remove(rtm.getResults().get(convertRowIndexToModel(selection[i])));
+		for (int i = selection.length - 1; i >= 0; i--) {
+                    rtm.remove(rtm.getResults().get(convertRowIndexToModel(selection[i])));
+                }
 
 	}
 
 	public void undo() {
 		ResultTableModel dtm = (ResultTableModel) getModel();
 
-		for (int i = dtm.getRowCount() - 1; i >= 0; i--)
-			dtm.remove(dtm.getResults().get(convertRowIndexToModel(i)));
+		for (int i = dtm.getRowCount() - 1; i >= 0; i--) {
+                    dtm.remove(dtm.getResults().get(convertRowIndexToModel(i)));
+                }
 
 		TaskManager.getTaskList().stream().map(t -> TaskManager.getResult(t)).forEach(r -> dtm.addRow(r));
 	}

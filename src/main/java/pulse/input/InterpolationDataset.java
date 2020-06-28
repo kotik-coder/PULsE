@@ -30,7 +30,7 @@ public class InterpolationDataset {
 	 */
 
 	public InterpolationDataset() {
-		dataset = new ArrayList<ImmutableDataEntry<Double, Double>>();
+		dataset = new ArrayList<>();
 	}
 
 	/**

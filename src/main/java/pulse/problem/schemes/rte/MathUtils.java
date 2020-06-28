@@ -22,11 +22,13 @@ public class MathUtils {
 	public static double fastPowLoop(double a, int b) {
 		double re = 1;
 		// if positive (i < b is never satisfied for negative b's)
-		for (int i = 0; i < b; i++)
-			re *= a;
+		for (int i = 0; i < b; i++) {
+                    re *= a;
+                }
 		// if negative
-		for (int i = 0; i < -b; i++)
-			re /= a;
+		for (int i = 0; i < -b; i++) {
+                    re /= a;
+                }
 		return re;
 	}
 

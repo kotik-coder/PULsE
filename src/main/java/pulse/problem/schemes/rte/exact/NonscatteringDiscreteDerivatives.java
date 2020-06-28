@@ -19,8 +19,9 @@ public class NonscatteringDiscreteDerivatives extends NonscatteringRadiativeTran
 	public RTECalculationStatus compute(double U[]) {
 		super.compute(U);
 		radiosities();
-		for (int i = 1, N = this.getExternalGridDensity(); i < N; i++)
-			flux(i);
+		for (int i = 1, N = this.getExternalGridDensity(); i < N; i++) {
+                    flux(i);
+                }
 		boundaryFluxes();
 		return RTECalculationStatus.NORMAL;
 	}

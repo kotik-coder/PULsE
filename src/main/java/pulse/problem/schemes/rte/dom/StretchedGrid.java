@@ -43,8 +43,9 @@ public class StretchedGrid extends PropertyHolder {
 
 		// apply stretching function
 
-		for (int i = 0; i < nodes.length; i++)
-			nodes[i] = 0.5 * dimension * tanh(nodes[i], stretchingFactor);
+		for (int i = 0; i < nodes.length; i++) {
+                    nodes[i] = 0.5 * dimension * tanh(nodes[i], stretchingFactor);
+                }
 
 	}
 
@@ -57,8 +58,9 @@ public class StretchedGrid extends PropertyHolder {
 		nodes = new double[n + 1];
 		double h = (scaled ? dimension : 1.0) / n;
 
-		for (int i = 0; i < nodes.length; i++)
-			nodes[i] = i * h;
+		for (int i = 0; i < nodes.length; i++) {
+                    nodes[i] = i * h;
+                }
 
 	}
 
@@ -117,7 +119,7 @@ public class StretchedGrid extends PropertyHolder {
 
 	@Override
 	public List<Property> listedTypes() {
-		List<Property> list = new ArrayList<Property>();
+		List<Property> list = new ArrayList<>();
 		list.add(NumericProperty.theDefault(NumericPropertyKeyword.GRID_STRETCHING_FACTOR));
 		list.add(NumericProperty.theDefault(NumericPropertyKeyword.DOM_GRID_DENSITY));
 		return list;

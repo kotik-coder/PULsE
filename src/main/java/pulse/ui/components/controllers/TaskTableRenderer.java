@@ -7,6 +7,7 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JTable;
 
 import pulse.properties.NumericProperty;
+import pulse.properties.Property;
 import pulse.tasks.Identifier;
 import pulse.tasks.Status;
 
@@ -26,7 +27,7 @@ public class TaskTableRenderer extends NumericPropertyRenderer {
 			return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 
 		else if (value instanceof Identifier)
-			return initTextField("" + ((Identifier) value).getValue(), table.isRowSelected(row));
+			return initTextField("" + ((Property) value).getValue(), table.isRowSelected(row));
 
 		else if (value instanceof Status) {
 

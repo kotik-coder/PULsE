@@ -96,7 +96,7 @@ public class XMLConverter {
 		Element rootElement = doc.createElement("NumericProperties");
 		doc.appendChild(rootElement);
 
-		List<NumericProperty> properties = new ArrayList<NumericProperty>();
+		List<NumericProperty> properties = new ArrayList<>();
 
 		int modifiers;
 
@@ -149,7 +149,7 @@ public class XMLConverter {
 	public static List<NumericProperty> readXML(InputStream inputStream)
 			throws ParserConfigurationException, SAXException, IOException {
 
-		List<NumericProperty> properties = new ArrayList<NumericProperty>();
+		List<NumericProperty> properties = new ArrayList<>();
 
 		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
