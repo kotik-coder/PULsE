@@ -1,7 +1,6 @@
 package pulse.ui.frames.dialogs;
 
 import javax.swing.JDialog;
-import javax.swing.JTextField;
 
 import pulse.properties.NumericPropertyKeyword;
 import pulse.tasks.ResultFormat;
@@ -14,14 +13,10 @@ public class ResultChangeDialog extends JDialog {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	private JTextField textField;
-
 	private final static int WIDTH = 500;
 	private final static int HEIGHT = 500;
 
 	public ResultChangeDialog() {
-
-		JDialog reference = this;
 
 		setTitle("Result output formatting");
 

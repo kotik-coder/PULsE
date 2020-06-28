@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-import pulse.input.InterpolationDataset;
 import pulse.problem.schemes.Grid;
 import pulse.problem.schemes.rte.EmissionFunction;
 import pulse.problem.schemes.rte.RTECalculationListener;
