@@ -24,6 +24,7 @@ import pulse.tasks.SearchTask;
 import pulse.tasks.TaskManager;
 import pulse.ui.Messages;
 import pulse.ui.components.PropertyHolderTable;
+import pulse.ui.components.controllers.SearchListRenderer;
 import pulse.util.Reflexive;
 
 @SuppressWarnings("serial")
@@ -134,6 +135,7 @@ public class SearchOptionsFrame extends JInternalFrame {
 
 			setFont(font);
 			setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+			setCellRenderer(new SearchListRenderer());
 
 			addListSelectionListener(new ListSelectionListener() {
 				@Override
@@ -194,6 +196,8 @@ public class SearchOptionsFrame extends JInternalFrame {
 					return linearSolvers.get(index);
 				}
 			});
+			
+			this.setCellRenderer(new SearchListRenderer());
 
 			addListSelectionListener(new ListSelectionListener() {
 				@Override

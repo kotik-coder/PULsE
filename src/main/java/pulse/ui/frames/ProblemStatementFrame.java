@@ -1,7 +1,9 @@
 package pulse.ui.frames;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
+import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -10,6 +12,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
+import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.DefaultListSelectionModel;
 import javax.swing.JButton;
@@ -32,6 +35,7 @@ import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.solvers.Solver;
 import pulse.problem.schemes.solvers.SolverException;
 import pulse.problem.statements.Problem;
+import pulse.problem.statements.ProblemComplexity;
 import pulse.tasks.SearchTask;
 import pulse.tasks.Status;
 import pulse.tasks.Status.Details;
@@ -81,31 +85,14 @@ public class ProblemStatementFrame extends JInternalFrame {
 		layout.setHgap(5);
 		layout.setVgap(5);
 		contentPane.setLayout(layout);
+		
+		LoaderButton btnLoadCv, btnLoadDensity;
 
 		/*
 		 * Problem selection list and scroller
 		 */
 
 		problemList = new ProblemList();
-
-		problemList.setSelectionModel(new DefaultListSelectionModel() {
-
-			@Override
-			public void setSelectionInterval(int index0, int index1) {
-				if (index0 != index1)
-					return;
-
-				boolean enabledFlag = knownProblems.get(index0).isEnabled();
-
-				if (enabledFlag)
-					super.setSelectionInterval(index0, index0);
-				else
-					return;
-
-			}
-
-		});
-
 		contentPane.add(new JScrollPane(problemList));
 
 		/*
@@ -157,7 +144,8 @@ public class ProblemStatementFrame extends JInternalFrame {
 		toolBar.setLayout(new GridLayout());
 
 		JButton btnSimulate = new JButton(Messages.getString("ProblemStatementFrame.SimulateButton")); //$NON-NLS-1$
-
+		btnSimulate.setFont(btnSimulate.getFont().deriveFont(Font.BOLD, 14f));
+		
 		// simulate btn listener
 
 		btnSimulate.addActionListener(new ActionListener() {
@@ -198,14 +186,47 @@ public class ProblemStatementFrame extends JInternalFrame {
 
 		toolBar.add(btnSimulate);
 
-		LoaderButton btnLoadCv = new LoaderButton(Messages.getString("ProblemStatementFrame.LoadSpecificHeatButton")); //$NON-NLS-1$
+		btnLoadCv = new LoaderButton(Messages.getString("ProblemStatementFrame.LoadSpecificHeatButton")); //$NON-NLS-1$
 		btnLoadCv.setDataType(InterpolationDataset.StandartType.SPECIFIC_HEAT);
 		toolBar.add(btnLoadCv);
 
-		LoaderButton btnLoadDensity = new LoaderButton(Messages.getString("ProblemStatementFrame.LoadDensityButton")); //$NON-NLS-1$
+		btnLoadDensity = new LoaderButton(Messages.getString("ProblemStatementFrame.LoadDensityButton")); //$NON-NLS-1$
 		btnLoadDensity.setDataType(InterpolationDataset.StandartType.DENSITY);
 		toolBar.add(btnLoadDensity);
 
+		
+		problemList.setSelectionModel(new DefaultListSelectionModel() {
+
+			@Override
+			public void setSelectionInterval(int index0, int index1) {
+				if (index0 != index1)
+					return;
+
+				var problem = knownProblems.get(index0);
+				boolean enabledFlag = problem.isEnabled();
+
+				if (enabledFlag) {					
+					super.setSelectionInterval(index0, index0);
+					problemList.ensureIndexIsVisible(index0);
+					
+					if(!problem.allDetailsPresent()) {
+						Color bred = new Color(1.0f, 0.0f, 0.0f, 0.35f);
+						btnLoadDensity.setBorder( BorderFactory.createLineBorder(bred, 3));
+						btnLoadCv.setBorder( BorderFactory.createLineBorder(bred, 3));
+					} else {
+						btnLoadDensity.setBorder(null);
+						btnLoadCv.setBorder(null);
+					}
+					
+				}
+				else
+					JOptionPane.showMessageDialog(null, "This problem statement is not currently supported. Please select another.", "Feature not supported",
+					        JOptionPane.WARNING_MESSAGE);
+
+			}
+
+		});
+		
 		/*
 		 * 
 		 */
@@ -526,6 +547,13 @@ public class ProblemStatementFrame extends JInternalFrame {
 
 					schemeTable.setPropertyHolder(selectedTask.getScheme());
 
+					if(selectedTask.getProblem().getComplexity() == ProblemComplexity.HIGH)
+					JOptionPane.showMessageDialog(null, "<html><body><p style='width: 300px;'>" + "You have selected a "
+							+ "high-complexity problem statement. Calculations will be slow, hence batch processing has been turned off. "
+							+ "You will be able to track the progress of your task with the logging option. Watch out for "
+							+ "timeouts as they typically may occur for multi-variate optimisation when the problem is ill-posed." + "</p></body></html>", "High complexity",
+					        JOptionPane.INFORMATION_MESSAGE);
+					
 				}
 			});
 

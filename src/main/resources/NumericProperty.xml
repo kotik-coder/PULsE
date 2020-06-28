@@ -176,7 +176,7 @@
 	<NumericProperty keyword="ITERATION_LIMIT"
 		abbreviation="Iteration limit" auto-adjustable="true"
 		descriptor="Iteration limit" dimensionfactor="1" maximum="1000"
-		minimum="1" primitive-type="int" value="64" discreet="false">
+		minimum="1" primitive-type="int" value="128" discreet="false">
 	</NumericProperty>
 	<NumericProperty
 		abbreviation="&lt;i&gt;a&lt;/i&gt;&lt;sub&gt;c&lt;/sub&gt; (mm&lt;sup&gt;2&lt;/sup&gt;s&lt;sup&gt;-1&lt;/sup&gt;) "
@@ -197,7 +197,7 @@
 		abbreviation="&lt;i&gt;l&lt;/i&gt; (mm)" auto-adjustable="false"
 		descriptor="Sample thickness, &lt;i&gt;l&lt;/i&gt; (mm)"
 		dimensionfactor="1000.0" keyword="THICKNESS" maximum="0.1"
-		minimum="1.0E-6" value="0.001" primitive-type="double" discreet="true" />
+		minimum="1.0E-6" value="0.001" primitive-type="double" discreet="true" ></NumericProperty>
 	<NumericProperty
 		abbreviation="&lt;i&gt;d&lt;/i&gt; (mm)" auto-adjustable="false"
 		descriptor="Sample diameter, &lt;i&gt;d&lt;/i&gt; (mm)"

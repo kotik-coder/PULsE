@@ -27,9 +27,7 @@ public class ButcherTableauReader implements AbstractReader<ButcherTableau> {
 //		if (!AbstractReader.super.isExtensionSupported(file))
 //			throw new IllegalArgumentException("Extension not supported for: " + file);
 
-		String name = file.getName();
-		if (name.indexOf(".") > 0)
-			name = name.substring(0, name.lastIndexOf("."));
+		String name = file.getName().split("\\.")[0];
 
 		ButcherTableau bt = null;
 

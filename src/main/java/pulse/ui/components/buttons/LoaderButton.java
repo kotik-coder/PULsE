@@ -4,6 +4,7 @@ import static pulse.input.InterpolationDataset.StandartType.DENSITY;
 import static pulse.input.InterpolationDataset.StandartType.SPECIFIC_HEAT;
 
 import java.awt.Component;
+import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -39,6 +40,9 @@ public class LoaderButton extends JButton {
 	}
 
 	public void init() {
+		
+		setFont(getFont().deriveFont(Font.BOLD, 14f));
+		
 		addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {

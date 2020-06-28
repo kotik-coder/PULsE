@@ -1,16 +1,10 @@
 package pulse.problem.schemes.rte.dom;
 
-import java.io.File;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.file.Paths;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import pulse.io.readers.QuadratureReader;
 import pulse.io.readers.ReaderManager;
 import pulse.properties.Property;
-import pulse.ui.Launcher;
 
 public class OrdinateSet implements Property {
 
@@ -129,7 +123,7 @@ public class OrdinateSet implements Property {
 	public static OrdinateSet find(String name) {
 		var optional = allOptions.stream().filter(t -> t.getName().equalsIgnoreCase(name)).findFirst();
 		if (optional.isEmpty())
-			throw new IllegalArgumentException("Set element not found: " + name);
+			throw new IllegalArgumentException("Ordinate set not found: " + name);
 
 		return optional.get();
 	}

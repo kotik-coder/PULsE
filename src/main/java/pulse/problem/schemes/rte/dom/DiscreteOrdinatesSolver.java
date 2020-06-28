@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+import pulse.input.InterpolationDataset;
 import pulse.problem.schemes.Grid;
 import pulse.problem.schemes.rte.EmissionFunction;
 import pulse.problem.schemes.rte.RTECalculationListener;
@@ -296,8 +297,9 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 		Grid grid = new Grid(density, tauFactor);
 
 		double tFactor = 10.0 / 800.0;
-
+		
 		var rte = new DiscreteOrdinatesSolver(problem, grid);
+		
 		rte.integrator.emissionFunction.setReductionFactor(tFactor);
 		rte.integrator.setAlbedo(0.0);
 		rte.integrator.pf.setAnisotropyFactor(0.0);

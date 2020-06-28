@@ -39,7 +39,7 @@ import pulse.util.Reflexive;
 @SuppressWarnings("serial")
 public class PulseMainMenu extends JMenuBar {
 
-	private final static int ICON_SIZE = 16;
+	private final static int ICON_SIZE = 24;
 
 	private static JMenuItem aboutItem;
 	private static JMenu dataControlsMenu;
@@ -144,7 +144,7 @@ public class PulseMainMenu extends JMenuBar {
 		modelSettingsItem.setEnabled(false);
 		searchSettingsItem.setEnabled(false);
 
-		Font menuFont = new Font("Arial", Font.PLAIN, 16);
+		Font menuFont = new Font("Arial", Font.PLAIN, 18);
 		dataControlsMenu.setFont(menuFont);
 		settingsMenu.setFont(menuFont);
 		infoMenu.setFont(menuFont);

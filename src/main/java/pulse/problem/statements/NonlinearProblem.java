@@ -75,9 +75,7 @@ public class NonlinearProblem extends Problem {
 	public double maximumHeating() {
 		double Q = (double) pulse.getLaserEnergy().getValue();
 		double dLas = (double) ((Pulse2D) pulse).getSpotDiameter().getValue();
-
-		evaluateDependentParameters();
-
+	
 		return 4.0 * emissivity * Q / (Math.PI * dLas * dLas * l * cP * rho);
 	}
 
@@ -145,6 +143,7 @@ public class NonlinearProblem extends Problem {
 				double heatLoss = 0.5 * maxBiot() * (Math.tanh(params.get(i)) + 1.0);
 				Bi1 = heatLoss;
 				Bi2 = heatLoss;
+				emissivity = emissivity();
 			}
 
 		}
