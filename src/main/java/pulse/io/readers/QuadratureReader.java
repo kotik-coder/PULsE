@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -69,24 +68,6 @@ public class QuadratureReader implements AbstractReader<OrdinateSet> {
 	@Override
 	public String getSupportedExtension() {
 		return SUPPORTED_EXTENSION;
-	}
-
-	public static void main(String[] args) {
-		File f = null;
-		try {
-			f = new File(OrdinateSet.class.getResource("/quadratures/S8.quad").toURI());
-		} catch (URISyntaxException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		try {
-			System.out.println(QuadratureReader.getInstance().read(f));
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
 	}
 
 	public static QuadratureReader getInstance() {
