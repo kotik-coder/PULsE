@@ -28,7 +28,7 @@ public class ExportManager {
 		return target == null ? null : (Exporter<T>) findExporter(target.getClass());
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({ "unchecked" })
 	public static <T extends Descriptive> Exporter<T> findExporter(Class<T> target) {
 		var allExporters = instancesOf(Exporter.class);
 		var exporter = allExporters.stream().filter(e -> e.target() == target).findFirst();

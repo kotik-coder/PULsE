@@ -234,7 +234,7 @@ public class Chart {
 	}
 
 	public static void setOpacity(float opacity) {
-		opacity = opacity;
+		Chart.opacity = opacity;
 	}
 
 	public static double getOpacity() {
@@ -246,7 +246,7 @@ public class Chart {
 	}
 
 	public static void setResidualsShown(boolean residualsShown) {
-		residualsShown = residualsShown;
+		Chart.residualsShown = residualsShown;
 	}
 
 	public static boolean isZeroApproximationShown() {
@@ -254,7 +254,7 @@ public class Chart {
 	}
 
 	public static void setZeroApproximationShown(boolean zeroApproximationShown) {
-		zeroApproximationShown = zeroApproximationShown;
+		Chart.zeroApproximationShown = zeroApproximationShown;
 	}
 
     private Chart() {

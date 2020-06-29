@@ -257,7 +257,7 @@ public class PreviewFrame extends JInternalFrame {
 	}
 
 	public void setDrawSmooth(boolean drawSmooth) {
-		drawSmooth = drawSmooth;
+		PreviewFrame.drawSmooth = drawSmooth;
 	}
 
 }

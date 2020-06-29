@@ -40,8 +40,6 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
 
 	private final static double EPS = 1e-7; // a small value ensuring numeric stability
 
-	private Mode mode = Mode.GENERAL;
-
 	private double nonlinearPrecision = (double) NumericProperty.def(NONLINEAR_PRECISION).getValue();
 
 	private static InstanceDescriptor<? extends RadiativeTransferSolver> instanceDescriptor = new InstanceDescriptor<RadiativeTransferSolver>(
