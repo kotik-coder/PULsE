@@ -1,15 +1,19 @@
 package pulse.ui.components;
 
+import static java.awt.Font.BOLD;
+import static java.lang.Boolean.TRUE;
+import static java.util.stream.Collectors.toList;
+import static javax.swing.SortOrder.ASCENDING;
+import static javax.swing.SwingConstants.CENTER;
+import static pulse.ui.Messages.getString;
+
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import javax.swing.AbstractButton;
 import javax.swing.AbstractCellEditor;
@@ -18,12 +22,9 @@ import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JTable;
 import javax.swing.RowSorter.SortKey;
-import javax.swing.SortOrder;
-import javax.swing.SwingConstants;
 import javax.swing.event.CellEditorListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
@@ -36,13 +37,11 @@ import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
-import pulse.ui.Messages;
 import pulse.ui.components.buttons.IconCheckBox;
 import pulse.ui.components.controllers.AccessibleTableRenderer;
 import pulse.ui.components.controllers.InstanceCellEditor;
 import pulse.ui.components.controllers.NumberEditor;
 import pulse.ui.frames.DataFrame;
-import pulse.util.Group;
 import pulse.util.InstanceDescriptor;
 import pulse.util.PropertyHolder;
 
@@ -51,20 +50,20 @@ public class PropertyHolderTable extends JTable {
 
 	private PropertyHolder propertyHolder;
 
-	private final static Font font = new Font(Messages.getString("PropertyHolderTable.FontName"), Font.BOLD, 12);
+	private final static Font font = new Font(getString("PropertyHolderTable.FontName"), BOLD, 12);
 	private final static int ROW_HEIGHT = 40;
 
 	private TableRowSorter<DefaultTableModel> sorter;
 
 	public PropertyHolderTable(PropertyHolder p) {
 		super();
-		putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
+		putClientProperty("terminateEditOnFocusLost", TRUE);
 
 		this.propertyHolder = p;
 
-		DefaultTableModel model = new DefaultTableModel(dataArray(p),
-				new String[] { Messages.getString("PropertyHolderTable.ParameterColumn"), //$NON-NLS-1$
-						Messages.getString("PropertyHolderTable.ValueColumn") } //$NON-NLS-1$
+		var model = new DefaultTableModel(dataArray(p),
+				new String[] { getString("PropertyHolderTable.ParameterColumn"), //$NON-NLS-1$
+        getString("PropertyHolderTable.ValueColumn") } //$NON-NLS-1$
 		);
 
 		setModel(model);
@@ -77,8 +76,8 @@ public class PropertyHolderTable extends JTable {
 
 		sorter = new TableRowSorter<>();
 		sorter.setModel(model);
-		ArrayList<SortKey> list = new ArrayList<>();
-		list.add(new SortKey(0, SortOrder.ASCENDING));
+		var list = new ArrayList<SortKey>();
+		list.add(new SortKey(0, ASCENDING));
 		sorter.setSortKeys(list);
 		sorter.sort();
 
@@ -88,51 +87,41 @@ public class PropertyHolderTable extends JTable {
 		 * Update properties of the PropertyHolder when table is changed by the user
 		 */
 
-		final PropertyHolderTable reference = this;
+		final var reference = this;
 
-		model.addTableModelListener(new TableModelListener() {
-
-			@Override
-			public void tableChanged(TableModelEvent e) {
-				int row = e.getFirstRow();
-				int column = e.getColumn();
-
-				if ((row < 0) || (column < 0))
-					return;
-
-				Object changedObject = (((TableModel) e.getSource()).getValueAt(row, column));
-
-				if (changedObject instanceof Property) {
-					Property changedProperty = (Property) changedObject;
-					propertyHolder.updateProperty(reference, changedProperty);
-				}
-
-				/*
-				 * else {
-				 * 
-				 * // try to find property by name Object propertyName = (((DefaultTableModel)
-				 * e.getSource()).getValueAt(row, column - 1)); if (propertyName != null) {
-				 * Optional<Property> potentialChangedProperty =
-				 * reference.getPropertyHolder().genericProperties() .stream().filter(p ->
-				 * p.getDescriptor(true).equals(propertyName) ||
-				 * p.getClass().getSimpleName().equals(propertyName)) .findAny();
-				 * 
-				 * if (potentialChangedProperty.isEmpty()) return; else { Property
-				 * changedProperty = potentialChangedProperty.get();
-				 * 
-				 * if (changedProperty.attemptUpdate(changedObject)) {
-				 * propertyHolder.update(changedProperty);
-				 * propertyHolder.notifyListeners(reference, changedProperty);
-				 * System.out.println("Updating"); updateTable(); }
-				 * 
-				 * }
-				 * 
-				 * }
-				 */
-
-			}
-
-		});
+		model.addTableModelListener((TableModelEvent e) -> {
+            var row = e.getFirstRow();
+            var column = e.getColumn();
+            if ((row < 0) || (column < 0))
+                return;
+            var changedObject = ((TableModel) e.getSource()).getValueAt(row, column);
+            if (changedObject instanceof Property) {
+                var changedProperty = (Property) changedObject;
+                propertyHolder.updateProperty(reference, changedProperty);
+            }
+            /*
+             * else {
+             *
+             * // try to find property by name Object propertyName = (((DefaultTableModel)
+             * e.getSource()).getValueAt(row, column - 1)); if (propertyName != null) {
+             * Optional<Property> potentialChangedProperty =
+             * reference.getPropertyHolder().genericProperties() .stream().filter(p ->
+             * p.getDescriptor(true).equals(propertyName) ||
+             * p.getClass().getSimpleName().equals(propertyName)) .findAny();
+             *
+             * if (potentialChangedProperty.isEmpty()) return; else { Property
+             * changedProperty = potentialChangedProperty.get();
+             *
+             * if (changedProperty.attemptUpdate(changedObject)) {
+             * propertyHolder.update(changedProperty);
+             * propertyHolder.notifyListeners(reference, changedProperty);
+             * System.out.println("Updating"); updateTable(); }
+             *
+             * }
+             *
+             * }
+             */
+        });
 
 		addListeners();
 
@@ -154,15 +143,15 @@ public class PropertyHolderTable extends JTable {
 			return null;
 
 		List<Object[]> dataList = new ArrayList<>();
-		List<Property> listedProperties = p.listedTypes();
-		List<NumericPropertyKeyword> types = listedProperties.stream().filter(pp -> pp instanceof NumericProperty)
-				.map(np -> ((NumericProperty) np).getType()).collect(Collectors.toList());
+		var listedProperties = p.listedTypes();
+		var types = listedProperties.stream().filter(pp -> pp instanceof NumericProperty)
+				.map(np -> ((NumericProperty) np).getType()).collect(toList());
 
 		var data = p.data();
 
 		Property property;
 
-		for (Iterator<Property> it = data.iterator(); it.hasNext();) {
+		for (var it = data.iterator(); it.hasNext();) {
 			property = it.next();
 
 			if (property instanceof NumericProperty) {
@@ -178,11 +167,11 @@ public class PropertyHolderTable extends JTable {
 		if (p.ignoreSiblings())
 			return dataList.toArray(new Object[dataList.size()][2]);
 
-		List<Group> internalHolders = p.subgroups();
+		var internalHolders = p.subgroups();
 
 		PropertyHolder propertyHolder;
 
-		for (Group g : internalHolders) {
+		for (var g : internalHolders) {
 			if (g instanceof PropertyHolder) {
 				propertyHolder = (PropertyHolder) g;
 				dataList.add(new Object[] { propertyHolder.getPrefix() != null ? propertyHolder.getPrefix()
@@ -208,7 +197,7 @@ public class PropertyHolderTable extends JTable {
 		this.editCellAt(-1, -1);
 		this.clearSelection();
 
-		DefaultTableModel model = ((DefaultTableModel) getModel());
+		var model = ((DefaultTableModel) getModel());
 		model.setDataVector(dataArray(propertyHolder), new String[] { model.getColumnName(0), model.getColumnName(1) });
 
 		sorter.sort();
@@ -218,7 +207,7 @@ public class PropertyHolderTable extends JTable {
 	@Override
 	public TableCellEditor getCellEditor(int row, int column) {
 
-		Object value = super.getValueAt(row, column);
+		var value = super.getValueAt(row, column);
 
 		if (value != null) {
 
@@ -284,7 +273,7 @@ public class PropertyHolderTable extends JTable {
 	@Override
 	public TableCellRenderer getCellRenderer(int row, int column) {
 
-		Object value = super.getValueAt(row, column);
+		var value = super.getValueAt(row, column);
 
 		return value != null ? new AccessibleTableRenderer() : super.getCellRenderer(row, column);
 
@@ -304,22 +293,18 @@ public class PropertyHolderTable extends JTable {
 			this.btn = btn;
 			this.dat = dat;
 
-			btn.addActionListener(new ActionListener() {
-
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					JFrame dataFrame = new DataFrame(dat, btn);
-					dataFrame.setVisible(true);
-					btn.setEnabled(false);
-					dataFrame.addWindowListener(new WindowAdapter() {
-						@Override
-						public void windowClosed(WindowEvent we) {
-							btn.setText(((DataFrame) dataFrame).getDataObject().toString());
-							btn.setEnabled(true);
-						}
-					});
-				}
-			});
+			btn.addActionListener((ActionEvent e) -> {
+                            JFrame dataFrame = new DataFrame(dat, btn);
+                            dataFrame.setVisible(true);
+                            btn.setEnabled(false);
+                            dataFrame.addWindowListener(new WindowAdapter() {
+                                @Override
+                                public void windowClosed(WindowEvent we) {
+                                    btn.setText(((DataFrame) dataFrame).getDataObject().toString());
+                                    btn.setEnabled(true);
+                                }
+                            });
+            });
 
 		}
 
@@ -327,16 +312,11 @@ public class PropertyHolderTable extends JTable {
 			this.btn = btn;
 			this.type = index;
 
-			btn.addActionListener(new ActionListener() {
-
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					IconCheckBox source = (IconCheckBox) e.getSource();
-					source.setHorizontalAlignment(SwingConstants.CENTER);
-					((JTable) (source.getParent())).getCellEditor().stopCellEditing();
-				}
-
-			});
+			btn.addActionListener((ActionEvent e) -> {
+                var source = (IconCheckBox) e.getSource();
+                source.setHorizontalAlignment(CENTER);
+                ((JTable) (source.getParent())).getCellEditor().stopCellEditing();
+            });
 
 		}
 
@@ -344,7 +324,7 @@ public class PropertyHolderTable extends JTable {
 		public Object getCellEditorValue() {
 			if (dat != null)
 				return dat;
-			Flag f = new Flag(type);
+			var f = new Flag(type);
 			f.setValue(btn.isSelected());
 			return f;
 		}

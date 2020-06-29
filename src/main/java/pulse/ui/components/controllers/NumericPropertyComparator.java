@@ -12,8 +12,8 @@ public class NumericPropertyComparator implements Comparator<NumericProperty> {
 
 	@Override
 	public int compare(NumericProperty o1, NumericProperty o2) {
-		Double v1 = (Double) o1.getValue();
-		Double v2 = (Double) o2.getValue();
+		var v1 = (Double) o1.getValue();
+		var v2 = (Double) o2.getValue();
 
 		return v1.compareTo(v2);
 	}

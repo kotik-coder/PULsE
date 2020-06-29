@@ -1,22 +1,30 @@
 package pulse.ui.frames;
 
+import static java.awt.BorderLayout.CENTER;
+import static java.awt.BorderLayout.NORTH;
+import static java.awt.BorderLayout.PAGE_END;
+import static java.awt.GridBagConstraints.WEST;
+import static java.lang.System.err;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static javax.swing.SwingUtilities.getWindowAncestor;
+import static pulse.io.export.ExportManager.askToExport;
+import static pulse.tasks.TaskManager.addSelectionListener;
+import static pulse.tasks.TaskManager.addTaskRepositoryListener;
+import static pulse.tasks.TaskManager.getSelectedTask;
+import static pulse.tasks.TaskManager.getTask;
+import static pulse.tasks.listeners.TaskRepositoryEvent.State.TASK_ADDED;
+import static pulse.ui.Messages.getString;
+
 import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
-import java.util.concurrent.TimeUnit;
 
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.JScrollPane;
-import javax.swing.SwingUtilities;
 
-import pulse.io.export.ExportManager;
 import pulse.tasks.Log;
 import pulse.tasks.LogEntry;
-import pulse.tasks.SearchTask;
-import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.LogEntryListener;
-import pulse.tasks.listeners.TaskRepositoryEvent;
-import pulse.ui.Messages;
 import pulse.ui.components.LogPane;
 import pulse.ui.components.panels.LogToolbar;
 import pulse.ui.components.panels.SystemPanel;
@@ -39,43 +47,43 @@ public class LogFrame extends JInternalFrame {
 		logScroller.setViewportView(logTextPane);
 
 		getContentPane().setLayout(new BorderLayout());
-		getContentPane().add(logScroller, BorderLayout.CENTER);
+		getContentPane().add(logScroller, CENTER);
 
-		GridBagConstraints gridBagConstraints = new GridBagConstraints();
-		gridBagConstraints.anchor = GridBagConstraints.WEST;
+		var gridBagConstraints = new GridBagConstraints();
+		gridBagConstraints.anchor = WEST;
 		gridBagConstraints.weightx = 0.5;
 
-		getContentPane().add(new SystemPanel(), BorderLayout.PAGE_END);
+		getContentPane().add(new SystemPanel(), PAGE_END);
 
 		var logToolbar = new LogToolbar();
 		logToolbar.addLogExportListener(() -> {
 			if (logTextPane.getDocument().getLength() > 0)
-				ExportManager.askToExport(logTextPane, (JFrame) SwingUtilities.getWindowAncestor(this),
-						Messages.getString("LogToolBar.FileFormatDescriptor"));
+				askToExport(logTextPane, (JFrame) getWindowAncestor(this),
+						getString("LogToolBar.FileFormatDescriptor"));
 		});
-		getContentPane().add(logToolbar, BorderLayout.NORTH);
+		getContentPane().add(logToolbar, NORTH);
 
 	}
 
 	private void scheduleLogEvents() {
-		TaskManager.addSelectionListener(e -> logTextPane.printAll());
+		addSelectionListener(e -> logTextPane.printAll());
 
-		TaskManager.addTaskRepositoryListener(event -> {
-			if (event.getState() != TaskRepositoryEvent.State.TASK_ADDED)
+		addTaskRepositoryListener(event -> {
+			if (event.getState() != TASK_ADDED)
 				return;
 
-			SearchTask task = TaskManager.getTask(event.getId());
+			var task = getTask(event.getId());
 
 			task.getLog().addListener(new LogEntryListener() {
 
 				@Override
 				public void onLogFinished(Log log) {
-					if (TaskManager.getSelectedTask() == task) {
+					if (getSelectedTask() == task) {
 
 						try {
-							logTextPane.getUpdateExecutor().awaitTermination(10, TimeUnit.MILLISECONDS);
+							logTextPane.getUpdateExecutor().awaitTermination(10, MILLISECONDS);
 						} catch (InterruptedException e) {
-							System.err.println("Log not finished in time");
+							err.println("Log not finished in time");
 							e.printStackTrace();
 						}
 
@@ -86,7 +94,7 @@ public class LogFrame extends JInternalFrame {
 
 				@Override
 				public void onNewEntry(LogEntry e) {
-					if (TaskManager.getSelectedTask() == task)
+					if (getSelectedTask() == task)
 						logTextPane.callUpdate();
 				}
 

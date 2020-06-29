@@ -1,9 +1,11 @@
 package pulse.io.export;
 
+import static pulse.io.export.Extension.CSV;
+import static pulse.io.export.Extension.HTML;
+
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 
-import pulse.properties.NumericProperty;
 import pulse.tasks.Result;
 
 public class ResultExporter implements Exporter<Result> {
@@ -33,10 +35,10 @@ public class ResultExporter implements Exporter<Result> {
 	}
 
 	private void printHTML(Result result, FileOutputStream fos) {
-            try (PrintStream stream = new PrintStream(fos)) {
+            try (var stream = new PrintStream(fos)) {
                 stream.print("<table>");
                 
-                for (NumericProperty p : result.getProperties()) {
+                for (var p : result.getProperties()) {
                     stream.print("<tr>");
                     stream.print("<td>");
                     
@@ -59,14 +61,14 @@ public class ResultExporter implements Exporter<Result> {
 
 	@Override
 	public Extension[] getSupportedExtensions() {
-		return new Extension[] { Extension.HTML, Extension.CSV };
+		return new Extension[] { HTML, CSV};
 	}
 
 	private void printCSV(Result result, FileOutputStream fos) {
-            try (PrintStream stream = new PrintStream(fos)) {
+            try (var stream = new PrintStream(fos)) {
                 stream.print("(Results)");
                 
-                for (NumericProperty p : result.getProperties()) {
+                for (var p : result.getProperties()) {
                     stream.printf("%n%-20.10s", p.getType());
                     stream.printf("\t%-20.10s", p.formattedValue(true));
                 }

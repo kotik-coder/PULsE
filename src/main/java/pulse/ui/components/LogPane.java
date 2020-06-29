@@ -1,11 +1,21 @@
 package pulse.ui.components;
 
+import static java.lang.String.valueOf;
+import static java.lang.System.err;
+import static java.lang.System.setErr;
+import static java.lang.System.setOut;
+import static java.time.temporal.ChronoUnit.MILLIS;
+import static java.time.temporal.ChronoUnit.SECONDS;
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
+import static javax.swing.text.DefaultCaret.ALWAYS_UPDATE;
+import static pulse.tasks.Status.DONE;
+import static pulse.tasks.TaskManager.getSelectedTask;
+import static pulse.ui.Messages.getString;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.time.temporal.ChronoUnit;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import javax.swing.JEditorPane;
 import javax.swing.text.BadLocationException;
@@ -15,16 +25,12 @@ import javax.swing.text.html.HTMLEditorKit;
 
 import pulse.tasks.Log;
 import pulse.tasks.LogEntry;
-import pulse.tasks.SearchTask;
-import pulse.tasks.Status;
-import pulse.tasks.TaskManager;
-import pulse.ui.Messages;
 import pulse.util.Descriptive;
 
 @SuppressWarnings("serial")
 public class LogPane extends JEditorPane implements Descriptive {
 
-	private ExecutorService updateExecutor = Executors.newSingleThreadExecutor();
+	private ExecutorService updateExecutor = newSingleThreadExecutor();
 
 	private final static boolean DEBUG = false;
 
@@ -34,13 +40,13 @@ public class LogPane extends JEditorPane implements Descriptive {
 		super();
 		setContentType("text/html");
 		setEditable(false);
-		DefaultCaret c = (DefaultCaret) getCaret();
-		c.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
+		var c = (DefaultCaret) getCaret();
+		c.setUpdatePolicy(ALWAYS_UPDATE);
 
 		OutputStream out = new OutputStream() {
 			@Override
 			public void write(final int b) throws IOException {
-				postError(String.valueOf((char) b));
+				postError(valueOf((char) b));
 			}
 
 			@Override
@@ -55,8 +61,8 @@ public class LogPane extends JEditorPane implements Descriptive {
 		};
 
 		if (!DEBUG) {
-			System.setOut(outStream = new PrintStream(out, true));
-			System.setErr(errStream = new PrintStream(out, true));
+			setOut(outStream = new PrintStream(out, true));
+			setErr(errStream = new PrintStream(out, true));
 		}
 
 	}
@@ -66,37 +72,36 @@ public class LogPane extends JEditorPane implements Descriptive {
 	}
 
 	private void postError(String text) {
-		StringBuilder sb = new StringBuilder();
-		sb.append(Messages.getString("DataLogEntry.FontTagError"));
+		var sb = new StringBuilder();
+		sb.append(getString("DataLogEntry.FontTagError"));
 		sb.append(text);
-		sb.append(Messages.getString("DataLogEntry.FontTagClose"));
+		sb.append(getString("DataLogEntry.FontTagClose"));
 		post(sb.toString());
 	}
 
 	private void post(String text) {
 
-		final HTMLDocument doc = (HTMLDocument) getDocument();
-		final HTMLEditorKit kit = (HTMLEditorKit) this.getEditorKit();
+		final var doc = (HTMLDocument) getDocument();
+		final var kit = (HTMLEditorKit) this.getEditorKit();
 		try {
 			kit.insertHTML(doc, doc.getLength(), text, 0, 0, null);
 		} catch (BadLocationException e) {
-			System.err.println(Messages.getString("LogPane.InsertError")); //$NON-NLS-1$
+			err.println(getString("LogPane.InsertError")); //$NON-NLS-1$
 			e.printStackTrace();
 		} catch (IOException e) {
-			System.err.println(Messages.getString("LogPane.PrintError")); //$NON-NLS-1$
+			err.println(getString("LogPane.PrintError")); //$NON-NLS-1$
 			e.printStackTrace();
 		}
 
 	}
 
 	public void printTimeTaken(Log log) {
-		long seconds = ChronoUnit.SECONDS.between(log.getStart(), log.getEnd());
-		long ms = ChronoUnit.MILLIS.between(log.getStart(), log.getEnd()) - 1000L * seconds;
-
-		StringBuilder sb = new StringBuilder();
-		sb.append(Messages.getString("LogPane.TimeTaken")); //$NON-NLS-1$
-		sb.append(seconds + Messages.getString("LogPane.Seconds")); //$NON-NLS-1$
-		sb.append(ms + Messages.getString("LogPane.Milliseconds")); //$NON-NLS-1$
+		var seconds = SECONDS.between(log.getStart(), log.getEnd());
+		var ms = MILLIS.between(log.getStart(), log.getEnd()) - 1000L * seconds;
+		var sb = new StringBuilder();
+		sb.append(getString("LogPane.TimeTaken")); //$NON-NLS-1$
+		sb.append(seconds + getString("LogPane.Seconds")); //$NON-NLS-1$
+		sb.append(ms + getString("LogPane.Milliseconds")); //$NON-NLS-1$
 		post(sb.toString());
 	}
 
@@ -107,7 +112,7 @@ public class LogPane extends JEditorPane implements Descriptive {
 	public void printAll() {
 		clear();
 
-		SearchTask task = TaskManager.getSelectedTask();
+		var task = getSelectedTask();
 
 		if (task != null) {
 
@@ -117,7 +122,7 @@ public class LogPane extends JEditorPane implements Descriptive {
 
 				log.getLogEntries().stream().forEach(entry -> post(entry));
 
-				if (task.getStatus() == Status.DONE)
+				if (task.getStatus() == DONE)
 					printTimeTaken(log);
 
 			}
@@ -127,12 +132,12 @@ public class LogPane extends JEditorPane implements Descriptive {
 	}
 
 	private synchronized void update() {
-		SearchTask task = TaskManager.getSelectedTask();
+		var task = getSelectedTask();
 
 		if (task == null)
 			return;
 
-		Log log = task.getLog();
+		var log = task.getLog();
 
 		if (!log.isStarted())
 			return;
@@ -160,7 +165,7 @@ public class LogPane extends JEditorPane implements Descriptive {
 
 	@Override
 	public String describe() {
-		return "Log_" + TaskManager.getSelectedTask().getIdentifier().getValue();
+		return "Log_" + getSelectedTask().getIdentifier().getValue();
 	}
 
 }

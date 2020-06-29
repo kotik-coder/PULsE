@@ -1,9 +1,22 @@
 package pulse.ui.components.controllers;
 
+import static java.awt.Toolkit.getDefaultToolkit;
+import static java.awt.event.KeyEvent.VK_ENTER;
+import static java.lang.System.err;
+import static java.lang.System.out;
+import static java.text.NumberFormat.getIntegerInstance;
+import static javax.swing.JFormattedTextField.PERSIST;
+import static javax.swing.JOptionPane.ERROR_MESSAGE;
+import static javax.swing.JOptionPane.YES_NO_OPTION;
+import static javax.swing.JOptionPane.showMessageDialog;
+import static javax.swing.JOptionPane.showOptionDialog;
+import static javax.swing.KeyStroke.getKeyStroke;
+import static javax.swing.SwingConstants.CENTER;
+import static javax.swing.SwingUtilities.getWindowAncestor;
+import static pulse.ui.Messages.getString;
+
 import java.awt.Component;
-import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
@@ -11,16 +24,11 @@ import java.text.ParseException;
 import javax.swing.AbstractAction;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JFormattedTextField;
-import javax.swing.JOptionPane;
 import javax.swing.JTable;
-import javax.swing.KeyStroke;
-import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
 import javax.swing.text.DefaultFormatterFactory;
 import javax.swing.text.NumberFormatter;
 
 import pulse.properties.NumericProperty;
-import pulse.ui.Messages;
 
 /*
  * Copyright (c) 1995, 2008, Oracle and/or its affiliates. All rights reserved.
@@ -70,18 +78,18 @@ public class NumberEditor extends DefaultCellEditor {
 
 		// Set up the editor for the integer cells.
 
-		NumberFormatter numFormatter = new NumberFormatter(numberFormat);
+		var numFormatter = new NumberFormatter(numberFormat);
 		numFormatter.setFormat(numberFormat);
 
 		Number value;
 
 		if (property.getValue() instanceof Integer) {
-			numberFormat = NumberFormat.getIntegerInstance();
+			numberFormat = getIntegerInstance();
 			value = (int) property.getValue() * (int) property.getDimensionFactor();
 			numFormatter.setMinimum(property.getMinimum().intValue() * property.getDimensionFactor().intValue());
 			numFormatter.setMaximum(property.getMaximum().intValue() * property.getDimensionFactor().intValue());
 		} else {
-			numberFormat = new DecimalFormat(Messages.getString("NumberEditor.NumberFormat")); //$NON-NLS-1$
+			numberFormat = new DecimalFormat(getString("NumberEditor.NumberFormat")); //$NON-NLS-1$
 			value = ((Number) property.getValue()).doubleValue() * property.getDimensionFactor().doubleValue();
 			numFormatter.setMinimum(property.getMinimum().doubleValue() * property.getDimensionFactor().doubleValue());
 			numFormatter.setMaximum(property.getMaximum().doubleValue() * property.getDimensionFactor().doubleValue());
@@ -89,13 +97,13 @@ public class NumberEditor extends DefaultCellEditor {
 
 		ftf.setFormatterFactory(new DefaultFormatterFactory(numFormatter));
 		ftf.setValue(value);
-		ftf.setHorizontalAlignment(SwingConstants.CENTER);
-		ftf.setFocusLostBehavior(JFormattedTextField.PERSIST);
+		ftf.setHorizontalAlignment(CENTER);
+		ftf.setFocusLostBehavior(PERSIST);
 
 		// React when the user presses Enter while the editor is
 		// active. (Tab is handled as specified by
 		// JFormattedTextField's focusLostBehavior property.)
-		ftf.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "check");
+		ftf.getInputMap().put(getKeyStroke(VK_ENTER, 0), "check");
 		ftf.getActionMap().put("check", new AbstractAction() {
 			/**
 			 * 
@@ -121,11 +129,11 @@ public class NumberEditor extends DefaultCellEditor {
 	// Override to invoke setValue on the formatted text field.
 	@Override
 	public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-		JFormattedTextField ftf = (JFormattedTextField) super.getTableCellEditorComponent(table, value, isSelected, row,
+		var ftf = (JFormattedTextField) super.getTableCellEditorComponent(table, value, isSelected, row,
 				column);
 
 		Number num;
-		NumericProperty prop = (NumericProperty) value;
+		var prop = (NumericProperty) value;
 
 		if ((prop.getValue() instanceof Integer))
 			num = (int) prop.getValue() * (int) prop.getDimensionFactor();
@@ -138,8 +146,8 @@ public class NumberEditor extends DefaultCellEditor {
 
 	@Override
 	public Object getCellEditorValue() {
-		JFormattedTextField ftf = (JFormattedTextField) getComponent();
-		Object o = ftf.getValue();
+		var ftf = (JFormattedTextField) getComponent();
+		var o = ftf.getValue();
 		if (o instanceof Number) {
 
 			try {
@@ -155,21 +163,21 @@ public class NumberEditor extends DefaultCellEditor {
 						property.setValue(((Number) o).doubleValue() / (double) (property.getDimensionFactor()));
 				}
 			} catch (IllegalArgumentException e) {
-				Toolkit.getDefaultToolkit().beep();
-				JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(ftf), e.getMessage(),
-						Messages.getString("NumberEditor.IllegalTableEntry"), //$NON-NLS-1$
-						JOptionPane.ERROR_MESSAGE);
+				getDefaultToolkit().beep();
+				showMessageDialog(getWindowAncestor(ftf), e.getMessage(),
+						getString("NumberEditor.IllegalTableEntry"), //$NON-NLS-1$
+                ERROR_MESSAGE);
 				property.setValue(property.getMinimum());
 			}
 			return property;
 		} else {
 			if (DEBUG) {
-				System.out.println(Messages.getString("NumberEditor.NotANumberError")); //$NON-NLS-1$
+				out.println(getString("NumberEditor.NotANumberError")); //$NON-NLS-1$
 			}
 			try {
 				return numberFormat.parseObject(o.toString());
 			} catch (ParseException exc) {
-				System.err.println(Messages.getString("NumberEditor.ParseError") + o); //$NON-NLS-1$
+				err.println(getString("NumberEditor.ParseError") + o); //$NON-NLS-1$
 				return null;
 			}
 		}
@@ -182,7 +190,7 @@ public class NumberEditor extends DefaultCellEditor {
 	// of this method so that everything gets cleaned up.
 	@Override
 	public boolean stopCellEditing() {
-		JFormattedTextField ftf = (JFormattedTextField) getComponent();
+		var ftf = (JFormattedTextField) getComponent();
 		if (ftf.isEditValid()) {
 			try {
 				ftf.commitEdit();
@@ -204,18 +212,18 @@ public class NumberEditor extends DefaultCellEditor {
 	 * indicating that the user wants to continue editing.
 	 */
 	protected boolean userSaysRevert() {
-		Toolkit.getDefaultToolkit().beep();
+		getDefaultToolkit().beep();
 		ftf.selectAll();
-		Object[] options = { Messages.getString("NumberEditor.EditText"),
-				Messages.getString("NumberEditor.RevertText") };
-		int answer = JOptionPane.showOptionDialog(SwingUtilities.getWindowAncestor(ftf),
+		Object[] options = { getString("NumberEditor.EditText"),
+				getString("NumberEditor.RevertText") };
+		var answer = showOptionDialog(getWindowAncestor(ftf),
 				"The value must be a " + property.getMinimum().getClass().getSimpleName() + " between "
 						+ property.getMinimum().doubleValue() * property.getDimensionFactor().doubleValue() + " and "
 						+ property.getMaximum().doubleValue() * property.getDimensionFactor().doubleValue() + ".\n"
-						+ Messages.getString("NumberEditor.MessageLine1") //$NON-NLS-1$
-						+ Messages.getString("NumberEditor.MessageLine2"), //$NON-NLS-1$
-				Messages.getString("NumberEditor.InvalidText"), //$NON-NLS-1$
-				JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE, null, options, options[1]);
+						+ getString("NumberEditor.MessageLine1") //$NON-NLS-1$
+						+ getString("NumberEditor.MessageLine2"), //$NON-NLS-1$
+        getString("NumberEditor.InvalidText"), //$NON-NLS-1$
+        YES_NO_OPTION, ERROR_MESSAGE, null, options, options[1]);
 
 		if (answer == 1) { // Revert!
 			ftf.setValue(ftf.getValue());

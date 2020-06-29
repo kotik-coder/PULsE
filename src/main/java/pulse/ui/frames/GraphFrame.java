@@ -1,10 +1,13 @@
 package pulse.ui.frames;
 
-import java.awt.BorderLayout;
+import static java.awt.BorderLayout.CENTER;
+import static java.awt.BorderLayout.LINE_END;
+import static java.awt.BorderLayout.PAGE_END;
+import static pulse.tasks.TaskManager.getSelectedTask;
+import static pulse.ui.components.Chart.createEmptyPanel;
 
 import javax.swing.JInternalFrame;
 
-import pulse.tasks.TaskManager;
 import pulse.ui.components.Chart;
 import pulse.ui.components.panels.ChartToolbar;
 import pulse.ui.components.panels.OpacitySlider;
@@ -19,8 +22,8 @@ public class GraphFrame extends JInternalFrame {
 	}
 
 	private void initComponents() {
-		var chart = Chart.createEmptyPanel();
-		getContentPane().add(chart, BorderLayout.CENTER);
+		var chart = createEmptyPanel();
+		getContentPane().add(chart, CENTER);
 
 		chart.setMaximumDrawHeight(2000);
 		chart.setMaximumDrawWidth(2000);
@@ -29,14 +32,14 @@ public class GraphFrame extends JInternalFrame {
 
 		var opacitySlider = new OpacitySlider();
 		opacitySlider.addPlotRequestListener(() -> plot());
-		getContentPane().add(opacitySlider, BorderLayout.LINE_END);
+		getContentPane().add(opacitySlider, LINE_END);
 		var chartToolbar = new ChartToolbar();
 		chartToolbar.addPlotRequestListener(() -> plot());
-		getContentPane().add(chartToolbar, BorderLayout.PAGE_END);
+		getContentPane().add(chartToolbar, PAGE_END);
 	}
 
 	public void plot() {
-		var task = TaskManager.getSelectedTask();
+		var task = getSelectedTask();
 		if (task != null)
 			Chart.plot(task, false);
 	}

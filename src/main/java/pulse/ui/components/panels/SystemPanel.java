@@ -1,17 +1,23 @@
 package pulse.ui.components.panels;
 
-import java.awt.Color;
+import static java.awt.Color.black;
+import static java.awt.Color.red;
+import static java.awt.Color.yellow;
+import static java.lang.String.format;
+import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static javax.swing.SwingConstants.CENTER;
+import static javax.swing.SwingConstants.LEFT;
+import static javax.swing.SwingConstants.RIGHT;
+import static pulse.ui.Launcher.cpuUsage;
+import static pulse.ui.Launcher.getMemoryUsage;
+import static pulse.ui.Launcher.threadsAvailable;
+
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.SwingConstants;
-
-import pulse.ui.Launcher;
 
 @SuppressWarnings("serial")
 public class SystemPanel extends JPanel {
@@ -33,19 +39,19 @@ public class SystemPanel extends JPanel {
 		setLayout(new GridBagLayout());
 		var gridBagConstraints = new GridBagConstraints();
 
-		cpuLabel.setHorizontalAlignment(SwingConstants.LEFT);
+		cpuLabel.setHorizontalAlignment(LEFT);
 		cpuLabel.setText("CPU:");
 		gridBagConstraints = new GridBagConstraints();
 		gridBagConstraints.weightx = 2.5;
 		add(cpuLabel, gridBagConstraints);
 
-		memoryLabel.setHorizontalAlignment(SwingConstants.CENTER);
+		memoryLabel.setHorizontalAlignment(CENTER);
 		memoryLabel.setText("Memory:");
 		gridBagConstraints = new GridBagConstraints();
 		gridBagConstraints.weightx = 2.5;
 		add(memoryLabel, gridBagConstraints);
 
-		coresLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+		coresLabel.setHorizontalAlignment(RIGHT);
 		coresLabel.setText("{n cores} ");
 		gridBagConstraints = new GridBagConstraints();
 		gridBagConstraints.weightx = 2.5;
@@ -53,44 +59,38 @@ public class SystemPanel extends JPanel {
 	}
 
 	private void startSystemMonitors() {
-		String coresAvailable = String.format("{" + (Launcher.threadsAvailable() + 1) + " cores}");
+		var coresAvailable = format("{" + (threadsAvailable() + 1) + " cores}");
 		coresLabel.setText(coresAvailable);
 
-		ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+		var executor = newSingleThreadScheduledExecutor();
 
-		Runnable periodicTask = new Runnable() {
-			@Override
-			public void run() {
-				double cpuUsage = Launcher.cpuUsage();
-				double memoryUsage = Launcher.getMemoryUsage();
+		Runnable periodicTask = () -> {
+            var cpuUsage = cpuUsage();
+            var memoryUsage = getMemoryUsage();
+            var cpuString = format("CPU usage: %3.1f%%", cpuUsage);
+            cpuLabel.setText(cpuString);
+            var memoryString = format("Memory usage: %3.1f%%", memoryUsage);
+            memoryLabel.setText(memoryString);
+            if (cpuUsage > 75) {
+                cpuLabel.setForeground(red);
+            } else if (cpuUsage > 50) {
+                cpuLabel.setForeground(yellow);
+            } else {
+                cpuLabel.setForeground(black);
+            }
+            /*
+             *
+             */
+            if (memoryUsage > 75) {
+                memoryLabel.setForeground(red);
+            } else if (memoryUsage > 50) {
+                memoryLabel.setForeground(yellow);
+            } else {
+                memoryLabel.setForeground(black);
+            }
+        };
 
-				String cpuString = String.format("CPU usage: %3.1f%%", cpuUsage);
-				cpuLabel.setText(cpuString);
-				String memoryString = String.format("Memory usage: %3.1f%%", memoryUsage);
-				memoryLabel.setText(memoryString);
-
-				if (cpuUsage > 75)
-					cpuLabel.setForeground(Color.red);
-				else if (cpuUsage > 50)
-					cpuLabel.setForeground(Color.yellow);
-				else
-					cpuLabel.setForeground(Color.black);
-
-				/*
-				 * 
-				 */
-
-				if (memoryUsage > 75)
-					memoryLabel.setForeground(Color.red);
-				else if (memoryUsage > 50)
-					memoryLabel.setForeground(Color.yellow);
-				else
-					memoryLabel.setForeground(Color.black);
-
-			}
-		};
-
-		executor.scheduleAtFixedRate(periodicTask, 0, 2, TimeUnit.SECONDS);
+		executor.scheduleAtFixedRate(periodicTask, 0, 2, SECONDS);
 	}
 
 }

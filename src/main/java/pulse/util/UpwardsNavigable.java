@@ -73,7 +73,7 @@ public abstract class UpwardsNavigable implements Descriptive {
 
 	public UpwardsNavigable specificAncestor(Class<? extends UpwardsNavigable> aClass) {
 		UpwardsNavigable aParent = null;
-		for (UpwardsNavigable navigable = this; navigable != null; navigable = navigable.getParent()) {
+		for (var navigable = this; navigable != null; navigable = navigable.getParent()) {
 			aParent = navigable.getParent();
 			if (aParent != null)
 				if (aParent.getClass().equals(aClass))
@@ -93,7 +93,7 @@ public abstract class UpwardsNavigable implements Descriptive {
 	}
 
 	public Identifier identify() {
-		UpwardsNavigable un = specificAncestor(SearchTask.class);
+		var un = specificAncestor(SearchTask.class);
 		if (un != null)
 			return ((SearchTask) un).getIdentifier();
 		return null;
@@ -101,7 +101,7 @@ public abstract class UpwardsNavigable implements Descriptive {
 
 	@Override
 	public String describe() {
-		Identifier id = identify();
+		var id = identify();
 		String name = getClass().getSimpleName();
 		if (id == null)
 			return name;

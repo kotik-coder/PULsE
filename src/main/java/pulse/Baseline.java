@@ -1,5 +1,13 @@
 package pulse;
 
+import static java.lang.Double.NEGATIVE_INFINITY;
+import static java.lang.String.format;
+import static pulse.Baseline.BaselineType.CONSTANT;
+import static pulse.Baseline.BaselineType.LINEAR;
+import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericPropertyKeyword.BASELINE_INTERCEPT;
+import static pulse.properties.NumericPropertyKeyword.BASELINE_SLOPE;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,7 +19,6 @@ import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 import pulse.tasks.SearchTask;
 import pulse.util.PropertyHolder;
-import pulse.util.UpwardsNavigable;
 
 /**
  * A {@code Baseline} is determined by its {@code baselineType} and two
@@ -48,7 +55,7 @@ public class Baseline extends PropertyHolder {
 	 */
 
 	public Baseline() {
-		this.baselineType = BaselineType.CONSTANT;
+		this.baselineType = CONSTANT;
 	}
 
 	/**
@@ -86,7 +93,7 @@ public class Baseline extends PropertyHolder {
 	 */
 
 	public NumericProperty getSlope() {
-		return NumericProperty.derive(NumericPropertyKeyword.BASELINE_SLOPE, slope);
+		return derive(BASELINE_SLOPE, slope);
 	}
 
 	/**
@@ -97,7 +104,7 @@ public class Baseline extends PropertyHolder {
 	 */
 
 	public NumericProperty getIntercept() {
-		return NumericProperty.derive(NumericPropertyKeyword.BASELINE_INTERCEPT, intercept);
+		return derive(BASELINE_INTERCEPT, intercept);
 	}
 
 	/**
@@ -112,14 +119,14 @@ public class Baseline extends PropertyHolder {
 		List<Property> list = new ArrayList<>();
 		list.add(getSlope());
 		list.add(getIntercept());
-		list.add(BaselineType.CONSTANT);
+		list.add(CONSTANT);
 		return list;
 	}
 
 	@Override
 	public String toString() {
-		return getClass().getSimpleName() + " = " + String.format("%3.2f", intercept) + " + t * "
-				+ String.format("%3.2f", slope);
+		return getClass().getSimpleName() + " = " + format("%3.2f", intercept) + " + t * "
+				+ format("%3.2f", slope);
 	}
 
 	/**
@@ -202,7 +209,7 @@ public class Baseline extends PropertyHolder {
 			xybar += (x1 - meanx) * (y1 - meany);
 		}
 
-		if (baselineType == BaselineType.LINEAR) {
+		if (baselineType == LINEAR) {
 			slope = xybar / xxbar;
 			intercept = meany - slope * meanx;
 		} else {
@@ -215,10 +222,10 @@ public class Baseline extends PropertyHolder {
 		y.clear();
 		y = null;
 
-		set(NumericPropertyKeyword.BASELINE_INTERCEPT,
-				NumericProperty.derive(NumericPropertyKeyword.BASELINE_INTERCEPT, intercept));
-		set(NumericPropertyKeyword.BASELINE_SLOPE,
-				NumericProperty.derive(NumericPropertyKeyword.BASELINE_SLOPE, slope));
+		set(BASELINE_INTERCEPT,
+				derive(BASELINE_INTERCEPT, intercept));
+		set(BASELINE_SLOPE,
+				derive(BASELINE_SLOPE, slope));
 
 	}
 
@@ -287,7 +294,7 @@ public class Baseline extends PropertyHolder {
 	 */
 
 	public void fitTo(ExperimentalData data) {
-		fitTo(data, Double.NEGATIVE_INFINITY, ZERO_LEFT);
+		fitTo(data, NEGATIVE_INFINITY, ZERO_LEFT);
 	}
 
 	/**
@@ -317,7 +324,7 @@ public class Baseline extends PropertyHolder {
 	public void setBaselineType(BaselineType baselineType) {
 		this.baselineType = baselineType;
 
-		UpwardsNavigable ancestorTask = super.specificAncestor(SearchTask.class);
+		var ancestorTask = super.specificAncestor(SearchTask.class);
 		if (ancestorTask == null)
 			return;
 

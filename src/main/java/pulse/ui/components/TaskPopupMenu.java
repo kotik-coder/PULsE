@@ -1,206 +1,165 @@
 package pulse.ui.components;
 
+import static java.awt.Font.PLAIN;
+import static java.lang.System.err;
+import static java.lang.System.lineSeparator;
+import static javax.swing.JOptionPane.ERROR_MESSAGE;
+import static javax.swing.JOptionPane.INFORMATION_MESSAGE;
+import static javax.swing.JOptionPane.PLAIN_MESSAGE;
+import static javax.swing.JOptionPane.YES_NO_OPTION;
+import static javax.swing.JOptionPane.showConfirmDialog;
+import static javax.swing.JOptionPane.showMessageDialog;
+import static javax.swing.SwingUtilities.getWindowAncestor;
+import static pulse.tasks.ResultFormat.getInstance;
+import static pulse.tasks.Status.DONE;
+import static pulse.tasks.Status.READY;
+import static pulse.tasks.Status.Details.MISSING_HEATING_CURVE;
+import static pulse.tasks.Status.Details.NONE;
+import static pulse.tasks.TaskManager.addSelectionListener;
+import static pulse.tasks.TaskManager.execute;
+import static pulse.tasks.TaskManager.getSelectedTask;
+import static pulse.tasks.TaskManager.notifyListeners;
+import static pulse.tasks.TaskManager.removeResult;
+import static pulse.tasks.TaskManager.useResult;
+import static pulse.tasks.listeners.TaskRepositoryEvent.State.TASK_FINISHED;
+import static pulse.ui.Launcher.loadIcon;
+import static pulse.ui.Messages.getString;
+
 import java.awt.Component;
 import java.awt.Font;
-import java.awt.Window;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 import javax.swing.ImageIcon;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.JSeparator;
-import javax.swing.SwingUtilities;
 
 import pulse.problem.schemes.solvers.Solver;
 import pulse.problem.schemes.solvers.SolverException;
 import pulse.tasks.Result;
-import pulse.tasks.ResultFormat;
-import pulse.tasks.SearchTask;
-import pulse.tasks.Status;
-import pulse.tasks.Status.Details;
-import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.TaskRepositoryEvent;
-import pulse.ui.Launcher;
-import pulse.ui.Messages;
 
 @SuppressWarnings("serial")
 public class TaskPopupMenu extends JPopupMenu {
 
-	private final static Font f = new Font(Messages.getString("TaskTable.FontName"), Font.PLAIN, 16); //$NON-NLS-1$
+	private final static Font f = new Font(getString("TaskTable.FontName"), PLAIN, 16); //$NON-NLS-1$
 
 	private final static int ICON_SIZE = 24;
 
-	private static ImageIcon ICON_GRAPH = Launcher.loadIcon("graph.png", ICON_SIZE);
-	private static ImageIcon ICON_METADATA = Launcher.loadIcon("metadata.png", ICON_SIZE);
-	private static ImageIcon ICON_MISSING = Launcher.loadIcon("missing.png", ICON_SIZE);
-	private static ImageIcon ICON_RUN = Launcher.loadIcon("execute_single.png", ICON_SIZE);
-	private static ImageIcon ICON_RESET = Launcher.loadIcon("reset.png", ICON_SIZE);
-	private static ImageIcon ICON_RESULT = Launcher.loadIcon("result.png", ICON_SIZE);
+	private static ImageIcon ICON_GRAPH = loadIcon("graph.png", ICON_SIZE);
+	private static ImageIcon ICON_METADATA = loadIcon("metadata.png", ICON_SIZE);
+	private static ImageIcon ICON_MISSING = loadIcon("missing.png", ICON_SIZE);
+	private static ImageIcon ICON_RUN = loadIcon("execute_single.png", ICON_SIZE);
+	private static ImageIcon ICON_RESET = loadIcon("reset.png", ICON_SIZE);
+	private static ImageIcon ICON_RESULT = loadIcon("result.png", ICON_SIZE);
 
 	public TaskPopupMenu() {
 		JMenuItem itemExecute, itemChart, itemExtendedChart, itemShowMeta, itemReset, itemGenerateResult,
 				itemShowStatus;
 
-		Window referenceWindow = SwingUtilities.getWindowAncestor(this);
+		var referenceWindow = getWindowAncestor(this);
 
-		itemChart = new JMenuItem(Messages.getString("TaskTablePopupMenu.ShowHeatingCurve"), ICON_GRAPH); //$NON-NLS-1$
-		itemChart.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				plot(false);
-			}
-
-		});
+		itemChart = new JMenuItem(getString("TaskTablePopupMenu.ShowHeatingCurve"), ICON_GRAPH); //$NON-NLS-1$
+		itemChart.addActionListener((ActionEvent e) -> {
+                    plot(false);
+        });
 
 		itemChart.setFont(f);
 
-		itemExtendedChart = new JMenuItem(Messages.getString("TaskTablePopupMenu.ShowExtendedHeatingCurve"), //$NON-NLS-1$
+		itemExtendedChart = new JMenuItem(getString("TaskTablePopupMenu.ShowExtendedHeatingCurve"), //$NON-NLS-1$
 				ICON_GRAPH);
-		itemExtendedChart.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				plot(true);
-			}
-
-		});
+		itemExtendedChart.addActionListener((ActionEvent e) -> {
+                    plot(true);
+        });
 
 		itemExtendedChart.setFont(f);
 
 		itemShowMeta = new JMenuItem("Show metadata", ICON_METADATA);
-		itemShowMeta.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				SearchTask t = TaskManager.getSelectedTask();
-
-				if (t == null) {
-					JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor((Component) e.getSource()),
-							Messages.getString("TaskTablePopupMenu.EmptySelection2"), //$NON-NLS-1$
-							Messages.getString("TaskTablePopupMenu.11"), JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$
-					return;
-				}
-
-				JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor((Component) e.getSource()),
-						t.getExperimentalCurve().getMetadata().toString(), "Metadata", JOptionPane.PLAIN_MESSAGE);
-
-			}
-
-		});
+		itemShowMeta.addActionListener((ActionEvent e) -> {
+            var t = getSelectedTask();
+            if (t == null) {
+                showMessageDialog(getWindowAncestor((Component) e.getSource()), getString("TaskTablePopupMenu.EmptySelection2"), //$NON-NLS-1$
+                getString("TaskTablePopupMenu.11"), ERROR_MESSAGE); //$NON-NLS-1$
+                //$NON-NLS-1$
+                return;
+            }
+            showMessageDialog(getWindowAncestor((Component) e.getSource()), t.getExperimentalCurve().getMetadata().toString(), "Metadata", PLAIN_MESSAGE);
+        });
 
 		itemShowMeta.setFont(f);
 
 		itemShowStatus = new JMenuItem("What is missing?", ICON_MISSING);
 
-		TaskManager.addSelectionListener(event -> {
-			var details = TaskManager.getSelectedTask().checkProblems(false).getDetails();
-			if ((details == null) || (details == Details.NONE))
+		addSelectionListener(event -> {
+			var details = getSelectedTask().checkProblems(false).getDetails();
+			if ((details == null) || (details == NONE))
 				itemShowStatus.setEnabled(false);
 			else
 				itemShowStatus.setEnabled(true);
 		});
 
-		itemShowStatus.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				SearchTask t = TaskManager.getSelectedTask();
-
-				if (t != null) {
-					Details d = t.getStatus().getDetails();
-					JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor((Component) e.getSource()),
-							"<html>This is due to " + d.toString() + "</html>", "Problems with " + t,
-							JOptionPane.INFORMATION_MESSAGE);
-				}
-			}
-
-		});
+		itemShowStatus.addActionListener((ActionEvent e) -> {
+            var t = getSelectedTask();
+            if (t != null) {
+                var d = t.getStatus().getDetails();
+                showMessageDialog(getWindowAncestor((Component) e.getSource()), "<html>This is due to " + d.toString() + "</html>", "Problems with " + t, INFORMATION_MESSAGE);
+            }
+        });
 
 		itemShowStatus.setFont(f);
 
-		itemExecute = new JMenuItem(Messages.getString("TaskTablePopupMenu.Execute"), ICON_RUN); //$NON-NLS-1$
-		itemExecute.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				SearchTask t = TaskManager.getSelectedTask();
-
-				if (t == null) {
-					JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor((Component) e.getSource()),
-							Messages.getString("TaskTablePopupMenu.EmptySelection"), //$NON-NLS-1$
-							Messages.getString("TaskTablePopupMenu.ErrorTitle"), JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$
-					return;
-				}
-
-				if (t.checkProblems() == Status.DONE) {
-					int dialogButton = JOptionPane.YES_NO_OPTION;
-					int dialogResult = JOptionPane.showConfirmDialog(referenceWindow,
-							Messages.getString("TaskTablePopupMenu.TaskCompletedWarning") + System.lineSeparator()
-									+ Messages.getString("TaskTablePopupMenu.AskToDelete"),
-							Messages.getString("TaskTablePopupMenu.DeleteTitle"), dialogButton);
-					if (dialogResult == 1)
-						return;
-					else {
-						TaskManager.removeResult(t);
-						// t.storeCurrentSolution();
-					}
-				}
-
-				if (t.checkProblems() != Status.READY) {
-					JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor((Component) e.getSource()),
-							t.toString() + " is " + t.getStatus().getMessage(), //$NON-NLS-1$
-							Messages.getString("TaskTablePopupMenu.TaskNotReady"), //$NON-NLS-1$
-							JOptionPane.ERROR_MESSAGE);
-					return;
-				}
-
-				TaskManager.execute(TaskManager.getSelectedTask());
-
-			}
-
-		});
+		itemExecute = new JMenuItem(getString("TaskTablePopupMenu.Execute"), ICON_RUN); //$NON-NLS-1$
+		itemExecute.addActionListener((ActionEvent e) -> {
+            var t = getSelectedTask();
+            if (t == null) {
+                showMessageDialog(getWindowAncestor((Component) e.getSource()), getString("TaskTablePopupMenu.EmptySelection"), //$NON-NLS-1$
+                getString("TaskTablePopupMenu.ErrorTitle"), ERROR_MESSAGE); //$NON-NLS-1$
+                //$NON-NLS-1$
+                return;
+            }
+            if (t.checkProblems() == DONE) {
+                var dialogButton = YES_NO_OPTION;
+                var dialogResult = showConfirmDialog(referenceWindow, getString("TaskTablePopupMenu.TaskCompletedWarning") + lineSeparator() + getString("TaskTablePopupMenu.AskToDelete"), getString("TaskTablePopupMenu.DeleteTitle"), dialogButton);
+                if (dialogResult == 1) {
+                    return;
+                } else {
+                    removeResult(t);
+                    // t.storeCurrentSolution();
+                }
+            }
+            if (t.checkProblems() != READY) {
+                showMessageDialog(getWindowAncestor((Component) e.getSource()), t.toString() + " is " + t.getStatus().getMessage(), //$NON-NLS-1$
+                getString("TaskTablePopupMenu.TaskNotReady"), //$NON-NLS-1$
+                ERROR_MESSAGE);
+                return;
+            }
+            execute(getSelectedTask());
+        });
 
 		itemExecute.setFont(f);
 
-		itemReset = new JMenuItem(Messages.getString("TaskTablePopupMenu.Reset"), ICON_RESET);
+		itemReset = new JMenuItem(getString("TaskTablePopupMenu.Reset"), ICON_RESET);
 		itemReset.setFont(f);
 
-		itemReset.addActionListener(new ActionListener() {
+		itemReset.addActionListener((ActionEvent arg0) -> {
+            getSelectedTask().clear();
+        });
 
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				TaskManager.getSelectedTask().clear();
-			}
-
-		});
-
-		itemGenerateResult = new JMenuItem(Messages.getString("TaskTablePopupMenu.GenerateResult"), ICON_RESULT);
+		itemGenerateResult = new JMenuItem(getString("TaskTablePopupMenu.GenerateResult"), ICON_RESULT);
 		itemGenerateResult.setFont(f);
 
-		itemGenerateResult.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				Result r = null;
-				SearchTask t = TaskManager.getSelectedTask();
-
-				if (t == null)
-					return;
-
-				if (t.getProblem() == null)
-					return;
-
-				r = new Result(TaskManager.getSelectedTask(), ResultFormat.getInstance());
-				TaskManager.useResult(t, r);
-				TaskRepositoryEvent e = new TaskRepositoryEvent(TaskRepositoryEvent.State.TASK_FINISHED,
-						TaskManager.getSelectedTask().getIdentifier());
-				TaskManager.notifyListeners(e);
-			}
-
-		});
+		itemGenerateResult.addActionListener((ActionEvent arg0) -> {
+                    Result r = null;
+            var t = getSelectedTask();
+            if (t == null)
+                return;
+            if (t.getProblem() == null)
+                return;
+            r = new Result(getSelectedTask(), getInstance());
+            useResult(t, r);
+            var e = new TaskRepositoryEvent(TASK_FINISHED, getSelectedTask().getIdentifier());
+            notifyListeners(e);
+        });
 
 		add(itemShowMeta);
 		add(itemShowStatus);
@@ -217,21 +176,21 @@ public class TaskPopupMenu extends JPopupMenu {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void plot(boolean extended) {
-		SearchTask t = TaskManager.getSelectedTask();
+		var t = getSelectedTask();
 
 		if (t == null) {
-			JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(this),
-					Messages.getString("TaskTablePopupMenu.EmptySelection2"), //$NON-NLS-1$
-					Messages.getString("TaskTablePopupMenu.11"), JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$
+			showMessageDialog(getWindowAncestor(this),
+					getString("TaskTablePopupMenu.EmptySelection2"), //$NON-NLS-1$
+            getString("TaskTablePopupMenu.11"), ERROR_MESSAGE); //$NON-NLS-1$
 			return;
 		}
 
-		Details statusDetails = t.getStatus().getDetails();
+		var statusDetails = t.getStatus().getDetails();
 
-		if (statusDetails == Details.MISSING_HEATING_CURVE) {
-			JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(this),
-					Messages.getString("TaskTablePopupMenu.12"), Messages.getString("TaskTablePopupMenu.13"), //$NON-NLS-1$ //$NON-NLS-2$
-					JOptionPane.ERROR_MESSAGE);
+		if (statusDetails == MISSING_HEATING_CURVE) {
+			showMessageDialog(getWindowAncestor(this),
+					getString("TaskTablePopupMenu.12"), getString("TaskTablePopupMenu.13"), //$NON-NLS-1$ //$NON-NLS-2$
+            ERROR_MESSAGE);
 			return;
 		}
 
@@ -239,7 +198,7 @@ public class TaskPopupMenu extends JPopupMenu {
 			try {
 				((Solver) t.getScheme()).solve(t.getProblem());
 			} catch (SolverException e) {
-				System.err.println("Solver error for " + t + "Details: ");
+				err.println("Solver error for " + t + "Details: ");
 				e.printStackTrace();
 			}
 

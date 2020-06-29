@@ -4,7 +4,6 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -43,7 +42,7 @@ public interface Reflexive {
 
 		ref.addAll(ReflexiveFinder.simpleInstances(pckgname, params));
 
-		for (Reflexive r : ref) {
+		for (var r : ref) {
 			if (reflexiveType.isAssignableFrom(r.getClass()))
 				p.add((T) r);
 		}
@@ -68,7 +67,7 @@ public interface Reflexive {
 	}
 
 	public static <T extends PropertyHolder & Reflexive> T instantiate(Class<T> c, String descriptor) {
-		Optional<T> opt = Reflexive.instancesOf(c).stream().filter(test -> test.getDescriptor().equals(descriptor))
+		var opt = Reflexive.instancesOf(c).stream().filter(test -> test.getDescriptor().equals(descriptor))
 				.findFirst();
 		if (opt.isPresent())
 			return opt.get();

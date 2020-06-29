@@ -1,21 +1,27 @@
 package pulse.ui;
 
-import java.awt.Graphics2D;
-import java.awt.Image;
-import java.awt.SplashScreen;
-import java.lang.management.ManagementFactory;
-import java.util.Objects;
+import static java.awt.EventQueue.invokeLater;
+import static java.awt.Image.SCALE_SMOOTH;
+import static java.awt.SplashScreen.getSplashScreen;
+import static java.lang.Integer.valueOf;
+import static java.lang.Runtime.getRuntime;
+import static java.lang.System.err;
+import static java.lang.management.ManagementFactory.getPlatformMBeanServer;
+import static java.util.Objects.requireNonNull;
+import static java.util.logging.Level.SEVERE;
+import static java.util.logging.Logger.getLogger;
+import static javax.management.ObjectName.getInstance;
+import static javax.swing.UIManager.getInstalledLookAndFeels;
+import static javax.swing.UIManager.setLookAndFeel;
+import static pulse.ui.frames.TaskControlFrame.getInstance;
 
 import javax.management.Attribute;
 import javax.management.AttributeList;
 import javax.management.InstanceNotFoundException;
-import javax.management.MBeanServer;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import javax.management.ReflectionException;
 import javax.swing.ImageIcon;
-
-import pulse.ui.frames.TaskControlFrame;
 
 /**
  * <p>
@@ -48,35 +54,32 @@ public class Launcher {
 		 * http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html
 		 */
 		try {
-			for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+			for (var info : getInstalledLookAndFeels()) {
 				if ("Nimbus".equals(info.getName())) {
-					javax.swing.UIManager.setLookAndFeel(info.getClassName());
+					setLookAndFeel(info.getClassName());
 					break;
 				}
 			}
 		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException
 				| javax.swing.UnsupportedLookAndFeelException ex) {
-			java.util.logging.Logger.getLogger(Launcher.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+			getLogger(Launcher.class.getName()).log(SEVERE, null, ex);
 		}
 		// </editor-fold>
 
 		/* Create and display the form */
-		java.awt.EventQueue.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				TaskControlFrame.getInstance().setLocationRelativeTo(null);
-				TaskControlFrame.getInstance().setVisible(true);
-			}
-		});
+		invokeLater(() -> {
+            getInstance().setLocationRelativeTo(null);
+            getInstance().setVisible(true);
+        });
 	}
 
 	private static void splashScreen() {
-		SplashScreen splash = SplashScreen.getSplashScreen();
+		var splash = getSplashScreen();
 		if (splash == null)
-			System.err.println("SplashScreen.getSplashScreen() returned null");
+			err.println("SplashScreen.getSplashScreen() returned null");
 		else {
-			Graphics2D g = splash.createGraphics();
-			Objects.requireNonNull(g, "splash.createGraphics() returned null");
+			var g = splash.createGraphics();
+			requireNonNull(g, "splash.createGraphics() returned null");
 		}
 	}
 
@@ -91,8 +94,8 @@ public class Launcher {
 	 */
 
 	public static double getMemoryUsage() {
-		double totalMemory = Runtime.getRuntime().totalMemory();
-		double maxMemory = Runtime.getRuntime().maxMemory();
+		double totalMemory = getRuntime().totalMemory();
+		double maxMemory = getRuntime().maxMemory();
 		return (totalMemory / maxMemory * 100);
 	}
 
@@ -108,12 +111,12 @@ public class Launcher {
 
 	public static double cpuUsage() {
 
-		MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+		var mbs = getPlatformMBeanServer();
 		ObjectName name = null;
 		try {
-			name = ObjectName.getInstance("java.lang:type=OperatingSystem");
+			name = getInstance("java.lang:type=OperatingSystem");
 		} catch (MalformedObjectNameException | NullPointerException e1) {
-			System.err.println("Error while calculating CPU usage:");
+			err.println("Error while calculating CPU usage:");
 			e1.printStackTrace();
 		}
 
@@ -121,18 +124,18 @@ public class Launcher {
 		try {
 			list = mbs.getAttributes(name, new String[] { "ProcessCpuLoad" });
 		} catch (InstanceNotFoundException | ReflectionException e) {
-			System.err.println("Error while calculating CPU usage:");
+			err.println("Error while calculating CPU usage:");
 			e.printStackTrace();
 		}
 
 		if (list.isEmpty())
-			return Integer.valueOf(null);
+			return valueOf(null);
 
-		Attribute att = (Attribute) list.get(0);
-		double value = (double) att.getValue();
+		var att = (Attribute) list.get(0);
+		var value = (double) att.getValue();
 
 		if (value < 0)
-			return Integer.valueOf(null);
+			return valueOf(null);
 
 		return (value * 100);
 	}
@@ -148,15 +151,15 @@ public class Launcher {
 	 */
 
 	public static int threadsAvailable() {
-		int number = Runtime.getRuntime().availableProcessors();
+		var number = getRuntime().availableProcessors();
 		return number > 1 ? (number - 1) : 1;
 	}
 
 	public static ImageIcon loadIcon(String path, int iconSize) {
-		ImageIcon imageIcon = new ImageIcon(Launcher.class.getResource("/images/" + path)); // load the image to a
+		var imageIcon = new ImageIcon(Launcher.class.getResource("/images/" + path)); // load the image to a
 																							// imageIcon
-		Image image = imageIcon.getImage(); // transform it
-		Image newimg = image.getScaledInstance(iconSize, iconSize, Image.SCALE_SMOOTH); // scale it the smooth way
+		var image = imageIcon.getImage(); // transform it
+		var newimg = image.getScaledInstance(iconSize, iconSize, SCALE_SMOOTH); // scale it the smooth way
 		return new ImageIcon(newimg); // transform it back
 	}
 

@@ -1,21 +1,22 @@
 package pulse.util;
 
+import static java.io.File.separator;
+import static java.io.File.separatorChar;
+import static java.lang.Class.forName;
+import static java.lang.reflect.Modifier.isAbstract;
+import static java.lang.reflect.Modifier.isPublic;
+import static pulse.ui.Messages.getString;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-
-import pulse.ui.Messages;
 
 /**
  * Provides utility methods for finding classes and instances of
@@ -33,11 +34,11 @@ public class ReflexiveFinder {
 		var files = new ArrayList<File>();
 
 		// Get all files from a directory.
-		File[] fList = directory.listFiles();
+		var fList = directory.listFiles();
 
 		if (fList != null) {
 
-			for (File file : fList) {
+			for (var file : fList) {
 
 				if (file.isFile())
 					files.add(file);
@@ -61,10 +62,10 @@ public class ReflexiveFinder {
 	 */
 
 	public static List<Class<?>> classesIn(String pckgname) {
-		String name = "" + pckgname;
-		if (!name.startsWith(File.separator))
-			name = File.separatorChar + name;
-		name = name.replace('.', File.separatorChar);
+		var name = "" + pckgname;
+		if (!name.startsWith(separator))
+			name = separatorChar + name;
+		name = name.replace('.', separatorChar);
 
 		List<Class<?>> classes = new ArrayList<>();
 
@@ -78,15 +79,15 @@ public class ReflexiveFinder {
 			e.printStackTrace();
 		}
 
-		File root = new File(locationPath + name);
+		var root = new File(locationPath + name);
 		if (root.isDirectory()) {
-			List<File> files = listf(root);
+			var files = listf(root);
 
 			files.stream().map(f -> {
 
-				String pathName = f.getName();
+				var pathName = f.getName();
 
-				for (File parent = f.getParentFile(); !parent.equals(root); parent = parent.getParentFile()) {
+				for (var parent = f.getParentFile(); !parent.equals(root); parent = parent.getParentFile()) {
                                     pathName = parent.getName() + "." + pathName;
                                 }
 
@@ -95,7 +96,7 @@ public class ReflexiveFinder {
 			}).forEach(path -> {
 				if (path.endsWith(".class"))
 					try {
-						classes.add(Class.forName(pckgname + "." + path.substring(0, path.length() - 6)));
+						classes.add(forName(pckgname + "." + path.substring(0, path.length() - 6)));
 					} catch (ClassNotFoundException e) {
 						System.err.println("Failed to find the .class file");
 						e.printStackTrace();
@@ -115,13 +116,13 @@ public class ReflexiveFinder {
 			}
 
 			try {
-				for (ZipEntry entry = zip.getNextEntry(); entry != null; entry = zip.getNextEntry()) {
+				for (var entry = zip.getNextEntry(); entry != null; entry = zip.getNextEntry()) {
 					if (!entry.isDirectory() && entry.getName().endsWith(".class")) {
 						// This ZipEntry represents a class. Now, what class does it represent?
-						String className = entry.getName().replace('/', '.'); // including ".class"
+						var className = entry.getName().replace('/', '.'); // including ".class"
 						if (!className.contains(pckgname))
 							continue;
-						classes.add(Class.forName(className.substring(0, className.length() - ".class".length())));
+						classes.add(forName(className.substring(0, className.length() - ".class".length())));
 					}
 				}
 			} catch (IOException | ClassNotFoundException e) {
@@ -152,20 +153,20 @@ public class ReflexiveFinder {
 	public static <V extends Reflexive> List<V> simpleInstances(String pckgname, Object... params) {
 		List<V> instances = new LinkedList<>();
 
-		for (Class<?> aClass : ReflexiveFinder.classesIn(pckgname)) {
+		for (var aClass : classesIn(pckgname)) {
 
-			if (Modifier.isAbstract(aClass.getModifiers()))
+			if (isAbstract(aClass.getModifiers()))
 				continue;
 
 			try {
 				// Try to create an instance of the object
 
-				Constructor<?>[] ctrs = aClass.getDeclaredConstructors();
+				var ctrs = aClass.getDeclaredConstructors();
 				V instance = null;
 
-				outer: for (Constructor<?> ctr : ctrs) {
+				outer: for (var ctr : ctrs) {
 
-					if (!Modifier.isPublic(ctr.getModifiers()))
+					if (!isPublic(ctr.getModifiers()))
 						continue outer;
 
 					var types = ctr.getParameterTypes();
@@ -180,11 +181,11 @@ public class ReflexiveFinder {
                                         }
 
 					try {
-						Object o = ctr.newInstance(params);
+						var o = ctr.newInstance(params);
 						if (o instanceof Reflexive)
 							instance = (V) o;
 					} catch (InstantiationException e) {
-						System.err.println(Messages.getString("ReflexiveFinder.ConstructorAccessError") + ctr);
+						System.err.println(getString("ReflexiveFinder.ConstructorAccessError") + ctr);
 						e.printStackTrace();
 					}
 
@@ -199,12 +200,12 @@ public class ReflexiveFinder {
 
 				// if the class has a getInstance() method
 
-				Method[] methods = aClass.getMethods();
+				var methods = aClass.getMethods();
 				instance = null;
 
-				for (Method method : methods) {
+				for (var method : methods) {
 					if (method.getName().equals("getInstance")) {
-						Object o = method.invoke(null, new Object[0]);
+						var o = method.invoke(null, new Object[0]);
 						if (o instanceof Reflexive)
 							instance = (V) o;
 						break;
@@ -218,10 +219,10 @@ public class ReflexiveFinder {
 				System.err.println("Cannot access: " + aClass);
 				iaex.printStackTrace();
 			} catch (IllegalArgumentException e) {
-				System.err.println(Messages.getString("ReflexiveFinder.getInstanceArgumentError") + aClass);
+				System.err.println(getString("ReflexiveFinder.getInstanceArgumentError") + aClass);
 				e.printStackTrace();
 			} catch (InvocationTargetException e) {
-				System.err.println(Messages.getString("ReflexiveFinder.getInstanceError") + aClass);
+				System.err.println(getString("ReflexiveFinder.getInstanceError") + aClass);
 				e.printStackTrace();
 			}
 

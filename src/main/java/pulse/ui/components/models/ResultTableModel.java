@@ -1,12 +1,13 @@
 package pulse.ui.components.models;
 
+import static java.util.stream.Collectors.toList;
+import static pulse.tasks.AbstractResult.filterProperties;
+
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import javax.swing.table.DefaultTableModel;
 
-import pulse.properties.NumericProperty;
 import pulse.tasks.AbstractResult;
 import pulse.tasks.Identifier;
 import pulse.tasks.Result;
@@ -56,7 +57,7 @@ public class ResultTableModel extends DefaultTableModel {
 	public void changeFormat(ResultFormat fmt) {
 		this.fmt = fmt;
 
-		for (AbstractResult r : results) {
+		for (var r : results) {
                     r.setFormat(fmt);
                 }
 
@@ -68,7 +69,7 @@ public class ResultTableModel extends DefaultTableModel {
 			results.clear();
 			this.setColumnIdentifiers(fmt.abbreviations().toArray());
 
-			for (AbstractResult r : oldResults) {
+			for (var r : oldResults) {
                             addRow(r);
                         }
 
@@ -82,14 +83,14 @@ public class ResultTableModel extends DefaultTableModel {
 	}
 
 	private List<String> tooltips() {
-		return fmt.descriptors().stream().map(d -> "<html>" + d + "</html>").collect(Collectors.toList());
+		return fmt.descriptors().stream().map(d -> "<html>" + d + "</html>").collect(toList());
 	}
 
 	public void addRow(AbstractResult result) {
 		if (result == null)
 			return;
 
-		List<NumericProperty> propertyList = AbstractResult.filterProperties(result, fmt);
+		var propertyList = filterProperties(result, fmt);
 		super.addRow(propertyList.toArray());
 		results.add(result);
 
@@ -98,7 +99,7 @@ public class ResultTableModel extends DefaultTableModel {
 	public void removeAll(Identifier id) {
 		AbstractResult result = null;
 
-		for (int i = results.size() - 1; i >= 0; i--) {
+		for (var i = results.size() - 1; i >= 0; i--) {
 			result = results.get(i);
 
 			if (!(result instanceof Result))
@@ -116,7 +117,7 @@ public class ResultTableModel extends DefaultTableModel {
 	public void remove(AbstractResult r) {
 		AbstractResult result = null;
 
-		for (int i = results.size() - 1; i >= 0; i--) {
+		for (var i = results.size() - 1; i >= 0; i--) {
 			result = results.get(i);
 
 			if (result.equals(r)) {

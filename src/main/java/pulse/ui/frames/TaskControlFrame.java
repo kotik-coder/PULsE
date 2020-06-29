@@ -1,5 +1,15 @@
 package pulse.ui.frames;
 
+import static java.lang.System.exit;
+import static javax.swing.JOptionPane.WARNING_MESSAGE;
+import static javax.swing.JOptionPane.YES_NO_OPTION;
+import static javax.swing.JOptionPane.YES_OPTION;
+import static javax.swing.JOptionPane.showOptionDialog;
+import static pulse.tasks.ResultFormat.addResultFormatListener;
+import static pulse.tasks.TaskManager.addSelectionListener;
+import static pulse.ui.Launcher.loadIcon;
+import static pulse.ui.Messages.getString;
+
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Point;
@@ -11,15 +21,9 @@ import java.awt.event.WindowEvent;
 import javax.swing.JDesktopPane;
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
-import javax.swing.JOptionPane;
-import javax.swing.WindowConstants;
 import javax.swing.event.InternalFrameAdapter;
 import javax.swing.event.InternalFrameEvent;
 
-import pulse.tasks.ResultFormat;
-import pulse.tasks.TaskManager;
-import pulse.ui.Launcher;
-import pulse.ui.Messages;
 import pulse.ui.components.PulseMainMenu;
 import pulse.ui.components.listeners.FrameVisibilityRequestListener;
 import pulse.ui.components.listeners.TaskActionListener;
@@ -54,15 +58,15 @@ public class TaskControlFrame extends JFrame {
 	 */
 
 	private TaskControlFrame() {
-		setTitle(Messages.getString("TaskControlFrame.SoftwareTitle"));
+		setTitle(getString("TaskControlFrame.SoftwareTitle"));
 		setPreferredSize(new Dimension(WIDTH, HEIGHT));
-		setExtendedState(getExtendedState() | JFrame.MAXIMIZED_BOTH);
+		setExtendedState(getExtendedState() | MAXIMIZED_BOTH);
 		initComponents();
 		initListeners();
-		TaskManager.addSelectionListener(e -> graphFrame.plot());
-		setIconImage(Launcher.loadIcon("logo.png", 32).getImage());
+		addSelectionListener(e -> graphFrame.plot());
+		setIconImage(loadIcon("logo.png", 32).getImage());
 		addListeners();
-		setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+		setDefaultCloseOperation(EXIT_ON_CLOSE);
 	}
 
 	private void addListeners() {
@@ -70,11 +74,11 @@ public class TaskControlFrame extends JFrame {
 
 			@Override
 			public void windowClosing(WindowEvent evt) {
-				JFrame closingWindow = (JFrame) evt.getSource();
+				var closingWindow = (JFrame) evt.getSource();
 				if (!exitConfirmed(closingWindow)) {
-					closingWindow.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+					closingWindow.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 				} else
-					closingWindow.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+					closingWindow.setDefaultCloseOperation(EXIT_ON_CLOSE);
 			}
 
 		});
@@ -92,9 +96,8 @@ public class TaskControlFrame extends JFrame {
 
 	private boolean exitConfirmed(Component closingComponent) {
 		Object[] options = { "Yes", "No" };
-		return JOptionPane.showOptionDialog(closingComponent, Messages.getString("TaskControlFrame.ExitMessage"),
-				Messages.getString("TaskControlFrame.ExitTitle"), JOptionPane.YES_NO_OPTION,
-				JOptionPane.WARNING_MESSAGE, null, options, options[1]) == JOptionPane.YES_OPTION;
+		return showOptionDialog(closingComponent, getString("TaskControlFrame.ExitMessage"),
+				getString("TaskControlFrame.ExitTitle"), YES_NO_OPTION, WARNING_MESSAGE, null, options, options[1]) == YES_OPTION;
 	}
 
 	private void initListeners() {
@@ -114,10 +117,10 @@ public class TaskControlFrame extends JFrame {
 
 		mainMenu.addExitRequestListener(() -> {
 			if (exitConfirmed(this))
-				System.exit(0);
+				exit(0);
 		});
 
-		ResultFormat.addResultFormatListener(rfe -> ((ResultTableModel) resultsFrame.getResultTable().getModel())
+		addResultFormatListener(rfe -> ((ResultTableModel) resultsFrame.getResultTable().getModel())
 				.changeFormat(rfe.getResultFormat()));
 
 		resultsFrame.addFrameCreationListener(() -> setPreviewFrameVisible(true));
@@ -252,9 +255,9 @@ public class TaskControlFrame extends JFrame {
 	}
 
 	private void resizeFull(JInternalFrame f1) {
-		final int gap = 10;
-		final int h = this.getContentPane().getHeight() - 2 * gap;
-		final int w = this.getContentPane().getWidth() - 2 * gap;
+		final var gap = 10;
+		final var h = this.getContentPane().getHeight() - 2 * gap;
+		final var w = this.getContentPane().getWidth() - 2 * gap;
 
 		var p1 = new Point(gap, gap);
 		var s1 = new Dimension(w, h);
@@ -263,9 +266,9 @@ public class TaskControlFrame extends JFrame {
 	}
 
 	private void resizeHalves(JInternalFrame f1, JInternalFrame f2) {
-		final int gap = 10;
-		final int h = this.getContentPane().getHeight() - 3 * gap;
-		final int w = this.getContentPane().getWidth() - 2 * gap;
+		final var gap = 10;
+		final var h = this.getContentPane().getHeight() - 3 * gap;
+		final var w = this.getContentPane().getWidth() - 2 * gap;
 
 		var p1 = new Point(gap, gap);
 		var s1 = new Dimension(w, 6 * h / 10);
@@ -280,9 +283,9 @@ public class TaskControlFrame extends JFrame {
 	}
 
 	private void resizeQuadrants() {
-		final int gap = 10;
-		final int h = this.getContentPane().getHeight() - 3 * gap;
-		final int w = this.getContentPane().getWidth() - 3 * gap;
+		final var gap = 10;
+		final var h = this.getContentPane().getHeight() - 3 * gap;
+		final var w = this.getContentPane().getWidth() - 3 * gap;
 
 		var p1 = new Point(gap, gap);
 		var s1 = new Dimension(45 * w / 100, 55 * h / 100);

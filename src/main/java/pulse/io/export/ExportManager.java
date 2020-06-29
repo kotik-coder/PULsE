@@ -1,16 +1,21 @@
 package pulse.io.export;
 
+import static java.util.Arrays.asList;
+import static pulse.io.export.Exporter.getDefaultExportExtension;
+import static pulse.io.export.MassExporter.contents;
+import static pulse.io.export.MassExporter.exportGroup;
+import static pulse.tasks.TaskManager.getResult;
+import static pulse.tasks.TaskManager.getSelectedTask;
+import static pulse.tasks.TaskManager.getTaskList;
+import static pulse.util.Reflexive.instancesOf;
+
 import java.io.File;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Set;
 
 import javax.swing.JFrame;
 
-import pulse.tasks.TaskManager;
 import pulse.util.Descriptive;
 import pulse.util.Group;
-import pulse.util.Reflexive;
 
 public class ExportManager {
 
@@ -25,7 +30,7 @@ public class ExportManager {
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public static <T extends Descriptive> Exporter<T> findExporter(Class<T> target) {
-		List<Exporter> allExporters = Reflexive.instancesOf(Exporter.class);
+		var allExporters = instancesOf(Exporter.class);
 		var exporter = allExporters.stream().filter(e -> e.target() == target).findFirst();
 
 		if (exporter.isPresent())
@@ -37,7 +42,7 @@ public class ExportManager {
 	}
 
 	public static <T extends Descriptive> void askToExport(T target, JFrame parentWindow, String fileTypeLabel) {
-		Exporter<T> exporter = ExportManager.findExporter(target);
+		var exporter = findExporter(target);
 		if (exporter != null)
 			exporter.askToExport(target, parentWindow, fileTypeLabel);
 		else
@@ -48,10 +53,10 @@ public class ExportManager {
 		var exporter = findExporter(target);
 
 		if (exporter != null) {
-			Extension[] supportedExtensions = exporter.getSupportedExtensions();
+			var supportedExtensions = exporter.getSupportedExtensions();
 
 			if (supportedExtensions.length > 0) {
-				Extension confirmedExtension = Arrays.asList(supportedExtensions).contains(extension) ? extension
+				var confirmedExtension = asList(supportedExtensions).contains(extension) ? extension
 						: supportedExtensions[0];
 				exporter.export(target, directory, confirmedExtension);
 			}
@@ -61,21 +66,21 @@ public class ExportManager {
 
 	public static void exportAllTasks(File directory, Extension extension) {
 
-		TaskManager.getTaskList().stream().forEach(t -> MassExporter.exportGroup(t, directory, extension));
+		getTaskList().stream().forEach(t -> exportGroup(t, directory, extension));
 
 	}
 
 	public static void exportCurrentTask(File directory, Extension extension) {
-		MassExporter.exportGroup(TaskManager.getSelectedTask(), directory, extension);
+		exportGroup(getSelectedTask(), directory, extension);
 	}
 
 	public static void exportCurrentTask(File directory) {
-		MassExporter.exportGroup(TaskManager.getSelectedTask(), directory, Exporter.getDefaultExportExtension());
+		exportGroup(getSelectedTask(), directory, getDefaultExportExtension());
 	}
 
 	public static Set<Group> allGrouppedContents() {
 
-		return TaskManager.getTaskList().stream().map(t -> MassExporter.contents(t)).reduce((a, b) -> {
+		return getTaskList().stream().map(t -> contents(t)).reduce((a, b) -> {
 			a.addAll(b);
 			return a;
 		}).get();
@@ -84,8 +89,8 @@ public class ExportManager {
 
 	public static void exportAllResults(File directory, Extension extension) {
 
-		TaskManager.getTaskList().stream().map(t -> TaskManager.getResult(t))
-				.forEach(r -> ExportManager.export(r, directory, extension));
+		getTaskList().stream().map(t -> getResult(t))
+				.forEach(r -> export(r, directory, extension));
 
 	}
 

@@ -1,16 +1,19 @@
 package pulse.ui.frames;
 
+import static java.awt.BorderLayout.CENTER;
+import static java.awt.Color.BLACK;
+import static java.awt.Font.PLAIN;
+import static java.awt.Window.Type.UTILITY;
+import static pulse.ui.Messages.getString;
+
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.WindowConstants;
 
-import pulse.ui.Messages;
 import pulse.ui.components.PropertyHolderTable;
 import pulse.util.PropertyHolder;
 
@@ -21,7 +24,7 @@ public class DataFrame extends JFrame {
 	private PropertyHolderTable dataTable;
 	private Component ancestorFrame;
 	private PropertyHolder dataObject;
-	private final static Font TABLE_FONT = new Font(Messages.getString("DataFrame.FontName"), Font.PLAIN, 16);
+	private final static Font TABLE_FONT = new Font(getString("DataFrame.FontName"), PLAIN, 16);
 	private final static int ROW_HEIGHT = 50;
 
 	@Override
@@ -38,7 +41,7 @@ public class DataFrame extends JFrame {
 	 * Create the frame.
 	 */
 	public DataFrame(PropertyHolder dataObject, Component ancestor) {
-		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		this.ancestorFrame = ancestor.getParent();
 		this.dataObject = dataObject;
 		if (ancestor != null) {
@@ -46,19 +49,19 @@ public class DataFrame extends JFrame {
 			if (ancestorFrame != null)
 				ancestorFrame.setEnabled(false);
 		}
-		setType(Type.UTILITY);
+		setType(UTILITY);
 		setResizable(false);
 		setAlwaysOnTop(true);
 		setTitle(dataObject.getClass().getSimpleName() + " properties");
 		setBounds(100, 100, 450, 300);
 
 		contentPane = new JPanel();
-		contentPane.setForeground(Color.BLACK);
+		contentPane.setForeground(BLACK);
 		contentPane.setBorder(null);
 		contentPane.setLayout(new BorderLayout(0, 0));
 		setContentPane(contentPane);
-		JScrollPane scrollPane = new JScrollPane();
-		contentPane.add(scrollPane, BorderLayout.CENTER);
+		var scrollPane = new JScrollPane();
+		contentPane.add(scrollPane, CENTER);
 
 		dataTable = new PropertyHolderTable(dataObject);
 		dataTable.setFont(TABLE_FONT);

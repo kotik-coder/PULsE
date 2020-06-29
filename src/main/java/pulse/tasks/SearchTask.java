@@ -1,15 +1,42 @@
 package pulse.tasks;
 
-import static pulse.properties.NumericPropertyKeyword.DENSITY;
-import static pulse.properties.NumericPropertyKeyword.SPECIFIC_HEAT;
+import static pulse.input.InterpolationDataset.getDataset;
+import static pulse.input.listeners.DataEventType.CHANGE_OF_ORIGIN;
+import static pulse.properties.NumericProperty.derive;
 import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
 import static pulse.properties.NumericPropertyKeyword.TIME_LIMIT;
+import static pulse.search.direction.PathOptimiser.activeParameters;
+import static pulse.search.direction.PathOptimiser.getAllFlags;
+import static pulse.search.direction.PathOptimiser.getErrorTolerance;
+import static pulse.search.direction.PathOptimiser.getLinearSolver;
+import static pulse.search.direction.PathOptimiser.getSelectedPathOptimiser;
+import static pulse.search.statistics.ResidualStatistic.getSelectedOptimiserDescriptor;
+import static pulse.tasks.Buffer.getSize;
+import static pulse.tasks.Status.AMBIGUOUS;
+import static pulse.tasks.Status.DONE;
+import static pulse.tasks.Status.FAILED;
+import static pulse.tasks.Status.INCOMPLETE;
+import static pulse.tasks.Status.IN_PROGRESS;
+import static pulse.tasks.Status.READY;
+import static pulse.tasks.Status.TERMINATED;
+import static pulse.tasks.Status.Details.ABNORMAL_DISTRIBUTION_OF_RESIDUALS;
+import static pulse.tasks.Status.Details.INSUFFICIENT_DATA_IN_PROBLEM_STATEMENT;
+import static pulse.tasks.Status.Details.MISSING_BUFFER;
+import static pulse.tasks.Status.Details.MISSING_DIFFERENCE_SCHEME;
+import static pulse.tasks.Status.Details.MISSING_HEATING_CURVE;
+import static pulse.tasks.Status.Details.MISSING_LINEAR_SOLVER;
+import static pulse.tasks.Status.Details.MISSING_PATH_SOLVER;
+import static pulse.tasks.Status.Details.MISSING_PROBLEM_STATEMENT;
+import static pulse.tasks.Status.Details.NONE;
+import static pulse.tasks.Status.Details.PARAMETER_VALUES_NOT_SENSIBLE;
+import static pulse.tasks.Status.Details.SIGNIFICANT_CORRELATION_BETWEEN_PARAMETERS;
+import static pulse.tasks.TaskManager.getSampleName;
+import static pulse.util.Reflexive.instantiate;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
@@ -17,7 +44,6 @@ import pulse.input.ExperimentalData;
 import pulse.input.InterpolationDataset;
 import pulse.input.InterpolationDataset.StandartType;
 import pulse.input.Metadata;
-import pulse.input.listeners.DataEventType;
 import pulse.math.IndexedVector;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.solvers.Solver;
@@ -26,20 +52,16 @@ import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.search.direction.Path;
-import pulse.search.direction.PathOptimiser;
 import pulse.search.statistics.CorrelationTest;
 import pulse.search.statistics.NormalityTest;
 import pulse.search.statistics.RSquaredTest;
 import pulse.search.statistics.ResidualStatistic;
 import pulse.search.statistics.SumOfSquares;
-import pulse.tasks.Status.Details;
 import pulse.tasks.listeners.DataCollectionListener;
 import pulse.tasks.listeners.StatusChangeListener;
 import pulse.ui.components.PropertyHolderTable;
 import pulse.util.Accessible;
 import pulse.util.PropertyEvent;
-import pulse.util.PropertyHolderListener;
-import pulse.util.Reflexive;
 
 /**
  * A {@code SearchTask} is the most important class in {@code PULsE}. It
@@ -66,7 +88,7 @@ public class SearchTask extends Accessible implements Runnable {
 	private CorrelationTest correlationTest;
 
 	private Identifier identifier;
-	private Status status = Status.INCOMPLETE;
+	private Status status = INCOMPLETE;
 
 	private double testTemperature;
 	private double cp, rho;
@@ -129,20 +151,19 @@ public class SearchTask extends Accessible implements Runnable {
 		this.problem = null;
 		this.scheme = null;
 
-		setStatus(Status.INCOMPLETE);
+		setStatus(INCOMPLETE);
 
 		curve.addDataListener(dataEvent -> {
 			if (scheme != null) {
-				double startTime = (double) problem.getHeatingCurve().getTimeShift().getValue();
-				scheme.setTimeLimit(
-						NumericProperty.derive(TIME_LIMIT, RELATIVE_TIME_MARGIN * curve.timeLimit() - startTime));
+				var startTime = (double) problem.getHeatingCurve().getTimeShift().getValue();
+				scheme.setTimeLimit(derive(TIME_LIMIT, RELATIVE_TIME_MARGIN * curve.timeLimit() - startTime));
 			}
 		});
 
 	}
 
 	public List<NumericProperty> alteredParameters() {
-		return PathOptimiser.activeParameters(this).stream().map(key -> this.numericProperty(key))
+		return activeParameters(this).stream().map(key -> this.numericProperty(key))
 				.collect(Collectors.toList());
 	}
 
@@ -157,8 +178,8 @@ public class SearchTask extends Accessible implements Runnable {
 	 */
 
 	public IndexedVector[] searchVector() {
-		var flags = PathOptimiser.getAllFlags();
-		var keywords = PathOptimiser.activeParameters(this);
+		var flags = getAllFlags();
+		var keywords = activeParameters(this);
 		var optimisationVector = new IndexedVector(keywords);
 		var upperBound = new IndexedVector(optimisationVector.getIndices());
 
@@ -201,18 +222,20 @@ public class SearchTask extends Accessible implements Runnable {
 		if (problem == null)
 			return;
 
-		var cpCurve = InterpolationDataset.getDataset(StandartType.SPECIFIC_HEAT);
+		var cpCurve = getDataset(StandartType.SPECIFIC_HEAT);
 
 		if (cpCurve != null) {
 			cp = cpCurve.interpolateAt(testTemperature);
-			problem.set(SPECIFIC_HEAT, NumericProperty.derive(SPECIFIC_HEAT, cp));
+			problem.set(NumericPropertyKeyword.SPECIFIC_HEAT, 
+                                derive(NumericPropertyKeyword.SPECIFIC_HEAT, cp));
 		}
 
-		var rhoCurve = InterpolationDataset.getDataset(StandartType.DENSITY);
+		var rhoCurve = getDataset(StandartType.DENSITY);
 
 		if (rhoCurve != null) {
 			rho = rhoCurve.interpolateAt(testTemperature);
-			problem.set(DENSITY, NumericProperty.derive(DENSITY, rho));
+			problem.set(NumericPropertyKeyword.DENSITY, 
+                                derive(NumericPropertyKeyword.DENSITY, rho));
 		}
 
 	}
@@ -232,7 +255,7 @@ public class SearchTask extends Accessible implements Runnable {
 		try {
 			((Solver) scheme).solve(problem);
 		} catch (SolverException e) {
-			status = Status.FAILED;
+			status = FAILED;
 			System.err.println("Solver of " + this + " has encountered an error. Details: ");
 			e.printStackTrace();
 		}
@@ -261,7 +284,7 @@ public class SearchTask extends Accessible implements Runnable {
 		switch (status) {
 		case READY:
 		case QUEUED:
-			setStatus(Status.IN_PROGRESS);
+			setStatus(IN_PROGRESS);
 			break;
 		default:
 			return;
@@ -271,12 +294,12 @@ public class SearchTask extends Accessible implements Runnable {
 
 		solveProblemAndCalculateDeviation();
 
-		PathOptimiser pathSolver = PathOptimiser.getSelectedPathOptimiser();
+		var pathSolver = getSelectedPathOptimiser();
 
 		path = pathSolver.createPath(this);
 
-		double errorTolerance = (double) PathOptimiser.getErrorTolerance().getValue();
-		int bufferSize = (Integer) Buffer.getSize().getValue();
+		var errorTolerance = (double) getErrorTolerance().getValue();
+		int bufferSize = (Integer) getSize().getValue();
 		buffer.clear();
 		correlationBuffer.clear();
 
@@ -285,26 +308,26 @@ public class SearchTask extends Accessible implements Runnable {
 		/* sets an independent thread for manipulating the buffer */
 
 		List<CompletableFuture<Void>> bufferFutures = new ArrayList<>(bufferSize);
-		ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
+		var singleThreadExecutor = Executors.newSingleThreadExecutor();
 
 		outer: do {
 
 			bufferFutures.clear();
 
-			for (int i = 0; i < bufferSize; i++) {
+			for (var i = 0; i < bufferSize; i++) {
 
-				if (status != Status.IN_PROGRESS)
+				if (status != IN_PROGRESS)
 					break outer;
 
 				try {
 					pathSolver.iteration(this);
 				} catch (SolverException e) {
-					status = Status.FAILED;
+					status = FAILED;
 					System.err.println(this + " failed during execution. Details: ");
 					e.printStackTrace();
 				}
 
-				final int j = i;
+				final var j = i;
 
 				bufferFutures.add(CompletableFuture.runAsync(() -> {
 					buffer.fill(this, j);
@@ -320,7 +343,7 @@ public class SearchTask extends Accessible implements Runnable {
 
 		singleThreadExecutor.shutdown();
 
-		if (status == Status.IN_PROGRESS)
+		if (status == IN_PROGRESS)
 			runChecks();
 
 	}
@@ -328,16 +351,16 @@ public class SearchTask extends Accessible implements Runnable {
 	private void runChecks() {
 
 		if (!normalityTest.test(this)) // first, check if the residuals are normally-distributed
-			setStatus(Status.FAILED, Status.Details.ABNORMAL_DISTRIBUTION_OF_RESIDUALS);
+			setStatus(FAILED, ABNORMAL_DISTRIBUTION_OF_RESIDUALS);
 
 		else {
 
-			boolean test = correlationBuffer.test(correlationTest); // second, check there are no unexpected
+			var test = correlationBuffer.test(correlationTest); // second, check there are no unexpected
 																	// correlations
 			notifyDataListeners(new CorrelationLogEntry(this));
 
 			if (test)
-				setStatus(Status.AMBIGUOUS, Status.Details.SIGNIFICANT_CORRELATION_BETWEEN_PARAMETERS);
+				setStatus(AMBIGUOUS, SIGNIFICANT_CORRELATION_BETWEEN_PARAMETERS);
 			else {
 				// lastly, check if the parameter values estimated in this procedure are
 				// reasonable
@@ -345,9 +368,9 @@ public class SearchTask extends Accessible implements Runnable {
 				var properties = alteredParameters();
 
 				if (properties.stream().anyMatch(np -> !np.validate()))
-					setStatus(Status.FAILED, Status.Details.PARAMETER_VALUES_NOT_SENSIBLE);
+					setStatus(FAILED, PARAMETER_VALUES_NOT_SENSIBLE);
 				else
-					setStatus(Status.DONE);
+					setStatus(DONE);
 
 			}
 
@@ -389,7 +412,7 @@ public class SearchTask extends Accessible implements Runnable {
 	}
 
 	public NumericProperty getTestTemperature() {
-		return NumericProperty.derive(TEST_TEMPERATURE, testTemperature);
+		return derive(TEST_TEMPERATURE, testTemperature);
 	}
 
 	public Path getPath() {
@@ -420,31 +443,25 @@ public class SearchTask extends Accessible implements Runnable {
 		problem.removeListeners();
 		problem.retrieveData(curve);
 
-		problem.addListener(new PropertyHolderListener() {
-
-			@Override
-			public void onPropertyChanged(PropertyEvent event) {
-				if (event.getSource() instanceof Metadata) {
-					problem.estimateSignalRange(curve);
-					problem.useTheoreticalEstimates(curve);
-				} else if (event.getSource() instanceof InterpolationDataset) {
-					problem.useTheoreticalEstimates(curve);
-				} else if (event.getSource() instanceof PropertyHolderTable) {
-					problem.estimateSignalRange(curve);
-				}
-
-			}
-
-		});
+		problem.addListener((PropertyEvent event) -> {
+                    if (event.getSource() instanceof Metadata) {
+                        problem.estimateSignalRange(curve);
+                        problem.useTheoreticalEstimates(curve);
+                    } else if (event.getSource() instanceof InterpolationDataset) {
+                        problem.useTheoreticalEstimates(curve);
+                    } else if (event.getSource() instanceof PropertyHolderTable) {
+                        problem.estimateSignalRange(curve);
+                    }
+        });
 
 		problem.getHeatingCurve().addDataListener(dataEvent -> {
 
-			DataEventType event = dataEvent.getType();
+			var event = dataEvent.getType();
 
-			if (event == DataEventType.CHANGE_OF_ORIGIN) {
-				double upperLimitUpdated = RELATIVE_TIME_MARGIN * curve.timeLimit()
+			if (event == CHANGE_OF_ORIGIN) {
+				var upperLimitUpdated = RELATIVE_TIME_MARGIN * curve.timeLimit()
 						- (double) problem.getHeatingCurve().getTimeShift().getValue();
-				scheme.setTimeLimit(NumericProperty.derive(TIME_LIMIT, upperLimitUpdated));
+				scheme.setTimeLimit(derive(TIME_LIMIT, upperLimitUpdated));
 			}
 
 		});
@@ -463,10 +480,10 @@ public class SearchTask extends Accessible implements Runnable {
 		if (scheme != null && problem != null) {
 			scheme.setParent(this);
 
-			double upperLimit = RELATIVE_TIME_MARGIN * curve.timeLimit()
+			var upperLimit = RELATIVE_TIME_MARGIN * curve.timeLimit()
 					- (double) problem.getHeatingCurve().getTimeShift().getValue();
 
-			scheme.setTimeLimit(NumericProperty.derive(TIME_LIMIT, upperLimit));
+			scheme.setTimeLimit(derive(TIME_LIMIT, upperLimit));
 
 		}
 	}
@@ -522,7 +539,7 @@ public class SearchTask extends Accessible implements Runnable {
 			return;
 
 		this.status = status;
-		status.setDetails(Details.NONE);
+		status.setDetails(NONE);
 		notifyStatusListeners(new StateEntry(this, status));
 	}
 
@@ -546,28 +563,28 @@ public class SearchTask extends Accessible implements Runnable {
 	 */
 
 	public Status checkProblems(boolean updateStatus) {
-		if (status == Status.DONE)
+		if (status == DONE)
 			return status;
 
-		PathOptimiser pathSolver = PathOptimiser.getSelectedPathOptimiser();
-		Status s = Status.INCOMPLETE;
+		var pathSolver = getSelectedPathOptimiser();
+		var s = INCOMPLETE;
 
 		if (problem == null)
-			s.setDetails(Details.MISSING_PROBLEM_STATEMENT);
+			s.setDetails(MISSING_PROBLEM_STATEMENT);
 		else if (!problem.allDetailsPresent())
-			s.setDetails(Details.INSUFFICIENT_DATA_IN_PROBLEM_STATEMENT);
+			s.setDetails(INSUFFICIENT_DATA_IN_PROBLEM_STATEMENT);
 		else if (scheme == null)
-			s.setDetails(Details.MISSING_DIFFERENCE_SCHEME);
+			s.setDetails(MISSING_DIFFERENCE_SCHEME);
 		else if (curve == null)
-			s.setDetails(Details.MISSING_HEATING_CURVE);
+			s.setDetails(MISSING_HEATING_CURVE);
 		else if (pathSolver == null)
-			s.setDetails(Details.MISSING_PATH_SOLVER);
-		else if (PathOptimiser.getLinearSolver() == null)
-			s.setDetails(Details.MISSING_LINEAR_SOLVER);
+			s.setDetails(MISSING_PATH_SOLVER);
+		else if (getLinearSolver() == null)
+			s.setDetails(MISSING_LINEAR_SOLVER);
 		else if (buffer == null)
-			s.setDetails(Details.MISSING_BUFFER);
+			s.setDetails(MISSING_BUFFER);
 		else
-			s = Status.READY;
+			s = READY;
 
 		if (updateStatus)
 			setStatus(s);
@@ -584,13 +601,13 @@ public class SearchTask extends Accessible implements Runnable {
 	}
 
 	private void notifyDataListeners(LogEntry e) {
-		for (DataCollectionListener l : listeners) {
+		for (var l : listeners) {
                     l.onDataCollected(e);
                 }
 	}
 
 	private void notifyStatusListeners(StateEntry e) {
-		for (StatusChangeListener l : statusChangeListeners) {
+		for (var l : statusChangeListeners) {
                     l.onStatusChange(e);
                 }
 	}
@@ -598,10 +615,10 @@ public class SearchTask extends Accessible implements Runnable {
 	@Override
 	public String describe() {
 
-		StringBuilder sb = new StringBuilder();
-		sb.append(TaskManager.getSampleName());
+		var sb = new StringBuilder();
+		sb.append(getSampleName());
 		sb.append("_Task_");
-		int extId = curve.getMetadata().getExternalID();
+		var extId = curve.getMetadata().getExternalID();
 		if (extId < 0)
 			sb.append("IntID_" + identifier.getValue());
 		else
@@ -623,7 +640,7 @@ public class SearchTask extends Accessible implements Runnable {
 		case IN_PROGRESS:
 		case QUEUED:
 		case READY:
-			setStatus(Status.TERMINATED);
+			setStatus(TERMINATED);
 			break;
 		default:
 			return;
@@ -666,7 +683,8 @@ public class SearchTask extends Accessible implements Runnable {
 	}
 
 	public void initNormalityTest() {
-		normalityTest = Reflexive.instantiate(NormalityTest.class, NormalityTest.getSelectedTestDescriptor());
+		normalityTest = instantiate(NormalityTest.class, 
+                        NormalityTest.getSelectedTestDescriptor());
 
 		if (normalityTest instanceof RSquaredTest && rs instanceof SumOfSquares)
 			((RSquaredTest) normalityTest).setSumOfSquares((SumOfSquares) rs);
@@ -675,12 +693,13 @@ public class SearchTask extends Accessible implements Runnable {
 	}
 
 	public void initOptimiser() {
-		rs = Reflexive.instantiate(ResidualStatistic.class, ResidualStatistic.getSelectedOptimiserDescriptor());
+		rs = instantiate(ResidualStatistic.class, getSelectedOptimiserDescriptor());
 		rs.setParent(this);
 	}
 
 	public void initCorrelationTest() {
-		correlationTest = Reflexive.instantiate(CorrelationTest.class, CorrelationTest.getSelectedTestDescriptor());
+		correlationTest = instantiate(CorrelationTest.class, 
+                        CorrelationTest.getSelectedTestDescriptor());
 		correlationTest.setParent(this);
 	}
 

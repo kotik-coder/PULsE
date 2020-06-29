@@ -1,23 +1,25 @@
 package pulse.ui.components.controllers;
 
+import static java.awt.Color.white;
+import static java.awt.Font.PLAIN;
+import static pulse.ui.Messages.getString;
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
 
 import javax.swing.JFormattedTextField;
 import javax.swing.JTable;
-import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableCellRenderer;
 
 import pulse.properties.NumericProperty;
 import pulse.properties.Property;
-import pulse.ui.Messages;
 
 @SuppressWarnings("serial")
 public class NumericPropertyRenderer extends DefaultTableCellRenderer {
 
 	protected static final Color LIGHT_BLUE = new Color(175, 238, 238);
-	private final static Font font = new Font(Messages.getString("PropertyHolderTable.FontName"), Font.PLAIN, 14);
+	private final static Font font = new Font(getString("PropertyHolderTable.FontName"), PLAIN, 14);
 
 	public NumericPropertyRenderer() {
 		super();
@@ -36,16 +38,16 @@ public class NumericPropertyRenderer extends DefaultTableCellRenderer {
 	}
 
 	protected static JFormattedTextField initTextField(String text, boolean rowSelected) {
-		JFormattedTextField jtf = new JFormattedTextField(text);
+		var jtf = new JFormattedTextField(text);
 		jtf.setOpaque(true);
 		jtf.setBorder(null);
-		jtf.setHorizontalAlignment(SwingConstants.CENTER);
+		jtf.setHorizontalAlignment(CENTER);
 		jtf.setFont(font);
 
 		if (rowSelected)
 			jtf.setBackground(LIGHT_BLUE);
 		else
-			jtf.setBackground(Color.white);
+			jtf.setBackground(white);
 
 		return jtf;
 	}

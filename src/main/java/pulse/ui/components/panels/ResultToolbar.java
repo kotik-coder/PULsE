@@ -1,5 +1,7 @@
 package pulse.ui.components.panels;
 
+import static pulse.ui.Launcher.loadIcon;
+
 import java.awt.GridLayout;
 import java.util.ArrayList;
 import java.util.List;
@@ -7,7 +9,6 @@ import java.util.List;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 
-import pulse.ui.Launcher;
 import pulse.ui.components.listeners.ResultRequestListener;
 
 @SuppressWarnings("serial")
@@ -29,11 +30,11 @@ public class ResultToolbar extends JPanel {
 	}
 
 	public void initComponents() {
-		deleteEntryBtn = new JButton(Launcher.loadIcon("remove.png", ICON_SIZE));
-		mergeBtn = new JButton(Launcher.loadIcon("merge.png", ICON_SIZE));
-		undoBtn = new JButton(Launcher.loadIcon("reset.png", ICON_SIZE));
-		previewBtn = new JButton(Launcher.loadIcon("preview.png", ICON_SIZE));
-		saveResultsBtn = new JButton(Launcher.loadIcon("save.png", ICON_SIZE));
+		deleteEntryBtn = new JButton(loadIcon("remove.png", ICON_SIZE));
+		mergeBtn = new JButton(loadIcon("merge.png", ICON_SIZE));
+		undoBtn = new JButton(loadIcon("reset.png", ICON_SIZE));
+		previewBtn = new JButton(loadIcon("preview.png", ICON_SIZE));
+		saveResultsBtn = new JButton(loadIcon("save.png", ICON_SIZE));
 		setLayout(new GridLayout(5, 0));
 
 		deleteEntryBtn.setToolTipText("Delete Entry");

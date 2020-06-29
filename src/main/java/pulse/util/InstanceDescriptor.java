@@ -1,5 +1,8 @@
 package pulse.util;
 
+import static pulse.util.Reflexive.allSubclassesNames;
+import static pulse.util.Reflexive.instancesOf;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -15,7 +18,7 @@ public class InstanceDescriptor<T extends Reflexive> implements Property {
 	private List<DescriptorChangeListener> listeners = new ArrayList<DescriptorChangeListener>();
 
 	public InstanceDescriptor(String generalDescriptor, Class<T> c, Object... arguments) {
-		allDescriptors = Reflexive.allSubclassesNames(c);
+		allDescriptors = allSubclassesNames(c);
 		selectedDescriptor = allDescriptors.iterator().next();
 		this.generalDescriptor = generalDescriptor;
 	}
@@ -25,9 +28,9 @@ public class InstanceDescriptor<T extends Reflexive> implements Property {
 	}
 
 	public <K extends Reflexive> K newInstance(Class<K> c, Object... arguments) {
-		var instances = Reflexive.instancesOf(c, arguments);
+		var instances = instancesOf(c, arguments);
 
-		for (K r : instances) {
+		for (var r : instances) {
 			if (getValue().equals(r.getClass().getSimpleName()))
 				return r;
 		}
@@ -37,7 +40,7 @@ public class InstanceDescriptor<T extends Reflexive> implements Property {
 
 	public void setSelectedDescriptor(String selectedDescriptor) {
 		this.selectedDescriptor = selectedDescriptor;
-		for (DescriptorChangeListener l : listeners) {
+		for (var l : listeners) {
                     l.onDescriptorChanged();
                 }
 	}

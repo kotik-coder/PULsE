@@ -1,15 +1,14 @@
 package pulse.ui.frames;
 
-import java.awt.BorderLayout;
+import static java.awt.BorderLayout.CENTER;
+import static java.awt.BorderLayout.PAGE_START;
+import static pulse.tasks.TaskManager.clear;
 
 import javax.swing.JInternalFrame;
 import javax.swing.JScrollPane;
 import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
 
-import pulse.tasks.TaskManager;
 import pulse.ui.components.TaskTable;
 import pulse.ui.components.TaskTable.TaskTableModel;
 import pulse.ui.components.listeners.TaskActionListener;
@@ -39,7 +38,7 @@ public class TaskManagerFrame extends JInternalFrame {
 
 			@Override
 			public void onClearRequest() {
-				TaskManager.clear();
+				clear();
 			}
 
 			@Override
@@ -59,51 +58,41 @@ public class TaskManagerFrame extends JInternalFrame {
 		var taskScrollPane = new JScrollPane();
 		taskTable = new TaskTable();
 		taskScrollPane.setViewportView(taskTable);
-		getContentPane().add(taskScrollPane, BorderLayout.CENTER);
+		getContentPane().add(taskScrollPane, CENTER);
 		taskToolbar = new TaskToolbar();
-		getContentPane().add(taskToolbar, BorderLayout.PAGE_START);
+		getContentPane().add(taskToolbar, PAGE_START);
 	}
 
 	private void adjustEnabledControls() {
-		TaskTableModel ttm = (TaskTableModel) taskTable.getModel();
+		var ttm = (TaskTableModel) taskTable.getModel();
 
-		ttm.addTableModelListener(new TableModelListener() {
+		ttm.addTableModelListener((TableModelEvent arg0) -> {
+                    if (ttm.getRowCount() < 1) {
+                        taskToolbar.setClearEnabled(false);
+                        taskToolbar.setResetEnabled(false);
+                        taskToolbar.setExecEnabled(false);
+                    } else {
+                        taskToolbar.setClearEnabled(true);
+                        taskToolbar.setResetEnabled(true);
+                        taskToolbar.setExecEnabled(true);
+                    }
+        });
 
-			@Override
-			public void tableChanged(TableModelEvent arg0) {
-				if (ttm.getRowCount() < 1) {
-					taskToolbar.setClearEnabled(false);
-					taskToolbar.setResetEnabled(false);
-					taskToolbar.setExecEnabled(false);
-				} else {
-					taskToolbar.setClearEnabled(true);
-					taskToolbar.setResetEnabled(true);
-					taskToolbar.setExecEnabled(true);
-				}
-			}
-
-		});
-
-		taskTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-
-			@Override
-			public void valueChanged(ListSelectionEvent arg0) {
-				int[] selection = taskTable.getSelectedRows();
-				if (taskTable.getSelectedRow() < 0) {
-					taskToolbar.setRemoveEnabled(false);
-					taskToolbar.setGraphEnabled(false);
-				} else {
-					if (selection.length > 1) {
-						taskToolbar.setRemoveEnabled(false);
-						taskToolbar.setGraphEnabled(false);
-					} else if (selection.length > 0) {
-						taskToolbar.setRemoveEnabled(true);
-						taskToolbar.setGraphEnabled(true);
-					}
-				}
-			}
-
-		});
+		taskTable.getSelectionModel().addListSelectionListener((ListSelectionEvent arg0) -> {
+            var selection = taskTable.getSelectedRows();
+            if (taskTable.getSelectedRow() < 0) {
+                taskToolbar.setRemoveEnabled(false);
+                taskToolbar.setGraphEnabled(false);
+            } else {
+                if (selection.length > 1) {
+                    taskToolbar.setRemoveEnabled(false);
+                    taskToolbar.setGraphEnabled(false);
+                } else if (selection.length > 0) {
+                    taskToolbar.setRemoveEnabled(true);
+                    taskToolbar.setGraphEnabled(true);
+                }
+            }
+        });
 	}
 
 	public TaskToolbar getTaskToolbar() {

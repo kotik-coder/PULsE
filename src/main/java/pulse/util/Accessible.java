@@ -1,14 +1,14 @@
 package pulse.util;
 
+import static java.lang.System.err;
+import static java.util.stream.Collectors.toList;
+
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.stream.Collectors;
 
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
@@ -61,31 +61,29 @@ public abstract class Accessible extends Group {
 	public Set<NumericProperty> numericProperties() {
 		Set<NumericProperty> fields = new TreeSet<>();
 
-		Method[] methods = this.getClass().getMethods();
-
-		for (Method m : methods) {
+		var methods = this.getClass().getMethods();
+		for (var m : methods) {
 
 			if (m.getParameterCount() > 0)
 				continue;
 
 			if (NumericProperty.class.isAssignableFrom(m.getReturnType()))
 				try {
-					Object obj = m.invoke(this);
+					var obj = m.invoke(this);
 					if (obj != null)
 						fields.add((NumericProperty) m.invoke(this));
 				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-					System.err.println("Error invoking method " + m);
+					err.println("Error invoking method " + m);
 					e.printStackTrace();
 				}
 
 		}
-
 		/*
 		 * Get access to the numeric properties of accessibles contained in this
 		 * accessible
 		 */
 
-		for (Accessible a : accessibleChildren()) {
+		for (var a : accessibleChildren()) {
                     fields.addAll(a.numericProperties());
                 }
 
@@ -105,9 +103,8 @@ public abstract class Accessible extends Group {
 	public List<Property> genericProperties() {
 		List<Property> fields = new ArrayList<>();
 
-		Method[] methods = this.getClass().getMethods();
-
-		for (Method m : methods) {
+		var methods = this.getClass().getMethods();
+		for (var m : methods) {
 
 			if (m.getParameterCount() > 0)
 				continue;
@@ -117,17 +114,16 @@ public abstract class Accessible extends Group {
 				try {
 					fields.add((Property) m.invoke(this));
 				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-					System.err.println("Error invoking method " + m);
+					err.println("Error invoking method " + m);
 					e.printStackTrace();
 				}
 
 		}
-
 		/*
 		 * Get access to the properties of accessibles contained in this accessible
 		 */
 
-		for (Accessible a : accessibleChildren()) {
+		for (var a : accessibleChildren()) {
                     fields.addAll(a.genericProperties());
                 }
 
@@ -152,14 +148,14 @@ public abstract class Accessible extends Group {
 
 	public NumericProperty numericProperty(NumericPropertyKeyword type) {
 
-		Optional<NumericProperty> match = numericProperties().stream().filter(p -> p.getType() == type).findFirst();
+		var match = numericProperties().stream().filter(p -> p.getType() == type).findFirst();
 
 		if (match.isPresent())
 			return match.get();
 
 		NumericProperty property = null;
 
-		for (Accessible accessible : accessibleChildren()) {
+		for (var accessible : accessibleChildren()) {
 			property = accessible.numericProperty(type);
 			if (property != null)
 				break;
@@ -184,7 +180,7 @@ public abstract class Accessible extends Group {
 
 	public Property genericProperty(Property sameClass) {
 
-		Optional<Property> match = genericProperties().stream().filter(p -> p.getClass().equals(sameClass.getClass()))
+		var match = genericProperties().stream().filter(p -> p.getClass().equals(sameClass.getClass()))
 				.findFirst();
 
 		if (match.isPresent())
@@ -192,7 +188,7 @@ public abstract class Accessible extends Group {
 
 		Property p = null;
 
-		for (Accessible accessible : accessibleChildren()) {
+		for (var accessible : accessibleChildren()) {
 			p = accessible.genericProperty(sameClass);
 			if (p != null)
 				break;
@@ -243,20 +239,20 @@ public abstract class Accessible extends Group {
 	@SuppressWarnings("unchecked")
 	public void update(Property property) {
 
-		List<Accessible> children = accessibleChildren();
+		var children = accessibleChildren();
 
 		if (property instanceof NumericProperty) {
-			NumericProperty p = (NumericProperty) property;
+			var p = (NumericProperty) property;
 			this.set(p.getType(), p);
-			for (Accessible a : children) {
+			for (var a : children) {
                             a.set(p.getType(), p);
                         }
 			return;
 		}
 
-		Method[] methods = this.getClass().getMethods();
+		var methods = this.getClass().getMethods();
 
-		outer: for (Method m : methods) {
+		outer: for (var m : methods) {
 
 			if (m.getParameterCount() == 2) {
 
@@ -269,13 +265,13 @@ public abstract class Accessible extends Group {
 				if (Iterable.class.isAssignableFrom(m.getParameterTypes()[0])
 						&& property.getClass().equals(m.getParameterTypes()[1])) {
 
-					for (Method met : methods) {
+					for (var met : methods) {
                                             if (met.getReturnType().equals(m.getParameterTypes()[0]) && (met.getParameterCount() == 0)) {
                                                 Iterable<Property> returnType = null;
                                                 try {
                                                     returnType = (Iterable<Property>) met.invoke(this);
                                                 } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-                                                    System.err.println("Cannot invoke method: " + met);
+                                                    err.println("Cannot invoke method: " + met);
                                                     e.printStackTrace();
                                                 }
                                                 Iterator<?> iterator = returnType.iterator();
@@ -289,7 +285,7 @@ public abstract class Accessible extends Group {
                                                 try {
                                                     m.invoke(this, met.invoke(this), property);
                                                 } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-                                                    System.err.println("Cannot invoked method " + m);
+                                                    err.println("Cannot invoked method " + m);
                                                     e.printStackTrace();
                                                 }
                                             }
@@ -312,7 +308,7 @@ public abstract class Accessible extends Group {
 
 				Property correspondingProperty = null;
 
-				for (Method mm : methods) {
+				for (var mm : methods) {
 					if (mm.getParameterCount() == 0)
 						if (mm.getReturnType().equals(property.getClass())) {
 							try {
@@ -326,7 +322,7 @@ public abstract class Accessible extends Group {
 								}
 
 							} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-								System.err.println("Unable to verify if the property " + property + " is defined in "
+								err.println("Unable to verify if the property " + property + " is defined in "
 										+ getClass());
 								e.printStackTrace();
 							}
@@ -338,7 +334,7 @@ public abstract class Accessible extends Group {
 				try {
 					m.invoke(this, property);
 				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-					System.err.println("Cannot invoked method " + m);
+					err.println("Cannot invoked method " + m);
 					e.printStackTrace();
 				}
 
@@ -350,7 +346,7 @@ public abstract class Accessible extends Group {
 		 * if above doesn't work: refer to children
 		 */
 
-		for (Accessible a : children) {
+		for (var a : children) {
                     a.update(property);
                 }
 
@@ -369,7 +365,7 @@ public abstract class Accessible extends Group {
 
 	public List<Accessible> accessibleChildren() {
 		return children().stream().filter(group -> group instanceof Accessible).map(acGroup -> (Accessible) acGroup)
-				.collect(Collectors.toList());
+				.collect(toList());
 	}
 
 }

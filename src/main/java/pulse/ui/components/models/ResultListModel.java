@@ -1,12 +1,14 @@
 package pulse.ui.components.models;
 
+import static pulse.tasks.ResultFormat.getInstance;
+import static pulse.tasks.ResultFormat.getMinimalArray;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.AbstractListModel;
 
 import pulse.properties.NumericPropertyKeyword;
-import pulse.tasks.ResultFormat;
 
 public class ResultListModel extends AbstractListModel<NumericPropertyKeyword> {
 
@@ -23,7 +25,7 @@ public class ResultListModel extends AbstractListModel<NumericPropertyKeyword> {
 
 	public void update() {
 		elements.clear();
-		elements.addAll(ResultFormat.getInstance().getKeywords());
+		elements.addAll(getInstance().getKeywords());
 	}
 
         @Override
@@ -38,7 +40,7 @@ public class ResultListModel extends AbstractListModel<NumericPropertyKeyword> {
 
 	public void add(NumericPropertyKeyword key) {
 		elements.add(key);
-		int size = this.getSize();
+		var size = this.getSize();
 		this.fireContentsChanged(this, size - 1, size);
 	}
 
@@ -46,12 +48,11 @@ public class ResultListModel extends AbstractListModel<NumericPropertyKeyword> {
 		if (!elements.contains(key))
 			return;
 
-		for (NumericPropertyKeyword keyMin : ResultFormat.getMinimalArray()) {
+		for (var keyMin : getMinimalArray()) {
                     if (key == keyMin)
                         return;
                 }
-
-		int index = elements.indexOf(key);
+		var index = elements.indexOf(key);
 		elements.remove(key);
 		this.fireContentsChanged(this, index - 1, index);
 

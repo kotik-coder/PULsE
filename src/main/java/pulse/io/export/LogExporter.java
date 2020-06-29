@@ -1,5 +1,7 @@
 package pulse.io.export;
 
+import static pulse.io.export.Extension.HTML;
+
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 
@@ -24,7 +26,7 @@ public class LogExporter implements Exporter<Log> {
 
 	@Override
 	public void printToStream(Log log, FileOutputStream fos, Extension extension) {
-		PrintStream stream = new PrintStream(fos);
+		var stream = new PrintStream(fos);
 		stream.print(log.toString());
 	}
 
@@ -35,7 +37,7 @@ public class LogExporter implements Exporter<Log> {
 
 	@Override
 	public Extension[] getSupportedExtensions() {
-		return new Extension[] { Extension.HTML };
+		return new Extension[] { HTML};
 	}
 
 }

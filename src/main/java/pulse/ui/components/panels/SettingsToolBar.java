@@ -1,18 +1,22 @@
 package pulse.ui.components.panels;
 
+import static java.awt.Font.PLAIN;
+import static java.awt.GridBagConstraints.BOTH;
+import static javax.swing.Box.createHorizontalStrut;
+import static pulse.problem.statements.Problem.isSingleStatement;
+import static pulse.problem.statements.Problem.setSingleStatement;
+import static pulse.ui.Messages.getString;
+
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 
-import javax.swing.Box;
 import javax.swing.JCheckBox;
 import javax.swing.JToolBar;
 import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.statements.Problem;
-import pulse.ui.Messages;
 import pulse.ui.components.PropertyHolderTable;
 import pulse.ui.components.TaskBox;
 
@@ -22,26 +26,26 @@ public class SettingsToolBar extends JToolBar {
 
 	private JCheckBox cbSingleStatement, cbHideDetails;
 
-	private Font f = new Font(Messages.getString("TaskSelectionToolBar.FontName"), Font.PLAIN, 14); //$NON-NLS-1$
+	private Font f = new Font(getString("TaskSelectionToolBar.FontName"), PLAIN, 14); //$NON-NLS-1$
 
 	public SettingsToolBar(PropertyHolderTable... tables) {
 		super();
 		setFloatable(false);
 
-		TaskBox taskBox = new TaskBox();
+		var taskBox = new TaskBox();
 
-		cbSingleStatement = new JCheckBox(Messages.getString("TaskSelectionToolBar.ApplyToAll")); //$NON-NLS-1$
-		cbSingleStatement.setSelected(Problem.isSingleStatement());
+		cbSingleStatement = new JCheckBox(getString("TaskSelectionToolBar.ApplyToAll")); //$NON-NLS-1$
+		cbSingleStatement.setSelected(isSingleStatement());
 		cbSingleStatement.setFont(f);
 
-		cbHideDetails = new JCheckBox(Messages.getString("TaskSelectionToolBar.Hide")); //$NON-NLS-1$
+		cbHideDetails = new JCheckBox(getString("TaskSelectionToolBar.Hide")); //$NON-NLS-1$
 		cbHideDetails.setSelected(true);
 		cbHideDetails.setFont(f);
 
 		setLayout(new GridBagLayout());
 
-		GridBagConstraints gbc = new GridBagConstraints();
-		gbc.fill = GridBagConstraints.BOTH;
+		var gbc = new GridBagConstraints();
+		gbc.fill = BOTH;
 		gbc.weightx = 3.0;
 		gbc.gridx = 0;
 		gbc.gridy = 0;
@@ -50,40 +54,29 @@ public class SettingsToolBar extends JToolBar {
 
 		gbc.gridx = 1;
 		gbc.weightx = 1.0;
-		add(Box.createHorizontalStrut(5), gbc);
+		add(createHorizontalStrut(5), gbc);
 
 		gbc.gridx = 2;
 		gbc.weightx = 1.0;
 
 		add(cbSingleStatement, gbc);
 
-		cbSingleStatement.addChangeListener(new ChangeListener() {
-
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				Problem.setSingleStatement(cbSingleStatement.isSelected());
-			}
-
-		});
+		cbSingleStatement.addChangeListener((ChangeEvent e) -> {
+            setSingleStatement(cbSingleStatement.isSelected());
+        });
 
 		gbc.gridx = 3;
 
 		add(cbHideDetails, gbc);
 
-		cbHideDetails.addChangeListener(new ChangeListener() {
-
-			@Override
-			public void stateChanged(ChangeEvent e) {
-
-				boolean selected = cbHideDetails.isSelected();
-				Problem.setDetailsHidden(selected);
-				DifferenceScheme.setDetailsHidden(selected);
-				for (PropertyHolderTable table : tables) {
-                                    table.updateTable();
-                                }
-			}
-
-		});
+		cbHideDetails.addChangeListener((ChangeEvent e) -> {
+            var selected = cbHideDetails.isSelected();
+            Problem.setDetailsHidden(selected);
+            DifferenceScheme.setDetailsHidden(selected);
+            for (var table : tables) {
+                table.updateTable();
+            }
+        });
 
 	}
 

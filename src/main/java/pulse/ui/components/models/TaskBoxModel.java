@@ -1,14 +1,19 @@
 package pulse.ui.components.models;
 
+import static pulse.tasks.TaskManager.addTaskRepositoryListener;
+import static pulse.tasks.TaskManager.getSelectedTask;
+import static pulse.tasks.TaskManager.getTaskList;
+import static pulse.tasks.TaskManager.numberOfTasks;
+import static pulse.tasks.listeners.TaskRepositoryEvent.State.TASK_ADDED;
+import static pulse.tasks.listeners.TaskRepositoryEvent.State.TASK_REMOVED;
+import static pulse.ui.Messages.getString;
+
 import javax.swing.AbstractListModel;
 import javax.swing.ComboBoxModel;
 
 import pulse.tasks.Identifier;
 import pulse.tasks.SearchTask;
-import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.TaskRepositoryEvent;
-import pulse.tasks.listeners.TaskRepositoryListener;
-import pulse.ui.Messages;
 
 /*
  * BASED ON DefaultComboBoxModel
@@ -23,30 +28,27 @@ public class TaskBoxModel extends AbstractListModel<SearchTask> implements Combo
 	protected SearchTask selectedTask;
 
 	public TaskBoxModel() {
-		selectedTask = TaskManager.getSelectedTask();
+		selectedTask = getSelectedTask();
 
-		TaskManager.addTaskRepositoryListener(new TaskRepositoryListener() {
-
-			@Override
-			public void onTaskListChanged(TaskRepositoryEvent e) {
-				if (e.getState() == TaskRepositoryEvent.State.TASK_ADDED)
-					notifyTaskAdded(e.getId());
-				if (e.getState() == TaskRepositoryEvent.State.TASK_REMOVED)
-					notifyTaskRemoved(e.getId());
-			}
-
-		});
+		addTaskRepositoryListener((TaskRepositoryEvent e) -> {
+            if (e.getState() == TASK_ADDED) {
+                notifyTaskAdded(e.getId());
+            }
+            if (e.getState() == TASK_REMOVED) {
+                notifyTaskRemoved(e.getId());
+            }
+        });
 
 	}
 
 	@Override
 	public int getSize() {
-		return TaskManager.numberOfTasks();
+		return numberOfTasks();
 	}
 
 	@Override
 	public SearchTask getElementAt(int index) {
-		return TaskManager.getTaskList().get(index);
+		return getTaskList().get(index);
 	}
 
 	@Override
@@ -56,14 +58,14 @@ public class TaskBoxModel extends AbstractListModel<SearchTask> implements Combo
 			return;
 
 		if (!(anItem instanceof SearchTask))
-			throw new IllegalArgumentException(Messages.getString("TaskBoxModel.WrongClassError")); //$NON-NLS-1$
+			throw new IllegalArgumentException(getString("TaskBoxModel.WrongClassError")); //$NON-NLS-1$
 
 		// object is already selected so no change required.
 		if (selectedTask != null && selectedTask.equals(anItem))
 			return;
 
 		// Simply return if object is not in the list.
-		if (selectedTask != null && !TaskManager.getTaskList().contains(anItem))
+		if (selectedTask != null && !getTaskList().contains(anItem))
 			return;
 
 		// Here we know that object is either an item in the list or null.
@@ -76,7 +78,7 @@ public class TaskBoxModel extends AbstractListModel<SearchTask> implements Combo
 	}
 
 	public int getSelectedIndex() {
-		return TaskManager.getTaskList().indexOf(selectedTask);
+		return getTaskList().indexOf(selectedTask);
 	}
 
 	@Override
@@ -85,12 +87,12 @@ public class TaskBoxModel extends AbstractListModel<SearchTask> implements Combo
 	}
 
 	private void notifyTaskAdded(Identifier id) {
-		int index = (int) id.getValue();
+		var index = (int) id.getValue();
 		fireIntervalAdded(this, index, index);
 	}
 
 	private void notifyTaskRemoved(Identifier id) {
-		int index = (int) id.getValue();
+		var index = (int) id.getValue();
 		fireIntervalRemoved(this, index, index);
 	}
 

@@ -1,8 +1,11 @@
 package pulse.io.export;
 
+import static java.io.File.separator;
+import static java.lang.System.err;
+import static pulse.io.export.ExportManager.export;
+
 import java.io.File;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 
 import pulse.util.Group;
@@ -39,12 +42,12 @@ public class MassExporter {
 
 			);
 
-			for (Iterator<Group> it = contents.iterator(); it.hasNext();) {
-                            MassExporter.contents(it.next()).stream().forEach(a -> contents.add(a));
+			for (var it = contents.iterator(); it.hasNext();) {
+                            contents(it.next()).stream().forEach(a -> contents.add(a));
                         }
 
 		} catch (IllegalArgumentException e) {
-			System.err.println("Unable to generate saveable contents for " + root.getClass());
+			err.println("Unable to generate saveable contents for " + root.getClass());
 			e.printStackTrace();
 		}
 
@@ -55,12 +58,12 @@ public class MassExporter {
 		if (!directory.isDirectory())
 			throw new IllegalArgumentException("Not a directory: " + directory);
 
-		File internalDirectory = new File(directory + File.separator + ac.describe() + File.separator);
+		var internalDirectory = new File(directory + separator + ac.describe() + separator);
 		internalDirectory.mkdirs();
 
-		ExportManager.export(ac, directory, extension);
+		export(ac, directory, extension);
 		contents(ac).stream().forEach(internalHolder -> {
-			ExportManager.export(internalHolder, internalDirectory, extension);
+			export(internalHolder, internalDirectory, extension);
 		});
 	}
 

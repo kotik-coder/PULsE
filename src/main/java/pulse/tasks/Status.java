@@ -93,11 +93,10 @@ public enum Status {
 	}
 
 	private static String parse(String str) {
-		String[] tokens = str.split("_");
-		StringBuilder sb = new StringBuilder();
-		final char BLANK_SPACE = ' ';
-
-		for (String t : tokens) {
+		var tokens = str.split("_");
+		var sb = new StringBuilder();
+		final var BLANK_SPACE = ' ';
+		for (var t : tokens) {
 			sb.append(t.toLowerCase());
 			sb.append(BLANK_SPACE);
 		}
@@ -111,7 +110,7 @@ public enum Status {
 	}
 
 	public String getMessage() {
-		StringBuilder sb = new StringBuilder();
+		var sb = new StringBuilder();
 		sb.append(toString());
 		if (details != null)
 			sb.append(" : ").append(details.toString());

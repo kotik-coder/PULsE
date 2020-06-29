@@ -1,6 +1,10 @@
 package pulse.ui.frames.dialogs;
 
-import java.awt.BorderLayout;
+import static java.awt.BorderLayout.CENTER;
+import static java.lang.System.err;
+import static javax.swing.UIManager.getColor;
+import static pulse.ui.Messages.getString;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -8,12 +12,9 @@ import java.io.InputStreamReader;
 import javax.swing.JDialog;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
-import javax.swing.UIManager;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
-
-import pulse.ui.Messages;
 
 @SuppressWarnings("serial")
 public class AboutDialog extends JDialog {
@@ -23,14 +24,13 @@ public class AboutDialog extends JDialog {
 
 	public AboutDialog() {
 
-		setTitle(Messages.getString("TaskControlFrame.AboutDialog"));
+		setTitle(getString("TaskControlFrame.AboutDialog"));
 		setAlwaysOnTop(true);
 		setSize(WIDTH, HEIGHT);
 
-		BufferedReader reader = new BufferedReader(
+		var reader = new BufferedReader(
 				new InputStreamReader(getClass().getResourceAsStream("/About.html")));
-
-		StringBuilder sb = new StringBuilder();
+		var sb = new StringBuilder();
 		String str;
 
 		try {
@@ -41,24 +41,24 @@ public class AboutDialog extends JDialog {
 			e1.printStackTrace();
 		}
 
-		JTextPane textPane = new JTextPane();
-		textPane.setBackground(UIManager.getColor("Panel.background"));
+		var textPane = new JTextPane();
+		textPane.setBackground(getColor("Panel.background"));
 		textPane.setEditable(false);
 		textPane.setContentType("text/html");
 
-		final HTMLDocument doc = (HTMLDocument) textPane.getDocument();
-		final HTMLEditorKit kit = (HTMLEditorKit) textPane.getEditorKit();
+		final var doc = (HTMLDocument) textPane.getDocument();
+		final var kit = (HTMLEditorKit) textPane.getEditorKit();
 		try {
 			kit.insertHTML(doc, doc.getLength(), sb.toString(), 0, 0, null);
 		} catch (BadLocationException e) {
-			System.err.println(Messages.getString("LogPane.InsertError")); //$NON-NLS-1$
+			err.println(getString("LogPane.InsertError")); //$NON-NLS-1$
 			e.printStackTrace();
 		} catch (IOException e) {
-			System.err.println(Messages.getString("LogPane.PrintError")); //$NON-NLS-1$
+			err.println(getString("LogPane.PrintError")); //$NON-NLS-1$
 			e.printStackTrace();
 		}
 
-		getContentPane().add(new JScrollPane(textPane), BorderLayout.CENTER);
+		getContentPane().add(new JScrollPane(textPane), CENTER);
 
 	}
 

@@ -26,7 +26,7 @@ public class ImmutablePair<T> {
 		if (this == o)
 			return true;
 
-		ImmutablePair<?> ip = (ImmutablePair<?>) o;
+		var ip = (ImmutablePair<?>) o;
 
 		// direct order
 		if (this.getFirst().equals(ip.getFirst()) && this.getSecond().equals(ip.getSecond()))

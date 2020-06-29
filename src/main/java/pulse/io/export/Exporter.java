@@ -54,15 +54,15 @@ public interface Exporter<T extends Descriptive> extends Reflexive {
 
 	public default void export(T target, File directory, Extension extension) {
 
-		Extension supportedExtension = extension;
+		var supportedExtension = extension;
 
 		if (!Arrays.stream(getSupportedExtensions()).anyMatch(extension::equals))
 			supportedExtension = getDefaultExportExtension(); // revert to default extension
 
 		try {
-			File newFile = new File(directory, target.describe() + "." + supportedExtension);
+			var newFile = new File(directory, target.describe() + "." + supportedExtension);
 			newFile.createNewFile();
-			FileOutputStream fos = new FileOutputStream(newFile);
+			var fos = new FileOutputStream(newFile);
 			printToStream(target, fos, supportedExtension);
 
 		} catch (IOException e) {
@@ -82,14 +82,13 @@ public interface Exporter<T extends Descriptive> extends Reflexive {
 	 */
 
 	public default void askToExport(T target, JFrame parentWindow, String fileTypeLabel) {
-		JFileChooser fileChooser = new JFileChooser();
-
-		File workingDirectory = new File(System.getProperty("user.home"));
+		var fileChooser = new JFileChooser();
+		var workingDirectory = new File(System.getProperty("user.home"));
 		fileChooser.setCurrentDirectory(workingDirectory);
 		fileChooser.setMultiSelectionEnabled(true);
 		fileChooser.setSelectedFile(new File(target.describe()));
 
-		for (Extension s : getSupportedExtensions()) {
+		for (var s : getSupportedExtensions()) {
                     fileChooser.addChoosableFileFilter(
                             new FileNameExtensionFilter(fileTypeLabel + " (." + s + ")", s.toString().toLowerCase()));
                 }
@@ -99,16 +98,15 @@ public interface Exporter<T extends Descriptive> extends Reflexive {
 		int returnVal = fileChooser.showSaveDialog(parentWindow);
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
 			try {
-				File file = fileChooser.getSelectedFile();
-				String path = file.getPath();
-
-				FileNameExtensionFilter currentFilter = (FileNameExtensionFilter) fileChooser.getFileFilter();
-				String ext = currentFilter.getExtensions()[0];
+				var file = fileChooser.getSelectedFile();
+				var path = file.getPath();
+				var currentFilter = (FileNameExtensionFilter) fileChooser.getFileFilter();
+				var ext = currentFilter.getExtensions()[0];
 
 				if (!path.contains("."))
 					file = new File(path + "." + ext);
 
-				FileOutputStream fos = new FileOutputStream(file);
+				var fos = new FileOutputStream(file);
 
 				printToStream(target, fos, Extension.valueOf(ext.toUpperCase()));
 

@@ -1,5 +1,9 @@
 package pulse.input;
 
+import static java.lang.System.lineSeparator;
+import static pulse.problem.statements.Pulse.TemporalShape.RECTANGULAR;
+import static pulse.properties.NumericProperty.def;
+import static pulse.properties.NumericProperty.isValueSensible;
 import static pulse.properties.NumericPropertyKeyword.DETECTOR_GAIN;
 import static pulse.properties.NumericPropertyKeyword.DETECTOR_IRIS;
 import static pulse.properties.NumericPropertyKeyword.DIAMETER;
@@ -8,6 +12,7 @@ import static pulse.properties.NumericPropertyKeyword.PULSE_WIDTH;
 import static pulse.properties.NumericPropertyKeyword.SPOT_DIAMETER;
 import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
 import static pulse.properties.NumericPropertyKeyword.THICKNESS;
+import static pulse.tasks.Identifier.externalIdentifier;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +39,7 @@ public class Metadata extends PropertyHolder implements Reflexive {
 
 	private double testTemperature, sampleThickness, sampleDiameter, pulseWidth, spotDiameter, laserEnergy;
 	private int detectorGain, detectorIris;
-	private TemporalShape pulseShape = TemporalShape.RECTANGULAR;
+	private TemporalShape pulseShape = RECTANGULAR;
 	private int externalID;
 	private String sampleName = "UnnamedSample";
 
@@ -74,8 +79,8 @@ public class Metadata extends PropertyHolder implements Reflexive {
 	 */
 
 	public NumericProperty getTestTemperature() {
-		NumericProperty defTest = NumericProperty.def(TEST_TEMPERATURE);
-		if (NumericProperty.isValueSensible(defTest, testTemperature))
+		var defTest = def(TEST_TEMPERATURE);
+		if (isValueSensible(defTest, testTemperature))
 			return new NumericProperty(testTemperature, defTest);
 		return null;
 	}
@@ -129,8 +134,8 @@ public class Metadata extends PropertyHolder implements Reflexive {
 	 */
 
 	public NumericProperty getSampleThickness() {
-		NumericProperty defThickness = NumericProperty.def(THICKNESS);
-		if (NumericProperty.isValueSensible(defThickness, sampleThickness))
+		var defThickness = def(THICKNESS);
+		if (isValueSensible(defThickness, sampleThickness))
 			return new NumericProperty(sampleThickness, defThickness);
 		return defThickness;
 	}
@@ -160,8 +165,8 @@ public class Metadata extends PropertyHolder implements Reflexive {
 	 */
 
 	public NumericProperty getSampleDiameter() {
-		NumericProperty defDiameter = NumericProperty.def(DIAMETER);
-		if (NumericProperty.isValueSensible(defDiameter, sampleDiameter))
+		var defDiameter = def(DIAMETER);
+		if (isValueSensible(defDiameter, sampleDiameter))
 			return new NumericProperty(sampleDiameter, defDiameter);
 		return defDiameter;
 	}
@@ -191,8 +196,8 @@ public class Metadata extends PropertyHolder implements Reflexive {
 	 */
 
 	public NumericProperty getPulseWidth() {
-		NumericProperty defPulseWidth = NumericProperty.def(PULSE_WIDTH);
-		if (NumericProperty.isValueSensible(defPulseWidth, pulseWidth))
+		var defPulseWidth = def(PULSE_WIDTH);
+		if (isValueSensible(defPulseWidth, pulseWidth))
 			return new NumericProperty(pulseWidth, defPulseWidth);
 		return defPulseWidth;
 	}
@@ -222,8 +227,8 @@ public class Metadata extends PropertyHolder implements Reflexive {
 	 */
 
 	public NumericProperty getSpotDiameter() {
-		NumericProperty defSpotDiameter = NumericProperty.def(SPOT_DIAMETER);
-		if (NumericProperty.isValueSensible(defSpotDiameter, spotDiameter))
+		var defSpotDiameter = def(SPOT_DIAMETER);
+		if (isValueSensible(defSpotDiameter, spotDiameter))
 			return new NumericProperty(spotDiameter, defSpotDiameter);
 		return defSpotDiameter;
 	}
@@ -253,8 +258,8 @@ public class Metadata extends PropertyHolder implements Reflexive {
 	 */
 
 	public NumericProperty getAbsorbedEnergy() {
-		NumericProperty defAbsEnergy = NumericProperty.def(LASER_ENERGY);
-		if (NumericProperty.isValueSensible(defAbsEnergy, laserEnergy))
+		var defAbsEnergy = def(LASER_ENERGY);
+		if (isValueSensible(defAbsEnergy, laserEnergy))
 			return new NumericProperty(laserEnergy, defAbsEnergy);
 		return defAbsEnergy;
 	}
@@ -285,8 +290,8 @@ public class Metadata extends PropertyHolder implements Reflexive {
 	 */
 
 	public NumericProperty getDetectorGain() {
-		NumericProperty defDetectorGain = NumericProperty.def(DETECTOR_GAIN);
-		if (NumericProperty.isValueSensible(defDetectorGain, detectorGain))
+		var defDetectorGain = def(DETECTOR_GAIN);
+		if (isValueSensible(defDetectorGain, detectorGain))
 			return new NumericProperty(detectorGain, defDetectorGain);
 		return defDetectorGain;
 	}
@@ -317,8 +322,8 @@ public class Metadata extends PropertyHolder implements Reflexive {
 	 */
 
 	public NumericProperty getDetectorIris() {
-		NumericProperty defIris = NumericProperty.def(DETECTOR_IRIS);
-		if (NumericProperty.isValueSensible(defIris, detectorIris))
+		var defIris = def(DETECTOR_IRIS);
+		if (isValueSensible(defIris, detectorIris))
 			return new NumericProperty(detectorIris, defIris);
 		return defIris;
 	}
@@ -413,30 +418,30 @@ public class Metadata extends PropertyHolder implements Reflexive {
 	@Override
 	public List<Property> listedTypes() {
 		List<Property> list = new ArrayList<>(9);
-		list.add(NumericProperty.def(TEST_TEMPERATURE));
-		list.add(NumericProperty.def(THICKNESS));
-		list.add(NumericProperty.def(DIAMETER));
-		list.add(NumericProperty.def(PULSE_WIDTH));
-		list.add(NumericProperty.def(SPOT_DIAMETER));
-		list.add(NumericProperty.def(LASER_ENERGY));
-		list.add(NumericProperty.def(DETECTOR_GAIN));
-		list.add(NumericProperty.def(DETECTOR_IRIS));
-		list.add(TemporalShape.RECTANGULAR);
+		list.add(def(TEST_TEMPERATURE));
+		list.add(def(THICKNESS));
+		list.add(def(DIAMETER));
+		list.add(def(PULSE_WIDTH));
+		list.add(def(SPOT_DIAMETER));
+		list.add(def(LASER_ENERGY));
+		list.add(def(DETECTOR_GAIN));
+		list.add(def(DETECTOR_IRIS));
+		list.add(RECTANGULAR);
 		return list;
 	}
 
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder();
+		var sb = new StringBuilder();
 		sb.append("[Sample " + sampleName + " with external ID " + externalID + "]");
-		sb.append(System.lineSeparator());
-		sb.append(System.lineSeparator());
+		sb.append(lineSeparator());
+		sb.append(lineSeparator());
 
-		List<Property> data = this.data();
+		var data = this.data();
 
 		data.forEach(entry -> {
 			sb.append(entry.toString());
-			sb.append(System.lineSeparator());
+			sb.append(lineSeparator());
 
 		});
 
@@ -446,7 +451,7 @@ public class Metadata extends PropertyHolder implements Reflexive {
 
 	@Override
 	public Identifier identify() {
-		return getParent() == null ? Identifier.externalIdentifier(externalID) : super.identify();
+		return getParent() == null ? externalIdentifier(externalID) : super.identify();
 	}
 
 	@Override
@@ -456,7 +461,7 @@ public class Metadata extends PropertyHolder implements Reflexive {
 
 		if (o instanceof Metadata) {
 
-			Metadata other = (Metadata) o;
+			var other = (Metadata) o;
 
 			if (other.getExternalID() != this.getExternalID())
 				return false;

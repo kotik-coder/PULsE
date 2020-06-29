@@ -1,13 +1,14 @@
 package pulse.ui.components.controllers;
 
-import java.awt.Color;
+import static java.awt.Color.black;
+import static java.awt.Font.BOLD;
+import static pulse.properties.NumericProperty.def;
+
 import java.awt.Component;
-import java.awt.Font;
 
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JList;
 
-import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 
 public class KeywordListRenderer extends DefaultListCellRenderer {
@@ -26,12 +27,12 @@ public class KeywordListRenderer extends DefaultListCellRenderer {
 			boolean cellHasFocus) {
 
 		var renderer = super.getListCellRendererComponent(list,
-				(NumericProperty.def((NumericPropertyKeyword) value).getDescriptor(true)), index, cellHasFocus,
+				(def((NumericPropertyKeyword) value).getDescriptor(true)), index, cellHasFocus,
 				cellHasFocus);
 
-		renderer.setForeground(Color.black);
+		renderer.setForeground(black);
 		if (isSelected)
-			renderer.setFont(renderer.getFont().deriveFont(Font.BOLD));
+			renderer.setFont(renderer.getFont().deriveFont(BOLD));
 		return renderer;
 
 	}

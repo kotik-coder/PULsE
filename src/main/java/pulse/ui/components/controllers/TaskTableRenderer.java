@@ -1,9 +1,9 @@
 package pulse.ui.components.controllers;
 
-import java.awt.Component;
-import java.awt.Font;
+import static java.awt.Font.BOLD;
 
-import javax.swing.JFormattedTextField;
+import java.awt.Component;
+
 import javax.swing.JTable;
 
 import pulse.properties.NumericProperty;
@@ -31,9 +31,9 @@ public class TaskTableRenderer extends NumericPropertyRenderer {
 
 		else if (value instanceof Status) {
 
-			JFormattedTextField jtf = initTextField(value.toString(), table.isRowSelected(row));
+			var jtf = initTextField(value.toString(), table.isRowSelected(row));
 			jtf.setForeground(((Status) value).getColor());
-			jtf.setFont(jtf.getFont().deriveFont(Font.BOLD));
+			jtf.setFont(jtf.getFont().deriveFont(BOLD));
 
 			return jtf;
 

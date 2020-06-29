@@ -1,5 +1,7 @@
 package pulse.io.export;
 
+import static pulse.io.export.Extension.HTML;
+
 import java.io.FileOutputStream;
 import java.io.IOException;
 
@@ -18,7 +20,7 @@ public class LogPaneExporter implements Exporter<LogPane> {
 
 	@Override
 	public void printToStream(LogPane pane, FileOutputStream fos, Extension extension) {
-		HTMLEditorKit kit = (HTMLEditorKit) pane.getEditorKit();
+		var kit = (HTMLEditorKit) pane.getEditorKit();
 		try {
 			kit.write(fos, pane.getDocument(), 0, pane.getDocument().getLength());
 		} catch (IOException | BadLocationException e) {
@@ -38,7 +40,7 @@ public class LogPaneExporter implements Exporter<LogPane> {
 
 	@Override
 	public Extension[] getSupportedExtensions() {
-		return new Extension[] { Extension.HTML };
+		return new Extension[] { HTML};
 	}
 
 }

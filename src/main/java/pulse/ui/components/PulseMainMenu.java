@@ -1,41 +1,56 @@
 package pulse.ui.components;
 
+import static java.awt.Font.PLAIN;
+import static java.io.File.separator;
+import static javax.swing.JFileChooser.APPROVE_OPTION;
+import static javax.swing.JFileChooser.DIRECTORIES_ONLY;
+import static javax.swing.JOptionPane.WARNING_MESSAGE;
+import static javax.swing.JOptionPane.showMessageDialog;
+import static javax.swing.SwingUtilities.getWindowAncestor;
+import static pulse.io.export.ExportManager.exportCurrentTask;
+import static pulse.io.readers.DataLoader.loadDataDialog;
+import static pulse.io.readers.DataLoader.loadMetadataDialog;
+import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericProperty.theDefault;
+import static pulse.properties.NumericPropertyKeyword.BUFFER_SIZE;
+import static pulse.properties.NumericPropertyKeyword.CORRELATION_THRESHOLD;
+import static pulse.properties.NumericPropertyKeyword.SIGNIFICANCE;
+import static pulse.search.statistics.CorrelationTest.setThreshold;
+import static pulse.search.statistics.NormalityTest.setStatisticalSignificance;
+import static pulse.search.statistics.ResidualStatistic.setSelectedOptimiserDescriptor;
+import static pulse.tasks.TaskManager.addTaskRepositoryListener;
+import static pulse.tasks.TaskManager.getInstance;
+import static pulse.tasks.TaskManager.getSelectedTask;
+import static pulse.tasks.TaskManager.getTaskList;
+import static pulse.tasks.listeners.TaskRepositoryEvent.State.TASK_ADDED;
+import static pulse.ui.Launcher.loadIcon;
+import static pulse.util.Reflexive.allDescriptors;
+
 import java.awt.Font;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.AbstractButton;
 
+import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
 import javax.swing.JFileChooser;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JSeparator;
-import javax.swing.SwingUtilities;
 
-import pulse.io.export.ExportManager;
-import pulse.io.readers.DataLoader;
-import pulse.properties.NumericProperty;
-import pulse.properties.NumericPropertyKeyword;
 import pulse.search.statistics.CorrelationTest;
 import pulse.search.statistics.NormalityTest;
 import pulse.search.statistics.ResidualStatistic;
 import pulse.tasks.Buffer;
-import pulse.tasks.SearchTask;
-import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.TaskRepositoryEvent;
-import pulse.tasks.listeners.TaskRepositoryListener;
-import pulse.ui.Launcher;
 import pulse.ui.components.listeners.ExitRequestListener;
 import pulse.ui.components.listeners.FrameVisibilityRequestListener;
 import pulse.ui.frames.dialogs.AboutDialog;
 import pulse.ui.frames.dialogs.ExportDialog;
 import pulse.ui.frames.dialogs.FormattedInputDialog;
 import pulse.ui.frames.dialogs.ResultChangeDialog;
-import pulse.util.Reflexive;
 
 @SuppressWarnings("serial")
 public class PulseMainMenu extends JMenuBar {
@@ -55,7 +70,7 @@ public class PulseMainMenu extends JMenuBar {
 
 	private static ExportDialog exportDialog = new ExportDialog();
 	private static FormattedInputDialog bufferDialog = new FormattedInputDialog(
-			NumericProperty.theDefault(NumericPropertyKeyword.BUFFER_SIZE));
+			theDefault(BUFFER_SIZE));
 
 	private static File dir;
 
@@ -63,8 +78,7 @@ public class PulseMainMenu extends JMenuBar {
 	private List<ExitRequestListener> exitListeners;
 
 	public PulseMainMenu() {
-		bufferDialog.setConfirmAction(
-				() -> Buffer.setSize(NumericProperty.derive(NumericPropertyKeyword.BUFFER_SIZE, bufferDialog.value())));
+		bufferDialog.setConfirmAction(() -> Buffer.setSize(derive(BUFFER_SIZE, bufferDialog.value())));
 
 		initComponents();
 		initListeners();
@@ -76,8 +90,8 @@ public class PulseMainMenu extends JMenuBar {
 	}
 
 	private void addListeners() {
-		TaskManager.addTaskRepositoryListener(event -> {
-			if (event.getState() == TaskRepositoryEvent.State.TASK_ADDED) {
+		addTaskRepositoryListener(event -> {
+			if (event.getState() == TASK_ADDED) {
 				exportCurrentItem.setEnabled(true);
 				exportAllItem.setEnabled(true);
 			}
@@ -86,24 +100,24 @@ public class PulseMainMenu extends JMenuBar {
 
 	private void initListeners() {
 		exportCurrentItem.addActionListener(e -> {
-			SearchTask selectedTask = TaskManager.getSelectedTask();
+			var selectedTask = getSelectedTask();
 
 			if (selectedTask == null) {
-				JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(this), "No data to export!",
-						"No Data to Export", JOptionPane.WARNING_MESSAGE);
+				showMessageDialog(getWindowAncestor(this), "No data to export!",
+						"No Data to Export", WARNING_MESSAGE);
 				return;
 			}
 
 			var fileChooser = new JFileChooser();
 			fileChooser.setMultiSelectionEnabled(false);
-			fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+			fileChooser.setFileSelectionMode(DIRECTORIES_ONLY);
 
-			int returnVal = fileChooser.showSaveDialog(this);
+			var returnVal = fileChooser.showSaveDialog(this);
 
-			if (returnVal == JFileChooser.APPROVE_OPTION) {
-				dir = new File(fileChooser.getSelectedFile() + File.separator + TaskManager.getInstance().describe());
+			if (returnVal == APPROVE_OPTION) {
+				dir = new File(fileChooser.getSelectedFile() + separator + getInstance().describe());
 				dir.mkdirs();
-				ExportManager.exportCurrentTask(dir);
+				exportCurrentTask(dir);
 			}
 
 		});
@@ -114,20 +128,20 @@ public class PulseMainMenu extends JMenuBar {
 
 	private void initComponents() {
 		dataControlsMenu = new JMenu("File");
-		loadDataItem = new JMenuItem("Load Heating Curve(s)...", Launcher.loadIcon("load.png", ICON_SIZE));
-		loadMetadataItem = new JMenuItem("Load Metadata...", Launcher.loadIcon("metadata.png", ICON_SIZE));
-		exportCurrentItem = new JMenuItem("Export Current", Launcher.loadIcon("save.png", ICON_SIZE));
-		exportAllItem = new JMenuItem("Export...", Launcher.loadIcon("save.png", ICON_SIZE));
+		loadDataItem = new JMenuItem("Load Heating Curve(s)...", loadIcon("load.png", ICON_SIZE));
+		loadMetadataItem = new JMenuItem("Load Metadata...", loadIcon("metadata.png", ICON_SIZE));
+		exportCurrentItem = new JMenuItem("Export Current", loadIcon("save.png", ICON_SIZE));
+		exportAllItem = new JMenuItem("Export...", loadIcon("save.png", ICON_SIZE));
 		exitItem = new JMenuItem("Exit");
 		var settingsMenu = new JMenu("Calculation Settings");
 		modelSettingsItem = new JMenuItem("Heat Problem: Statement & Solution",
-				Launcher.loadIcon("heat_problem.png", ICON_SIZE));
+				loadIcon("heat_problem.png", ICON_SIZE));
 		searchSettingsItem = new JMenuItem("Parameter Estimation: Method & Settings",
-				Launcher.loadIcon("inverse_problem.png", ICON_SIZE));
-		resultFormatItem = new JMenuItem("Change Result Format...", Launcher.loadIcon("result_format.png", ICON_SIZE));
+				loadIcon("inverse_problem.png", ICON_SIZE));
+		resultFormatItem = new JMenuItem("Change Result Format...", loadIcon("result_format.png", ICON_SIZE));
 		var infoMenu = new JMenu("Info");
 		aboutItem = new JMenuItem("About...");
-		var selectBuffer = new JMenuItem("Buffer size...", Launcher.loadIcon("buffer.png", ICON_SIZE));
+		var selectBuffer = new JMenuItem("Buffer size...", loadIcon("buffer.png", ICON_SIZE));
 		selectBuffer.addActionListener(e -> bufferDialog.setVisible(true));
 
 		dataControlsMenu.setMnemonic('f');
@@ -145,7 +159,7 @@ public class PulseMainMenu extends JMenuBar {
 		modelSettingsItem.setEnabled(false);
 		searchSettingsItem.setEnabled(false);
 
-		Font menuFont = new Font("Arial", Font.PLAIN, 18);
+		var menuFont = new Font("Arial", PLAIN, 18);
 		dataControlsMenu.setFont(menuFont);
 		settingsMenu.setFont(menuFont);
 		infoMenu.setFont(menuFont);
@@ -173,15 +187,15 @@ public class PulseMainMenu extends JMenuBar {
 	}
 
 	private JMenu initAnalysisSubmenu() {
-		JMenu analysisSubMenu = new JMenu("Statistical Analysis");
-		JMenu statisticsSubMenu = new JMenu("Normality tests");
-		statisticsSubMenu.setIcon(Launcher.loadIcon("normality_test.png", ICON_SIZE));
+		var analysisSubMenu = new JMenu("Statistical Analysis");
+		var statisticsSubMenu = new JMenu("Normality tests");
+		statisticsSubMenu.setIcon(loadIcon("normality_test.png", ICON_SIZE));
 
-		ButtonGroup statisticItems = new ButtonGroup();
+		var statisticItems = new ButtonGroup();
 
 		JRadioButtonMenuItem item = null;
 
-		for (String statisticName : Reflexive.allDescriptors(NormalityTest.class)) {
+		for (var statisticName : allDescriptors(NormalityTest.class)) {
 			item = new JRadioButtonMenuItem(statisticName);
 			statisticItems.add(item);
 			statisticsSubMenu.add(item);
@@ -191,7 +205,7 @@ public class PulseMainMenu extends JMenuBar {
 					var text = ((AbstractButton) e.getItem()).getText();
 					NormalityTest.setSelectedTestDescriptor(text);
 
-					TaskManager.getTaskList().stream().forEach(t -> t.initNormalityTest());
+					getTaskList().stream().forEach(t -> t.initNormalityTest());
 
 				}
 
@@ -199,12 +213,11 @@ public class PulseMainMenu extends JMenuBar {
 		}
 
 		var significanceDialog = new FormattedInputDialog(
-				NumericProperty.theDefault(NumericPropertyKeyword.SIGNIFICANCE));
+				theDefault(SIGNIFICANCE));
 
-		significanceDialog.setConfirmAction(() -> NormalityTest.setStatisticalSignificance(
-				NumericProperty.derive(NumericPropertyKeyword.SIGNIFICANCE, significanceDialog.value())));
+		significanceDialog.setConfirmAction(() -> setStatisticalSignificance(derive(SIGNIFICANCE, significanceDialog.value())));
 
-		JMenuItem sigItem = new JMenuItem("Change significance...");
+		var sigItem = new JMenuItem("Change significance...");
 		statisticsSubMenu.add(new JSeparator());
 		statisticsSubMenu.add(sigItem);
 		sigItem.addActionListener(e -> significanceDialog.setVisible(true));
@@ -212,17 +225,17 @@ public class PulseMainMenu extends JMenuBar {
 		statisticsSubMenu.getItem(0).setSelected(true);
 		analysisSubMenu.add(statisticsSubMenu);
 
-		JMenu optimisersSubMenu = new JMenu("Optimiser statistics");
-		optimisersSubMenu.setIcon(Launcher.loadIcon("optimiser.png", ICON_SIZE));
+		var optimisersSubMenu = new JMenu("Optimiser statistics");
+		optimisersSubMenu.setIcon(loadIcon("optimiser.png", ICON_SIZE));
 
-		ButtonGroup optimisersItems = new ButtonGroup();
+		var optimisersItems = new ButtonGroup();
 
 		item = null;
 
-		var set = Reflexive.allDescriptors(ResidualStatistic.class);
-		set.removeAll(Reflexive.allDescriptors(NormalityTest.class));
+		var set = allDescriptors(ResidualStatistic.class);
+		set.removeAll(allDescriptors(NormalityTest.class));
 
-		for (String statisticName : set) {
+		for (var statisticName : set) {
 			item = new JRadioButtonMenuItem(statisticName);
 			optimisersItems.add(item);
 			optimisersSubMenu.add(item);
@@ -230,8 +243,8 @@ public class PulseMainMenu extends JMenuBar {
 
 				if (((AbstractButton) e.getItem()).isSelected()) {
 					var text = ((AbstractButton) e.getItem()).getText();
-					ResidualStatistic.setSelectedOptimiserDescriptor(text);
-					TaskManager.getTaskList().stream().forEach(t -> t.initOptimiser());
+					setSelectedOptimiserDescriptor(text);
+					getTaskList().stream().forEach(t -> t.initOptimiser());
 				}
 
 			});
@@ -242,14 +255,14 @@ public class PulseMainMenu extends JMenuBar {
 
 		//
 
-		JMenu correlationsSubMenu = new JMenu("Correlation tests");
-		correlationsSubMenu.setIcon(Launcher.loadIcon("correlation.png", ICON_SIZE));
+		var correlationsSubMenu = new JMenu("Correlation tests");
+		correlationsSubMenu.setIcon(loadIcon("correlation.png", ICON_SIZE));
 
-		ButtonGroup corrItems = new ButtonGroup();
+		var corrItems = new ButtonGroup();
 
 		JRadioButtonMenuItem corrItem = null;
 
-		for (String corrName : Reflexive.allDescriptors(CorrelationTest.class)) {
+		for (var corrName : allDescriptors(CorrelationTest.class)) {
 			corrItem = new JRadioButtonMenuItem(corrName);
 			corrItems.add(corrItem);
 			correlationsSubMenu.add(corrItem);
@@ -258,19 +271,18 @@ public class PulseMainMenu extends JMenuBar {
 				if (((AbstractButton) e.getItem()).isSelected()) {
 					var text = ((AbstractButton) e.getItem()).getText();
 					CorrelationTest.setSelectedTestDescriptor(text);
-					TaskManager.getTaskList().stream().forEach(t -> t.initCorrelationTest());
+					getTaskList().stream().forEach(t -> t.initCorrelationTest());
 				}
 
 			});
 		}
 
 		var thresholdDialog = new FormattedInputDialog(
-				NumericProperty.theDefault(NumericPropertyKeyword.CORRELATION_THRESHOLD));
+				theDefault(CORRELATION_THRESHOLD));
 
-		thresholdDialog.setConfirmAction(() -> CorrelationTest.setThreshold(
-				NumericProperty.derive(NumericPropertyKeyword.CORRELATION_THRESHOLD, thresholdDialog.value())));
+		thresholdDialog.setConfirmAction(() -> setThreshold(derive(CORRELATION_THRESHOLD, thresholdDialog.value())));
 
-		JMenuItem thrItem = new JMenuItem("Change threshold...");
+		var thrItem = new JMenuItem("Change threshold...");
 		correlationsSubMenu.add(new JSeparator());
 		correlationsSubMenu.add(thrItem);
 		thrItem.addActionListener(e -> thresholdDialog.setVisible(true));
@@ -282,9 +294,9 @@ public class PulseMainMenu extends JMenuBar {
 	}
 
 	private void assignMenuFunctions() {
-		loadDataItem.addActionListener(e -> DataLoader.loadDataDialog());
+		loadDataItem.addActionListener(e -> loadDataDialog());
 		loadMetadataItem.setEnabled(false);
-		loadMetadataItem.addActionListener(e -> DataLoader.loadMetadataDialog());
+		loadMetadataItem.addActionListener(e -> loadMetadataDialog());
 
 		modelSettingsItem.setEnabled(false);
 
@@ -294,28 +306,23 @@ public class PulseMainMenu extends JMenuBar {
 		searchSettingsItem.setEnabled(false);
 
 		resultFormatItem.addActionListener(e -> {
-			ResultChangeDialog changeDialog = new ResultChangeDialog();
-			changeDialog.setLocationRelativeTo(SwingUtilities.getWindowAncestor(this));
+			var changeDialog = new ResultChangeDialog();
+			changeDialog.setLocationRelativeTo(getWindowAncestor(this));
 			changeDialog.setAlwaysOnTop(true);
 			changeDialog.setVisible(true);
 		});
 
-		TaskManager.addTaskRepositoryListener(new TaskRepositoryListener() {
-
-			@Override
-			public void onTaskListChanged(TaskRepositoryEvent e) {
-				if (TaskManager.getTaskList().size() > 0) {
-					loadMetadataItem.setEnabled(true);
-					modelSettingsItem.setEnabled(true);
-					searchSettingsItem.setEnabled(true);
-				} else {
-					loadMetadataItem.setEnabled(false);
-					modelSettingsItem.setEnabled(false);
-					searchSettingsItem.setEnabled(false);
-				}
-			}
-
-		});
+		addTaskRepositoryListener((TaskRepositoryEvent e) -> {
+            if (getTaskList().size() > 0) {
+                loadMetadataItem.setEnabled(true);
+                modelSettingsItem.setEnabled(true);
+                searchSettingsItem.setEnabled(true);
+            } else {
+                loadMetadataItem.setEnabled(false);
+                modelSettingsItem.setEnabled(false);
+                searchSettingsItem.setEnabled(false);
+            }
+        });
 
 		exportAllItem.setEnabled(true);
 		exportAllItem.addActionListener(e -> {
@@ -326,7 +333,7 @@ public class PulseMainMenu extends JMenuBar {
 
 		aboutItem.addActionListener(e -> {
 			var aboutDialog = new AboutDialog();
-			aboutDialog.setLocationRelativeTo(SwingUtilities.getWindowAncestor(this));
+			aboutDialog.setLocationRelativeTo(getWindowAncestor(this));
 			aboutDialog.setAlwaysOnTop(true);
 			aboutDialog.setVisible(true);
 		});

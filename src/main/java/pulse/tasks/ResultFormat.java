@@ -1,11 +1,15 @@
 package pulse.tasks;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
+import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.toList;
+import static pulse.properties.NumericProperty.theDefault;
+import static pulse.properties.NumericPropertyKeyword.DIFFUSIVITY;
+import static pulse.properties.NumericPropertyKeyword.IDENTIFIER;
+import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
 
-import pulse.properties.NumericProperty;
+import java.util.ArrayList;
+import java.util.List;
+
 import pulse.properties.NumericPropertyKeyword;
 import pulse.tasks.listeners.ResultFormatEvent;
 import pulse.tasks.listeners.ResultFormatListener;
@@ -24,8 +28,7 @@ public class ResultFormat {
 	private List<NumericPropertyKeyword> nameMap;
 
 	private final static NumericPropertyKeyword[] minimalArray = new NumericPropertyKeyword[] {
-			NumericPropertyKeyword.IDENTIFIER, NumericPropertyKeyword.TEST_TEMPERATURE,
-			NumericPropertyKeyword.DIFFUSIVITY };
+			IDENTIFIER, TEST_TEMPERATURE, DIFFUSIVITY};
 
 	/**
 	 * <p>
@@ -39,12 +42,12 @@ public class ResultFormat {
 	private static List<ResultFormatListener> listeners = new ArrayList<ResultFormatListener>();
 
 	private ResultFormat() {
-		this(Arrays.asList(minimalArray));
+		this(asList(minimalArray));
 	}
 
 	private ResultFormat(List<NumericPropertyKeyword> keys) {
 		nameMap = new ArrayList<>();
-		for (NumericPropertyKeyword key : keys) {
+		for (var key : keys) {
                     nameMap.add(key);
                 }
 	}
@@ -61,9 +64,8 @@ public class ResultFormat {
 	public static ResultFormat generateFormat(List<NumericPropertyKeyword> keys) {
 		format = new ResultFormat(keys);
 
-		ResultFormatEvent rfe = new ResultFormatEvent(format);
-
-		for (ResultFormatListener rfl : listeners) {
+		var rfe = new ResultFormatEvent(format);
+		for (var rfl : listeners) {
                     rfl.resultFormatChanged(rfe);
                 }
 
@@ -101,8 +103,8 @@ public class ResultFormat {
 	 */
 
 	public List<String> abbreviations() {
-		return nameMap.stream().map(keyword -> NumericProperty.theDefault(keyword).getAbbreviation(true))
-				.collect(Collectors.toList());
+		return nameMap.stream().map(keyword -> theDefault(keyword).getAbbreviation(true))
+				.collect(toList());
 	}
 
 	/**
@@ -114,8 +116,8 @@ public class ResultFormat {
 	 */
 
 	public List<String> descriptors() {
-		return nameMap.stream().map(keyword -> NumericProperty.theDefault(keyword).getDescriptor(false))
-				.collect(Collectors.toList());
+		return nameMap.stream().map(keyword -> theDefault(keyword).getDescriptor(false))
+				.collect(toList());
 	}
 
 	/**
@@ -129,7 +131,7 @@ public class ResultFormat {
 
 	public NumericPropertyKeyword fromAbbreviation(String descriptor) {
 		return nameMap.stream()
-				.filter(keyword -> NumericProperty.theDefault(keyword).getAbbreviation(true).equals(descriptor))
+				.filter(keyword -> theDefault(keyword).getAbbreviation(true).equals(descriptor))
 				.findFirst().get();
 	}
 

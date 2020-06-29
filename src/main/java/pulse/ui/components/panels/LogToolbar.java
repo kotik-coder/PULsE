@@ -1,5 +1,11 @@
 package pulse.ui.components.panels;
 
+import static javax.swing.SwingConstants.CENTER;
+import static pulse.tasks.Log.isVerbose;
+import static pulse.tasks.Log.setVerbose;
+import static pulse.ui.Launcher.loadIcon;
+import static pulse.ui.Messages.getString;
+
 import java.awt.GridLayout;
 import java.util.ArrayList;
 import java.util.List;
@@ -7,11 +13,7 @@ import java.util.List;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
-import javax.swing.SwingConstants;
 
-import pulse.tasks.Log;
-import pulse.ui.Launcher;
-import pulse.ui.Messages;
 import pulse.ui.components.listeners.LogExportListener;
 
 @SuppressWarnings("serial")
@@ -28,14 +30,14 @@ public class LogToolbar extends JPanel {
 	public void initComponents() {
 		setLayout(new GridLayout());
 
-		var saveLogBtn = new JButton(Launcher.loadIcon("save.png", ICON_SIZE));
+		var saveLogBtn = new JButton(loadIcon("save.png", ICON_SIZE));
 		saveLogBtn.setToolTipText("Save");
 
-		var verboseCheckBox = new JCheckBox(Messages.getString("LogToolBar.Verbose")); //$NON-NLS-1$
-		verboseCheckBox.setSelected(Log.isVerbose());
-		verboseCheckBox.setHorizontalAlignment(SwingConstants.CENTER);
+		var verboseCheckBox = new JCheckBox(getString("LogToolBar.Verbose")); //$NON-NLS-1$
+		verboseCheckBox.setSelected(isVerbose());
+		verboseCheckBox.setHorizontalAlignment(CENTER);
 
-		verboseCheckBox.addActionListener(event -> Log.setVerbose(verboseCheckBox.isSelected()));
+		verboseCheckBox.addActionListener(event -> setVerbose(verboseCheckBox.isSelected()));
 
 		saveLogBtn.addActionListener(e -> notifyLog());
 

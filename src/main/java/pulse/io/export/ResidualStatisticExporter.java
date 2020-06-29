@@ -1,10 +1,13 @@
 package pulse.io.export;
 
+import static pulse.io.export.Extension.CSV;
+import static pulse.io.export.Extension.HTML;
+import static pulse.ui.Messages.getString;
+
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 
 import pulse.search.statistics.ResidualStatistic;
-import pulse.ui.Messages;
 
 public class ResidualStatisticExporter implements Exporter<ResidualStatistic> {
 
@@ -40,16 +43,16 @@ public class ResidualStatisticExporter implements Exporter<ResidualStatistic> {
 
 	@Override
 	public Extension[] getSupportedExtensions() {
-		return new Extension[] { Extension.HTML, Extension.CSV };
+		return new Extension[] { HTML, CSV};
 	}
 
 	private void printHTML(ResidualStatistic hc, FileOutputStream fos) {
-            try (PrintStream stream = new PrintStream(fos)) {
+            try (var stream = new PrintStream(fos)) {
                 var residuals = hc.getResiduals();
                 int residualsLength = residuals == null ? 0 : residuals.size();
                 stream.print("<table>");
                 stream.print("<tr>");
-                final String TIME_LABEL = Messages.getString("HeatingCurve.6");
+                final String TIME_LABEL = getString("HeatingCurve.6");
                 final String RESIDUAL_LABEL = "Residual";
                 stream.print("<td>" + TIME_LABEL + "\t</td>");
                 stream.print("<td>" + RESIDUAL_LABEL + "\t</td>");
@@ -74,10 +77,10 @@ public class ResidualStatisticExporter implements Exporter<ResidualStatistic> {
 	}
 
 	private void printCSV(ResidualStatistic hc, FileOutputStream fos) {
-            try (PrintStream stream = new PrintStream(fos)) {
+            try (var stream = new PrintStream(fos)) {
                 var residuals = hc.getResiduals();
                 int residualsLength = residuals == null ? 0 : residuals.size();
-                final String TIME_LABEL = Messages.getString("HeatingCurve.6");
+                final String TIME_LABEL = getString("HeatingCurve.6");
                 final String RESIDUAL_LABEL = "Residual";
                 stream.print(TIME_LABEL + "\t" + RESIDUAL_LABEL + "\t");
                 double tr, Tr;

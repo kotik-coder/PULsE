@@ -1,9 +1,28 @@
 package pulse.ui.components.panels;
 
-import java.awt.Color;
+import static java.awt.Color.GRAY;
+import static java.awt.Color.black;
+import static java.awt.Color.gray;
+import static java.awt.GridBagConstraints.BOTH;
+import static java.awt.Toolkit.getDefaultToolkit;
+import static java.lang.String.format;
+import static javax.swing.JOptionPane.ERROR_MESSAGE;
+import static javax.swing.JOptionPane.YES_NO_OPTION;
+import static javax.swing.JOptionPane.YES_OPTION;
+import static javax.swing.JOptionPane.showConfirmDialog;
+import static javax.swing.JOptionPane.showOptionDialog;
+import static javax.swing.SwingUtilities.getWindowAncestor;
+import static pulse.tasks.TaskManager.addSelectionListener;
+import static pulse.tasks.TaskManager.addTaskRepositoryListener;
+import static pulse.tasks.TaskManager.getSelectedTask;
+import static pulse.tasks.listeners.TaskRepositoryEvent.State.TASK_FINISHED;
+import static pulse.ui.Launcher.loadIcon;
+import static pulse.ui.Messages.getString;
+import static pulse.ui.components.Chart.setResidualsShown;
+import static pulse.ui.components.Chart.setZeroApproximationShown;
+
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.Toolkit;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.util.ArrayList;
@@ -11,21 +30,12 @@ import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JFormattedTextField;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JToggleButton;
-import javax.swing.SwingUtilities;
 import javax.swing.text.NumberFormatter;
 
-import pulse.input.ExperimentalData;
 import pulse.input.Range;
-import pulse.tasks.SearchTask;
-import pulse.tasks.TaskManager;
-import pulse.tasks.listeners.TaskRepositoryEvent;
-import pulse.ui.Launcher;
-import pulse.ui.Messages;
-import pulse.ui.components.Chart;
 import pulse.ui.components.listeners.PlotRequestListener;
 
 @SuppressWarnings("serial")
@@ -51,15 +61,15 @@ public class ChartToolbar extends JPanel {
 		var residualsBtn = new JToggleButton();
 
 		var gbc = new GridBagConstraints();
-		gbc.fill = GridBagConstraints.BOTH;
+		gbc.fill = BOTH;
 		gbc.weightx = 0.25;
 
 		lowerLimitField.setValue(0.0);
 
-		String ghostText1 = "Lower bound";
+		var ghostText1 = "Lower bound";
 		lowerLimitField.setText(ghostText1);
 
-		String ghostText2 = "Upper bound";
+		var ghostText2 = "Upper bound";
 
 		add(lowerLimitField, gbc);
 
@@ -70,44 +80,43 @@ public class ChartToolbar extends JPanel {
 
 		limitRangeBtn.setText("Limit Range To");
 
-		lowerLimitField.setForeground(Color.GRAY);
-		upperLimitField.setForeground(Color.GRAY);
+		lowerLimitField.setForeground(GRAY);
+		upperLimitField.setForeground(GRAY);
 
 		var ftfFocusListener = new FocusListener() {
 
 			@Override
 			public void focusGained(FocusEvent e) {
-				JTextField src = (JTextField) e.getSource();
+				var src = (JTextField) e.getSource();
 				if (src.getText().length() > 0)
-					src.setForeground(Color.black);
+					src.setForeground(black);
 			}
 
 			@Override
 			public void focusLost(FocusEvent e) {
-				JFormattedTextField src = (JFormattedTextField) e.getSource();
+				var src = (JFormattedTextField) e.getSource();
 				if (src.getValue() == null) {
 					src.setText(ghostText1);
-					src.setForeground(Color.gray);
+					src.setForeground(gray);
 				}
 			}
 
 		};
 
-		TaskManager.addSelectionListener(event -> {
-			SearchTask t = event.getSelection();
-
-			ExperimentalData expCurve = t.getExperimentalCurve();
+		addSelectionListener(event -> {
+			var t = event.getSelection();
+			var expCurve = t.getExperimentalCurve();
 
 			lowerLimitField.setValue(expCurve.getRange().getSegment().getMinimum());
 			upperLimitField.setValue(expCurve.getRange().getSegment().getMaximum());
 
 		});
 
-		TaskManager.addTaskRepositoryListener(e -> {
+		addTaskRepositoryListener(e -> {
 
-			if (e.getState() == TaskRepositoryEvent.State.TASK_FINISHED) {
+			if (e.getState() == TASK_FINISHED) {
 
-				SearchTask t = TaskManager.getSelectedTask();
+				var t = getSelectedTask();
 
 				if (e.getId().equals(t.getIdentifier())) {
 					lowerLimitField.setValue(t.getExperimentalCurve().getRange().getSegment().getMinimum());
@@ -130,8 +139,8 @@ public class ChartToolbar extends JPanel {
 			}
 
 			else {
-				double lower = ((Number) lowerLimitField.getValue()).doubleValue();
-				double upper = ((Number) upperLimitField.getValue()).doubleValue();
+				var lower = ((Number) lowerLimitField.getValue()).doubleValue();
+				var upper = ((Number) upperLimitField.getValue()).doubleValue();
 				validateRange(lower, upper);
 				notifyPlot();
 			}
@@ -141,10 +150,10 @@ public class ChartToolbar extends JPanel {
 		add(limitRangeBtn, gbc);
 
 		adiabaticSolutionBtn.setToolTipText("Sanity check (original adiabatic solution)");
-		adiabaticSolutionBtn.setIcon(Launcher.loadIcon("parker.png", ICON_SIZE));
+		adiabaticSolutionBtn.setIcon(loadIcon("parker.png", ICON_SIZE));
 
 		adiabaticSolutionBtn.addActionListener(e -> {
-			Chart.setZeroApproximationShown(adiabaticSolutionBtn.isSelected());
+			setZeroApproximationShown(adiabaticSolutionBtn.isSelected());
 			notifyPlot();
 		});
 
@@ -152,11 +161,11 @@ public class ChartToolbar extends JPanel {
 		add(adiabaticSolutionBtn, gbc);
 
 		residualsBtn.setToolTipText("Plot residuals");
-		residualsBtn.setIcon(Launcher.loadIcon("residuals.png", ICON_SIZE));
+		residualsBtn.setIcon(loadIcon("residuals.png", ICON_SIZE));
 		residualsBtn.setSelected(true);
 
 		residualsBtn.addActionListener(e -> {
-			Chart.setResidualsShown(residualsBtn.isSelected());
+			setResidualsShown(residualsBtn.isSelected());
 			notifyPlot();
 		});
 
@@ -173,15 +182,15 @@ public class ChartToolbar extends JPanel {
 	}
 
 	private static boolean userSaysRevert(JFormattedTextField ftf) {
-		Toolkit.getDefaultToolkit().beep();
+		getDefaultToolkit().beep();
 		ftf.selectAll();
-		Object[] options = { Messages.getString("NumberEditor.EditText"),
-				Messages.getString("NumberEditor.RevertText") };
-		int answer = JOptionPane.showOptionDialog(SwingUtilities.getWindowAncestor(ftf),
+		Object[] options = { getString("NumberEditor.EditText"),
+				getString("NumberEditor.RevertText") };
+		var answer = showOptionDialog(getWindowAncestor(ftf),
 				"<html>Time domain should be consistent with the experimental data range.<br>"
-						+ Messages.getString("NumberEditor.MessageLine1")
-						+ Messages.getString("NumberEditor.MessageLine2") + "</html>",
-				Messages.getString("NumberEditor.InvalidText"), JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE,
+						+ getString("NumberEditor.MessageLine1")
+						+ getString("NumberEditor.MessageLine2") + "</html>",
+				getString("NumberEditor.InvalidText"), YES_NO_OPTION, ERROR_MESSAGE,
 				null, options, options[1]);
 
 		if (answer == 1) { // Revert!
@@ -192,34 +201,34 @@ public class ChartToolbar extends JPanel {
 	}
 
 	private void validateRange(double a, double b) {
-		SearchTask task = TaskManager.getSelectedTask();
+		var task = getSelectedTask();
 
 		if (task == null)
 			return;
 
-		ExperimentalData expCurve = task.getExperimentalCurve();
+		var expCurve = task.getExperimentalCurve();
 
 		if (expCurve == null)
 			return;
 
-		StringBuilder sb = new StringBuilder();
+		var sb = new StringBuilder();
 
 		sb.append("<html><p>");
-		sb.append(Messages.getString("RangeSelectionFrame.ConfirmationMessage1"));
+		sb.append(getString("RangeSelectionFrame.ConfirmationMessage1"));
 		sb.append("</p><br>");
-		sb.append(Messages.getString("RangeSelectionFrame.ConfirmationMessage2"));
+		sb.append(getString("RangeSelectionFrame.ConfirmationMessage2"));
 		sb.append(expCurve.getEffectiveStartTime());
 		sb.append(" to ");
 		sb.append(expCurve.getEffectiveEndTime());
 		sb.append("<br><br>");
-		sb.append(Messages.getString("RangeSelectionFrame.ConfirmationMessage3"));
-		sb.append(String.format("%3.4f", a) + " to " + String.format("%3.4f", b));
+		sb.append(getString("RangeSelectionFrame.ConfirmationMessage3"));
+		sb.append(format("%3.4f", a) + " to " + format("%3.4f", b));
 		sb.append("</html>");
 
-		int dialogResult = JOptionPane.showConfirmDialog(SwingUtilities.getWindowAncestor(this), sb.toString(),
-				"Confirm chocie", JOptionPane.YES_NO_OPTION);
+		var dialogResult = showConfirmDialog(getWindowAncestor(this), sb.toString(),
+				"Confirm chocie", YES_NO_OPTION);
 
-		if (dialogResult == JOptionPane.YES_OPTION)
+		if (dialogResult == YES_OPTION)
 			expCurve.setRange(new Range(a, b));
 
 	}

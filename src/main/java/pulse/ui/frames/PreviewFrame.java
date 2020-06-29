@@ -1,5 +1,19 @@
 package pulse.ui.frames;
 
+import static java.awt.BasicStroke.CAP_ROUND;
+import static java.awt.BasicStroke.JOIN_ROUND;
+import static java.awt.BorderLayout.CENTER;
+import static java.awt.BorderLayout.SOUTH;
+import static java.awt.Color.BLUE;
+import static java.awt.Color.GRAY;
+import static java.awt.Color.RED;
+import static java.awt.Color.white;
+import static org.jfree.chart.ChartFactory.createScatterPlot;
+import static org.jfree.chart.plot.PlotOrientation.VERTICAL;
+import static pulse.properties.NumericPropertyKeyword.DIFFUSIVITY;
+import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
+import static pulse.ui.Launcher.loadIcon;
+
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -15,13 +29,9 @@ import javax.swing.JLabel;
 import javax.swing.JSeparator;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
-import javax.swing.WindowConstants;
 
-import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYErrorRenderer;
 import org.jfree.chart.renderer.xy.XYSplineRenderer;
 import org.jfree.data.xy.XYIntervalSeries;
@@ -29,9 +39,7 @@ import org.jfree.data.xy.XYIntervalSeriesCollection;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
-import pulse.properties.NumericPropertyKeyword;
 import pulse.tasks.ResultFormat;
-import pulse.ui.Launcher;
 
 @SuppressWarnings("serial")
 public class PreviewFrame extends JInternalFrame {
@@ -47,8 +55,8 @@ public class PreviewFrame extends JInternalFrame {
 	private double[][][] data;
 	private static JFreeChart chart;
 
-	private final static Color RESULT_COLOR = Color.BLUE;
-	private final static Color SMOOTH_COLOR = Color.RED;
+	private final static Color RESULT_COLOR = BLUE;
+	private final static Color SMOOTH_COLOR = RED;
 
 	private static boolean drawSmooth = true;
 
@@ -61,19 +69,19 @@ public class PreviewFrame extends JInternalFrame {
 
 	private void init() {
 		setSize(FRAME_WIDTH, FRAME_HEIGHT);
-		setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
+		setDefaultCloseOperation(HIDE_ON_CLOSE);
 
 		getContentPane().setLayout(new BorderLayout());
 
-		getContentPane().add(createEmptyPanel(), BorderLayout.CENTER);
+		getContentPane().add(createEmptyPanel(), CENTER);
 
-		JToolBar toolbar = new JToolBar();
+		var toolbar = new JToolBar();
 		toolbar.setFloatable(false);
 		toolbar.setLayout(new GridLayout());
 
-		getContentPane().add(toolbar, BorderLayout.SOUTH);
+		getContentPane().add(toolbar, SOUTH);
 
-		JLabel selectX = new JLabel("Bottom axis: ");
+		var selectX = new JLabel("Bottom axis: ");
 		toolbar.add(selectX);
 
 		selectXBox = new JComboBox<>();
@@ -81,7 +89,7 @@ public class PreviewFrame extends JInternalFrame {
 		toolbar.add(selectXBox);
 		toolbar.add(new JSeparator());
 
-		JLabel selectY = new JLabel("Vertical axis:");
+		var selectY = new JLabel("Vertical axis:");
 		toolbar.add(selectY);
 
 		selectYBox = new JComboBox<>();
@@ -89,7 +97,7 @@ public class PreviewFrame extends JInternalFrame {
 
 		var drawSmoothBtn = new JToggleButton();
 		drawSmoothBtn.setToolTipText("Smooth with cubic normal splines");
-		drawSmoothBtn.setIcon(Launcher.loadIcon("spline.png", ICON_SIZE));
+		drawSmoothBtn.setIcon(loadIcon("spline.png", ICON_SIZE));
 		drawSmoothBtn.setSelected(true);
 		toolbar.add(drawSmoothBtn);
 
@@ -100,12 +108,12 @@ public class PreviewFrame extends JInternalFrame {
 
 		selectXBox.addItemListener(e -> replot(chart));
 		selectYBox.addItemListener(e -> replot(chart));
-		this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
 	}
 
 	private void replot(JFreeChart chart) {
-		int selectedX = selectXBox.getSelectedIndex();
-		int selectedY = selectYBox.getSelectedIndex();
+		var selectedX = selectXBox.getSelectedIndex();
+		var selectedY = selectYBox.getSelectedIndex();
 
 		if (selectedX < 0 || selectedY < 0)
 			return;
@@ -113,7 +121,7 @@ public class PreviewFrame extends JInternalFrame {
 		xLabel = propertyNames.get(selectedX);
 		yLabel = propertyNames.get(selectedY);
 
-		XYPlot plot = chart.getXYPlot();
+		var plot = chart.getXYPlot();
 
 		plot.setDataset(0, null);
 		plot.setDataset(1, null);
@@ -139,14 +147,14 @@ public class PreviewFrame extends JInternalFrame {
 
 	public void update(ResultFormat fmt, double[][][] data) {
 		this.data = data;
-		List<String> descriptors = fmt.descriptors();
+		var descriptors = fmt.descriptors();
 		List<String> htmlDescriptors = new ArrayList<>();
-		int size = descriptors.size();
+		var size = descriptors.size();
 
 		propertyNames = new ArrayList<>(size);
 		String tmp;
 
-		for (int i = 0; i < size; i++) {
+		for (var i = 0; i < size; i++) {
 			tmp = descriptors.get(i).replaceAll("<.*?>", " ").replaceAll("&.*?;", "");
 			htmlDescriptors.add("<html>" + descriptors.get(i) + "</html>");
 			propertyNames.add(tmp);
@@ -154,19 +162,19 @@ public class PreviewFrame extends JInternalFrame {
 
 		selectXBox.removeAllItems();
 
-		for (String s : htmlDescriptors) {
+		for (var s : htmlDescriptors) {
                     selectXBox.addItem(s);
                 }
 
-		selectXBox.setSelectedIndex(fmt.indexOf(NumericPropertyKeyword.TEST_TEMPERATURE));
+		selectXBox.setSelectedIndex(fmt.indexOf(TEST_TEMPERATURE));
 
 		selectYBox.removeAllItems();
 
-		for (String s : htmlDescriptors) {
+		for (var s : htmlDescriptors) {
                     selectYBox.addItem(s);
                 }
 
-		selectYBox.setSelectedIndex(fmt.indexOf(NumericPropertyKeyword.DIFFUSIVITY));
+		selectYBox.setSelectedIndex(fmt.indexOf(DIFFUSIVITY));
 	}
 
 	/*
@@ -174,39 +182,39 @@ public class PreviewFrame extends JInternalFrame {
 	 */
 
 	private static ChartPanel createEmptyPanel() {
-		chart = ChartFactory.createScatterPlot("", xLabel, yLabel, null, PlotOrientation.VERTICAL, true, true, false);
+		chart = createScatterPlot("", xLabel, yLabel, null, VERTICAL, true, true, false);
 
 		var renderer = new XYErrorRenderer();
 		renderer.setSeriesPaint(0, RESULT_COLOR);
 
 		var rendererSpline = new XYSplineRenderer();
 		rendererSpline.setSeriesPaint(0, SMOOTH_COLOR);
-		rendererSpline.setSeriesStroke(0, new BasicStroke(2.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 1.0f,
+		rendererSpline.setSeriesStroke(0, new BasicStroke(2.0f, CAP_ROUND, JOIN_ROUND, 1.0f,
 				new float[] { 6.0f, 6.0f }, 0.0f));
 
-		double size = 6.0;
-		double delta = size / 2.0;
+		var size = 6.0;
+		var delta = size / 2.0;
 		Shape shape1 = new Rectangle2D.Double(-delta, -delta, size, size);
 		renderer.setSeriesShape(0, shape1);
 
-		XYPlot plot = chart.getXYPlot();
+		var plot = chart.getXYPlot();
 
 		plot.setRenderer(0, renderer);
 		plot.setRenderer(1, rendererSpline);
-		plot.setBackgroundPaint(Color.white);
+		plot.setBackgroundPaint(white);
 
 		plot.setRangeGridlinesVisible(true);
-		plot.setRangeGridlinePaint(Color.GRAY);
+		plot.setRangeGridlinePaint(GRAY);
 
 		plot.setDomainGridlinesVisible(true);
-		plot.setDomainGridlinePaint(Color.GRAY);
+		plot.setDomainGridlinePaint(GRAY);
 
 		plot.getRenderer(1).setSeriesPaint(1, SMOOTH_COLOR);
 		plot.getRenderer(0).setSeriesPaint(0, RESULT_COLOR);
 
 		chart.removeLegend();
 
-		ChartPanel cp = new ChartPanel(chart);
+		var cp = new ChartPanel(chart);
 
 		cp.setMaximumDrawHeight(2000);
 		cp.setMaximumDrawWidth(2000);
@@ -223,7 +231,7 @@ public class PreviewFrame extends JInternalFrame {
 	private static XYIntervalSeries series(double[] x, double[] xerr, double[] y, double[] yerr) {
 		var series = new XYIntervalSeries("Preview");
 
-		for (int i = 0; i < x.length; i++) {
+		for (var i = 0; i < x.length; i++) {
                     series.add(x[i], x[i] - xerr[i], x[i] + xerr[i], y[i], y[i] - yerr[i], y[i] + yerr[i]);
                 }
 
@@ -237,7 +245,7 @@ public class PreviewFrame extends JInternalFrame {
 	private static XYSeries series(double[] x, double[] y) {
 		var series = new XYSeries("Preview");
 
-		for (int i = 0; i < x.length; i++) {
+		for (var i = 0; i < x.length; i++) {
                     series.add(x[i], y[i]);
                 }
 
@@ -249,7 +257,7 @@ public class PreviewFrame extends JInternalFrame {
 	}
 
 	public void setDrawSmooth(boolean drawSmooth) {
-		PreviewFrame.drawSmooth = drawSmooth;
+		drawSmooth = drawSmooth;
 	}
 
 }

@@ -1,102 +1,90 @@
 package pulse.ui.components.buttons;
 
+import static javax.swing.JOptionPane.ERROR_MESSAGE;
+import static javax.swing.JOptionPane.showMessageDialog;
+import static javax.swing.SwingUtilities.getWindowAncestor;
+import static pulse.tasks.Log.setVerbose;
+import static pulse.tasks.Status.INCOMPLETE;
+import static pulse.tasks.TaskManager.addTaskRepositoryListener;
+import static pulse.tasks.TaskManager.cancelAllTasks;
+import static pulse.tasks.TaskManager.execute;
+import static pulse.tasks.TaskManager.executeAll;
+import static pulse.tasks.TaskManager.getSelectedTask;
+import static pulse.tasks.TaskManager.getTaskList;
+import static pulse.tasks.TaskManager.isTaskQueueEmpty;
+import static pulse.ui.Messages.getString;
+import static pulse.ui.components.buttons.ExecutionButton.ExecutionState.EXECUTE;
+import static pulse.ui.components.buttons.ExecutionButton.ExecutionState.STOP;
+
 import java.awt.Component;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JOptionPane;
-import javax.swing.SwingUtilities;
 
-import pulse.tasks.Log;
-import pulse.tasks.Status;
-import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.TaskRepositoryEvent;
-import pulse.tasks.listeners.TaskRepositoryListener;
 import pulse.ui.Launcher;
-import pulse.ui.Messages;
 
 @SuppressWarnings("serial")
 public class ExecutionButton extends JButton {
 
-	private ExecutionState state = ExecutionState.EXECUTE;
+	private ExecutionState state = EXECUTE;
 
 	public ExecutionButton() {
 		super();
 		setIcon(state.getIcon());
 		setToolTipText(state.getMessage());
 
-		this.addActionListener(new ActionListener() {
+		this.addActionListener((ActionEvent e) -> {
+            /*
+             * STOP PRESSED?
+             */
+            if (state == STOP) {
+                cancelAllTasks();
+                return;
+            }
+            /*
+             * EXECUTE PRESSED?
+             */
+            if (getTaskList().isEmpty()) {
+                showMessageDialog(getWindowAncestor((Component) e.getSource()), getString("TaskControlFrame.PleaseLoadData"), //$NON-NLS-1$
+                        "No Tasks", //$NON-NLS-1$
+                ERROR_MESSAGE);
+                return;
+            }
+            java.util.Optional<pulse.tasks.SearchTask> problematicTask = getTaskList().stream().filter((t) -> t.checkProblems() == INCOMPLETE).findFirst();
+            if (problematicTask.isPresent()) {
+                var t = problematicTask.get();
+                showMessageDialog(getWindowAncestor((Component) e.getSource()), t + " is " + t.getStatus().getMessage(), "Problems found", ERROR_MESSAGE);
+            } else {
+                if (getTaskList().stream().anyMatch(t -> !t.getProblem().isBatchProcessingEnabled())) {
+                    execute(getSelectedTask());
+                } else {
+                    executeAll();
+                    setVerbose(true);
+                }
+            }
+        });
 
-			@Override
-			public void actionPerformed(ActionEvent e) {
-
-				/*
-				 * STOP PRESSED?
-				 */
-
-				if (state == ExecutionState.STOP) {
-					TaskManager.cancelAllTasks();
-					return;
-				}
-
-				/*
-				 * EXECUTE PRESSED?
-				 */
-
-				if (TaskManager.getTaskList().isEmpty()) {
-					JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor((Component) e.getSource()),
-							Messages.getString("TaskControlFrame.PleaseLoadData"), //$NON-NLS-1$
-							"No Tasks", //$NON-NLS-1$
-							JOptionPane.ERROR_MESSAGE);
-					return;
-				}
-
-				var problematicTask = TaskManager.getTaskList().stream()
-						.filter(t -> t.checkProblems() == Status.INCOMPLETE).findFirst();
-
-				if (problematicTask.isPresent()) {
-					var t = problematicTask.get();
-					JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor((Component) e.getSource()),
-							t + " is " + t.getStatus().getMessage(), "Problems found", JOptionPane.ERROR_MESSAGE);
-				} else {
-					if (TaskManager.getTaskList().stream().anyMatch(t -> !t.getProblem().isBatchProcessingEnabled()))
-						TaskManager.execute(TaskManager.getSelectedTask());
-					else {
-						TaskManager.executeAll();
-						Log.setVerbose(true);
-					}
-				}
-
-			}
-
-		});
-
-		TaskManager.addTaskRepositoryListener(new TaskRepositoryListener() {
-
-			@Override
-			public void onTaskListChanged(TaskRepositoryEvent e) {
-				switch (e.getState()) {
-				case TASK_SUBMITTED:
-					setExecutionState(ExecutionState.STOP);
-					break;
-				case TASK_FINISHED:
-					if (TaskManager.isTaskQueueEmpty())
-						setExecutionState(ExecutionState.EXECUTE);
-					else
-						setExecutionState(ExecutionState.STOP);
-					break;
-				case SHUTDOWN:
-					setExecutionState(ExecutionState.EXECUTE);
-					break;
-				default:
-					return;
-				}
-
-			}
-
-		});
+		addTaskRepositoryListener((TaskRepositoryEvent e) -> {
+            switch (e.getState()) {
+                case TASK_SUBMITTED:
+                    setExecutionState(STOP);
+                    break;
+                case TASK_FINISHED:
+                    if (isTaskQueueEmpty()) {
+                        setExecutionState(EXECUTE);
+                    } else {
+                        setExecutionState(STOP);
+                    }
+                    break;
+                case SHUTDOWN:
+                    setExecutionState(EXECUTE);
+                    break;
+                default:
+                    return;
+            }
+        });
 
 	}
 

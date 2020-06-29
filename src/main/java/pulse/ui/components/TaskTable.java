@@ -1,19 +1,32 @@
 package pulse.ui.components;
 
+import static javax.swing.ListSelectionModel.SINGLE_INTERVAL_SELECTION;
+import static javax.swing.SortOrder.ASCENDING;
+import static javax.swing.SwingUtilities.invokeLater;
+import static javax.swing.SwingUtilities.isRightMouseButton;
+import static pulse.properties.NumericProperty.theDefault;
+import static pulse.properties.NumericPropertyKeyword.IDENTIFIER;
+import static pulse.properties.NumericPropertyKeyword.OPTIMISER_STATISTIC;
+import static pulse.properties.NumericPropertyKeyword.TEST_STATISTIC;
+import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
+import static pulse.tasks.TaskManager.addSelectionListener;
+import static pulse.tasks.TaskManager.addTaskRepositoryListener;
+import static pulse.tasks.TaskManager.getTask;
+import static pulse.tasks.TaskManager.removeTask;
+import static pulse.tasks.TaskManager.selectTask;
+import static pulse.tasks.listeners.TaskRepositoryEvent.State.TASK_ADDED;
+import static pulse.tasks.listeners.TaskRepositoryEvent.State.TASK_REMOVED;
+import static pulse.ui.Messages.getString;
+
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Comparator;
 
 import javax.swing.JTable;
-import javax.swing.ListSelectionModel;
 import javax.swing.RowSorter;
-import javax.swing.SortOrder;
-import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellEditor;
@@ -22,20 +35,13 @@ import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableRowSorter;
 
 import pulse.properties.NumericProperty;
-import pulse.properties.NumericPropertyKeyword;
 import pulse.tasks.Identifier;
 import pulse.tasks.LogEntry;
 import pulse.tasks.SearchTask;
 import pulse.tasks.StateEntry;
 import pulse.tasks.Status;
-import pulse.tasks.TaskManager;
-import pulse.tasks.listeners.DataCollectionListener;
-import pulse.tasks.listeners.StatusChangeListener;
 import pulse.tasks.listeners.TaskRepositoryEvent;
-import pulse.tasks.listeners.TaskRepositoryListener;
 import pulse.tasks.listeners.TaskSelectionEvent;
-import pulse.tasks.listeners.TaskSelectionListener;
-import pulse.ui.Messages;
 import pulse.ui.components.controllers.TaskTableRenderer;
 
 @SuppressWarnings("serial")
@@ -59,22 +65,22 @@ public class TaskTable extends JTable {
 		setRowHeight(ROW_HEIGHT);
 
 		setFillsViewportHeight(true);
-		setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
+		setSelectionMode(SINGLE_INTERVAL_SELECTION);
 		setShowHorizontalLines(false);
 
 		var model = new TaskTableModel();
 		setModel(model);
 
-		TableHeader th = new TableHeader(getColumnModel(),
-				new String[] { NumericProperty.theDefault(NumericPropertyKeyword.IDENTIFIER).getDescriptor(true),
-						NumericProperty.theDefault(NumericPropertyKeyword.TEST_TEMPERATURE).getDescriptor(true),
-						NumericProperty.theDefault(NumericPropertyKeyword.OPTIMISER_STATISTIC).getDescriptor(true),
-						NumericProperty.theDefault(NumericPropertyKeyword.TEST_STATISTIC).getDescriptor(true),
+		var th = new TableHeader(getColumnModel(),
+				new String[] { theDefault(IDENTIFIER).getDescriptor(true),
+						theDefault(TEST_TEMPERATURE).getDescriptor(true),
+						theDefault(OPTIMISER_STATISTIC).getDescriptor(true),
+						theDefault(TEST_STATISTIC).getDescriptor(true),
 						("Task status") });
 
 		setTableHeader(th);
 
-		Font font = getTableHeader().getFont().deriveFont(FONT_SIZE);
+		var font = getTableHeader().getFont().deriveFont(FONT_SIZE);
 		getTableHeader().setFont(font);
 		getTableHeader().setPreferredSize(new Dimension(50, HEADER_HEIGHT));
 
@@ -83,8 +89,8 @@ public class TaskTable extends JTable {
 		sorter.setModel(model);
 		var list = new ArrayList<RowSorter.SortKey>();
 
-		for (int i = 0; i < this.getModel().getColumnCount(); i++) {
-			list.add(new RowSorter.SortKey(i, SortOrder.ASCENDING));
+		for (var i = 0; i < this.getModel().getColumnCount(); i++) {
+			list.add(new RowSorter.SortKey(i, ASCENDING));
 			if (i == TaskTableModel.STATUS_COLUMN)
 				sorter.setComparator(i, statusComparator);
 			else
@@ -105,17 +111,13 @@ public class TaskTable extends JTable {
 		 * task removed/added listener
 		 */
 
-		TaskManager.addTaskRepositoryListener(new TaskRepositoryListener() {
-
-			@Override
-			public void onTaskListChanged(TaskRepositoryEvent e) {
-				if (e.getState() == TaskRepositoryEvent.State.TASK_REMOVED)
-					((TaskTableModel) getModel()).removeTask(e.getId());
-				else if (e.getState() == TaskRepositoryEvent.State.TASK_ADDED)
-					((TaskTableModel) getModel()).addTask(TaskManager.getTask(e.getId()));
-			}
-
-		});
+		addTaskRepositoryListener((TaskRepositoryEvent e) -> {
+            if (e.getState() == TASK_REMOVED) {
+                ((TaskTableModel) getModel()).removeTask(e.getId());
+            } else if (e.getState() == TASK_ADDED) {
+                ((TaskTableModel) getModel()).addTask(getTask(e.getId()));
+            }
+        });
 
 		/*
 		 * mouse listener
@@ -132,7 +134,7 @@ public class TaskTable extends JTable {
 				if (rowAtPoint(e.getPoint()) != getSelectedRow())
 					return;
 
-				if (SwingUtilities.isRightMouseButton(e))
+				if (isRightMouseButton(e))
 					menu.show(e.getComponent(), e.getX(), e.getY());
 
 			}
@@ -143,52 +145,34 @@ public class TaskTable extends JTable {
 		 * selection listener
 		 */
 
-		ListSelectionModel lsm = getSelectionModel();
-		TaskTable reference = this;
+		var lsm = getSelectionModel();
+		var reference = this;
 
-		lsm.addListSelectionListener(new ListSelectionListener() {
+		lsm.addListSelectionListener((ListSelectionEvent e) -> {
+                    if (lsm.getValueIsAdjusting())
+                        return;
+                    if (lsm.isSelectionEmpty())
+                        return;
+            var id = (Identifier) getValueAt(lsm.getMinSelectionIndex(), 0);
+            selectTask(id, reference);
+        });
 
-			@Override
-			public void valueChanged(ListSelectionEvent e) {
-				if (lsm.getValueIsAdjusting())
-					return;
-
-				if (lsm.isSelectionEmpty())
-					return;
-
-				Identifier id = (Identifier) getValueAt(lsm.getMinSelectionIndex(), 0);
-				TaskManager.selectTask(id, reference);
-
-			}
-
-		});
-
-		TaskManager.addSelectionListener(new TaskSelectionListener() {
-
-			@Override
-			public void onSelectionChanged(TaskSelectionEvent e) {
-				// simply ignore call if event is triggered by taskTable
-				if (e.getSource() instanceof TaskTable)
-					return;
-
-				Identifier id = e.getSelection().getIdentifier();
-				Identifier idFromTable = null;
-
-				for (int i = 0; i < getRowCount(); i++) {
-					idFromTable = (Identifier) getValueAt(i, 0);
-
-					if (idFromTable.equals(id)) {
-						setRowSelectionInterval(i, i);
-						return;
-					}
-
-				}
-
-				clearSelection();
-
-			}
-
-		});
+		addSelectionListener((TaskSelectionEvent e) -> {
+                    // simply ignore call if event is triggered by taskTable
+                    if (e.getSource() instanceof TaskTable)
+                        return;
+            var id = e.getSelection().getIdentifier();
+            Identifier idFromTable = null;
+            for (var i = 0; i < getRowCount(); i++) {
+                idFromTable = (Identifier) getValueAt(i, 0);
+                
+                if (idFromTable.equals(id)) {
+                    setRowSelectionInterval(i, i);
+                    return;
+                }
+            }
+            clearSelection();
+        });
 
 	}
 
@@ -211,50 +195,40 @@ public class TaskTable extends JTable {
 		public TaskTableModel() {
 
 			super(new Object[][] {},
-					new String[] { NumericProperty.theDefault(NumericPropertyKeyword.IDENTIFIER).getAbbreviation(true),
-							NumericProperty.theDefault(NumericPropertyKeyword.TEST_TEMPERATURE).getAbbreviation(true),
-							NumericProperty.theDefault(NumericPropertyKeyword.OPTIMISER_STATISTIC)
+					new String[] { theDefault(IDENTIFIER).getAbbreviation(true),
+							theDefault(TEST_TEMPERATURE).getAbbreviation(true),
+							theDefault(OPTIMISER_STATISTIC)
 									.getAbbreviation(true),
-							NumericProperty.theDefault(NumericPropertyKeyword.TEST_STATISTIC).getAbbreviation(true),
-							Messages.getString("TaskTable.Status") });
+							theDefault(TEST_STATISTIC).getAbbreviation(true),
+							getString("TaskTable.Status") });
 
 		}
 
 		public void addTask(SearchTask t) {
-			Object[] data = new Object[] { t.getIdentifier(), t.getTestTemperature(),
+			var data = new Object[] { t.getIdentifier(), t.getTestTemperature(),
 					t.getResidualStatistic().getStatistic(), t.getNormalityTest().getStatistic(), t.getStatus() };
 
-			SwingUtilities.invokeLater(() -> super.addRow(data));
+			invokeLater(() -> super.addRow(data));
 
-			t.addStatusChangeListener(new StatusChangeListener() {
+			t.addStatusChangeListener((StateEntry e) -> {
+                            setValueAt(e.getState(), searchRow(t.getIdentifier()), STATUS_COLUMN);
+                            if (t.getNormalityTest() != null)
+                                setValueAt(t.getNormalityTest().getStatistic(), searchRow(t.getIdentifier()),
+                                        TEST_STATISTIC_COLUMN);
+            });
 
-				@Override
-				public void onStatusChange(StateEntry e) {
-					setValueAt(e.getState(), searchRow(t.getIdentifier()), STATUS_COLUMN);
-					if (t.getNormalityTest() != null)
-						setValueAt(t.getNormalityTest().getStatistic(), searchRow(t.getIdentifier()),
-								TEST_STATISTIC_COLUMN);
-				}
-
-			});
-
-			t.addTaskListener(new DataCollectionListener() {
-
-				@Override
-				public void onDataCollected(LogEntry e) {
-					setValueAt(t.getResidualStatistic().getStatistic(), searchRow(t.getIdentifier()),
-							SEARCH_STATISTIC_COLUMN);
-				}
-
-			});
+			t.addTaskListener((LogEntry e) -> {
+                            setValueAt(t.getResidualStatistic().getStatistic(), searchRow(t.getIdentifier()),
+                                    SEARCH_STATISTIC_COLUMN);
+            });
 
 		}
 
 		public void removeTask(Identifier id) {
-			int index = searchRow(id);
+			var index = searchRow(id);
 
 			if (index > -1)
-				SwingUtilities.invokeLater(() -> super.removeRow(index));
+				invokeLater(() -> super.removeRow(index));
 
 		}
 
@@ -272,12 +246,12 @@ public class TaskTable extends JTable {
 	}
 
 	public void removeSelectedRows() {
-		int[] rows = getSelectedRows();
+		var rows = getSelectedRows();
 		Identifier id;
 
-		for (int i = rows.length - 1; i >= 0; i--) {
+		for (var i = rows.length - 1; i >= 0; i--) {
 			id = (Identifier) getValueAt(rows[i], 0);
-			TaskManager.removeTask(TaskManager.getTask(id));
+			removeTask(getTask(id));
 		}
 
 		clearSelection();
@@ -294,9 +268,9 @@ public class TaskTable extends JTable {
 
 		@Override
 		public String getToolTipText(MouseEvent e) {
-			java.awt.Point p = e.getPoint();
-			int index = columnModel.getColumnIndexAtX(p.x);
-			int realIndex = columnModel.getColumn(index).getModelIndex();
+			var p = e.getPoint();
+			var index = columnModel.getColumnIndexAtX(p.x);
+			var realIndex = columnModel.getColumn(index).getModelIndex();
 			return this.tooltips[realIndex];
 		}
 

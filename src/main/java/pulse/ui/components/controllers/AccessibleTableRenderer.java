@@ -1,11 +1,15 @@
 package pulse.ui.components.controllers;
 
-import java.awt.Color;
+import static java.awt.Color.BLUE;
+import static java.awt.Color.LIGHT_GRAY;
+import static java.awt.Color.RED;
+import static java.awt.Color.WHITE;
+import static java.awt.Font.BOLD;
+import static java.awt.Font.ITALIC;
+
 import java.awt.Component;
-import java.awt.Font;
 
 import javax.swing.JButton;
-import javax.swing.JFormattedTextField;
 import javax.swing.JTable;
 
 import pulse.properties.Flag;
@@ -32,29 +36,29 @@ public class AccessibleTableRenderer extends NumericPropertyRenderer {
 
 		if (value instanceof NumericProperty) {
 			var renderer = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-			renderer.setForeground(Color.BLUE);
+			renderer.setForeground(BLUE);
 			return renderer;
 		}
 
 		if (value instanceof Flag) {
-			IconCheckBox btn = new IconCheckBox((boolean) ((Property) value).getValue());
+			var btn = new IconCheckBox((boolean) ((Property) value).getValue());
 			btn.setHorizontalAlignment(CENTER);
 			if (isSelected)
 				btn.setBackground(LIGHT_BLUE);
 			else
-				btn.setBackground(Color.WHITE);
+				btn.setBackground(WHITE);
 			return btn;
 		}
 
 		if (value instanceof PropertyHolder) {
-			JButton button = initButton(value.toString());
+			var button = initButton(value.toString());
 			return button;
 		}
 
 		if (value instanceof Property) {
-			JFormattedTextField jtf = initTextField(value.toString(), table.isRowSelected(row));
-			jtf.setForeground(Color.RED);
-			jtf.setFont(jtf.getFont().deriveFont(Font.BOLD));
+			var jtf = initTextField(value.toString(), table.isRowSelected(row));
+			jtf.setForeground(RED);
+			jtf.setFont(jtf.getFont().deriveFont(BOLD));
 			return jtf;
 		}
 
@@ -63,10 +67,10 @@ public class AccessibleTableRenderer extends NumericPropertyRenderer {
 	}
 
 	private JButton initButton(String str) {
-		JButton button = new JButton(str);
+		var button = new JButton(str);
 		button.setContentAreaFilled(true);
-		button.setBackground(Color.LIGHT_GRAY);
-		button.setFont(button.getFont().deriveFont(12.0f).deriveFont(Font.ITALIC));
+		button.setBackground(LIGHT_GRAY);
+		button.setFont(button.getFont().deriveFont(12.0f).deriveFont(ITALIC));
 		button.setToolTipText(str);
 		return button;
 	}

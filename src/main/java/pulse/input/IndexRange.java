@@ -1,7 +1,8 @@
 package pulse.input;
 
+import static java.util.Objects.requireNonNull;
+
 import java.util.List;
-import java.util.Objects;
 
 public class IndexRange {
 
@@ -24,7 +25,7 @@ public class IndexRange {
 	}
 
 	public void reset(List<Double> data) {
-		Objects.requireNonNull(data);
+		requireNonNull(data);
 		int size = data.size();
 
 		if (size > 0) {

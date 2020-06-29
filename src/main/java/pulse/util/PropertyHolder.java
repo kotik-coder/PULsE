@@ -1,14 +1,14 @@
 package pulse.util;
 
+import static java.util.stream.Collectors.toList;
+
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import pulse.properties.EnumProperty;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
-import pulse.tasks.Identifier;
 
 /**
  * An {@code Accessible} that has a list of parameters it accepts as its own and
@@ -38,7 +38,7 @@ public abstract class PropertyHolder extends Accessible {
 
 		List<Property> properties = new ArrayList<>();
 
-		for (Accessible accessible : accessibleChildren()) {
+		for (var accessible : accessibleChildren()) {
                     if (accessible instanceof PropertyHolder)
                         properties.addAll(((PropertyHolder) accessible).listedTypes());
                 }
@@ -112,9 +112,9 @@ public abstract class PropertyHolder extends Accessible {
 	 */
 
 	public List<Property> data() {
-		List<NumericProperty> numeric = numericData();
-		List<Property> all = genericProperties().stream().filter(p -> isListedGenericType(p))
-				.collect(Collectors.toList());
+		var numeric = numericData();
+		var all = genericProperties().stream().filter(p -> isListedGenericType(p))
+				.collect(toList());
 
 		all.addAll(numeric);
 		return all;
@@ -135,7 +135,7 @@ public abstract class PropertyHolder extends Accessible {
 	public List<NumericProperty> numericData() {
 		return numericProperties().stream()
 				.filter(p -> (isListedNumericType(p) && (areDetailsHidden() ? !p.isAutoAdjustable() : true)))
-				.collect(Collectors.toList());
+				.collect(toList());
 	}
 
 	/**
@@ -148,7 +148,7 @@ public abstract class PropertyHolder extends Accessible {
 
 	public List<EnumProperty> enumData() {
 		return data().stream().filter(p -> p instanceof EnumProperty).map(eP -> (EnumProperty) eP)
-				.collect(Collectors.toList());
+				.collect(toList());
 	}
 
 	/**
@@ -171,7 +171,7 @@ public abstract class PropertyHolder extends Accessible {
 	 */
 
 	public boolean updateProperty(Object sourceComponent, Property updatedProperty) {
-		Property existing = property(updatedProperty);
+		var existing = property(updatedProperty);
 
 		if (existing == null)
 			return false;
@@ -186,7 +186,7 @@ public abstract class PropertyHolder extends Accessible {
 	}
 
 	public void notifyListeners(Object source, Property property) {
-		PropertyEvent event = new PropertyEvent(source, property);
+		var event = new PropertyEvent(source, property);
 		listeners.forEach(l -> l.onPropertyChanged(event));
 
 		/*
@@ -260,7 +260,7 @@ public abstract class PropertyHolder extends Accessible {
 		if (prefix == null)
 			return super.describe();
 
-		Identifier id = identify();
+		var id = identify();
 
 		if (id == null)
 			return super.describe();

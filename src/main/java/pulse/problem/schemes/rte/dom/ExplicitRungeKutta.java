@@ -109,10 +109,9 @@ public class ExplicitRungeKutta extends AdaptiveIntegrator {
 				 */
 
 				sum = tableau.coefs.get(m, 0) * q[l - n1][0];
-				for (int k = 1; k < m; k++) {
-                                    sum += tableau.coefs.get(m, k) * q[l - n1][k];
-                                }
-
+				for (int k = 1; k < m; k++)
+					sum += tableau.coefs.get(m, k) * q[l - n1][k];
+                    
 				iOutward[l - n1] = intensities.I[j][l] + hSigned * sum; // outward intensities are simply found from the
 																		// RK explicit expressions
 

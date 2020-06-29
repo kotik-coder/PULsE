@@ -1,10 +1,26 @@
 package pulse.ui.frames.dialogs;
 
+import static java.awt.EventQueue.invokeLater;
+import static java.io.File.separator;
+import static java.util.concurrent.Executors.newFixedThreadPool;
+import static javax.swing.GroupLayout.Alignment.BASELINE;
+import static javax.swing.GroupLayout.Alignment.LEADING;
+import static javax.swing.JFileChooser.APPROVE_OPTION;
+import static javax.swing.JFileChooser.DIRECTORIES_ONLY;
+import static javax.swing.SwingConstants.HORIZONTAL;
+import static pulse.io.export.ExportManager.allGrouppedContents;
+import static pulse.io.export.ExportManager.exportAllResults;
+import static pulse.io.export.Exporter.getAllSupportedExtensions;
+import static pulse.io.export.Extension.valueOf;
+import static pulse.io.export.MassExporter.exportGroup;
+import static pulse.tasks.TaskManager.getTaskList;
+import static pulse.tasks.TaskManager.numberOfTasks;
+import static pulse.ui.Launcher.threadsAvailable;
+
 import java.awt.Dimension;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.Executors;
 
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
@@ -14,7 +30,6 @@ import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
-import javax.swing.SwingConstants;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
@@ -22,11 +37,9 @@ import pulse.HeatingCurve;
 import pulse.input.ExperimentalData;
 import pulse.input.Metadata;
 import pulse.io.export.ExportManager;
-import pulse.io.export.Exporter;
 import pulse.io.export.Extension;
 import pulse.io.export.HeatingCurveExporter;
 import pulse.io.export.LogExporter;
-import pulse.io.export.MassExporter;
 import pulse.io.export.MetadataExporter;
 import pulse.io.export.RawDataExporter;
 import pulse.io.export.ResidualStatisticExporter;
@@ -34,7 +47,6 @@ import pulse.io.export.ResultExporter;
 import pulse.tasks.Log;
 import pulse.tasks.Result;
 import pulse.tasks.TaskManager;
-import pulse.ui.Launcher;
 
 @SuppressWarnings("serial")
 public class ExportDialog extends JDialog {
@@ -73,9 +85,9 @@ public class ExportDialog extends JDialog {
 	}
 
 	private File directoryQuery() {
-		int returnVal = fileChooser.showSaveDialog(this);
+		var returnVal = fileChooser.showSaveDialog(this);
 
-		if (returnVal == JFileChooser.APPROVE_OPTION) {
+		if (returnVal == APPROVE_OPTION) {
 			dir = fileChooser.getSelectedFile();
 			return dir;
 		}
@@ -85,29 +97,29 @@ public class ExportDialog extends JDialog {
 	}
 
 	private void export(Extension extension) {
-		if (TaskManager.numberOfTasks() < 1)
+		if (numberOfTasks() < 1)
 			return; // nothing to export
 
-		var destination = new File(dir + File.separator + projectName);
-		var subdirs = TaskManager.getTaskList();
+		var destination = new File(dir + separator + projectName);
+		var subdirs = getTaskList();
 
 		if (subdirs.size() > 0 && !destination.exists())
 			destination.mkdirs();
 
-		final int threads = Launcher.threadsAvailable();
+		final var threads = threadsAvailable();
 
 		if (createSubdirectories) {
 			progressFrame.trackProgress(subdirs.size());
-			var pool = Executors.newFixedThreadPool(threads - 1);
+			var pool = newFixedThreadPool(threads - 1);
 			subdirs.stream().forEach(s -> {
 				pool.submit(() -> {
-					MassExporter.exportGroup(s, destination, extension);
+					exportGroup(s, destination, extension);
 					progressFrame.incrementProgress();
 				});
 			});
 		} else {
-			var groupped = ExportManager.allGrouppedContents();
-			var pool = Executors.newFixedThreadPool(threads - 1);
+			var groupped = allGrouppedContents();
+			var pool = newFixedThreadPool(threads - 1);
 			progressFrame.trackProgress(groupped.size());
 
 			groupped.stream().forEach(individual -> pool.submit(() -> {
@@ -137,33 +149,33 @@ public class ExportDialog extends JDialog {
 		}
 
 		if (exportSettings.get(Result.class))
-			ExportManager.exportAllResults(destination, extension);
+			exportAllResults(destination, extension);
 
 	}
 
 	private void initComponents() {
 
-		GroupLayout layout = new GroupLayout(getContentPane());
+		var layout = new GroupLayout(getContentPane());
 		getContentPane().setLayout(layout);
 		layout.setAutoCreateGaps(true);
 		layout.setAutoCreateContainerGaps(true);
 
-		final String defaultProjectName = TaskManager.getInstance().describe();
+		final var defaultProjectName = TaskManager.getInstance().describe();
 		projectName = defaultProjectName;
 
 		var directoryLabel = new JLabel("Export to:");
 
 		fileChooser = new JFileChooser();
 		fileChooser.setMultiSelectionEnabled(false);
-		fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+		fileChooser.setFileSelectionMode(DIRECTORIES_ONLY);
 		// Checkboxex
 		dir = fileChooser.getCurrentDirectory();
 
-		var directoryField = new JTextField(dir.getPath() + File.separator + projectName + File.separator);
+		var directoryField = new JTextField(dir.getPath() + separator + projectName + separator);
 		directoryField.setEditable(false);
 
 		var formatLabel = new JLabel("Export format:");
-		var formats = new JComboBox<Extension>(Exporter.getAllSupportedExtensions());
+		var formats = new JComboBox<Extension>(getAllSupportedExtensions());
 
 		var projectLabel = new JLabel("Project name:");
 		var projectText = new JTextField(projectName);
@@ -179,17 +191,17 @@ public class ExportDialog extends JDialog {
 				if (projectText.getText().trim().isEmpty())
 					return;
 				projectName = projectText.getText();
-				directoryField.setText(dir.getPath() + File.separator + projectName + File.separator);
+				directoryField.setText(dir.getPath() + separator + projectName + separator);
 			}
 
 			@Override
 			public void removeUpdate(DocumentEvent e) {
 				if (projectText.getText().trim().isEmpty()) {
 					projectName = TaskManager.getInstance().describe();
-					directoryField.setText(dir.getPath() + File.separator + projectName + File.separator);
+					directoryField.setText(dir.getPath() + separator + projectName + separator);
 				} else {
 					projectName = projectText.getText();
-					directoryField.setText(dir.getPath() + File.separator + projectName + File.separator);
+					directoryField.setText(dir.getPath() + separator + projectName + separator);
 				}
 			}
 		});
@@ -233,13 +245,12 @@ public class ExportDialog extends JDialog {
 
 		browseBtn.addActionListener(e -> {
 			if (directoryQuery() != null)
-				directoryField.setText(dir.getPath() + File.separator + projectName + File.separator);
+				directoryField.setText(dir.getPath() + separator + projectName + separator);
 		});
 
 		var exportBtn = new JButton("Export");
 
-		exportBtn.addActionListener(e -> java.awt.EventQueue
-				.invokeLater(() -> export(Extension.valueOf(formats.getSelectedItem().toString().toUpperCase()))));
+		exportBtn.addActionListener(e -> invokeLater(() -> export(valueOf(formats.getSelectedItem().toString().toUpperCase()))));
 
 		/*
 		 * layout
@@ -249,14 +260,14 @@ public class ExportDialog extends JDialog {
 				// #1
 				.addComponent(directoryLabel)
 				// #2
-				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING).addComponent(directoryField)
+				.addGroup(layout.createParallelGroup(LEADING).addComponent(directoryField)
 						// #2a
 						.addGroup(layout.createSequentialGroup()
-								.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+								.addGroup(layout.createParallelGroup(LEADING)
 										.addComponent(solutionCheckbox).addComponent(rawDataCheckbox))
-								.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+								.addGroup(layout.createParallelGroup(LEADING)
 										.addComponent(metadataCheckbox).addComponent(createDirCheckbox))
-								.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+								.addGroup(layout.createParallelGroup(LEADING)
 										.addComponent(logCheckbox).addComponent(resultsCheckbox)))
 						// #2b
 						// .addGroup(layout.createSequentialGroup()
@@ -265,29 +276,29 @@ public class ExportDialog extends JDialog {
 				// )
 				)
 				// #3
-				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING).addComponent(browseBtn)
+				.addGroup(layout.createParallelGroup(LEADING).addComponent(browseBtn)
 						.addComponent(exportBtn)));
-		layout.linkSize(SwingConstants.HORIZONTAL, browseBtn, exportBtn);
+		layout.linkSize(HORIZONTAL, browseBtn, exportBtn);
 
 		layout.setVerticalGroup(layout.createSequentialGroup()
 				// #1
-				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(directoryLabel)
+				.addGroup(layout.createParallelGroup(BASELINE).addComponent(directoryLabel)
 
 						.addComponent(directoryField).addComponent(browseBtn))
 				// #2
-				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+				.addGroup(layout.createParallelGroup(LEADING)
 						// #2a
 						.addGroup(layout.createSequentialGroup()
-								.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+								.addGroup(layout.createParallelGroup(BASELINE)
 										.addComponent(solutionCheckbox).addComponent(metadataCheckbox)
 										.addComponent(logCheckbox))
-								.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+								.addGroup(layout.createParallelGroup(BASELINE)
 										.addComponent(rawDataCheckbox).addComponent(createDirCheckbox)
 										.addComponent(resultsCheckbox)))
 						// #2b
 						.addComponent(exportBtn))
 				// 2b
-				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(formats)
+				.addGroup(layout.createParallelGroup(BASELINE).addComponent(formats)
 						.addComponent(formatLabel).addComponent(projectLabel).addComponent(projectText)));
 
 	}

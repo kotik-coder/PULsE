@@ -1,12 +1,14 @@
 package pulse.ui.frames.dialogs;
 
+import static java.lang.Thread.sleep;
+import static javax.swing.SwingConstants.HORIZONTAL;
+
 import java.awt.Dimension;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
 import javax.swing.JDialog;
 import javax.swing.JProgressBar;
-import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
 
 @SuppressWarnings("serial")
@@ -36,7 +38,7 @@ public class ProgressDialog extends JDialog implements PropertyChangeListener {
 	}
 
 	private void initComponents() {
-		progressBar = new JProgressBar(SwingConstants.HORIZONTAL);
+		progressBar = new JProgressBar(HORIZONTAL);
 		progressBar.setMinimum(0);
 		progressBar.setStringPainted(true);
 		getContentPane().add(progressBar);
@@ -62,7 +64,7 @@ public class ProgressDialog extends JDialog implements PropertyChangeListener {
 				setProgress(0);
 				while (!reachedCapacity()) {
 					try {
-						Thread.sleep(50);
+						sleep(50);
 					} catch (InterruptedException ignore) {
 					}
 					setProgress(progress);

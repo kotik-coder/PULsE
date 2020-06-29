@@ -1,13 +1,14 @@
 package pulse.ui.components.panels;
 
+import static java.lang.Math.exp;
+import static javax.swing.BorderFactory.createEmptyBorder;
+import static pulse.ui.components.Chart.setOpacity;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.BorderFactory;
 import javax.swing.JSlider;
-import javax.swing.SwingConstants;
 
-import pulse.ui.components.Chart;
 import pulse.ui.components.listeners.PlotRequestListener;
 
 @SuppressWarnings("serial")
@@ -24,12 +25,12 @@ public class OpacitySlider extends JSlider {
 	}
 
 	public void initComponents() {
-		setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
-		setOrientation(SwingConstants.VERTICAL);
+		setBorder(createEmptyBorder(5, 0, 5, 0));
+		setOrientation(VERTICAL);
 		setToolTipText("Slide to change the dataset opacity");
 
 		addChangeListener(e -> {
-			Chart.setOpacity((float) (SLIDER_A_COEF * Math.exp(SLIDER_B_COEF * getValue())));
+			setOpacity((float) (SLIDER_A_COEF * exp(SLIDER_B_COEF * getValue())));
 			notifyPlot();
 		});
 	}

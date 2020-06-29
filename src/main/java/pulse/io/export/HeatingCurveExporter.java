@@ -1,10 +1,13 @@
 package pulse.io.export;
 
+import static pulse.io.export.Extension.CSV;
+import static pulse.io.export.Extension.HTML;
+import static pulse.ui.Messages.getString;
+
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 
 import pulse.HeatingCurve;
-import pulse.ui.Messages;
 
 public class HeatingCurveExporter implements Exporter<HeatingCurve> {
 
@@ -38,16 +41,16 @@ public class HeatingCurveExporter implements Exporter<HeatingCurve> {
 
 	@Override
 	public Extension[] getSupportedExtensions() {
-		return new Extension[] { Extension.HTML, Extension.CSV };
+		return new Extension[] { HTML, CSV};
 	}
 
 	private void printHTML(HeatingCurve hc, FileOutputStream fos) {
-            try (PrintStream stream = new PrintStream(fos)) {
+            try (var stream = new PrintStream(fos)) {
                 stream.print("<table>");
                 stream.print("<tr>");
                 
-                final String TIME_LABEL = Messages.getString("HeatingCurve.6");
-                final String TEMPERATURE_LABEL = Messages.getString("HeatingCurve.7");
+                final String TIME_LABEL = getString("HeatingCurve.6");
+                final String TEMPERATURE_LABEL = getString("HeatingCurve.7");
                 
                 stream.print("<td>" + TIME_LABEL + "\t</td>");
                 stream.print("<td>" + TEMPERATURE_LABEL + "\t</td>");
@@ -82,8 +85,8 @@ public class HeatingCurveExporter implements Exporter<HeatingCurve> {
 	}
 
 	private void printCSV(HeatingCurve hc, FileOutputStream fos) {
-            try (PrintStream stream = new PrintStream(fos)) {
-                final String TIME_LABEL = Messages.getString("HeatingCurve.6");
+            try (var stream = new PrintStream(fos)) {
+                final String TIME_LABEL = getString("HeatingCurve.6");
                 final String TEMPERATURE_LABEL = hc.getPrefix();
                 stream.print(TIME_LABEL + "\t" + TEMPERATURE_LABEL + "\t");
                 

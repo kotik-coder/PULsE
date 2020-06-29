@@ -1,5 +1,10 @@
 package pulse.ui.components.models;
 
+import static pulse.properties.NumericPropertyKeyword.IDENTIFIER;
+import static pulse.properties.NumericPropertyKeyword.OPTIMISER_STATISTIC;
+import static pulse.properties.NumericPropertyKeyword.TEST_STATISTIC;
+import static pulse.search.direction.PathOptimiser.listAvailableProperties;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,7 +13,6 @@ import javax.swing.AbstractListModel;
 import pulse.properties.Flag;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
-import pulse.search.direction.PathOptimiser;
 
 public class ParameterListModel extends AbstractListModel<NumericPropertyKeyword> {
 
@@ -26,11 +30,11 @@ public class ParameterListModel extends AbstractListModel<NumericPropertyKeyword
 	public void update() {
 		elements.clear();
 		var list = new ArrayList<Property>();
-		PathOptimiser.listAvailableProperties(list);
+		listAvailableProperties(list);
 		list.stream().forEach(property -> elements.add(((Flag) property).getType()));
-		elements.add(NumericPropertyKeyword.OPTIMISER_STATISTIC);
-		elements.add(NumericPropertyKeyword.TEST_STATISTIC);
-		elements.add(NumericPropertyKeyword.IDENTIFIER);
+		elements.add(OPTIMISER_STATISTIC);
+		elements.add(TEST_STATISTIC);
+		elements.add(IDENTIFIER);
 	}
 
         @Override

@@ -1,55 +1,66 @@
 package pulse.ui.frames;
 
+import static java.awt.BorderLayout.CENTER;
+import static java.awt.BorderLayout.NORTH;
+import static java.awt.BorderLayout.SOUTH;
+import static java.awt.Font.BOLD;
+import static java.awt.Toolkit.getDefaultToolkit;
+import static java.lang.System.err;
+import static javax.swing.BorderFactory.createLineBorder;
+import static javax.swing.JOptionPane.ERROR_MESSAGE;
+import static javax.swing.JOptionPane.INFORMATION_MESSAGE;
+import static javax.swing.JOptionPane.WARNING_MESSAGE;
+import static javax.swing.JOptionPane.showMessageDialog;
+import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
+import static javax.swing.SwingUtilities.getWindowAncestor;
+import static pulse.input.InterpolationDataset.StandartType.DENSITY;
+import static pulse.input.InterpolationDataset.StandartType.SPECIFIC_HEAT;
+import static pulse.problem.statements.Problem.isSingleStatement;
+import static pulse.problem.statements.ProblemComplexity.HIGH;
+import static pulse.tasks.Status.INCOMPLETE;
+import static pulse.tasks.Status.Details.INSUFFICIENT_DATA_IN_PROBLEM_STATEMENT;
+import static pulse.tasks.Status.Details.MISSING_DIFFERENCE_SCHEME;
+import static pulse.tasks.Status.Details.MISSING_PROBLEM_STATEMENT;
+import static pulse.tasks.TaskManager.addSelectionListener;
+import static pulse.tasks.TaskManager.getInstance;
+import static pulse.tasks.TaskManager.getSelectedTask;
+import static pulse.tasks.TaskManager.getTaskList;
+import static pulse.tasks.TaskManager.selectFirstTask;
+import static pulse.ui.Messages.getString;
+import static pulse.ui.components.Chart.plot;
+import static pulse.util.Reflexive.instancesOf;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Font;
 import java.awt.GridLayout;
-import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
-import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.DefaultListSelectionModel;
 import javax.swing.DefaultRowSorter;
 import javax.swing.JButton;
 import javax.swing.JInternalFrame;
 import javax.swing.JList;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JToolBar;
-import javax.swing.ListSelectionModel;
-import javax.swing.SwingUtilities;
-import javax.swing.WindowConstants;
 import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableRowSorter;
 
-import pulse.input.InterpolationDataset;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.solvers.Solver;
 import pulse.problem.schemes.solvers.SolverException;
 import pulse.problem.statements.Problem;
-import pulse.problem.statements.ProblemComplexity;
 import pulse.tasks.SearchTask;
-import pulse.tasks.Status;
-import pulse.tasks.Status.Details;
-import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.TaskSelectionEvent;
-import pulse.tasks.listeners.TaskSelectionListener;
-import pulse.ui.Messages;
-import pulse.ui.components.Chart;
 import pulse.ui.components.PropertyHolderTable;
 import pulse.ui.components.buttons.LoaderButton;
 import pulse.ui.components.controllers.ProblemListCellRenderer;
 import pulse.ui.components.panels.SettingsToolBar;
-import pulse.util.Reflexive;
 
 @SuppressWarnings("serial")
 public class ProblemStatementFrame extends JInternalFrame {
@@ -60,7 +71,7 @@ public class ProblemStatementFrame extends JInternalFrame {
 
 	private final static int LIST_FONT_SIZE = 12;
 
-	private final static List<Problem> knownProblems = Reflexive.instancesOf(Problem.class);
+	private final static List<Problem> knownProblems = instancesOf(Problem.class);
 
 	/**
 	 * Create the frame.
@@ -69,9 +80,9 @@ public class ProblemStatementFrame extends JInternalFrame {
 		setResizable(true);
 		setClosable(true);
 		setMaximizable(true);
-		setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
+		setDefaultCloseOperation(HIDE_ON_CLOSE);
 
-		setTitle(Messages.getString("ProblemStatementFrame.Title")); //$NON-NLS-1$
+		setTitle(getString("ProblemStatementFrame.Title")); //$NON-NLS-1$
 
 		setBounds(100, 100, WIDTH, HEIGHT);
 
@@ -81,8 +92,8 @@ public class ProblemStatementFrame extends JInternalFrame {
 		 * Create a 2x2 grid for lists and tables
 		 */
 
-		JPanel contentPane = new JPanel();
-		GridLayout layout = new GridLayout(2, 2);
+		var contentPane = new JPanel();
+		var layout = new GridLayout(2, 2);
 		layout.setHgap(5);
 		layout.setVgap(5);
 		contentPane.setLayout(layout);
@@ -101,9 +112,9 @@ public class ProblemStatementFrame extends JInternalFrame {
 		 */
 
 		schemeSelectionList = new SchemeSelectionList();
-		schemeSelectionList.setToolTipText(Messages.getString("ProblemStatementFrame.PleaseSelect")); //$NON-NLS-1$
+		schemeSelectionList.setToolTipText(getString("ProblemStatementFrame.PleaseSelect")); //$NON-NLS-1$
 
-		JScrollPane schemeScroller = new JScrollPane(schemeSelectionList);
+		var schemeScroller = new JScrollPane(schemeSelectionList);
 		contentPane.add(schemeScroller);
 
 		/*
@@ -125,7 +136,7 @@ public class ProblemStatementFrame extends JInternalFrame {
 
 		};
 
-		JScrollPane problemDetailsScroller = new JScrollPane(problemTable);
+		var problemDetailsScroller = new JScrollPane(problemTable);
 		contentPane.add(problemDetailsScroller);
 
 		/*
@@ -133,66 +144,54 @@ public class ProblemStatementFrame extends JInternalFrame {
 		 */
 
 		schemeTable = new PropertyHolderTable(null); // TODO
-		JScrollPane schemeDetailsScroller = new JScrollPane(schemeTable);
+		var schemeDetailsScroller = new JScrollPane(schemeTable);
 		contentPane.add(schemeDetailsScroller);
 
 		/*
 		 * Toolbar
 		 */
 
-		JToolBar toolBar = new JToolBar();
+		var toolBar = new JToolBar();
 		toolBar.setFloatable(false);
 		toolBar.setLayout(new GridLayout());
 
-		JButton btnSimulate = new JButton(Messages.getString("ProblemStatementFrame.SimulateButton")); //$NON-NLS-1$
-		btnSimulate.setFont(btnSimulate.getFont().deriveFont(Font.BOLD, 14f));
+		var btnSimulate = new JButton(getString("ProblemStatementFrame.SimulateButton")); //$NON-NLS-1$
+		btnSimulate.setFont(btnSimulate.getFont().deriveFont(BOLD, 14f));
 		
 		// simulate btn listener
 
-		btnSimulate.addActionListener(new ActionListener() {
-			@SuppressWarnings({ "unchecked", "rawtypes" })
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-
-				SearchTask t = TaskManager.getSelectedTask();
-
-				if (t == null)
-					return;
-
-				if (t.checkProblems() == Status.INCOMPLETE) {
-					Details d = t.getStatus().getDetails();
-					if (d == Details.MISSING_PROBLEM_STATEMENT || d == Details.MISSING_DIFFERENCE_SCHEME
-							|| d == Details.INSUFFICIENT_DATA_IN_PROBLEM_STATEMENT) {
-						Toolkit.getDefaultToolkit().beep();
-						JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor((Component) arg0.getSource()),
-								t.getStatus().getMessage(), Messages.getString("ProblemStatementFrame.ErrorTitle"), //$NON-NLS-1$
-								JOptionPane.ERROR_MESSAGE);
-						return;
-					}
-				}
-
-				try {
-					((Solver) t.getScheme()).solve(t.getProblem());
-				} catch (SolverException e) {
-					System.err.println("Solver of " + t + " has encountered an error. Details: ");
-					e.printStackTrace();
-				}
-
-				Chart.plot(t, true);
-				problemTable.updateTable();
-				schemeTable.updateTable();
-
-			}
-		});
+		btnSimulate.addActionListener((ActionEvent arg0) -> {
+            var t = getSelectedTask();
+            if (t == null)
+                return;
+            if (t.checkProblems() == INCOMPLETE) {
+                var d = t.getStatus().getDetails();
+                if (d == MISSING_PROBLEM_STATEMENT || d == MISSING_DIFFERENCE_SCHEME || d == INSUFFICIENT_DATA_IN_PROBLEM_STATEMENT) {
+                    getDefaultToolkit().beep();
+                    showMessageDialog(getWindowAncestor((Component) arg0.getSource()), t.getStatus().getMessage(), getString("ProblemStatementFrame.ErrorTitle"), //$NON-NLS-1$
+                    ERROR_MESSAGE);
+                    return;
+                }
+            }
+            try {
+                ((Solver) t.getScheme()).solve(t.getProblem());
+            } catch (SolverException e) {
+                err.println("Solver of " + t + " has encountered an error. Details: ");
+                e.printStackTrace();
+            }
+            plot(t, true);
+            problemTable.updateTable();
+            schemeTable.updateTable();
+        });
 
 		toolBar.add(btnSimulate);
 
-		btnLoadCv = new LoaderButton(Messages.getString("ProblemStatementFrame.LoadSpecificHeatButton")); //$NON-NLS-1$
-		btnLoadCv.setDataType(InterpolationDataset.StandartType.SPECIFIC_HEAT);
+		btnLoadCv = new LoaderButton(getString("ProblemStatementFrame.LoadSpecificHeatButton")); //$NON-NLS-1$
+		btnLoadCv.setDataType(SPECIFIC_HEAT);
 		toolBar.add(btnLoadCv);
 
-		btnLoadDensity = new LoaderButton(Messages.getString("ProblemStatementFrame.LoadDensityButton")); //$NON-NLS-1$
-		btnLoadDensity.setDataType(InterpolationDataset.StandartType.DENSITY);
+		btnLoadDensity = new LoaderButton(getString("ProblemStatementFrame.LoadDensityButton")); //$NON-NLS-1$
+		btnLoadDensity.setDataType(DENSITY);
 		toolBar.add(btnLoadDensity);
 
 		
@@ -204,16 +203,16 @@ public class ProblemStatementFrame extends JInternalFrame {
 					return;
 
 				var problem = knownProblems.get(index0);
-				boolean enabledFlag = problem.isEnabled();
+				var enabledFlag = problem.isEnabled();
 
 				if (enabledFlag) {					
 					super.setSelectionInterval(index0, index0);
 					problemList.ensureIndexIsVisible(index0);
 					
 					if(!problem.allDetailsPresent()) {
-						Color bred = new Color(1.0f, 0.0f, 0.0f, 0.35f);
-						btnLoadDensity.setBorder( BorderFactory.createLineBorder(bred, 3));
-						btnLoadCv.setBorder( BorderFactory.createLineBorder(bred, 3));
+						var bred = new Color(1.0f, 0.0f, 0.0f, 0.35f);
+						btnLoadDensity.setBorder(createLineBorder(bred, 3));
+						btnLoadCv.setBorder(createLineBorder(bred, 3));
 					} else {
 						btnLoadDensity.setBorder(null);
 						btnLoadCv.setBorder(null);
@@ -221,8 +220,7 @@ public class ProblemStatementFrame extends JInternalFrame {
 					
 				}
 				else
-					JOptionPane.showMessageDialog(null, "This problem statement is not currently supported. Please select another.", "Feature not supported",
-					        JOptionPane.WARNING_MESSAGE);
+					showMessageDialog(null, "This problem statement is not currently supported. Please select another.", "Feature not supported", WARNING_MESSAGE);
 
 			}
 
@@ -232,34 +230,29 @@ public class ProblemStatementFrame extends JInternalFrame {
 		 * 
 		 */
 
-		getContentPane().add(new SettingsToolBar(problemTable, schemeTable), BorderLayout.NORTH);
-		getContentPane().add(contentPane, BorderLayout.CENTER);
-		getContentPane().add(toolBar, BorderLayout.SOUTH);
+		getContentPane().add(new SettingsToolBar(problemTable, schemeTable), NORTH);
+		getContentPane().add(contentPane, CENTER);
+		getContentPane().add(toolBar, SOUTH);
 
 		/*
 		 * listeners
 		 */
 
-		TaskManager.addSelectionListener(new TaskSelectionListener() {
-
-			@Override
-			public void onSelectionChanged(TaskSelectionEvent e) {
-				update(e.getSelection());
-			}
-
-		});
+		addSelectionListener((TaskSelectionEvent e) -> {
+                    update(e.getSelection());
+        });
 		// TODO
 
-		TaskManager.getInstance().addHierarchyListener(event -> {
+		getInstance().addHierarchyListener(event -> {
 			if (!(event.getSource() instanceof PropertyHolderTable))
 				return;
 
-			if (!Problem.isSingleStatement())
+			if (!isSingleStatement())
 				return;
 
 			Problem p;
 
-			for (SearchTask task : TaskManager.getTaskList()) {
+			for (var task : getTaskList()) {
 				p = task.getProblem();
 				if (p != null)
 					p.updateProperty(event, event.getProperty());
@@ -270,13 +263,13 @@ public class ProblemStatementFrame extends JInternalFrame {
 	}
 
 	public void update() {
-		update(TaskManager.getSelectedTask());
+		update(getSelectedTask());
 	}
 
 	private void update(SearchTask selectedTask) {
 
-		Problem selectedProblem = selectedTask == null ? null : selectedTask.getProblem();
-		DifferenceScheme selectedScheme = selectedTask == null ? null : selectedTask.getScheme();
+		var selectedProblem = selectedTask == null ? null : selectedTask.getProblem();
+		var selectedScheme = selectedTask == null ? null : selectedTask.getScheme();
 
 		// problem
 
@@ -300,9 +293,9 @@ public class ProblemStatementFrame extends JInternalFrame {
 	}
 
 	private void changeProblem(SearchTask task, Problem newProblem) {
-		Problem oldProblem = task.getProblem(); // stores previous information
+		var oldProblem = task.getProblem(); // stores previous information
 
-		Class<? extends Problem> problemClass = newProblem.getClass();
+		var problemClass = newProblem.getClass();
 		Constructor<? extends Problem> problemCopyConstructor = null;
 
 		try {
@@ -310,7 +303,7 @@ public class ProblemStatementFrame extends JInternalFrame {
 				problemCopyConstructor = newProblem.getClass().getConstructor(Problem.class);
 			}
 		} catch (NoSuchMethodException | SecurityException e) {
-			System.err.println(Messages.getString("ProblemStatementFrame.ConstructorAccessError") + problemClass); //$NON-NLS-1$
+			err.println(getString("ProblemStatementFrame.ConstructorAccessError") + problemClass); //$NON-NLS-1$
 			e.printStackTrace();
 		}
 
@@ -323,7 +316,7 @@ public class ProblemStatementFrame extends JInternalFrame {
 				np = newProblem.getClass().getDeclaredConstructor().newInstance();
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException
 				| NoSuchMethodException | SecurityException e) {
-			System.err.println(Messages.getString("ProblemStatementFrame.InvocationError") + problemCopyConstructor); //$NON-NLS-1$
+			err.println(getString("ProblemStatementFrame.InvocationError") + problemCopyConstructor); //$NON-NLS-1$
 			e.printStackTrace();
 		}
 
@@ -338,7 +331,7 @@ public class ProblemStatementFrame extends JInternalFrame {
 	}
 
 	private static void selectDefaultScheme(JList<DifferenceScheme> list, Problem p) {
-		Class<? extends DifferenceScheme> defaultSchemeClass = p.defaultScheme();
+		var defaultSchemeClass = p.defaultScheme();
 
 		var model = list.getModel();
 		DifferenceScheme element = null;
@@ -365,7 +358,7 @@ public class ProblemStatementFrame extends JInternalFrame {
 
 		else {
 
-			DifferenceScheme oldScheme = task.getScheme().copy(); // stores previous information
+			var oldScheme = task.getScheme().copy(); // stores previous information
 			task.setScheme(null);
 			task.setScheme(newScheme.copy()); // assigns new problem type
 
@@ -388,11 +381,11 @@ public class ProblemStatementFrame extends JInternalFrame {
 			return;
 		}
 
-		int size = list.getModel().getSize();
+		var size = list.getModel().getSize();
 		Object fromList = null;
-		boolean found = false;
+		var found = false;
 
-		for (int i = 0; i < size; i++) {
+		for (var i = 0; i < size; i++) {
 			fromList = list.getModel().getElementAt(i);
 			if (fromList.toString().equals(o.toString())) {
 				list.setSelectedIndex(i);
@@ -416,93 +409,67 @@ public class ProblemStatementFrame extends JInternalFrame {
 			setFont(getFont().deriveFont(LIST_FONT_SIZE));
 			this.setCellRenderer(new ProblemListCellRenderer());
 
-			DefaultListModel<Problem> listModel = new DefaultListModel<>();
-
-			for (Problem p : knownProblems) {
+			var listModel = new DefaultListModel<Problem>();
+			for (var p : knownProblems) {
                             listModel.addElement(p);
                         }
 
 			setModel(listModel);
-			setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+			setSelectionMode(SINGLE_SELECTION);
 
-			addListSelectionListener(new ListSelectionListener() {
-				@Override
-				public void valueChanged(ListSelectionEvent arg0) {
+			addListSelectionListener((ListSelectionEvent arg0) -> {
+                            if (arg0.getValueIsAdjusting())
+                                return;
+                var newlySelectedProblem = getSelectedValue();
+                if (newlySelectedProblem == null) {
+                    ((DefaultTableModel) problemTable.getModel()).setRowCount(0);
+                    return;
+                }
+                if (getSelectedTask() == null) {
+                    selectFirstTask();
+                }
+                var selectedTask = getSelectedTask();
+                if (isSingleStatement()) {
+                    for (var t : getTaskList()) {
+                        changeProblem(t, newlySelectedProblem);
+                    }
+                } else {
+                    changeProblem(selectedTask, newlySelectedProblem);
+                }
+                listModel.set(listModel.indexOf(newlySelectedProblem), selectedTask.getProblem());
+                problemTable.setPropertyHolder(getSelectedTask().getProblem());
+                // after problem is selected for this task, show available difference schemes
+                var defaultModel = (DefaultListModel<DifferenceScheme>) (schemeSelectionList
+                        .getModel());
+                defaultModel.clear();
+                var schemes = newlySelectedProblem.availableSolutions();
+                schemes.forEach(s -> defaultModel.addElement(s));
+                selectDefaultScheme(schemeSelectionList, selectedTask.getProblem());
+                schemeSelectionList.setToolTipText(null);
+            });
 
-					if (arg0.getValueIsAdjusting())
-						return;
-
-					Problem newlySelectedProblem = getSelectedValue();
-
-					if (newlySelectedProblem == null) {
-						((DefaultTableModel) problemTable.getModel()).setRowCount(0);
-						return;
-					}
-
-					if (TaskManager.getSelectedTask() == null)
-						TaskManager.selectFirstTask();
-
-					SearchTask selectedTask = TaskManager.getSelectedTask();
-
-					if (Problem.isSingleStatement())
-						for (SearchTask t : TaskManager.getTaskList()) {
-                                                    changeProblem(t, newlySelectedProblem);
-                                        }
-					else
-						changeProblem(selectedTask, newlySelectedProblem);
-
-					listModel.set(listModel.indexOf(newlySelectedProblem), selectedTask.getProblem());
-
-					problemTable.setPropertyHolder(TaskManager.getSelectedTask().getProblem());
-
-					// after problem is selected for this task, show available difference schemes
-
-					DefaultListModel<DifferenceScheme> defaultModel = (DefaultListModel<DifferenceScheme>) (schemeSelectionList
-							.getModel());
-					defaultModel.clear();
-
-					List<DifferenceScheme> schemes = newlySelectedProblem.availableSolutions();
-
-					schemes.forEach(s -> defaultModel.addElement(s));
-
-					selectDefaultScheme(schemeSelectionList, selectedTask.getProblem());
-
-					schemeSelectionList.setToolTipText(null);
-
-				}
-			});
-
-			TaskManager.addSelectionListener(new TaskSelectionListener() {
-
-				@Override
-				public void onSelectionChanged(TaskSelectionEvent e) {
-					// select appropriate problem type from list
-
-					if (e.getSelection().getProblem() != null) {
-						for (int i = 0; i < getModel().getSize(); i++) {
-							Problem p = getModel().getElementAt(i);
-							if (e.getSelection().getProblem().getClass().equals(p.getClass())) {
-								setSelectedIndex(i);
-								break;
-							}
-						}
-					}
-
-					// then, select appropriate scheme type
-
-					if (e.getSelection().getScheme() != null) {
-						for (int i = 0; i < schemeSelectionList.getModel().getSize(); i++) {
-							if (e.getSelection().getScheme().getClass()
-									.equals(schemeSelectionList.getModel().getElementAt(i).getClass())) {
-								schemeSelectionList.setSelectedIndex(i);
-								break;
-							}
-						}
-					}
-
-				}
-
-			});
+			addSelectionListener((TaskSelectionEvent e) -> {
+                // select appropriate problem type from list
+                if (e.getSelection().getProblem() != null) {
+                    for (var i = 0; i < getModel().getSize(); i++) {
+                        var p = getModel().getElementAt(i);
+                        if (e.getSelection().getProblem().getClass().equals(p.getClass())) {
+                            setSelectedIndex(i);
+                            break;
+                        }
+                    }
+                }
+                // then, select appropriate scheme type
+                if (e.getSelection().getScheme() != null) {
+                    for (var i = 0; i < schemeSelectionList.getModel().getSize(); i++) {
+                        if (e.getSelection().getScheme().getClass()
+                                .equals(schemeSelectionList.getModel().getElementAt(i).getClass())) {
+                            schemeSelectionList.setSelectedIndex(i);
+                            break;
+                        }
+                    }
+                }
+            });
 
 		}
 
@@ -519,47 +486,37 @@ public class ProblemStatementFrame extends JInternalFrame {
 
 			super();
 			setFont(getFont().deriveFont(LIST_FONT_SIZE));
-			setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-			DefaultListModel<DifferenceScheme> m = new DefaultListModel<>();
+			setSelectionMode(SINGLE_SELECTION);
+			var m = new DefaultListModel<DifferenceScheme>();
 			setModel(m);
 			// scheme list listener
 
-			addListSelectionListener(new ListSelectionListener() {
-				@Override
-				public void valueChanged(ListSelectionEvent arg0) {
-
-					if (arg0.getValueIsAdjusting())
-						return;
-
-					if (!(getSelectedValue() instanceof DifferenceScheme)) {
-						((DefaultTableModel) schemeTable.getModel()).setRowCount(0);
-						return;
-					}
-
-					SearchTask selectedTask = TaskManager.getSelectedTask();
-					DifferenceScheme newScheme = (getSelectedValue());
-
-					if (newScheme == null)
-						return;
-
-					if (Problem.isSingleStatement())
-						for (SearchTask t : TaskManager.getTaskList()) {
-                                                    changeScheme(t, newScheme);
-                                        }
-					else
-						changeScheme(selectedTask, newScheme);
-
-					schemeTable.setPropertyHolder(selectedTask.getScheme());
-
-					if(selectedTask.getProblem().getComplexity() == ProblemComplexity.HIGH)
-					JOptionPane.showMessageDialog(null, "<html><body><p style='width: 300px;'>" + "You have selected a "
-							+ "high-complexity problem statement. Calculations will be slow, hence batch processing has been turned off. "
-							+ "You will be able to track the progress of your task with the logging option. Watch out for "
-							+ "timeouts as they typically may occur for multi-variate optimisation when the problem is ill-posed." + "</p></body></html>", "High complexity",
-					        JOptionPane.INFORMATION_MESSAGE);
-					
-				}
-			});
+			addListSelectionListener((ListSelectionEvent arg0) -> {
+                            if (arg0.getValueIsAdjusting())
+                                return;
+                            if (!(getSelectedValue() instanceof DifferenceScheme)) {
+                                ((DefaultTableModel) schemeTable.getModel()).setRowCount(0);
+                                return;
+                            }
+                var selectedTask = getSelectedTask();
+                var newScheme = getSelectedValue();
+                if (newScheme == null)
+                    return;
+                if (isSingleStatement()) {
+                    for (var t : getTaskList()) {
+                        changeScheme(t, newScheme);
+                    }
+                } else {
+                    changeScheme(selectedTask, newScheme);
+                }
+                schemeTable.setPropertyHolder(selectedTask.getScheme());
+                if (selectedTask.getProblem().getComplexity() == HIGH) {
+                    showMessageDialog(null, "<html><body><p style='width: 300px;'>" + "You have selected a "
+                            + "high-complexity problem statement. Calculations will be slow, hence batch processing has been turned off. "
+                            + "You will be able to track the progress of your task with the logging option. Watch out for "
+                            + "timeouts as they typically may occur for multi-variate optimisation when the problem is ill-posed." + "</p></body></html>", "High complexity", INFORMATION_MESSAGE);
+                }
+            });
 
 		}
 

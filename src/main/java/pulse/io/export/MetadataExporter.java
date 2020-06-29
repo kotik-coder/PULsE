@@ -1,12 +1,12 @@
 package pulse.io.export;
 
+import static pulse.io.export.Extension.HTML;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
-import java.util.List;
 
 import pulse.input.Metadata;
-import pulse.properties.Property;
 
 public class MetadataExporter implements Exporter<Metadata> {
 
@@ -26,7 +26,7 @@ public class MetadataExporter implements Exporter<Metadata> {
 	}
 
 	private void printHTML(Metadata meta, FileOutputStream fos) {
-            try (PrintStream stream = new PrintStream(fos)) {
+            try (var stream = new PrintStream(fos)) {
                 stream.print("<table>");
                 stream.print("<tr>");
                 
@@ -45,7 +45,7 @@ public class MetadataExporter implements Exporter<Metadata> {
                 
                 stream.println(" ");
                 
-                List<Property> data = meta.data();
+                var data = meta.data();
                 
                 data.forEach(entry -> {
                     stream.print("<tr>");
@@ -78,7 +78,7 @@ public class MetadataExporter implements Exporter<Metadata> {
 
 	@Override
 	public Extension[] getSupportedExtensions() {
-		return new Extension[] { Extension.HTML };
+		return new Extension[] { HTML};
 	}
 
 }

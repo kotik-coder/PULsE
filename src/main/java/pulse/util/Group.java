@@ -1,11 +1,10 @@
 package pulse.util;
 
+import static java.util.stream.Collectors.toList;
+
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class Group extends UpwardsNavigable {
 
@@ -23,9 +22,8 @@ public class Group extends UpwardsNavigable {
 	public List<Group> subgroups() {
 		var fields = new ArrayList<Group>();
 
-		Method[] methods = this.getClass().getMethods();
-
-		for (Method m : methods) {
+		var methods = this.getClass().getMethods();
+		for (var m : methods) {
 			if (m.getParameterCount() > 0)
 				continue;
 
@@ -67,7 +65,7 @@ public class Group extends UpwardsNavigable {
 
 	public Group access(String simpleName) {
 
-		Optional<Group> match = subgroups().stream().filter(a -> a.getSimpleName().equals(simpleName)).findFirst();
+		var match = subgroups().stream().filter(a -> a.getSimpleName().equals(simpleName)).findFirst();
 
 		if (match.isPresent())
 			return match.get();
@@ -88,7 +86,7 @@ public class Group extends UpwardsNavigable {
 	 */
 
 	public List<Group> children() {
-		return subgroups().stream().filter(a -> a.getParent() == this).collect(Collectors.toList());
+		return subgroups().stream().filter(a -> a.getParent() == this).collect(toList());
 	}
 
 	/**

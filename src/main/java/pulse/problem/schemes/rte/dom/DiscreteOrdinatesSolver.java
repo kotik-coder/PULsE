@@ -1,6 +1,7 @@
 package pulse.problem.schemes.rte.dom;
 
 import java.util.List;
+
 import pulse.problem.schemes.Grid;
 import pulse.problem.schemes.rte.EmissionFunction;
 import pulse.problem.schemes.rte.RTECalculationListener;

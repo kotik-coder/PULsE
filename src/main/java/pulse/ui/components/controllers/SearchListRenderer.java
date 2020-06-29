@@ -1,9 +1,10 @@
 package pulse.ui.components.controllers;
 
+import static javax.swing.BorderFactory.createEmptyBorder;
+
 import java.awt.Color;
 import java.awt.Component;
 
-import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComponent;
 import javax.swing.JList;
@@ -24,7 +25,7 @@ public class SearchListRenderer extends DefaultListCellRenderer {
 			
 			var renderer = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
 			
-			((JComponent)renderer).setBorder( BorderFactory.createEmptyBorder(10, 10, 10, 10) );
+			((JComponent)renderer).setBorder(createEmptyBorder(10, 10, 10, 10) );
 			((JComponent)renderer).setOpaque(true);
 			
 			if(isSelected) 

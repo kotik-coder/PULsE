@@ -1,12 +1,18 @@
 package pulse;
 
+import static java.lang.Double.NEGATIVE_INFINITY;
+import static java.lang.Math.abs;
+import static java.util.Collections.max;
+import static java.util.Collections.nCopies;
+import static java.util.stream.Collectors.toList;
+import static pulse.input.listeners.DataEventType.CHANGE_OF_ORIGIN;
+import static pulse.properties.NumericProperty.def;
+import static pulse.properties.NumericProperty.derive;
 import static pulse.properties.NumericPropertyKeyword.NUMPOINTS;
 import static pulse.properties.NumericPropertyKeyword.TIME_SHIFT;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
@@ -14,7 +20,6 @@ import org.apache.commons.math3.analysis.interpolation.UnivariateInterpolator;
 
 import pulse.input.ExperimentalData;
 import pulse.input.listeners.DataEvent;
-import pulse.input.listeners.DataEventType;
 import pulse.input.listeners.DataListener;
 import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
@@ -68,11 +73,11 @@ public class HeatingCurve extends PropertyHolder {
 		if (!(o instanceof HeatingCurve))
 			return false;
 
-		HeatingCurve other = (HeatingCurve) o;
+		var other = (HeatingCurve) o;
 
 		final double EPS = 1e-8;
 
-		if (Math.abs(count - (Integer) other.getNumPoints().getValue()) > EPS)
+		if (abs(count - (Integer) other.getNumPoints().getValue()) > EPS)
 			return false;
 
 		if (!getTimeShift().equals(other.getTimeShift()))
@@ -100,7 +105,7 @@ public class HeatingCurve extends PropertyHolder {
 	 */
 
 	public HeatingCurve() {
-		this(NumericProperty.def(NUMPOINTS));
+		this(def(NUMPOINTS));
 	}
 
 	/**
@@ -123,7 +128,7 @@ public class HeatingCurve extends PropertyHolder {
 		time = new ArrayList<>(this.count);
 		baseline = new Baseline();
 		baseline.setParent(this);
-		startTime = (double) NumericProperty.def(TIME_SHIFT).getValue();
+		startTime = (double) def(TIME_SHIFT).getValue();
 		dataListeners = new ArrayList<>();
 		reinit();
 		splineInterpolator = new SplineInterpolator();
@@ -195,7 +200,7 @@ public class HeatingCurve extends PropertyHolder {
 	 */
 
 	public NumericProperty getNumPoints() {
-		return NumericProperty.derive(NUMPOINTS, count);
+		return derive(NUMPOINTS, count);
 	}
 
 	/**
@@ -232,9 +237,9 @@ public class HeatingCurve extends PropertyHolder {
 
 	public void setNumPoints(NumericProperty c) {
 		this.count = (int) c.getValue();
-		temperature = new ArrayList<>(Collections.nCopies(this.count, 0.0));
-		baselineAdjustedTemperature = new ArrayList<>(Collections.nCopies(this.count, 0.0));
-		time = new ArrayList<>(Collections.nCopies(this.count, 0.0));
+		temperature = new ArrayList<>(nCopies(this.count, 0.0));
+		baselineAdjustedTemperature = new ArrayList<>(nCopies(this.count, 0.0));
+		time = new ArrayList<>(nCopies(this.count, 0.0));
 	}
 
 	/**
@@ -349,11 +354,11 @@ public class HeatingCurve extends PropertyHolder {
 	 */
 
 	public double maxTemperature() {
-		return Collections.max(baselineAdjustedTemperature);
+		return max(baselineAdjustedTemperature);
 	}
 
 	public double apparentMaximum() {
-		double max = Double.NEGATIVE_INFINITY;
+		double max = NEGATIVE_INFINITY;
 		double t;
 		for (int i = temperature.size() - 1; i > 0; i--) {
 			t = temperature.get(i);
@@ -462,7 +467,7 @@ public class HeatingCurve extends PropertyHolder {
 		if (dataStartIndex < 1)
 			return this;
 
-		List<Double> extendedTime = data.time.stream().filter(t -> t < 0).collect(Collectors.toList());
+		var extendedTime = data.time.stream().filter(t -> t < 0).collect(toList());
 		List<Double> extendedTemperature = new ArrayList<>(dataStartIndex + count);
 
 		for (double time : extendedTime) {
@@ -472,7 +477,7 @@ public class HeatingCurve extends PropertyHolder {
 		extendedTime.addAll(time);
 		extendedTemperature.addAll(baselineAdjustedTemperature);
 
-		HeatingCurve newCurve = new HeatingCurve();
+		var newCurve = new HeatingCurve();
 
 		newCurve.time = extendedTime;
 		newCurve.baselineAdjustedTemperature = extendedTemperature;
@@ -506,9 +511,8 @@ public class HeatingCurve extends PropertyHolder {
 	 */
 
 	public static HeatingCurve classicSolution(Problem p, double timeLimit, int precision) {
-		HeatingCurve hc = p.getHeatingCurve();
-
-		HeatingCurve classicCurve = new HeatingCurve(NumericProperty.derive(NUMPOINTS, hc.count));
+		var hc = p.getHeatingCurve();
+		var classicCurve = new HeatingCurve(derive(NUMPOINTS, hc.count));
 
 		double time, step;
 
@@ -574,7 +578,7 @@ public class HeatingCurve extends PropertyHolder {
 	public List<Property> listedTypes() {
 		List<Property> list = new ArrayList<>();
 		list.add(getNumPoints());
-		list.add(NumericProperty.def(TIME_SHIFT));
+		list.add(def(TIME_SHIFT));
 		return list;
 	}
 
@@ -592,14 +596,14 @@ public class HeatingCurve extends PropertyHolder {
 	}
 
 	public NumericProperty getTimeShift() {
-		return NumericProperty.derive(TIME_SHIFT, startTime);
+		return derive(TIME_SHIFT, startTime);
 	}
 
 	public void setTimeShift(NumericProperty startTime) {
 		if (startTime.getType() != TIME_SHIFT)
 			throw new IllegalArgumentException("Illegal type: " + startTime.getType());
 		this.startTime = (double) startTime.getValue();
-		DataEvent dataEvent = new DataEvent(DataEventType.CHANGE_OF_ORIGIN, this);
+		var dataEvent = new DataEvent(CHANGE_OF_ORIGIN, this);
 		notifyListeners(dataEvent);
 	}
 

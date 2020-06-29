@@ -1,9 +1,18 @@
 package pulse.ui.frames.dialogs;
 
+import static java.awt.GridBagConstraints.BOTH;
+import static javax.swing.BorderFactory.createTitledBorder;
+import static javax.swing.SwingConstants.BOTTOM;
+import static javax.swing.SwingConstants.VERTICAL;
+import static pulse.tasks.ResultFormat.generateFormat;
+
+import java.awt.BorderLayout;
+import java.awt.GridBagConstraints;
+
 import javax.swing.JDialog;
+import javax.swing.SwingConstants;
 
 import pulse.properties.NumericPropertyKeyword;
-import pulse.tasks.ResultFormat;
 import pulse.ui.components.controllers.KeywordListRenderer;
 import pulse.ui.components.models.ParameterListModel;
 import pulse.ui.components.models.ResultListModel;
@@ -45,7 +54,7 @@ public class ResultChangeDialog extends JDialog {
 
 		});
 
-		commitBtn.addActionListener(e -> ResultFormat.generateFormat(model.getData()));
+		commitBtn.addActionListener(e -> generateFormat(model.getData()));
 		cancelBtn.addActionListener(e -> this.setVisible(false));
 
 	}
@@ -78,25 +87,25 @@ public class ResultChangeDialog extends JDialog {
 		filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0),
 				new java.awt.Dimension(32767, 0));
 
-		setDefaultCloseOperation(javax.swing.WindowConstants.HIDE_ON_CLOSE);
+		setDefaultCloseOperation(HIDE_ON_CLOSE);
 
 		MainContainer.setPreferredSize(new java.awt.Dimension(650, 400));
 		MainContainer.setLayout(new java.awt.GridBagLayout());
 
-		leftScroller.setBorder(javax.swing.BorderFactory.createTitledBorder("Available properties"));
+		leftScroller.setBorder(createTitledBorder("Available properties"));
 		leftList.setModel(new ParameterListModel());
 		leftList.setCellRenderer(new KeywordListRenderer());
 		leftList.setFixedCellHeight(50);
 		leftScroller.setViewportView(leftList);
 
 		gridBagConstraints = new java.awt.GridBagConstraints();
-		gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+		gridBagConstraints.fill = BOTH;
 		gridBagConstraints.weightx = 0.5;
 		gridBagConstraints.weighty = 1.0;
 		gridBagConstraints.insets = new java.awt.Insets(8, 5, 8, 5);
 		MainContainer.add(leftScroller, gridBagConstraints);
 
-		rightScroller.setBorder(javax.swing.BorderFactory.createTitledBorder("Printed output"));
+		rightScroller.setBorder(createTitledBorder("Printed output"));
 
 		rightList.setModel(new ResultListModel());
 		rightList.setCellRenderer(new KeywordListRenderer());
@@ -105,33 +114,33 @@ public class ResultChangeDialog extends JDialog {
 
 		gridBagConstraints = new java.awt.GridBagConstraints();
 		gridBagConstraints.gridx = 2;
-		gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+		gridBagConstraints.fill = GridBagConstraints.BOTH;
 		gridBagConstraints.weightx = 0.5;
 		gridBagConstraints.weighty = 1.0;
 		gridBagConstraints.insets = new java.awt.Insets(9, 5, 9, 5);
 		MainContainer.add(rightScroller, gridBagConstraints);
 
 		moveToolbar.setFloatable(false);
-		moveToolbar.setOrientation(javax.swing.SwingConstants.VERTICAL);
+		moveToolbar.setOrientation(VERTICAL);
 		moveToolbar.setRollover(true);
 
 		moveRightBtn.setText(">>");
 		moveRightBtn.setFocusable(false);
-		moveRightBtn.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-		moveRightBtn.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+		moveRightBtn.setHorizontalTextPosition(SwingConstants.CENTER);
+		moveRightBtn.setVerticalTextPosition(SwingConstants.BOTTOM);
 		moveToolbar.add(moveRightBtn);
 
 		moveLeftBtn.setText("<<");
 		moveLeftBtn.setFocusable(false);
-		moveLeftBtn.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-		moveLeftBtn.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+		moveLeftBtn.setHorizontalTextPosition(SwingConstants.CENTER);
+		moveLeftBtn.setVerticalTextPosition(SwingConstants.BOTTOM);
 		moveToolbar.add(moveLeftBtn);
 
 		gridBagConstraints = new java.awt.GridBagConstraints();
 		gridBagConstraints.gridx = 1;
 		MainContainer.add(moveToolbar, gridBagConstraints);
 
-		getContentPane().add(MainContainer, java.awt.BorderLayout.CENTER);
+		getContentPane().add(MainContainer, BorderLayout.CENTER);
 
 		MainToolbar.setFloatable(false);
 		MainToolbar.setRollover(true);
@@ -140,20 +149,20 @@ public class ResultChangeDialog extends JDialog {
 		cancelBtn.setFont(new java.awt.Font("Dialog", 1, 16)); // NOI18N
 		cancelBtn.setText("Cancel");
 		cancelBtn.setFocusable(false);
-		cancelBtn.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-		cancelBtn.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+		cancelBtn.setHorizontalTextPosition(SwingConstants.CENTER);
+		cancelBtn.setVerticalTextPosition(BOTTOM);
 		MainToolbar.add(cancelBtn);
 		MainToolbar.add(filler3);
 
 		commitBtn.setFont(new java.awt.Font("Dialog", 1, 16)); // NOI18N
 		commitBtn.setText("Commit");
 		commitBtn.setFocusable(false);
-		commitBtn.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-		commitBtn.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+		commitBtn.setHorizontalTextPosition(SwingConstants.CENTER);
+		commitBtn.setVerticalTextPosition(SwingConstants.BOTTOM);
 		MainToolbar.add(commitBtn);
 		MainToolbar.add(filler2);
 
-		getContentPane().add(MainToolbar, java.awt.BorderLayout.SOUTH);
+		getContentPane().add(MainToolbar, BorderLayout.SOUTH);
 
 		pack();
 	}

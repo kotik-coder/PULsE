@@ -1,24 +1,25 @@
 package pulse.ui.frames;
 
-import java.awt.BorderLayout;
+import static java.awt.BorderLayout.CENTER;
+import static java.awt.BorderLayout.EAST;
+import static javax.swing.JOptionPane.ERROR_MESSAGE;
+import static javax.swing.JOptionPane.showMessageDialog;
+import static javax.swing.SwingUtilities.getWindowAncestor;
+import static pulse.io.export.ExportManager.askToExport;
+import static pulse.properties.NumericProperty.theDefault;
+import static pulse.properties.NumericPropertyKeyword.WINDOW;
+import static pulse.tasks.ResultFormat.getInstance;
+import static pulse.ui.Messages.getString;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
-import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
-import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
 
-import pulse.io.export.ExportManager;
-import pulse.properties.NumericProperty;
-import pulse.properties.NumericPropertyKeyword;
-import pulse.tasks.ResultFormat;
-import pulse.ui.Messages;
 import pulse.ui.components.ResultTable;
 import pulse.ui.components.listeners.PreviewFrameCreationListener;
 import pulse.ui.components.listeners.ResultRequestListener;
@@ -42,16 +43,16 @@ public class ResultFrame extends JInternalFrame {
 	}
 
 	private void initComponents() {
-		JScrollPane resultsScroller = new JScrollPane();
+		var resultsScroller = new JScrollPane();
 
-		resultTable = new ResultTable(ResultFormat.getInstance());
+		resultTable = new ResultTable(getInstance());
 		resultsScroller.setViewportView(resultTable);
-		getContentPane().add(resultsScroller, BorderLayout.CENTER);
+		getContentPane().add(resultsScroller, CENTER);
 
 		resultToolbar = new ResultToolbar();
-		getContentPane().add(resultToolbar, BorderLayout.EAST);
+		getContentPane().add(resultToolbar, EAST);
 
-		averageWindowDialog = new FormattedInputDialog(NumericProperty.theDefault(NumericPropertyKeyword.WINDOW));
+		averageWindowDialog = new FormattedInputDialog(theDefault(WINDOW));
 	}
 
 	private void addListeners() {
@@ -65,9 +66,9 @@ public class ResultFrame extends JInternalFrame {
 			@Override
 			public void onPreviewRequest() {
 				if (!resultTable.hasEnoughElements(1)) {
-					JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(resultTable),
-							Messages.getString("ResultsToolBar.NoDataError"),
-							Messages.getString("ResultsToolBar.NoResultsError"), JOptionPane.ERROR_MESSAGE);
+					showMessageDialog(getWindowAncestor(resultTable),
+							getString("ResultsToolBar.NoDataError"),
+							getString("ResultsToolBar.NoResultsError"), ERROR_MESSAGE);
 				} else
 					notifyPreview();
 			}
@@ -86,38 +87,27 @@ public class ResultFrame extends JInternalFrame {
 			@Override
 			public void onExportRequest() {
 				if (!resultTable.hasEnoughElements(1)) {
-					JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(resultTable),
-							Messages.getString("ResultsToolBar.7"), Messages.getString("ResultsToolBar.8"),
-							JOptionPane.ERROR_MESSAGE);
+					showMessageDialog(getWindowAncestor(resultTable),
+							getString("ResultsToolBar.7"), getString("ResultsToolBar.8"), ERROR_MESSAGE);
 					return;
 				}
 
-				ExportManager.askToExport(resultTable, (JFrame) SwingUtilities.getWindowAncestor(resultTable),
+				askToExport(resultTable, (JFrame) getWindowAncestor(resultTable),
 						"Calculation results");
 			}
 
 		});
 
-		resultTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+		resultTable.getSelectionModel().addListSelectionListener((ListSelectionEvent arg0) -> {
+                    resultToolbar.setDeleteEnabled(!resultTable.isSelectionEmpty());
+        });
 
-			@Override
-			public void valueChanged(ListSelectionEvent arg0) {
-				resultToolbar.setDeleteEnabled(!resultTable.isSelectionEmpty());
-			}
-
-		});
-
-		resultTable.getModel().addTableModelListener(new TableModelListener() {
-
-			@Override
-			public void tableChanged(TableModelEvent arg0) {
-				resultToolbar.setPreviewEnabled(resultTable.hasEnoughElements(3));
-				resultToolbar.setMergeEnabled(resultTable.hasEnoughElements(2));
-				resultToolbar.setExportEnabled(resultTable.hasEnoughElements(1));
-				resultToolbar.setUndoEnabled(resultTable.hasEnoughElements(1));
-			}
-
-		});
+		resultTable.getModel().addTableModelListener((TableModelEvent arg0) -> {
+                    resultToolbar.setPreviewEnabled(resultTable.hasEnoughElements(3));
+                    resultToolbar.setMergeEnabled(resultTable.hasEnoughElements(2));
+                    resultToolbar.setExportEnabled(resultTable.hasEnoughElements(1));
+                    resultToolbar.setUndoEnabled(resultTable.hasEnoughElements(1));
+        });
 	}
 
 	public void notifyPreview() {

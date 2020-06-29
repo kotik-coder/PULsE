@@ -1,16 +1,20 @@
 package pulse.input;
 
+import static java.lang.Double.valueOf;
+import static java.util.Collections.max;
+import static pulse.input.listeners.DataEventType.TRUNCATED;
+import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericPropertyKeyword.PULSE_WIDTH;
+import static pulse.properties.NumericPropertyKeyword.UPPER_BOUND;
+
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
 import pulse.HeatingCurve;
 import pulse.input.listeners.DataEvent;
-import pulse.input.listeners.DataEventType;
 import pulse.properties.NumericProperty;
-import pulse.properties.NumericPropertyKeyword;
 import pulse.ui.Messages;
 
 /**
@@ -32,8 +36,8 @@ public class ExperimentalData extends HeatingCurve {
 	private final static int REDUCTION_FACTOR = 32;
 	private final static double FAIL_SAFE_FACTOR = 3.0;
 
-	private static Comparator<Point2D> pointComparator = (p1, p2) -> Double.valueOf(p1.getY())
-			.compareTo(Double.valueOf(p2.getY()));
+	private static Comparator<Point2D> pointComparator = (p1, p2) -> valueOf(p1.getY())
+			.compareTo(valueOf(p2.getY()));
 
 	/**
 	 * Constructor for {@code ExperimentalData}. This constructs a
@@ -60,7 +64,7 @@ public class ExperimentalData extends HeatingCurve {
 
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder();
+		var sb = new StringBuilder();
 		sb.append("Experimental data ");
 		if (metadata.getSampleName() != null)
 			sb.append("for " + metadata.getSampleName() + " ");
@@ -149,8 +153,8 @@ public class ExperimentalData extends HeatingCurve {
 
 	@Override
 	public double maxTemperature() {
-		List<Point2D> degraded = crudeAverage(REDUCTION_FACTOR);
-		return (Collections.max(degraded, pointComparator)).getY();
+		var degraded = crudeAverage(REDUCTION_FACTOR);
+		return (max(degraded, pointComparator)).getY();
 	}
 
 	/**
@@ -170,8 +174,8 @@ public class ExperimentalData extends HeatingCurve {
 	 */
 
 	public double halfRiseTime() {
-		List<Point2D> degraded = crudeAverage(REDUCTION_FACTOR);
-		double max = (Collections.max(degraded, pointComparator)).getY();
+		var degraded = crudeAverage(REDUCTION_FACTOR);
+		double max = (max(degraded, pointComparator)).getY();
 		baseline.fitTo(this);
 
 		double halfMax = (max + baseline.valueAt(0)) / 2.0;
@@ -187,7 +191,7 @@ public class ExperimentalData extends HeatingCurve {
 
 		if (index < 0) {
 			System.err.println(Messages.getString("ExperimentalData.HalfRiseError"));
-			return Collections.max(time) / FAIL_SAFE_FACTOR;
+			return max(time) / FAIL_SAFE_FACTOR;
 		}
 
 		return degraded.get(index).getX();
@@ -209,7 +213,7 @@ public class ExperimentalData extends HeatingCurve {
 		if (!(o instanceof ExperimentalData))
 			return false;
 
-		ExperimentalData other = (ExperimentalData) o;
+		var other = (ExperimentalData) o;
 
 		if (!this.metadata.equals(other.getMetadata()))
 			return false;
@@ -255,10 +259,10 @@ public class ExperimentalData extends HeatingCurve {
 		double halfMaximum = halfRiseTime();
 		double cutoff = CUTOFF_FACTOR * halfMaximum;
 
-		this.range.setUpperBound(NumericProperty.derive(NumericPropertyKeyword.UPPER_BOUND, cutoff));
+		this.range.setUpperBound(derive(UPPER_BOUND, cutoff));
 		this.indexRange.set(time, range);
 
-		DataEvent dataEvent = new DataEvent(DataEventType.TRUNCATED, this);
+		var dataEvent = new DataEvent(TRUNCATED, this);
 		notifyListeners(dataEvent);
 	}
 
@@ -284,9 +288,9 @@ public class ExperimentalData extends HeatingCurve {
 		metadata.addListener(event -> {
 
 			if (event.getProperty() instanceof NumericProperty) {
-				NumericProperty p = (NumericProperty) event.getProperty();
+				var p = (NumericProperty) event.getProperty();
 
-				if (p.getType() == NumericPropertyKeyword.PULSE_WIDTH)
+				if (p.getType() == PULSE_WIDTH)
 					range.process(metadata);
 
 			}

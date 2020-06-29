@@ -1,5 +1,8 @@
 package pulse.ui.components.panels;
 
+import static pulse.tasks.TaskManager.reset;
+import static pulse.ui.Launcher.loadIcon;
+
 import java.awt.GridLayout;
 import java.util.ArrayList;
 import java.util.List;
@@ -7,8 +10,6 @@ import java.util.List;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 
-import pulse.tasks.TaskManager;
-import pulse.ui.Launcher;
 import pulse.ui.components.buttons.ExecutionButton;
 import pulse.ui.components.listeners.TaskActionListener;
 
@@ -33,10 +34,10 @@ public class TaskToolbar extends JPanel {
 
 	private void initComponents() {
 
-		removeBtn = new JButton(Launcher.loadIcon("remove.png", ICON_SIZE));
-		clearBtn = new JButton(Launcher.loadIcon("clear.png", ICON_SIZE));
-		resetBtn = new JButton(Launcher.loadIcon("reset.png", ICON_SIZE));
-		graphBtn = new JButton(Launcher.loadIcon("graph.png", ICON_SIZE));
+		removeBtn = new JButton(loadIcon("remove.png", ICON_SIZE));
+		clearBtn = new JButton(loadIcon("clear.png", ICON_SIZE));
+		resetBtn = new JButton(loadIcon("reset.png", ICON_SIZE));
+		graphBtn = new JButton(loadIcon("graph.png", ICON_SIZE));
 		execBtn = new ExecutionButton();
 
 		setLayout(new GridLayout(1, 0));
@@ -87,7 +88,7 @@ public class TaskToolbar extends JPanel {
 		removeBtn.addActionListener(e -> notifyRemove());
 		clearBtn.addActionListener(e -> notifyClear());
 		resetBtn.addActionListener(e -> {
-			TaskManager.reset();
+			reset();
 			notifyReset();
 		});
 		graphBtn.addActionListener(e -> notifyGraph());

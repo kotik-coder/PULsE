@@ -1,5 +1,9 @@
 package pulse.input;
 
+import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericPropertyKeyword.LOWER_BOUND;
+import static pulse.properties.NumericPropertyKeyword.UPPER_BOUND;
+
 import java.util.List;
 
 import pulse.math.IndexedVector;
@@ -33,21 +37,21 @@ public class Range extends PropertyHolder {
 	}
 
 	public NumericProperty getLowerBound() {
-		return NumericProperty.derive(NumericPropertyKeyword.LOWER_BOUND, segment.getMinimum());
+		return derive(LOWER_BOUND, segment.getMinimum());
 	}
 
 	public NumericProperty getUpperBound() {
-		return NumericProperty.derive(NumericPropertyKeyword.UPPER_BOUND, segment.getMaximum());
+		return derive(UPPER_BOUND, segment.getMaximum());
 	}
 
 	public void setLowerBound(NumericProperty p) {
-		if (p.getType() != NumericPropertyKeyword.LOWER_BOUND)
+		if (p.getType() != LOWER_BOUND)
 			throw new IllegalArgumentException("Illegal type: " + p.getType());
 		segment.setMinimum((double) p.getValue());
 	}
 
 	public void setUpperBound(NumericProperty p) {
-		if (p.getType() != NumericPropertyKeyword.UPPER_BOUND)
+		if (p.getType() != UPPER_BOUND)
 			throw new IllegalArgumentException("Illegal type: " + p.getType());
 		segment.setMaximum((double) p.getValue());
 	}
@@ -120,7 +124,7 @@ public class Range extends PropertyHolder {
 
 		for (int i = 0, size = params.dimension(); i < size; i++) {
 
-			p = NumericProperty.derive(params.getIndex(i), params.get(i));
+			p = derive(params.getIndex(i), params.get(i));
 
 			switch (params.getIndex(i)) {
 			case UPPER_BOUND:
