@@ -200,7 +200,7 @@ public class SearchOptionsFrame extends JInternalFrame {
                                 return;
                             }
                 var linearSolver = getSelectedValue();
-                pulse.search.direction.PathOptimiser pathSolver = getSelectedPathOptimiser();
+                var pathSolver = getSelectedPathOptimiser();
                 pathSolver.setLinearSolver(linearSolver);
                 pathTable.setPropertyHolder(pathSolver);
                 pathTable.setEnabled(true);

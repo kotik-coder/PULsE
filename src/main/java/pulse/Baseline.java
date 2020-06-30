@@ -1,5 +1,6 @@
 package pulse;
 
+import static java.lang.Math.min;
 import static java.lang.Double.NEGATIVE_INFINITY;
 import static java.lang.String.format;
 import static pulse.Baseline.BaselineType.CONSTANT;
@@ -10,6 +11,7 @@ import static pulse.properties.NumericPropertyKeyword.BASELINE_SLOPE;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import pulse.input.ExperimentalData;
 import pulse.input.IndexRange;
@@ -39,8 +41,9 @@ import pulse.util.PropertyHolder;
  */
 public class Baseline extends PropertyHolder {
 
-	private double slope, intercept;
-	private BaselineType baselineType;
+	private double slope;
+	private double intercept;
+	private BaselineType baselineType = CONSTANT;
 
 	private final static double ZERO_LEFT = -1E-5;
 
@@ -51,12 +54,10 @@ public class Baseline extends PropertyHolder {
 	}
 
 	/**
-	 * A primitive constructor, which assigns the object's BaselineType to CONSTANT
+	 * A primitive constructor, which initialises a constant-zero baseline
 	 */
 
-	public Baseline() {
-		this.baselineType = CONSTANT;
-	}
+	public Baseline() { }
 
 	/**
 	 * A constructor, which allows to specify all three parameters in one go.
@@ -125,8 +126,7 @@ public class Baseline extends PropertyHolder {
 
 	@Override
 	public String toString() {
-		return getClass().getSimpleName() + " = " + format("%3.2f", intercept) + " + t * "
-				+ format("%3.2f", slope);
+		return getClass().getSimpleName() + " = " + format("%3.2f + t * %3.2f", intercept, slope);
 	}
 
 	/**
@@ -154,79 +154,68 @@ public class Baseline extends PropertyHolder {
 	 */
 
 	public void fitTo(ExperimentalData data, double rangeMin, double rangeMax) {
-		IndexRange indexRange = data.getIndexRange();
+		var indexRange = data.getIndexRange();
 
-		if (indexRange == null)
-			return;
-
+		Objects.requireNonNull(indexRange);
+		
 		if (!indexRange.isValid())
-			return;
+			throw new IllegalArgumentException("Index range not valid: " + indexRange);
 
 		List<Double> x = new ArrayList<>();
 		List<Double> y = new ArrayList<>();
 
-		double t;
-
 		int size = 0;
 
-		int startIndex = indexRange.getLowerBound();
-
-		for (int i = 0; i < startIndex; i++) {
-			t = data.time.get(i);
-
-			if (t < rangeMin)
-				continue;
-
-			if (t > rangeMax)
-				break;
-
+		for (int i = IndexRange.closest(rangeMin, data.time) + 1, 
+				 max = min( indexRange.getLowerBound(), IndexRange.closest(rangeMax, data.time) ); 
+				 i < max; i++, size++) {
+		
 			x.add(data.time.get(i));
 			y.add(data.temperature.get(i));
-			size++;
+	
 		}
 
-		if (size < 1) // no data to process - exit
-			return;
+		if (size > 0) // do fitting only if data is present
+			doFit(x, y, size);
 
+	}
+	
+	private void doFit(List<Double> x, List<Double> y, int size) { 
 		// first pass: compute xbar and ybar
-		double meanx = 0.0, meany = 0.0;
-		double x1, y1;
-		for (int i = 0; i < size; i++) {
-			x1 = x.get(i);
-			y1 = y.get(i);
-			meanx += x1;
-			meany += y1;
-		}
-		meanx /= size;
-		meany /= size;
+				double meanx = 0.0, meany = 0.0;
+				double x1, y1;
+				for (int i = 0; i < size; i++) {
+					x1 = x.get(i);
+					y1 = y.get(i);
+					meanx += x1;
+					meany += y1;
+				}
+				meanx /= size;
+				meany /= size;
 
-		// second pass: compute summary statistics
-		double xxbar = 0.0, xybar = 0.0;
-		for (int i = 0; i < size; i++) {
-			x1 = x.get(i);
-			y1 = y.get(i);
-			xxbar += (x1 - meanx) * (x1 - meanx);
-			xybar += (x1 - meanx) * (y1 - meany);
-		}
+				if(baselineType == LINEAR) {
+				
+					// second pass: compute summary statistics
+					double xxbar = 0.0, xybar = 0.0;
+					for (int i = 0; i < size; i++) {
+						x1 = x.get(i);
+						y1 = y.get(i);
+						xxbar += (x1 - meanx) * (x1 - meanx);
+						xybar += (x1 - meanx) * (y1 - meany);
+					}
+	
+					slope = xybar / xxbar;
+					intercept = meany - slope * meanx;
 
-		if (baselineType == LINEAR) {
-			slope = xybar / xxbar;
-			intercept = meany - slope * meanx;
-		} else {
-			slope = 0;
-			intercept = meany;
-		}
+				} 
+				
+				else {
+					slope = 0;
+					intercept = meany;
+				}
 
-		x.clear();
-		x = null;
-		y.clear();
-		y = null;
-
-		set(BASELINE_INTERCEPT,
-				derive(BASELINE_INTERCEPT, intercept));
-		set(BASELINE_SLOPE,
-				derive(BASELINE_SLOPE, slope));
-
+				set(BASELINE_INTERCEPT,	derive(BASELINE_INTERCEPT, intercept));
+				set(BASELINE_SLOPE,	derive(BASELINE_SLOPE, slope));
 	}
 
 	/**
@@ -325,10 +314,8 @@ public class Baseline extends PropertyHolder {
 		this.baselineType = baselineType;
 
 		var ancestorTask = super.specificAncestor(SearchTask.class);
-		if (ancestorTask == null)
-			return;
-
-		this.fitTo(((SearchTask) ancestorTask).getExperimentalCurve());
+		if (ancestorTask != null)
+			this.fitTo(((SearchTask) ancestorTask).getExperimentalCurve());
 	}
 
 	/**
@@ -387,7 +374,7 @@ public class Baseline extends PropertyHolder {
 			this.slope = ((Number) property.getValue()).doubleValue();
 			break;
 		default:
-			return;
+			break;
 		}
 
 	}

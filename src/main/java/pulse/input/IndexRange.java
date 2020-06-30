@@ -104,7 +104,7 @@ public class IndexRange {
 				if (of < in.get(i + 1))
 					return i;
 		}
-		return of > in.get(size - 1) ? size - 1 : -1;
+		return of > in.get(size - 1) ? size - 1 : 0;
 
 	}
 
