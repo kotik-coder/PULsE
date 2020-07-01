@@ -35,18 +35,16 @@ public class Matrix {
 		int m = args.length;
 
 		for (int i = 1; i < m; i++) {
-                    if (args[i].dimension() != n)
-                        throw new IllegalArgumentException(
-                                Messages.getString("Matrix.VectorDimensionError") + args[i] + " and " + n);
-                }
+			if (args[i].dimension() != n)
+				throw new IllegalArgumentException(
+						Messages.getString("Matrix.VectorDimensionError") + args[i] + " and " + n);
+		}
 
 		x = new double[n][m];
 
-		for (int i = 0; i < m; i++) {
-                    for (int j = 0; j < n; j++) {
-                        this.x[j][i] = args[i].get(j);
-                    }
-                }
+		for (int i = 0; i < m; i++) 
+			for (int j = 0; j < n; j++) 
+				this.x[j][i] = args[i].get(j);
 
 	}
 
@@ -73,9 +71,8 @@ public class Matrix {
 
 		x = new double[m][n];
 
-		for (int i = 0; i < m; i++) {
-                    System.arraycopy(args[i], 0, x[i], 0, n);
-                }
+		for (int i = 0; i < m; i++)
+			System.arraycopy(args[i], 0, x[i], 0, n);
 
 	}
 
@@ -90,9 +87,8 @@ public class Matrix {
 	public Matrix(int n, double f) {
 		this.x = new double[n][n];
 
-		for (int i = 0; i < n; i++) {
-                    x[i][i] = f;
-                }
+		for (int i = 0; i < n; i++)
+			x[i][i] = f;
 
 	}
 
@@ -116,10 +112,10 @@ public class Matrix {
 		double[][] y = new double[this.x.length][this.x[0].length];
 
 		for (int i = 0; i < x.length; i++) {
-                    for (int j = 0; j < x[0].length; j++) {
-                        y[i][j] = this.x[i][j] + m.x[i][j];
-                    }
-                }
+			for (int j = 0; j < x[0].length; j++) {
+				y[i][j] = this.x[i][j] + m.x[i][j];
+			}
+		}
 
 		return new Matrix(y);
 	}
@@ -145,10 +141,10 @@ public class Matrix {
 		double[][] y = new double[this.x.length][this.x[0].length];
 
 		for (int i = 0; i < x.length; i++) {
-                    for (int j = 0; j < x[0].length; j++) {
-                        y[i][j] = this.x[i][j] - m.x[i][j];
-                    }
-                }
+			for (int j = 0; j < x[0].length; j++) {
+				y[i][j] = this.x[i][j] - m.x[i][j];
+			}
+		}
 
 		return new Matrix(y);
 	}
@@ -178,12 +174,12 @@ public class Matrix {
 		double[][] y = new double[mm][nn];
 
 		for (int i = 0; i < mm; i++) {
-                    for (int j = 0; j < nn; j++) {
-                        for (int k = 0; k < this.x[0].length; k++) {
-                            y[i][j] += this.x[i][k] * m.x[k][j];
-                        }
-                    }
-                }
+			for (int j = 0; j < nn; j++) {
+				for (int k = 0; k < this.x[0].length; k++) {
+					y[i][j] += this.x[i][k] * m.x[k][j];
+				}
+			}
+		}
 
 		return new Matrix(y);
 	}
@@ -200,10 +196,10 @@ public class Matrix {
 		double[][] y = new double[this.x[0].length][this.x[0].length];
 
 		for (int i = 0; i < x[0].length; i++) {
-                    for (int j = 0; j < x[0].length; j++) {
-                        y[i][j] = this.x[i][j] * f;
-                    }
-                }
+			for (int j = 0; j < x[0].length; j++) {
+				y[i][j] = this.x[i][j] * f;
+			}
+		}
 
 		return new Matrix(y);
 	}
@@ -224,10 +220,10 @@ public class Matrix {
 		double[] r = new double[v.dimension()];
 
 		for (int i = 0, j = 0; i < r.length; i++) {
-                    for (j = 0; j < r.length; j++) {
-                        r[i] += x[i][j] * v.get(j);
-                    }
-                }
+			for (j = 0; j < r.length; j++) {
+				r[i] += x[i][j] * v.get(j);
+			}
+		}
 
 		return new Vector(r);
 	}
@@ -293,8 +289,8 @@ public class Matrix {
 		int n = x[0].length;
 
 		for (int j = 0; j < n; j++) {
-                    det += x[0][j] * cofactor(0, j);
-                }
+			det += x[0][j] * cofactor(0, j);
+		}
 
 		return det;
 
@@ -430,24 +426,24 @@ public class Matrix {
 		for (int i = 0; i < row; i++) {
 
 			for (int j = 0; j < column; j++) {
-                            sub[i][j] = x[i][j];
-                        }
+				sub[i][j] = x[i][j];
+			}
 
 			for (int j = column + 1; j < x[0].length; j++) {
-                            sub[i][j - 1] = x[i][j];
-                        }
+				sub[i][j - 1] = x[i][j];
+			}
 
 		}
 
 		for (int i = row + 1; i < x.length; i++) {
 
 			for (int j = 0; j < column; j++) {
-                            sub[i - 1][j] = x[i][j];
-                        }
+				sub[i - 1][j] = x[i][j];
+			}
 
 			for (int j = column + 1; j < x[0].length; j++) {
-                            sub[i - 1][j - 1] = x[i][j];
-                        }
+				sub[i - 1][j - 1] = x[i][j];
+			}
 
 		}
 
@@ -473,10 +469,10 @@ public class Matrix {
 		double y[][] = new double[n][n];
 
 		for (int i = 0; i < n; i++) {
-                    for (int j = 0; j < n; j++) {
-                        y[j][i] = cofactor(i, j);
-                    }
-                }
+			for (int j = 0; j < n; j++) {
+				y[j][i] = cofactor(i, j);
+			}
+		}
 
 		return new Matrix(y);
 
@@ -542,11 +538,11 @@ public class Matrix {
 		final double EPS = 1E-8;
 
 		for (int i = 0; i < x.length; i++) {
-                    for (int j = 0; j < x.length; j++) {
-                        if (Math.abs(this.x[i][j] - m.x[i][j]) > EPS)
-                            return false;
-                    }
-                }
+			for (int j = 0; j < x.length; j++) {
+				if (Math.abs(this.x[i][j] - m.x[i][j]) > EPS)
+					return false;
+			}
+		}
 
 		return true;
 	}

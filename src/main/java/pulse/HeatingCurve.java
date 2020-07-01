@@ -1,8 +1,8 @@
 package pulse;
 
-import static java.util.Collections.*;
 import static java.lang.Math.abs;
 import static java.util.Collections.max;
+import static java.util.Collections.min;
 import static java.util.Collections.nCopies;
 import static java.util.stream.Collectors.toList;
 import static pulse.input.listeners.DataEventType.CHANGE_OF_ORIGIN;
@@ -14,6 +14,7 @@ import static pulse.properties.NumericPropertyKeyword.TIME_SHIFT;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
 import org.apache.commons.math3.analysis.interpolation.UnivariateInterpolator;

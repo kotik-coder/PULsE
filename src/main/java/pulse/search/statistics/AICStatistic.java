@@ -1,7 +1,5 @@
 package pulse.search.statistics;
 
-import pulse.properties.Flag;
-import pulse.search.direction.PathOptimiser;
 import pulse.tasks.SearchTask;
 
 /**
@@ -17,7 +15,7 @@ public class AICStatistic extends SumOfSquares {
 
 	@Override
 	public void evaluate(SearchTask t) {
-		kq = Flag.convert(PathOptimiser.getProblemDependentFlags()).size();
+		kq = t.alteredParameters().size();
 		super.evaluate(t);
 		double n = getResiduals().size();
 		this.statistic = n * Math.log(statistic) + 2.0 * (kq + 1) + n * PENALISATION_FACTOR;

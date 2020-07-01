@@ -66,8 +66,8 @@ public class Vector {
 		Vector v = new Vector(x.length);
 
 		for (int i = 0; i < v.x.length; i++) {
-                    v.x[i] = -this.x[i];
-                }
+			v.x[i] = -this.x[i];
+		}
 
 		return v;
 	}
@@ -99,8 +99,8 @@ public class Vector {
 		Vector sum = new Vector(this);
 
 		for (int i = 0; i < v.x.length; i++) {
-                    sum.x[i] += v.x[i];
-                }
+			sum.x[i] += v.x[i];
+		}
 
 		return sum;
 	}
@@ -121,8 +121,8 @@ public class Vector {
 		Vector diff = new Vector(this);
 
 		for (int i = 0; i < v.x.length; i++) {
-                    diff.x[i] -= v.x[i];
-                }
+			diff.x[i] -= v.x[i];
+		}
 
 		return diff;
 
@@ -140,8 +140,8 @@ public class Vector {
 		Vector factor = new Vector(this);
 
 		for (int i = 0; i < x.length; i++) {
-                    factor.x[i] *= f;
-                }
+			factor.x[i] *= f;
+		}
 
 		return factor;
 	}
@@ -156,8 +156,8 @@ public class Vector {
 	public double dot(Vector v) {
 		double dotProduct = 0;
 		for (int i = 0; i < v.x.length; i++) {
-                    dotProduct += this.x[i] * v.x[i];
-                }
+			dotProduct += this.x[i] * v.x[i];
+		}
 		return dotProduct;
 	}
 
@@ -214,8 +214,8 @@ public class Vector {
 		double distSq = 0;
 
 		for (int i = 0; i < v.x.length; i++) {
-                    distSq += Math.pow(this.x[i] - v.x[i], 2);
-                }
+			distSq += Math.pow(this.x[i] - v.x[i], 2);
+		}
 
 		return distSq;
 	}
@@ -270,8 +270,8 @@ public class Vector {
 		final String f = Messages.getString("Math.DecimalFormat"); //$NON-NLS-1$
 		StringBuilder sb = new StringBuilder().append("("); //$NON-NLS-1$
 		for (double c : x) {
-                    sb.append(String.format(f, c) + " "); //$NON-NLS-1$
-                }
+			sb.append(String.format(f, c) + " "); //$NON-NLS-1$
+		}
 		sb.append(")"); //$NON-NLS-1$
 		return sb.toString();
 	}

@@ -9,9 +9,9 @@ import java.util.List;
 
 import pulse.input.ExperimentalData;
 import pulse.math.IndexedVector;
+import pulse.math.MathUtils;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.MixedScheme;
-import pulse.problem.schemes.rte.MathUtils;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;

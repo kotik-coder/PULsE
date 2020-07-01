@@ -1,5 +1,9 @@
 package pulse.problem.statements;
 
+import static java.lang.Math.log;
+import static java.lang.Math.exp;
+import static pulse.properties.NumericProperty.derive;
+
 import java.util.List;
 
 import pulse.math.IndexedVector;
@@ -24,17 +28,11 @@ public class PenetrationProblem extends LinearisedProblem {
 
 	private AbsorptionModel absorption = instanceDescriptor.newInstance(AbsorptionModel.class);
 
-	private final static double SENSITIVITY = 100;
-
 	public PenetrationProblem() {
 		super();
 		curve.setNumPoints(NumericProperty.derive(NumericPropertyKeyword.NUMPOINTS, DEFAULT_CURVE_POINTS));
+		instanceDescriptor.addListener(() -> initAbsorption());
 		absorption.setParent(this);
-		this.parameterListChanged();
-		instanceDescriptor.addListener(() -> {
-			absorption = instanceDescriptor.newInstance(AbsorptionModel.class);
-			absorption.setParent(this);
-		});
 	}
 
 	public PenetrationProblem(Problem sdd) {
@@ -42,14 +40,22 @@ public class PenetrationProblem extends LinearisedProblem {
 		curve.setNumPoints(NumericProperty.derive(NumericPropertyKeyword.NUMPOINTS, DEFAULT_CURVE_POINTS));
 		if (sdd instanceof PenetrationProblem) {
 			PenetrationProblem tp = (PenetrationProblem) sdd;
-			this.absorption = tp.absorption;
+			setAbsorptionModel(tp.absorption);
+		} else {
+			initAbsorption();
+			instanceDescriptor.addListener(() -> initAbsorption());
 		}
+		absorption.setParent(this);
 	}
 
 	public PenetrationProblem(PenetrationProblem tp) {
 		super(tp);
 		curve.setNumPoints(NumericProperty.derive(NumericPropertyKeyword.NUMPOINTS, DEFAULT_CURVE_POINTS));
-		this.absorption = tp.absorption;
+		setAbsorptionModel(tp.absorption);
+	}
+
+	private void initAbsorption() {
+		setAbsorptionModel(instanceDescriptor.newInstance(AbsorptionModel.class));
 	}
 
 	public AbsorptionModel getAbsorptionModel() {
@@ -58,12 +64,7 @@ public class PenetrationProblem extends LinearisedProblem {
 
 	public void setAbsorptionModel(AbsorptionModel model) {
 		this.absorption = model;
-	}
-
-	@Override
-	public void set(NumericPropertyKeyword type, NumericProperty property) {
-		super.set(type, property);
-		absorption.set(type, property);
+		this.absorption.setParent(this);
 	}
 
 	@Override
@@ -73,7 +74,7 @@ public class PenetrationProblem extends LinearisedProblem {
 		return list;
 	}
 
-	public InstanceDescriptor<? extends AbsorptionModel> getAbsorptionSelector() {
+	public static InstanceDescriptor<? extends AbsorptionModel> getAbsorptionSelector() {
 		return instanceDescriptor;
 	}
 
@@ -84,12 +85,12 @@ public class PenetrationProblem extends LinearisedProblem {
 		for (int i = 0, size = output[0].dimension(); i < size; i++) {
 			switch (output[0].getIndex(i)) {
 			case LASER_ABSORPTIVITY:
-				output[0].set(i, (double) (absorption.getLaserAbsorptivity()).getValue() / SENSITIVITY);
-				output[1].set(i, 0.1);
+				output[0].set(i, log((double) (absorption.getLaserAbsorptivity()).getValue()));
+				output[1].set(i, 2.0);
 				break;
 			case THERMAL_ABSORPTIVITY:
-				output[0].set(i, (double) (absorption.getThermalAbsorptivity()).getValue() / SENSITIVITY);
-				output[0].set(i, 0.1);
+				output[0].set(i, log((double) (absorption.getThermalAbsorptivity()).getValue()));
+				output[0].set(i, 2.0);
 				break;
 			default:
 				continue;
@@ -106,11 +107,11 @@ public class PenetrationProblem extends LinearisedProblem {
 			switch (params.getIndex(i)) {
 			case LASER_ABSORPTIVITY:
 				absorption.setLaserAbsorptivity(
-						NumericProperty.derive(NumericPropertyKeyword.LASER_ABSORPTIVITY, params.get(i) * SENSITIVITY));
+						derive(NumericPropertyKeyword.LASER_ABSORPTIVITY, exp(params.get(i))));
 				break;
 			case THERMAL_ABSORPTIVITY:
-				absorption.setThermalAbsorptivity(NumericProperty.derive(NumericPropertyKeyword.THERMAL_ABSORPTIVITY,
-						params.get(i) * SENSITIVITY));
+				absorption.setThermalAbsorptivity(
+						derive(NumericPropertyKeyword.THERMAL_ABSORPTIVITY, exp(params.get(i))));
 				break;
 			default:
 				continue;

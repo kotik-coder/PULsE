@@ -2,7 +2,6 @@ package pulse.math;
 
 import org.apache.commons.math3.analysis.solvers.LaguerreSolver;
 
-import pulse.problem.schemes.rte.MathUtils;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 

@@ -2,8 +2,8 @@ package pulse.problem.schemes.rte.exact;
 
 import org.apache.commons.math3.util.CombinatoricsUtils;
 
+import pulse.math.MathUtils;
 import pulse.problem.schemes.rte.Integrator;
-import pulse.problem.schemes.rte.MathUtils;
 
 public class ExponentialFunctionIntegrator extends Integrator {
 

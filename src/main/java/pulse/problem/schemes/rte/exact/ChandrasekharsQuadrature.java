@@ -5,9 +5,9 @@ import java.util.List;
 
 import org.apache.commons.math3.analysis.solvers.LaguerreSolver;
 
+import pulse.math.MathUtils;
 import pulse.math.Matrix;
 import pulse.math.Vector;
-import pulse.problem.schemes.rte.MathUtils;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;

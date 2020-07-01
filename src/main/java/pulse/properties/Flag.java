@@ -197,4 +197,8 @@ public class Flag implements Property {
 		return false;
 	}
 
+	public static List<Flag> selectActive( List<Flag> flags) {
+		return flags.stream().filter(flag -> (boolean)flag.getValue() ).collect(Collectors.toList());
+	}
+	
 }

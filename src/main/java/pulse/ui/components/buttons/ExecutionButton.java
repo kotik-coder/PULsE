@@ -3,7 +3,6 @@ package pulse.ui.components.buttons;
 import static javax.swing.JOptionPane.ERROR_MESSAGE;
 import static javax.swing.JOptionPane.showMessageDialog;
 import static javax.swing.SwingUtilities.getWindowAncestor;
-import static pulse.tasks.Log.setVerbose;
 import static pulse.tasks.Status.INCOMPLETE;
 import static pulse.tasks.TaskManager.addTaskRepositoryListener;
 import static pulse.tasks.TaskManager.cancelAllTasks;
@@ -59,10 +58,9 @@ public class ExecutionButton extends JButton {
             } else {
                 if (getTaskList().stream().anyMatch(t -> !t.getProblem().isBatchProcessingEnabled())) {
                     execute(getSelectedTask());
-                } else {
+                } else 
                     executeAll();
-                    setVerbose(true);
-                }
+                
             }
         });
 

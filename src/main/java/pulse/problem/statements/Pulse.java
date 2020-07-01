@@ -93,7 +93,10 @@ public class Pulse extends PropertyHolder {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(getPulseShape());
-		sb.append(String.format("; %3.2f ; %3.2f", pulseWidth * 1E3, laserEnergy));
+		sb.append(" ; ");
+		sb.append(getPulseWidth());
+		sb.append(" ; ");
+		sb.append(getLaserEnergy());
 		return sb.toString();
 	}
 

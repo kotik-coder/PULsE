@@ -5,10 +5,10 @@ import static pulse.properties.NumericPropertyKeyword.NONLINEAR_PRECISION;
 import java.util.List;
 
 import pulse.HeatingCurve;
+import pulse.math.MathUtils;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.Grid;
 import pulse.problem.schemes.ImplicitScheme;
-import pulse.problem.schemes.rte.MathUtils;
 import pulse.problem.schemes.rte.RTECalculationStatus;
 import pulse.problem.schemes.rte.RadiativeTransferSolver;
 import pulse.problem.schemes.rte.exact.NonscatteringDiscreteDerivatives;

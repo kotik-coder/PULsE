@@ -55,7 +55,8 @@ public class Pulse2D extends Pulse {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder(super.toString());
-		sb.append(String.format("%3.2f", spotDiameter * 1E3));
+		sb.append(" ; ");
+		sb.append(getSpotDiameter());
 		return sb.toString();
 	}
 

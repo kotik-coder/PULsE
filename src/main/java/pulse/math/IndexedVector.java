@@ -1,17 +1,9 @@
 package pulse.math;
 
-import static pulse.properties.NumericPropertyKeyword.BASELINE_INTERCEPT;
-import static pulse.properties.NumericPropertyKeyword.BASELINE_SLOPE;
-import static pulse.properties.NumericPropertyKeyword.DIFFUSIVITY;
-import static pulse.properties.NumericPropertyKeyword.HEAT_LOSS;
-import static pulse.properties.NumericPropertyKeyword.MAXTEMP;
-import static pulse.properties.NumericPropertyKeyword.THICKNESS;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 
 /**
@@ -130,50 +122,6 @@ public class IndexedVector extends Vector {
 
 	private void assign(List<NumericPropertyKeyword> indices) {
 		this.indices.addAll(indices);
-	}
-
-	/**
-	 * Creates an {@code IndexedVector} with its components set as the maximum
-	 * sensible (ceiling) values that can ever occur for each of the listed
-	 * {@code activeParameters}.
-	 * 
-	 * @param activeParameters a list of keywords which correspond to some default
-	 *                         values (as loaded from .xml)
-	 * @return an {@code IndexedVector} representing the 'ceiling', all components
-	 *         of which represent the maximum sensible values for each of the
-	 *         {@code activeParameters}.
-	 */
-
-	public static IndexedVector ceiling(List<NumericPropertyKeyword> activeParameters) {
-		IndexedVector v = new IndexedVector(activeParameters);
-		double lSq = Math.pow((double) NumericProperty.def(THICKNESS).getValue(), 2);
-
-		for (NumericPropertyKeyword activeIndex : activeParameters) {
-
-			switch (activeIndex) {
-			case HEAT_LOSS:
-				v.set(activeIndex, (double) NumericProperty.theDefault(HEAT_LOSS).getMaximum());
-				break;
-			case DIFFUSIVITY:
-				v.set(activeIndex, (double) NumericProperty.theDefault(DIFFUSIVITY).getMaximum() / lSq);
-				break;
-			case BASELINE_INTERCEPT:
-				v.set(activeIndex, (double) NumericProperty.theDefault(BASELINE_INTERCEPT).getMaximum());
-				break;
-			case BASELINE_SLOPE:
-				v.set(activeIndex, (double) NumericProperty.theDefault(BASELINE_SLOPE).getMaximum());
-				break;
-			case MAXTEMP:
-				v.set(activeIndex, (double) NumericProperty.theDefault(MAXTEMP).getMaximum());
-				break;
-			default:
-				throw new IllegalArgumentException("Type " + activeIndex + " unknown");
-			}
-
-		}
-
-		return v;
-
 	}
 
 	public static IndexedVector concat(IndexedVector v1, IndexedVector v2) {

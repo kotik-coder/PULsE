@@ -11,13 +11,13 @@ import java.util.List;
 
 import pulse.input.ExperimentalData;
 import pulse.math.IndexedVector;
+import pulse.math.MathUtils;
 import pulse.problem.schemes.ADIScheme;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.DiscretePulse;
 import pulse.problem.schemes.DiscretePulse2D;
 import pulse.problem.schemes.Grid;
 import pulse.problem.schemes.Grid2D;
-import pulse.problem.schemes.rte.MathUtils;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
@@ -177,7 +177,7 @@ public abstract class Problem2D extends Problem implements TwoDimensional {
 	@Override
 	public void assign(IndexedVector params) {
 		super.assign(params);
-
+		//TODO one-to-one mapping for FOV and SPOT_DIAMETER
 		for (int i = 0, size = params.dimension(); i < size; i++) {
 			switch (params.getIndex(i)) {
 			case FOV_OUTER:

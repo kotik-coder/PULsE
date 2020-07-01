@@ -292,6 +292,7 @@ public class SearchTask extends Accessible implements Runnable {
 
 		/* preparatory steps */
 
+		getProblem().parameterListChanged(); //get updated list of parameters
 		solveProblemAndCalculateDeviation();
 
 		var pathSolver = getSelectedPathOptimiser();

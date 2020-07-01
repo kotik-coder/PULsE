@@ -3,7 +3,7 @@ package pulse.problem.statements;
 import java.util.List;
 
 import pulse.math.IndexedVector;
-import pulse.problem.schemes.rte.MathUtils;
+import pulse.math.MathUtils;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;

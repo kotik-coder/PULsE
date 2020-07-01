@@ -37,11 +37,12 @@ public abstract class PropertyHolder extends Accessible {
 	public List<Property> listedTypes() {
 
 		List<Property> properties = new ArrayList<>();
-
+		
 		for (var accessible : accessibleChildren()) {
-                    if (accessible instanceof PropertyHolder)
-                        properties.addAll(((PropertyHolder) accessible).listedTypes());
-                }
+			if (accessible instanceof PropertyHolder) {
+				properties.addAll(((PropertyHolder) accessible).listedTypes());
+			}
+		}
 
 		return properties;
 	}
@@ -113,8 +114,7 @@ public abstract class PropertyHolder extends Accessible {
 
 	public List<Property> data() {
 		var numeric = numericData();
-		var all = genericProperties().stream().filter(p -> isListedGenericType(p))
-				.collect(toList());
+		var all = genericProperties().stream().filter(p -> isListedGenericType(p)).collect(toList());
 
 		all.addAll(numeric);
 		return all;
@@ -147,8 +147,7 @@ public abstract class PropertyHolder extends Accessible {
 	 */
 
 	public List<EnumProperty> enumData() {
-		return data().stream().filter(p -> p instanceof EnumProperty).map(eP -> (EnumProperty) eP)
-				.collect(toList());
+		return data().stream().filter(p -> p instanceof EnumProperty).map(eP -> (EnumProperty) eP).collect(toList());
 	}
 
 	/**

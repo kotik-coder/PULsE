@@ -1,4 +1,4 @@
-package pulse.problem.schemes.rte;
+package pulse.math;
 
 /**
  * Largely based on https://martin.ankerl.com

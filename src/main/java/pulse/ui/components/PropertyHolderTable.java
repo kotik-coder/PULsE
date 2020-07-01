@@ -104,29 +104,6 @@ public class PropertyHolderTable extends JTable {
                 propertyHolder.updateProperty(reference, changedProperty);
             }
             
-            /*
-             * else {
-             *
-             * // try to find property by name Object propertyName = (((DefaultTableModel)
-             * e.getSource()).getValueAt(row, column - 1)); if (propertyName != null) {
-             * Optional<Property> potentialChangedProperty =
-             * reference.getPropertyHolder().genericProperties() .stream().filter(p ->
-             * p.getDescriptor(true).equals(propertyName) ||
-             * p.getClass().getSimpleName().equals(propertyName)) .findAny();
-             *
-             * if (potentialChangedProperty.isEmpty()) return; else { Property
-             * changedProperty = potentialChangedProperty.get();
-             *
-             * if (changedProperty.attemptUpdate(changedObject)) {
-             * propertyHolder.update(changedProperty);
-             * propertyHolder.notifyListeners(reference, changedProperty);
-             * System.out.println("Updating"); updateTable(); }
-             *
-             * }
-             *
-             * }
-             */
-            
         });
 
 		addListeners();

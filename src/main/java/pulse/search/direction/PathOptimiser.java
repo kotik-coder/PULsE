@@ -257,12 +257,12 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 		return this.getClass().getSimpleName();
 	}
 
-	public static List<Flag> getProblemIndependentFlags() {
-		return problemIndependentFlags;
+	public static List<NumericPropertyKeyword> selectActiveAndListed( List<Flag> flags, Problem listed) {
+		return selectActiveTypes(flags).stream().filter(type -> listed.isListedNumericType(type) ).collect(Collectors.toList());
 	}
-
-	public static List<Flag> getProblemDependentFlags() {
-		return problemDependentFlags;
+	
+	public static List<NumericPropertyKeyword> selectActiveTypes( List<Flag> flags) {
+		return Flag.selectActive(flags).stream().map(flag -> flag.getType()).collect(Collectors.toList());
 	}
 
 	public static List<Flag> getAllFlags() {
@@ -384,14 +384,10 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 
 	public static List<NumericPropertyKeyword> activeParameters(SearchTask t) {
 		Problem p = t.getProblem();
+		
 		var list = new ArrayList<NumericPropertyKeyword>();
-		var list1 = PathOptimiser.getProblemDependentFlags().stream()
-				.filter(flag -> ((boolean) flag.getValue()) && (p.isListedNumericType(flag.getType())))
-				.map(flag -> flag.getType()).collect(Collectors.toList());
-		var list2 = PathOptimiser.getProblemIndependentFlags().stream().filter(flag -> ((boolean) flag.getValue()))
-				.map(flag -> flag.getType()).collect(Collectors.toList());
-		list.addAll(list1);
-		list.addAll(list2);
+		list.addAll( selectActiveAndListed(problemDependentFlags, p));
+		list.addAll( selectActiveTypes(problemIndependentFlags));
 		return list;
 	}
 

@@ -1,6 +1,6 @@
 package pulse.problem.schemes.rte;
 
-import static pulse.problem.schemes.rte.MathUtils.fastPowLoop;
+import static pulse.math.MathUtils.fastPowLoop;
 
 import org.apache.commons.math3.analysis.UnivariateFunction;
 
