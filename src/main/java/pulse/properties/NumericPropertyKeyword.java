@@ -1,7 +1,5 @@
 package pulse.properties;
 
-import static pulse.properties.NumericPropertyKeyword.values;
-
 import java.util.Arrays;
 import java.util.Optional;
 

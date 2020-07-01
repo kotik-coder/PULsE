@@ -34,18 +34,6 @@ public class InterpolationDataset {
 	}
 
 	/**
-	 * Iterates over the {@code List} of {@code DataEntry} objects to find one that
-	 * has the closest {@code getKey() < key} value to the argument {@code key}.
-	 * 
-	 * @param key the key, which is the upper bound for the search.
-	 * @return a {@code DataEntry} object, satisfying the conditions above.
-	 */
-
-	public ImmutableDataEntry<Double, Double> previousTo(double key) {
-		return dataset.stream().filter(element -> element.getKey() < key).reduce((a, b) -> b).get();
-	}
-
-	/**
 	 * Provides an interpolated value at {@code key} based on the available data in
 	 * the {@code DataEntry List}. The interpolation is done using natural cubic
 	 * splines, hence it is important that the input dataset has minimal noise.

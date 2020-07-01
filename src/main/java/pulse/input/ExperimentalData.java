@@ -5,8 +5,8 @@ import static java.util.Collections.max;
 import static pulse.input.listeners.DataEventType.TRUNCATED;
 import static pulse.properties.NumericProperty.derive;
 import static pulse.properties.NumericPropertyKeyword.PULSE_WIDTH;
-import static pulse.properties.NumericPropertyKeyword.UPPER_BOUND;
 import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
+import static pulse.properties.NumericPropertyKeyword.UPPER_BOUND;
 
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
@@ -285,7 +285,7 @@ public class ExperimentalData extends HeatingCurve {
 	private void doSetMetadata() {
 
 		if (range != null)
-			range.process(metadata);
+			range.updateMinimum(metadata.numericProperty(PULSE_WIDTH));
 
 		metadata.addListener(event -> {
 
@@ -293,7 +293,7 @@ public class ExperimentalData extends HeatingCurve {
 				var p = (NumericProperty) event.getProperty();
 
 				if (p.getType() == PULSE_WIDTH)
-					range.process(metadata);
+					range.updateMinimum(metadata.numericProperty(PULSE_WIDTH));
 
 			}
 
@@ -336,7 +336,7 @@ public class ExperimentalData extends HeatingCurve {
 		});
 		
 		if(metadata != null)
-			range.process(metadata);
+			range.updateMinimum(metadata.numericProperty(PULSE_WIDTH));
 	}
 
 }

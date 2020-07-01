@@ -1,7 +1,5 @@
 package pulse.properties;
 
-import static pulse.properties.NumericPropertyKeyword.NUMPOINTS;
-
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.List;

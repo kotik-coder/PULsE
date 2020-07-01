@@ -1,5 +1,6 @@
 package pulse;
 
+import static java.util.Collections.*;
 import static java.lang.Math.abs;
 import static java.util.Collections.max;
 import static java.util.Collections.nCopies;
@@ -13,8 +14,6 @@ import static pulse.properties.NumericPropertyKeyword.TIME_SHIFT;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
-
 import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
 import org.apache.commons.math3.analysis.interpolation.UnivariateInterpolator;
@@ -331,10 +330,9 @@ public class HeatingCurve extends PropertyHolder {
 			signal.set(i, signal.get(i) * scale);
 		
 		apply(baseline);
-
-		var timeArray = time.stream().mapToDouble(d -> d + startTime).toArray();
 		
-		splineInterpolation = splineInterpolator.interpolate(timeArray, signalArray() );
+		splineInterpolation = splineInterpolator.interpolate( time.stream().mapToDouble(d -> d).toArray(), 
+															  adjustedSignal.stream().mapToDouble(d -> d).toArray() );
 	}
 
 	/**
@@ -364,11 +362,7 @@ public class HeatingCurve extends PropertyHolder {
 	public double timeLimit() {
 		return time.get(time.size() - 1) - startTime;
 	}
-
-	public double[] signalArray() {
-		return signal.stream().mapToDouble(t -> t).toArray();
-	}
-
+	
 	@Override
 	public String toString() {
 		return name != null ? name : getClass().getSimpleName() + " (" + getNumPoints() + ")";
@@ -392,12 +386,13 @@ public class HeatingCurve extends PropertyHolder {
 
 		for (int i = 0, size = time.size(); i < size; i++) 
 			adjustedSignal.add(
-					signal.get(i) + baseline.valueAt( time.get(i) ) );
+					signal.get(i) + baseline.valueAt( time.get(i) + startTime ) );
 
-	}
-
-	public void applyBaseline() {
-		apply(baseline);
+		if( min(time) > 0) {
+			time.add(0, 0.0);
+			adjustedSignal.add(0, baseline.valueAt(0.0) );
+		}
+		
 	}
 
 	public String getName() {
@@ -435,7 +430,7 @@ public class HeatingCurve extends PropertyHolder {
 			return this;
 
 		var baselineTime	= data.time.stream().filter(t -> t < 0).collect(toList());
-		var baselineSignal	= baselineTime.stream().map(bTime -> baseline.valueAt(bTime) ).collect(Collectors.toList());
+		var baselineSignal	= baselineTime.stream().map(bTime -> baseline.valueAt(bTime) ).collect(toList());
 
 		baselineTime.addAll(time);
 		baselineSignal.addAll(adjustedSignal);

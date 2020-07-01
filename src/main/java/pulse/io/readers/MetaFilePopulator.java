@@ -1,8 +1,9 @@
 package pulse.io.readers;
 
+import static pulse.properties.NumericProperty.def;
+import static pulse.properties.NumericProperty.isValueSensible;
 import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
 import static pulse.properties.NumericPropertyKeyword.findAny;
-import static pulse.properties.NumericProperty.*;
 
 import java.io.BufferedReader;
 import java.io.File;

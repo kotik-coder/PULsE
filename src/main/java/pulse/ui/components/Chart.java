@@ -184,7 +184,7 @@ public class Chart {
 	}
 
 	public static void plotSingle(HeatingCurve curve) {
-		Objects.requireNonNull(curve);
+		requireNonNull(curve);
 
 		var plot = chart.getXYPlot();
 

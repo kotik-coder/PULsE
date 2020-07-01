@@ -1,9 +1,9 @@
 package pulse.input;
 
 import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericProperty.requireType;
 import static pulse.properties.NumericPropertyKeyword.LOWER_BOUND;
 import static pulse.properties.NumericPropertyKeyword.UPPER_BOUND;
-import static pulse.properties.NumericPropertyKeyword.PULSE_WIDTH;
 
 import java.util.List;
 
@@ -46,14 +46,12 @@ public class Range extends PropertyHolder {
 	}
 
 	public void setLowerBound(NumericProperty p) {
-		if (p.getType() != LOWER_BOUND)
-			throw new IllegalArgumentException("Illegal type: " + p.getType());
+		requireType(p, LOWER_BOUND);
 		segment.setMinimum((double) p.getValue());
 	}
 
 	public void setUpperBound(NumericProperty p) {
-		if (p.getType() != UPPER_BOUND)
-			throw new IllegalArgumentException("Illegal type: " + p.getType());
+		requireType(p, UPPER_BOUND);
 		segment.setMaximum((double) p.getValue());
 	}
 
@@ -61,13 +59,13 @@ public class Range extends PropertyHolder {
 		return segment;
 	}
 
-	public void process(Metadata metadata) {
-		var optional = metadata.numericProperty(PULSE_WIDTH);
-		if(optional != null) {
-			double pulseWidth = (double) optional.getValue();
-			if (segment.getMinimum() < pulseWidth)
-				segment.setMinimum(pulseWidth);
-		}
+	public void updateMinimum(NumericProperty p) {
+		if(p == null)
+			return;
+		
+		double pulseWidth = (double) p.getValue();
+		if (segment.getMinimum() < pulseWidth)
+			segment.setMinimum(pulseWidth);
 	}
 
 	@Override

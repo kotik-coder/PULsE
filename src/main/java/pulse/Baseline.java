@@ -1,11 +1,12 @@
 package pulse;
 
-import static java.lang.Math.min;
 import static java.lang.Double.NEGATIVE_INFINITY;
+import static java.lang.Math.min;
 import static java.lang.String.format;
 import static pulse.Baseline.BaselineType.CONSTANT;
 import static pulse.Baseline.BaselineType.LINEAR;
 import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericProperty.requireType;
 import static pulse.properties.NumericPropertyKeyword.BASELINE_INTERCEPT;
 import static pulse.properties.NumericPropertyKeyword.BASELINE_SLOPE;
 
@@ -96,6 +97,11 @@ public class Baseline extends PropertyHolder {
 	public NumericProperty getSlope() {
 		return derive(BASELINE_SLOPE, slope);
 	}
+	
+	public void setSlope(NumericProperty slope) {
+		requireType(slope, BASELINE_SLOPE);
+		this.slope = (double) slope.getValue();
+	}
 
 	/**
 	 * Provides getter accessibility to the intercept as a NumericProperty
@@ -106,6 +112,11 @@ public class Baseline extends PropertyHolder {
 
 	public NumericProperty getIntercept() {
 		return derive(BASELINE_INTERCEPT, intercept);
+	}
+	
+	public void setIntercept(NumericProperty intercept) {
+		requireType(intercept, BASELINE_INTERCEPT);
+		this.intercept = (double) intercept.getValue();
 	}
 
 	/**
@@ -368,10 +379,10 @@ public class Baseline extends PropertyHolder {
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
 		switch (type) {
 		case BASELINE_INTERCEPT:
-			this.intercept = ((Number) property.getValue()).doubleValue();
+			setIntercept(property);
 			break;
 		case BASELINE_SLOPE:
-			this.slope = ((Number) property.getValue()).doubleValue();
+			setSlope(property);
 			break;
 		default:
 			break;
