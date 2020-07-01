@@ -1,5 +1,7 @@
 package pulse.properties;
 
+import static pulse.properties.NumericPropertyKeyword.NUMPOINTS;
+
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.List;
@@ -469,6 +471,11 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
 		this.value = (Number) value;
 		return true;
 
+	}
+	
+	public static void requireType(NumericProperty property, NumericPropertyKeyword type) { 
+		if (property.getType() != type)
+			throw new IllegalArgumentException("Illegal type: " + property.getType());
 	}
 
 }

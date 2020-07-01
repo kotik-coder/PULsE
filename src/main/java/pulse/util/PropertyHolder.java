@@ -181,11 +181,11 @@ public abstract class PropertyHolder extends Accessible {
 
 		super.update(updatedProperty);
 
-		notifyListeners(sourceComponent, updatedProperty);
+		firePropertyChanged(sourceComponent, updatedProperty);
 		return true;
 	}
 
-	public void notifyListeners(Object source, Property property) {
+	public void firePropertyChanged(Object source, Property property) {
 		var event = new PropertyEvent(source, property);
 		listeners.forEach(l -> l.onPropertyChanged(event));
 

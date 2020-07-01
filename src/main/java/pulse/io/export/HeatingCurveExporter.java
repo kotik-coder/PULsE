@@ -19,7 +19,7 @@ public class HeatingCurveExporter implements Exporter<HeatingCurve> {
 
 	@Override
 	public void printToStream(HeatingCurve hc, FileOutputStream fos, Extension extension) {
-		if (hc.arraySize() < 1)
+		if (hc.adjustedSize() < 1)
 			return;
 
 		switch (extension) {
@@ -73,7 +73,7 @@ public class HeatingCurveExporter implements Exporter<HeatingCurve> {
                     t = hc.timeAt(i);
                     stream.printf("%.6f %n", t);
                     stream.print("\t</td><td>");
-                    T = hc.temperatureAt(i);
+                    T = hc.signalAt(i);
                     stream.printf("%.6f %n</td>", T);
                     
                     stream.println("</tr>");
@@ -100,7 +100,7 @@ public class HeatingCurveExporter implements Exporter<HeatingCurve> {
                 for (int i = 0; i < finalSize; i++) {
                     t = hc.timeAt(i);
                     stream.printf("%n%3.4f", t);
-                    T = hc.temperatureAt(i);
+                    T = hc.signalAt(i);
                     stream.printf("\t%3.4f", T);
                 }
             }

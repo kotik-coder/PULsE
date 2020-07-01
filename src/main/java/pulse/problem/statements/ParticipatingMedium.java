@@ -111,7 +111,7 @@ public class ParticipatingMedium extends NonlinearProblem {
 			return;
 		}
 
-		notifyListeners(this, value);
+		firePropertyChanged(this, value);
 
 	}
 
@@ -197,7 +197,7 @@ public class ParticipatingMedium extends NonlinearProblem {
 				continue;
 			}
 
-			this.notifyListeners(this, changed);
+			this.firePropertyChanged(this, changed);
 
 		}
 

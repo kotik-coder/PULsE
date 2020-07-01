@@ -115,7 +115,7 @@ public abstract class Integrator extends PropertyHolder implements Reflexive {
 			return;
 		}
 
-		notifyListeners(this, property);
+		firePropertyChanged(this, property);
 
 	}
 

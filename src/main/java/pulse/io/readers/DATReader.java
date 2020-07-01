@@ -73,8 +73,7 @@ public class DATReader implements CurveReader {
 
             try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
                 double T = Double.parseDouble(reader.readLine()) + CONVERSION_TO_KELVIN;
-                Metadata met = new Metadata(-1);
-                met.setTestTemperature(NumericProperty.derive(NumericPropertyKeyword.TEST_TEMPERATURE, T));
+                Metadata met = new Metadata( NumericProperty.derive(NumericPropertyKeyword.TEST_TEMPERATURE, T), -1);
                 curve.setMetadata(met);
                 double time, temp;
                 String delims = Messages.getString("DATReader.2"); //$NON-NLS-1$
@@ -83,7 +82,7 @@ public class DATReader implements CurveReader {
                     tokenizer = new StringTokenizer(line, delims);
                     time = Double.parseDouble(tokenizer.nextToken());
                     temp = Double.parseDouble(tokenizer.nextToken());
-                    curve.add(time, temp);
+                    curve.addPoint(time, temp);
                     tokenizer = null;
                 }
                 curve.setRange(new Range(curve.getTimeSequence()));

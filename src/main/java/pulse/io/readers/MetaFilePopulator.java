@@ -1,5 +1,9 @@
 package pulse.io.readers;
 
+import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
+import static pulse.properties.NumericPropertyKeyword.findAny;
+import static pulse.properties.NumericProperty.*;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -11,6 +15,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.StringTokenizer;
 
 import pulse.input.Metadata;
@@ -173,42 +178,47 @@ public class MetaFilePopulator implements AbstractPopulator<Metadata> {
             }
 
 	}
+        
+    
 
 	private void translate(List<ImmutableDataEntry<String, String>> data, Metadata met)
 			throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 
-		double tmp;
+		NumericProperty proto;
+		NumericPropertyKeyword key = null;
+		Optional<NumericPropertyKeyword> optional;
+		double value;
+		
+		for (var dataEntry : data) {
 
-		for (NumericProperty metaEntry : met.numericData()) {
+			optional = findAny(dataEntry.getKey());
+			
+			if( optional.isPresent() ) { 
+				key = optional.get();
+				
+				value = Double.valueOf(dataEntry.getValue());
+				if (key == TEST_TEMPERATURE)
+					value += CELSIUS_TO_KELVIN;
 
-			inner: for (ImmutableDataEntry<String, String> dataEntry : data) {
+				proto = def(key);
+				value /= proto.getDimensionFactor().doubleValue();
 
-				if (!metaEntry.getType().toString().equalsIgnoreCase(dataEntry.getKey()))
-					continue;
-
-				tmp = Double.valueOf(dataEntry.getValue());
-				if (metaEntry.getType() == NumericPropertyKeyword.TEST_TEMPERATURE)
-					tmp += CELSIUS_TO_KELVIN;
-
-				tmp /= (metaEntry.getDimensionFactor()).doubleValue();
-
-				if (NumericProperty.isValueSensible(metaEntry, tmp)) {
-					met.updateProperty(instance, new NumericProperty(tmp, metaEntry));
-					break inner;
+				if ( isValueSensible(proto, value) ) {
+					proto.setValue(value);
+					met.set(key, proto);
 				}
-
+				
 			}
-
-		}
-
-		for (EnumProperty genericEntry : met.enumData()) {
-			inner: for (ImmutableDataEntry<String, String> dataEntry : data) {
-
-				if (dataEntry.getKey().equals(genericEntry.getClass().getSimpleName())) {
-					met.updateProperty(instance, genericEntry.evaluate(dataEntry.getValue()));
-					break inner;
+			
+			else {
+		
+				for (EnumProperty genericEntry : met.enumData()) {
+				
+					if (dataEntry.getKey().equals(genericEntry.getClass().getSimpleName())) 
+						met.updateProperty(instance, genericEntry.evaluate(dataEntry.getValue()));
+						
 				}
-
+				
 			}
 
 		}

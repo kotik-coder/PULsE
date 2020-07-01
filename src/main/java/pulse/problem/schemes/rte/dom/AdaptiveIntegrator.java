@@ -236,7 +236,7 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 			return;
 		}
 
-		notifyListeners(this, property);
+		firePropertyChanged(this, property);
 
 	}
 

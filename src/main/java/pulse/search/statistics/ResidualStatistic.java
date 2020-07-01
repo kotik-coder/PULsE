@@ -47,7 +47,7 @@ public abstract class ResidualStatistic extends Statistic {
 			 */
 
 			interpolated = s.value(reference.timeAt(i));
-			diff = reference.temperatureAt(i) - interpolated; // y_exp - y*
+			diff = reference.signalAt(i) - interpolated; // y_exp - y*
 
 			residuals.add(new double[] { reference.timeAt(i), diff });
 

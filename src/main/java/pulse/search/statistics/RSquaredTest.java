@@ -54,7 +54,7 @@ public class RSquaredTest extends NormalityTest {
 		int end = reference.getIndexRange().getUpperBound();
 
 		for (int i = start; i < end; i++) {
-                    mean += reference.temperatureAt(i);
+                    mean += reference.signalAt(i);
                 }
 
 		mean /= (end - start);
@@ -62,7 +62,7 @@ public class RSquaredTest extends NormalityTest {
 		double TSS = 0;
 
 		for (int i = start; i < end; i++) {
-                    TSS += Math.pow(reference.temperatureAt(i) - mean, 2);
+                    TSS += Math.pow(reference.signalAt(i) - mean, 2);
                 }
 
 		TSS /= (end - start);

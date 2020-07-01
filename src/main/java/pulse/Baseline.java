@@ -126,7 +126,7 @@ public class Baseline extends PropertyHolder {
 
 	@Override
 	public String toString() {
-		return getClass().getSimpleName() + " = " + format("%3.2f + t * %3.2f", intercept, slope);
+		return getClass().getSimpleName() + " = " + format("%3.2f + t * ( %3.2f )", intercept, slope);
 	}
 
 	/**
@@ -171,7 +171,7 @@ public class Baseline extends PropertyHolder {
 				 i < max; i++, size++) {
 		
 			x.add(data.time.get(i));
-			y.add(data.temperature.get(i));
+			y.add(data.signal.get(i));
 	
 		}
 

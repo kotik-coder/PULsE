@@ -124,7 +124,7 @@ public class Pulse extends PropertyHolder {
 			break;
 		}
 
-		notifyListeners(this, property);
+		firePropertyChanged(this, property);
 
 	}
 

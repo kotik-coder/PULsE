@@ -45,7 +45,7 @@ public class NonlinearProblem extends Problem {
 	@Override
 	public void retrieveData(ExperimentalData c) {
 		super.retrieveData(c);
-		this.setTestTemperature(c.getMetadata().getTestTemperature());
+		this.setTestTemperature(c.getMetadata().numericProperty(TEST_TEMPERATURE));
 	}
 
 	@Override
@@ -86,7 +86,7 @@ public class NonlinearProblem extends Problem {
 
 	public void evaluateDependentParameters() {
 		emissivity = emissivity();
-		notifyListeners(this, getEmissivityProperty());
+		firePropertyChanged(this, getEmissivityProperty());
 	}
 
 	public NumericProperty getThermalConductivity() {

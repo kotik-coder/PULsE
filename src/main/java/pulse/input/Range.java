@@ -3,6 +3,7 @@ package pulse.input;
 import static pulse.properties.NumericProperty.derive;
 import static pulse.properties.NumericPropertyKeyword.LOWER_BOUND;
 import static pulse.properties.NumericPropertyKeyword.UPPER_BOUND;
+import static pulse.properties.NumericPropertyKeyword.PULSE_WIDTH;
 
 import java.util.List;
 
@@ -61,9 +62,12 @@ public class Range extends PropertyHolder {
 	}
 
 	public void process(Metadata metadata) {
-		double pulseWidth = (double) metadata.getPulseWidth().getValue();
-		if (segment.getMinimum() < pulseWidth)
-			segment.setMinimum(pulseWidth);
+		var optional = metadata.numericProperty(PULSE_WIDTH);
+		if(optional != null) {
+			double pulseWidth = (double) optional.getValue();
+			if (segment.getMinimum() < pulseWidth)
+				segment.setMinimum(pulseWidth);
+		}
 	}
 
 	@Override
@@ -129,11 +133,11 @@ public class Range extends PropertyHolder {
 			switch (params.getIndex(i)) {
 			case UPPER_BOUND:
 				setUpperBound(p);
-				this.notifyListeners(this, p);
+				this.firePropertyChanged(this, p);
 				break;
 			case LOWER_BOUND:
 				setLowerBound(p);
-				this.notifyListeners(this, p);
+				this.firePropertyChanged(this, p);
 				break;
 			default:
 				continue;

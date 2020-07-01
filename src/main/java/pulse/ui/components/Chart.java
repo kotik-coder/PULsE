@@ -20,6 +20,7 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Stroke;
+import java.util.Objects;
 
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -34,6 +35,7 @@ import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
 import pulse.HeatingCurve;
+import pulse.input.IndexRange;
 import pulse.tasks.SearchTask;
 
 public class Chart {
@@ -144,11 +146,11 @@ public class Chart {
 
 			if (solution != null && task.getScheme() != null) {
 
-				if (solution.arraySize() > 0) {
+				if (solution.adjustedSize() > 0) {
 
 					var solutionDataset = new XYSeriesCollection();
 
-					solutionDataset.addSeries(series(task.getProblem().getHeatingCurve(),
+					solutionDataset.addSeries(series(solution.extendedTo(rawData),
 							"Solution with " + task.getScheme().getSimpleName(), extendedCurve));
 					plot.setDataset(1, solutionDataset);
 
@@ -182,8 +184,7 @@ public class Chart {
 	}
 
 	public static void plotSingle(HeatingCurve curve) {
-		if (curve == null)
-			return;
+		Objects.requireNonNull(curve);
 
 		var plot = chart.getXYPlot();
 
@@ -198,27 +199,22 @@ public class Chart {
 	public static XYSeries series(HeatingCurve curve, String title, boolean extendedCurve) {
 		var series = new XYSeries(title);
 
-		var realCount = curve.arraySize();
+		var realCount = curve.adjustedSize();
 		var startTime = (double) curve.getTimeShift().getValue();
-		double time = 0;
+		int iStart = IndexRange.closest(startTime, curve.getTimeSequence());
 
-		for (var i = 0; i < realCount; i++) {
-
-			time = curve.timeAt(i);
-
-			if (time < startTime && !extendedCurve)
-				continue;
-
-			series.add(time * 1.0// timeAxisSpecs.getFactor()
-					, curve.temperatureAt(i));
-		}
+		for (var i = 0; i < iStart && extendedCurve; i++) 
+			series.add( curve.timeAt(i), curve.signalAt(i));
+		
+		for (var i = iStart; i < realCount; i++)
+			series.add( curve.timeAt(i), curve.signalAt(i));
 
 		return series;
 	}
 
 	public static XYSeries residuals(SearchTask task) {
 		var solution = task.getProblem().getHeatingCurve();
-		final var span = solution.maxTemperature() - solution.getBaseline().valueAt(0);
+		final var span = solution.maxAdjustedSignal() - solution.getBaseline().valueAt(0);
 		final var offset = solution.getBaseline().valueAt(0) - span / 2.0;
 
 		var series = new XYSeries(format("Residuals (offset %3.2f)", offset));

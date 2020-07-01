@@ -190,7 +190,7 @@ public class LFRReader implements CurveReader {
                     time = Double.parseDouble(tokenizer.nextToken(delims)) * 1E-3;
                     temp = Double.parseDouble(tokenizer.nextToken(delims));
                     
-                    curve.add(time, temp);
+                    curve.addPoint(time, temp);
                     
                 }
                 curve.setRange(new Range(curve.getTimeSequence()));

@@ -212,7 +212,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 			return;
 		}
 
-		notifyListeners(this, value);
+		firePropertyChanged(this, value);
 
 	}
 
@@ -313,7 +313,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 	 */
 
 	public void estimateSignalRange(ExperimentalData c) {
-		signalHeight = c.maxTemperature() - curve.getBaseline().valueAt(0);
+		signalHeight = c.maxAdjustedSignal() - curve.getBaseline().valueAt(0);
 	}
 
 	/**
@@ -515,7 +515,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 
 	public void setSpecificHeat(NumericProperty cV) {
 		this.cP = (double) cV.getValue();
-		this.notifyListeners(InterpolationDataset.getDataset(StandartType.SPECIFIC_HEAT), cV);
+		this.firePropertyChanged(InterpolationDataset.getDataset(StandartType.SPECIFIC_HEAT), cV);
 	}
 
 	public NumericProperty getDensity() {
@@ -524,7 +524,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 
 	public void setDensity(NumericProperty p) {
 		this.rho = (double) (p.getValue());
-		this.notifyListeners(InterpolationDataset.getDataset(StandartType.DENSITY), p);
+		this.firePropertyChanged(InterpolationDataset.getDataset(StandartType.DENSITY), p);
 	}
 
 	public String shortName() {

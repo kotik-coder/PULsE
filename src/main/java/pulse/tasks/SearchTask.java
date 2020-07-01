@@ -143,7 +143,7 @@ public class SearchTask extends Accessible implements Runnable {
 		initCorrelationTest();
 		initNormalityTest();
 
-		testTemperature = (double) curve.getMetadata().getTestTemperature().getValue();
+		testTemperature = (double) curve.getMetadata().numericProperty(TEST_TEMPERATURE).getValue();
 
 		calculateThermalProperties();
 

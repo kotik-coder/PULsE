@@ -38,10 +38,8 @@ public class IndexRange {
 	public void setLowerBound(List<Double> data, double a) {
 		int count = data.size();
 
-		for (iStart = 0; iStart < count - 1; iStart++) {
-			if (data.get(iStart) >= a)
-				break;
-		}
+		iStart = closest(a, data);
+		for (iStart = 0; iStart < count - 1 && data.get(iStart) < a; iStart++);
 
 		if (data.get(iStart) < 0)
 			iStart = closest(0, data);
@@ -51,10 +49,7 @@ public class IndexRange {
 	public void setUpperBound(List<Double> data, double b) {
 		int count = data.size();
 
-		for (iEnd = count - 2; iEnd > iStart; iEnd--) {
-			if (data.get(iEnd) < b)
-				break;
-		}
+		for (iEnd = count - 2; iEnd > iStart && data.get(iEnd) > b; iEnd--);
 
 		iEnd++;
 

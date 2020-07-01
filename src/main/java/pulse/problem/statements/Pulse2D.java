@@ -49,7 +49,7 @@ public class Pulse2D extends Pulse {
 
 	public void setSpotDiameter(NumericProperty spotDiameter) {
 		this.spotDiameter = (double) spotDiameter.getValue();
-		notifyListeners(this, spotDiameter);
+		firePropertyChanged(this, spotDiameter);
 	}
 
 	@Override
@@ -76,7 +76,7 @@ public class Pulse2D extends Pulse {
 			break;
 		}
 
-		notifyListeners(this, property);
+		firePropertyChanged(this, property);
 
 	}
 

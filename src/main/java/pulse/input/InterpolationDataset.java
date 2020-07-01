@@ -74,7 +74,7 @@ public class InterpolationDataset {
 	public void doInterpolation() {
 		var interpolator = new SplineInterpolator();
 		interpolation = interpolator.interpolate(dataset.stream().map(a -> a.getKey()).mapToDouble(d -> d).toArray(),
-				dataset.stream().map(a -> a.getValue()).mapToDouble(d -> d).toArray());
+												 dataset.stream().map(a -> a.getValue()).mapToDouble(d -> d).toArray());
 	}
 
 	/**

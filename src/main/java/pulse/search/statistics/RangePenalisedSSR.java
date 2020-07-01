@@ -13,7 +13,7 @@ public class RangePenalisedSSR extends SumOfSquares {
 		super.evaluate(t);
 
 		double n = getResiduals().size();
-		double n0 = t.getExperimentalCurve().arraySize();
+		double n0 = t.getExperimentalCurve().adjustedSize();
 
 		this.statistic += (n0 - n) / n0 * (new StandardDeviation().evaluate(transformResiduals(t)))
 				* PENALISATION_FACTOR;

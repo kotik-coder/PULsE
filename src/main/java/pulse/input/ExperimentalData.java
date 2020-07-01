@@ -6,11 +6,13 @@ import static pulse.input.listeners.DataEventType.TRUNCATED;
 import static pulse.properties.NumericProperty.derive;
 import static pulse.properties.NumericPropertyKeyword.PULSE_WIDTH;
 import static pulse.properties.NumericPropertyKeyword.UPPER_BOUND;
+import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
 
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import pulse.HeatingCurve;
 import pulse.input.listeners.DataEvent;
@@ -33,7 +35,7 @@ public class ExperimentalData extends HeatingCurve {
 	private Range range;
 
 	private final static double CUTOFF_FACTOR = 7.2;
-	private final static int REDUCTION_FACTOR = 32;
+	private final static int	REDUCTION_FACTOR = 32;
 	private final static double FAIL_SAFE_FACTOR = 3.0;
 
 	private static Comparator<Point2D> pointComparator = (p1, p2) -> valueOf(p1.getY())
@@ -54,7 +56,7 @@ public class ExperimentalData extends HeatingCurve {
 		this.clear();
 		count = 0;
 		indexRange = new IndexRange();
-		getBaseline().setParent(null);
+		getBaseline().setParent(null);	//no baseline required
 	}
 
 	public void resetRanges() {
@@ -68,7 +70,7 @@ public class ExperimentalData extends HeatingCurve {
 		sb.append("Experimental data ");
 		if (metadata.getSampleName() != null)
 			sb.append("for " + metadata.getSampleName() + " ");
-		sb.append("(" + metadata.getTestTemperature().formattedValue(false) + ")");
+		sb.append("(" + metadata.numericProperty(TEST_TEMPERATURE).formattedValue(false) + ")");
 		return sb.toString();
 	}
 
@@ -81,13 +83,14 @@ public class ExperimentalData extends HeatingCurve {
 	 * </p>
 	 * 
 	 * @param time        the next time value
-	 * @param temperature the next temperature value
+	 * @param signal the next signal value
 	 */
 
-	public void add(double time, double temperature) {
+	@Override
+	public void addPoint(double time, double signal) {
 		this.time.add(time);
-		this.temperature.add(temperature);
-		this.baselineAdjustedTemperature.add(temperature);
+		this.signal.add(signal);
+		this.adjustedSignal.add(signal); //the same as previous since baseline is null
 		count++;
 	}
 
@@ -119,22 +122,22 @@ public class ExperimentalData extends HeatingCurve {
 		int end = indexRange.getUpperBound();
 
 		int step = (end - start) / (count / reductionFactor);
-		double tmp = 0;
+		double av = 0;
 
 		int i1, i2;
 
 		for (int i = 0; i < (count / reductionFactor) - 1; i++) {
 			i1 = start + step * i;
 			i2 = i1 + step;
-			tmp = 0;
+			
+			av = 0;
 
-			for (int j = i1; j < i2; j++) {
-				tmp += temperature.get(j);
-			}
+			for (int j = i1; j < i2; j++) 
+				av += signal.get(j);
+			
+			av /= step;
 
-			tmp *= 1.0 / step;
-
-			crudeAverage.add(new Point2D.Double(time.get((i1 + i2) / 2), tmp));
+			crudeAverage.add(new Point2D.Double(time.get((i1 + i2) / 2), av));
 
 		}
 
@@ -152,7 +155,7 @@ public class ExperimentalData extends HeatingCurve {
 	 */
 
 	@Override
-	public double maxTemperature() {
+	public double maxAdjustedSignal() {
 		var degraded = crudeAverage(REDUCTION_FACTOR);
 		return (max(degraded, pointComparator)).getY();
 	}
@@ -180,16 +183,11 @@ public class ExperimentalData extends HeatingCurve {
 
 		double halfMax = (max + baseline.valueAt(0)) / 2.0;
 
-		int size = degraded.size();
-		int index = -1;
+		int index = IndexRange.closest(halfMax, 
+				degraded.stream().map(point -> point.getY()).collect(Collectors.toList()) 
+				); 
 
-		for (int i = 0; i < size - 1; i++) {
-                    if (halfMax > degraded.get(i).getY())
-                        if (halfMax <= degraded.get(i + 1).getY())
-                            index = i;
-                }
-
-		if (index < 0) {
+		if (index < 1) {
 			System.err.println(Messages.getString("ExperimentalData.HalfRiseError"));
 			return max(time) / FAIL_SAFE_FACTOR;
 		}
@@ -262,8 +260,7 @@ public class ExperimentalData extends HeatingCurve {
 		this.range.setUpperBound(derive(UPPER_BOUND, cutoff));
 		this.indexRange.set(time, range);
 
-		var dataEvent = new DataEvent(TRUNCATED, this);
-		notifyListeners(dataEvent);
+		fireDataChanged( new DataEvent(TRUNCATED, this) );
 	}
 
 	/**
@@ -282,6 +279,11 @@ public class ExperimentalData extends HeatingCurve {
 	public void setMetadata(Metadata metadata) {
 		this.metadata = metadata;
 		metadata.setParent(this);
+		doSetMetadata();
+	}
+	
+	private void doSetMetadata() {
+
 		if (range != null)
 			range.process(metadata);
 
@@ -296,7 +298,7 @@ public class ExperimentalData extends HeatingCurve {
 			}
 
 		});
-
+		
 	}
 
 	public List<Double> getTimeSequence() {
@@ -322,12 +324,19 @@ public class ExperimentalData extends HeatingCurve {
 	public void setRange(Range range) {
 		this.range = range;
 		range.setParent(this);
+		doSetRange();
+	}
+	
+	private void doSetRange() {
 		indexRange.set(time, range);
 
 		addHierarchyListener(l -> {
 			if (l.getSource() == range)
 				indexRange.set(time, range);
 		});
+		
+		if(metadata != null)
+			range.process(metadata);
 	}
 
 }

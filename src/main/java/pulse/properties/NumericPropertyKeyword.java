@@ -1,5 +1,10 @@
 package pulse.properties;
 
+import static pulse.properties.NumericPropertyKeyword.values;
+
+import java.util.Arrays;
+import java.util.Optional;
+
 public enum NumericPropertyKeyword {
 
 	/**
@@ -282,5 +287,10 @@ public enum NumericPropertyKeyword {
 	RTE_MAX_ITERATIONS,
 
 	RTE_INTEGRATION_TIMEOUT;
-
+	
+	public static Optional<NumericPropertyKeyword> findAny(String key) {
+		return Arrays.asList( values() ).stream().
+		filter(keys -> keys.toString().equalsIgnoreCase(key) ).findAny();
+	}
+	
 }

@@ -269,7 +269,7 @@ public class ChandrasekharsQuadrature extends SimpsonsRule {
 			return;
 		}
 
-		notifyListeners(this, property);
+		firePropertyChanged(this, property);
 
 	}
 

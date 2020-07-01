@@ -49,7 +49,7 @@ public abstract class IterativeSolver extends PropertyHolder implements Reflexiv
 			return;
 		}
 
-		notifyListeners(this, property);
+		firePropertyChanged(this, property);
 
 	}
 
