@@ -30,21 +30,11 @@ public class MassExporter {
 
 		try {
 
-			root.subgroups().stream().forEach(ph -> {
-				/*
-				 * Filter only children, not parents!
-				 */
-
-				if (root.getParent() != ph)
-					contents.add(ph);
-
-			}
-
-			);
-
-			for (var it = contents.iterator(); it.hasNext();) {
+			root.subgroups().stream().filter(ph -> root.getParent() != ph)
+			.forEach(phh -> contents.add(phh));
+			
+			for (var it = contents.iterator(); it.hasNext();) 
                             contents(it.next()).stream().forEach(a -> contents.add(a));
-                        }
 
 		} catch (IllegalArgumentException e) {
 			err.println("Unable to generate saveable contents for " + root.getClass());

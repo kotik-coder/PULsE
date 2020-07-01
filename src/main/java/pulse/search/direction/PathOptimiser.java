@@ -298,7 +298,7 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 
 	@Override
 	public List<Property> listedTypes() {
-		List<Property> list = super.listedTypes();
+		List<Property> list = new ArrayList<Property>();
 		list.add(NumericProperty.def(GRADIENT_RESOLUTION));
 		list.add(NumericProperty.def(ERROR_TOLERANCE));
 		list.add(NumericProperty.def(ITERATION_LIMIT));
@@ -306,6 +306,12 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 		listAvailableProperties(list);
 
 		return list;
+	}
+	
+	@Override
+	public List<Property> data() {
+		var list = listedTypes();
+		return super.data().stream().filter( p -> list.contains(p) ).collect(Collectors.toList());
 	}
 
 	public static void listAvailableProperties(List<Property> list) {
