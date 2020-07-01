@@ -2,7 +2,6 @@ package pulse.ui.components;
 
 import static java.awt.Font.BOLD;
 import static java.lang.Boolean.TRUE;
-import static java.util.stream.Collectors.toList;
 import static javax.swing.SortOrder.ASCENDING;
 import static javax.swing.SwingConstants.CENTER;
 import static pulse.ui.Messages.getString;
@@ -14,6 +13,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.swing.AbstractButton;
 import javax.swing.AbstractCellEditor;
@@ -90,15 +90,20 @@ public class PropertyHolderTable extends JTable {
 		final var reference = this;
 
 		model.addTableModelListener((TableModelEvent e) -> {
-            var row = e.getFirstRow();
-            var column = e.getColumn();
+            
+			int row = e.getFirstRow();
+            int column = e.getColumn();
+            
             if ((row < 0) || (column < 0))
                 return;
+            
             var changedObject = ((TableModel) e.getSource()).getValueAt(row, column);
+            
             if (changedObject instanceof Property) {
                 var changedProperty = (Property) changedObject;
                 propertyHolder.updateProperty(reference, changedProperty);
             }
+            
             /*
              * else {
              *
@@ -121,6 +126,7 @@ public class PropertyHolderTable extends JTable {
              *
              * }
              */
+            
         });
 
 		addListeners();
@@ -143,41 +149,19 @@ public class PropertyHolderTable extends JTable {
 			return null;
 
 		List<Object[]> dataList = new ArrayList<>();
-		var listedProperties = p.listedTypes();
-		var types = listedProperties.stream().filter(pp -> pp instanceof NumericProperty)
-				.map(np -> ((NumericProperty) np).getType()).collect(toList());
-
-		var data = p.data();
-
-		Property property;
-
-		for (var it = data.iterator(); it.hasNext();) {
-			property = it.next();
-
-			if (property instanceof NumericProperty) {
-				if (types.contains(((NumericProperty) property).getType()))
-					dataList.add(new Object[] { property.getDescriptor(true), property });
-			}
-
-			else if (listedProperties.contains(property))
-				dataList.add(new Object[] { property.getDescriptor(true), property });
-
-		}
-
+		var data = p.data().stream().map(property -> new Object[] { property.getDescriptor(true), property} ).collect(Collectors.toList());
+		dataList.addAll(data);
+		
 		if (p.ignoreSiblings())
-			return dataList.toArray(new Object[dataList.size()][2]);
+			return dataList.toArray(new Object[data.size()][2]);
 
-		var internalHolders = p.subgroups();
-
-		PropertyHolder propertyHolder;
-
-		for (var g : internalHolders) {
-			if (g instanceof PropertyHolder) {
-				propertyHolder = (PropertyHolder) g;
-				dataList.add(new Object[] { propertyHolder.getPrefix() != null ? propertyHolder.getPrefix()
-						: propertyHolder.getDescriptor(), propertyHolder });
-			}
-		}
+		p.subgroups().stream().
+								filter(group -> group instanceof PropertyHolder).forEach(
+									holder -> 
+									dataList.add(new Object[] { ( (PropertyHolder)holder ).getPrefix() != null ? ( (PropertyHolder)holder ).getPrefix()
+											: holder.getDescriptor(), holder })
+				
+								);
 
 		return dataList.toArray(new Object[dataList.size()][2]);
 

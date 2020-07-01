@@ -76,6 +76,7 @@ public class ProblemStatementFrame extends JInternalFrame {
 	/**
 	 * Create the frame.
 	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public ProblemStatementFrame() {
 		setResizable(true);
 		setClosable(true);
