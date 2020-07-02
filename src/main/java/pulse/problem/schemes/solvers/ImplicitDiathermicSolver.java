@@ -51,6 +51,8 @@ public class ImplicitDiathermicSolver extends ImplicitScheme implements Solver<D
 		Bi1 = (double) problem.getHeatLoss().getValue();
 		eta = (double) problem.getDiathermicCoefficient().getValue();
 
+		var grid = getGrid();
+		
 		N = (int) grid.getGridDensity().getValue();
 		hx = grid.getXStep();
 		tau = grid.getTimeStep();
@@ -96,6 +98,8 @@ public class ImplicitDiathermicSolver extends ImplicitScheme implements Solver<D
 		double pls;
 
 		b = 2.0 + HX2_TAU;
+		
+		final var discretePulse = getDiscretePulse();
 
 		/*
 		 * The outer cycle iterates over the number of points of the HeatingCurve
@@ -109,9 +113,9 @@ public class ImplicitDiathermicSolver extends ImplicitScheme implements Solver<D
 			 * timeInterval/tau time steps have to be made first.
 			 */
 
-			for (m = (w - 1) * timeInterval + 1; m < w * timeInterval + 1; m++) {
+			for (m = (w - 1) * getTimeInterval() + 1; m < w * getTimeInterval() + 1; m++) {
 
-				pls = discretePulse.evaluateAt((m - EPS) * tau); // NOTE: EPS is very important here and ensures
+				pls = discretePulse.powerAt((m - EPS) * tau); // NOTE: EPS is very important here and ensures
 																	// numeric stability!
 
 				beta[1] = (hx * hx / (2.0 * tau) * U[0] + hx * pls) / z0;
@@ -143,7 +147,7 @@ public class ImplicitDiathermicSolver extends ImplicitScheme implements Solver<D
 
 			maxVal = Math.max(maxVal, V[N]);
 
-			curve.addPoint((w * timeInterval) * tau * problem.timeFactor(), V[N]);
+			curve.addPoint((w * getTimeInterval()) * tau * problem.timeFactor(), V[N]);
 
 			/*
 			 * UNCOMMENT TO DEBUG
@@ -159,6 +163,7 @@ public class ImplicitDiathermicSolver extends ImplicitScheme implements Solver<D
 
 	@Override
 	public DifferenceScheme copy() {
+		var grid = getGrid();
 		return new ImplicitDiathermicSolver(grid.getGridDensity(), grid.getTimeFactor(), getTimeLimit());
 	}
 

@@ -284,7 +284,11 @@ public enum NumericPropertyKeyword {
 
 	RTE_MAX_ITERATIONS,
 
-	RTE_INTEGRATION_TIMEOUT;
+	RTE_INTEGRATION_TIMEOUT,
+	
+	TRAPEZOIDAL_RISE_PERCENTAGE,
+	
+	TRAPEZOIDAL_FALL_PERCENTAGE;
 	
 	public static Optional<NumericPropertyKeyword> findAny(String key) {
 		return Arrays.asList( values() ).stream().

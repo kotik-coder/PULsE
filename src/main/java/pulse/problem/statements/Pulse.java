@@ -6,33 +6,31 @@ import static pulse.properties.NumericPropertyKeyword.PULSE_WIDTH;
 import java.util.ArrayList;
 import java.util.List;
 
-import pulse.properties.EnumProperty;
+import pulse.problem.laser.PulseTemporalShape;
+import pulse.problem.laser.RectangularPulse;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
+import pulse.util.InstanceDescriptor;
 import pulse.util.PropertyHolder;
 
 /**
  * A {@code Pulse} stores the parameters of the laser pulse, but does not
  * provide the calculation facilities.
  * 
- * @see pulse.problem.schemes.DiscretePulse
+ * @see pulse.problem.laser.DiscretePulse
  * 
  */
 
 public class Pulse extends PropertyHolder {
 
-	private TemporalShape pulseShape;
-	protected double pulseWidth;
+	private double pulseWidth;
 	private double laserEnergy;
 
-	/**
-	 * Creates a default {@code Pulse} with a {@code RECTANGULAR} shape.
-	 */
+	private PulseTemporalShape pulseShape;
 
-	public Pulse() {
-		this(TemporalShape.RECTANGULAR);
-	}
+	private InstanceDescriptor<? extends PulseTemporalShape> instanceDescriptor = new InstanceDescriptor<PulseTemporalShape>(
+			"Pulse Shape Selector", PulseTemporalShape.class);
 
 	/**
 	 * Creates a {@code Pulse} with default values of pulse width and laser spot
@@ -41,10 +39,12 @@ public class Pulse extends PropertyHolder {
 	 * @param pform the pulse shape
 	 */
 
-	public Pulse(TemporalShape pform) {
-		this.pulseShape = pform;
+	public Pulse() {
 		pulseWidth = (double) NumericProperty.def(PULSE_WIDTH).getValue();
 		laserEnergy = (double) NumericProperty.def(LASER_ENERGY).getValue();
+		instanceDescriptor.setSelectedDescriptor(RectangularPulse.class.getSimpleName());
+		initShape();
+		instanceDescriptor.addListener(() -> initShape());
 	}
 
 	/**
@@ -57,20 +57,12 @@ public class Pulse extends PropertyHolder {
 		this.pulseShape = p.getPulseShape();
 		this.pulseWidth = p.pulseWidth;
 		this.laserEnergy = p.laserEnergy;
+		instanceDescriptor.addListener(() -> initShape());
 	}
 
-	/**
-	 * Retrieves the {code PulseShape} enum constant.
-	 * 
-	 * @return the {@code} PulseShape
-	 */
-
-	public TemporalShape getPulseShape() {
-		return pulseShape;
-	}
-
-	public void setPulseShape(TemporalShape pulseShape) {
-		this.pulseShape = pulseShape;
+	private void initShape() {
+		setPulseShape(instanceDescriptor.newInstance(PulseTemporalShape.class));
+		parameterListChanged();
 	}
 
 	public NumericProperty getPulseWidth() {
@@ -108,9 +100,9 @@ public class Pulse extends PropertyHolder {
 	@Override
 	public List<Property> listedTypes() {
 		List<Property> list = new ArrayList<>();
-		list.add(TemporalShape.RECTANGULAR);
 		list.add(NumericProperty.def(PULSE_WIDTH));
 		list.add(NumericProperty.def(LASER_ENERGY));
+		list.add(instanceDescriptor);
 		return list;
 	}
 
@@ -131,62 +123,21 @@ public class Pulse extends PropertyHolder {
 
 	}
 
-	/**
-	 * The {@code PulseShape}, an instance of {@code EnumProperty}, defines a few
-	 * simple pulse shapes usually encountered in a laser flash experiment.
-	 *
-	 */
+	public InstanceDescriptor<? extends PulseTemporalShape> getPulseDescriptor() {
+		return instanceDescriptor;
+	}
 
-	public enum TemporalShape implements EnumProperty {
+	public void setPulseDescriptor(InstanceDescriptor<? extends PulseTemporalShape> shapeDescriptor) {
+		this.instanceDescriptor = shapeDescriptor;
+		initShape();
+	}
 
-		/**
-		 * Currently not supported (redirects to {@code RECTANGULAR})
-		 */
+	public PulseTemporalShape getPulseShape() {
+		return pulseShape;
+	}
 
-		TRAPEZOIDAL,
-
-		/**
-		 * The simplest pulse shape defined as <math>0.5*(1 +
-		 * sgn(<i>t</i><sub>pulse</sub> - <i>t</i>))</math>, where <math>sgn(...)</math>
-		 * is the signum function, <sub>pulse</sub> is the pulse width.
-		 * 
-		 * @see java.lang.Math.signum(double)
-		 */
-
-		RECTANGULAR,
-
-		/**
-		 * A pulse shape defined as an isosceles triangle.
-		 */
-
-		TRIANGULAR,
-
-		/**
-		 * A bell-shaped laser pulse centered at {@code pulseWidth}/2.0.
-		 */
-
-		GAUSSIAN;
-
-		@Override
-		public Object getValue() {
-			return this;
-		}
-
-		@Override
-		public String getDescriptor(boolean addHtmlTags) {
-			return "Pulse temporal shape";
-		}
-
-		@Override
-		public EnumProperty evaluate(String string) {
-			return valueOf(string);
-		}
-
-		@Override
-		public boolean attemptUpdate(Object value) {
-			return false;
-		}
-
+	public void setPulseShape(PulseTemporalShape pulseShape) {
+		this.pulseShape = pulseShape;
 	}
 
 }

@@ -50,11 +50,11 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
 	}
 
 	public ExplicitCoupledSolver() {
-		this(GRID_DENSITY, TAU_FACTOR);
+		super();
 	}
 
 	public ExplicitCoupledSolver(NumericProperty N, NumericProperty timeFactor) {
-		super(GRID_DENSITY, TAU_FACTOR);
+		super(N, timeFactor);
 	}
 
 	public ExplicitCoupledSolver(NumericProperty N, NumericProperty timeFactor, NumericProperty timeLimit) {
@@ -65,6 +65,8 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
 	private void prepare(ParticipatingMedium problem) {
 		super.prepare(problem);
 
+		var grid = getGrid();
+		
 		initRTE(problem, grid);
 
 		curve = problem.getHeatingCurve();
@@ -104,10 +106,12 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
 
 		final double errorSq = pow(nonlinearPrecision, 2);
 
-		double wFactor = timeInterval * tau * problem.timeFactor();
+		double wFactor = getTimeInterval() * tau * problem.timeFactor();
 
 		var status = rte.compute(U);
 
+		final var discretePulse = getDiscretePulse();
+		
 		/*
 		 * The outer cycle iterates over the number of points of the HeatingCurve
 		 */
@@ -120,7 +124,7 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
 			 * timeInterval/tau time steps have to be made first.
 			 */
 
-			for (m = (w - 1) * timeInterval + 1; m < w * timeInterval + 1
+			for (m = (w - 1) * getTimeInterval() + 1; m < w * getTimeInterval() + 1
 					&& status == RTECalculationStatus.NORMAL; m++) {
 
 				/*
@@ -148,7 +152,7 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
 					 * Calculates boundary values
 					 */
 
-					pls = discretePulse.evaluateAt((m - EPS) * tau);
+					pls = discretePulse.powerAt((m - EPS) * tau);
 
 					// Front face
 					V_0 = V[0];
@@ -175,6 +179,7 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
 
 	@Override
 	public DifferenceScheme copy() {
+		var grid = getGrid();
 		return new ExplicitCoupledSolver(grid.getGridDensity(), grid.getTimeFactor(), getTimeLimit());
 	}
 

@@ -1,8 +1,11 @@
 package pulse.problem.schemes;
 
+import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericPropertyKeyword.GRID_DENSITY;
+import static pulse.properties.NumericPropertyKeyword.TAU_FACTOR;
+import static pulse.ui.Messages.getString;
+
 import pulse.properties.NumericProperty;
-import pulse.properties.NumericPropertyKeyword;
-import pulse.ui.Messages;
 
 /**
  * This class implements a symmetric (weight <math> = 0.5</math>) second-order
@@ -37,26 +40,12 @@ import pulse.ui.Messages;
 public abstract class MixedScheme extends DifferenceScheme {
 
 	/**
-	 * The default value of {@code tauFactor}, which is set to {@code 0.25} for this
-	 * scheme.
-	 */
-
-	public final static NumericProperty TAU_FACTOR = NumericProperty.derive(NumericPropertyKeyword.TAU_FACTOR, 1.0);
-
-	/**
-	 * The default value of {@code gridDensity}, which is set to {@code 30} for this
-	 * scheme.
-	 */
-
-	public final static NumericProperty GRID_DENSITY = NumericProperty.derive(NumericPropertyKeyword.GRID_DENSITY, 30);
-
-	/**
 	 * Constructs a default semi-implicit scheme using the default values of
 	 * {@code GRID_DENSITY} and {@code TAU_FACTOR}.
 	 */
 
 	public MixedScheme() {
-		this(GRID_DENSITY, TAU_FACTOR);
+		this( derive(GRID_DENSITY, 30), derive(TAU_FACTOR, 1.0) );
 	}
 
 	/**
@@ -97,7 +86,7 @@ public abstract class MixedScheme extends DifferenceScheme {
 
 	@Override
 	public String toString() {
-		return Messages.getString("MixedScheme.4");
+		return getString("MixedScheme.4");
 	}
 
 }

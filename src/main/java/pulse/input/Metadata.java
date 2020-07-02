@@ -1,7 +1,6 @@
 package pulse.input;
 
 import static java.lang.System.lineSeparator;
-import static pulse.problem.statements.Pulse.TemporalShape.RECTANGULAR;
 import static pulse.properties.NumericProperty.def;
 import static pulse.properties.NumericPropertyKeyword.DETECTOR_GAIN;
 import static pulse.properties.NumericPropertyKeyword.DETECTOR_IRIS;
@@ -18,11 +17,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import pulse.problem.statements.Pulse.TemporalShape;
+import pulse.problem.laser.PulseTemporalShape;
+import pulse.problem.laser.RectangularPulse;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 import pulse.tasks.Identifier;
+import pulse.util.InstanceDescriptor;
 import pulse.util.PropertyHolder;
 import pulse.util.Reflexive;
 
@@ -40,10 +41,11 @@ public class Metadata extends PropertyHolder implements Reflexive {
 
 	private Set<NumericProperty> data;
 	private int externalID;
-	
-	private TemporalShape pulseShape = RECTANGULAR;
 	private String sampleName = "UnnamedSample";
-
+		
+	private InstanceDescriptor<? extends PulseTemporalShape> pulseDescriptor = new InstanceDescriptor<PulseTemporalShape>(
+			"Pulse Shape Selector", PulseTemporalShape.class);
+	
 	/**
 	 * Creates a {@code Metadata} with the specified parameters.
 	 * 
@@ -55,6 +57,7 @@ public class Metadata extends PropertyHolder implements Reflexive {
 
 	public Metadata(NumericProperty temperature, int externalId) {
 		setExternalID(externalId);
+		pulseDescriptor.setSelectedDescriptor(RectangularPulse.class.getSimpleName());
 		data = new TreeSet<NumericProperty>();
 		set(TEST_TEMPERATURE, temperature);
 	}
@@ -86,18 +89,8 @@ public class Metadata extends PropertyHolder implements Reflexive {
 	 * @return a {@code PulseShape} object
 	 */
 
-	public TemporalShape getPulseShape() {
-		return pulseShape;
-	}
-
-	/**
-	 * Sets the pulse shape recorded in this {@code Metadata}
-	 * 
-	 * @param pulseShape a {@code PulseShape} object
-	 */
-
-	public void setPulseShape(TemporalShape pulseShape) {
-		this.pulseShape = pulseShape;
+	public InstanceDescriptor<? extends PulseTemporalShape> getPulseDescriptor() {
+		return pulseDescriptor;
 	}
 
 	/**
@@ -155,7 +148,7 @@ public class Metadata extends PropertyHolder implements Reflexive {
 		list.add(def(LASER_ENERGY));
 		list.add(def(DETECTOR_GAIN));
 		list.add(def(DETECTOR_IRIS));
-		list.add(RECTANGULAR);
+		list.add(pulseDescriptor);
 		return list;
 	}
 
@@ -171,7 +164,7 @@ public class Metadata extends PropertyHolder implements Reflexive {
 			sb.append(lineSeparator());
 		});
 		
-		sb.append(pulseShape.toString());
+		sb.append(pulseDescriptor.toString());
 
 		return sb.toString();
 
@@ -180,8 +173,8 @@ public class Metadata extends PropertyHolder implements Reflexive {
 	@Override
 	public List<Property> data() {
 		var list = new ArrayList<Property>();
-		list.add(pulseShape);
 		list.addAll(data);
+		list.add(pulseDescriptor);
 		return list;
 	}
 

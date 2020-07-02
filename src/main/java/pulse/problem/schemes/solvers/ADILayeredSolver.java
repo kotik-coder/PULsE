@@ -18,7 +18,8 @@ public class ADILayeredSolver extends ADIScheme implements Solver<CoreShellProbl
 			.derive(NumericPropertyKeyword.SHELL_GRID_DENSITY, 10);
 
 	public ADILayeredSolver() {
-		this(GRID_DENSITY, SHELL_GRID_DENSITY, TAU_FACTOR);
+		super();
+		initGrid( getGrid().getGridDensity(), SHELL_GRID_DENSITY, getGrid().getTimeFactor() );
 	}
 
 	public ADILayeredSolver(NumericProperty nCore, NumericProperty nShell, NumericProperty timeFactor) {
@@ -44,13 +45,12 @@ public class ADILayeredSolver extends ADIScheme implements Solver<CoreShellProbl
 		map.put(Location.REAR_Y, new Partition((int) nShell.getValue(), 1.0, 0.0));
 		map.put(Location.SIDE_X, new Partition((int) nShell.getValue(), 1.0, 0.0));
 		map.put(Location.SIDE_Y, new Partition((int) nShell.getValue(), 1.0, 0.0));
-		grid = new LayeredGrid2D(map, timeFactor);
-		grid.setParent(this);
-		grid.setTimeFactor(timeFactor);
+		setGrid(new LayeredGrid2D(map, timeFactor));
+		getGrid().setTimeFactor(timeFactor);
 	}
 
 	private void prepareGrid(CoreShellProblem problem) {
-		var layeredGrid = (LayeredGrid2D) grid;
+		var layeredGrid = (LayeredGrid2D) getGrid();  //TODO
 		layeredGrid.getPartition(Location.FRONT_Y).setGridMultiplier(problem.axialFactor());
 		layeredGrid.getPartition(Location.REAR_Y).setGridMultiplier(problem.axialFactor());
 		layeredGrid.getPartition(Location.SIDE_X).setGridMultiplier(problem.radialFactor());

@@ -1,7 +1,7 @@
 package pulse.problem.statements;
 
-import static java.lang.Math.log;
 import static java.lang.Math.exp;
+import static java.lang.Math.log;
 import static pulse.properties.NumericProperty.derive;
 
 import java.util.List;

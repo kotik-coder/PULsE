@@ -1,5 +1,9 @@
-package pulse.problem.schemes;
+package pulse.problem.laser;
 
+import static java.lang.Math.signum;
+import static pulse.properties.NumericPropertyKeyword.SPOT_DIAMETER;
+
+import pulse.problem.schemes.Grid2D;
 import pulse.problem.statements.Problem;
 import pulse.problem.statements.Pulse2D;
 import pulse.problem.statements.TwoDimensional;
@@ -58,7 +62,7 @@ public class DiscretePulse2D extends DiscretePulse {
 	 */
 
 	public double evaluateAt(double time, double radialCoord) {
-		return evaluateAt(time) * (0.5 + 0.5 * Math.signum(discretePulseSpot - radialCoord));
+		return powerAt(time) * (0.5 + 0.5 * signum(discretePulseSpot - radialCoord));
 	}
 
 	/**
@@ -70,7 +74,7 @@ public class DiscretePulse2D extends DiscretePulse {
 
 	@Override
 	public void recalculate(NumericPropertyKeyword keyword) {
-		if (keyword == NumericPropertyKeyword.SPOT_DIAMETER) {
+		if (keyword == SPOT_DIAMETER) {
 			discretePulseSpot = ((Grid2D) getGrid()).gridRadialDistance(
 					(double) ((Pulse2D) getPulse()).getSpotDiameter().getValue() / 2.0, coordFactor);
 		} else {
@@ -78,30 +82,8 @@ public class DiscretePulse2D extends DiscretePulse {
 		}
 	}
 
-	/**
-	 * Calls the {@code optimise} method from superclass, then adjusts the
-	 * {@code gridDensity} of the {@code grid} if
-	 * {@code discretePulseSpot < (Grid2D)grid.hy}.
-	 * 
-	 * @param grid an instance of {@code Grid2D}
-	 */
-
-	@Override
-	public void optimise(Grid grid) {
-		super.optimise(grid);
-
-		if (!(grid instanceof Grid2D))
-			return;
-
-		Grid2D grid2D = (Grid2D) grid;
-
-		for (final double factor = 1.05; factor * grid2D.hy > discretePulseSpot; recalculate(
-				NumericPropertyKeyword.SPOT_DIAMETER)) {
-			grid2D.N += 5;
-			grid2D.hy = 1. / grid2D.N;
-			grid2D.hx = 1. / grid2D.N;
-		}
-
+	public double getDiscretePulseSpot() {
+		return discretePulseSpot;
 	}
 
 }

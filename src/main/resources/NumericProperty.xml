@@ -1,5 +1,21 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <NumericProperties>
+	<NumericProperty
+		abbreviation="t&lt;sub&gt;fall&lt;/sub&gt;/t&lt;sub&gt;fall&lt;/sub&gt; (%)"
+		auto-adjustable="false"
+		descriptor="Fall percentage, t&lt;sub&gt;fall&lt;/sub&gt;/t&lt;sub&gt;fall&lt;/sub&gt; (%)"
+		dimensionfactor="1" discreet="false"
+		keyword="TRAPEZOIDAL_FALL_PERCENTAGE" maximum="40" minimum="1"
+		primitive-type="int" value="10">
+	</NumericProperty>
+	<NumericProperty
+		abbreviation="t&lt;sub&gt;rise&lt;/sub&gt;/t&lt;sub&gt;las&lt;/sub&gt; (%)"
+		auto-adjustable="false"
+		descriptor="Rise percentage, t&lt;sub&gt;rise&lt;/sub&gt;/t&lt;sub&gt;las&lt;/sub&gt; (%)"
+		dimensionfactor="1" discreet="false"
+		keyword="TRAPEZOIDAL_RISE_PERCENTAGE" maximum="40" minimum="1"
+		primitive-type="int" value="10">
+	</NumericProperty>
 	<NumericProperty abbreviation="Max iterations"
 		auto-adjustable="false" descriptor="Max iterations"
 		dimensionfactor="1" discreet="false" keyword="RTE_MAX_ITERATIONS"

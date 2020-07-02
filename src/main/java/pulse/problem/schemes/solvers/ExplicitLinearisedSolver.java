@@ -65,6 +65,8 @@ public class ExplicitLinearisedSolver extends ExplicitScheme implements Solver<L
 		super.prepare(problem);
 		curve = problem.getHeatingCurve();
 
+		var grid = getGrid();
+		
 		N = (int) grid.getGridDensity().getValue();
 		hx = grid.getXStep();
 		tau = grid.getTimeStep();
@@ -93,6 +95,8 @@ public class ExplicitLinearisedSolver extends ExplicitScheme implements Solver<L
 		double pls;
 		double TAU_HH = tau / pow(hx, 2);
 
+		final var discretePulse = getDiscretePulse();
+		
 		/*
 		 * The outer cycle iterates over the number of points of the HeatingCurve
 		 */
@@ -105,7 +109,7 @@ public class ExplicitLinearisedSolver extends ExplicitScheme implements Solver<L
 			 * timeInterval/tau time steps have to be made first.
 			 */
 
-			for (m = (w - 1) * timeInterval + 1; m < w * timeInterval + 1; m++) {
+			for (m = (w - 1) * getTimeInterval() + 1; m < w * getTimeInterval() + 1; m++) {
 
 				/*
 				 * Uses the heat equation explicitly to calculate the grid-function everywhere
@@ -120,7 +124,7 @@ public class ExplicitLinearisedSolver extends ExplicitScheme implements Solver<L
 				 * Calculates boundary values
 				 */
 
-				pls = discretePulse.evaluateAt((m - EPS) * tau);
+				pls = discretePulse.powerAt((m - EPS) * tau);
 				V[0] = (V[1] + hx * pls) * a;
 				V[N] = V[N - 1] * b;
 
@@ -129,7 +133,7 @@ public class ExplicitLinearisedSolver extends ExplicitScheme implements Solver<L
 			}
 
 			maxVal = Math.max(maxVal, V[N]);
-			curve.addPoint((w * timeInterval) * tau * problem.timeFactor(), V[N]);
+			curve.addPoint((w * getTimeInterval()) * tau * problem.timeFactor(), V[N]);
 
 		}
 
@@ -139,6 +143,7 @@ public class ExplicitLinearisedSolver extends ExplicitScheme implements Solver<L
 
 	@Override
 	public DifferenceScheme copy() {
+		var grid = getGrid();
 		return new ExplicitLinearisedSolver(grid.getGridDensity(), grid.getTimeFactor(), getTimeLimit());
 	}
 

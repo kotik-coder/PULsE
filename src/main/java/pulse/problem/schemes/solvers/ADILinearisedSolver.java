@@ -4,9 +4,9 @@ import static java.lang.Math.max;
 import static java.lang.Math.pow;
 
 import pulse.HeatingCurve;
+import pulse.problem.laser.DiscretePulse2D;
 import pulse.problem.schemes.ADIScheme;
 import pulse.problem.schemes.DifferenceScheme;
-import pulse.problem.schemes.DiscretePulse2D;
 import pulse.problem.schemes.Grid2D;
 import pulse.problem.statements.LinearisedProblem2D;
 import pulse.problem.statements.Problem;
@@ -50,6 +50,8 @@ public class ADILinearisedSolver extends ADIScheme implements Solver<LinearisedP
 		super.prepare(problem);
 		curve = problem.getHeatingCurve();
 
+		var grid = getGrid();
+		
 		N = (int) grid.getGridDensity().getValue();
 		hx = grid.getXStep();
 		hy = ((Grid2D) getGrid()).getYStep();
@@ -130,7 +132,8 @@ public class ADILinearisedSolver extends ADIScheme implements Solver<LinearisedP
 		double _c11 = 0.5 * HY2 * tau * OMEGA_SQ / HX2;
 		double _b12 = _c11 * _b11;
 
-		DiscretePulse2D discretePulse2D = (DiscretePulse2D) discretePulse;
+		DiscretePulse2D discretePulse2D = (DiscretePulse2D) getDiscretePulse();
+		final int timeInterval = getTimeInterval();
 
 		// begin time cycle
 
@@ -218,7 +221,7 @@ public class ADILinearisedSolver extends ADIScheme implements Solver<LinearisedP
 
 				// i = 0 boundary
 
-				pls = discretePulse2D.evaluateAt((m + 1 + EPS) * tau);
+				pls = discretePulse2D.powerAt((m + 1 + EPS) * tau);
 				beta[1] = (tau * hy * pls + HY2 * U2_E[1][1]) * _b11 + 2.0 * _b12 * (U2_E[2][1] - U2_E[1][1]);
 
 				for (j = 1; j < N; j++) {
@@ -257,6 +260,7 @@ public class ADILinearisedSolver extends ADIScheme implements Solver<LinearisedP
 
 	@Override
 	public DifferenceScheme copy() {
+		var grid = getGrid();
 		return new ADILinearisedSolver(grid.getGridDensity(), grid.getTimeFactor(), getTimeLimit());
 	}
 

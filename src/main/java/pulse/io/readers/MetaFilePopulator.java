@@ -20,11 +20,12 @@ import java.util.Optional;
 import java.util.StringTokenizer;
 
 import pulse.input.Metadata;
-import pulse.properties.EnumProperty;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
+import pulse.properties.Property;
 import pulse.ui.Messages;
 import pulse.util.ImmutableDataEntry;
+import pulse.util.InstanceDescriptor;
 
 /**
  * An {@code AbstractReader} capable of reading metafiles.
@@ -89,7 +90,7 @@ public class MetaFilePopulator implements AbstractPopulator<Metadata> {
 	private static MetaFilePopulator instance = new MetaFilePopulator();
 
 	private final static double CELSIUS_TO_KELVIN = 273;
-
+	
 	private MetaFilePopulator() {
 	}
 
@@ -194,6 +195,7 @@ public class MetaFilePopulator implements AbstractPopulator<Metadata> {
 
 			optional = findAny(dataEntry.getKey());
 			
+			//numeric properties
 			if( optional.isPresent() ) { 
 				key = optional.get();
 				
@@ -211,13 +213,19 @@ public class MetaFilePopulator implements AbstractPopulator<Metadata> {
 				
 			}
 			
+			//generic properties
 			else {
 		
-				for (EnumProperty genericEntry : met.enumData()) {
+				InstanceDescriptor<?> descriptor = null;
 				
-					if (dataEntry.getKey().equals(genericEntry.getClass().getSimpleName())) 
-						met.updateProperty(instance, genericEntry.evaluate(dataEntry.getValue()));
-						
+				for (Property genericEntry : met.genericProperties()) {
+				
+					if(genericEntry instanceof InstanceDescriptor<?>) {
+						descriptor = (InstanceDescriptor<?>)genericEntry;
+						if( descriptor.attemptUpdate(dataEntry.getValue()) )
+							met.updateProperty(instance, genericEntry);
+					}
+												
 				}
 				
 			}

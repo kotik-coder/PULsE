@@ -12,11 +12,6 @@ public class Pulse2D extends Pulse {
 
 	protected double spotDiameter;
 
-	public Pulse2D() {
-		super();
-		spotDiameter = (double) NumericProperty.def(SPOT_DIAMETER).getValue();
-	}
-
 	/**
 	 * Creates a {@code Pulse} with default values of pulse width and laser spot
 	 * diameter (as per XML specification), but with custom {@code PulseShape}.
@@ -24,8 +19,8 @@ public class Pulse2D extends Pulse {
 	 * @param pform the pulse shape
 	 */
 
-	public Pulse2D(TemporalShape pform) {
-		super(pform);
+	public Pulse2D() {
+		super();
 		spotDiameter = (double) NumericProperty.def(SPOT_DIAMETER).getValue();
 	}
 

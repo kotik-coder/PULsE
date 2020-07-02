@@ -1,17 +1,17 @@
 package pulse.problem.schemes;
 
+import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericPropertyKeyword.GRID_DENSITY;
+import static pulse.properties.NumericPropertyKeyword.TAU_FACTOR;
+import static pulse.ui.Messages.getString;
+
 import pulse.properties.NumericProperty;
-import pulse.properties.NumericPropertyKeyword;
-import pulse.ui.Messages;
 
 public abstract class ADIScheme extends DifferenceScheme {
 
-	protected final static NumericProperty TAU_FACTOR = NumericProperty.derive(NumericPropertyKeyword.TAU_FACTOR, 1.0);
-	protected final static NumericProperty GRID_DENSITY = NumericProperty.derive(NumericPropertyKeyword.GRID_DENSITY,
-			30);
-
 	public ADIScheme() {
-		this(GRID_DENSITY, TAU_FACTOR);
+		this(derive(GRID_DENSITY, 30), 
+				derive(TAU_FACTOR, 1.0));
 	}
 
 	public ADIScheme(NumericProperty N, NumericProperty timeFactor) {
@@ -26,14 +26,13 @@ public abstract class ADIScheme extends DifferenceScheme {
 
 	@Override
 	public void initGrid(NumericProperty N, NumericProperty timeFactor) {
-		grid = new Grid2D(N, timeFactor);
-		grid.setParent(this);
-		grid.setTimeFactor(timeFactor);
+		setGrid(new Grid2D(N, timeFactor));
+		getGrid().setTimeFactor(timeFactor);
 	}
 
 	@Override
 	public String toString() {
-		return Messages.getString("ADIScheme.4");
+		return getString("ADIScheme.4");
 	}
 
 }

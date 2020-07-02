@@ -87,6 +87,8 @@ public class ImplicitCoupledSolver extends ImplicitScheme implements Solver<Part
 	private void prepare(ParticipatingMedium problem) {
 		super.prepare(problem);
 
+		final var grid = getGrid();
+		
 		initRTE(problem, grid);
 
 		curve = problem.getHeatingCurve();
@@ -135,7 +137,7 @@ public class ImplicitCoupledSolver extends ImplicitScheme implements Solver<Part
 		double V_0 = 0;
 		double V_N = 0;
 
-		double wFactor = timeInterval * tau * problem.timeFactor();
+		double wFactor = getTimeInterval() * tau * problem.timeFactor();
 
 		var status = rte.compute(U);
 
@@ -143,14 +145,16 @@ public class ImplicitCoupledSolver extends ImplicitScheme implements Solver<Part
                     alpha[i + 1] = c / (b - a * alpha[i]);
                 }
 
+		final var discretePulse = getDiscretePulse();
+		
 		// time cycle
 
 		for (w = 1; w < counts; w++) {
 
-			for (m = (w - 1) * timeInterval + 1; m < w * timeInterval + 1
+			for (m = (w - 1) * getTimeInterval() + 1; m < w * getTimeInterval() + 1
 					&& status == RTECalculationStatus.NORMAL; m++) {
 
-				pls = discretePulse.evaluateAt((m - EPS) * tau);
+				pls = discretePulse.powerAt((m - EPS) * tau);
 
 				for (V_0 = errorSq + 1, V_N = errorSq + 1; (MathUtils.fastPowLoop((V[0] - V_0), 2) > errorSq)
 						|| (MathUtils.fastPowLoop((V[N] - V_N), 2) > errorSq); status = rte.compute(V)) {
@@ -196,6 +200,7 @@ public class ImplicitCoupledSolver extends ImplicitScheme implements Solver<Part
 
 	@Override
 	public DifferenceScheme copy() {
+		var grid = getGrid();
 		return new ImplicitCoupledSolver(grid.getGridDensity(), grid.getTimeFactor(), getTimeLimit());
 	}
 

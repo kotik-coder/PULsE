@@ -1,8 +1,13 @@
 package pulse.problem.schemes;
 
+import static pulse.properties.NumericProperty.def;
+import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericPropertyKeyword.TIME_LIMIT;
+
 import java.util.ArrayList;
 import java.util.List;
 
+import pulse.problem.laser.DiscretePulse;
 import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
@@ -24,15 +29,16 @@ import pulse.util.Reflexive;
  * </p>
  * 
  * @see pulse.problem.schemes.Grid
- * @see pulse.problem.schemes.DiscretePulse
+ * @see pulse.problem.laser.DiscretePulse
  */
 
 public abstract class DifferenceScheme extends PropertyHolder implements Reflexive {
 
-	protected DiscretePulse discretePulse;
-	protected Grid grid;
-	protected double timeLimit;
-	protected int timeInterval;
+	private DiscretePulse discretePulse;
+	private Grid grid;
+
+	private double timeLimit;
+	private int timeInterval;
 
 	private static boolean hideDetailedAdjustment = true;
 
@@ -54,7 +60,7 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 	 */
 
 	protected DifferenceScheme() {
-		setTimeLimit(NumericProperty.def(NumericPropertyKeyword.TIME_LIMIT));
+		setTimeLimit(def(TIME_LIMIT));
 	}
 
 	/**
@@ -76,6 +82,8 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 		setTimeLimit(timeLimit);
 	}
 
+	public abstract Class<? extends Problem> domain();
+	
 	/**
 	 * Creates a {@code DifferenceScheme}, which is an exact copy of this object.
 	 * 
@@ -116,84 +124,38 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 
 	protected void prepare(Problem problem) {
 		discretePulse = problem.discretePulseOn(grid);
-		discretePulse.optimise(grid);
+		grid.adjustTo(discretePulse);
 
-		double numPoints = ((Number) problem.getHeatingCurve().getNumPoints().getValue()).doubleValue();
-		final double dt = timeLimit / (problem.timeFactor() * (numPoints - 1));
-		timeInterval = (int) (dt / grid.tau) + 1;
+		final var numPoints = ((Number) problem.getHeatingCurve().getNumPoints().getValue()).doubleValue();
+		final var dt = timeLimit / (problem.timeFactor() * (numPoints - 1));
+		setTimeInterval( (int) (dt / grid.tau) + 1 );
 
 		problem.getHeatingCurve().reinit();
 	}
 
-	/**
-	 * The time limit (in whatever units this {@code DifferenceScheme} uses to
-	 * process the solution), which serves as the breakpoint for the calculations.
-	 * 
-	 * @return the {@code NumericProperty} with the type {@code TIME_LIMIT}
-	 * @see pulse.properties.NumericPropertyKeyword
-	 */
-
-	public NumericProperty getTimeLimit() {
-		return NumericProperty.derive(NumericPropertyKeyword.TIME_LIMIT, timeLimit);
-	}
-
-	/**
-	 * Sets the time limit (in units defined by the corresponding
-	 * {@code NumericProperty}), which serves as the breakpoint for the
-	 * calculations.
-	 * 
-	 * @param timeLimit the {@code NumericProperty} with the type {@code TIME_LIMIT}
-	 * @see pulse.properties.NumericPropertyKeyword
-	 */
-
-	public void setTimeLimit(NumericProperty timeLimit) {
-		if (timeLimit.getType() != NumericPropertyKeyword.TIME_LIMIT)
-			throw new IllegalArgumentException("Illegal property type : " + timeLimit.getType());
-		this.timeLimit = (double) timeLimit.getValue();
-	}
-
 	@Override
 	public List<Property> listedTypes() {
-		List<Property> list = new ArrayList<>(9);
-		list.add(NumericProperty.def(NumericPropertyKeyword.TIME_LIMIT));
+		List<Property> list = new ArrayList<>();
+		list.add(def(TIME_LIMIT));
 		return list;
 	}
 
 	@Override
 	public String toString() {
-		return shortName();
-	}
-
-	/**
-	 * The 'short name' of this class defined by {@code getClass().getSimpleName()}.
-	 * 
-	 * @return a {@code String} representing the short name of this
-	 *         {@code DifferenceScheme}.
-	 */
-
-	public String shortName() {
 		return this.getClass().getSimpleName();
 	}
+	
+	/**
+	 * Gets the discrete representation of {@code Pulse} on the {@code Grid}.
+	 * 
+	 * @return the discrete pulse
+	 * @see pulse.problem.statements.Pulse
+	 */
 
-	@Override
-	public boolean areDetailsHidden() {
-		return DifferenceScheme.hideDetailedAdjustment;
+	public DiscretePulse getDiscretePulse() {
+		return discretePulse;
 	}
-
-	public static void setDetailsHidden(boolean b) {
-		DifferenceScheme.hideDetailedAdjustment = b;
-	}
-
-	@Override
-	public void set(NumericPropertyKeyword type, NumericProperty property) {
-		switch (type) {
-		case TIME_LIMIT:
-			setTimeLimit(property);
-			break;
-		default:
-			throw new IllegalArgumentException("Property not recognised: " + property);
-		}
-	}
+	
 
 	/**
 	 * Gets the {@code Grid} object defining partioning used in this
@@ -206,22 +168,68 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 		return grid;
 	}
 
+	public void setGrid(Grid grid) {
+		this.grid = grid;
+		this.grid.setParent(this);
+	}
+
 	public void initGrid(NumericProperty N, NumericProperty timeFactor) {
-		grid = new Grid(N, timeFactor);
-		grid.setParent(this);
+		setGrid(new Grid(N, timeFactor));
+	}
+
+	public int getTimeInterval() {
+		return timeInterval;
+	}
+
+	public void setTimeInterval(int timeInterval) {
+		this.timeInterval = timeInterval;
+	}
+	
+	@Override
+	public boolean areDetailsHidden() {
+		return hideDetailedAdjustment;
+	}
+
+	public static void setDetailsHidden(boolean b) {
+		hideDetailedAdjustment = b;
+	}
+	
+	/**
+	 * The time limit (in whatever units this {@code DifferenceScheme} uses to
+	 * process the solution), which serves as the breakpoint for the calculations.
+	 * 
+	 * @return the {@code NumericProperty} with the type {@code TIME_LIMIT}
+	 * @see pulse.properties.NumericPropertyKeyword
+	 */
+
+	public NumericProperty getTimeLimit() {
+		return derive(TIME_LIMIT, timeLimit);
 	}
 
 	/**
-	 * Gets the discrete representation of {@code Pulse} on the {@code Grid}.
+	 * Sets the time limit (in units defined by the corresponding
+	 * {@code NumericProperty}), which serves as the breakpoint for the
+	 * calculations.
 	 * 
-	 * @return the discrete pulse
-	 * @see pulse.problem.statements.Pulse
+	 * @param timeLimit the {@code NumericProperty} with the type {@code TIME_LIMIT}
+	 * @see pulse.properties.NumericPropertyKeyword
 	 */
 
-	public DiscretePulse getDiscretePulse() {
-		return discretePulse;
+	public void setTimeLimit(NumericProperty timeLimit) {
+		if (timeLimit.getType() != TIME_LIMIT)
+			throw new IllegalArgumentException("Illegal property type : " + timeLimit.getType());
+		this.timeLimit = (double) timeLimit.getValue();
 	}
-
-	public abstract Class<? extends Problem> domain();
+	
+	@Override
+	public void set(NumericPropertyKeyword type, NumericProperty property) {
+		switch (type) {
+		case TIME_LIMIT:
+			setTimeLimit(property);
+			break;
+		default:
+			throw new IllegalArgumentException("Property not recognised: " + property);
+		}
+	}
 
 }

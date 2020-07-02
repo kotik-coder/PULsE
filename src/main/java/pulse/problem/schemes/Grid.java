@@ -1,10 +1,18 @@
 package pulse.problem.schemes;
 
 import static java.lang.Math.pow;
+import static java.lang.Math.rint;
+import static java.lang.String.format;
+import static pulse.properties.NumericProperty.def;
+import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericPropertyKeyword.GRID_DENSITY;
+import static pulse.properties.NumericPropertyKeyword.PULSE_WIDTH;
+import static pulse.properties.NumericPropertyKeyword.TAU_FACTOR;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import pulse.problem.laser.DiscretePulse;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
@@ -22,9 +30,10 @@ import pulse.util.PropertyHolder;
 
 public class Grid extends PropertyHolder {
 
-	protected double tau, tauFactor;
-	protected int N;
 	protected double hx;
+	protected double tau;
+	protected double tauFactor;
+	protected int N;
 
 	/**
 	 * Creates a {@code Grid} object with the specified {@code gridDensity} and
@@ -40,9 +49,7 @@ public class Grid extends PropertyHolder {
 		setTimeFactor(timeFactor);
 	}
 
-	protected Grid() {
-
-	}
+	protected Grid() { }
 
 	/**
 	 * Creates a new {@code Grid} object with exactly the same parameters as this
@@ -54,12 +61,29 @@ public class Grid extends PropertyHolder {
 	public Grid copy() {
 		return new Grid(getGridDensity(), getTimeFactor());
 	}
+	
+	/**
+	 * Optimises the {@code grid} parameters.
+	 * <p>
+	 * This can change the {@code tauFactor} and {@code tau} variables in the
+	 * {@code grid} object if {@code discretePulseWidth < grid.tau}.
+	 * </p>
+	 * 
+	 * @param grid the grid to be adjusted
+	 */
+
+	public void adjustTo(DiscretePulse pulse) {
+		for (final var factor = 0.95; factor * tau > pulse.getDiscretePulseWidth(); pulse.recalculate(PULSE_WIDTH)) {
+			tauFactor /= 1.5;
+			tau = tauFactor * pow(hx, 2);
+		}
+	}
 
 	@Override
 	public List<Property> listedTypes() {
 		List<Property> list = new ArrayList<>(2);
-		list.add(NumericProperty.def(NumericPropertyKeyword.GRID_DENSITY));
-		list.add(NumericProperty.def(NumericPropertyKeyword.TAU_FACTOR));
+		list.add(def(GRID_DENSITY));
+		list.add(def(TAU_FACTOR));
 		return list;
 	}
 
@@ -119,7 +143,7 @@ public class Grid extends PropertyHolder {
 	 */
 
 	public NumericProperty getTimeFactor() {
-		return NumericProperty.derive(NumericPropertyKeyword.TAU_FACTOR, tauFactor);
+		return derive(TAU_FACTOR, tauFactor);
 	}
 
 	/**
@@ -131,7 +155,7 @@ public class Grid extends PropertyHolder {
 	 */
 
 	public NumericProperty getGridDensity() {
-		return NumericProperty.derive(NumericPropertyKeyword.GRID_DENSITY, this.N);
+		return derive(GRID_DENSITY, this.N);
 	}
 
 	/**
@@ -142,11 +166,11 @@ public class Grid extends PropertyHolder {
 	 */
 
 	public void setGridDensity(NumericProperty gridDensity) {
-		if (gridDensity.getType() != NumericPropertyKeyword.GRID_DENSITY)
+		if (gridDensity.getType() != GRID_DENSITY)
 			throw new IllegalArgumentException("Type of property passed to constructor " + gridDensity.getType());
 		this.N = (int) gridDensity.getValue();
 		hx = 1. / N;
-		setTimeFactor(NumericProperty.derive(NumericPropertyKeyword.TAU_FACTOR, 1.0));
+		setTimeFactor(derive(TAU_FACTOR, 1.0));
 	}
 
 	/**
@@ -157,7 +181,7 @@ public class Grid extends PropertyHolder {
 	 */
 
 	public void setTimeFactor(NumericProperty timeFactor) {
-		if (timeFactor.getType() != NumericPropertyKeyword.TAU_FACTOR)
+		if (timeFactor.getType() != TAU_FACTOR)
 			throw new IllegalArgumentException("Wrong NumericProperty type passed to method: " + timeFactor.getType());
 
 		this.tauFactor = (double) timeFactor.getValue();
@@ -175,7 +199,7 @@ public class Grid extends PropertyHolder {
 	 */
 
 	public double gridTime(double time, double dimensionFactor) {
-		return Math.rint((time / dimensionFactor) / tau) * tau;
+		return rint((time / dimensionFactor) / tau) * tau;
 	}
 
 	/**
@@ -189,15 +213,15 @@ public class Grid extends PropertyHolder {
 	 */
 
 	public double gridAxialDistance(double distance, double lengthFactor) {
-		return Math.rint((distance / lengthFactor) / hx) * hx;
+		return rint((distance / lengthFactor) / hx) * hx;
 	}
 
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder();
+		var sb = new StringBuilder();
 		sb.append("<html>");
-		sb.append("Grid: <math><i>h<sub>x</sub></i>=" + String.format("%3.2e", hx) + "; ");
-		sb.append("<i>&tau;</i>=" + String.format("%3.2e", tau));
+		sb.append("Grid: <math><i>h<sub>x</sub></i>=" + format("%3.2e", hx) + "; ");
+		sb.append("<i>&tau;</i>=" + format("%3.2e", tau));
 		return sb.toString();
 	}
 

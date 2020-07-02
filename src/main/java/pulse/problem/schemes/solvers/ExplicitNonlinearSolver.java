@@ -50,6 +50,8 @@ public class ExplicitNonlinearSolver extends ExplicitScheme implements Solver<No
 		super.prepare(problem);
 		HeatingCurve curve = problem.getHeatingCurve();
 
+		var grid = getGrid();
+		
 		N = (int) grid.getGridDensity().getValue();
 		hx = grid.getXStep();
 		tau = grid.getTimeStep();
@@ -77,16 +79,18 @@ public class ExplicitNonlinearSolver extends ExplicitScheme implements Solver<No
 		double f0, fN;
 
 		final double fixedPointPrecisionSq = pow(nonlinearPrecision, 2);
+		
+		final var discretePulse = getDiscretePulse();
 
 		for (w = 1; w < counts; w++) {
 
-			for (m = (w - 1) * timeInterval + 1; m < w * timeInterval + 1; m++) {
+			for (m = (w - 1) * getTimeInterval() + 1; m < w * getTimeInterval() + 1; m++) {
 
 				for (i = 1; i < N; i++) {
                                     V[i] = U[i] + TAU_HH * (U[i + 1] - 2. * U[i] + U[i - 1]);
                                 }
 
-				pls = discretePulse.evaluateAt((m - EPS) * tau);
+				pls = discretePulse.powerAt((m - EPS) * tau);
 
 				/**
 				 * y = 0
@@ -114,7 +118,7 @@ public class ExplicitNonlinearSolver extends ExplicitScheme implements Solver<No
 
 			}
 
-			curve.addPoint((w * timeInterval) * tau * problem.timeFactor(), V[N]);
+			curve.addPoint((w * getTimeInterval()) * tau * problem.timeFactor(), V[N]);
 
 		}
 
@@ -124,6 +128,7 @@ public class ExplicitNonlinearSolver extends ExplicitScheme implements Solver<No
 
 	@Override
 	public DifferenceScheme copy() {
+		var grid = getGrid();
 		return new ExplicitNonlinearSolver(grid.getGridDensity(), grid.getTimeFactor(), getTimeLimit());
 	}
 

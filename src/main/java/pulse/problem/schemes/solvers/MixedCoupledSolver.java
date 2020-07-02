@@ -6,6 +6,7 @@ import java.util.List;
 
 import pulse.HeatingCurve;
 import pulse.math.MathUtils;
+import pulse.problem.laser.DiscretePulse;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.Grid;
 import pulse.problem.schemes.MixedScheme;
@@ -105,6 +106,8 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 	protected void prepare(ParticipatingMedium problem) {
 		super.prepare(problem);
 
+		var grid = getGrid();
+
 		initRTE(problem, grid);
 
 		curve = problem.getHeatingCurve();
@@ -160,7 +163,7 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 		prepare(problem);
 		adjustSchemeWeight();
 
-		double wFactor = timeInterval * tau * problem.timeFactor();
+		double wFactor = getTimeInterval() * tau * problem.timeFactor();
 		errorSq = MathUtils.fastPowLoop(nonlinearPrecision, 2);
 
 		initConst();
@@ -170,19 +173,23 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 		int w;
 
 		var status = rte.compute(U);
+		
+		final var discretePulse = getDiscretePulse();
 
 		// time cycle
 
 		for (w = 1; w < pulseEnd + 1 && status == RTECalculationStatus.NORMAL; w++) {
 
-			for (int m = (w - 1) * timeInterval + 1; m < w * timeInterval + 1; m++) {
-                            status = timeStep(m, true);
+			for (int m = (w - 1) * getTimeInterval() + 1; m < w * getTimeInterval() + 1; m++) {
+                            status = timeStep(discretePulse, m, true);
                         }
 			curve.addPoint(w * wFactor, V[N]);
 		}
 
-		double timeLeft = timeLimit - (w - 1) * wFactor;
+		double timeLeft = (double)getTimeLimit().getValue() - (w - 1) * wFactor;
 
+		var grid = getGrid();
+		
 		// adjust timestep to make calculations faster
 		grid.setTimeFactor(TAU_FACTOR);
 
@@ -195,13 +202,13 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 		double numPoints = counts - (w - 1);
 		double dt = timeLeft / (problem.timeFactor() * (numPoints - 1));
 
-		timeInterval = (int) (dt / tau) + 1;
+		setTimeInterval ( (int) (dt / tau) + 1 );
 
-		for (wFactor = timeInterval * tau * problem.timeFactor(); w < counts
+		for (wFactor = getTimeInterval() * tau * problem.timeFactor(); w < counts
 				&& status == RTECalculationStatus.NORMAL; w++) {
 
-			for (int m = (w - 1) * timeInterval + 1; m < w * timeInterval + 1; m++) {
-                            status = timeStep(m, false);
+			for (int m = (w - 1) * getTimeInterval() + 1; m < w * getTimeInterval() + 1; m++) {
+                            status = timeStep(discretePulse, m, false);
                         }
 
 			curve.addPoint(w * wFactor, V[N]);
@@ -214,16 +221,16 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 
 	}
 
-	private RTECalculationStatus timeStep(int m, boolean activePulse) {
+	private RTECalculationStatus timeStep(DiscretePulse discretePulse, int m, boolean activePulse) {
 		double phi;
 
 		int i, j;
 		double F, pls;
 		double V_0, V_N;
-
+		
 		pls = activePulse
-				? (discretePulse.evaluateAt((m - 1 + EPS) * tau) * ONE_MINUS_SIGMA
-						+ discretePulse.evaluateAt((m - EPS) * tau) * sigma)
+				? (discretePulse.powerAt((m - 1 + EPS) * tau) * ONE_MINUS_SIGMA
+						+ discretePulse.powerAt((m - EPS) * tau) * sigma)
 				: 0.0;
 
 		RTECalculationStatus status = RTECalculationStatus.NORMAL;
@@ -372,6 +379,7 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 
 	@Override
 	public DifferenceScheme copy() {
+		var grid = getGrid();
 		return new MixedCoupledSolver(grid.getGridDensity(), grid.getTimeFactor(), getTimeLimit());
 	}
 

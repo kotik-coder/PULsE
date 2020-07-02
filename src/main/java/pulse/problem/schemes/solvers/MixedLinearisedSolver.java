@@ -66,6 +66,8 @@ public class MixedLinearisedSolver extends MixedScheme implements Solver<Lineari
 		super.prepare(problem);
 		curve = problem.getHeatingCurve();
 
+		var grid = getGrid();
+		
 		N = (int) grid.getGridDensity().getValue();
 		hx = grid.getXStep();
 		tau = grid.getTimeStep();
@@ -117,6 +119,8 @@ public class MixedLinearisedSolver extends MixedScheme implements Solver<Lineari
 
 		int i, j, m, w;
 		double pls;
+		
+		final var discretePulse = getDiscretePulse();
 
 		/*
 		 * The outer cycle iterates over the number of points of the HeatingCurve
@@ -130,10 +134,10 @@ public class MixedLinearisedSolver extends MixedScheme implements Solver<Lineari
 			 * timeInterval/tau time steps have to be made first.
 			 */
 
-			for (m = (w - 1) * timeInterval + 1; m < w * timeInterval + 1; m++) {
+			for (m = (w - 1) * getTimeInterval() + 1; m < w * getTimeInterval() + 1; m++) {
 
 				alpha[1] = a1;
-				pls = discretePulse.evaluateAt((m - 1 + EPS) * tau) + discretePulse.evaluateAt((m - EPS) * tau);
+				pls = discretePulse.powerAt((m - 1 + EPS) * tau) + discretePulse.powerAt((m - EPS) * tau);
 				beta[1] = b1 * (b2 * U[0] + b3 * pls - tau * (U[0] - U[1]));
 
 				for (i = 1; i < N; i++) {
@@ -154,7 +158,7 @@ public class MixedLinearisedSolver extends MixedScheme implements Solver<Lineari
 
 			maxVal = Math.max(maxVal, V[N]);
 
-			curve.addPoint((w * timeInterval) * tau * problem.timeFactor(), V[N]);
+			curve.addPoint((w * getTimeInterval()) * tau * problem.timeFactor(), V[N]);
 
 		}
 
@@ -164,6 +168,7 @@ public class MixedLinearisedSolver extends MixedScheme implements Solver<Lineari
 
 	@Override
 	public DifferenceScheme copy() {
+		var grid = getGrid();
 		return new MixedLinearisedSolver(grid.getGridDensity(), grid.getTimeFactor(), getTimeLimit());
 	}
 

@@ -56,6 +56,8 @@ public class ImplicitTranslucentSolver extends ImplicitScheme implements Solver<
 		Bi2 = Bi1;
 		maxTemp = (double) problem.getMaximumTemperature().getValue();
 
+		var grid = getGrid();
+		
 		N = (int) grid.getGridDensity().getValue();
 		hx = grid.getXStep();
 		tau = grid.getTimeStep();
@@ -96,6 +98,8 @@ public class ImplicitTranslucentSolver extends ImplicitScheme implements Solver<
 		double Bi1H = Bi1 * hx;
 		double Bi2H = Bi2 * hx;
 
+		final var discretePulse = getDiscretePulse();
+		
 		/*
 		 * The outer cycle iterates over the number of points of the HeatingCurve
 		 */
@@ -108,9 +112,9 @@ public class ImplicitTranslucentSolver extends ImplicitScheme implements Solver<
 			 * timeInterval/tau time steps have to be made first.
 			 */
 
-			for (m = (w - 1) * timeInterval + 1; m < w * timeInterval + 1; m++) {
+			for (m = (w - 1) * getTimeInterval() + 1; m < w * getTimeInterval() + 1; m++) {
 
-				pls = discretePulse.evaluateAt((m - EPS) * tau); // NOTE: EPS is very important here and ensures
+				pls = discretePulse.powerAt((m - EPS) * tau); // NOTE: EPS is very important here and ensures
 																	// numeric stability!
 
 				alpha[1] = 1.0 / (1.0 + HH / (2.0 * tau) + Bi1H);
@@ -145,7 +149,7 @@ public class ImplicitTranslucentSolver extends ImplicitScheme implements Solver<
 
 			maxVal = Math.max(maxVal, signal);
 
-			curve.addPoint((w * timeInterval) * tau * problem.timeFactor(), signal);
+			curve.addPoint((w * getTimeInterval()) * tau * problem.timeFactor(), signal);
 
 			/*
 			 * UNCOMMENT TO DEBUG
@@ -161,6 +165,7 @@ public class ImplicitTranslucentSolver extends ImplicitScheme implements Solver<
 
 	@Override
 	public DifferenceScheme copy() {
+		var grid = getGrid();
 		return new ImplicitTranslucentSolver(grid.getGridDensity(), grid.getTimeFactor(), getTimeLimit());
 	}
 

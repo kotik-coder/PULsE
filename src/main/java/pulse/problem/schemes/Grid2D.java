@@ -1,7 +1,12 @@
 package pulse.problem.schemes;
 
 import static java.lang.Math.pow;
+import static java.lang.Math.rint;
+import static java.lang.String.format;
+import static pulse.properties.NumericPropertyKeyword.SPOT_DIAMETER;
 
+import pulse.problem.laser.DiscretePulse;
+import pulse.problem.laser.DiscretePulse2D;
 import pulse.properties.NumericProperty;
 
 /**
@@ -36,7 +41,31 @@ public class Grid2D extends Grid {
 		super.setTimeFactor(timeFactor);
 		tau = tauFactor * (pow(hx, 2) + pow(hy, 2));
 	}
+	
+	/**
+	 * Calls the {@code optimise} method from superclass, then adjusts the
+	 * {@code gridDensity} of the {@code grid} if
+	 * {@code discretePulseSpot < (Grid2D)grid.hy}.
+	 * 
+	 * @param grid an instance of {@code Grid2D}
+	 */
 
+	@Override
+	public void adjustTo(DiscretePulse pulse) {
+		super.adjustTo(pulse);
+		if(pulse instanceof DiscretePulse2D)
+			optimise((DiscretePulse2D)pulse);
+	}
+	
+	public void optimise(DiscretePulse2D pulse) {
+		for (final var factor = 1.05; factor * hy > pulse.getDiscretePulseSpot(); pulse.recalculate(SPOT_DIAMETER)) {
+			N += 5;
+			hy = 1. / N;
+			hx = 1. / N;
+		}
+		
+	}
+	
 	/**
 	 * Sets the value of the {@code gridDensity}. Automatically recalculates the
 	 * {@code hx} an {@code hy} values.
@@ -59,16 +88,16 @@ public class Grid2D extends Grid {
 	 */
 
 	public double gridRadialDistance(double radial, double lengthFactor) {
-		return Math.rint((radial / lengthFactor) / hy) * hy;
+		return rint((radial / lengthFactor) / hy) * hy;
 	}
 
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder();
+		var sb = new StringBuilder();
 		sb.append("<html>");
-		sb.append("Grid2D: <math><i>h<sub>x</sub></i>=" + String.format("%3.3f", hx) + "; ");
-		sb.append("<math><i>h<sub>y</sub></i>=" + String.format("%3.3f", hy) + "; ");
-		sb.append("<i>&tau;</i>=" + String.format("%3.4f", tau));
+		sb.append("Grid2D: <math><i>h<sub>x</sub></i>=" + format("%3.3f", hx) + "; ");
+		sb.append("<math><i>h<sub>y</sub></i>=" + format("%3.3f", hy) + "; ");
+		sb.append("<i>&tau;</i>=" + format("%3.4f", tau));
 		return sb.toString();
 	}
 

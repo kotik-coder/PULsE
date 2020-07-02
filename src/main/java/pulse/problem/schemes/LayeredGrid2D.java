@@ -1,5 +1,15 @@
 package pulse.problem.schemes;
 
+import static pulse.problem.schemes.Partition.Location.CORE_X;
+import static pulse.problem.schemes.Partition.Location.CORE_Y;
+import static pulse.problem.schemes.Partition.Location.FRONT_Y;
+import static pulse.problem.schemes.Partition.Location.REAR_Y;
+import static pulse.problem.schemes.Partition.Location.SIDE_X;
+import static pulse.problem.schemes.Partition.Location.SIDE_Y;
+import static pulse.properties.NumericProperty.def;
+import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericPropertyKeyword.SHELL_GRID_DENSITY;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,8 +26,7 @@ public class LayeredGrid2D extends Grid2D {
 
 	public LayeredGrid2D(Map<Location, Partition> partitions, NumericProperty timeFactor) {
 		h = new HashMap<>(partitions);
-		setGridDensity(
-				NumericProperty.derive(Location.CORE_Y.densityKeyword(), partitions.get(Location.CORE_Y).getDensity()));
+		setGridDensity(derive(CORE_Y.densityKeyword(), partitions.get(CORE_Y).getDensity()));
 		setTimeFactor(timeFactor);
 	}
 
@@ -37,23 +46,23 @@ public class LayeredGrid2D extends Grid2D {
 	@Override
 	public void setGridDensity(NumericProperty gridDensity) {
 		super.setGridDensity(gridDensity);
-		setDensity(Location.CORE_X, gridDensity);
-		setDensity(Location.CORE_Y, gridDensity);
+		setDensity(CORE_X, gridDensity);
+		setDensity(CORE_Y, gridDensity);
 	}
 
 	public NumericProperty getGridDensity(Location location) {
-		return NumericProperty.derive(location.densityKeyword(), h.get(location).getDensity());
+		return derive(location.densityKeyword(), h.get(location).getDensity());
 	}
 
 	@Override
 	public NumericProperty getGridDensity() {
-		return getGridDensity(Location.CORE_X);
+		return getGridDensity(CORE_X);
 	}
 
 	@Override
 	public List<Property> listedTypes() {
 		List<Property> list = new ArrayList<>(2);
-		list.add(NumericProperty.def(NumericPropertyKeyword.SHELL_GRID_DENSITY));
+		list.add(def(SHELL_GRID_DENSITY));
 		return list;
 	}
 
@@ -61,10 +70,10 @@ public class LayeredGrid2D extends Grid2D {
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
 		switch (type) {
 		case SHELL_GRID_DENSITY:
-			setDensity(Location.FRONT_Y, property);
-			setDensity(Location.REAR_Y, property);
-			setDensity(Location.SIDE_X, property);
-			setDensity(Location.SIDE_Y, property);
+			setDensity(FRONT_Y, property);
+			setDensity(REAR_Y, property);
+			setDensity(SIDE_X, property);
+			setDensity(SIDE_Y, property);
 			break;
 		default:
 			super.set(type, property);

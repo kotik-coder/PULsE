@@ -1,8 +1,11 @@
 package pulse.problem.schemes;
 
+import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericPropertyKeyword.GRID_DENSITY;
+import static pulse.properties.NumericPropertyKeyword.TAU_FACTOR;
+import static pulse.ui.Messages.getString;
+
 import pulse.properties.NumericProperty;
-import pulse.properties.NumericPropertyKeyword;
-import pulse.ui.Messages;
 
 /**
  * This class implements the simple explicit finite-difference scheme (also
@@ -38,26 +41,12 @@ import pulse.ui.Messages;
 public abstract class ExplicitScheme extends DifferenceScheme {
 
 	/**
-	 * The default value of {@code tauFactor}, which is set to {@code 0.5} for this
-	 * scheme.
-	 */
-
-	public final static NumericProperty TAU_FACTOR = NumericProperty.derive(NumericPropertyKeyword.TAU_FACTOR, 0.5);
-
-	/**
-	 * The default value of {@code gridDensity}, which is set to {@code 80} for this
-	 * scheme.
-	 */
-
-	public final static NumericProperty GRID_DENSITY = NumericProperty.derive(NumericPropertyKeyword.GRID_DENSITY, 80);
-
-	/**
 	 * Constructs a default explicit scheme using the default values of
 	 * {@code GRID_DENSITY} and {@code TAU_FACTOR}.
 	 */
 
 	public ExplicitScheme() {
-		this(GRID_DENSITY, TAU_FACTOR);
+		this(derive(GRID_DENSITY, 80), derive(TAU_FACTOR, 0.5) );
 	}
 
 	/**
@@ -98,7 +87,7 @@ public abstract class ExplicitScheme extends DifferenceScheme {
 
 	@Override
 	public String toString() {
-		return Messages.getString("ExplicitScheme.4");
+		return getString("ExplicitScheme.4");
 	}
 
 }

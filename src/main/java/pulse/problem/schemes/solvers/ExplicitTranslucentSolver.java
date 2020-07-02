@@ -48,6 +48,8 @@ public class ExplicitTranslucentSolver extends ExplicitScheme implements Solver<
 		curve = problem.getHeatingCurve();
 
 		absorb = problem.getAbsorptionModel();
+		
+		var grid = getGrid();
 
 		N = (int) grid.getGridDensity().getValue();
 		hx = grid.getXStep();
@@ -79,6 +81,8 @@ public class ExplicitTranslucentSolver extends ExplicitScheme implements Solver<
 		double signal = 0;
 
 		int i, m, w;
+		
+		final var discretePulse = getDiscretePulse();
 
 		/*
 		 * The outer cycle iterates over the number of points of the HeatingCurve
@@ -92,9 +96,9 @@ public class ExplicitTranslucentSolver extends ExplicitScheme implements Solver<
 			 * timeInterval/tau time steps have to be made first.
 			 */
 
-			for (m = (w - 1) * timeInterval + 1; m < w * timeInterval + 1; m++) {
+			for (m = (w - 1) * getTimeInterval() + 1; m < w * getTimeInterval() + 1; m++) {
 
-				pls = discretePulse.evaluateAt((m - EPS) * tau);
+				pls = discretePulse.powerAt((m - EPS) * tau);
 
 				/*
 				 * Uses the heat equation explicitly to calculate the grid-function everywhere
@@ -127,7 +131,7 @@ public class ExplicitTranslucentSolver extends ExplicitScheme implements Solver<
 
 			maxVal = Math.max(maxVal, signal);
 
-			curve.addPoint((w * timeInterval) * tau * problem.timeFactor(), signal);
+			curve.addPoint((w * getTimeInterval()) * tau * problem.timeFactor(), signal);
 
 		}
 
@@ -137,6 +141,7 @@ public class ExplicitTranslucentSolver extends ExplicitScheme implements Solver<
 
 	@Override
 	public DifferenceScheme copy() {
+		var grid = getGrid();
 		return new ExplicitTranslucentSolver(grid.getGridDensity(), grid.getTimeFactor(), getTimeLimit());
 	}
 
