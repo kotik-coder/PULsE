@@ -15,7 +15,7 @@
 
 * Lead developer: Dr. Artem Lunev;
 * Beta testing, validation studies and User Manual by Rob Heymer;
-* Thermal transfer models by: Dr. Artem Lunev and Dr. Teymur Aliev.
+* Thermal transfer models by: Dr. Artem Lunev, Dr. Teymur Aliev, Dr. Vadim Zborovskii.
 
 Licensed under the Apache 2.0 Permissive License.
 
