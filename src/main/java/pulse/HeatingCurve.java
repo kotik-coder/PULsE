@@ -331,9 +331,41 @@ public class HeatingCurve extends PropertyHolder {
 			signal.set(i, signal.get(i) * scale);
 		
 		apply(baseline);
+		refreshInterpolation();
+	}
+	
+	private void refreshInterpolation() {
 		
-		splineInterpolation = splineInterpolator.interpolate( time.stream().mapToDouble(d -> d).toArray(), 
-															  adjustedSignal.stream().mapToDouble(d -> d).toArray() );
+		/*
+		 * Prepare extended time array
+		 */
+		
+		var timeExtended = new double[time.size() + 1];
+		
+		for(int i = 1; i < timeExtended.length; i++)
+			timeExtended[i] = timeAt(i - 1);
+		
+		final double dt = timeExtended[2] - timeExtended[1];
+		timeExtended[0] = timeExtended[1] - dt;	//extrapolate linearly
+		
+		/*
+		 * Prepare extended signal array
+		 */
+		
+		var adjustedSignalExtended = new double[adjustedSignal.size() + 1];
+		
+		for(int i = 1; i < timeExtended.length; i++)
+			adjustedSignalExtended[i] = signalAt(i - 1);
+	
+		final double alpha = -1.0;
+		adjustedSignalExtended[0] = alpha*adjustedSignalExtended[2] - (1.0 - alpha)*adjustedSignalExtended[1]; //extrapolate linearly
+		
+		/*
+		 * Submit to spline interpolation
+		 */
+		
+		splineInterpolation = splineInterpolator.interpolate( timeExtended, 
+															  adjustedSignalExtended );
 	}
 
 	/**
@@ -361,7 +393,7 @@ public class HeatingCurve extends PropertyHolder {
 	 */
 
 	public double timeLimit() {
-		return time.get(time.size() - 1) - startTime;
+		return time.get(time.size() - 1);
 	}
 	
 	@Override
@@ -435,7 +467,7 @@ public class HeatingCurve extends PropertyHolder {
 
 		baselineTime.addAll(time);
 		baselineSignal.addAll(adjustedSignal);
-
+		
 		var newCurve = new HeatingCurve();
 
 		newCurve.time = baselineTime;
@@ -443,6 +475,7 @@ public class HeatingCurve extends PropertyHolder {
 		newCurve.count = newCurve.adjustedSignal.size();
 		newCurve.baseline = baseline;
 		newCurve.name = name;
+		newCurve.startTime = startTime;
 
 		return newCurve;
 

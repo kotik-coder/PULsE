@@ -126,11 +126,13 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 		discretePulse = problem.discretePulseOn(grid);
 		grid.adjustTo(discretePulse);
 
-		final var numPoints = ((Number) problem.getHeatingCurve().getNumPoints().getValue()).doubleValue();
+		var hc = problem.getHeatingCurve();
+		
+		final var numPoints = (int) hc.getNumPoints().getValue();
 		final var dt = timeLimit / (problem.timeFactor() * (numPoints - 1));
 		setTimeInterval( (int) (dt / grid.tau) + 1 );
 
-		problem.getHeatingCurve().reinit();
+		hc.reinit();
 	}
 
 	@Override

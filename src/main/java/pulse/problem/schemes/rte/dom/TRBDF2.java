@@ -183,9 +183,7 @@ public class TRBDF2 extends AdaptiveIntegrator {
                             // OUTWARD
                             // (and zero)
                             // intensities
-                        }// OUTWARD
-			// (and zero)
-			// intensities
+                        }
 
 			// additionally for the diagonal elements
 			aMatrix[i][i] += 1.0 + hd / intensities.ordinates.mu[i + n1];
