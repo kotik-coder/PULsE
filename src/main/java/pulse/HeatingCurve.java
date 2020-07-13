@@ -31,10 +31,10 @@ import pulse.util.PropertyHolder;
 /**
  * The {@code HeatingCurve} represents a time-temperature profile either
  * resulting from a finite-difference calculation or measured directly in the
- * experiment (and then it is called {@code ExperimentalData}).
+ * experiment (and then it is an instance of the {@code ExperimentalData} subclass).
  * <p>
  * The notion of temperature is loosely used here, and this can represent just
- * the pyrometer signal in mV. Unless a nonlinear problem statement is used, the
+ * the detector signal in mV. Unless explicitly specified otherwise, the
  * unit of the temperature can be arbitrary, and only the shape of the heating
  * curve matters when calculating the reverse solution of the heat problem.
  * </p>
@@ -43,23 +43,23 @@ import pulse.util.PropertyHolder;
 
 public class HeatingCurve extends PropertyHolder {
 
-	protected int count;
+	private int count;
 	
-	protected List<Double> time;
-	protected List<Double> signal;
-	protected List<Double> adjustedSignal;
+	private List<Double> time;
+	private List<Double> signal;
+	private List<Double> adjustedSignal;
 	
-	protected Baseline baseline;
+	private Baseline baseline;
 	private double startTime;
 	private String name;
 	
-	private final static int DEFAULT_CLASSIC_PRECISION = 200;
-
 	private List<DataListener> dataListeners;
 	
 	private UnivariateInterpolator	splineInterpolator;
 	private UnivariateFunction		splineInterpolation;
 
+	public final static int DEFAULT_CLASSIC_PRECISION = 200;
+	
 	@Override
 	public boolean equals(Object o) {
 		if (o == this)
@@ -278,10 +278,14 @@ public class HeatingCurve extends PropertyHolder {
 		signal.set(i, T);
 		adjustedSignal.set(i, T + baseline.valueAt(i));
 	}
-
+	
 	public void addPoint(double time, double temperature) {
 		this.time.add(time);
 		this.signal.add(temperature);
+	}
+	
+	protected void incrementCount() {
+		count++;
 	}
 
 	/**
@@ -462,7 +466,7 @@ public class HeatingCurve extends PropertyHolder {
 		if (dataStartIndex < 1) //no extension required
 			return this;
 
-		var baselineTime	= data.time.stream().filter(t -> t < 0).collect(toList());
+		var baselineTime	= data.getTimeSequence().stream().filter(t -> t < 0).collect(toList());
 		var baselineSignal	= baselineTime.stream().map(bTime -> baseline.valueAt(bTime) ).collect(toList());
 
 		baselineTime.addAll(time);
@@ -610,6 +614,10 @@ public class HeatingCurve extends PropertyHolder {
 	
 	public List<Double> getTimeSequence() {
 		return time;
+	}
+
+	public List<Double> getAdjustedSignal() {
+		return adjustedSignal;
 	}
 
 }

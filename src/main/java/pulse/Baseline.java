@@ -31,7 +31,7 @@ import pulse.util.PropertyHolder;
  * {@code g(x) = intercept + slope * x}. {@code Baseline}s are always used in
  * conjunction with respective {@code HeatingCurve} objects. The
  * {@code NumericPropertyKeyword} associated with the {@code intercept} and
- * {@code slope} parameters can be used as fitting variables for
+ * {@code slope} parameters can be used as fitting variables for a
  * {@code SearchTask}, if included in the appropriate {@code IndexedVector}, the
  * latter representing an objective function of the current search.
  * </p>
@@ -46,7 +46,13 @@ public class Baseline extends PropertyHolder {
 	private double intercept;
 	private BaselineType baselineType = CONSTANT;
 
-	private final static double ZERO_LEFT = -1E-5;
+	public final static double ZERO_LEFT = -1E-5;
+
+	/**
+	 * Constructs a new baseline, which is an exact copy of {@code another}.
+	 * 
+	 * @param another the baseline to be copied.
+	 */
 
 	public Baseline(Baseline another) {
 		this.slope = another.slope;
@@ -55,10 +61,12 @@ public class Baseline extends PropertyHolder {
 	}
 
 	/**
-	 * A primitive constructor, which initialises a constant-zero baseline
+	 * A primitive constructor, which initialises a {@code CONSTANT} baseline with
+	 * zero intercept and slope.
 	 */
 
-	public Baseline() { }
+	public Baseline() {
+	}
 
 	/**
 	 * A constructor, which allows to specify all three parameters in one go.
@@ -79,12 +87,12 @@ public class Baseline extends PropertyHolder {
 	/**
 	 * Calculates the linear function {@code g(x) = intercept + slope*time}
 	 * 
-	 * @param time the argument of the linear function
+	 * @param x the argument of the linear function
 	 * @return the result of this simple calculation
 	 */
 
-	public double valueAt(double time) {
-		return intercept + time * slope;
+	public double valueAt(double x) {
+		return intercept + x * slope;
 	}
 
 	/**
@@ -97,7 +105,15 @@ public class Baseline extends PropertyHolder {
 	public NumericProperty getSlope() {
 		return derive(BASELINE_SLOPE, slope);
 	}
-	
+
+	/**
+	 * Checks whether {@code slope} is a baseline slope property and updates the
+	 * respective value of this baseline.
+	 * 
+	 * @param slope a {@code NumericProperty} of the {@code BASELINE_SLOPE} type
+	 * @see set
+	 */
+
 	public void setSlope(NumericProperty slope) {
 		requireType(slope, BASELINE_SLOPE);
 		this.slope = (double) slope.getValue();
@@ -107,21 +123,31 @@ public class Baseline extends PropertyHolder {
 	 * Provides getter accessibility to the intercept as a NumericProperty
 	 * 
 	 * @return a NumericProperty derived from
-	 *         NumericPropertyKeyword.BASELINE_INTERCEPT with a value equal to slop
+	 *         NumericPropertyKeyword.BASELINE_INTERCEPT where the value is set to
+	 *         that of {@code slope}
 	 */
 
 	public NumericProperty getIntercept() {
 		return derive(BASELINE_INTERCEPT, intercept);
 	}
-	
+
+	/**
+	 * Checks whether {@code intercept} is a baseline intercept property and updates
+	 * the respective value of this baseline.
+	 * 
+	 * @param intercept a {@code NumericProperty} of the {@code BASELINE_INTERCEPT}
+	 *                  type
+	 * @see set
+	 */
+
 	public void setIntercept(NumericProperty intercept) {
 		requireType(intercept, BASELINE_INTERCEPT);
 		this.intercept = (double) intercept.getValue();
 	}
 
 	/**
-	 * Lists the intercept, slope, and baselineType as accessible properties for
-	 * this PropertyHolder.
+	 * Lists the {@code intercept, slope, and baselineType} as accessible properties
+	 * for this PropertyHolder.
 	 * 
 	 * @see PropertyHolder
 	 */
@@ -145,30 +171,27 @@ public class Baseline extends PropertyHolder {
 	 * {@code data}.
 	 * <p>
 	 * This will run a simple least-squares estimation of the parameters of this
-	 * baseline using the specified {@code data} object. The estimation will only
-	 * use the {@code T(t)} function values corresponding to
-	 * {@code rangeMin < t < rangeMax} of the loaded {@code data}. If the
-	 * {@code getFittingStartIndex()} method of the {@code data} object returns a
-	 * zero value, this method will do nothing. If no data at
-	 * {@code rangeMin < t < rangeMax} is available, the method will not change the
-	 * {@code intercept} and {@code slope} values. If the {@code BaselineType} is
-	 * {@code CONSTANT}, only the {@code intercept} value will be used as a fitting
-	 * variable. Upon completing, the method will use the respective {@code set}
-	 * methods of this class to update the {@code intercept} and {@code slope}
-	 * values, triggering whatever events are associated with them.
+	 * baseline using the specified {@code data} within the time range {@code rangeMin < t < rangeMax}. 
+	 * If no data is available, the method will NOT change the {@code intercept} and {@code slope}
+	 * values. If the {@code BaselineType} is {@code CONSTANT}, only the
+	 * {@code intercept} value will be used as a fitting variable. Upon completion,
+	 * the method will use the respective {@code set} methods of this class to
+	 * update the {@code intercept} and {@code slope} values, triggering whatever
+	 * events are associated with them.
 	 * </p>
 	 * 
 	 * @param data     the experimental curve, containing sufficient information for
 	 *                 the fitting procedure.
 	 * @param rangeMin the lower bound for the fitting range
 	 * @param rangeMax the upper bound for the fitting range
+	 * @throws IllegalArgumentException if {@code data.getIndexRange()} is not valid
 	 */
 
 	public void fitTo(ExperimentalData data, double rangeMin, double rangeMax) {
 		var indexRange = data.getIndexRange();
 
 		Objects.requireNonNull(indexRange);
-		
+
 		if (!indexRange.isValid())
 			throw new IllegalArgumentException("Index range not valid: " + indexRange);
 
@@ -177,56 +200,55 @@ public class Baseline extends PropertyHolder {
 
 		int size = 0;
 
-		for (int i = IndexRange.closest(rangeMin, data.time) + 1, 
-				 max = min( indexRange.getLowerBound(), IndexRange.closest(rangeMax, data.time) ); 
-				 i < max; i++, size++) {
-		
-			x.add(data.time.get(i));
-			y.add(data.signal.get(i));
-	
+		for (int i = IndexRange.closest(rangeMin, data.getTimeSequence()) + 1, max = min(indexRange.getLowerBound(),
+				IndexRange.closest(rangeMax, data.getTimeSequence())); i < max; i++, size++) {
+
+			x.add(data.timeAt(i));
+			y.add(data.signalAt(i));
+
 		}
 
 		if (size > 0) // do fitting only if data is present
 			doFit(x, y, size);
 
 	}
-	
-	private void doFit(List<Double> x, List<Double> y, int size) { 
+
+	private void doFit(List<Double> x, List<Double> y, int size) {
 		// first pass: compute xbar and ybar
-				double meanx = 0.0, meany = 0.0;
-				double x1, y1;
-				for (int i = 0; i < size; i++) {
-					x1 = x.get(i);
-					y1 = y.get(i);
-					meanx += x1;
-					meany += y1;
-				}
-				meanx /= size;
-				meany /= size;
+		double meanx = 0.0, meany = 0.0;
+		double x1, y1;
+		for (int i = 0; i < size; i++) {
+			x1 = x.get(i);
+			y1 = y.get(i);
+			meanx += x1;
+			meany += y1;
+		}
+		meanx /= size;
+		meany /= size;
 
-				if(baselineType == LINEAR) {
-				
-					// second pass: compute summary statistics
-					double xxbar = 0.0, xybar = 0.0;
-					for (int i = 0; i < size; i++) {
-						x1 = x.get(i);
-						y1 = y.get(i);
-						xxbar += (x1 - meanx) * (x1 - meanx);
-						xybar += (x1 - meanx) * (y1 - meany);
-					}
-	
-					slope = xybar / xxbar;
-					intercept = meany - slope * meanx;
+		if (baselineType == LINEAR) {
 
-				} 
-				
-				else {
-					slope = 0;
-					intercept = meany;
-				}
+			// second pass: compute summary statistics
+			double xxbar = 0.0, xybar = 0.0;
+			for (int i = 0; i < size; i++) {
+				x1 = x.get(i);
+				y1 = y.get(i);
+				xxbar += (x1 - meanx) * (x1 - meanx);
+				xybar += (x1 - meanx) * (y1 - meany);
+			}
 
-				set(BASELINE_INTERCEPT,	derive(BASELINE_INTERCEPT, intercept));
-				set(BASELINE_SLOPE,	derive(BASELINE_SLOPE, slope));
+			slope = xybar / xxbar;
+			intercept = meany - slope * meanx;
+
+		}
+
+		else {
+			slope = 0;
+			intercept = meany;
+		}
+
+		set(BASELINE_INTERCEPT, derive(BASELINE_INTERCEPT, intercept));
+		set(BASELINE_SLOPE, derive(BASELINE_SLOPE, slope));
 	}
 
 	/**
@@ -273,21 +295,29 @@ public class Baseline extends PropertyHolder {
 	 * @param index     0 for the {@code intercept} and 1 for the {@code slope}.
 	 * @param parameter the value of either intercept or slope to be assigned for
 	 *                  this baseline
+	 * @throws IllegalArgumentException if {@code index} takes any values other than 0 or 1
 	 * @see pulse.problem.statements.Problem
 	 * @see pulse.tasks.SearchTask
 	 */
 
 	public void setParameter(int index, double parameter) {
-		if (index == 0)
+
+		switch (index) {
+		case 0:
 			intercept = parameter;
-		else if (index == 1)
+			break;
+		case 1:
 			slope = parameter;
+			break;
+		default:
+			throw new IllegalArgumentException("Invalid index: " + index);
+		}
 
 	}
 
 	/**
 	 * Calls {@code fitTo} using the default time range for the data:
-	 * {@code -Infinity < t < 0}
+	 * {@code -Infinity < t < ZERO_LEFT}, where the upper bound is {@value ZERO_LEFT}.
 	 * 
 	 * @param data the experimental data stretching to negative time values
 	 * @see fitTo
@@ -359,21 +389,6 @@ public class Baseline extends PropertyHolder {
 		}
 
 	}
-
-	/**
-	 * Provides setter accessibility to the {@code slope} and {@code intercept},
-	 * treating them as instances of {@code NumericProperty}.
-	 * <p>
-	 * Note this method does not have a built-in mechanism for checking whether
-	 * {@code NumericPropertyKeyword} corresponds to a suitable value. However, the
-	 * method only works if the {@code type} is set to either either
-	 * {@code BASELINE_INTERCEPT} or {@code BASELINE_SLOPE}.
-	 * </p>
-	 * 
-	 * @param type     the keyword associated with the property
-	 * @param property the NumericProperty object with the NumericPropertyKeyword
-	 *                 set to either BASELINE_INTERCEPT or BASELINE_SLOPE
-	 */
 
 	@Override
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
