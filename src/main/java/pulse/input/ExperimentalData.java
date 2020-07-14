@@ -37,14 +37,14 @@ public class ExperimentalData extends HeatingCurve {
 
 	/**
 	 * This is the cutoff factor which is used as a criterion for data truncation.
-	 * Described in Lunev, A., & Heymer, R. (2020). Review of Scientific Instruments, 91(6), 064902.
+	 * Described in Lunev, A., &amp; Heymer, R. (2020). Review of Scientific Instruments, 91(6), 064902.
 	 */
 	
 	public final static double CUTOFF_FACTOR = 7.2;
 	
 	/**
 	 * The binning factor used to build a crude approximation of the heating curve. 
-	 * Described in Lunev, A., & Heymer, R. (2020). Review of Scientific Instruments, 91(6), 064902.
+	 * Described in Lunev, A., &amp; Heymer, R. (2020). Review of Scientific Instruments, 91(6), 064902.
 	 */
 	
 	public final static int	REDUCTION_FACTOR = 32;
@@ -76,8 +76,8 @@ public class ExperimentalData extends HeatingCurve {
 
 	/**
 	 * Calls reset for both the {@code IndexRange} and {@code Range} objects using the current time sequence.
-	 * @see pulse.input.Range.reset
-	 * @see pulse.input.IndexRange.reset
+	 * @see pulse.input.Range.reset()
+	 * @see pulse.input.IndexRange.reset()
 	 */
 	
 	public void resetRanges() {
@@ -125,7 +125,7 @@ public class ExperimentalData extends HeatingCurve {
 	 * outliers, e.g. when calculating the half-rise time.
 	 * </p>
 	 * 
-	 * The algorithm is described in more detail in Lunev, A., & Heymer, R. (2020). 
+	 * The algorithm is described in more detail in Lunev, A., &amp; Heymer, R. (2020). 
 	 * Review of Scientific Instruments, 91(6), 064902.
 	 * 
 	 * @param reductionFactor the factor, by which the number of points
@@ -133,8 +133,8 @@ public class ExperimentalData extends HeatingCurve {
 	 *                        {@code ExperimentalData}.
 	 * @return a {@code List<Point2D>}, representing the degraded
 	 *         {@code ExperimentalData}.
-	 * @see halfRiseTime
-	 * @see maxTemperature
+	 * @see halfRiseTime()
+	 * @see pulse.HeatingCurve.maxTemperature()
 	 */
 
 	public List<Point2D> runningAverage(int reductionFactor) {
@@ -209,7 +209,7 @@ public class ExperimentalData extends HeatingCurve {
 
 		double halfMax = (max + getBaseline().valueAt(0)) / 2.0;
 
-		int index = IndexRange.closest(halfMax, 
+		int index = IndexRange.closestLeft(halfMax, 
 				degraded.stream().map(point -> point.getY()).collect(Collectors.toList()) 
 				); 
 
@@ -300,7 +300,6 @@ public class ExperimentalData extends HeatingCurve {
 	 * </p>
 	 * 
 	 * @param metadata the new Metadata object
-	 * @see pulse.input.Range.updateMinimum
 	 * @see PropertyHolderListener
 	 */
 

@@ -41,7 +41,6 @@ public class InterpolationDataset {
 	 * @param key the argument, at which interpolation needs to be done (e.g.
 	 *            temperature)
 	 * @return a double, representing the interpolated value
-	 * @see previousTo
 	 */
 
 	public double interpolateAt(double key) {

@@ -200,8 +200,8 @@ public class Baseline extends PropertyHolder {
 
 		int size = 0;
 
-		for (int i = IndexRange.closest(rangeMin, data.getTimeSequence()) + 1, max = min(indexRange.getLowerBound(),
-				IndexRange.closest(rangeMax, data.getTimeSequence())); i < max; i++, size++) {
+		for (int i = IndexRange.closestLeft(rangeMin, data.getTimeSequence()) + 1, max = min(indexRange.getLowerBound(),
+				IndexRange.closestRight(rangeMax, data.getTimeSequence())); i < max; i++, size++) {
 
 			x.add(data.timeAt(i));
 			y.add(data.signalAt(i));
