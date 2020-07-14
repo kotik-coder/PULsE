@@ -3,8 +3,8 @@ package pulse.input.listeners;
 import pulse.HeatingCurve;
 
 /**
- * A {@code DataEvent} is used to track changes happening with
- * {@code ExperimentalData}.
+ * A {@code DataEvent} is used to track changes happening with a
+ * {@code HeatingCurve}.
  *
  */
 
@@ -27,7 +27,7 @@ public class DataEvent {
 	}
 
 	/**
-	 * Used to get the type of this event
+	 * Used to get the type of this event.
 	 * 
 	 * @return the type of this event
 	 */
@@ -37,8 +37,8 @@ public class DataEvent {
 	}
 
 	/**
-	 * Used to get the {@code ExperimentalData} object that has undergone certain
-	 * changes
+	 * Used to get the {@code HeatingCurve} object that has undergone certain
+	 * changes specified by this event type.
 	 * 
 	 * @return the associated data
 	 */

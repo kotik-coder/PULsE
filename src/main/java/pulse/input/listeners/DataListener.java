@@ -2,7 +2,7 @@ package pulse.input.listeners;
 
 /**
  * A listener interface, which is used to listen to {@code DataEvent}s occurring
- * with an {@code ExperimentalData object}.
+ * with an {@code HeatingCurve object}.
  *
  */
 

@@ -10,7 +10,6 @@ import static javax.swing.JFileChooser.DIRECTORIES_ONLY;
 import static javax.swing.SwingConstants.HORIZONTAL;
 import static pulse.io.export.ExportManager.allGrouppedContents;
 import static pulse.io.export.ExportManager.exportAllResults;
-import static pulse.io.export.Exporter.getAllSupportedExtensions;
 import static pulse.io.export.Extension.valueOf;
 import static pulse.io.export.MassExporter.exportGroup;
 import static pulse.tasks.TaskManager.getTaskList;
@@ -175,7 +174,7 @@ public class ExportDialog extends JDialog {
 		directoryField.setEditable(false);
 
 		var formatLabel = new JLabel("Export format:");
-		var formats = new JComboBox<Extension>(getAllSupportedExtensions());
+		var formats = new JComboBox<Extension>( Extension.values() );
 
 		var projectLabel = new JLabel("Project name:");
 		var projectText = new JTextField(projectName);

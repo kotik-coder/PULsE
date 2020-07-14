@@ -13,25 +13,22 @@ import pulse.util.Descriptive;
 import pulse.util.Reflexive;
 
 /**
- * A {@code Saveable} is any individual {@code PULsE} entity that can be saved
- * using a {@code FileOutputStream}.
+ * An {@code Exporter} defines a set of rules to enable exporting of a certain
+ * type of PULsE objects (typically, instances of the PropertyHolder class).
  *
  */
 
 public interface Exporter<T extends Descriptive> extends Reflexive {
 
 	/**
-	 * Gets the default export extension for this {@code Saveable}.
+	 * Gets the default export extension. If not overridedn, will return
+	 * {@code Extension.CSV}.
 	 * 
-	 * @return {@code .html}, if not stated otherwise by overriding this method.
+	 * @return the default export extension
 	 */
 
 	public static Extension getDefaultExportExtension() {
 		return Extension.CSV;
-	}
-
-	public static Extension[] getAllSupportedExtensions() {
-		return Extension.values();
 	}
 
 	/**
@@ -46,10 +43,20 @@ public interface Exporter<T extends Descriptive> extends Reflexive {
 	}
 
 	/**
-	 * Saves the contents to {@code directory} without asking a confirmation from
-	 * the user.
+	 * Exports the available contents to {@code directory} without asking a
+	 * confirmation from the user.
+	 * <p>
+	 * A file is created with the name specified by the {@code describe()} method of
+	 * {@code target} with the extension equal to the third argument of this method.
+	 * A {@code FileOutputStream} writes the contents to the file by invoking
+	 * {@code printToStream} and is closed upon completion.
+	 * </p>
 	 * 
-	 * @param directory the directory where this {@code Saveable} needs to be saved.
+	 * @param directory the directory where the contents will be exported to.
+	 * @param target    a {@code Descriptive} target
+	 * @param extension the file extension. If it is not supported, the exporter
+	 *                  will revert to its default extension
+	 * @see printToStream()
 	 */
 
 	public default void export(T target, File directory, Extension extension) {
@@ -64,18 +71,21 @@ public interface Exporter<T extends Descriptive> extends Reflexive {
 			newFile.createNewFile();
 			var fos = new FileOutputStream(newFile);
 			printToStream(target, fos, supportedExtension);
-
+			fos.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			System.err.println("An exception has been encountered while writing the contents of "
+					+ target.getClass().getSimpleName() + " to " + directory);
 			e.printStackTrace();
 		}
 
 	}
 
 	/**
-	 * Provides a {@code JFileChooser} for the user to select the export destiation
-	 * for this {@code Saveable}.
+	 * Provides a {@code JFileChooser} for the user to select the export destination
+	 * for {@code target}. The name of the file and its extension come from the selection the user makes by
+	 * interacting with the dialog.
 	 * 
+	 * @param target        the exported target
 	 * @param parentWindow  the parent frame.
 	 * @param fileTypeLabel the label describing the specific type of files that
 	 *                      will be saved.
@@ -89,35 +99,51 @@ public interface Exporter<T extends Descriptive> extends Reflexive {
 		fileChooser.setSelectedFile(new File(target.describe()));
 
 		for (var s : getSupportedExtensions()) {
-                    fileChooser.addChoosableFileFilter(
-                            new FileNameExtensionFilter(fileTypeLabel + " (." + s + ")", s.toString().toLowerCase()));
-                }
+			fileChooser.addChoosableFileFilter(
+					new FileNameExtensionFilter(fileTypeLabel + " (." + s + ")", s.toString().toLowerCase()));
+		}
 
 		fileChooser.setAcceptAllFileFilterUsed(false);
 
 		int returnVal = fileChooser.showSaveDialog(parentWindow);
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
+			var file = fileChooser.getSelectedFile();
+			var path = file.getPath();
+			var currentFilter = (FileNameExtensionFilter) fileChooser.getFileFilter();
+			var ext = currentFilter.getExtensions()[0];
+
+			if (!path.contains("."))
+				file = new File(path + "." + ext);
+
 			try {
-				var file = fileChooser.getSelectedFile();
-				var path = file.getPath();
-				var currentFilter = (FileNameExtensionFilter) fileChooser.getFileFilter();
-				var ext = currentFilter.getExtensions()[0];
-
-				if (!path.contains("."))
-					file = new File(path + "." + ext);
-
 				var fos = new FileOutputStream(file);
-
 				printToStream(target, fos, Extension.valueOf(ext.toUpperCase()));
-
+				fos.close();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
+				System.err.println("An exception has been encountered while writing the contents of "
+						+ target.getClass().getSimpleName() + " to " + file);
 				e.printStackTrace();
 			}
 		}
 	}
+	
+	/**
+	 * Defines the class, instances of which can be fed into the exporter to produce a result. 
+	 * @return a class implementing the {@code Descriptive} interface.
+	 */
 
 	public Class<T> target();
+
+	/**
+	 * The interface method should be implemented by the subclasses to define the
+	 * exportable content.
+	 * 
+	 * @param target    the exported target
+	 * @param fos       a FileOutputStream created by the {@code export} method
+	 * @param extension an extension of the file saved on disk
+	 * @see export
+	 * @see askToExport
+	 */
 
 	public void printToStream(T target, FileOutputStream fos, Extension extension);
 
