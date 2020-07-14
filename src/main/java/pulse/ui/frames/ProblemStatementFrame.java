@@ -13,8 +13,8 @@ import static javax.swing.JOptionPane.WARNING_MESSAGE;
 import static javax.swing.JOptionPane.showMessageDialog;
 import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
 import static javax.swing.SwingUtilities.getWindowAncestor;
-import static pulse.input.InterpolationDataset.StandartType.DENSITY;
-import static pulse.input.InterpolationDataset.StandartType.SPECIFIC_HEAT;
+import static pulse.input.InterpolationDataset.StandardType.DENSITY;
+import static pulse.input.InterpolationDataset.StandardType.HEAT_CAPACITY;
 import static pulse.problem.statements.Problem.isSingleStatement;
 import static pulse.problem.statements.ProblemComplexity.HIGH;
 import static pulse.tasks.Status.INCOMPLETE;
@@ -188,7 +188,7 @@ public class ProblemStatementFrame extends JInternalFrame {
 		toolBar.add(btnSimulate);
 
 		btnLoadCv = new LoaderButton(getString("ProblemStatementFrame.LoadSpecificHeatButton")); //$NON-NLS-1$
-		btnLoadCv.setDataType(SPECIFIC_HEAT);
+		btnLoadCv.setDataType(HEAT_CAPACITY);
 		toolBar.add(btnLoadCv);
 
 		btnLoadDensity = new LoaderButton(getString("ProblemStatementFrame.LoadDensityButton")); //$NON-NLS-1$

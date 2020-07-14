@@ -30,9 +30,8 @@ import pulse.util.Reflexive;
 /**
  * <p>
  * {@code Metadata} is the information relating to a specific experiment, which
- * is required to accurately process the {@code ExperimentalData}. It is used to
- * populate the associated {@code Problem}, {@code DifferenceScheme}, and the
- * fitting range of the {@code ExperimentalData}.
+ * can be used by a {@code SearchTask} to process an instance of {@code ExperimentalData}. It is used to
+ * populate the associated {@code Problem}, {@code DifferenceScheme}, and {@code Range} of the {@code ExperimentalData}.
  * </p>
  *
  */
@@ -47,9 +46,10 @@ public class Metadata extends PropertyHolder implements Reflexive {
 			"Pulse Shape Selector", PulseTemporalShape.class);
 	
 	/**
-	 * Creates a {@code Metadata} with the specified parameters.
+	 * Creates a {@code Metadata} with the specified parameters and a default rectangular pulse shape.
+	 * Properties are stored in a {@code TreeSet}.
 	 * 
-	 * @param temperature the NumericProperty with the type
+	 * @param temperature the NumericProperty of the type
 	 *                    {@code NumericPropertyKeyword.TEST_TEMPERATURE}
 	 * @param externalId  an integer, specifying the external ID recorded by the
 	 *                    experimental setup.
@@ -63,8 +63,8 @@ public class Metadata extends PropertyHolder implements Reflexive {
 	}
 	
 	/**
-	 * Gets the external ID usually originating from the original exported
-	 * experimental files. Note this is not a {@code NumericProperty}
+	 * Gets the external ID usually specified in the experimental files. 
+	 * Note this is not a {@code NumericProperty}
 	 * 
 	 * @return an integer, representing the external ID
 	 */
@@ -79,7 +79,7 @@ public class Metadata extends PropertyHolder implements Reflexive {
 	 * @param externalId the value of the external ID
 	 */
 
-	public void setExternalID(int externalId) {
+	private void setExternalID(int externalId) {
 		this.externalID = externalId;
 	}
 
@@ -113,12 +113,29 @@ public class Metadata extends PropertyHolder implements Reflexive {
 	public void setSampleName(String sampleName) {
 		this.sampleName = sampleName;
 	}
+
+	/**
+	 * Searches the internal list of this class for a property with the {@code key} type.
+	 * @return if present, returns a property belonging to this {@code Metadata} with the specified type, otherwise return null.
+	 */
 	
 	@Override
 	public NumericProperty numericProperty(NumericPropertyKeyword key) {
 		var optional = data.stream().filter(p -> p.getType() == key).findFirst();
 		return optional.isPresent() ? optional.get() : null;
 	}
+	
+	/**
+	 * If {@code type} is listed by this {@code Metadata}, will attempt to either set a value to the property belonging
+	 * to this {@code Metadata} and identified by {@code type} or add {@code property} to the internal repository of this
+	 * {@code Metadata}. Triggers {@code firePropertyChanged} upon successful completion.
+	 * @param type the type to be searched for
+	 * @param property a property with the type specified by its first argument. The value of this property will be used 
+	 * to update its counterpart in this {@code Metadata}. The signature of this method is dictated by the use of Reflection API.
+	 * @throws IllegalArgumentException if the types of the arguments do not match or if {@code} property is not a listed parameter 
+	 * @see PropertyHolder.isListedParameter() 
+	 * @see PropertyHolder.firePropertyChanged()
+	 */
 	
 	@Override
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
@@ -170,6 +187,11 @@ public class Metadata extends PropertyHolder implements Reflexive {
 
 	}
 	
+	/**
+	 * Creates a list of data that contain all {@code NumericProperty} objects belonging to this {@code Metadata} and
+	 * an {@code InstanceDescriptor} relating to the pulse shape. 
+	 */
+	
 	@Override
 	public List<Property> data() {
 		var list = new ArrayList<Property>();
@@ -178,6 +200,12 @@ public class Metadata extends PropertyHolder implements Reflexive {
 		return list;
 	}
 
+	/**
+	 * @return If this {@code Metadata} is NOT assigned to a {@code SearchTask}, returns a new {@code Identifier} based on the {@code externalID}.
+	 * Otherwise, calls {@code super.identify()}.
+	 * @see Identifier.externalIdentifier() 
+	 */
+	
 	@Override
 	public Identifier identify() {
 		return getParent() == null ? externalIdentifier(externalID) : super.identify();

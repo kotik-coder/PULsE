@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import pulse.math.IndexedVector;
-import pulse.math.Segment2D;
+import pulse.math.Segment;
 import pulse.math.Vector;
 import pulse.problem.schemes.solvers.SolverException;
 import pulse.properties.NumericProperty;
@@ -66,7 +66,7 @@ public abstract class LinearOptimiser extends PropertyHolder implements Reflexiv
 	 * @see pulse.search.direction.PathSolver.direction(SearchTask)
 	 */
 
-	public static Segment2D domain(IndexedVector x, IndexedVector bounds, Vector p) {
+	public static Segment domain(IndexedVector x, IndexedVector bounds, Vector p) {
 		double alpha = Double.POSITIVE_INFINITY;
 
 		final double EPS = 1E-15;
@@ -81,7 +81,7 @@ public abstract class LinearOptimiser extends PropertyHolder implements Reflexiv
 
 		}
 
-		return new Segment2D(0, alpha);
+		return new Segment(0, alpha);
 	}
 
 	/**

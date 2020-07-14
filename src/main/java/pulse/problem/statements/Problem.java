@@ -18,7 +18,7 @@ import pulse.Baseline;
 import pulse.HeatingCurve;
 import pulse.input.ExperimentalData;
 import pulse.input.InterpolationDataset;
-import pulse.input.InterpolationDataset.StandartType;
+import pulse.input.InterpolationDataset.StandardType;
 import pulse.math.IndexedVector;
 import pulse.math.MathUtils;
 import pulse.problem.laser.DiscretePulse;
@@ -515,7 +515,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 
 	public void setSpecificHeat(NumericProperty cV) {
 		this.cP = (double) cV.getValue();
-		this.firePropertyChanged(InterpolationDataset.getDataset(StandartType.SPECIFIC_HEAT), cV);
+		this.firePropertyChanged(InterpolationDataset.getDataset(StandardType.HEAT_CAPACITY), cV);
 	}
 
 	public NumericProperty getDensity() {
@@ -524,7 +524,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 
 	public void setDensity(NumericProperty p) {
 		this.rho = (double) (p.getValue());
-		this.firePropertyChanged(InterpolationDataset.getDataset(StandartType.DENSITY), p);
+		this.firePropertyChanged(InterpolationDataset.getDataset(StandardType.DENSITY), p);
 	}
 
 	public String shortName() {
@@ -538,12 +538,12 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 	public void setTestTemperature(NumericProperty T) {
 		this.T = (double) T.getValue();
 
-		var heatCapacity = InterpolationDataset.getDataset(StandartType.SPECIFIC_HEAT);
+		var heatCapacity = InterpolationDataset.getDataset(StandardType.HEAT_CAPACITY);
 
 		if (heatCapacity != null)
 			cP = heatCapacity.interpolateAt(this.T);
 
-		var density = InterpolationDataset.getDataset(StandartType.DENSITY);
+		var density = InterpolationDataset.getDataset(StandardType.DENSITY);
 
 		if (density != null)
 			rho = density.interpolateAt(this.T);

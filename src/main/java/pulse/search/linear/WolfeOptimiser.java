@@ -3,7 +3,7 @@ package pulse.search.linear;
 import static java.lang.Math.abs;
 
 import pulse.math.IndexedVector;
-import pulse.math.Segment2D;
+import pulse.math.Segment;
 import pulse.math.Vector;
 import pulse.problem.schemes.solvers.SolverException;
 import pulse.search.direction.Path;
@@ -76,7 +76,7 @@ public class WolfeOptimiser extends LinearOptimiser {
 		final double G1P_ABS = abs(G1P);
 
 		IndexedVector[] params = task.searchVector();
-		Segment2D segment = domain(params[0], params[1], direction);
+		Segment segment = domain(params[0], params[1], direction);
 
 		double ss1 = task.solveProblemAndCalculateDeviation();
 		double ss2;

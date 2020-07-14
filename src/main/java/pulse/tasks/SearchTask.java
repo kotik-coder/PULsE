@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
 
 import pulse.input.ExperimentalData;
 import pulse.input.InterpolationDataset;
-import pulse.input.InterpolationDataset.StandartType;
+import pulse.input.InterpolationDataset.StandardType;
 import pulse.input.Metadata;
 import pulse.math.IndexedVector;
 import pulse.problem.schemes.DifferenceScheme;
@@ -222,7 +222,7 @@ public class SearchTask extends Accessible implements Runnable {
 		if (problem == null)
 			return;
 
-		var cpCurve = getDataset(StandartType.SPECIFIC_HEAT);
+		var cpCurve = getDataset(StandardType.HEAT_CAPACITY);
 
 		if (cpCurve != null) {
 			cp = cpCurve.interpolateAt(testTemperature);
@@ -230,7 +230,7 @@ public class SearchTask extends Accessible implements Runnable {
                                 derive(NumericPropertyKeyword.SPECIFIC_HEAT, cp));
 		}
 
-		var rhoCurve = getDataset(StandartType.DENSITY);
+		var rhoCurve = getDataset(StandardType.DENSITY);
 
 		if (rhoCurve != null) {
 			rho = rhoCurve.interpolateAt(testTemperature);

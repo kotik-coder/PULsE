@@ -8,8 +8,8 @@ import static javax.swing.JOptionPane.INFORMATION_MESSAGE;
 import static javax.swing.JOptionPane.showMessageDialog;
 import static javax.swing.SwingUtilities.getWindowAncestor;
 import static pulse.input.InterpolationDataset.getDataset;
-import static pulse.input.InterpolationDataset.StandartType.DENSITY;
-import static pulse.input.InterpolationDataset.StandartType.SPECIFIC_HEAT;
+import static pulse.input.InterpolationDataset.StandardType.DENSITY;
+import static pulse.input.InterpolationDataset.StandardType.HEAT_CAPACITY;
 import static pulse.io.readers.DataLoader.load;
 import static pulse.io.readers.ReaderManager.getDatasetExtensions;
 import static pulse.ui.Messages.getString;
@@ -28,7 +28,7 @@ import pulse.input.InterpolationDataset;
 @SuppressWarnings("serial")
 public class LoaderButton extends JButton {
 
-	private InterpolationDataset.StandartType dataType;
+	private InterpolationDataset.StandardType dataType;
 	private static File dir;
 
 	public LoaderButton() {
@@ -58,8 +58,8 @@ public class LoaderButton extends JButton {
                 return;
             try {
                 switch (dataType) {
-                    case SPECIFIC_HEAT:
-                        load(SPECIFIC_HEAT, fileChooser.getSelectedFile());
+                    case HEAT_CAPACITY:
+                        load(HEAT_CAPACITY, fileChooser.getSelectedFile());
                         break;
                     case DENSITY:
                         load(DENSITY, fileChooser.getSelectedFile());
@@ -76,7 +76,7 @@ public class LoaderButton extends JButton {
             var size = getDataset(dataType).getData().size();
             var label = "";
             switch (dataType) {
-                case SPECIFIC_HEAT:
+                case HEAT_CAPACITY:
                     label = getString("LoaderButton.5"); //$NON-NLS-1$
                     //$NON-NLS-1$
                     break;
@@ -91,7 +91,7 @@ public class LoaderButton extends JButton {
         });
 	}
 
-	public void setDataType(InterpolationDataset.StandartType dataType) {
+	public void setDataType(InterpolationDataset.StandardType dataType) {
 		this.dataType = dataType;
 	}
 

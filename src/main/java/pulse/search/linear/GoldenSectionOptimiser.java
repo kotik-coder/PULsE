@@ -1,7 +1,7 @@
 package pulse.search.linear;
 
 import pulse.math.IndexedVector;
-import pulse.math.Segment2D;
+import pulse.math.Segment;
 import pulse.math.Vector;
 import pulse.problem.schemes.solvers.SolverException;
 import pulse.tasks.SearchTask;
@@ -54,7 +54,7 @@ public class GoldenSectionOptimiser extends LinearOptimiser {
 		final IndexedVector[] params = task.searchVector();
 		final Vector direction = task.getPath().getDirection();
 
-		Segment2D segment = domain(params[0], params[1], direction);
+		Segment segment = domain(params[0], params[1], direction);
 
 		final double squaredError = Math.pow(searchResolution * PHI * segment.length(), 2);
 		double ss2 = 0;
