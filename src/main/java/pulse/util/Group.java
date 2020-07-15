@@ -4,7 +4,9 @@ import static java.util.stream.Collectors.toList;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class Group extends UpwardsNavigable {
 
@@ -53,6 +55,29 @@ public class Group extends UpwardsNavigable {
 
 		return fields;
 
+	}
+	
+	/**
+	 * <p>
+	 * Recursively analyses all {@code Group} objects that are identified as subgroups to {@code root} 
+	 * (explicitly checks that subgroups exclude parents of {@code root}) and chooses those for which an
+	 * {@code Exporter} exists.
+	 * </p>
+	 * 
+	 * @param root the root group.
+	 * @return a set of unique {@code Group}s objects.
+	 * @see pulse.util.Group.subgroups()
+	 */
+
+	public static Set<Group> contents(Group root) {
+		var contents = new HashSet<Group>();
+
+		root.subgroups().stream().filter(ph -> root.getParent() != ph).forEach(phh -> contents.add(phh));
+
+		for (var it = contents.iterator(); it.hasNext();)
+			contents(it.next()).stream().forEach(a -> contents.add(a));
+
+		return contents;
 	}
 
 	/**

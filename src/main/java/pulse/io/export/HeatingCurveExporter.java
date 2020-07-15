@@ -9,6 +9,14 @@ import java.io.PrintStream;
 
 import pulse.HeatingCurve;
 
+/**
+ * A singleton exporter allows writing the data contained in a heating curve in a two-column format 
+ * to create files conforming to either csv or html extension. The first column always represents the time
+ * sequence, which may be shifted if the associated property of the heating curve is 
+ * non-zero. The second column represents the baseline-adjusted signal.
+ *
+ */
+
 public class HeatingCurveExporter implements Exporter<HeatingCurve> {
 
 	private static HeatingCurveExporter instance = new HeatingCurveExporter();
@@ -33,10 +41,9 @@ public class HeatingCurveExporter implements Exporter<HeatingCurve> {
 			throw new IllegalArgumentException("Format not recognised: " + extension);
 		}
 	}
-
+	
 	/**
-	 * The supported extensions for exporting the data contained in this object.
-	 * Currently include {@code .html} and {@code .csv}.
+	 * Currently, html and csv extensions are supported.
 	 */
 
 	@Override
@@ -107,9 +114,18 @@ public class HeatingCurveExporter implements Exporter<HeatingCurve> {
 
 	}
 
+	/**
+	 * Returns the single instance of this subclass.
+	 * @return an instance of {@code HeatingCurveExporter}.
+	 */
+	
 	public static HeatingCurveExporter getInstance() {
 		return instance;
 	}
+	
+	/**
+	 * @return the {@code HeatingCurve} class.
+	 */
 
 	@Override
 	public Class<HeatingCurve> target() {

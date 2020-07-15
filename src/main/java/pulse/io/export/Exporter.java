@@ -56,11 +56,15 @@ public interface Exporter<T extends Descriptive> extends Reflexive {
 	 * @param target    a {@code Descriptive} target
 	 * @param extension the file extension. If it is not supported, the exporter
 	 *                  will revert to its default extension
+	 * @throws IllegalArgumentException if {@code directory} is not really a directory
 	 * @see printToStream()
 	 */
 
 	public default void export(T target, File directory, Extension extension) {
 
+		if (!directory.isDirectory())
+			throw new IllegalArgumentException("Not a directory: " + directory);
+		
 		var supportedExtension = extension;
 
 		if (!Arrays.stream(getSupportedExtensions()).anyMatch(extension::equals))
@@ -135,14 +139,16 @@ public interface Exporter<T extends Descriptive> extends Reflexive {
 	public Class<T> target();
 
 	/**
-	 * The interface method should be implemented by the subclasses to define the
-	 * exportable content.
+	 * The interface method is implemented by the subclasses to define the
+	 * exportable content in detail. Depending on the supported extensions, this 
+	 * will typically involve a switch statement that will invoke private methods
+	 * defined in the subclass handling the different choices.
 	 * 
 	 * @param target    the exported target
 	 * @param fos       a FileOutputStream created by the {@code export} method
 	 * @param extension an extension of the file saved on disk
-	 * @see export
-	 * @see askToExport
+	 * @see export(T, File, extension)
+	 * @see askToExport(T, JFrame, String)
 	 */
 
 	public void printToStream(T target, FileOutputStream fos, Extension extension);

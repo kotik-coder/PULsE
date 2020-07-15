@@ -5,6 +5,7 @@ import static java.time.LocalDateTime.now;
 import static java.time.format.DateTimeFormatter.ISO_WEEK_DATE;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
+import static pulse.util.Group.contents;
 import static pulse.tasks.Status.DONE;
 import static pulse.tasks.Status.IN_PROGRESS;
 import static pulse.tasks.Status.QUEUED;
@@ -23,6 +24,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
@@ -36,6 +38,7 @@ import pulse.tasks.listeners.TaskRepositoryEvent;
 import pulse.tasks.listeners.TaskRepositoryListener;
 import pulse.tasks.listeners.TaskSelectionEvent;
 import pulse.tasks.listeners.TaskSelectionListener;
+import pulse.util.Group;
 import pulse.util.UpwardsNavigable;
 
 /**
@@ -62,8 +65,7 @@ public class TaskManager extends UpwardsNavigable {
 	private static List<TaskSelectionListener> selectionListeners = new CopyOnWriteArrayList<TaskSelectionListener>();
 	private static List<TaskRepositoryListener> taskRepositoryListeners = new CopyOnWriteArrayList<TaskRepositoryListener>();
 
-	private static final String DEFAULT_NAME = "Project 1 - "
-			+ now().format(ISO_WEEK_DATE);
+	private static final String DEFAULT_NAME = "Project 1 - " + now().format(ISO_WEEK_DATE);
 
 	private TaskManager() {
 
@@ -98,13 +100,13 @@ public class TaskManager extends UpwardsNavigable {
 		// run task t -- after task completed, write result and trigger listeners
 
 		CompletableFuture.runAsync(t).thenRun(() -> {
-            if (t.getStatus() == DONE) {
-                results.put(t, new Result(t, ResultFormat.getInstance()));
-            }
-            var e = new TaskRepositoryEvent(TASK_FINISHED, t.getIdentifier());
-            notifyListeners(e);
-        });
-		
+			if (t.getStatus() == DONE) {
+				results.put(t, new Result(t, ResultFormat.getInstance()));
+			}
+			var e = new TaskRepositoryEvent(TASK_FINISHED, t.getIdentifier());
+			notifyListeners(e);
+		});
+
 	}
 
 	/**
@@ -230,8 +232,8 @@ public class TaskManager extends UpwardsNavigable {
 	private static void fireTaskSelected(Object source) {
 		var e = new TaskSelectionEvent(source);
 		for (var l : selectionListeners) {
-                    l.onSelectionChanged(e);
-                }
+			l.onSelectionChanged(e);
+		}
 	}
 
 	/**
@@ -244,8 +246,7 @@ public class TaskManager extends UpwardsNavigable {
 
 	public static void clear() {
 		tasks.stream().sorted((t1, t2) -> -t1.getIdentifier().compareTo(t2.getIdentifier())).forEach(task -> {
-			var e = new TaskRepositoryEvent(TASK_REMOVED,
-					task.getIdentifier());
+			var e = new TaskRepositoryEvent(TASK_REMOVED, task.getIdentifier());
 
 			notifyListeners(e);
 		});
@@ -527,6 +528,15 @@ public class TaskManager extends UpwardsNavigable {
 
 	public static void evaluate() {
 		tasks.stream().forEach(t -> t.calculateThermalProperties());
+	}
+
+	public static Set<Group> allGrouppedContents() {
+
+		return getTaskList().stream().map(t -> contents(t)).reduce((a, b) -> {
+			a.addAll(b);
+			return a;
+		}).get();
+
 	}
 
 }
