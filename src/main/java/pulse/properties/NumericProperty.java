@@ -219,7 +219,7 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
 
 	@Override
 	public String toString() {
-		return (type + " = " + formattedValue(false));
+		return (type + " = " + formattedValueAndError(false));
 	}
 
 	/**
@@ -229,8 +229,24 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
 	 */
 
 	@Override
-	public String formattedValue() {
-		return this.formattedValue(true);
+	public String formattedOutput() {
+		return formattedValueAndError(true);
+	}
+	
+	public String valueOutput() {
+		return numberFormat(true).format( valueInCurrentUnits() );
+	}
+	
+	public String errorOutput() {
+		return numberFormat(true).format( errorInCurrentUnits() );
+	}
+	
+	public Number valueInCurrentUnits() {
+		return value instanceof Double ? (double) value * dimensionFactor.doubleValue() : (int) value;
+	}
+	
+	public double errorInCurrentUnits() {
+		return error == null ? 0.0 : (double) error * dimensionFactor.doubleValue();
 	}
 
 	public NumberFormat numberFormat(boolean convertDimension) {
@@ -268,7 +284,7 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
 	 *         {@code NumericProperty} and its {@code error}
 	 */
 
-	public String formattedValue(boolean convertDimension) {
+	public String formattedValueAndError(boolean convertDimension) {
 
 		if (value instanceof Integer) {
 			Number val = convertDimension ? value.intValue() * dimensionFactor.intValue() : value.intValue();
@@ -281,7 +297,7 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
 		final double LOWER_LIMIT = 1e-2; // the lower limit, used for formatting
 		final double ZERO = 1e-30;
 
-		double adjustedValue = convertDimension ? (double) value * dimensionFactor.doubleValue() : (double) value;
+		double adjustedValue = convertDimension ? valueInCurrentUnits().doubleValue() : (double) value;
 
 		double absAdjustedValue = Math.abs(adjustedValue);
 

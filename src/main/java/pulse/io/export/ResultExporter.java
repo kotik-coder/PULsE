@@ -8,6 +8,12 @@ import java.io.PrintStream;
 
 import pulse.tasks.Result;
 
+/**
+ * Provides export capabilities for instances of the {@code Result} class
+ * both in the {@code csv} and {@code html} formats.
+ *
+ */
+
 public class ResultExporter implements Exporter<Result> {
 
 	private static ResultExporter instance = new ResultExporter();
@@ -17,7 +23,7 @@ public class ResultExporter implements Exporter<Result> {
 	}
 
 	/**
-	 * Prints the data of this Result with {@code fos} in an html-format.
+	 * Prints the data of this {@code Result} with {@code fos} either in a {@code html} or a {@code csv} file format.
 	 */
 
 	@Override
@@ -44,7 +50,7 @@ public class ResultExporter implements Exporter<Result> {
                     
                     stream.print(p.getDescriptor(true));
                     stream.print("</td><td>");
-                    stream.print(p.formattedValue(true));
+                    stream.print(p.formattedValueAndError(true));
                     
                     stream.print("</td>");
                     stream.println("</tr>");
@@ -55,8 +61,7 @@ public class ResultExporter implements Exporter<Result> {
 	}
 
 	/**
-	 * The supported extensions for exporting the data contained in this object.
-	 * Currently include {@code .html} and {@code .csv}.
+	 * Currently the supported extensions include {@code .html} and {@code .csv}.
 	 */
 
 	@Override
@@ -69,17 +74,26 @@ public class ResultExporter implements Exporter<Result> {
                 stream.print("(Results)");
                 
                 for (var p : result.getProperties()) {
-                    stream.printf("%n%-20.10s", p.getType());
-                    stream.printf("\t%-20.10s", p.formattedValue(true));
+                    stream.printf("%n%-24.12s", p.getType());
+                    stream.printf("\t%-24.12s", p.formattedValueAndError(true));
                 }
             }
 	}
+	
+	/**
+	 * @return {@code Result.class}
+	 */
 
 	@Override
 	public Class<Result> target() {
 		return Result.class;
 	}
 
+	/**
+	 * Returns the single static instance of this class.
+	 * @return instance an instance of this class.
+	 */
+	
 	public static ResultExporter getInstance() {
 		return instance;
 	}

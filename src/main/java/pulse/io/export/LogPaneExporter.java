@@ -26,7 +26,8 @@ public class LogPaneExporter implements Exporter<LogPane> {
 	
 	/**
 	 * This will write all contents of {@code pane}, which are accessed using an {@code HTMLEditorKit}
-	 * directly to {@code fos}. The {@code extension} argument is ignored.
+	 * directly to {@code fos}. The {@code extension} argument is ignored. After exporting, the stream
+	 * is explicitly closed.
 	 */
 	
 	@Override
@@ -36,6 +37,12 @@ public class LogPaneExporter implements Exporter<LogPane> {
 			kit.write(fos, pane.getDocument(), 0, pane.getDocument().getLength());
 		} catch (IOException | BadLocationException e) {
 			System.err.println("Could not export the log pane!");
+			e.printStackTrace();
+		}
+		try {
+			fos.close();
+		} catch (IOException e) {
+			System.err.println("Unable to close stream");
 			e.printStackTrace();
 		}
 	}

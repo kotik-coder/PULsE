@@ -21,7 +21,7 @@ public interface Property {
 	 * @return a formatted {@code String} representing the {@code value}
 	 */
 
-	public default String formattedValue() {
+	public default String formattedOutput() {
 		return getValue().toString();
 	};
 

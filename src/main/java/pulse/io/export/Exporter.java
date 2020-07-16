@@ -142,7 +142,8 @@ public interface Exporter<T extends Descriptive> extends Reflexive {
 	 * The interface method is implemented by the subclasses to define the
 	 * exportable content in detail. Depending on the supported extensions, this 
 	 * will typically involve a switch statement that will invoke private methods
-	 * defined in the subclass handling the different choices.
+	 * defined in the subclass handling the different choices. The stream {@code fos}
+	 * is usually closed implicitly in a try-with-resource clause.
 	 * 
 	 * @param target    the exported target
 	 * @param fos       a FileOutputStream created by the {@code export} method

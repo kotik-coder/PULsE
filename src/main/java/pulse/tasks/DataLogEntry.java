@@ -93,7 +93,7 @@ public class DataLogEntry extends LogEntry {
 			sb.append("<td>");
 			sb.append(Messages.getString("DataLogEntry.FontTagNumber")); //$NON-NLS-1$
 			sb.append("<b>");
-			sb.append(p.formattedValue());
+			sb.append(p.formattedOutput());
 			sb.append("</b>");
 			sb.append(Messages.getString("DataLogEntry.FontTagClose")); //$NON-NLS-1$
 			sb.append("</td>");

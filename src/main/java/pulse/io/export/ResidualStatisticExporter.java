@@ -9,6 +9,12 @@ import java.io.PrintStream;
 
 import pulse.search.statistics.ResidualStatistic;
 
+/**
+ * Exports the residuals, where each residual value refers to a specific point in time. 
+ * Implements both the csv and html formats.
+ *
+ */
+
 public class ResidualStatisticExporter implements Exporter<ResidualStatistic> {
 
 	private static ResidualStatisticExporter instance = new ResidualStatisticExporter();
@@ -17,11 +23,19 @@ public class ResidualStatisticExporter implements Exporter<ResidualStatistic> {
 		// intentionally left blank
 	}
 
+	/**
+	 * @return {@code ResidualStatistic.class}
+	 */
+	
 	@Override
 	public Class<ResidualStatistic> target() {
 		return ResidualStatistic.class;
 	}
 
+	/**
+	 * Prints the residuals in a two-column format in a {@code html} or {@code csv} file (accepts both extensions).
+	 */
+	
 	@Override
 	public void printToStream(ResidualStatistic rs, FileOutputStream fos, Extension extension) {
 		switch (extension) {
@@ -94,6 +108,11 @@ public class ResidualStatisticExporter implements Exporter<ResidualStatistic> {
 
 	}
 
+	/**
+	 * Retrieves the single instance of this class.
+	 * @return a single instance of {@code ResidualStatisticExporter}.
+	 */
+	
 	public static ResidualStatisticExporter getInstance() {
 		return instance;
 	}

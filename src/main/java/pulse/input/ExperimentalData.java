@@ -91,7 +91,7 @@ public class ExperimentalData extends HeatingCurve {
 		sb.append("Experimental data ");
 		if (metadata.getSampleName() != null)
 			sb.append("for " + metadata.getSampleName() + " ");
-		sb.append("(" + metadata.numericProperty(TEST_TEMPERATURE).formattedValue(false) + ")");
+		sb.append("(" + metadata.numericProperty(TEST_TEMPERATURE).formattedValueAndError(false) + ")");
 		return sb.toString();
 	}
 

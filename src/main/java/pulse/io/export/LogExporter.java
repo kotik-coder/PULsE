@@ -3,6 +3,7 @@ package pulse.io.export;
 import static pulse.io.export.Extension.HTML;
 
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.PrintStream;
 
 import pulse.tasks.Log;
@@ -34,7 +35,7 @@ public class LogExporter implements Exporter<Log> {
 	/**
 	 * Prints all the data contained in this {@code Log} using {@code fos}. By
 	 * default, this will output all data in an {@code html} format. Note this implementation
-	 * ignores the {@code extension} parameter.
+	 * ignores the {@code extension} parameter. After execution, the stream is explicitly closed.
 	 * @param a log to be exported
 	 * @see pulse.tasks.Log.toString()
 	 */
@@ -43,6 +44,12 @@ public class LogExporter implements Exporter<Log> {
 	public void printToStream(Log log, FileOutputStream fos, Extension extension) {
 		var stream = new PrintStream(fos);
 		stream.print(log.toString());
+		try {
+			fos.close();
+		} catch (IOException e) {
+			System.err.println("Unable to close stream");
+			e.printStackTrace();
+		}
 	}
 	
 	/**

@@ -31,7 +31,7 @@ public class NumericPropertyRenderer extends DefaultTableCellRenderer {
 			int row, int column) {
 
 		if (value instanceof NumericProperty)
-			return initTextField(((Property) value).formattedValue(), table.isRowSelected(row));
+			return initTextField(((Property) value).formattedOutput(), table.isRowSelected(row));
 
 		return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 

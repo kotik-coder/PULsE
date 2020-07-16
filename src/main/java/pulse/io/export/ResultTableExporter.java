@@ -17,7 +17,7 @@ public class ResultTableExporter implements Exporter<ResultTable> {
 	private static ResultTableExporter instance = new ResultTableExporter();
 
 	private ResultTableExporter() {
-
+		// intentionally blank
 	}
 
 	@Override
@@ -39,171 +39,117 @@ public class ResultTableExporter implements Exporter<ResultTable> {
 		}
 	}
 
-	/*
-	 * PRINTING METHODS
-	 */
+	private void printHeaderCSV(ResultTable table, PrintStream stream) {
+		NumericPropertyKeyword p = null;
+		for (int col = 0; col < table.getColumnCount(); col++) {
+			p = ((ResultTableModel) table.getModel()).getFormat().fromAbbreviation(table.getColumnName(col));
+			stream.print(p + "\t");
+			stream.print("STDEV" + "\t");
+		}
+		stream.println("");
+	}
+
+	private void printIndividualCSV(NumericProperty p, PrintStream stream) {
+		stream.print(p.valueOutput() + "\t" + p.errorOutput() + "\t");
+	}
 
 	private void printCSV(ResultTable table, FileOutputStream fos) {
-            try (PrintStream stream = new PrintStream(fos)) {
-                NumericPropertyKeyword p = null;
-                
-                for (int col = 0; col < table.getColumnCount(); col++) {
-                    p = ((ResultTableModel) table.getModel()).getFormat().fromAbbreviation(table.getColumnName(col));
-                    stream.print(p + "\t");
-                    stream.print("STD. DEV" + "\t");
-                }
-                
-                stream.println("");
-                
-                NumericProperty tmp;
-                String output;
-                
-                for (int i = 0; i < table.getRowCount(); i++) {
-                    for (int j = 0; j < table.getColumnCount(); j++) {
-                        tmp = (NumericProperty) table.getValueAt(i, j);
-                        output = tmp.formattedValue().replaceAll("[^a-zA-Z0-9.E+-]", "\t");
-                        stream.print(output + "\t");
-                        if (tmp.getError() == null)
-                            stream.print("0.0\t");
-                    }
-                    stream.println();
-                }
-                
-                List<AbstractResult> results = ((ResultTableModel) table.getModel()).getResults();
-                
-                boolean printMore = false;
-                
-                for (AbstractResult ar : results) {
-                    if (ar instanceof AverageResult)
-                        printMore = true;
-                }
-                
-                if (!printMore) {
-                    stream.close();
-                    return;
-                }
-                
-                stream.println("");
-                stream.print(Messages.getString("ResultTable.SeparatorCSV"));
-                stream.println("");
-                
-                for (int col = 0; col < table.getColumnCount(); col++) {
-                    p = ((ResultTableModel) table.getModel()).getFormat().fromAbbreviation(table.getColumnName(col));
-                    stream.print(p + "\t");
-                    stream.print("STD. DEV" + "\t");
-                }
-                
-                stream.println();
-                
-                List<AbstractResult> ir;
-                List<NumericProperty> props;
-                
-                for (AbstractResult r : results) {
-                    if (r instanceof AverageResult) {
-                        ir = ((AverageResult) r).getIndividualResults();
-                        
-                        for (AbstractResult aar : ir) {
-                            props = AbstractResult.filterProperties(aar);
-                            
-                            for (int j = 0; j < table.getColumnCount(); j++) {
-                                output = props.get(j).formattedValue().replaceAll("[^a-zA-Z0-9.E+-]", "\t");
-                                stream.print(output + "\t");
-                                if (props.get(j).getError() == null)
-                                    stream.print("0.0\t");
-                            }
-                            
-                            stream.println();
-                            
-                        }
-                        
-                    }
-                }
-            }
+		try (PrintStream stream = new PrintStream(fos)) {
+
+			printHeaderCSV(table, stream);
+
+			for (int i = 0; i < table.getRowCount(); i++) {
+				for (int j = 0; j < table.getColumnCount(); j++)
+					printIndividualCSV((NumericProperty) table.getValueAt(i, j), stream);
+				stream.println();
+			}
+
+			List<AbstractResult> results = ((ResultTableModel) table.getModel()).getResults();
+
+			if (results.stream().anyMatch(r -> r instanceof AverageResult)) {
+
+				stream.println("");
+				stream.print(Messages.getString("ResultTable.SeparatorCSV"));
+				stream.println("");
+
+				printHeaderCSV(table, stream);
+
+				results.stream().filter(r -> r instanceof AverageResult)
+						.forEach(ar -> ((AverageResult) ar).getIndividualResults().stream().forEach(ir -> {
+							var props = AbstractResult.filterProperties(ir);
+
+							for (int j = 0; j < table.getColumnCount(); j++)
+								printIndividualCSV(props.get(j), stream);
+
+							stream.println();
+						}));
+
+			}
+
+		}
+
+	}
+
+	private void printHeaderHTML(ResultTable table, PrintStream stream, String caption) {
+		stream.print(Messages.getString("ResultTableExporter.style"));
+		stream.print("<caption>" + caption + "</caption>");
+		stream.print("<thead><tr>");
+
+		for (int col = 0; col < table.getColumnCount(); col++) {
+			stream.print("<th>");
+			stream.print(table.getColumnName(col) + "\t");
+			stream.print("</th>");
+		}
+
+		stream.print("</tr></thead>");
+	}
+	
+	private void printIndividualHTML(NumericProperty p, PrintStream stream) {
+		stream.print("<td>");
+		stream.print(p.formattedOutput());
+		stream.print("</td>");
 	}
 
 	private void printHTML(ResultTable table, FileOutputStream fos) {
-            try (PrintStream stream = new PrintStream(fos)) {
-                stream.print("<table>");
-                stream.print("<tr>");
-                
-                for (int col = 0; col < table.getColumnCount(); col++) {
-                    stream.print("<td>");
-                    stream.print(table.getColumnName(col) + "\t");
-                    stream.print("</td>");
-                }
-                
-                stream.print("</tr>");
-                
-                stream.println("");
-                
-                NumericProperty tmp;
-                
-                for (int i = 0; i < table.getRowCount(); i++) {
-                    stream.print("<tr>");
-                    for (int j = 0; j < table.getColumnCount(); j++) {
-                        stream.print("<td>");
-                        tmp = (NumericProperty) table.getValueAt(i, j);
-                        stream.print(tmp.formattedValue());
-                        stream.print("</td>");
-                    }
-                    stream.println("</tr>");
-                }
-                
-                stream.print("</table>");
-                
-                List<AbstractResult> results = ((ResultTableModel) table.getModel()).getResults();
-                
-                boolean printMore = false;
-                
-                for (AbstractResult ar : results) {
-                    if (ar instanceof AverageResult)
-                        printMore = true;
-                }
-                
-                if (!printMore) {
-                    stream.close();
-                    return;
-                }
-                
-                stream.print(Messages.getString("ResultTable.IndividualResults"));
-                stream.print("<table>");
-                stream.print("<tr>");
-                
-                for (int col = 0; col < table.getColumnCount(); col++) {
-                    stream.print("<td>");
-                    stream.print(table.getColumnName(col) + "\t");
-                    stream.print("</td>");
-                }
-                
-                stream.print("</tr>");
-                
-                stream.println("");
-                
-                List<AbstractResult> ir;
-                List<NumericProperty> props;
-                
-                for (AbstractResult r : results) {
-                    if (r instanceof AverageResult) {
-                        ir = ((AverageResult) r).getIndividualResults();
-                        
-                        for (AbstractResult aar : ir) {
-                            stream.print("<tr>");
-                            props = AbstractResult.filterProperties(aar);
-                            
-                            for (int j = 0; j < table.getColumnCount(); j++) {
-                                stream.print("<td>");
-                                stream.print(props.get(j).formattedValue());
-                                stream.print("</td>");
-                            }
-                            
-                            stream.print("</tr>");
-                        }
-                        
-                    }
-                }
-                
-                stream.print("</table>");
-            }
+		try (PrintStream stream = new PrintStream(fos)) {
+			printHeaderHTML(table, stream, "Exported table (contains either averaged or individual results)");
+
+			stream.println("");
+
+			for (int i = 0; i < table.getRowCount(); i++) {
+				stream.print("<tr>");
+				for (int j = 0; j < table.getColumnCount(); j++)
+					printIndividualHTML( (NumericProperty) table.getValueAt(i, j) , stream);
+				stream.println("</tr>");
+			}
+
+			stream.print("</table>");
+
+			List<AbstractResult> results = ((ResultTableModel) table.getModel()).getResults();
+
+			if (results.stream().anyMatch(r -> r instanceof AverageResult)) {
+
+				stream.print(Messages.getString("ResultTable.IndividualResults"));
+				printHeaderHTML(table, stream, "Exported individual results for each processed task");
+
+				stream.println("");
+
+				results.stream().filter(r -> r instanceof AverageResult)
+				.forEach(ar -> ((AverageResult) ar).getIndividualResults().stream().forEach(ir -> {
+					var props = AbstractResult.filterProperties(ir);
+
+					stream.print("<tr>");
+					for (int j = 0; j < table.getColumnCount(); j++)
+						printIndividualHTML( props.get(j), stream);
+					stream.print("</tr>");
+					
+					stream.println();
+				}));
+
+				stream.print("</table>");
+			}
+
+		}
 	}
 
 	public static ResultTableExporter getInstance() {
