@@ -1,5 +1,6 @@
-package pulse.io.readers;
+package pulse.ui.components;
 
+import java.awt.Window;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -11,15 +12,21 @@ import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-import pulse.input.ExperimentalData;
 import pulse.input.InterpolationDataset;
 import pulse.input.InterpolationDataset.StandardType;
-import pulse.problem.statements.Problem;
+import pulse.io.readers.MetaFilePopulator;
+import pulse.io.readers.ReaderManager;
 import pulse.tasks.SearchTask;
 import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.TaskRepositoryEvent;
 import pulse.ui.Messages;
 import pulse.ui.frames.dialogs.ProgressDialog;
+
+/**
+ * Manages loading the experimental time-temperature profiles, metadata files and {@code InterpolationDataset}s.
+ * Tracks the load progress using a {@code ProgressDialog}.  
+ *
+ */
 
 public class DataLoader {
 
@@ -36,7 +43,15 @@ public class DataLoader {
 	}
 
 	private DataLoader() {
+		// intentionally blank
 	}
+
+	/**
+	 * Initiates a user dialog to load experimental time-temperature profiles. Multiple 
+	 * selection is possible. When the user finalises selection, the {@code TaskManager} will start generating
+	 * tasks using the files selected by the user as input. The tracker progress bar
+	 * is reset and made visible.
+	 */
 
 	public static void loadDataDialog() {
 		var files = userInput(Messages.getString("TaskControlFrame.ExtensionDescriptor"),
@@ -48,39 +63,49 @@ public class DataLoader {
 		}
 
 	}
+	
+	/**
+	 * Asks the user to select a single file containing the metadata, with the extension given by the {@code MetaFilePopulator} class.
+	 * If a valid selection is made and the task list is not empty, proceeds to populating each task's metadata object using the 
+	 * information contained in the selected file. If the task has a problem assigned to it, sets the parameters of that problem
+	 * to match the loaded {@code Metadata}. Throughout the process, progress is monitored in a separate dialog with a {@code JProgressBar}. 
+	 * Upon finishing, the data range will be checked to determine if truncation is needed.
+	 * @see truncateDataDialog
+	 */
 
 	public static void loadMetadataDialog() {
-		MetaFilePopulator reader = MetaFilePopulator.getInstance();
+		var handler = MetaFilePopulator.getInstance();
 		var file = userInputSingle(Messages.getString("TaskControlFrame.ExtensionDescriptor"),
-				reader.getSupportedExtension());
+				handler.getSupportedExtension());
 
-		if (TaskManager.numberOfTasks() > 0 && file != null)
-			progressFrame.trackProgress(TaskManager.numberOfTasks() + 1);
+		if (TaskManager.numberOfTasks() < 1 || file == null)
+			return; // invalid input received, do nothing
+
+		progressFrame.trackProgress(TaskManager.numberOfTasks() + 1);
 
 		// attempt to fill metadata and problem
-		try {
 
-			for (SearchTask task : TaskManager.getTaskList()) {
-				ExperimentalData data = task.getExperimentalCurve();
+		for (SearchTask task : TaskManager.getTaskList()) {
+			var data = task.getExperimentalCurve();
 
-				reader.populate(file, data.getMetadata());
-
-				Problem p = task.getProblem();
-				if (p != null)
-					p.retrieveData(data);
-				progressFrame.incrementProgress();
-
+			try {
+				handler.populate(file, data.getMetadata());
+			} catch (IOException e) {
+				JOptionPane.showMessageDialog(progressFrame, Messages.getString("TaskControlFrame.LoadError"),
+						Messages.getString("TaskControlFrame.IOError"), JOptionPane.ERROR_MESSAGE);
+				e.printStackTrace();
 			}
 
-		} catch (IOException e) {
-			JOptionPane.showMessageDialog(null, Messages.getString("TaskControlFrame.LoadError"),
-					Messages.getString("TaskControlFrame.IOError"), JOptionPane.ERROR_MESSAGE);
-			e.printStackTrace();
+			var p = task.getProblem();
+			if (p != null)
+				p.retrieveData(data);
+			progressFrame.incrementProgress();
+
 		}
 
 		// check if the data loaded needs truncation
 		if (TaskManager.dataNeedsTruncation())
-			truncateDataDialog();
+			truncateDataDialog(progressFrame);
 
 		progressFrame.incrementProgress();
 
@@ -89,9 +114,25 @@ public class DataLoader {
 
 	}
 
-	private static void truncateDataDialog() {
+	/**
+	 * Uses the {@code ReaderManager} to create an {@code InterpolationDataset} from data stored in 
+	 * {@code f} and updates the associated properties of each task.
+	 * 
+	 * @param f a {@code File} containing a property specified by the {@code type}
+	 * @param type the type of the loaded data
+	 * @throws IOException if file cannot be read
+	 * @see pulse.tasks.TaskManager.evaluate
+	 */
+
+	public static void load(StandardType type, File f) throws IOException {
+		Objects.requireNonNull(f);
+		InterpolationDataset.setDataset(ReaderManager.readDataset(f), type);
+		TaskManager.evaluate();
+	}
+
+	private static void truncateDataDialog(Window frame) {
 		Object[] options = { "Truncate", "Do not change" };
-		int answer = JOptionPane.showOptionDialog(null,
+		int answer = JOptionPane.showOptionDialog(frame,
 				("The acquisition time for some experiments appears to be too long.\nIf time resolution is low, the model estimates will be biased.\n\nIt is recommended to allow PULSE to truncate this data.\n\nWould you like to proceed? "), //$NON-NLS-1$
 				"Potential Problem with Data", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options,
 				options[0]);
@@ -144,22 +185,6 @@ public class DataLoader {
 				e.printStackTrace();
 			}
 		return null;
-	}
-
-	/**
-	 * Uses the {@code ReaderManager} to create an {@code InterpolationDataset} from
-	 * {@code f} and updates the thermal properties of each task.
-	 * 
-	 * @param f a {@code File} containing the specific heat (or the heat capacity)
-	 *          data [J/kg/K].
-	 * @throws IOException if file cannot be read
-	 * @see pulse.tasks.SearchTask.calculateThermalProperties()
-	 */
-
-	public static void load(StandardType type, File f) throws IOException {
-		Objects.requireNonNull(f);
-		InterpolationDataset.setDataset(ReaderManager.readDataset(f), type);
-		TaskManager.evaluate();
 	}
 
 }

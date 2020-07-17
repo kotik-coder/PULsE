@@ -8,7 +8,6 @@ import java.io.FileOutputStream;
 import java.io.PrintStream;
 
 import pulse.HeatingCurve;
-import pulse.ui.Messages;
 
 /**
  * A singleton exporter allows writing the data contained in a heating curve in a two-column format 

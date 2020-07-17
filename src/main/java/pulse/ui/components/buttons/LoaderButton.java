@@ -10,9 +10,9 @@ import static javax.swing.SwingUtilities.getWindowAncestor;
 import static pulse.input.InterpolationDataset.getDataset;
 import static pulse.input.InterpolationDataset.StandardType.DENSITY;
 import static pulse.input.InterpolationDataset.StandardType.HEAT_CAPACITY;
-import static pulse.io.readers.DataLoader.load;
 import static pulse.io.readers.ReaderManager.getDatasetExtensions;
 import static pulse.ui.Messages.getString;
+import static pulse.ui.components.DataLoader.load;
 
 import java.awt.Component;
 import java.awt.event.ActionEvent;

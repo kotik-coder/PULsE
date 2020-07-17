@@ -21,8 +21,8 @@ import pulse.input.ExperimentalData;
 public interface CurveReader extends AbstractReader<List<ExperimentalData>> {
 
 	/**
-	 * Basic operation for reading the {@code file} and translating its contents to
-	 * a {@code List} of {@code ExperimentalData} objects.
+	 * Basic operation for reading the {@code file} and converting this to a {@code List} 
+	 * of {@code ExperimentalData} objects.
 	 * <p>
 	 * 
 	 * @param file a {@code File} which has <b>either</b> all information encoded in

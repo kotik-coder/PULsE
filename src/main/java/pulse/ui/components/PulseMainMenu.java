@@ -8,8 +8,6 @@ import static javax.swing.JOptionPane.WARNING_MESSAGE;
 import static javax.swing.JOptionPane.showMessageDialog;
 import static javax.swing.SwingUtilities.getWindowAncestor;
 import static pulse.io.export.ExportManager.exportCurrentTask;
-import static pulse.io.readers.DataLoader.loadDataDialog;
-import static pulse.io.readers.DataLoader.loadMetadataDialog;
 import static pulse.properties.NumericProperty.derive;
 import static pulse.properties.NumericProperty.theDefault;
 import static pulse.properties.NumericPropertyKeyword.BUFFER_SIZE;
@@ -24,6 +22,8 @@ import static pulse.tasks.TaskManager.getSelectedTask;
 import static pulse.tasks.TaskManager.getTaskList;
 import static pulse.tasks.listeners.TaskRepositoryEvent.State.TASK_ADDED;
 import static pulse.ui.Launcher.loadIcon;
+import static pulse.ui.components.DataLoader.loadDataDialog;
+import static pulse.ui.components.DataLoader.loadMetadataDialog;
 import static pulse.util.Reflexive.allDescriptors;
 
 import java.awt.Font;
