@@ -65,7 +65,7 @@ public class ResidualStatisticExporter implements Exporter<ResidualStatistic> {
             try (var stream = new PrintStream(fos)) {
                 var residuals = hc.getResiduals();
                 int residualsLength = residuals == null ? 0 : residuals.size();
-            	stream.print(Messages.getString("ResultTableExporter.style"));
+            	stream.print(getString("ResultTableExporter.style"));
         		stream.print("<caption>Time profile of residuals</caption>");
         		stream.print("<thead><tr>");
                 final String TIME_LABEL = getString("HeatingCurve.6");

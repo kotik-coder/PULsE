@@ -54,7 +54,7 @@ public class HeatingCurveExporter implements Exporter<HeatingCurve> {
 
 	private void printHTML(HeatingCurve hc, FileOutputStream fos) {
             try (var stream = new PrintStream(fos)) {
-            	stream.print(Messages.getString("ResultTableExporter.style"));
+            	stream.print(getString("ResultTableExporter.style"));
         		stream.print("<caption>Time-temperature profile</caption>");
         		stream.print("<thead><tr>");
                 
