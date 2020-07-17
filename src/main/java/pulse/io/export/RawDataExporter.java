@@ -47,5 +47,14 @@ public class RawDataExporter implements Exporter<ExperimentalData> {
 	public void printToStream(ExperimentalData target, FileOutputStream fos, Extension extension) {
 		hcExporter.printToStream(target, fos, extension);
 	}
+	
+	/**
+	 * Currently {@code html} and {@code csv} extensions are supported.
+	 */
+	
+	@Override
+	public Extension[] getSupportedExtensions() {
+		return new Extension[] { Extension.HTML, Extension.CSV };
+	}
 
 }

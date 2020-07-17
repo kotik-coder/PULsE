@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.io.PrintStream;
 
 import pulse.input.Metadata;
+import pulse.ui.Messages;
 
 /**
  * A singleton class used to export {@code Metadata} objects in a html format.
@@ -43,23 +44,22 @@ public class MetadataExporter implements Exporter<Metadata> {
 
 	private void printHTML(Metadata meta, FileOutputStream fos) {
             try (var stream = new PrintStream(fos)) {
-                stream.print("<table>");
-                stream.print("<tr>");
+        		stream.print(Messages.getString("ResultTableExporter.style"));
+        		stream.print("<caption>Metadata table</caption>");
+        		stream.print("<thead><tr>");
                 
                 final String METADATA_LABEL = "Metadata";
                 final String VALUE_LABEL = "Value";
                 
                 stream.print("<html>");
-                stream.print("<td>");
+                stream.print("<th>");
                 stream.print(METADATA_LABEL + "\t");
-                stream.print("</td>");
-                stream.print("<td>");
+                stream.print("</th>");
+                stream.print("<th>");
                 stream.print(VALUE_LABEL + "\t");
-                stream.print("</td>");
+                stream.print("</th>");
                 
-                stream.print("</tr>");
-                
-                stream.println(" ");
+                stream.print("</thead></tr>");
                 
                 var data = meta.data();
                 

@@ -4,11 +4,18 @@ import java.io.File;
 
 import pulse.util.Reflexive;
 
+/**
+ * There are two types of {@code AbstractHandler}s, which are used to either 
+ * update/populate existing objects or convert data into new objects of a given type. The superclass
+ * contains basic methods of checking compliance to a pre-set extension.
+ *
+ */
+
 public interface AbstractHandler extends Reflexive {
 
 	/**
-	 * Returns the supported extension of files, which this {@code AbstractReader}
-	 * is able to process.
+	 * Retrieves the supported extension of files, which this
+	 * {@code AbstractHandler} is able to process.
 	 * 
 	 * @return a {@code String} (usually, lower-case) containing the supported
 	 *         extension.

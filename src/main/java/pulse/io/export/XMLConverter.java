@@ -31,7 +31,8 @@ import pulse.ui.Messages;
 
 /**
  * Used to read and write XML files containing information about the default
- * {@code NumericPropert}ies.
+ * {@code NumericPropert}ies. Is invoked at program start to retrieve the
+ * information XML file in the resource folder.
  *
  */
 
@@ -83,9 +84,9 @@ public class XMLConverter {
 	}
 
 	/**
-	 * Utility method that creates an .xml file listing all public final static
-	 * instances of {@code NumericProperty} found in the {@code NumericProperty}
-	 * class.
+	 * Utility method that creates an {@code .xml} file listing all public final
+	 * static instances of {@code NumericProperty} found in the
+	 * {@code NumericProperty} class.
 	 */
 
 	public static void writeXML() throws ParserConfigurationException, TransformerException {
@@ -109,20 +110,22 @@ public class XMLConverter {
 
 			modifiers = field.getModifiers();
 
-			if (!(Modifier.isPublic(modifiers) && Modifier.isStatic(modifiers) && Modifier.isFinal(modifiers)))
-				continue;
+			//filter only public final static NumericProperties
+			if ( (Modifier.isPublic(modifiers) && Modifier.isStatic(modifiers) && Modifier.isFinal(modifiers)) &&
+					field.getType().equals(NumericProperty.class) ) {
 
-			if (!field.getType().equals(NumericProperty.class))
-				continue;
-			NumericProperty value = null;
-			try {
-				value = (NumericProperty) field.get(null);
-			} catch (IllegalArgumentException | IllegalAccessException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				NumericProperty value = null;
+				try {
+					value = (NumericProperty) field.get(null);
+				} catch (IllegalArgumentException | IllegalAccessException e) {
+					System.out.println("Unable to access field: " + field);
+					e.printStackTrace();
+				}
+				if (value != null)
+					properties.add(value);
+
 			}
-			if (value != null)
-				properties.add(value);
+
 		}
 
 		properties.stream().forEach(p -> XMLConverter.toXML(p, doc, rootElement));
@@ -143,7 +146,9 @@ public class XMLConverter {
 	}
 
 	/**
-	 * Utility method used to read {@code NumericProperty} constants from XML files.
+	 * Utility method used to read {@code NumericProperty} constants from {@code xml} files.
+	 * @param inputStream the input stream used to read data from.
+	 * @return a list of {@code NumericProperty} objects with their attributes specified in the {@code xml} file. 
 	 */
 
 	public static List<NumericProperty> readXML(InputStream inputStream)
@@ -170,7 +175,7 @@ public class XMLConverter {
 				String abbreviation = eElement.getAttribute("abbreviation");
 
 				Number value, minimum, maximum, dimensionFactor;
-
+				
 				if (eElement.getAttribute("primitive-type").equalsIgnoreCase("double")) {
 					value = Double.valueOf(eElement.getAttribute("value"));
 					minimum = Double.valueOf(eElement.getAttribute("minimum"));

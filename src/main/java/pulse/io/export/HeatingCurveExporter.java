@@ -8,6 +8,7 @@ import java.io.FileOutputStream;
 import java.io.PrintStream;
 
 import pulse.HeatingCurve;
+import pulse.ui.Messages;
 
 /**
  * A singleton exporter allows writing the data contained in a heating curve in a two-column format 
@@ -43,7 +44,7 @@ public class HeatingCurveExporter implements Exporter<HeatingCurve> {
 	}
 	
 	/**
-	 * Currently, html and csv extensions are supported.
+	 * Currently {@code html} and {@code csv} extensions are supported.
 	 */
 
 	@Override
@@ -53,19 +54,18 @@ public class HeatingCurveExporter implements Exporter<HeatingCurve> {
 
 	private void printHTML(HeatingCurve hc, FileOutputStream fos) {
             try (var stream = new PrintStream(fos)) {
-                stream.print("<table>");
-                stream.print("<tr>");
+            	stream.print(Messages.getString("ResultTableExporter.style"));
+        		stream.print("<caption>Time-temperature profile</caption>");
+        		stream.print("<thead><tr>");
                 
                 final String TIME_LABEL = getString("HeatingCurve.6");
                 final String TEMPERATURE_LABEL = getString("HeatingCurve.7");
                 
-                stream.print("<td>" + TIME_LABEL + "\t</td>");
-                stream.print("<td>" + TEMPERATURE_LABEL + "\t</td>");
+                stream.print("<th>" + TIME_LABEL + "\t</th>");
+                stream.print("<th>" + TEMPERATURE_LABEL + "\t</th>");
                 
-                stream.print("</tr>");
-                
-                stream.println("");
-                
+                stream.print("</tr></thead>");
+                                
                 double t;
                 double T;
                 

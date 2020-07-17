@@ -8,6 +8,7 @@ import java.io.FileOutputStream;
 import java.io.PrintStream;
 
 import pulse.search.statistics.ResidualStatistic;
+import pulse.ui.Messages;
 
 /**
  * Exports the residuals, where each residual value refers to a specific point in time. 
@@ -64,14 +65,14 @@ public class ResidualStatisticExporter implements Exporter<ResidualStatistic> {
             try (var stream = new PrintStream(fos)) {
                 var residuals = hc.getResiduals();
                 int residualsLength = residuals == null ? 0 : residuals.size();
-                stream.print("<table>");
-                stream.print("<tr>");
+            	stream.print(Messages.getString("ResultTableExporter.style"));
+        		stream.print("<caption>Time profile of residuals</caption>");
+        		stream.print("<thead><tr>");
                 final String TIME_LABEL = getString("HeatingCurve.6");
                 final String RESIDUAL_LABEL = "Residual";
-                stream.print("<td>" + TIME_LABEL + "\t</td>");
-                stream.print("<td>" + RESIDUAL_LABEL + "\t</td>");
-                stream.print("</tr>");
-                stream.println("");
+                stream.print("<th>" + TIME_LABEL + "\t</th>");
+                stream.print("<th>" + RESIDUAL_LABEL + "\t</th>");
+                stream.print("</tr></thead>");
                 double tr, Tr;
                 for (int i = 0; i < residualsLength; i++) {
                     stream.print("<tr>");

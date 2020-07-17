@@ -84,10 +84,7 @@ public class HeatingCurve extends PropertyHolder {
 		if (time.hashCode() != other.time.hashCode())
 			return false;
 
-		if (!time.containsAll(other.time))
-			return false;
-
-		if (!signal.containsAll(other.signal))
+		if ( (!time.containsAll(other.time)) || (!signal.containsAll(other.signal)) )
 			return false;
 
 		return adjustedSignal.containsAll(other.adjustedSignal);

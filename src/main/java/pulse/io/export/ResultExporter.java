@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.io.PrintStream;
 
 import pulse.tasks.Result;
+import pulse.ui.Messages;
 
 /**
  * Provides export capabilities for instances of the {@code Result} class
@@ -42,7 +43,8 @@ public class ResultExporter implements Exporter<Result> {
 
 	private void printHTML(Result result, FileOutputStream fos) {
             try (var stream = new PrintStream(fos)) {
-                stream.print("<table>");
+            	stream.print(Messages.getString("ResultTableExporter.style"));
+        		stream.print("<caption>Calculated parameters</caption>");
                 
                 for (var p : result.getProperties()) {
                     stream.print("<tr>");
