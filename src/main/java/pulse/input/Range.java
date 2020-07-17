@@ -1,11 +1,11 @@
 package pulse.input;
 
+import static java.lang.Math.max;
 import static pulse.properties.NumericProperty.derive;
 import static pulse.properties.NumericProperty.requireType;
 import static pulse.properties.NumericPropertyKeyword.LOWER_BOUND;
-import static pulse.properties.NumericPropertyKeyword.UPPER_BOUND;
 import static pulse.properties.NumericPropertyKeyword.PULSE_WIDTH;
-import static java.lang.Math.max;
+import static pulse.properties.NumericPropertyKeyword.UPPER_BOUND;
 
 import java.util.List;
 

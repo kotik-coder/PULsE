@@ -5,7 +5,6 @@ import static java.time.LocalDateTime.now;
 import static java.time.format.DateTimeFormatter.ISO_WEEK_DATE;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
-import static pulse.util.Group.contents;
 import static pulse.tasks.Status.DONE;
 import static pulse.tasks.Status.IN_PROGRESS;
 import static pulse.tasks.Status.QUEUED;
@@ -17,6 +16,7 @@ import static pulse.tasks.listeners.TaskRepositoryEvent.State.TASK_REMOVED;
 import static pulse.tasks.listeners.TaskRepositoryEvent.State.TASK_RESET;
 import static pulse.tasks.listeners.TaskRepositoryEvent.State.TASK_SUBMITTED;
 import static pulse.ui.Launcher.threadsAvailable;
+import static pulse.util.Group.contents;
 
 import java.io.File;
 import java.io.IOException;

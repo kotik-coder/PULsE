@@ -8,7 +8,6 @@ import java.io.FileOutputStream;
 import java.io.PrintStream;
 
 import pulse.search.statistics.ResidualStatistic;
-import pulse.ui.Messages;
 
 /**
  * Exports the residuals, where each residual value refers to a specific point in time. 

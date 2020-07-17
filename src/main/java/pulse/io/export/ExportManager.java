@@ -11,6 +11,7 @@ import static pulse.util.Reflexive.instancesOf;
 
 import java.io.File;
 import java.util.Objects;
+
 import javax.swing.JFrame;
 
 import pulse.util.Descriptive;

@@ -4,10 +4,10 @@ import static java.lang.Double.valueOf;
 import static java.util.Collections.max;
 import static pulse.input.listeners.DataEventType.TRUNCATED;
 import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericPropertyKeyword.NUMPOINTS;
 import static pulse.properties.NumericPropertyKeyword.PULSE_WIDTH;
 import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
 import static pulse.properties.NumericPropertyKeyword.UPPER_BOUND;
-import static pulse.properties.NumericPropertyKeyword.NUMPOINTS;
 
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
@@ -19,6 +19,7 @@ import pulse.HeatingCurve;
 import pulse.input.listeners.DataEvent;
 import pulse.properties.NumericProperty;
 import pulse.ui.Messages;
+import pulse.util.PropertyHolderListener;
 
 /**
  * <p>
