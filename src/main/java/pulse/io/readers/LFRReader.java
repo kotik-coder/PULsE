@@ -1,9 +1,9 @@
 package pulse.io.readers;
 
-import static pulse.io.readers.CurveReader.sort;
-import static pulse.properties.NumericProperty.*;
-import static pulse.properties.NumericPropertyKeyword.*;
 import static java.lang.Double.parseDouble;
+import static pulse.io.readers.CurveReader.sort;
+import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
 
 import java.io.BufferedReader;
 import java.io.File;
