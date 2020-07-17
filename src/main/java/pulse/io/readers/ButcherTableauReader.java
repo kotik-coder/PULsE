@@ -12,6 +12,13 @@ import java.util.StringTokenizer;
 import pulse.problem.schemes.rte.dom.ButcherTableau;
 import pulse.ui.Messages;
 
+/**
+ * Provides a reader class for Butcher tableaux. This is invoked at program start to 
+ * read the available files in the resource folder (contained in the {@code jar}).
+ * The coefficients are used by an explicit Runge-Kutta solver.
+ *
+ */
+
 public class ButcherTableauReader implements AbstractReader<ButcherTableau> {
 
 	private final static String SUPPORTED_EXTENSION = "rk";
@@ -22,14 +29,15 @@ public class ButcherTableauReader implements AbstractReader<ButcherTableau> {
 	}
 
 	/**
-	 * Reads the Butcher tableau stored in {@code file}. The file contents should
-	 * be arranged as follows: first row contains specific keywords (e.g. FSAL), second and 
-	 * subsequent rows contain the matrix coefficients (the matrix is assumed to be quadratic),
-	 * so the number of columns should be equal to the number of rows; the three final rows 
-	 * correspond to {@code c}, {@code b} and {@code b^} vectors. Consistency should be maintained
-	 *  between the corresponding dimensions.
+	 * Reads the Butcher tableau stored in {@code file}. The file contents should be
+	 * arranged as follows: first row contains specific keywords (e.g. FSAL), second
+	 * and subsequent rows contain the matrix coefficients (the matrix is assumed to
+	 * be quadratic), so the number of columns should be equal to the number of
+	 * rows; the three final rows correspond to {@code c}, {@code b} and {@code b^}
+	 * vectors. Consistency should be maintained between the corresponding
+	 * dimensions.
 	 */
-	
+
 	@Override
 	public ButcherTableau read(File file) throws IOException {
 		Objects.requireNonNull(file, Messages.getString("TBLReader.1"));
@@ -37,15 +45,13 @@ public class ButcherTableauReader implements AbstractReader<ButcherTableau> {
 		// ignore extension!
 
 		String name = file.getName().split("\\.")[0];
-
 		ButcherTableau bt = null;
 
 		String delims = Messages.getString("}{,\t ");
-		StringTokenizer tokenizer;
-						
+
 		try (var fr = new FileReader(file); BufferedReader reader = new BufferedReader(fr)) {
 			// first line with declarations (e.g. FSAL, etc.)
-			tokenizer = new StringTokenizer(reader.readLine());
+			var tokenizer = new StringTokenizer(reader.readLine());
 
 			boolean fsal = false;
 
@@ -53,8 +59,8 @@ public class ButcherTableauReader implements AbstractReader<ButcherTableau> {
 				if (tokenizer.nextToken(delims).equalsIgnoreCase("FSAL"))
 					fsal = true;
 
-			var aMatrix = readMatrix(reader, tokenizer, delims);
-			var v		= readVectors(reader, tokenizer, delims, aMatrix.length);
+			var aMatrix = readMatrix(reader, delims);
+			var v = readVectors(reader, delims, aMatrix.length);
 
 			bt = new ButcherTableau(name, aMatrix, v[0], v[1], v[2], fsal);
 
@@ -64,15 +70,18 @@ public class ButcherTableauReader implements AbstractReader<ButcherTableau> {
 		return bt;
 
 	}
-	
-	private double[][] readMatrix(BufferedReader reader, StringTokenizer tokenizer, String delims) throws IOException {
+
+	private double[][] readMatrix(BufferedReader reader, String delims) throws IOException {
 		List<Double> lineDouble = new ArrayList<>();
-		String line = "";
 		int lineno = 0;
-		int dimension = -1;
-		
-		for (line = reader.readLine(); lineno < dimension; line = reader.readLine(), lineno++) {
+		int dimension = 1;
+
+		StringTokenizer tokenizer;
+
+		for (String line = ""; lineno < dimension; lineno++) {
+			line = reader.readLine();
 			tokenizer = new StringTokenizer(line);
+
 			while (tokenizer.hasMoreTokens())
 				lineDouble.add((ExpressionParser.evaluate(tokenizer.nextToken(delims))));
 			if (lineno == 0)
@@ -81,29 +90,30 @@ public class ButcherTableauReader implements AbstractReader<ButcherTableau> {
 
 		double[][] aMatrix = new double[dimension][dimension];
 
-		for (int i = 0; i < dimension; i++) 
-			for (int j = 0; j < dimension; j++) 
+		for (int i = 0; i < dimension; i++)
+			for (int j = 0; j < dimension; j++)
 				aMatrix[i][j] = lineDouble.get(i * dimension + j);
-		
+
 		return aMatrix;
 	}
-	
-	private double[][] readVectors(BufferedReader reader, StringTokenizer tokenizer, String delims, int dimension) throws IOException {
+
+	private double[][] readVectors(BufferedReader reader, String delims, int dimension) throws IOException {
 		var v = new double[3][dimension];
 
-		String line = "";
 		int lineno = 0;
+		StringTokenizer tokenizer;
 
-		for (; lineno < 3 && line != null; line = reader.readLine(), lineno++) {
+		for (String line = ""; lineno < 3 && line != null; lineno++) {
+			line = reader.readLine();
 			tokenizer = new StringTokenizer(line);
 
-			for (int i = 0; i < dimension; i++) 
+			for (int i = 0; i < dimension && tokenizer.hasMoreTokens(); i++)
 				v[lineno][i] = (ExpressionParser.evaluate(tokenizer.nextToken(delims)));
-			
+
 		}
-		
+
 		return v;
-		
+
 	}
 
 	@Override
