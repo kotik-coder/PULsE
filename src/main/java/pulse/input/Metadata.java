@@ -22,6 +22,7 @@ import pulse.problem.laser.RectangularPulse;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
+import pulse.properties.SampleName;
 import pulse.tasks.Identifier;
 import pulse.util.InstanceDescriptor;
 import pulse.util.PropertyHolder;
@@ -39,8 +40,8 @@ import pulse.util.Reflexive;
 public class Metadata extends PropertyHolder implements Reflexive {
 
 	private Set<NumericProperty> data;
+	private SampleName sampleName;
 	private int externalID;
-	private String sampleName = "UnnamedSample";
 		
 	private InstanceDescriptor<? extends PulseTemporalShape> pulseDescriptor = new InstanceDescriptor<PulseTemporalShape>(
 			"Pulse Shape Selector", PulseTemporalShape.class);
@@ -56,6 +57,7 @@ public class Metadata extends PropertyHolder implements Reflexive {
 	 */
 
 	public Metadata(NumericProperty temperature, int externalId) {
+		sampleName = new SampleName();
 		setExternalID(externalId);
 		pulseDescriptor.setSelectedDescriptor(RectangularPulse.class.getSimpleName());
 		data = new TreeSet<NumericProperty>();
@@ -97,20 +99,20 @@ public class Metadata extends PropertyHolder implements Reflexive {
 	 * Retrieves the sample name. This name is used to create directories when
 	 * exporting the data and also to fill the legend when plotting.
 	 * 
-	 * @return a string representing the sample name
+	 * @return the sample name
 	 */
 
-	public String getSampleName() {
+	public SampleName getSampleName() {
 		return sampleName;
 	}
 
 	/**
-	 * Sets the sample name
+	 * Sets the sample name property.
 	 * 
-	 * @param sampleName a string representing the sample name
+	 * @param sampleName the sample name
 	 */
 
-	public void setSampleName(String sampleName) {
+	public void setSampleName(SampleName sampleName) {
 		this.sampleName = sampleName;
 	}
 
@@ -165,6 +167,7 @@ public class Metadata extends PropertyHolder implements Reflexive {
 		list.add(def(LASER_ENERGY));
 		list.add(def(DETECTOR_GAIN));
 		list.add(def(DETECTOR_IRIS));
+		list.add(new SampleName());
 		list.add(pulseDescriptor);
 		return list;
 	}

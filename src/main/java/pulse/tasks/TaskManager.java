@@ -33,6 +33,7 @@ import java.util.concurrent.ForkJoinPool;
 
 import pulse.input.ExperimentalData;
 import pulse.io.readers.ReaderManager;
+import pulse.properties.SampleName;
 import pulse.search.direction.PathOptimiser;
 import pulse.tasks.listeners.TaskRepositoryEvent;
 import pulse.tasks.listeners.TaskRepositoryListener;
@@ -263,7 +264,7 @@ public class TaskManager extends UpwardsNavigable {
 	 *         task can be found.
 	 */
 
-	public static String getSampleName() {
+	public static SampleName getSampleName() {
 		if (tasks.size() < 1)
 			return null;
 
@@ -476,7 +477,7 @@ public class TaskManager extends UpwardsNavigable {
 
 	@Override
 	public String describe() {
-		return tasks.size() > 0 ? getSampleName() : DEFAULT_NAME;
+		return tasks.size() > 0 ? getSampleName().toString() : DEFAULT_NAME;
 	}
 
 	public static Result getResult(SearchTask t) {

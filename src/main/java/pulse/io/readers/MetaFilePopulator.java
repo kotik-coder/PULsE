@@ -16,19 +16,16 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.StringTokenizer;
 
 import pulse.input.Metadata;
-import pulse.properties.NumericProperty;
-import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 import pulse.ui.Messages;
 import pulse.util.ImmutableDataEntry;
 import pulse.util.InstanceDescriptor;
 
 /**
- * An {@code AbstractReader} capable of reading metafiles.
+ * An {@code AbstractPopulator} capable of handling metafiles.
  * <p>
  * Metafiles are ASCII files storing various experimental parameters for
  * different instances of {@code ExperimentalData}. The {@code Metadata (.met)}
@@ -42,42 +39,41 @@ import pulse.util.InstanceDescriptor;
  * be recorded in tab-separated pairs at the top of the file, such as
  * {@code Sample_Name}, {@code Thickness} (of the sample, in mm),
  * {@code Diameter} (of the sample, in mm), {@code Spot_Diameter} (diameter of
- * laser spot, in mm), {@code PulseShape} (in capitals; e.g.
- * {@code TRAPEZOIDAL}, {@code RECTANGULAR}) and {@code Detector_Iris}. Two line
- * breaks below, a tab-delimited table with headers for variables should contain
- * variable data for each shot. These variables should include ID (which should
- * relate to the final number of the file name for each shot), Test_Temperature
- * (in deg. C), Pulse_Width (the time width of the laser pulse, in ms),
- * {@code Absorbed_Energy} (the energy transmitted by the laser, in J), and
- * Detector_Gain (gain of the detector). If any of the “constants” listed above
- * are variable, then they should be included in the variable table, and vice
- * versa.
+ * laser spot, in mm), {@code TemporalShape} (e.g. {@code TrapezoidalPulse},
+ * {@code RectangularPulse}) and {@code Detector_Iris}. Two line breaks below, a
+ * tab-delimited table with headers for variables should contain variable data
+ * for each shot. These variables should include ID (which should relate to the
+ * final number of the file name for each shot), Test_Temperature (in deg. C),
+ * Pulse_Width (the time width of the laser pulse, in ms), {@code Laser_Energy}
+ * (the energy transmitted by the laser, in J), and Detector_Gain (gain of the
+ * detector). If any of the “constants” listed above are variable, then they
+ * should be included in the variable table, and vice versa.
  * </p>
  * The full list of keywords for the {@code .met} files are listed in the
  * {@code NumericPropertyKeyword} enum.
  * 
  * <p>
- * An example of a valid {@code .met} file is provided below.
+ * An example content of a valid {@code .met} file is provided below.
  * </p>
  * 
  * <pre>
  * <code>
  * Thickness	2.034 						
  * Diameter	9.88 			
- * Spot_Diameter	2 						
+ * Spot_Diameter	10.0 						
  *							
- * ID	Test_Temperature	Pulse_Width	Spot_Diameter	Absorbed_Energy	Detector_Gain	PulseShape	Detector_Iris
- * 200	200	5	2	31.81	50	TRAPEZOIDAL	1
- * 201	196	5	2	31.81	100	TRAPEZOIDAL	1
- * 202	198	5	2	31.81	100	TRAPEZOIDAL	1
- * 203	199	5	2	31.81	50	TRAPEZOIDAL	1
- * 204	199	5	2	31.81	50	TRAPEZOIDAL	1
- * 205	199	5	2	31.81	50	TRAPEZOIDAL	1
- * 206	200	5	2	31.81	50	TRAPEZOIDAL	1
- * 207	200	5	2	31.81	50	TRAPEZOIDAL	1
- * 208	400	5	2	31.81	50	TRAPEZOIDAL	1
- * 209	400	5	2	31.81	20	TRAPEZOIDAL	1
- * 210	400	5	2	31.81	10	TRAPEZOIDAL	1
+ * Test_Temperature	Pulse_Width	Spot_Diameter	Laser_Energy	Detector_Gain	TemporalShape	Detector_Iris
+ * 200	200	5	2	31.81	50	TrapezoidalPulse	1
+ * 201	196	5	2	31.81	100	TrapezoidalPulse	1
+ * 202	198	5	2	31.81	100	TrapezoidalPulse	1
+ * 203	199	5	2	31.81	50	TrapezoidalPulse	1
+ * 204	199	5	2	31.81	50	TrapezoidalPulse	1
+ * 205	199	5	2	31.81	50	TrapezoidalPulse	1
+ * 206	200	5	2	31.81	50	TrapezoidalPulse	1
+ * 207	200	5	2	31.81	50	TrapezoidalPulse	1
+ * 208	400	5	2	31.81	50	TrapezoidalPulse	1
+ * 209	400	5	2	31.81	20	TrapezoidalPulse	1
+ * 210	400	5	2	31.81	10	TrapezoidalPulse	1
  * </code>
  * </pre>
  * 
@@ -88,146 +84,131 @@ import pulse.util.InstanceDescriptor;
 public class MetaFilePopulator implements AbstractPopulator<Metadata> {
 
 	private static MetaFilePopulator instance = new MetaFilePopulator();
+	private final static double TO_KELVIN = 273;
 
-	private final static double CELSIUS_TO_KELVIN = 273;
-	
 	private MetaFilePopulator() {
+		// intentionally blank
 	}
+
+	/**
+	 * Gets the single instance of this class.
+	 * 
+	 * @return a static instance of {@code MetaFilePopulator}.
+	 */
 
 	public static MetaFilePopulator getInstance() {
 		return instance;
 	}
 
-        @Override
+	@Override
 	public void populate(File file, Metadata met) throws IOException {
 		Objects.requireNonNull(file, Messages.getString("MetaFileReader.1")); //$NON-NLS-1$
-            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-                Map<Integer, String> metaFormat = new HashMap<>();
-                metaFormat.put(0, "ID"); // id must always be the first entry of a row
-                
-                List<String> tokens = new LinkedList<>();
-                
-                for (String line = reader.readLine(); line != null; line = reader.readLine()) {
-                    
-                    StringTokenizer st = new StringTokenizer(line);
-                    
-                    tokens.clear();
-                    for (; st.hasMoreTokens();) {
-                        tokens.add(st.nextToken());
-                    }
-                    int size = tokens.size();
-                    
-                    if (size < 1)
-                        continue;
-                    
-                    if (size == 2) {
-                        
-                        List<ImmutableDataEntry<String, String>> val = new ArrayList<>();
-                        ImmutableDataEntry<String, String> entry = new ImmutableDataEntry<>(tokens.get(0),
-                                tokens.get(1));
-                        val.add(entry);
-                        
-                        switch (tokens.get(0)) {
-                            case "Sample":
-                                met.setSampleName(tokens.get(1));
-                                break;
-                            default:
-                                try {
-                                    translate(val, met);
-                                } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-                                    System.err.println("Error changing property in Metadata object. Details below.");
-                                    e.printStackTrace();
-                                }
-                                break;
-                                
-                        }
-                        
-                    } else {
-                        
-                        if (tokens.get(0).equalsIgnoreCase(metaFormat.get(0))) {
-                            
-                            for (int i = 1; i < size; i++) {
-                                metaFormat.put(i, tokens.get(i));
-                            }
-                            
-                        }
-                        
-                        else {
-                            
-                            if (Math.abs(Integer.valueOf(tokens.get(0)) - met.getExternalID()) > 0.5)
-                                continue;
-                            
-                            List<ImmutableDataEntry<String, String>> values = new ArrayList<>(
-                                    size);
-                            
-                            for (int i = 1; i < size; i++) {
-                                values.add(new ImmutableDataEntry<>(metaFormat.get(i), tokens.get(i)));
-                            }
-                            
-                            try {
-                                translate(values, met);
-                            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-                                System.err.println("Error changing property in Metadata object. Details below.");
-                                e.printStackTrace();
-                            }
-                            break;
-                            
-                        }
-                        
-                    }
-                    
-                }
-            }
+		Map<Integer, String> metaFormat = new HashMap<>();
+		metaFormat.put(0, "ID"); // id must always be the first entry in the current row
 
+		List<String> tokens = new LinkedList<>();
+
+		try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+
+			for (String line = reader.readLine(); line != null; line = reader.readLine()) {
+
+				tokens.clear();
+				for (StringTokenizer st = new StringTokenizer(line); st.hasMoreTokens();)
+					tokens.add(st.nextToken());
+
+				int size = tokens.size();
+
+				if (size == 2)
+					processPair(tokens, met);
+
+				else if (size > 2) {
+
+					if (tokens.get(0).equalsIgnoreCase(metaFormat.get(0))) {
+
+						for (int i = 1; i < size; i++)
+							metaFormat.put(i, tokens.get(i));
+
+					}
+
+					else if (Integer.compare(Integer.valueOf(tokens.get(0)), met.getExternalID()) == 0) {
+
+						processList(tokens, met, metaFormat);
+
+					}
+
+				}
+
+			}
+
+		}
 	}
-        
-    
+
+	private void processPair(List<String> tokens, Metadata met) {
+		List<ImmutableDataEntry<String, String>> val = new ArrayList<>();
+		var entry = new ImmutableDataEntry<>(tokens.get(0), tokens.get(1));
+		val.add(entry);
+
+		try {
+			translate(val, met);
+		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			System.err.println("Error changing property in Metadata object. Details below.");
+			e.printStackTrace();
+		}
+	}
+
+	private void processList(List<String> tokens, Metadata met, Map<Integer, String> metaFormat) {
+		int size = tokens.size();
+		List<ImmutableDataEntry<String, String>> values = new ArrayList<>(size);
+
+		for (int i = 1; i < size; i++)
+			values.add(new ImmutableDataEntry<>(metaFormat.get(i), tokens.get(i)));
+
+		try {
+			translate(values, met);
+		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			System.err.println("Error changing property in Metadata object. Details below.");
+			e.printStackTrace();
+		}
+	}
 
 	private void translate(List<ImmutableDataEntry<String, String>> data, Metadata met)
 			throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 
-		NumericProperty proto;
-		NumericPropertyKeyword key = null;
-		Optional<NumericPropertyKeyword> optional;
-		double value;
-		
 		for (var dataEntry : data) {
 
-			optional = findAny(dataEntry.getKey());
-			
-			//numeric properties
-			if( optional.isPresent() ) { 
-				key = optional.get();
-				
-				value = Double.valueOf(dataEntry.getValue());
-				if (key == TEST_TEMPERATURE)
-					value += CELSIUS_TO_KELVIN;
+			var optional = findAny(dataEntry.getKey());
 
-				proto = def(key);
+			// numeric properties
+			if (optional.isPresent()) {
+				var key = optional.get();
+
+				double value = Double.valueOf(dataEntry.getValue());
+				if (key == TEST_TEMPERATURE)
+					value += TO_KELVIN;
+
+				var proto = def(key);
 				value /= proto.getDimensionFactor().doubleValue();
 
-				if ( isValueSensible(proto, value) ) {
+				if (isValueSensible(proto, value)) {
 					proto.setValue(value);
 					met.set(key, proto);
 				}
-				
+
 			}
-			
-			//generic properties
+
+			// generic properties
 			else {
-		
-				InstanceDescriptor<?> descriptor = null;
-				
+
 				for (Property genericEntry : met.genericProperties()) {
-				
-					if(genericEntry instanceof InstanceDescriptor<?>) {
-						descriptor = (InstanceDescriptor<?>)genericEntry;
-						if( descriptor.attemptUpdate(dataEntry.getValue()) )
+
+					if (genericEntry instanceof InstanceDescriptor
+							|| dataEntry.getKey().equalsIgnoreCase(genericEntry.getClass().getSimpleName())) {
+						if (genericEntry.attemptUpdate(dataEntry.getValue()))
 							met.updateProperty(instance, genericEntry);
 					}
-												
+
 				}
-				
+
 			}
 
 		}
