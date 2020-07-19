@@ -1,6 +1,7 @@
 package pulse.ui.components;
 
-import static pulse.io.readers.ReaderManager.*;
+import static pulse.io.readers.ReaderManager.datasetReaders;
+import static pulse.io.readers.ReaderManager.read;
 
 import java.awt.Window;
 import java.io.File;

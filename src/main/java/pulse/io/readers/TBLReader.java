@@ -20,9 +20,9 @@ import pulse.util.ImmutableDataEntry;
  * </p>
  * <p>
  * Specific heat capacity and density at different temperatures can be read as
- * ASCII files with a .tbl suffix, where the first column is temperature (in
- * degrees Celsius) and the second column is the specific heat capacity (in J
- * kg<sup>-1</sup> K<sup>-1</sup>) or density (in kg m<sup>-3</sup>).
+ * {@code ASCII} files with a .tbl suffix, where the first column is temperature
+ * (in degrees Celsius) and the second column is the specific heat capacity (in
+ * J kg<sup>-1</sup> K<sup>-1</sup>) or density (in kg m<sup>-3</sup>).
  * </p>
  * <p>
  * Below is an example of a valid {@code .tbl} file:
@@ -52,6 +52,7 @@ public class TBLReader implements DatasetReader {
 	private static DatasetReader instance = new TBLReader();
 
 	private TBLReader() {
+		// intentionally blank
 	}
 
 	/**
@@ -73,26 +74,41 @@ public class TBLReader implements DatasetReader {
 		return instance;
 	}
 
+	/**
+	 * Reads through a {@code file} with {@code .tbl extension}, converting each row
+	 * into an {@code ImmutableDataEntry<Double,Double>}, which is then added to a 
+	 * newly created {@code InterpolationDataset}. Upon completion, the {@code doInterpolation()} 
+	 * method of {@code InterpolationDataset} is invoked.
+	 * @see pulse.input.InterpolationDataset.doInterpolation()
+	 * @param file a {@code File} with {@code tbl} extension
+	 */
+	
 	@Override
 	public InterpolationDataset read(File file) throws IOException {
 		Objects.requireNonNull(file, Messages.getString("TBLReader.1"));
+		
+		if(! isExtensionSupported(file) )
+			throw new IllegalArgumentException("Extension not supported: " + file.getName());
 
-		InterpolationDataset curve = new InterpolationDataset();
+		var curve = new InterpolationDataset();
 
-            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-                String delims = Messages.getString("TBLReader.2");
-                StringTokenizer tokenizer;
-                
-                for (String line = reader.readLine(); line != null; line = reader.readLine()) {
-                    tokenizer = new StringTokenizer(line);
-                    curve.add(new ImmutableDataEntry<>(Double.parseDouble(tokenizer.nextToken(delims)),
-                            Double.parseDouble(tokenizer.nextToken(delims))));
-                }
-            }
+		try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+			String delims = Messages.getString("TBLReader.2");
+			StringTokenizer tokenizer;
+
+			for (String line = reader.readLine(); line != null; line = reader.readLine()) {
+				tokenizer = new StringTokenizer(line);
+				curve.add(new ImmutableDataEntry<>(parse(tokenizer, delims), parse(tokenizer, delims)));
+			}
+		}
 
 		curve.doInterpolation();
 		return curve;
 
+	}
+
+	private static Double parse(StringTokenizer tokenizer, String delims) {
+		return Double.parseDouble(tokenizer.nextToken(delims));
 	}
 
 }

@@ -1,11 +1,12 @@
 package pulse.tasks;
 
 import static java.lang.System.gc;
-import static pulse.io.readers.ReaderManager.*;
 import static java.time.LocalDateTime.now;
 import static java.time.format.DateTimeFormatter.ISO_WEEK_DATE;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
+import static pulse.io.readers.ReaderManager.curveReaders;
+import static pulse.io.readers.ReaderManager.read;
 import static pulse.tasks.Status.DONE;
 import static pulse.tasks.Status.IN_PROGRESS;
 import static pulse.tasks.Status.QUEUED;
