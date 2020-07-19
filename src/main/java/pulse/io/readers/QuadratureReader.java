@@ -12,6 +12,12 @@ import java.util.StringTokenizer;
 import pulse.problem.schemes.rte.dom.OrdinateSet;
 import pulse.ui.Messages;
 
+/**
+ * A reader, which converts {@code quad} files into instances {@code OrdinateSet}.
+ * Invoked at program start and reads through the associated resource folder.
+ *
+ */
+
 public class QuadratureReader implements AbstractReader<OrdinateSet> {
 
 	private final static String SUPPORTED_EXTENSION = "quad";
@@ -19,27 +25,34 @@ public class QuadratureReader implements AbstractReader<OrdinateSet> {
 	private static QuadratureReader instance = new QuadratureReader();
 
 	private QuadratureReader() {
+		// intentionally blank
 	}
 
-        @Override
+	/**
+	 * Reads an ordinate set. Scans the first line for any keywords and 
+	 * then treats any subsequent lines as consisting of two tokens, which
+	 * correspond to the quadrature node and weight. Ignores all other information.
+	 */
+	
+	@Override
 	public OrdinateSet read(File file) throws IOException {
 		Objects.requireNonNull(file, Messages.getString("TBLReader.1"));
 
-		//ignore extension!
-		
+		// ignore extension!
+
 		String name = file.getName().split("\\.")[0];
 
 		OrdinateSet set = null;
 
+		String delims = Messages.getString("}{,\t ");
+		StringTokenizer tokenizer;
+
+		List<Double> nodes = new ArrayList<>();
+		List<Double> weights = new ArrayList<>();
+
+		String line = "";
+
 		try (var fr = new FileReader(file); var reader = new BufferedReader(fr)) {
-
-			String delims = Messages.getString("}{,\t ");
-			StringTokenizer tokenizer;
-
-			List<Double> nodes = new ArrayList<>();
-			List<Double> weights = new ArrayList<>();
-
-			String line = "";
 
 			// first line with declarations (e.g. IGNORE, etc.)
 			tokenizer = new StringTokenizer(reader.readLine());
@@ -64,12 +77,21 @@ public class QuadratureReader implements AbstractReader<OrdinateSet> {
 		return set;
 
 	}
+	
+	/**
+	 * @return {@code quad}
+	 */
 
 	@Override
 	public String getSupportedExtension() {
 		return SUPPORTED_EXTENSION;
 	}
 
+	/**
+	 * Returns the single instance of this class.
+	 * @return an instance of {@code QuadratureReader}.
+	 */
+	
 	public static QuadratureReader getInstance() {
 		return instance;
 	}

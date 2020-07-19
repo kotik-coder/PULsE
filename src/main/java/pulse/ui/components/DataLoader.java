@@ -1,5 +1,7 @@
 package pulse.ui.components;
 
+import static pulse.io.readers.ReaderManager.*;
+
 import java.awt.Window;
 import java.io.File;
 import java.io.IOException;
@@ -126,7 +128,7 @@ public class DataLoader {
 
 	public static void load(StandardType type, File f) throws IOException {
 		Objects.requireNonNull(f);
-		InterpolationDataset.setDataset(ReaderManager.readDataset(f), type);
+		InterpolationDataset.setDataset(read(datasetReaders(), f), type);
 		TaskManager.evaluate();
 	}
 

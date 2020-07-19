@@ -1,6 +1,7 @@
 package pulse.tasks;
 
 import static java.lang.System.gc;
+import static pulse.io.readers.ReaderManager.*;
 import static java.time.LocalDateTime.now;
 import static java.time.format.DateTimeFormatter.ISO_WEEK_DATE;
 import static java.util.Objects.requireNonNull;
@@ -19,7 +20,6 @@ import static pulse.ui.Launcher.threadsAvailable;
 import static pulse.util.Group.contents;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -32,7 +32,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
 
 import pulse.input.ExperimentalData;
-import pulse.io.readers.ReaderManager;
 import pulse.properties.SampleName;
 import pulse.search.direction.PathOptimiser;
 import pulse.tasks.listeners.TaskRepositoryEvent;
@@ -325,12 +324,7 @@ public class TaskManager extends UpwardsNavigable {
 
 	public static void generateTask(File file) {
 		List<ExperimentalData> curves = null;
-		try {
-			curves = ReaderManager.extract(file);
-		} catch (IOException e) {
-			System.err.println("Error loading experimental data");
-			e.printStackTrace();
-		}
+		curves = read(curveReaders(), file);
 		curves.stream().forEach(curve -> addTask(new SearchTask(curve)));
 		selectFirstTask();
 	}
