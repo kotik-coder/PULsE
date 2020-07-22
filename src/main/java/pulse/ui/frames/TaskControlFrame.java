@@ -44,7 +44,8 @@ public class TaskControlFrame extends JFrame {
 	private static TaskManagerFrame taskManagerFrame;
 	private static PreviewFrame previewFrame;
 	private static ResultFrame resultsFrame;
-	private static GraphFrame graphFrame;
+	private static MainGraphFrame graphFrame;
+	private static AuxGraphFrame auxGraphFrame;
 	private static LogFrame logFrame;
 
 	private static PulseMainMenu mainMenu;
@@ -165,11 +166,12 @@ public class TaskControlFrame extends JFrame {
 		setJMenuBar(mainMenu);
 
 		logFrame = new LogFrame();
-		graphFrame = new GraphFrame();
 		resultsFrame = new ResultFrame();
 		previewFrame = new PreviewFrame();
 		taskManagerFrame = new TaskManagerFrame();
-
+		graphFrame = MainGraphFrame.getInstance();
+		auxGraphFrame = AuxGraphFrame.getInstance();
+		
 		problemStatementFrame = new ProblemStatementFrame();
 
 		searchOptionsFrame = new SearchOptionsFrame();
@@ -180,6 +182,7 @@ public class TaskControlFrame extends JFrame {
 
 		resizeQuadrants();
 		desktopPane.add(taskManagerFrame);
+		desktopPane.add(auxGraphFrame);
 		desktopPane.add(graphFrame);
 		desktopPane.add(previewFrame);
 		desktopPane.add(logFrame);
@@ -243,7 +246,7 @@ public class TaskControlFrame extends JFrame {
 			resizeQuadrants();
 			break;
 		case PROBLEM:
-			resizeHalves(problemStatementFrame, graphFrame);
+			resizeTriplet(problemStatementFrame, auxGraphFrame, graphFrame);
 			break;
 		case SEARCH:
 			resizeFull(searchOptionsFrame);
@@ -280,6 +283,33 @@ public class TaskControlFrame extends JFrame {
 		f1.setSize(s1);
 		f2.setLocation(p2);
 		f2.setSize(s2);
+	}
+	
+	private void resizeTriplet(JInternalFrame f1, JInternalFrame f2, JInternalFrame f3) {
+		final var gap = 10;
+		
+		final var h = this.getContentPane().getHeight() - 3 * gap;
+		var w = this.getContentPane().getWidth() - 2 * gap;
+
+		var p1 = new Point(gap, gap);
+		var s1 = new Dimension(w, 6 * h / 10);
+
+		f1.setLocation(p1);
+		f1.setSize(s1);
+		
+		w = this.getContentPane().getWidth() - 3 * gap;
+		
+		var p2 = new Point(gap, 2 * gap + 6 * h / 10);
+		var s2 = new Dimension(w/4, 4 * h / 10);
+		
+		f2.setLocation(p2);
+		f2.setSize(s2);
+		
+		var p3 = new Point(2*gap + w/4, 2 * gap + 6 * h / 10);
+		var s3 = new Dimension(3*w/4, 4 * h / 10);
+		
+		f3.setLocation(p3);
+		f3.setSize(s3);
 	}
 
 	private void resizeQuadrants() {

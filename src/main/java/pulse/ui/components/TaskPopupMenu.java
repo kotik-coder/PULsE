@@ -1,5 +1,6 @@
 package pulse.ui.components;
 
+import static pulse.ui.frames.MainGraphFrame.*;
 import static java.awt.Font.PLAIN;
 import static java.lang.System.err;
 import static java.lang.System.lineSeparator;
@@ -202,7 +203,7 @@ public class TaskPopupMenu extends JPopupMenu {
 				e.printStackTrace();
 			}
 
-		Chart.plot(t, extended);
+		getChart().plot(t, extended);
 	}
 
 }

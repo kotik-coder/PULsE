@@ -27,7 +27,6 @@ import static pulse.tasks.TaskManager.getSelectedTask;
 import static pulse.tasks.TaskManager.getTaskList;
 import static pulse.tasks.TaskManager.selectFirstTask;
 import static pulse.ui.Messages.getString;
-import static pulse.ui.components.Chart.plot;
 import static pulse.util.Reflexive.instancesOf;
 
 import java.awt.BorderLayout;
@@ -180,7 +179,8 @@ public class ProblemStatementFrame extends JInternalFrame {
                 err.println("Solver of " + t + " has encountered an error. Details: ");
                 e.printStackTrace();
             }
-            plot(t, true);
+            MainGraphFrame.getInstance().plot();
+            AuxGraphFrame.getInstance().plot();
             problemTable.updateTable();
             schemeTable.updateTable();
         });

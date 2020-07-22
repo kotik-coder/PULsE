@@ -288,7 +288,13 @@ public enum NumericPropertyKeyword {
 	
 	TRAPEZOIDAL_RISE_PERCENTAGE,
 	
-	TRAPEZOIDAL_FALL_PERCENTAGE;
+	TRAPEZOIDAL_FALL_PERCENTAGE,
+	
+	SKEW_MU,
+	
+	SKEW_SIGMA,
+	
+	SKEW_LAMBDA;
 	
 	public static Optional<NumericPropertyKeyword> findAny(String key) {
 		return Arrays.asList( values() ).stream().

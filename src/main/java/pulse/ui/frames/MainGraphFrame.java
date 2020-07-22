@@ -4,8 +4,6 @@ import static java.awt.BorderLayout.CENTER;
 import static java.awt.BorderLayout.LINE_END;
 import static java.awt.BorderLayout.PAGE_END;
 import static pulse.tasks.TaskManager.getSelectedTask;
-import static pulse.ui.components.Chart.createEmptyPanel;
-
 import javax.swing.JInternalFrame;
 
 import pulse.ui.components.Chart;
@@ -13,22 +11,26 @@ import pulse.ui.components.panels.ChartToolbar;
 import pulse.ui.components.panels.OpacitySlider;
 
 @SuppressWarnings("serial")
-public class GraphFrame extends JInternalFrame {
+public class MainGraphFrame extends JInternalFrame {
 
-	public GraphFrame() {
+	private static Chart chart;
+	private static MainGraphFrame instance = new MainGraphFrame();
+	
+	private MainGraphFrame() {
 		super("Time-temperature profile(s)", true, false, true, true);
 		initComponents();
 		setVisible(true);
 	}
 
 	private void initComponents() {
-		var chart = createEmptyPanel();
-		getContentPane().add(chart, CENTER);
+		chart = new Chart();
+		var chartPanel = chart.getChartPanel();
+		getContentPane().add(chartPanel, CENTER);
 
-		chart.setMaximumDrawHeight(2000);
-		chart.setMaximumDrawWidth(2000);
-		chart.setMinimumDrawWidth(10);
-		chart.setMinimumDrawHeight(10);
+		chartPanel.setMaximumDrawHeight(2000);
+		chartPanel.setMaximumDrawWidth(2000);
+		chartPanel.setMinimumDrawWidth(10);
+		chartPanel.setMinimumDrawHeight(10);
 
 		var opacitySlider = new OpacitySlider();
 		opacitySlider.addPlotRequestListener(() -> plot());
@@ -41,7 +43,15 @@ public class GraphFrame extends JInternalFrame {
 	public void plot() {
 		var task = getSelectedTask();
 		if (task != null)
-			Chart.plot(task, false);
+			chart.plot(task, false);
+	}
+
+	public static Chart getChart() {
+		return chart;
+	}
+
+	public static MainGraphFrame getInstance() {
+		return instance;
 	}
 
 }

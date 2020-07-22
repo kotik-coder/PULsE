@@ -7,7 +7,7 @@ import java.util.List;
 import pulse.properties.NumericPropertyKeyword;
 
 /**
- * A {@code Vector} with components that have been associated with
+ * A {@code Vector} that has values assigned to 
  * {@code NumericPropertyKeyword}s.
  */
 
@@ -123,11 +123,5 @@ public class IndexedVector extends Vector {
 	private void assign(List<NumericPropertyKeyword> indices) {
 		this.indices.addAll(indices);
 	}
-
-	public static IndexedVector concat(IndexedVector v1, IndexedVector v2) {
-		List<NumericPropertyKeyword> allIndices = new ArrayList<>(v1.indices);
-		allIndices.addAll(v2.indices);
-		return new IndexedVector(allIndices);
-	}
-
+	
 }

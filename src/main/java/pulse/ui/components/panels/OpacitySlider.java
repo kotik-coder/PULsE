@@ -1,9 +1,8 @@
 package pulse.ui.components.panels;
 
 import static java.lang.Math.exp;
+import static pulse.ui.frames.MainGraphFrame.*;
 import static javax.swing.BorderFactory.createEmptyBorder;
-import static pulse.ui.components.Chart.setOpacity;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,7 +29,7 @@ public class OpacitySlider extends JSlider {
 		setToolTipText("Slide to change the dataset opacity");
 
 		addChangeListener(e -> {
-			setOpacity((float) (SLIDER_A_COEF * exp(SLIDER_B_COEF * getValue())));
+			getChart().setOpacity((float) (SLIDER_A_COEF * exp(SLIDER_B_COEF * getValue())));
 			notifyPlot();
 		});
 	}

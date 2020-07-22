@@ -1,5 +1,6 @@
 package pulse.ui.components.panels;
 
+import static pulse.ui.frames.MainGraphFrame.*;
 import static java.awt.Color.GRAY;
 import static java.awt.Color.black;
 import static java.awt.Color.gray;
@@ -18,9 +19,6 @@ import static pulse.tasks.TaskManager.getSelectedTask;
 import static pulse.tasks.listeners.TaskRepositoryEvent.State.TASK_FINISHED;
 import static pulse.ui.Launcher.loadIcon;
 import static pulse.ui.Messages.getString;
-import static pulse.ui.components.Chart.setResidualsShown;
-import static pulse.ui.components.Chart.setZeroApproximationShown;
-
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.FocusEvent;
@@ -153,7 +151,7 @@ public class ChartToolbar extends JPanel {
 		adiabaticSolutionBtn.setIcon(loadIcon("parker.png", ICON_SIZE));
 
 		adiabaticSolutionBtn.addActionListener(e -> {
-			setZeroApproximationShown(adiabaticSolutionBtn.isSelected());
+			getChart().setZeroApproximationShown(adiabaticSolutionBtn.isSelected());
 			notifyPlot();
 		});
 
@@ -165,7 +163,7 @@ public class ChartToolbar extends JPanel {
 		residualsBtn.setSelected(true);
 
 		residualsBtn.addActionListener(e -> {
-			setResidualsShown(residualsBtn.isSelected());
+			getChart().setResidualsShown(residualsBtn.isSelected());
 			notifyPlot();
 		});
 

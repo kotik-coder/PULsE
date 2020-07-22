@@ -1,5 +1,20 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <NumericProperties>
+	<NumericProperty abbreviation="&amp;sigma;" auto-adjustable="false"
+		descriptor="Variance, $sigma;" dimensionfactor="1" discreet="false"
+		keyword="SKEW_SIGMA" maximum="10.0" minimum="1e-3"
+		primitive-type="double" value="0.14">
+	</NumericProperty>
+	<NumericProperty abbreviation="&amp;lambda;" auto-adjustable="false"
+		descriptor="Skewness, &amp;lambda;" dimensionfactor="1"
+		discreet="false" keyword="SKEW_LAMBDA" maximum="100" minimum="0.0"
+		primitive-type="double" value="15.0">
+	</NumericProperty>
+	<NumericProperty abbreviation="&amp;mu;" auto-adjustable="false"
+		descriptor="Mean, &amp;mu;" dimensionfactor="1" discreet="false"
+		keyword="SKEW_MU" maximum="100.0" minimum="0.0"
+		primitive-type="double" value="0.425">
+	</NumericProperty>
 	<NumericProperty
 		abbreviation="t&lt;sub&gt;fall&lt;/sub&gt;/t&lt;sub&gt;fall&lt;/sub&gt; (%)"
 		auto-adjustable="false"
