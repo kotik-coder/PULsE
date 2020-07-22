@@ -20,7 +20,6 @@ public class LegendrePoly {
 
 	private double[] c;
 	private int n;
-	private double solverError;
 
 	private LaguerreSolver solver;
 	
@@ -33,7 +32,7 @@ public class LegendrePoly {
 	public LegendrePoly(final int n) {
 		this.n = n;
 		c = new double[n + 1];
-		this.solverError = (double) theDefault(LAGUERRE_SOLVER_ERROR).getValue();
+		var solverError = (double) theDefault(LAGUERRE_SOLVER_ERROR).getValue();
 		solver = new LaguerreSolver(solverError);
 		coefficients();
 	}
@@ -134,7 +133,7 @@ public class LegendrePoly {
 		double poly = 0;
 
 		for (int i = 0; i < c.length; i++) {
-			poly += c[i] * MathUtils.fastPowLoop(x, i);
+			poly += c[i] * fastPowLoop(x, i);
 		}
 
 		return poly;
