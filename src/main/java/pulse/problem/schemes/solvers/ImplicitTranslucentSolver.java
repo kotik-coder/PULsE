@@ -114,7 +114,7 @@ public class ImplicitTranslucentSolver extends ImplicitScheme implements Solver<
 
 			for (m = (w - 1) * getTimeInterval() + 1; m < w * getTimeInterval() + 1; m++) {
 
-				pls = discretePulse.powerAt((m - EPS) * tau); // NOTE: EPS is very important here and ensures
+				pls = discretePulse.laserPowerAt((m - EPS) * tau); // NOTE: EPS is very important here and ensures
 																	// numeric stability!
 
 				alpha[1] = 1.0 / (1.0 + HH / (2.0 * tau) + Bi1H);

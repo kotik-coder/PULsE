@@ -1,27 +1,18 @@
 package pulse.math;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import pulse.properties.NumericPropertyKeyword;
 
 /**
- * A {@code Vector} that has values assigned to 
- * {@code NumericPropertyKeyword}s.
+ * A wrapper subclass that assigns {@code NumericPropertyKeyword}s to specific components of the vector.
+ * Used when constructing the optimisation vector.
  */
 
 public class IndexedVector extends Vector {
 
 	private List<NumericPropertyKeyword> indices;
-	private double[] prefactors;
-
-	private IndexedVector(int n) {
-		super(n);
-		prefactors = new double[n];
-		Arrays.fill(prefactors, 1.0); // by default, the prefactor is unity
-		indices = new ArrayList<>(n);
-	}
 
 	/**
 	 * Constructs an {@code IndexedVector} with the specified list of keywords.
@@ -46,7 +37,12 @@ public class IndexedVector extends Vector {
 		super(v);
 		this.indices = indices;
 	}
-
+	
+	private IndexedVector(final int n) {
+		super(n);
+		indices = new ArrayList<>(n);
+	}
+	
 	/**
 	 * Finds the component of this vector that corresponds to {@code index} and sets
 	 * its value to {@code x}
@@ -56,31 +52,9 @@ public class IndexedVector extends Vector {
 	 * @param x     the new value of this component
 	 */
 
-	public void set(NumericPropertyKeyword index, double x) {
-		set(index, x, 1.0);
-	}
-
-	public void set(NumericPropertyKeyword index, double x, double prefactor) {
-		int i = getDataIndex(index);
+	public void set(NumericPropertyKeyword index, final double x) {
+		final int i = indexOf(index);
 		super.set(i, x);
-		prefactors[i] = prefactor;
-	}
-
-	public double getRawValue(int i) {
-		return super.get(i) / prefactors[i];
-	}
-
-	public double getRawValue(NumericPropertyKeyword index) {
-		return getRawValue(getDataIndex(index));
-	}
-
-	public void set(int i, double x, double prefactor) {
-		super.set(i, x);
-		prefactors[i] = prefactor;
-	}
-
-	public List<NumericPropertyKeyword> getIndices() {
-		return indices;
 	}
 
 	/**
@@ -90,7 +64,7 @@ public class IndexedVector extends Vector {
 	 * @return a keyword describing this component
 	 */
 
-	public NumericPropertyKeyword getIndex(int dataIndex) {
+	public NumericPropertyKeyword getIndex(final int dataIndex) {
 		return indices.get(dataIndex);
 	}
 
@@ -101,7 +75,7 @@ public class IndexedVector extends Vector {
 	 * @return a numeric index associated with the original {@code Vector}
 	 */
 
-	public int getDataIndex(NumericPropertyKeyword index) {
+	private int indexOf(NumericPropertyKeyword index) {
 		return indices.indexOf(index);
 	}
 
@@ -113,13 +87,18 @@ public class IndexedVector extends Vector {
 	 */
 
 	public double get(NumericPropertyKeyword index) {
-		return super.get(getDataIndex(index));
+		return super.get(indexOf(index));
 	}
+	
+	/**
+	 * Gets the full list of indices recognised by this {@code IndexedVector}.
+	 * @return the full list of {@code NumericPropertyKeyword} indices.
+	 */
 
-	public double getPrefactor(NumericPropertyKeyword index) {
-		return prefactors[getDataIndex(index)];
+	public List<NumericPropertyKeyword> getIndices() {
+		return indices;
 	}
-
+	
 	private void assign(List<NumericPropertyKeyword> indices) {
 		this.indices.addAll(indices);
 	}

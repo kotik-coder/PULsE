@@ -154,7 +154,7 @@ public class ImplicitCoupledSolver extends ImplicitScheme implements Solver<Part
 			for (m = (w - 1) * getTimeInterval() + 1; m < w * getTimeInterval() + 1
 					&& status == RTECalculationStatus.NORMAL; m++) {
 
-				pls = discretePulse.powerAt((m - EPS) * tau);
+				pls = discretePulse.laserPowerAt((m - EPS) * tau);
 
 				for (V_0 = errorSq + 1, V_N = errorSq + 1; (MathUtils.fastPowLoop((V[0] - V_0), 2) > errorSq)
 						|| (MathUtils.fastPowLoop((V[N] - V_N), 2) > errorSq); status = rte.compute(V)) {

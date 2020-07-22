@@ -3,7 +3,6 @@ package pulse.problem.schemes;
 import static java.lang.Math.pow;
 import static java.lang.Math.rint;
 import static java.lang.String.format;
-import static pulse.properties.NumericPropertyKeyword.SPOT_DIAMETER;
 
 import pulse.problem.laser.DiscretePulse;
 import pulse.problem.laser.DiscretePulse2D;
@@ -58,7 +57,7 @@ public class Grid2D extends Grid {
 	}
 	
 	public void optimise(DiscretePulse2D pulse) {
-		for (final var factor = 1.05; factor * hy > pulse.getDiscretePulseSpot(); pulse.recalculate(SPOT_DIAMETER)) {
+		for (final var factor = 1.05; factor * hy > pulse.getDiscretePulseSpot(); pulse.recalculate()) {
 			N += 5;
 			hy = 1. / N;
 			hx = 1. / N;

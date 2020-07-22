@@ -1,18 +1,50 @@
 package pulse.math;
 
+import static pulse.math.MathUtils.fastPowInt;
+import static pulse.math.MathUtils.fastPowLoop;
+import static pulse.properties.NumericProperty.theDefault;
+import static pulse.properties.NumericPropertyKeyword.LAGUERRE_SOLVER_ERROR;
+
 import org.apache.commons.math3.analysis.solvers.LaguerreSolver;
 
-import pulse.properties.NumericProperty;
-import pulse.properties.NumericPropertyKeyword;
+/**
+ * A utility class represents the Legendre polynomial of a given order. <p>May be useful in some applications,
+ * particularly, for calculating the ordinate sets in the discrete ordinates method. Allows calculating its 
+ * coefficients, the value of the polynomial and its derivative at a given point, and the roots of the 
+ * polynomial (with the help of a {@code LaguerreSolver}.</p>
+ * @see org.apache.commons.math3.analysis.solvers.LaguerreSolver
+ *
+ */
 
 public class LegendrePoly {
 
+	private double[] c;
+	private int n;
+	private double solverError;
+
+	private LaguerreSolver solver;
+	
 	/**
-	 * Fast calculation of binomial coefficient C_m^k = m!/(k!(m-k)!)
+	 * Creates a Legendre polynomial of the order {@code n}. The coefficients of the 
+	 * polynomial are immediately calculated.
+	 * @param n the order of the polynomial.
+	 */
+	
+	public LegendrePoly(final int n) {
+		this.n = n;
+		c = new double[n + 1];
+		this.solverError = (double) theDefault(LAGUERRE_SOLVER_ERROR).getValue();
+		solver = new LaguerreSolver(solverError);
+		coefficients();
+	}
+	
+	/**
+	 * Fast calculation of binomial coefficient C<sub>m</sub><sup>k</sup> =
+	 * m!/(k!(m-k)!)
 	 * 
 	 * @param m integer.
 	 * @param k integer, k <= m.
-	 * @return binomial coefficient C_m^k.
+	 * @return binomial coefficient C<sub>m</sub><sup>k</sup>.
 	 */
 
 	public static long binomial(int m, int k) {
@@ -23,88 +55,97 @@ public class LegendrePoly {
 
 		// Calculate value of Binomial Coefficient in bottom up manner
 		for (int i = 1; i < k + 1; i++, m--) {
-                    c = c / i * m + c % i * m / i; // split c * n / i into (c / i * i + c % i) * n / i
-                }
+			c = c / i * m + c % i * m / i; // split c * n / i into (c / i * i + c % i) * n / i
+		}
 
 		return c;
 
 	}
 
 	/**
-	 * Fast calculation of binomial coefficient C_m^k = m!/(k!(m-k)!)
+	 * Calculates the generalised binomial coefficient.
 	 * 
-	 * @param m integer.
-	 * @param k integer, k <= m.
-	 * @return binomial coefficient C_m^k.
+	 * @param k integer.
+	 * @param alpha a double value
+	 * @return the generalised binomial coefficient C<sub>&alpha;</sub><sup>k</sup>.
 	 */
 
-	public static double generalisedBinomial(double alpha, int k) {
+	public static double generalisedBinomial(final double alpha, final int k) {
 
 		double c = 1;
 
 		for (int i = 0; i < k; i++) {
-                    c *= (alpha - i) / (k - i);
-                }
+			c *= (alpha - i) / (k - i);
+		}
 
 		return c;
 
 	}
 
-	protected double[] c;
-	protected int n;
-
-	protected LaguerreSolver solver;
-
-	protected double solverError;
-
-	public LegendrePoly(final int n) {
-		this.n = n;
-		c = new double[n + 1];
-		this.solverError = (double) NumericProperty.theDefault(NumericPropertyKeyword.LAGUERRE_SOLVER_ERROR).getValue();
-		solver = new LaguerreSolver(solverError);
-		coefficients();
-	}
-
 	/**
 	 * This will generate the coefficients for the Legendre polynomial, arranged in
-	 * order of significance (from x^0 to x^n).
+	 * order of significance (from x<sup>0</sup> to x<sup>n</sup>). The coeffients will
+	 * then be stored in a double array for further use.
 	 */
 
 	public void coefficients() {
 
-		long intFactor = MathUtils.fastPowInt(2, n);
+		long intFactor = fastPowInt(2, n);
 
 		for (int i = 0; i < c.length; i++) {
-                    c[i] = intFactor * binomial(n, i) * generalisedBinomial((n + i - 1) * 0.5, n);
-                }
+			c[i] = intFactor * binomial(n, i) * generalisedBinomial((n + i - 1) * 0.5, n);
+		}
 
 	}
+	
+	/**
+	 * Calculates the derivative of this Legendre polynomial. The coefficients 
+	 * are assumed to be known.
+	 * @param x a real value.
+	 * @return the derivative at {@code x}.
+	 */
 
-	public double derivative(double x) {
+	public double derivative(final double x) {
 		double d = 0;
 
 		for (int i = 1; i < c.length; i++) {
-                    d += i * c[i] * MathUtils.fastPowLoop(x, i - 1);
-                }
+			d += i * c[i] * fastPowLoop(x, i - 1);
+		}
 
 		return d;
 
 	}
+	
+	/**
+	 * @return the order of this polynomial.
+	 */
 
 	public int getOrder() {
 		return n;
 	}
+	
+	/**
+	 * Calculates the value of this Legendre polynomial at {@code x}
+	 * @param x a real value.
+	 * @return the value of the Legendre polynomial at {@code x}.
+	 */
 
-	public double poly(double x) {
+	public double poly(final double x) {
 		double poly = 0;
 
 		for (int i = 0; i < c.length; i++) {
-                    poly += c[i] * MathUtils.fastPowLoop(x, i);
-                }
+			poly += c[i] * MathUtils.fastPowLoop(x, i);
+		}
 
 		return poly;
 
 	}
+	
+	/**
+	 * Uses a {@code LaguerreSolver} to calculate the roots of this polynomial.
+	 * All coefficients are assumed to be known.
+	 * @return the real roots of the Legendre polynomial.
+	 */
 
 	public double[] roots() {
 		var complexRoots = solver.solveAllComplex(c, 1.0);
@@ -114,7 +155,6 @@ public class LegendrePoly {
 		// in case of even n, the first n/2 roots are positive and the rest are negative
 		for (int i = 0; i < n; i++) {
 			roots[i] = complexRoots[i].getReal();
-			System.out.println(roots[i]);
 		}
 
 		return roots;

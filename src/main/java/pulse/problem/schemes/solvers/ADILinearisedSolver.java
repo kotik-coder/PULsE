@@ -221,7 +221,7 @@ public class ADILinearisedSolver extends ADIScheme implements Solver<LinearisedP
 
 				// i = 0 boundary
 
-				pls = discretePulse2D.powerAt((m + 1 + EPS) * tau);
+				pls = discretePulse2D.laserPowerAt((m + 1 + EPS) * tau);
 				beta[1] = (tau * hy * pls + HY2 * U2_E[1][1]) * _b11 + 2.0 * _b12 * (U2_E[2][1] - U2_E[1][1]);
 
 				for (j = 1; j < N; j++) {

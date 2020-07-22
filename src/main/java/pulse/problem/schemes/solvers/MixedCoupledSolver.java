@@ -229,8 +229,8 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 		double V_0, V_N;
 		
 		pls = activePulse
-				? (discretePulse.powerAt((m - 1 + EPS) * tau) * ONE_MINUS_SIGMA
-						+ discretePulse.powerAt((m - EPS) * tau) * sigma)
+				? (discretePulse.laserPowerAt((m - 1 + EPS) * tau) * ONE_MINUS_SIGMA
+						+ discretePulse.laserPowerAt((m - EPS) * tau) * sigma)
 				: 0.0;
 
 		RTECalculationStatus status = RTECalculationStatus.NORMAL;

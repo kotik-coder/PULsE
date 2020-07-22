@@ -4,6 +4,7 @@ import static java.awt.BorderLayout.CENTER;
 import static java.awt.BorderLayout.LINE_END;
 import static java.awt.BorderLayout.PAGE_END;
 import static pulse.tasks.TaskManager.getSelectedTask;
+
 import javax.swing.JInternalFrame;
 
 import pulse.ui.components.Chart;

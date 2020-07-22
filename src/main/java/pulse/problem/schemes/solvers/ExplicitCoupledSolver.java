@@ -152,7 +152,7 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
 					 * Calculates boundary values
 					 */
 
-					pls = discretePulse.powerAt((m - EPS) * tau);
+					pls = discretePulse.laserPowerAt((m - EPS) * tau);
 
 					// Front face
 					V_0 = V[0];

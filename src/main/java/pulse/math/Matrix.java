@@ -7,10 +7,9 @@ import pulse.ui.Messages;
 
 /**
  * <p>
- * A class used to represent small matrices, generally used in optimisation.
- * Hence, instead of implementing advanced decomposition methods for calculating
- * the determinant and the inverted matrix, it relies on simpler techniques,
- * such as the Laplace expansion.
+ * A class used for operations on small matrices (generally, not exceeding a
+ * size of 10), used primarily in optimisation and Runge-Kutta calculations of
+ * radiative transfer.
  * </p>
  */
 
@@ -34,17 +33,13 @@ public class Matrix {
 		int n = args[0].dimension();
 		int m = args.length;
 
-		for (int i = 1; i < m; i++) {
-			if (args[i].dimension() != n)
-				throw new IllegalArgumentException(
-						Messages.getString("Matrix.VectorDimensionError") + args[i] + " and " + n);
-		}
-
 		x = new double[n][m];
 
-		for (int i = 0; i < m; i++) 
-			for (int j = 0; j < n; j++) 
+		for (int i = 0; i < m; i++) {
+			for (int j = 0; j < n; j++) {
 				this.x[j][i] = args[i].get(j);
+			}
+		}
 
 	}
 

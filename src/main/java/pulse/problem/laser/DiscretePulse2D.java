@@ -1,13 +1,11 @@
 package pulse.problem.laser;
 
 import static java.lang.Math.signum;
-import static pulse.properties.NumericPropertyKeyword.SPOT_DIAMETER;
 
 import pulse.problem.schemes.Grid2D;
 import pulse.problem.statements.Problem;
 import pulse.problem.statements.Pulse2D;
 import pulse.problem.statements.TwoDimensional;
-import pulse.properties.NumericPropertyKeyword;
 
 /**
  * The discrete pulse on a {@code Grid2D}.
@@ -62,7 +60,7 @@ public class DiscretePulse2D extends DiscretePulse {
 	 */
 
 	public double evaluateAt(double time, double radialCoord) {
-		return powerAt(time) * (0.5 + 0.5 * signum(discretePulseSpot - radialCoord));
+		return laserPowerAt(time) * (0.5 + 0.5 * signum(discretePulseSpot - radialCoord));
 	}
 
 	/**
@@ -73,13 +71,10 @@ public class DiscretePulse2D extends DiscretePulse {
 	 */
 
 	@Override
-	public void recalculate(NumericPropertyKeyword keyword) {
-		if (keyword == SPOT_DIAMETER) {
-			discretePulseSpot = ((Grid2D) getGrid()).gridRadialDistance(
-					(double) ((Pulse2D) getPulse()).getSpotDiameter().getValue() / 2.0, coordFactor);
-		} else {
-			super.recalculate(keyword);
-		}
+	public void recalculate() {
+		super.recalculate();
+		final double radius = (double) ((Pulse2D) getPulse()).getSpotDiameter().getValue() / 2.0;
+		discretePulseSpot = ((Grid2D) getGrid()).gridRadialDistance(radius, coordFactor);
 	}
 
 	public double getDiscretePulseSpot() {

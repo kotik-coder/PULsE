@@ -15,6 +15,10 @@ import pulse.properties.NumericPropertyKeyword;
 
 public class RectangularPulse extends PulseTemporalShape {
 
+	/**
+	 * @param time the time measured from the start of the laser pulse.
+	 */
+	
 	@Override
 	public double evaluateAt(double time) {
 		var width = getPulseWidth();
@@ -23,8 +27,7 @@ public class RectangularPulse extends PulseTemporalShape {
 	
 	@Override
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
-		// TODO Auto-generated method stub
-		
+		// intentionally blak
 	}
 
 }

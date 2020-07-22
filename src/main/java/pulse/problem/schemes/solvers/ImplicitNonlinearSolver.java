@@ -103,7 +103,7 @@ public class ImplicitNonlinearSolver extends ImplicitScheme implements Solver<No
 
 			for (m = (w - 1) * getTimeInterval() + 1; m < w * getTimeInterval() + 1; m++) {
 
-				pls = discretePulse.powerAt((m - EPS) * tau);
+				pls = discretePulse.laserPowerAt((m - EPS) * tau);
 				alpha[1] = a1;
 
 				for (i = 1; i < N; i++) {

@@ -98,7 +98,7 @@ public class ExplicitTranslucentSolver extends ExplicitScheme implements Solver<
 
 			for (m = (w - 1) * getTimeInterval() + 1; m < w * getTimeInterval() + 1; m++) {
 
-				pls = discretePulse.powerAt((m - EPS) * tau);
+				pls = discretePulse.laserPowerAt((m - EPS) * tau);
 
 				/*
 				 * Uses the heat equation explicitly to calculate the grid-function everywhere

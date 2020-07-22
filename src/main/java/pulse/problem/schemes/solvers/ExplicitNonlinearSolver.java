@@ -90,7 +90,7 @@ public class ExplicitNonlinearSolver extends ExplicitScheme implements Solver<No
                                     V[i] = U[i] + TAU_HH * (U[i + 1] - 2. * U[i] + U[i - 1]);
                                 }
 
-				pls = discretePulse.powerAt((m - EPS) * tau);
+				pls = discretePulse.laserPowerAt((m - EPS) * tau);
 
 				/**
 				 * y = 0

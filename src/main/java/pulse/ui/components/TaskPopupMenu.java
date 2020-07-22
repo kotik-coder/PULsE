@@ -1,6 +1,5 @@
 package pulse.ui.components;
 
-import static pulse.ui.frames.MainGraphFrame.*;
 import static java.awt.Font.PLAIN;
 import static java.lang.System.err;
 import static java.lang.System.lineSeparator;
@@ -25,6 +24,7 @@ import static pulse.tasks.TaskManager.useResult;
 import static pulse.tasks.listeners.TaskRepositoryEvent.State.TASK_FINISHED;
 import static pulse.ui.Launcher.loadIcon;
 import static pulse.ui.Messages.getString;
+import static pulse.ui.frames.MainGraphFrame.getChart;
 
 import java.awt.Component;
 import java.awt.Font;

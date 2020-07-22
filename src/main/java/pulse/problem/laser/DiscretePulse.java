@@ -1,13 +1,8 @@
 package pulse.problem.laser;
 
-import static pulse.properties.NumericPropertyKeyword.PULSE_WIDTH;
-import static pulse.properties.NumericPropertyKeyword.TIME_SHIFT;
-
 import pulse.problem.schemes.Grid;
 import pulse.problem.statements.Problem;
 import pulse.problem.statements.Pulse;
-import pulse.properties.NumericProperty;
-import pulse.properties.NumericPropertyKeyword;
 
 /**
  * A {@code DiscretePulse} is an object that acts as a medium between the
@@ -42,25 +37,24 @@ public class DiscretePulse {
 		this.grid = grid;
 		this.pulse = pulse;
 
-		recalculate(PULSE_WIDTH);
-		recalculate(TIME_SHIFT);
+		recalculate();
 
 		pulse.getPulseShape().init(this);
-		
 		pulse.addListener(e -> {
-			var p = e.getProperty();
-
-			if ((p instanceof NumericProperty)) {
-				var key = ((NumericProperty) p).getType();
-				recalculate(key);
-			}
-			
+			recalculate();
 			pulse.getPulseShape().init(this);
 
 		});
 	}
 
-	public double powerAt(double time) {
+	/**
+	 * Uses the {@code PulseTemporalShape} of the {@code Pulse} object
+	 * to calculate the laser power at the specified moment of {@code time}.
+	 * @param time the time argument
+	 * @return the laser power at the specified moment of {@code time}
+	 */
+	
+	public double laserPowerAt(double time) {
 		return pulse.getPulseShape().evaluateAt(time);
 	}
 
@@ -71,14 +65,9 @@ public class DiscretePulse {
 	 * @see pulse.problem.schemes.Grid.gridTime(double,double)
 	 */
 
-	public void recalculate(NumericPropertyKeyword keyword) {
-		switch (keyword) {
-		case PULSE_WIDTH:
-			discretePulseWidth = grid.gridTime(((Number) pulse.getPulseWidth().getValue()).doubleValue(), timeFactor);
-			break;
-		default:
-			break;
-		}
+	public void recalculate() {
+		final double width = ((Number) pulse.getPulseWidth().getValue()).doubleValue();
+		discretePulseWidth = grid.gridTime(width, timeFactor);
 	}
 
 	/**

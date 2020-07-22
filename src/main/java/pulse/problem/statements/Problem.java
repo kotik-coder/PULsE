@@ -370,8 +370,8 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 			switch (output[0].getIndex(i)) {
 			case DIFFUSIVITY:
 				double prefactor = pow(l, -2);
-				output[0].set(i, a * prefactor, prefactor);
-				output[1].set(i, 0.75 * a * prefactor, prefactor);
+				output[0].set(i, a * prefactor);
+				output[1].set(i, 0.75 * a * prefactor);
 				break;
 			case MAXTEMP:
 				output[0].set(i, signalHeight);

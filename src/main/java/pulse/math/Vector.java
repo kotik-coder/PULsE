@@ -305,6 +305,11 @@ public class Vector {
 		return true;
 
 	}
+	
+	/**
+	 * Determines the maximum absolute value of the vector components.
+	 * @return a component having the maximum absolute value.
+	 */
 
 	public double maxAbsComponent() {
 		double max = Math.abs(x[0]);

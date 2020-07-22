@@ -6,7 +6,6 @@ import static java.lang.String.format;
 import static pulse.properties.NumericProperty.def;
 import static pulse.properties.NumericProperty.derive;
 import static pulse.properties.NumericPropertyKeyword.GRID_DENSITY;
-import static pulse.properties.NumericPropertyKeyword.PULSE_WIDTH;
 import static pulse.properties.NumericPropertyKeyword.TAU_FACTOR;
 
 import java.util.ArrayList;
@@ -73,7 +72,7 @@ public class Grid extends PropertyHolder {
 	 */
 
 	public void adjustTo(DiscretePulse pulse) {
-		for (final var factor = 0.95; factor * tau > pulse.getDiscretePulseWidth(); pulse.recalculate(PULSE_WIDTH)) {
+		for (final var factor = 0.95; factor * tau > pulse.getDiscretePulseWidth(); pulse.recalculate()) {
 			tauFactor /= 1.5;
 			tau = tauFactor * pow(hx, 2);
 		}

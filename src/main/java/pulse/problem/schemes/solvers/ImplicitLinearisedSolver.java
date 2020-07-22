@@ -126,7 +126,7 @@ public class ImplicitLinearisedSolver extends ImplicitScheme implements Solver<L
 
 			for (m = (w - 1) * getTimeInterval() + 1; m < w * getTimeInterval() + 1; m++) {
 
-				pls = discretePulse.powerAt((m - EPS) * tau); // NOTE: EPS is very important here and ensures
+				pls = discretePulse.laserPowerAt((m - EPS) * tau); // NOTE: EPS is very important here and ensures
 																	// numeric stability!
 
 				alpha[1] = 2. * tau / (2. * Bi1HTAU + 2. * tau + HH);

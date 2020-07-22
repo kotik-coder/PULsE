@@ -6,9 +6,11 @@ import static java.awt.Color.white;
 import static java.awt.Font.PLAIN;
 import static java.util.Objects.requireNonNull;
 import static org.jfree.chart.plot.PlotOrientation.VERTICAL;
+
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
+
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;

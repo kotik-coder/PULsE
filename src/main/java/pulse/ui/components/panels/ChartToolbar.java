@@ -1,6 +1,5 @@
 package pulse.ui.components.panels;
 
-import static pulse.ui.frames.MainGraphFrame.*;
 import static java.awt.Color.GRAY;
 import static java.awt.Color.black;
 import static java.awt.Color.gray;
@@ -19,6 +18,8 @@ import static pulse.tasks.TaskManager.getSelectedTask;
 import static pulse.tasks.listeners.TaskRepositoryEvent.State.TASK_FINISHED;
 import static pulse.ui.Launcher.loadIcon;
 import static pulse.ui.Messages.getString;
+import static pulse.ui.frames.MainGraphFrame.getChart;
+
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.FocusEvent;

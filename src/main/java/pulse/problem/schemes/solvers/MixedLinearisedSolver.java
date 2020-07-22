@@ -137,7 +137,7 @@ public class MixedLinearisedSolver extends MixedScheme implements Solver<Lineari
 			for (m = (w - 1) * getTimeInterval() + 1; m < w * getTimeInterval() + 1; m++) {
 
 				alpha[1] = a1;
-				pls = discretePulse.powerAt((m - 1 + EPS) * tau) + discretePulse.powerAt((m - EPS) * tau);
+				pls = discretePulse.laserPowerAt((m - 1 + EPS) * tau) + discretePulse.laserPowerAt((m - EPS) * tau);
 				beta[1] = b1 * (b2 * U[0] + b3 * pls - tau * (U[0] - U[1]));
 
 				for (i = 1; i < N; i++) {

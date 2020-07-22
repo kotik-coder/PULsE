@@ -124,7 +124,7 @@ public class ExplicitLinearisedSolver extends ExplicitScheme implements Solver<L
 				 * Calculates boundary values
 				 */
 
-				pls = discretePulse.powerAt((m - EPS) * tau);
+				pls = discretePulse.laserPowerAt((m - EPS) * tau);
 				V[0] = (V[1] + hx * pls) * a;
 				V[N] = V[N - 1] * b;
 

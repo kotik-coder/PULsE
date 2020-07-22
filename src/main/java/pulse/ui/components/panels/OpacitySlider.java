@@ -1,8 +1,9 @@
 package pulse.ui.components.panels;
 
 import static java.lang.Math.exp;
-import static pulse.ui.frames.MainGraphFrame.*;
 import static javax.swing.BorderFactory.createEmptyBorder;
+import static pulse.ui.frames.MainGraphFrame.getChart;
+
 import java.util.ArrayList;
 import java.util.List;
 
