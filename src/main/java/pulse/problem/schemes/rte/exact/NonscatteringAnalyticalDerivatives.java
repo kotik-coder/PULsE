@@ -84,7 +84,7 @@ public class NonscatteringAnalyticalDerivatives extends NonscatteringRadiativeTr
 		double t = hx * uIndex * tau0;
 
 		double value = r1 * simpleIntegrator.integralAt(t, 2) + r2 * simpleIntegrator.integralAt(tau0 - t, 2)
-				- 2.0 * emissionFunction.power(U[uIndex]) + integrateFirstOrder(t);
+				- 2.0 * emissionFunction.powerAt(t) + integrateFirstOrder(t);
 
 		FD[uIndex] = 2.0 * value;
 
@@ -92,7 +92,7 @@ public class NonscatteringAnalyticalDerivatives extends NonscatteringRadiativeTr
 
 	private void fluxDerivativeFront(double[] U) {
 		double value = r1 * simpleIntegrator.integralAt(0, 2) + r2 * simpleIntegrator.integralAt(tau0, 2)
-				- 2.0 * emissionFunction.power(U[0]) + integrateFirstOrderFront();
+				- 2.0 * emissionFunction.powerAt(0.0) + integrateFirstOrderFront();
 
 		FD[0] = 2.0 * value;
 
@@ -103,7 +103,7 @@ public class NonscatteringAnalyticalDerivatives extends NonscatteringRadiativeTr
 		double t = hx * N * tau0;
 
 		double value = r1 * simpleIntegrator.integralAt(t, 2) + r2 * simpleIntegrator.integralAt(tau0 - t, 2)
-				- 2.0 * emissionFunction.power(U[N]) + integrateFirstOrderRear();
+				- 2.0 * emissionFunction.powerAt(t) + integrateFirstOrderRear();
 
 		FD[N] = 2.0 * value;
 	}

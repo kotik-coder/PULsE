@@ -2,7 +2,7 @@ package pulse.problem.schemes.rte.exact;
 
 import java.util.stream.IntStream;
 
-import pulse.problem.schemes.rte.EmissionFunction;
+import pulse.problem.schemes.rte.BlackbodySpectrum;
 import pulse.problem.schemes.rte.Integrator;
 
 /**
@@ -28,7 +28,7 @@ public class SimpsonsRule extends Integrator {
 	protected final static int T_INDEX = 2;
 
 	protected static ExponentialFunctionIntegrator expIntegrator = ExponentialFunctionIntegrator.getDefaultIntegrator();
-	protected EmissionFunction emissionFunction;
+	protected BlackbodySpectrum emissionFunction;
 
 	private final static double DEFAULT_CUTOFF = 6.5;
 	private final static int DEFAULT_PRECISION = 64;
@@ -67,7 +67,7 @@ public class SimpsonsRule extends Integrator {
 	 */
 
 	public void adjustRange(double alpha, double beta) {
-		double bound = (cutoff - alpha) / beta;
+		double bound = ((double) getCutoff().getValue() - alpha) / beta;
 
 		double a = 0.5 - beta / 2;
 		double b = 1. - a;
@@ -79,16 +79,16 @@ public class SimpsonsRule extends Integrator {
 	@Override
 	public double integrate(int order, double... params) {
 		adjustRange(params[A_INDEX], params[B_INDEX]);
-		stepSize = (rMax - rMin) / integrationSegments;
+		stepSize = (rMax - rMin) / ( ((Integer)getIntegrationSegments().getValue()).doubleValue());
 		return integrateSimpson(order, params);
 	}
 
 	public double integrateMidpoint(int order, double... params) {
 		double integral = 0;
 
-		for (int i = 0; i < integrationSegments; i++) {
-                    integral += integrand(order, params[A_INDEX], params[B_INDEX], rMin + (i + 0.5) * stepSize);
-                }
+		for (int i = 0, integrationSegments = (int) getIntegrationSegments().getValue(); i < integrationSegments; i++) {
+			integral += integrand(order, params[A_INDEX], params[B_INDEX], rMin + (i + 0.5) * stepSize);
+		}
 
 		return integral * stepSize;
 	}
@@ -108,6 +108,8 @@ public class SimpsonsRule extends Integrator {
 		double x = 0;
 		double y = 0;
 
+		int integrationSegments = (int) getIntegrationSegments().getValue();
+		
 		// 4/3 terms
 		for (int i = 1; i < integrationSegments; i += 2) {
 			x += integrand(order, params[0], params[1], rMin + stepSize * i);
@@ -115,8 +117,8 @@ public class SimpsonsRule extends Integrator {
 
 		// 2/3 terms
 		for (int i = 2; i < integrationSegments; i += 2) {
-                    y += integrand(order, params[0], params[1], rMin + stepSize * i);
-                }
+			y += integrand(order, params[0], params[1], rMin + stepSize * i);
+		}
 
 		sum += x * 4.0 + y * 2.0;
 
@@ -129,6 +131,8 @@ public class SimpsonsRule extends Integrator {
 
 		// 1/90 terms
 		double sum = (fa + fb);
+		
+		int integrationSegments = (int) getIntegrationSegments().getValue();
 
 		// 1/32 terms
 		sum += 32. * IntStream.range(0, integrationSegments)
@@ -153,12 +157,12 @@ public class SimpsonsRule extends Integrator {
 
 	@Override
 	public double integrand(int order, double... params) {
-		return emissionFunction.powerInterpolated(params[T_INDEX])
+		return emissionFunction.powerAt(params[T_INDEX])
 				* expIntegrator.integralAt(params[A_INDEX] + params[B_INDEX] * params[T_INDEX], order);
 	}
 
 	public double integrandNoInterpolation(int order, double... params) {
-		return emissionFunction.powerInterpolated(params[T_INDEX])
+		return emissionFunction.powerAt(params[T_INDEX])
 				* expIntegrator.integralAt(params[A_INDEX] + params[B_INDEX] * params[T_INDEX], order);
 	}
 
@@ -170,11 +174,11 @@ public class SimpsonsRule extends Integrator {
 		return max;
 	}
 
-	public EmissionFunction getEmissionFunction() {
+	public BlackbodySpectrum getEmissionFunction() {
 		return emissionFunction;
 	}
 
-	public void setEmissionFunction(EmissionFunction emissionFunction) {
+	public void setEmissionFunction(BlackbodySpectrum emissionFunction) {
 		this.emissionFunction = emissionFunction;
 	}
 

@@ -1,7 +1,7 @@
 package pulse.problem.schemes.rte.exact;
 
 import pulse.problem.schemes.Grid;
-import pulse.problem.schemes.rte.EmissionFunction;
+import pulse.problem.schemes.rte.BlackbodySpectrum;
 import pulse.problem.schemes.rte.Integrator;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
@@ -16,13 +16,13 @@ public class EmissionFunctionIntegrator extends Integrator {
 	private double min;
 	private double max;
 
-	protected EmissionFunction emissionFunction;
+	protected BlackbodySpectrum emissionFunction;
 
-	public EmissionFunctionIntegrator(EmissionFunction function, Grid grid) {
+	public EmissionFunctionIntegrator(BlackbodySpectrum function, Grid grid) {
 		this(function, grid.getXStep());
 	}
 
-	public EmissionFunctionIntegrator(EmissionFunction function, double hx) {
+	public EmissionFunctionIntegrator(BlackbodySpectrum function, double hx) {
 		super(Double.POSITIVE_INFINITY, 0,
 				(int) NumericProperty.def(NumericPropertyKeyword.INTEGRATION_SEGMENTS).getValue());
 		emissionFunction = function;
@@ -57,23 +57,21 @@ public class EmissionFunctionIntegrator extends Integrator {
 
 	@Override
 	public double integrate(int order, double... params) {
-		stepSize = Math.abs(max - min) / integrationSegments;
+		stepSize = Math.abs(max - min) / (int) getIntegrationSegments().getValue();
 		return integrateSimpson(order, params);
 	}
 
 	@Override
 	public double integrand(int order, double... params) {
-		int floor = (int) (params[0] / hx); // floor index
-		double alpha = params[0] / hx - floor;
-		return emissionFunction.power((1.0 - alpha) * U[floor] + alpha * U[floor + 1]);
+		return emissionFunction.powerAt(params[0]);
 	}
 
 	public double integrateMidpoint(int order, double... params) {
 		double integral = 0;
 
-		for (int i = 0; i < integrationSegments; i++) {
-                    integral += integrand(order, min + (i + 0.5) * stepSize);
-                }
+		for (int i = 0, integrationSegments = (int) getIntegrationSegments().getValue(); i < integrationSegments; i++) {
+			integral += integrand(order, min + (i + 0.5) * stepSize);
+		}
 
 		return integral * stepSize;
 	}
@@ -88,16 +86,18 @@ public class EmissionFunctionIntegrator extends Integrator {
 		double fb = integrand(order, max);
 		// 1/3 terms
 		double sum = (fa + fb);
+		
+		int integrationSegments = (int) getIntegrationSegments().getValue();
 
 		// 4/3 terms
 		for (int i = 1; i < integrationSegments; i += 2) {
-                    sum += 4.0 * integrand(order, min + stepSize * i);
-                }
+			sum += 4.0 * integrand(order, min + stepSize * i);
+		}
 
 		// 2/3 terms
 		for (int i = 2; i < integrationSegments; i += 2) {
-                    sum += 2.0 * integrand(order, min + stepSize * i);
-                }
+			sum += 2.0 * integrand(order, min + stepSize * i);
+		}
 
 		return sum * stepSize / 3.0;
 	}
@@ -110,11 +110,11 @@ public class EmissionFunctionIntegrator extends Integrator {
 		this.hx = hx;
 	}
 
-	public EmissionFunction getEmissionFunction() {
+	public BlackbodySpectrum getEmissionFunction() {
 		return emissionFunction;
 	}
 
-	public void setEmissionFunction(EmissionFunction emissionFunction) {
+	public void setEmissionFunction(BlackbodySpectrum emissionFunction) {
 		this.emissionFunction = emissionFunction;
 	}
 

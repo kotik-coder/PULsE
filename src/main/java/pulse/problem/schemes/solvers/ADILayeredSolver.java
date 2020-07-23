@@ -32,11 +32,6 @@ public class ADILayeredSolver extends ADIScheme implements Solver<CoreShellProbl
 		initGrid(nCore, nShell, timeFactor);
 	}
 
-	@Override
-	public void initGrid(NumericProperty N, NumericProperty timeFactor) {
-		this.initGrid(N, SHELL_GRID_DENSITY, timeFactor);
-	}
-
 	public void initGrid(NumericProperty nCore, NumericProperty nShell, NumericProperty timeFactor) {
 		var map = new HashMap<Location, Partition>();
 		map.put(Location.CORE_X, new Partition((int) nCore.getValue(), 1.0, 0.5));

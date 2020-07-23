@@ -20,16 +20,25 @@ import pulse.properties.NumericProperty;
 
 public class Grid2D extends Grid {
 
-	protected double hy;
+	private double hy;
 
 	protected Grid2D() {
 		super();
 	}
+	
+	/**
+	 * Creates a {@code Grid2D} where the radial and axial spatial steps are 
+	 * equal to the inverse {@code gridDensity}. Otherwise, calls the superclass
+	 * constructor.
+	 * @param gridDensity the grid density
+	 * @param timeFactor the {@code &tau;<sub>F</sub>} factor
+	 */
 
 	public Grid2D(NumericProperty gridDensity, NumericProperty timeFactor) {
 		super(gridDensity, timeFactor);
+		hy = 1.0 / getGridDensityValue();
 	}
-
+	
 	@Override
 	public Grid2D copy() {
 		return new Grid2D(getGridDensity(), getTimeFactor());
@@ -38,11 +47,11 @@ public class Grid2D extends Grid {
 	@Override
 	public void setTimeFactor(NumericProperty timeFactor) {
 		super.setTimeFactor(timeFactor);
-		tau = tauFactor * (pow(hx, 2) + pow(hy, 2));
+		setTimeStep( (double) timeFactor.getValue() * (pow(getXStep(), 2) + pow(hy, 2)) );
 	}
 	
 	/**
-	 * Calls the {@code optimise} method from superclass, then adjusts the
+	 * Calls the {@code adjustTo} method from superclass, then adjusts the
 	 * {@code gridDensity} of the {@code grid} if
 	 * {@code discretePulseSpot < (Grid2D)grid.hy}.
 	 * 
@@ -53,14 +62,17 @@ public class Grid2D extends Grid {
 	public void adjustTo(DiscretePulse pulse) {
 		super.adjustTo(pulse);
 		if(pulse instanceof DiscretePulse2D)
-			optimise((DiscretePulse2D)pulse);
+			adjustTo((DiscretePulse2D)pulse);
 	}
-	
-	public void optimise(DiscretePulse2D pulse) {
+
+	private void adjustTo(DiscretePulse2D pulse) {
+		final int GRID_DENSITY_INCREMENT = 5;
+		
 		for (final var factor = 1.05; factor * hy > pulse.getDiscretePulseSpot(); pulse.recalculate()) {
-			N += 5;
+			int N = getGridDensityValue();
+			setGridDensityValue( N + GRID_DENSITY_INCREMENT );
 			hy = 1. / N;
-			hx = 1. / N;
+			setXStep( 1. / N );
 		}
 		
 	}
@@ -73,7 +85,7 @@ public class Grid2D extends Grid {
 	@Override
 	public void setGridDensity(NumericProperty gridDensity) {
 		super.setGridDensity(gridDensity);
-		hy = hx;
+		hy = getXStep();
 	}
 
 	/**
@@ -92,11 +104,8 @@ public class Grid2D extends Grid {
 
 	@Override
 	public String toString() {
-		var sb = new StringBuilder();
-		sb.append("<html>");
-		sb.append("Grid2D: <math><i>h<sub>x</sub></i>=" + format("%3.3f", hx) + "; ");
-		sb.append("<math><i>h<sub>y</sub></i>=" + format("%3.3f", hy) + "; ");
-		sb.append("<i>&tau;</i>=" + format("%3.4f", tau));
+		var sb = new StringBuilder(super.toString());
+		sb.append("<math><i>h<sub>y</sub></i>=" + format("%3.3f", hy));
 		return sb.toString();
 	}
 

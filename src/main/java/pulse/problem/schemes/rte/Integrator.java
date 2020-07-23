@@ -1,5 +1,11 @@
 package pulse.problem.schemes.rte;
 
+import static pulse.properties.NumericProperty.def;
+import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericProperty.requireType;
+import static pulse.properties.NumericPropertyKeyword.INTEGRATION_CUTOFF;
+import static pulse.properties.NumericPropertyKeyword.INTEGRATION_SEGMENTS;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,14 +17,15 @@ import pulse.util.Reflexive;
 
 public abstract class Integrator extends PropertyHolder implements Reflexive {
 
-	protected double cutoff;
-	private double cutoffMinusDx;
-	protected int lookupTableSize;
-	protected int integrationSegments;
-
-	private double lookupTable[][];
 	private double dx;
-
+	private double cutoff;
+	private double cutoffMinusDx;
+	
+	private double lookupTable[][];
+	private int lookupTableSize;
+	
+	private int integrationSegments;
+	
 	public Integrator(double cutoff, int numPartitions, int expIntPrecision) {
 		this.cutoff = cutoff;
 		this.lookupTableSize = numPartitions;
@@ -81,24 +88,22 @@ public abstract class Integrator extends PropertyHolder implements Reflexive {
 	}
 
 	public NumericProperty getCutoff() {
-		return NumericProperty.derive(NumericPropertyKeyword.INTEGRATION_CUTOFF, cutoff);
+		return derive(INTEGRATION_CUTOFF, cutoff);
 	}
 
 	public void setCutoff(NumericProperty cutoff) {
-		if (cutoff.getType() != NumericPropertyKeyword.INTEGRATION_CUTOFF)
-			throw new IllegalArgumentException("Keyword not recognised: " + cutoff.getType());
+		requireType(cutoff, INTEGRATION_CUTOFF);
 		this.cutoff = (double) cutoff.getValue();
 		dx = this.cutoff / lookupTableSize;
 		cutoffMinusDx = this.cutoff - dx;
 	}
 
 	public NumericProperty getIntegrationSegments() {
-		return NumericProperty.derive(NumericPropertyKeyword.INTEGRATION_SEGMENTS, integrationSegments);
+		return derive(INTEGRATION_SEGMENTS, integrationSegments);
 	}
 
 	public void setIntegrationSegments(NumericProperty integrationSegments) {
-		if (integrationSegments.getType() != NumericPropertyKeyword.INTEGRATION_SEGMENTS)
-			throw new IllegalArgumentException("Illegal type: " + integrationSegments.getType());
+		requireType(integrationSegments, INTEGRATION_SEGMENTS);
 		this.integrationSegments = (int) integrationSegments.getValue();
 	}
 
@@ -122,8 +127,8 @@ public abstract class Integrator extends PropertyHolder implements Reflexive {
 	@Override
 	public List<Property> listedTypes() {
 		List<Property> list = new ArrayList<>();
-		list.add(NumericProperty.def(NumericPropertyKeyword.INTEGRATION_CUTOFF));
-		list.add(NumericProperty.def(NumericPropertyKeyword.INTEGRATION_SEGMENTS));
+		list.add(def(INTEGRATION_CUTOFF));
+		list.add(def(INTEGRATION_SEGMENTS));
 		return list;
 	}
 

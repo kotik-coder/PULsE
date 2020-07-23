@@ -3,7 +3,7 @@ package pulse.problem.schemes.rte.dom;
 import java.util.List;
 
 import pulse.problem.schemes.Grid;
-import pulse.problem.schemes.rte.EmissionFunction;
+import pulse.problem.schemes.rte.BlackbodySpectrum;
 import pulse.problem.schemes.rte.RTECalculationListener;
 import pulse.problem.schemes.rte.RTECalculationStatus;
 import pulse.problem.schemes.rte.RadiativeTransferSolver;
@@ -60,7 +60,7 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 		discrete.setParent(this);
 
 		phaseFunction = phaseFunctionSelector.newInstance(PhaseFunction.class, problem, discrete);
-		var emissionFunction = new EmissionFunction(problem, grid);
+		var emissionFunction = new BlackbodySpectrum(problem);
 		integrator = integratorDescriptor.newInstance(AdaptiveIntegrator.class, problem, discrete, emissionFunction,
 				phaseFunction);
 		iterativeSolver = iterativeSolverSelector.newInstance(IterativeSolver.class);

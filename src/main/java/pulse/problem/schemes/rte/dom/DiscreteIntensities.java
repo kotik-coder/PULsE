@@ -3,7 +3,7 @@ package pulse.problem.schemes.rte.dom;
 import java.util.ArrayList;
 import java.util.List;
 
-import pulse.problem.schemes.rte.EmissionFunction;
+import pulse.problem.schemes.rte.BlackbodySpectrum;
 import pulse.problem.statements.ParticipatingMedium;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
@@ -214,27 +214,27 @@ public class DiscreteIntensities extends PropertyHolder {
 	 * at the left boundary (tau = 0).
 	 */
 
-	public void left(final EmissionFunction ef) {
+	public void left(final BlackbodySpectrum ef) {
 		final int nHalf = ordinates.getFirstNegativeNode();
 		final int nStart = ordinates.getFirstPositiveNode();
 
 		for (int i = nStart; i < nHalf; i++) {
                     // for positive streams
-                    I[0][i] = ef.J(0.0) - boundaryFluxFactor * qLeft(ef);
+                    I[0][i] = ef.radianceAt(0.0) - boundaryFluxFactor * qLeft(ef);
                 }
 
 	}
 
-	public double qLeft(final EmissionFunction emissionFunction) {
+	public double qLeft(final BlackbodySpectrum emissionFunction) {
 		final int nHalf = ordinates.getFirstNegativeNode();
-		return qLeft = emissivity * (Math.PI * emissionFunction.J(0.0) + DOUBLE_PI * q(0, nHalf, ordinates.total));
+		return qLeft = emissivity * (Math.PI * emissionFunction.radianceAt(0.0) + DOUBLE_PI * q(0, nHalf, ordinates.total));
 	}
 
-	public double qRight(final EmissionFunction emissionFunction) {
+	public double qRight(final BlackbodySpectrum emissionFunction) {
 		final int nHalf = ordinates.getFirstNegativeNode();
 		final int nStart = ordinates.getFirstPositiveNode();
 		return qRight = -emissivity
-				* (Math.PI * emissionFunction.J(grid.getDimension()) - DOUBLE_PI * q(grid.getDensity(), nStart, nHalf));
+				* (Math.PI * emissionFunction.radianceAt(grid.getDimension()) - DOUBLE_PI * q(grid.getDensity(), nStart, nHalf));
 	}
 
 	public void reinitInternalArrays() {
@@ -248,7 +248,7 @@ public class DiscreteIntensities extends PropertyHolder {
 	 * at the right boundary (tau = tau_0).
 	 */
 
-	public void right(final EmissionFunction ef) {
+	public void right(final BlackbodySpectrum ef) {
 
 		int N = grid.getDensity();
 
@@ -256,7 +256,7 @@ public class DiscreteIntensities extends PropertyHolder {
 
 		for (int i = nHalf; i < ordinates.total; i++) {
                     // for negative streams
-                    I[N][i] = ef.J(grid.getDimension()) + boundaryFluxFactor * qRight(ef);
+                    I[N][i] = ef.radianceAt(grid.getDimension()) + boundaryFluxFactor * qRight(ef);
                 }
 
 	}

@@ -25,6 +25,27 @@ import pulse.properties.NumericProperty;
  * {@code maximumTemperature} {@code NumericProperty} of {@code problem}.
  * </p>
  * 
+ * <p>
+ * The semi-implicit scheme uses a 6-point template on a one-dimensional grid
+ * that utilises the following grid-function values on each step:
+ * <math><i>&Theta;(x<sub>i</sub>,t<sub>m</sub>),
+ * &Theta;(x<sub>i</sub>,t<sub>m+1</sub>),
+ * &Theta;(x<sub>i-1</sub>,t<sub>m</sub>),
+ * &Theta;(x<sub>i+1</sub>,t<sub>m</sub>),
+ * &Theta;(x<sub>i-1</sub>,t<sub>m+1</sub>),
+ * &Theta;(x<sub>i+1</sub>,t<sub>m+1</sub>)</i></math>. The boundary conditions
+ * are approximated with a Taylor expansion up to the third term, hence the
+ * scheme has an increased order of approximation.
+ * </p>
+ * <p>
+ * The semi-implicit scheme is unconditionally stable and has an order of
+ * approximation of <math><i>O(&tau;<sup>2</sup> + h<sup>2</sup>)</i></math>.
+ * Note this scheme is prone to spurious oscillations when either a high spatial
+ * resolution or a large timestep are used. It has been noticed that due to the
+ * pulse term in the boundary condition, a higher error is introduced into the
+ * calculation than for the implicit scheme.
+ * </p>
+ * 
  * @see super.solve(Problem)
  */
 

@@ -7,28 +7,52 @@ import static pulse.ui.Messages.getString;
 
 import pulse.properties.NumericProperty;
 
-public abstract class ADIScheme extends DifferenceScheme {
+/**
+ * An {@code ADIScheme} uses a {@code Grid2D} to provide numerical capabilities 
+ * needed to solve a {@code Problem}. 
+ *
+ */
 
+public abstract class ADIScheme extends DifferenceScheme {
+	
+	/**
+	 * Creates a new {@code ADIScheme} with default values of grid density and time factor.
+	 */
+	
 	public ADIScheme() {
 		this(derive(GRID_DENSITY, 30), 
 				derive(TAU_FACTOR, 1.0));
 	}
+	
+	/**
+	 * Creates an {@code ADIScheme} with the specified arguments. This creates 
+	 * an associated {@code Grid2D} object.
+	 * @param N the grid density
+	 * @param timeFactor the time factor (&tau;<sub>F</sub>)
+	 */
 
 	public ADIScheme(NumericProperty N, NumericProperty timeFactor) {
 		super();
-		initGrid(N, timeFactor);
+		setGrid(new Grid2D(N, timeFactor));
 	}
+	
+	/**
+	 * Creates an {@code ADIScheme} with the specified arguments. This creates 
+	 * an associated {@code Grid2D} object.
+	 * @param N the grid density
+	 * @param timeFactor the time factor (&tau;<sub>F</sub>)
+	 * @param timeLimit a custom time limit (<i>t</i><sub>lim</sub>)
+	 */
 
 	public ADIScheme(NumericProperty N, NumericProperty timeFactor, NumericProperty timeLimit) {
 		super(timeLimit);
-		initGrid(N, timeFactor);
-	}
-
-	@Override
-	public void initGrid(NumericProperty N, NumericProperty timeFactor) {
 		setGrid(new Grid2D(N, timeFactor));
-		getGrid().setTimeFactor(timeFactor);
 	}
+	
+	/**
+	 * Prints out the description of this problem type.
+	 * @return a verbose description of the problem.
+	 */
 
 	@Override
 	public String toString() {

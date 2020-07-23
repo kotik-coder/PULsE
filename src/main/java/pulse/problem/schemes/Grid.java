@@ -5,6 +5,7 @@ import static java.lang.Math.rint;
 import static java.lang.String.format;
 import static pulse.properties.NumericProperty.def;
 import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericProperty.requireType;
 import static pulse.properties.NumericPropertyKeyword.GRID_DENSITY;
 import static pulse.properties.NumericPropertyKeyword.TAU_FACTOR;
 
@@ -21,18 +22,19 @@ import pulse.util.PropertyHolder;
  * <p>
  * A {@code Grid} is used to partition the space and time domain of a
  * {@code Problem} to allow a numeric solution with a {@code DifferenceScheme}.
- * This type of grid is one-dimensional in space, meaning that it only defines
- * rules for partitioning the axial dimension in the laser flash experiment.
+ * This specific class of grids is one-dimensional in space, meaning that it
+ * only defines rules for partitioning the axial dimension in the laser flash
+ * experiment.
  * </p>
  *
  */
 
 public class Grid extends PropertyHolder {
 
-	protected double hx;
-	protected double tau;
-	protected double tauFactor;
-	protected int N;
+	private double hx;
+	private double tau;
+	private double tauFactor;
+	private int N;
 
 	/**
 	 * Creates a {@code Grid} object with the specified {@code gridDensity} and
@@ -48,7 +50,9 @@ public class Grid extends PropertyHolder {
 		setTimeFactor(timeFactor);
 	}
 
-	protected Grid() { }
+	protected Grid() {
+		// intentionally blank
+	}
 
 	/**
 	 * Creates a new {@code Grid} object with exactly the same parameters as this
@@ -60,7 +64,7 @@ public class Grid extends PropertyHolder {
 	public Grid copy() {
 		return new Grid(getGridDensity(), getTimeFactor());
 	}
-	
+
 	/**
 	 * Optimises the {@code grid} parameters.
 	 * <p>
@@ -72,11 +76,16 @@ public class Grid extends PropertyHolder {
 	 */
 
 	public void adjustTo(DiscretePulse pulse) {
-		for (final var factor = 0.95; factor * tau > pulse.getDiscretePulseWidth(); pulse.recalculate()) {
-			tauFactor /= 1.5;
+		final double ADJUSTMENT_FACTOR = 0.75;
+		for (final double factor = 0.95; factor * tau > pulse.getDiscretePulseWidth(); pulse.recalculate()) {
+			tauFactor *= ADJUSTMENT_FACTOR;
 			tau = tauFactor * pow(hx, 2);
 		}
 	}
+
+	/**
+	 * The listed properties include {@code GRID_DENSITY} and {@code TAU_FACTOR}.
+	 */
 
 	@Override
 	public List<Property> listedTypes() {
@@ -132,6 +141,10 @@ public class Grid extends PropertyHolder {
 		return tau;
 	}
 
+	protected void setTimeStep(double tau) {
+		this.tau = tau;
+	}
+
 	/**
 	 * Retrieves the value of the &tau;-factor, or the time factor, used in
 	 * finite-difference calculation. This factor determines the proportionally
@@ -154,7 +167,15 @@ public class Grid extends PropertyHolder {
 	 */
 
 	public NumericProperty getGridDensity() {
-		return derive(GRID_DENSITY, this.N);
+		return derive(GRID_DENSITY, N);
+	}
+
+	protected int getGridDensityValue() {
+		return N;
+	}
+
+	protected void setGridDensityValue(int N) {
+		this.N = N;
 	}
 
 	/**
@@ -165,8 +186,7 @@ public class Grid extends PropertyHolder {
 	 */
 
 	public void setGridDensity(NumericProperty gridDensity) {
-		if (gridDensity.getType() != GRID_DENSITY)
-			throw new IllegalArgumentException("Type of property passed to constructor " + gridDensity.getType());
+		requireType(gridDensity, GRID_DENSITY);
 		this.N = (int) gridDensity.getValue();
 		hx = 1. / N;
 		setTimeFactor(derive(TAU_FACTOR, 1.0));
@@ -180,21 +200,18 @@ public class Grid extends PropertyHolder {
 	 */
 
 	public void setTimeFactor(NumericProperty timeFactor) {
-		if (timeFactor.getType() != TAU_FACTOR)
-			throw new IllegalArgumentException("Wrong NumericProperty type passed to method: " + timeFactor.getType());
-
+		requireType(timeFactor, TAU_FACTOR);
 		this.tauFactor = (double) timeFactor.getValue();
-		tau = tauFactor * pow(hx, 2);
+		setTimeStep(tauFactor * pow(hx, 2));
 	}
 
 	/**
 	 * The dimensionless time on this {@code Grid}, which is the
-	 * {@code time/timeFactor} rounded up to a factor of the time step {@code tau}.
+	 * {@code time/dimensionFactor} rounded up to a factor of the time step {@code tau}.
 	 * 
 	 * @param time            the time
-	 * @param dimensionFactor a factor which has the dimension of time
+	 * @param dimensionFactor a conversion factor with the dimension of time
 	 * @return a double representing the time on the finite grid
-	 * @see pulse.problem.statements.Problem.timeFactor()
 	 */
 
 	public double gridTime(double time, double dimensionFactor) {
@@ -207,7 +224,7 @@ public class Grid extends PropertyHolder {
 	 * {@code hx}.
 	 * 
 	 * @param distance     the distance along the axial direction
-	 * @param lengthFactor a factor which has the dimension of length
+	 * @param lengthFactor a conversion factor with the dimension of length
 	 * @return a double representing the axial distance on the finite grid
 	 */
 
@@ -219,8 +236,8 @@ public class Grid extends PropertyHolder {
 	public String toString() {
 		var sb = new StringBuilder();
 		sb.append("<html>");
-		sb.append("Grid: <math><i>h<sub>x</sub></i>=" + format("%3.2e", hx) + "; ");
-		sb.append("<i>&tau;</i>=" + format("%3.2e", tau));
+		sb.append(getClass().getSimpleName() + ": <math><i>h<sub>x</sub></i>=" + format("%3.2e", hx) + "; ");
+		sb.append("<i>&tau;</i>=" + format("%3.2e", tau) + "; ");
 		return sb.toString();
 	}
 

@@ -8,25 +8,8 @@ import static pulse.ui.Messages.getString;
 import pulse.properties.NumericProperty;
 
 /**
- * This class implements the fully implicit finite-difference scheme for solving
- * the one-dimensional heat conduction problem.
- * <p>
- * The fully implicit scheme uses a standard 4-point template on a
- * one-dimensional grid that utilises the following grid-function values on each
- * step: <math><i>&Theta;(x<sub>i</sub>,t<sub>m</sub>),
- * &Theta;(x<sub>i</sub>,t<sub>m+1</sub>),
- * &Theta;(x<sub>i-1</sub>,t<sub>m+1</sub>),
- * &Theta;(x<sub>i+1</sub>,t<sub>m+1</sub>)</i></math>. Because no
- * <i>explicit</i> formula can be used for calculating the grid-function at
- * timestep <math><i>m</i>+1</math>, a sweep method is implemented instead. The
- * boundary conditions are approximated with a Taylor expansion up to the third
- * term, hence the scheme has an increased order of approximation.
- * </p>
- * <p>
- * The fully implicit scheme is unconditionally stable and has an order of
- * approximation of at least <math><i>O(&tau; + h<sup>2</sup>)</i></math> for
- * both the heat equation and the boundary conditions.
- * </p>
+ * An abstract implicit finite-difference scheme for solving
+ * one-dimensional heat conduction problems.
  * 
  * @see pulse.problem.statements.LinearisedProblem
  * @see pulse.problem.statements.NonlinearProblem
@@ -56,7 +39,7 @@ public abstract class ImplicitScheme extends DifferenceScheme {
 
 	public ImplicitScheme(NumericProperty N, NumericProperty timeFactor) {
 		super();
-		initGrid(N, timeFactor);
+		setGrid(new Grid(N, timeFactor));
 	}
 
 	/**
@@ -76,8 +59,13 @@ public abstract class ImplicitScheme extends DifferenceScheme {
 
 	public ImplicitScheme(NumericProperty N, NumericProperty timeFactor, NumericProperty timeLimit) {
 		super(timeLimit);
-		initGrid(N, timeFactor);
+		setGrid(new Grid(N, timeFactor));
 	}
+	
+	/**
+	 * Prints out the description of this problem type.
+	 * @return a verbose description of the problem.
+	 */
 
 	@Override
 	public String toString() {

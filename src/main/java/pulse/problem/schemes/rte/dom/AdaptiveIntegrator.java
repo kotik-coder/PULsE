@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import pulse.math.Vector;
-import pulse.problem.schemes.rte.EmissionFunction;
+import pulse.problem.schemes.rte.BlackbodySpectrum;
 import pulse.problem.schemes.rte.RTECalculationStatus;
 import pulse.problem.statements.ParticipatingMedium;
 import pulse.properties.NumericProperty;
@@ -28,7 +28,7 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 
 	private long timeThreshold;
 
-	public AdaptiveIntegrator(ParticipatingMedium medium, DiscreteIntensities intensities, EmissionFunction ef,
+	public AdaptiveIntegrator(ParticipatingMedium medium, DiscreteIntensities intensities, BlackbodySpectrum ef,
 			PhaseFunction ipf) {
 		super(medium, intensities, ef, ipf);
 		atol = (double) NumericProperty.theDefault(NumericPropertyKeyword.ATOL).getValue();

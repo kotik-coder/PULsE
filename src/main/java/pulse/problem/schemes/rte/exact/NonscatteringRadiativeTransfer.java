@@ -3,14 +3,13 @@ package pulse.problem.schemes.rte.exact;
 import java.util.List;
 
 import pulse.problem.schemes.Grid;
-import pulse.problem.schemes.rte.EmissionFunction;
+import pulse.problem.schemes.rte.BlackbodySpectrum;
 import pulse.problem.schemes.rte.RTECalculationStatus;
 import pulse.problem.schemes.rte.RadiativeTransferSolver;
 import pulse.problem.statements.ParticipatingMedium;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
-import pulse.util.DescriptorChangeListener;
 import pulse.util.InstanceDescriptor;
 
 public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSolver {
@@ -19,7 +18,7 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 	private double emissivity, doubleReflectivity;
 	protected double tau0;
 
-	protected EmissionFunction emissionFunction;
+	protected BlackbodySpectrum emissionFunction;
 	private EmissionFunctionIntegrator emissionIntegrator;
 	protected SimpsonsRule complexIntegrator;
 
@@ -38,19 +37,10 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 	protected NonscatteringRadiativeTransfer(ParticipatingMedium problem, Grid grid) {
 		super(problem, grid);
 		this.hx = grid.getXStep();
-		emissionFunction = new EmissionFunction(0.0, 0.0);
 		initQuadrature();
 		emissionIntegrator = new EmissionFunctionIntegrator();
-		emissionIntegrator.emissionFunction = emissionFunction;
 
-		instanceDescriptor.addListener(new DescriptorChangeListener() {
-
-			@Override
-			public void onDescriptorChanged() {
-				initQuadrature();
-			}
-
-		});
+		instanceDescriptor.addListener(() -> initQuadrature());
 
 	}
 
@@ -59,8 +49,8 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 		double[] xArray = new double[tempArray.length];
 
 		for (int i = 0; i < xArray.length; i++) {
-                    xArray[i] = tau0 * i * hx;
-                }
+			xArray[i] = tau0 * i * hx;
+		}
 
 		emissionFunction.setInterpolation(this.temperatureInterpolation(xArray, tempArray));
 		return RTECalculationStatus.NORMAL;
@@ -73,8 +63,10 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 		emissivity = p.getEmissivity();
 		doubleReflectivity = 2.0 * (1.0 - emissivity);
 
-		emissionFunction.init(p);
-
+		emissionFunction = new BlackbodySpectrum(p);
+		emissionIntegrator.emissionFunction = emissionFunction;
+		complexIntegrator.emissionFunction = emissionFunction;
+		
 		setGridStep(hx);
 
 		tau0 = (double) p.getOpticalThickness().getValue();
@@ -82,7 +74,6 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 	}
 
 	private void setGridStep(double hx) {
-		emissionFunction.setGridStep(hx);
 		emissionIntegrator.hx = hx;
 		complexIntegrator.hx = hx;
 	}
@@ -153,8 +144,7 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 	 */
 
 	private double a1() {
-		return emissivity * emissionFunction.powerInterpolated(0.0)
-				+ doubleReflectivity * integrateSecondOrder(0.0, 1.0);
+		return emissivity * emissionFunction.powerAt(0.0) + doubleReflectivity * integrateSecondOrder(0.0, 1.0);
 	}
 
 	/*
@@ -164,8 +154,7 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 	 */
 
 	private double a2() {
-		return emissivity * emissionFunction.powerInterpolated(tau0)
-				+ doubleReflectivity * integrateSecondOrder(tau0, -1.0);
+		return emissivity * emissionFunction.powerAt(tau0) + doubleReflectivity * integrateSecondOrder(tau0, -1.0);
 	}
 
 	/*
@@ -193,11 +182,11 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 		complexIntegrator.emissionFunction = emissionFunction;
 	}
 
-	public EmissionFunction getEmissionFunction() {
+	public BlackbodySpectrum getEmissionFunction() {
 		return emissionFunction;
 	}
 
-	public void setEmissionFunction(EmissionFunction emissionFunction) {
+	public void setEmissionFunction(BlackbodySpectrum emissionFunction) {
 		this.emissionFunction = emissionFunction;
 	}
 

@@ -1,5 +1,11 @@
 package pulse.problem.schemes.rte.exact;
 
+import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericProperty.theDefault;
+import static pulse.properties.NumericPropertyKeyword.INTEGRATION_CUTOFF;
+import static pulse.properties.NumericPropertyKeyword.INTEGRATION_SEGMENTS;
+import static pulse.properties.NumericPropertyKeyword.QUADRATURE_POINTS;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,9 +31,9 @@ public class ChandrasekharsQuadrature extends SimpsonsRule {
 
 	public ChandrasekharsQuadrature() {
 		super();
-		this.cutoff = DEFAULT_CUTOFF;
-		m = (int) NumericProperty.theDefault(NumericPropertyKeyword.QUADRATURE_POINTS).getValue();
-		this.integrationSegments = m - 1;
+		setCutoff(derive(INTEGRATION_CUTOFF, DEFAULT_CUTOFF));
+		m = (int) theDefault(QUADRATURE_POINTS).getValue();
+		this.setIntegrationSegments(derive(INTEGRATION_SEGMENTS, m - 1));
 		solver = new LaguerreSolver(PRECISION);
 	}
 
@@ -35,8 +41,8 @@ public class ChandrasekharsQuadrature extends SimpsonsRule {
 		double f[] = new double[roots.length];
 
 		for (int i = 0; i < f.length; i++) {
-                    f[i] = emissionFunction.powerInterpolated(roots[i]);
-                }
+			f[i] = emissionFunction.powerAt(roots[i]);
+		}
 
 		return new Vector(f);
 
@@ -80,10 +86,10 @@ public class ChandrasekharsQuadrature extends SimpsonsRule {
 		double[][] x = new double[m][m];
 
 		for (int l = 0; l < m; l++) {
-                    for (int j = 0; j < m; j++) {
-                        x[l][j] = MathUtils.fastPowLoop(roots[j] * beta + alpha, l);
-                    }
-                }
+			for (int j = 0; j < m; j++) {
+				x[l][j] = MathUtils.fastPowLoop(roots[j] * beta + alpha, l);
+			}
+		}
 
 		return new Matrix(x);
 
@@ -111,13 +117,13 @@ public class ChandrasekharsQuadrature extends SimpsonsRule {
 			var complexRoots = solver.solveAllComplex(c, 1.0);
 
 			for (int i = 0; i < complexRoots.length; i++) {
-                            roots[i] = complexRoots[i].getReal();
-                }
+				roots[i] = complexRoots[i].getReal();
+			}
 		}
 
 		for (int i = 0; i < roots.length; i++) {
-                    roots[i] = (roots[i] - alpha) / beta;
-                }
+			roots[i] = (roots[i] - alpha) / beta;
+		}
 
 		return roots;
 
@@ -139,8 +145,8 @@ public class ChandrasekharsQuadrature extends SimpsonsRule {
 		}
 
 		for (int i = 0; i < result.length; i++) {
-                    result[i] -= a / 3;
-                }
+			result[i] -= a / 3;
+		}
 
 		return result;
 	}
@@ -158,16 +164,16 @@ public class ChandrasekharsQuadrature extends SimpsonsRule {
 
 		// find diagonal elements
 		for (int i = 0; i < m; i++) {
-                    data[i][i] = moment(i * 2, n);
-                }
+			data[i][i] = moment(i * 2, n);
+		}
 
 		// find (symmetric) non-diagonal elements
 		for (int i = 1, j = 0; i < m; i++) {
-                    for (j = 0; j < i; j++) {
-                        data[i][j] = moment(i + j, n);
-                        data[j][i] = data[i][j];
-                    }
-                }
+			for (j = 0; j < i; j++) {
+				data[i][j] = moment(i + j, n);
+				data[j][i] = data[i][j];
+			}
+		}
 
 		for (int i = 0; i < m; i++) {
 			moments[i] = data[0][i];
@@ -184,8 +190,8 @@ public class ChandrasekharsQuadrature extends SimpsonsRule {
 		Vector v = new Vector(upperExclusive - lowerInclusive);
 
 		for (int i = lowerInclusive; i < upperExclusive; i++) {
-                    v.set(i - lowerInclusive, -moments[i]);
-                }
+			v.set(i - lowerInclusive, -moments[i]);
+		}
 
 		return v;
 
@@ -205,8 +211,8 @@ public class ChandrasekharsQuadrature extends SimpsonsRule {
 		for (int i = 0, j = 0; i < n; i++) {
 			m = lPlusOne;
 			for (j = 1; j < i + 1; j++) {
-                            m *= (lPlusOne + j);
-                        }
+				m *= (lPlusOne + j);
+			}
 			e += expIntegrator.integralAt(x, n - i) * MathUtils.fastPowLoop(x, lPlusOne + i) / m;
 		}
 
@@ -231,8 +237,8 @@ public class ChandrasekharsQuadrature extends SimpsonsRule {
 		for (int i = 0, j = 0; i < k + 1; i++) {
 			m = 1;
 			for (j = 0; j < i; j++) {
-                            m *= (k - j);
-                        }
+				m *= (k - j);
+			}
 			f += m * MathUtils.fastPowLoop(x, k - i);
 		}
 
@@ -243,7 +249,7 @@ public class ChandrasekharsQuadrature extends SimpsonsRule {
 	@Override
 	public void setIntegrationSegments(NumericProperty integrationSegments) {
 		super.setIntegrationSegments(integrationSegments);
-		m = this.integrationSegments + 1;
+		m = (int) integrationSegments.getValue() + 1;
 	}
 
 	public NumericProperty getQuadraturePoints() {

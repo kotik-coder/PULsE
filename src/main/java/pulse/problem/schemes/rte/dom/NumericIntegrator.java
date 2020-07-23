@@ -1,7 +1,7 @@
 package pulse.problem.schemes.rte.dom;
 
 import pulse.problem.schemes.Grid;
-import pulse.problem.schemes.rte.EmissionFunction;
+import pulse.problem.schemes.rte.BlackbodySpectrum;
 import pulse.problem.schemes.rte.RTECalculationStatus;
 import pulse.problem.statements.ParticipatingMedium;
 import pulse.properties.NumericProperty;
@@ -29,17 +29,17 @@ public abstract class NumericIntegrator extends PropertyHolder implements Reflex
 		this.intensities = intensities;
 	}
 
-	protected EmissionFunction emissionFunction;
+	protected BlackbodySpectrum emissionFunction;
 
-	public EmissionFunction getEmissionFunction() {
+	public BlackbodySpectrum getEmissionFunction() {
 		return emissionFunction;
 	}
 
-	public void setEmissionFunction(EmissionFunction emissionFunction) {
+	public void setEmissionFunction(BlackbodySpectrum emissionFunction) {
 		this.emissionFunction = emissionFunction;
 	}
 
-	public NumericIntegrator(ParticipatingMedium medium, DiscreteIntensities intensities, EmissionFunction ef,
+	public NumericIntegrator(ParticipatingMedium medium, DiscreteIntensities intensities, BlackbodySpectrum ef,
 			PhaseFunction ipf) {
 		this.intensities = intensities;
 		this.emissionFunction = ef;
@@ -64,7 +64,7 @@ public abstract class NumericIntegrator extends PropertyHolder implements Reflex
 	}
 
 	public void init(ParticipatingMedium problem, Grid grid) {
-		this.emissionFunction = new EmissionFunction(problem, grid);
+		this.emissionFunction = new BlackbodySpectrum(problem);
 		nNegativeStart = intensities.ordinates.getFirstNegativeNode();
 		nPositiveStart = intensities.ordinates.getFirstPositiveNode();
 		nH = nNegativeStart - nPositiveStart;
@@ -141,7 +141,7 @@ public abstract class NumericIntegrator extends PropertyHolder implements Reflex
 	}
 
 	public double emission(double t) {
-		return (1.0 - albedo) * emissionFunction.J(t);
+		return (1.0 - albedo) * emissionFunction.radianceAt(t);
 	}
 
 	public PhaseFunction getPhaseFunction() {

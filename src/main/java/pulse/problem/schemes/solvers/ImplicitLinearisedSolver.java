@@ -25,6 +25,24 @@ import pulse.properties.NumericProperty;
  * {@code maximumTemperature} {@code NumericProperty} of {@code problem}.
  * </p>
  * 
+ * <p>
+ * The fully implicit scheme uses a standard 4-point template on a
+ * one-dimensional grid that utilises the following grid-function values on each
+ * step: <math><i>&Theta;(x<sub>i</sub>,t<sub>m</sub>),
+ * &Theta;(x<sub>i</sub>,t<sub>m+1</sub>),
+ * &Theta;(x<sub>i-1</sub>,t<sub>m+1</sub>),
+ * &Theta;(x<sub>i+1</sub>,t<sub>m+1</sub>)</i></math>. Because no
+ * <i>explicit</i> formula can be used for calculating the grid-function at
+ * timestep <math><i>m</i>+1</math>, a sweep method is implemented instead. The
+ * boundary conditions are approximated with a Taylor expansion up to the third
+ * term, hence the scheme has an increased order of approximation.
+ * </p>
+ * <p>
+ * The fully implicit scheme is unconditionally stable and has an order of
+ * approximation of at least <math><i>O(&tau; + h<sup>2</sup>)</i></math> for
+ * both the heat equation and the boundary conditions.
+ * </p>
+ * 
  * @see super.solve(Problem)
  */
 
