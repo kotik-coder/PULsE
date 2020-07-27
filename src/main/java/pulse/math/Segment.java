@@ -11,7 +11,7 @@ import java.util.Random;
 public class Segment {
 	private double a;
 	private double b;
-
+	
 	/**
 	 * Creates a {@code Segment} bounded by {@code a} and {@code b}.
 	 * 

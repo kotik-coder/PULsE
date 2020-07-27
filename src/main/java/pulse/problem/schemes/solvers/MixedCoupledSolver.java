@@ -240,7 +240,7 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 				&& status == RTECalculationStatus.NORMAL; status = rte.compute(V)) {
 
 			// i = 0
-			phi = TAU0_NP * rte.getFluxDerivativeFront();
+			phi = TAU0_NP * rte.fluxDerivativeFront();
 			beta[1] = (_2TAUHX * (pls - SIGMA_NP * rte.getFlux(0) - ONE_MINUS_SIGMA_NP * rte.getStoredFlux(0))
 					+ HX2 * (U[0] + phi * tau) + _2TAU_ONE_MINUS_SIGMA * (U[1] - U[0] * ONE_PLUS_Bi1_HX))
 					* BETA1_FACTOR;
@@ -263,7 +263,7 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 			beta[N] = (F + a * beta[N - 1]) / (b - a * alpha[N - 1]);
 
 			V_N = V[N];
-			phi = TAU0_NP * rte.getFluxDerivativeRear();
+			phi = TAU0_NP * rte.fluxDerivativeRear();
 			V[N] = (sigma * beta[N] + HX2_2TAU * U[N] + 0.5 * HX2 * phi
 					+ ONE_MINUS_SIGMA * (U[N - 1] - U[N] * (1. + hx * Bi2))
 					+ HX_NP * (sigma * rte.getFlux(N) + ONE_MINUS_SIGMA * rte.getStoredFlux(N)))
@@ -288,18 +288,18 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 	}
 
 	protected double phiNextToFront() {
-		return 0.833333333 * rte.getFluxMeanDerivative(1)
-				+ 0.083333333 * (rte.getFluxMeanDerivativeFront() + rte.getFluxMeanDerivative(2));
+		return 0.833333333 * rte.fluxMeanDerivative(1)
+				+ 0.083333333 * (rte.fluxMeanDerivativeFront() + rte.fluxMeanDerivative(2));
 	}
 
 	protected double phiNextToRear() {
-		return 0.833333333 * rte.getFluxMeanDerivative(N - 1)
-				+ 0.083333333 * (rte.getFluxMeanDerivative(N - 2) + rte.getFluxMeanDerivativeRear());
+		return 0.833333333 * rte.fluxMeanDerivative(N - 1)
+				+ 0.083333333 * (rte.fluxMeanDerivative(N - 2) + rte.fluxMeanDerivativeRear());
 	}
 
 	protected double phi(int i) {
-		return 0.833333333 * rte.getFluxMeanDerivative(i)
-				+ 0.083333333 * (rte.getFluxMeanDerivative(i - 1) + rte.getFluxMeanDerivative(i + 1));
+		return 0.833333333 * rte.fluxMeanDerivative(i)
+				+ 0.083333333 * (rte.fluxMeanDerivative(i - 1) + rte.fluxMeanDerivative(i + 1));
 	}
 
 	private void newRTE(ParticipatingMedium problem, Grid grid) {

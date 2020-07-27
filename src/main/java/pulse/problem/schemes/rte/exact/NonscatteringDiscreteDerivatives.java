@@ -11,19 +11,46 @@ public class NonscatteringDiscreteDerivatives extends NonscatteringRadiativeTran
 	}
 
 	@Override
-	public void init(ParticipatingMedium p, Grid grid) {
-		super.init(p, grid);
+	public RTECalculationStatus compute(double U[]) {
+		super.compute(U);
+		fluxes();
+		return RTECalculationStatus.NORMAL;
 	}
 
 	@Override
-	public RTECalculationStatus compute(double U[]) {
-		super.compute(U);
-		radiosities();
-		for (int i = 1, N = this.getExternalGridDensity(); i < N; i++) {
-                    flux(i);
-                }
-		boundaryFluxes();
-		return RTECalculationStatus.NORMAL;
+	public double fluxMeanDerivative(int uIndex) {
+		double f = (getFlux(uIndex - 1) - getFlux(uIndex + 1))
+				+ (getStoredFlux(uIndex - 1) - getStoredFlux(uIndex + 1));
+		return f * 0.25 / getOpticalGridStep();
+	}
+
+	@Override
+	public double fluxMeanDerivativeFront() {
+		double f = (getFlux(0) - getFlux(1)) + (getStoredFlux(0) - getStoredFlux(1));
+		return f * 0.5 / getOpticalGridStep();
+	}
+
+	@Override
+	public double fluxMeanDerivativeRear() {
+		final int N = this.getExternalGridDensity();
+		double f = (getFlux(N - 1) - getFlux(N)) + (getStoredFlux(N - 1) - getStoredFlux(N));
+		return f * 0.5 / getOpticalGridStep();
+	}
+
+	@Override
+	public double fluxDerivative(int uIndex) {
+		return (getFlux(uIndex - 1) - getFlux(uIndex + 1)) * 0.5 / getOpticalGridStep();
+	}
+
+	@Override
+	public double fluxDerivativeFront() {
+		return (getFlux(0) - getFlux(1)) / getOpticalGridStep();
+	}
+
+	@Override
+	public double fluxDerivativeRear() {
+		final int N = this.getExternalGridDensity();
+		return (getFlux(N - 1) - getFlux(N)) / getOpticalGridStep();
 	}
 
 }

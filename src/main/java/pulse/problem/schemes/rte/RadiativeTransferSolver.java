@@ -12,73 +12,97 @@ import pulse.util.Descriptive;
 import pulse.util.PropertyHolder;
 import pulse.util.Reflexive;
 
+/**
+ * An abstract class defining the radiative fluxes and their derivatives for use
+ * within the coupled conductive-radiative problem solver. Uses a
+ * {@code SplineInterpolator} to generate a smooth spatial temperature profile.
+ * Provides means of probing the calculation health and tracking calculation
+ * steps with listeners.
+ *
+ */
+
 public abstract class RadiativeTransferSolver extends PropertyHolder implements Reflexive, Descriptive {
 
 	private double[] fluxes;
 	private double[] storedFluxes;
+
 	private int N;
-
-	private double _h;
-	private double _2h;
-	private double _05h;
-
 	private double h;
 	private double opticalThickness;
-
 	private List<RTECalculationListener> rteListeners;
 
+	/**
+	 * Abstract constructor that initialises flux arrays based on the {@code grid}
+	 * density. The reason why flux arrays should have the same dimension as the
+	 * grid number of elements is because they will be used from within the heat
+	 * problem solver, which in turn requires the fluxes to be defined at
+	 * {@code Grid} points.
+	 * 
+	 * @param grid the {@code Grid} object specifying the number of elements in the
+	 *             flux arrays.
+	 */
+
 	public RadiativeTransferSolver(ParticipatingMedium problem, Grid grid) {
-		reinitArrays((int) grid.getGridDensity().getValue());
+		reinitFluxes((int) grid.getGridDensity().getValue());
 		rteListeners = new ArrayList<>();
 	}
 
-	public void reinitArrays(int N) {
+	/**
+	 * Launches a calculation of the radiative transfer equation.
+	 * 
+	 * @param temperatureArray
+	 * @return the status of calculation
+	 */
+
+	public abstract RTECalculationStatus compute(double[] temperatureArray);
+
+	/**
+	 * Resets the flux arrays by erasing all their contents and resizing to {@code N}.
+	 * @param N the new size of flux arrays
+	 */
+
+	protected void reinitFluxes(int N) {
 		this.N = N;
 		this.h = opticalThickness / N;
 		fluxes = new double[N + 1];
 		storedFluxes = new double[N + 1];
 	}
+	
+	/**
+	 * Retrieves the parameters from {@code p} and {@code grid} needed to run the calculations.
+	 * Resets the flux arrays.
+	 * @param p the problem statement
+	 * @param grid the grid
+	 */
 
 	public void init(ParticipatingMedium p, Grid grid) {
-		reinitArrays((int) grid.getGridDensity().getValue());
-
 		this.opticalThickness = (double) p.getOpticalThickness().getValue();
-		this.h = opticalThickness / N;
-
-		h = opticalThickness / N;
-		_h = 1. / (2.0 * h);
-		_2h = _h / 2.0;
-		_05h = 2.0 * _h;
+		reinitFluxes((int) grid.getGridDensity().getValue());
 	}
 
-	public double getFluxMeanDerivative(int uIndex) {
-		double f = (getFlux(uIndex - 1) - getFlux(uIndex + 1))
-				+ (getStoredFlux(uIndex - 1) - getStoredFlux(uIndex + 1));
-		return f * _2h;
+	/**
+	 * Performs interpolation with natural cubic splines using the input arguments.
+	 * 
+	 * @param tempArray an array of data defined on a previously initialised grid.
+	 * @return a {@code UnivariateFunction} generated with a {@code SplineInterpolator}
+	 */
+
+	public UnivariateFunction interpolateTemperatureProfile(double[] tempArray) {
+		double[] xArray = new double[tempArray.length];
+
+		for (int i = 0; i < xArray.length; i++) 
+			xArray[i] = opticalCoordinateAt(i);
+
+		return (new SplineInterpolator()).interpolate(xArray, tempArray);
 	}
 
-	public double getFluxMeanDerivativeFront() {
-		double f = (getFlux(0) - getFlux(1)) + (getStoredFlux(0) - getStoredFlux(1));
-		return f * _h;
-	}
-
-	public double getFluxMeanDerivativeRear() {
-		double f = (getFlux(N - 1) - getFlux(N)) + (getStoredFlux(N - 1) - getStoredFlux(N));
-		return f * _h;
-	}
-
-	public double getFluxDerivative(int uIndex) {
-		return (getFlux(uIndex - 1) - getFlux(uIndex + 1)) * _h;
-	}
-
-	public double getFluxDerivativeFront() {
-		return (getFlux(0) - getFlux(1)) * _05h;
-	}
-
-	public double getFluxDerivativeRear() {
-		return (getFlux(N - 1) - getFlux(N)) * _05h;
-	}
-
+	public abstract double fluxMeanDerivative(int uIndex);
+	public abstract double fluxMeanDerivativeFront();
+	public abstract double fluxMeanDerivativeRear(); 
+	public abstract double fluxDerivative(int uIndex); 
+	public abstract double fluxDerivativeFront();
+	public abstract double fluxDerivativeRear();
+	
 	public double getFlux(int i) {
 		return fluxes[i];
 	}
@@ -91,15 +115,12 @@ public abstract class RadiativeTransferSolver extends PropertyHolder implements 
 		return storedFluxes[i];
 	}
 
-	public UnivariateFunction temperatureInterpolation(double[] xArray, double[] tempArray) {
-		var interpolator = new SplineInterpolator();
-		return interpolator.interpolate(xArray, tempArray);
-	}
-
-	public abstract RTECalculationStatus compute(double[] temperatureArray);
-
 	public int getExternalGridDensity() {
 		return N;
+	}
+
+	public double opticalCoordinateAt(int i) {
+		return h * i;
 	}
 
 	public void store() {
@@ -121,7 +142,7 @@ public abstract class RadiativeTransferSolver extends PropertyHolder implements 
 
 	@Override
 	public String getPrefix() {
-		return "RTE Solver";
+		return "Radiative Transfer Solver";
 	}
 
 	public List<RTECalculationListener> getRTEListeners() {

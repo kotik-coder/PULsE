@@ -36,6 +36,7 @@ import javax.swing.ImageIcon;
 public class Launcher {
 
 	private Launcher() {
+		//intentionally blank
 	}
 
 	/**

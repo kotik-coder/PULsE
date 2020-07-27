@@ -145,7 +145,7 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
 					 */
 
 					for (i = 1; i < N; i++) {
-                                            V[i] = U[i] + TAU_HH * (U[i + 1] - 2. * U[i] + U[i - 1]) + prefactor * rte.getFluxDerivative(i);
+                                            V[i] = U[i] + TAU_HH * (U[i + 1] - 2. * U[i] + U[i - 1]) + prefactor * rte.fluxDerivative(i);
                                         }
 
 					/*

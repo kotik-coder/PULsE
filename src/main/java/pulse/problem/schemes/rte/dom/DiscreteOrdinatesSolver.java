@@ -81,29 +81,7 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 	}
 
 	private void temperatureInterpolation(double dimension, double[] tempArray) {
-		int N = tempArray.length;
-		double h = 1.0 / (N - 1);
-
-		double[] tArray = new double[N + 2];
-		System.arraycopy(tempArray, 0, tArray, 1, N);
-
-		double[] xArray = new double[N + 2];
-
-		for (int i = 0; i <= N; i++) {
-                    xArray[i + 1] = dimension * i * h;
-                }
-
-		/*
-		 * Safety margins are introduced below
-		 */
-
-		xArray[0] = -h;
-		tArray[0] = tArray[1];
-
-		xArray[N + 1] = dimension + h;
-		tArray[N + 1] = tArray[N];
-
-		integrator.emissionFunction.setInterpolation(super.temperatureInterpolation(xArray, tArray));
+		integrator.emissionFunction.setInterpolation(super.interpolateTemperatureProfile(tempArray));
 	}
 
 	@Override
@@ -146,32 +124,32 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 	}
 
 	@Override
-	public double getFluxDerivative(int u) {
+	public double fluxDerivative(int u) {
 		return fluxDerivative[u];
 	}
 
 	@Override
-	public double getFluxDerivativeFront() {
+	public double fluxDerivativeFront() {
 		return fluxDerivative[0];
 	}
 
 	@Override
-	public double getFluxDerivativeRear() {
+	public double fluxDerivativeRear() {
 		return fluxDerivative[fluxDerivative.length - 1];
 	}
 
 	@Override
-	public double getFluxMeanDerivative(int u) {
+	public double fluxMeanDerivative(int u) {
 		return 0.5 * (fluxDerivative[u] + storedFluxDerivative[u]);
 	}
 
 	@Override
-	public double getFluxMeanDerivativeFront() {
+	public double fluxMeanDerivativeFront() {
 		return 0.5 * (fluxDerivative[0] + storedFluxDerivative[0]);
 	}
 
 	@Override
-	public double getFluxMeanDerivativeRear() {
+	public double fluxMeanDerivativeRear() {
 		return 0.5
 				* (fluxDerivative[fluxDerivative.length - 1] + storedFluxDerivative[storedFluxDerivative.length - 1]);
 	}
@@ -182,7 +160,7 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 
 		phaseFunction.setAnisotropyFactor((double) problem.getScatteringAnisostropy().getValue());
 
-		reinitArrays((int) grid.getGridDensity().getValue());
+		reinitDerivatives((int) grid.getGridDensity().getValue());
 
 		discrete.grid = new StretchedGrid((double) problem.getOpticalThickness().getValue());
 		discrete.reinitInternalArrays();
@@ -190,9 +168,7 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 		integrator.init(problem, grid);
 	}
 
-	@Override
-	public void reinitArrays(int gridDensity) {
-		super.reinitArrays(gridDensity);
+	private void reinitDerivatives(int gridDensity) {
 		storedFluxDerivative = new double[gridDensity + 1];
 		fluxDerivative = new double[gridDensity + 1];
 	}

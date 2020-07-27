@@ -6,12 +6,16 @@ import static org.apache.commons.math3.special.Erf.erfc;
 import static pulse.properties.NumericProperty.def;
 import static pulse.properties.NumericProperty.derive;
 import static pulse.properties.NumericProperty.requireType;
+import static pulse.properties.NumericPropertyKeyword.INTEGRATION_SEGMENTS;
 import static pulse.properties.NumericPropertyKeyword.SKEW_LAMBDA;
 import static pulse.properties.NumericPropertyKeyword.SKEW_MU;
 import static pulse.properties.NumericPropertyKeyword.SKEW_SIGMA;
 
 import java.util.List;
 
+import pulse.math.FixedIntervalIntegrator;
+import pulse.math.MidpointIntegrator;
+import pulse.math.Segment;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
@@ -30,7 +34,8 @@ public class ExponentiallyModifiedGaussian extends PulseTemporalShape {
 	private double lambda;
 	private double norm;
 
-	private int DEFAULT_POINTS = 100;
+	private final static int DEFAULT_POINTS = 100;
+	private FixedIntervalIntegrator integrator;
 
 	/**
 	 * Creates an exponentially modified Gaussian with the default 
@@ -42,12 +47,26 @@ public class ExponentiallyModifiedGaussian extends PulseTemporalShape {
 		lambda = (double) def(SKEW_LAMBDA).getValue();
 		sigma = (double) def(SKEW_SIGMA).getValue();
 		norm = 1.0;
+		integrator = new MidpointIntegrator(new Segment(0.0, getPulseWidth()), derive(INTEGRATION_SEGMENTS, DEFAULT_POINTS) ) {
+
+			@Override
+			public double integrand(double... vars) {
+				return evaluateAt(vars[0]);
+			}
+			
+		};
 	}
 
+	/**
+	 * This calls the superclass {@code init method} and sets the normalisation factor 
+	 * to <math>1/&#8747;&Phi;(Fo)<i>d<i>Fo</math>.
+	 */
+	
 	@Override
 	public void init(DiscretePulse pulse) {
 		super.init(pulse);
-		norm = 1.0 / area();
+		norm = 1.0; //resets the normalisation factor to unity
+		norm = 1.0 / area(); //calculates the area. The normalisation factor is then set to the inverse of the area.
 	}
 
 	/**
@@ -58,17 +77,8 @@ public class ExponentiallyModifiedGaussian extends PulseTemporalShape {
 	 */
 	
 	private double area() {
-
-		final double dt = getPulseWidth() / (DEFAULT_POINTS - 1);
-
-		double sum = 0;
-		norm = 1.0;
-
-		for (int i = 0; i < DEFAULT_POINTS; i++)
-			sum += evaluateAt( (i + 0.5) * dt) * dt;
-
-		return sum;
-
+		integrator.setBounds(new Segment(0.0, getPulseWidth()));
+		return integrator.integrate();
 	}
 	
 	/**

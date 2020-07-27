@@ -1,9 +1,10 @@
 package pulse.problem.schemes.rte.exact;
 
-import static pulse.properties.NumericProperty.derive;
+import static java.lang.Math.exp;
+import static java.lang.Math.sqrt;
+import static pulse.math.MathUtils.fastPowLoop;
+import static pulse.properties.NumericProperty.requireType;
 import static pulse.properties.NumericProperty.theDefault;
-import static pulse.properties.NumericPropertyKeyword.INTEGRATION_CUTOFF;
-import static pulse.properties.NumericPropertyKeyword.INTEGRATION_SEGMENTS;
 import static pulse.properties.NumericPropertyKeyword.QUADRATURE_POINTS;
 
 import java.util.ArrayList;
@@ -11,121 +12,129 @@ import java.util.List;
 
 import org.apache.commons.math3.analysis.solvers.LaguerreSolver;
 
-import pulse.math.MathUtils;
 import pulse.math.Matrix;
+import pulse.math.Segment;
 import pulse.math.Vector;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 
-public class ChandrasekharsQuadrature extends SimpsonsRule {
+public class ChandrasekharsQuadrature extends Convolution {
 
 	private int m;
-	private double expLower, expUpper;
+	private double expLower;
+	private double expUpper;
 	private LaguerreSolver solver;
-	private final double PRECISION = 1E-3;
-
 	private double[] moments;
 
-	private final static double DEFAULT_CUTOFF = 20.0;
-
 	public ChandrasekharsQuadrature() {
-		super();
-		setCutoff(derive(INTEGRATION_CUTOFF, DEFAULT_CUTOFF));
-		m = (int) theDefault(QUADRATURE_POINTS).getValue();
-		this.setIntegrationSegments(derive(INTEGRATION_SEGMENTS, m - 1));
-		solver = new LaguerreSolver(PRECISION);
+		super(new Segment(0,1));
+		m		= (int) theDefault(QUADRATURE_POINTS).getValue();
+		solver	= new LaguerreSolver();
 	}
+
+	@Override
+	public double integrate() {
+		expLower = -exp(-transformedMinimum());
+		expUpper = -exp(-transformedMaximum());
+
+		double[] roots = roots(m, getOrder());
+
+		Vector weights = weights(m, getOrder(), roots);
+
+		return f(roots).dot(weights) / getBeta();
+	}
+
+	public NumericProperty getQuadraturePoints() {
+		return NumericProperty.derive(NumericPropertyKeyword.QUADRATURE_POINTS, m);
+	}
+
+	public void setQuadraturePoints(NumericProperty m) {
+		requireType(m, QUADRATURE_POINTS);
+		this.m = (int) m.getValue();
+	}
+
+	@Override
+	public void set(NumericPropertyKeyword type, NumericProperty property) {
+		if(type == QUADRATURE_POINTS) {
+			setQuadraturePoints(property);
+			firePropertyChanged(this, property);
+		}
+	}
+
+	@Override
+	public List<Property> listedTypes() {
+		List<Property> list = new ArrayList<>();
+		list.add(NumericProperty.def(NumericPropertyKeyword.QUADRATURE_POINTS));
+		return list;
+	}
+
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + " : " + getQuadraturePoints();
+	}
+
+	/*
+	 * Private methods
+	 */
 
 	private Vector f(double[] roots) {
 		double f[] = new double[roots.length];
 
-		for (int i = 0; i < f.length; i++) {
-			f[i] = emissionFunction.powerAt(roots[i]);
-		}
-
+		for (int i = 0; i < f.length; i++) 
+			f[i] = getEmissionFunction().powerAt(roots[i]);
+		
 		return new Vector(f);
 
 	}
 
-	@Override
-	public void adjustRange(double alpha, double beta) {
-		super.adjustRange(alpha, beta);
-		rMin = alpha + beta * rMin;
-		rMax = alpha + beta * rMax;
+	private double transformedBound(double x) {
+		return getAlpha() + getBeta() * x;
 	}
 
-	@Override
-	public double integrate(int n, double... params) {
-
-		adjustRange(params[A_INDEX], params[B_INDEX]);
-
-		expLower = -Math.exp(-rMin);
-		expUpper = -Math.exp(-rMax);
-
-		double[] roots = roots(m, n, params[A_INDEX], params[B_INDEX]);
-
-		Vector weights = weights(m, n, roots, params[A_INDEX], params[B_INDEX]);
-
-		return f(roots).dot(weights) / params[B_INDEX];
-
+	private double transformedMaximum() {
+		return transformedBound(getBounds().getMaximum());
 	}
 
-	public Vector weights(int m, int n, double[] roots, double alpha, double beta) {
-
-		var x = xMatrix(m, n, roots, alpha, beta);
-
-		var a = momentVector(0, m, n).inverted();
-
-		return x.inverse().multiply(a);
-
+	private double transformedMinimum() {
+		return transformedBound(getBounds().getMinimum());
 	}
 
-	public Matrix xMatrix(int m, int n, double[] roots, double alpha, double beta) {
-
+	private Matrix xMatrix(int m, int n, double[] roots) {
 		double[][] x = new double[m][m];
 
 		for (int l = 0; l < m; l++) {
 			for (int j = 0; j < m; j++) {
-				x[l][j] = MathUtils.fastPowLoop(roots[j] * beta + alpha, l);
+				x[l][j] = fastPowLoop(roots[j] * getBeta() + getAlpha(), l);
 			}
 		}
 
 		return new Matrix(x);
-
 	}
 
-	public double[] roots(int m, int n, double alpha, double beta) {
+	/**
+	 * Calculates \int_{r_{min}}^{r_{max}}{x^{l+1}exp(-x)dx}.
+	 * 
+	 * @param l an integer such that 0 <= l <= 2*m - 1.
+	 * @return the value of this definite integral.
+	 */
 
-		double[] roots = new double[m];
+	private static double auxilliaryIntegral(double x, int l, int n, double exp) {
 
-		double[] c = new double[m + 1];
+		double f = 0;
+		long m = 0;
 
-		// coefficients of the monic polynomial x_j^m + sum_{l=0}^{m-1}{c_lx_j^l}
-		System.arraycopy(coefficients(m, n).getData(), 0, c, 0, m);
-		c[m] = 1.0;
+		int k = l + n - 1;
 
-		switch (m) {
-		case 2: // m = 1 never used
-			roots[0] = (-c[1] + Math.sqrt(c[1] * c[1] - 4.0 * c[0])) * 0.5;
-			roots[1] = (-c[1] - Math.sqrt(c[1] * c[1] - 4.0 * c[0])) * 0.5;
-			break;
-		case 3:
-			roots = solveCubic(c[2], c[1], c[0]);
-			break;
-		default:
-			var complexRoots = solver.solveAllComplex(c, 1.0);
-
-			for (int i = 0; i < complexRoots.length; i++) {
-				roots[i] = complexRoots[i].getReal();
+		for (int i = 0, j = 0; i < k + 1; i++) {
+			m = 1;
+			for (j = 0; j < i; j++) {
+				m *= (k - j);
 			}
+			f += m * fastPowLoop(x, k - i);
 		}
 
-		for (int i = 0; i < roots.length; i++) {
-			roots[i] = (roots[i] - alpha) / beta;
-		}
-
-		return roots;
+		return f * exp;
 
 	}
 
@@ -151,13 +160,35 @@ public class ChandrasekharsQuadrature extends SimpsonsRule {
 		return result;
 	}
 
-	public Vector coefficients(int m, int n) {
+	private double moment(int l, int n) {
+		return momentIntegral(transformedMaximum(), l, n, expUpper)
+				- momentIntegral(transformedMinimum(), l, n, expLower);
+	}
 
-		return momentMatrix(m, n).inverse().multiply(momentVector(m, 2 * m, n));
+	private double momentIntegral(double x, int l, int n, double exp) {
+
+		double e = 0;
+		int m = 0;
+
+		int lPlusOne = l + 1;
+
+		for (int i = 0, j = 0; i < n; i++) {
+			m = lPlusOne;
+			for (j = 1; j < i + 1; j++) {
+				m *= (lPlusOne + j);
+			}
+			e += ExponentialIntegrals.get(n - i).valueAt(x) * fastPowLoop(x, lPlusOne + i) / m;
+		}
+
+		return e + auxilliaryIntegral(x, l, n, exp) / m;
 
 	}
 
-	public Matrix momentMatrix(int m, int n) {
+	private Vector coefficients(int m, int n) {
+		return momentMatrix(m, n).inverse().multiply(momentVector(m, 2 * m, n));
+	}
+
+	private Matrix momentMatrix(int m, int n) {
 
 		double[][] data = new double[m][m];
 		moments = new double[2 * m];
@@ -186,7 +217,7 @@ public class ChandrasekharsQuadrature extends SimpsonsRule {
 
 	}
 
-	public Vector momentVector(int lowerInclusive, int upperExclusive, int n) {
+	private Vector momentVector(int lowerInclusive, int upperExclusive, int n) {
 		Vector v = new Vector(upperExclusive - lowerInclusive);
 
 		for (int i = lowerInclusive; i < upperExclusive; i++) {
@@ -197,99 +228,44 @@ public class ChandrasekharsQuadrature extends SimpsonsRule {
 
 	}
 
-	private double moment(int l, int n) {
-		return momentIntegral(rMax, l, n, expUpper) - momentIntegral(rMin, l, n, expLower);
+	private Vector weights(int m, int n, double[] roots) {
+		var x = xMatrix(m, n, roots);
+		var a = momentVector(0, m, n).inverted();
+
+		return x.inverse().multiply(a);
 	}
 
-	private double momentIntegral(double x, int l, int n, double exp) {
+	private double[] roots(int m, int n) {
+		double[] roots = new double[m];
+		double[] c = new double[m + 1];
 
-		double e = 0;
-		int m = 0;
+		// coefficients of the monic polynomial x_j^m + sum_{l=0}^{m-1}{c_lx_j^l}
+		System.arraycopy(coefficients(m, n).getData(), 0, c, 0, m);
+		c[m] = 1.0;
 
-		int lPlusOne = l + 1;
-
-		for (int i = 0, j = 0; i < n; i++) {
-			m = lPlusOne;
-			for (j = 1; j < i + 1; j++) {
-				m *= (lPlusOne + j);
-			}
-			e += expIntegrator.integralAt(x, n - i) * MathUtils.fastPowLoop(x, lPlusOne + i) / m;
-		}
-
-		return e + auxilliaryIntegral(x, l, n, exp) / m;
-
-	}
-
-	/**
-	 * Calculates \int_{r_{min}}^{r_{max}}{x^{l+1}exp(-x)dx}.
-	 * 
-	 * @param l an integer such that 0 <= l <= 2*m - 1.
-	 * @return the value of this definite integral.
-	 */
-
-	private static double auxilliaryIntegral(double x, int l, int n, double exp) {
-
-		double f = 0;
-		long m = 0;
-
-		int k = l + n - 1;
-
-		for (int i = 0, j = 0; i < k + 1; i++) {
-			m = 1;
-			for (j = 0; j < i; j++) {
-				m *= (k - j);
-			}
-			f += m * MathUtils.fastPowLoop(x, k - i);
-		}
-
-		return f * exp;
-
-	}
-
-	@Override
-	public void setIntegrationSegments(NumericProperty integrationSegments) {
-		super.setIntegrationSegments(integrationSegments);
-		m = (int) integrationSegments.getValue() + 1;
-	}
-
-	public NumericProperty getQuadraturePoints() {
-		return NumericProperty.derive(NumericPropertyKeyword.QUADRATURE_POINTS, m);
-	}
-
-	public void setQuadraturePoints(NumericProperty m) {
-		if (m.getType() != NumericPropertyKeyword.QUADRATURE_POINTS)
-			throw new IllegalArgumentException("Illegal type: " + m.getType());
-		this.m = (int) m.getValue();
-	}
-
-	@Override
-	public void set(NumericPropertyKeyword type, NumericProperty property) {
-		switch (type) {
-		case INTEGRATION_CUTOFF:
-			setCutoff(property);
+		switch (m) {
+		// m = 1 never used
+		case 2:
+			roots[0] = (-c[1] + sqrt(c[1] * c[1] - 4.0 * c[0])) * 0.5;
+			roots[1] = (-c[1] - sqrt(c[1] * c[1] - 4.0 * c[0])) * 0.5;
 			break;
-		case QUADRATURE_POINTS:
-			setQuadraturePoints(property);
+		case 3:
+			roots = solveCubic(c[2], c[1], c[0]);
 			break;
 		default:
-			return;
+			var complexRoots = solver.solveAllComplex(c, 1.0);
+
+			for (int i = 0; i < complexRoots.length; i++) {
+				roots[i] = complexRoots[i].getReal();
+			}
 		}
 
-		firePropertyChanged(this, property);
+		for (int i = 0; i < roots.length; i++) {
+			roots[i] = (roots[i] - getAlpha()) / getBeta();
+		}
 
-	}
+		return roots;
 
-	@Override
-	public List<Property> listedTypes() {
-		List<Property> list = new ArrayList<>();
-		list.add(NumericProperty.def(NumericPropertyKeyword.INTEGRATION_CUTOFF));
-		list.add(NumericProperty.def(NumericPropertyKeyword.QUADRATURE_POINTS));
-		return list;
-	}
-
-	@Override
-	public String toString() {
-		return getDescriptor() + " : " + getQuadraturePoints() + " ; " + getCutoff();
 	}
 
 }

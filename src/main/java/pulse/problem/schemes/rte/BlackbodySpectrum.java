@@ -58,7 +58,7 @@ public class BlackbodySpectrum {
 	 * @return the local emissive power value
 	 */
 
-	public double powerAt(double x) {
+	public double powerAt(double x) { 
 		return emissivePower(interpolation.value(x));
 	}
 	
@@ -70,6 +70,10 @@ public class BlackbodySpectrum {
 
 	public void setInterpolation(UnivariateFunction interpolation) {
 		this.interpolation = interpolation;
+	}
+	
+	public UnivariateFunction getInterpolation() {
+		return interpolation;
 	}
 
 	@Override

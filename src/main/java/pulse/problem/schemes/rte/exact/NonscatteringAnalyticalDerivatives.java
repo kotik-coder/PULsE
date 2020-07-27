@@ -1,76 +1,78 @@
 package pulse.problem.schemes.rte.exact;
 
+import static java.lang.Double.compare;
+
+import pulse.math.FunctionWithInterpolation;
+import pulse.math.Segment;
 import pulse.problem.schemes.Grid;
 import pulse.problem.schemes.rte.RTECalculationStatus;
 import pulse.problem.statements.ParticipatingMedium;
 
 public class NonscatteringAnalyticalDerivatives extends NonscatteringRadiativeTransfer {
 
-	private double FD[], FDP[];
+	private FunctionWithInterpolation ei2 = ExponentialIntegrals.get(2);
+	private double fd[], fdStored[];
 
 	public NonscatteringAnalyticalDerivatives(ParticipatingMedium problem, Grid grid) {
 		super(problem, grid);
 	}
 
-	@Override
-	public void reinitArrays(int N) {
-		super.reinitArrays(N);
-		FD = new double[N + 1];
-		FDP = new double[N + 1];
-	}
-
 	public double getStoredFluxDerivative(int index) {
-		return FDP[index];
+		return fdStored[index];
+	}
+	
+	@Override
+	public RTECalculationStatus compute(double U[]) {
+		super.compute(U);
+		fluxes();
+		for (int i = 0, N = this.getExternalGridDensity(); i < N; i++) {
+			evalFluxDerivative(i);
+		}
+		return RTECalculationStatus.NORMAL;
+	}
+	
+	@Override
+	protected void reinitFluxes(int N) {
+		super.reinitFluxes(N);
+		fd = new double[N + 1];
+		fdStored = new double[N + 1];
 	}
 
 	@Override
-	public double getFluxDerivative(int index) {
-		return FD[index];
+	public double fluxDerivative(int index) {
+		return fd[index];
 	}
 
 	@Override
-	public double getFluxDerivativeRear() {
-		return FD[this.getExternalGridDensity()];
+	public double fluxDerivativeRear() {
+		return fd[this.getExternalGridDensity()];
 	}
 
 	@Override
-	public double getFluxDerivativeFront() {
-		return FD[0];
+	public double fluxDerivativeFront() {
+		return fd[0];
 	}
 
 	@Override
 	public void store() {
 		super.store();
-		System.arraycopy(FD, 0, FDP, 0, this.getExternalGridDensity() + 1); // store previous results
+		System.arraycopy(fd, 0, fdStored, 0, this.getExternalGridDensity() + 1); // store previous results
 	}
 
 	@Override
-	public double getFluxMeanDerivative(int uIndex) {
-		return 0.5 * (FD[uIndex] + FDP[uIndex]);
+	public double fluxMeanDerivative(int uIndex) {
+		return 0.5 * (fd[uIndex] + fdStored[uIndex]);
 	}
 
 	@Override
-	public double getFluxMeanDerivativeFront() {
-		return 0.5 * (FD[0] + FDP[0]);
+	public double fluxMeanDerivativeFront() {
+		return 0.5 * (fd[0] + fdStored[0]);
 	}
 
 	@Override
-	public double getFluxMeanDerivativeRear() {
+	public double fluxMeanDerivativeRear() {
 		int N = this.getExternalGridDensity();
-		return 0.5 * (FD[N] + FDP[N]);
-	}
-
-	@Override
-	public RTECalculationStatus compute(double U[]) {
-		super.compute(U);
-		radiosities();
-		fluxDerivativeFront(U);
-		for (int i = 1, N = this.getExternalGridDensity(); i < N; i++) {
-                    fluxDerivative(U, i);
-                }
-		fluxDerivativeRear(U);
-		boundaryFluxes();
-		return RTECalculationStatus.NORMAL;
+		return 0.5 * (fd[N] + fdStored[N]);
 	}
 
 	/*
@@ -80,55 +82,44 @@ public class NonscatteringAnalyticalDerivatives extends NonscatteringRadiativeTr
 	 *
 	 */
 
-	private void fluxDerivative(double U[], int uIndex) {
-		double t = hx * uIndex * tau0;
+	private void evalFluxDerivative(int uIndex) {
+		double t = opticalCoordinateAt(uIndex);
 
-		double value = r1 * simpleIntegrator.integralAt(t, 2) + r2 * simpleIntegrator.integralAt(tau0 - t, 2)
-				- 2.0 * emissionFunction.powerAt(t) + integrateFirstOrder(t);
+		double value = getRadiosityFront() * ei2.valueAt(t) + getRadiosityRear() * ei2.valueAt(getOpticalThickness() - t)
+				- 2.0 * getEmissionFunction().powerAt(t) + integrateFirstOrder(t);
 
-		FD[uIndex] = 2.0 * value;
-
-	}
-
-	private void fluxDerivativeFront(double[] U) {
-		double value = r1 * simpleIntegrator.integralAt(0, 2) + r2 * simpleIntegrator.integralAt(tau0, 2)
-				- 2.0 * emissionFunction.powerAt(0.0) + integrateFirstOrderFront();
-
-		FD[0] = 2.0 * value;
-
-	}
-
-	private void fluxDerivativeRear(double[] U) {
-		int N = this.getExternalGridDensity();
-		double t = hx * N * tau0;
-
-		double value = r1 * simpleIntegrator.integralAt(t, 2) + r2 * simpleIntegrator.integralAt(tau0 - t, 2)
-				- 2.0 * emissionFunction.powerAt(t) + integrateFirstOrderRear();
-
-		FD[N] = 2.0 * value;
+		fd[uIndex] = 2.0 * value;
 	}
 
 	private double integrateFirstOrder(double y) {
 		double integral = 0;
+		double tau0 = getOpticalThickness();
+		var quadrature = getQuadrature();
+		
+		setForIntegration(0, y);
+		quadrature.setCoefficients(y, -1);
+		integral += compare(y, 0) == 0 ? 0 : quadrature.integrate();
 
-		complexIntegrator.setRange(0, y);
-		integral += Double.compare(y, 0) == 0 ? 0 : complexIntegrator.integrate(1, y, -1);
-
-		complexIntegrator.setRange(y, tau0);
-		integral += Double.compare(y, tau0) == 0 ? 0 : complexIntegrator.integrate(1, -y, 1);
+		setForIntegration(y, tau0);
+		quadrature.setCoefficients(-y, 1);
+		integral += compare(y, tau0) == 0 ? 0 : quadrature.integrate();
 
 		return integral;
-
 	}
 
-	private double integrateFirstOrderFront() {
-		complexIntegrator.setRange(0, tau0);
-		return complexIntegrator.integrate(1, 0, 1);
-	}
-
-	private double integrateFirstOrderRear() {
-		complexIntegrator.setRange(0, tau0);
-		return complexIntegrator.integrate(1, tau0, -1);
+	
+	/**
+	 * This will set integration bounds by creating a segment using {@code x} and {@code y} values.
+	 * Note this ignores the order of arguments, as the lower and upper bound will be equal to 
+	 * {@code min(x,y)} and {@code max(x,y)} respectively. The order of integration is set to unity.
+	 * @param x lower bound
+	 * @param y upper bound
+	 */
+	
+	private void setForIntegration(double x, double y) {
+		var quadrature = getQuadrature();
+		quadrature.setBounds(new Segment(x, y));
+		quadrature.setOrder(1);
 	}
 
 }
