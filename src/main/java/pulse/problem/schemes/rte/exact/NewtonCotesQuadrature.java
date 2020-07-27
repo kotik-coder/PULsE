@@ -30,7 +30,7 @@ public class NewtonCotesQuadrature extends Convolution {
 		super(bounds);
 		setCutoff(derive(INTEGRATION_CUTOFF, DEFAULT_CUTOFF));
 		Convolution reference = this;
-		convolution = new SimpsonIntegrator(new Segment(0.0, 1.0)) {
+		convolution = new SimpsonIntegrator(new Segment(0.0, 1.0), segments) {
 
 			@Override
 			public double integrand(double... vars) {

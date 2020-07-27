@@ -11,7 +11,8 @@ import pulse.problem.statements.ParticipatingMedium;
 public class NonscatteringAnalyticalDerivatives extends NonscatteringRadiativeTransfer {
 
 	private FunctionWithInterpolation ei2 = ExponentialIntegrals.get(2);
-	private double fd[], fdStored[];
+	private double fd[];
+	private double fdStored[];
 
 	public NonscatteringAnalyticalDerivatives(ParticipatingMedium problem, Grid grid) {
 		super(problem, grid);

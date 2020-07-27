@@ -1,7 +1,6 @@
 package pulse.problem.schemes.rte.exact;
 
-import static java.lang.Math.exp;
-import static java.lang.Math.sqrt;
+import static java.lang.Math.*;
 import static pulse.math.MathUtils.fastPowLoop;
 import static pulse.properties.NumericProperty.requireType;
 import static pulse.properties.NumericProperty.theDefault;
@@ -40,7 +39,7 @@ public class ChandrasekharsQuadrature extends Convolution {
 
 		double[] roots = roots(m, getOrder());
 
-		Vector weights = weights(m, getOrder(), roots);
+		Vector weights = weights(m, roots);
 
 		return f(roots).dot(weights) / getBeta();
 	}
@@ -100,7 +99,7 @@ public class ChandrasekharsQuadrature extends Convolution {
 		return transformedBound(getBounds().getMinimum());
 	}
 
-	private Matrix xMatrix(int m, int n, double[] roots) {
+	private Matrix xMatrix(int m, double[] roots) {
 		double[][] x = new double[m][m];
 
 		for (int l = 0; l < m; l++) {
@@ -144,13 +143,13 @@ public class ChandrasekharsQuadrature extends Convolution {
 		double p = b / 3 - a * a / 9;
 		double q = a * a * a / 27 - a * b / 6 + c / 2;
 
-		double ang = Math.acos(-q / Math.sqrt(-p * p * p));
-		double r = 2 * Math.sqrt(-p);
+		double ang = acos(-q / sqrt(-p * p * p));
+		double r = 2 * sqrt(-p);
 		result = new double[3];
 		double theta;
 		for (int k = -1; k <= 1; k++) {
-			theta = (ang - 2 * Math.PI * k) / 3;
-			result[k + 1] = r * Math.cos(theta);
+			theta = (ang - 2 * PI * k) / 3;
+			result[k + 1] = r * cos(theta);
 		}
 
 		for (int i = 0; i < result.length; i++) {
@@ -185,7 +184,7 @@ public class ChandrasekharsQuadrature extends Convolution {
 	}
 
 	private Vector coefficients(int m, int n) {
-		return momentMatrix(m, n).inverse().multiply(momentVector(m, 2 * m, n));
+		return momentMatrix(m, n).inverse().multiply(momentVector(m, 2 * m));
 	}
 
 	private Matrix momentMatrix(int m, int n) {
@@ -217,7 +216,7 @@ public class ChandrasekharsQuadrature extends Convolution {
 
 	}
 
-	private Vector momentVector(int lowerInclusive, int upperExclusive, int n) {
+	private Vector momentVector(int lowerInclusive, int upperExclusive) {
 		Vector v = new Vector(upperExclusive - lowerInclusive);
 
 		for (int i = lowerInclusive; i < upperExclusive; i++) {
@@ -228,9 +227,9 @@ public class ChandrasekharsQuadrature extends Convolution {
 
 	}
 
-	private Vector weights(int m, int n, double[] roots) {
-		var x = xMatrix(m, n, roots);
-		var a = momentVector(0, m, n).inverted();
+	private Vector weights(int m, double[] roots) {
+		var x = xMatrix(m, roots);
+		var a = momentVector(0, m).inverted();
 
 		return x.inverse().multiply(a);
 	}
