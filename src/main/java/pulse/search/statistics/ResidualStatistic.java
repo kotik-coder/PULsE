@@ -1,7 +1,10 @@
 package pulse.search.statistics;
 
-import static java.lang.Math.*;
-import static pulse.input.IndexRange.*;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+import static pulse.input.IndexRange.closestLeft;
+import static pulse.input.IndexRange.closestRight;
+
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
