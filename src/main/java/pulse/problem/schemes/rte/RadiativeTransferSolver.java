@@ -95,41 +95,124 @@ public abstract class RadiativeTransferSolver extends PropertyHolder implements 
 
 		return (new SplineInterpolator()).interpolate(xArray, tempArray);
 	}
+	
+	/**
+	 * Calculates the average value of the flux derivatives at the {@code uIndex} grid point
+	 * on the current and previous timesteps. 
+	 * @param uIndex the grid point index
+	 * @return the time-averaged value of the flux derivative at {@code uIndex}
+	 */
 
-	public abstract double fluxMeanDerivative(int uIndex);
-	public abstract double fluxMeanDerivativeFront();
-	public abstract double fluxMeanDerivativeRear(); 
+	public abstract double meanFluxDerivative(int uIndex);
+	
+	/**
+	 * Calculates the average value of the flux derivatives at the first grid point
+	 * on the current and previous timesteps. 
+	 * @return the time-averaged value of the flux derivative at the front surface
+	 */
+	
+	public abstract double meanFluxDerivativeFront();
+	
+	/**
+	 * Calculates the average value of the flux derivatives at the last grid point
+	 * on the current and previous timesteps. 
+	 * @return the time-averaged value of the flux derivative at the rear surface
+	 */
+	
+	public abstract double meanFluxDerivativeveRear(); 
+	
+	/**
+	 * Calculates the flux derivative at the {@code uIndex} grid point.
+	 * @param uIndex the grid point index
+	 * @return the value of the flux derivative at {@code uIndex}
+	 */
+	
 	public abstract double fluxDerivative(int uIndex); 
+	
+	/**
+	 * Calculates the flux derivative at the front surface.
+	 * @return the value of the flux derivative at the front surface
+	 */
+	
 	public abstract double fluxDerivativeFront();
+	
+	/**
+	 * Calculates the flux derivative at the rear surface.
+	 * @return the value of the flux derivative at the rear surface
+	 */
+	
 	public abstract double fluxDerivativeRear();
+	
+	/**
+	 * Retrieves the currently calculated flux at the {@code i} grid point
+	 * @param i the index of the grid point
+	 * @return the flux value at the specified grid point
+	 */
 	
 	public double getFlux(int i) {
 		return fluxes[i];
 	}
+	
+	/**
+	 * Sets the flux at the {@code i} grid point
+	 * @param i the index of the grid point
+	 */
 
 	public void setFlux(int i, double value) {
 		this.fluxes[i] = value;
 	}
+	
+	/**
+	 * Retrieves the previously calculated flux at the {@code i} grid point.
+	 * @param i the index of the grid point
+	 * @return the previous flux value at the specified grid point
+	 * @see store()
+	 */
 
 	public double getStoredFlux(int i) {
 		return storedFluxes[i];
 	}
+	
+	/**
+	 * Retrieves the grid density of the heat problem.
+	 * @return the grid density of the heat problem
+	 */
 
 	public int getExternalGridDensity() {
 		return N;
 	}
+	
+	/**
+	 * Retrieves the optical coordinate corresponding to the grid index {@code i}
+	 * @param i the external grid index
+	 * @return <math>&tau;<sub>0</sub>/<i>N</i> <i>i</i> </math>
+	 */
 
 	public double opticalCoordinateAt(int i) {
 		return h * i;
 	}
+	
+	/**
+	 * Stores all currently calculated fluxes in a separate array. 
+	 */
 
 	public void store() {
 		System.arraycopy(fluxes, 0, storedFluxes, 0, N + 1); // store previous results
 	}
+	
+	/**
+	 * Retrieves the grid step multiplied by &tau;<sub>0</sub>.
+	 * @return the resized grid step
+	 */
 
 	public double getOpticalGridStep() {
 		return h;
 	}
+	
+	/**
+	 * Retrieves the &tau;<sub>0</sub> value.
+	 * @return the optical thickness value.
+	 */
 
 	public double getOpticalThickness() {
 		return opticalThickness;

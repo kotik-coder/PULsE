@@ -441,7 +441,7 @@ public class SearchTask extends Accessible implements Runnable {
 
 		this.problem = problem;
 		problem.setParent(this);
-		problem.removeListeners();
+		problem.removeHeatingCurveListeners();
 		problem.retrieveData(curve);
 
 		problem.addListener((PropertyEvent event) -> {

@@ -1,6 +1,10 @@
 package pulse.problem.schemes.rte.exact;
 
-import static java.lang.Math.*;
+import static java.lang.Math.PI;
+import static java.lang.Math.acos;
+import static java.lang.Math.cos;
+import static java.lang.Math.exp;
+import static java.lang.Math.sqrt;
 import static pulse.math.MathUtils.fastPowLoop;
 import static pulse.properties.NumericProperty.requireType;
 import static pulse.properties.NumericProperty.theDefault;

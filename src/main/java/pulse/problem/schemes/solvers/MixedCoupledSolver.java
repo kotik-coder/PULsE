@@ -288,18 +288,18 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 	}
 
 	protected double phiNextToFront() {
-		return 0.833333333 * rte.fluxMeanDerivative(1)
-				+ 0.083333333 * (rte.fluxMeanDerivativeFront() + rte.fluxMeanDerivative(2));
+		return 0.833333333 * rte.meanFluxDerivative(1)
+				+ 0.083333333 * (rte.meanFluxDerivativeFront() + rte.meanFluxDerivative(2));
 	}
 
 	protected double phiNextToRear() {
-		return 0.833333333 * rte.fluxMeanDerivative(N - 1)
-				+ 0.083333333 * (rte.fluxMeanDerivative(N - 2) + rte.fluxMeanDerivativeRear());
+		return 0.833333333 * rte.meanFluxDerivative(N - 1)
+				+ 0.083333333 * (rte.meanFluxDerivative(N - 2) + rte.meanFluxDerivativeveRear());
 	}
 
 	protected double phi(int i) {
-		return 0.833333333 * rte.fluxMeanDerivative(i)
-				+ 0.083333333 * (rte.fluxMeanDerivative(i - 1) + rte.fluxMeanDerivative(i + 1));
+		return 0.833333333 * rte.meanFluxDerivative(i)
+				+ 0.083333333 * (rte.meanFluxDerivative(i - 1) + rte.meanFluxDerivative(i + 1));
 	}
 
 	private void newRTE(ParticipatingMedium problem, Grid grid) {

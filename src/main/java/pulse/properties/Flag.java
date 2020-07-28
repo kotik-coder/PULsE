@@ -1,5 +1,6 @@
 package pulse.properties;
 
+import static pulse.properties.NumericProperty.def;
 import static pulse.properties.NumericPropertyKeyword.BASELINE_INTERCEPT;
 import static pulse.properties.NumericPropertyKeyword.BASELINE_SLOPE;
 import static pulse.properties.NumericPropertyKeyword.DIATHERMIC_COEFFICIENT;
@@ -92,32 +93,30 @@ public class Flag implements Property {
 
 	public static List<Flag> allProblemDependentFlags() {
 		List<Flag> flags = new ArrayList<>();
-		flags.add(new Flag(DIFFUSIVITY, NumericProperty.def(DIFFUSIVITY).getDescriptor(true), true));
-		flags.add(new Flag(HEAT_LOSS, NumericProperty.def(HEAT_LOSS).getDescriptor(true), true));
-		flags.add(new Flag(HEAT_LOSS_SIDE, NumericProperty.def(HEAT_LOSS_SIDE).getDescriptor(true), true));
-		flags.add(new Flag(MAXTEMP, NumericProperty.def(MAXTEMP).getDescriptor(true), true));
-		flags.add(new Flag(FOV_OUTER, NumericProperty.def(FOV_OUTER).getDescriptor(true), true));
-		flags.add(new Flag(FOV_INNER, NumericProperty.def(FOV_INNER).getDescriptor(true), true));
-		flags.add(new Flag(SPOT_DIAMETER, NumericProperty.def(SPOT_DIAMETER).getDescriptor(true), true));
-		flags.add(new Flag(DIATHERMIC_COEFFICIENT, NumericProperty.def(DIATHERMIC_COEFFICIENT).getDescriptor(true),
-				true));
-		flags.add(new Flag(LASER_ABSORPTIVITY, NumericProperty.def(LASER_ABSORPTIVITY).getDescriptor(true), true));
-		flags.add(new Flag(THERMAL_ABSORPTIVITY, NumericProperty.def(THERMAL_ABSORPTIVITY).getDescriptor(true), false));
-		flags.add(new Flag(OPTICAL_THICKNESS, NumericProperty.def(OPTICAL_THICKNESS).getDescriptor(true), true));
-		flags.add(new Flag(PLANCK_NUMBER, NumericProperty.def(PLANCK_NUMBER).getDescriptor(true), true));
-		flags.add(new Flag(SCATTERING_ALBEDO, NumericProperty.def(SCATTERING_ALBEDO).getDescriptor(true), true));
-		flags.add(
-				new Flag(SCATTERING_ANISOTROPY, NumericProperty.def(SCATTERING_ANISOTROPY).getDescriptor(true), true));
+		flags.add(new Flag(DIFFUSIVITY, def(DIFFUSIVITY).getDescriptor(true), true));
+		flags.add(new Flag(HEAT_LOSS, def(HEAT_LOSS).getDescriptor(true), true));
+		flags.add(new Flag(HEAT_LOSS_SIDE, def(HEAT_LOSS_SIDE).getDescriptor(true), true));
+		flags.add(new Flag(MAXTEMP, def(MAXTEMP).getDescriptor(true), true));
+		flags.add(new Flag(FOV_OUTER, def(FOV_OUTER).getDescriptor(true), true));
+		flags.add(new Flag(FOV_INNER, def(FOV_INNER).getDescriptor(true), true));
+		flags.add(new Flag(SPOT_DIAMETER, def(SPOT_DIAMETER).getDescriptor(true), true));
+		flags.add(new Flag(DIATHERMIC_COEFFICIENT, def(DIATHERMIC_COEFFICIENT).getDescriptor(true), true));
+		flags.add(new Flag(LASER_ABSORPTIVITY, def(LASER_ABSORPTIVITY).getDescriptor(true), true));
+		flags.add(new Flag(THERMAL_ABSORPTIVITY, def(THERMAL_ABSORPTIVITY).getDescriptor(true), false));
+		flags.add(new Flag(OPTICAL_THICKNESS, def(OPTICAL_THICKNESS).getDescriptor(true), true));
+		flags.add(new Flag(PLANCK_NUMBER, def(PLANCK_NUMBER).getDescriptor(true), true));
+		flags.add(new Flag(SCATTERING_ALBEDO, def(SCATTERING_ALBEDO).getDescriptor(true), true));
+		flags.add(new Flag(SCATTERING_ANISOTROPY, def(SCATTERING_ANISOTROPY).getDescriptor(true), true));
+		flags.add(new Flag(BASELINE_INTERCEPT, def(BASELINE_INTERCEPT).getDescriptor(true), false));
+		flags.add(new Flag(BASELINE_SLOPE, def(BASELINE_SLOPE).getDescriptor(true), false));
 		return flags;
 	}
 
 	public static List<Flag> allProblemIndependentFlags() {
 		List<Flag> flags = new ArrayList<>();
-		flags.add(new Flag(BASELINE_INTERCEPT, NumericProperty.def(BASELINE_INTERCEPT).getDescriptor(true), false));
-		flags.add(new Flag(BASELINE_SLOPE, NumericProperty.def(BASELINE_SLOPE).getDescriptor(true), false));
-		flags.add(new Flag(TIME_SHIFT, NumericProperty.def(TIME_SHIFT).getDescriptor(true), false));
-		flags.add(new Flag(LOWER_BOUND, NumericProperty.def(LOWER_BOUND).getDescriptor(true), false));
-		flags.add(new Flag(UPPER_BOUND, NumericProperty.def(UPPER_BOUND).getDescriptor(true), false));
+		flags.add(new Flag(TIME_SHIFT, def(TIME_SHIFT).getDescriptor(true), false));
+		flags.add(new Flag(LOWER_BOUND, def(LOWER_BOUND).getDescriptor(true), false));
+		flags.add(new Flag(UPPER_BOUND, def(UPPER_BOUND).getDescriptor(true), false));
 		return flags;
 	}
 
@@ -197,8 +196,8 @@ public class Flag implements Property {
 		return false;
 	}
 
-	public static List<Flag> selectActive( List<Flag> flags) {
-		return flags.stream().filter(flag -> (boolean)flag.getValue() ).collect(Collectors.toList());
+	public static List<Flag> selectActive(List<Flag> flags) {
+		return flags.stream().filter(flag -> (boolean) flag.getValue()).collect(Collectors.toList());
 	}
-	
+
 }

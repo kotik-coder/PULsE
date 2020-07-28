@@ -172,9 +172,11 @@ public class Chart {
 		plot.addDomainMarker(upperMarker);
 		plot.addDomainMarker(lowerMarker);
 
-		if (task.getProblem() != null) {
+		var problem = task.getProblem();
+		
+		if (problem != null) {
 
-			var solution = task.getProblem().getHeatingCurve();
+			var solution = problem.getHeatingCurve();
 
 			if (solution != null && task.getScheme() != null) {
 
@@ -182,7 +184,7 @@ public class Chart {
 
 					var solutionDataset = new XYSeriesCollection();
 
-					solutionDataset.addSeries(series(solution.extendedTo(rawData),
+					solutionDataset.addSeries(series(solution.extendedTo(rawData, problem.getBaseline()),
 							"Solution with " + task.getScheme().getSimpleName(), extendedCurve));
 					plot.setDataset(1, solutionDataset);
 
@@ -235,19 +237,20 @@ public class Chart {
 		var startTime = (double) curve.getTimeShift().getValue();
 		int iStart = IndexRange.closestLeft(startTime, curve.getTimeSequence());
 
-		for (var i = 0; i < iStart && extendedCurve; i++)
+		for (var i = 0; i < iStart && extendedCurve; i++) 
 			series.add(factor*curve.timeAt(i), curve.signalAt(i));
 
-		for (var i = iStart; i < realCount; i++)
+		for (var i = iStart; i < realCount; i++) 
 			series.add(factor*curve.timeAt(i), curve.signalAt(i));
 
 		return series;
 	}
 
 	public XYSeries residuals(SearchTask task) {
-		var solution = task.getProblem().getHeatingCurve();
-		final var span = solution.maxAdjustedSignal() - solution.getBaseline().valueAt(0);
-		final var offset = solution.getBaseline().valueAt(0) - span / 2.0;
+		var problem = task.getProblem();
+		var baseline = problem.getBaseline();
+		final var span = problem.getHeatingCurve().maxAdjustedSignal() - baseline.valueAt(0);
+		final var offset = baseline.valueAt(0) - span / 2.0;
 
 		var series = new XYSeries(format("Residuals (offset %3.2f)", offset));
 

@@ -14,8 +14,9 @@ import static pulse.properties.NumericPropertyKeyword.THICKNESS;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import pulse.Baseline;
 import pulse.HeatingCurve;
+import pulse.baseline.Baseline;
+import pulse.baseline.FlatBaseline;
 import pulse.input.ExperimentalData;
 import pulse.input.InterpolationDataset;
 import pulse.input.InterpolationDataset.StandardType;
@@ -29,6 +30,8 @@ import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
+import pulse.tasks.SearchTask;
+import pulse.util.InstanceDescriptor;
 import pulse.util.PropertyHolder;
 import pulse.util.Reflexive;
 
@@ -56,6 +59,10 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 	private static boolean singleStatement = true;
 	private static boolean hideDetailedAdjustment = true;
 	private ProblemComplexity complexity = ProblemComplexity.LOW;
+	private Baseline baseline;
+
+	private InstanceDescriptor<? extends Baseline> instanceDescriptor = new InstanceDescriptor<Baseline>(
+			"Baseline Selector", Baseline.class);
 
 	/**
 	 * The <b>corrected</b> proportionality factor setting out the relation between
@@ -94,6 +101,9 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 		curve.setParent(this);
 		pulse.setParent(this);
 		this.T = (double) NumericProperty.def(TEST_TEMPERATURE).getValue();
+		instanceDescriptor.setSelectedDescriptor(FlatBaseline.class.getSimpleName());
+		initBaseline();
+		instanceDescriptor.addListener(() -> initBaseline());
 	}
 
 	/**
@@ -116,6 +126,9 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 		this.Bi2 = p.Bi2;
 
 		this.T = p.T;
+		instanceDescriptor.setSelectedDescriptor(p.getBaseline().getClass().getSimpleName());
+		initBaseline();
+		instanceDescriptor.addListener(() -> initBaseline());
 	}
 
 	/**
@@ -145,8 +158,8 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 		double sum = 0;
 
 		for (int i = 1; i <= precision; i++) {
-                    sum += pow(-1, i) * exp(-pow(i * PI, 2) * Fo);
-                }
+			sum += pow(-1, i) * exp(-pow(i * PI, 2) * Fo);
+		}
 
 		return (1. + 2. * sum) * signalHeight;
 
@@ -296,7 +309,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 	 */
 
 	public void retrieveData(ExperimentalData c) {
-		curve.getBaseline().fitTo(c); // used to estimate the floor of the signal range
+		baseline.fitTo(c); // used to estimate the floor of the signal range
 		estimateSignalRange(c);
 		updateProperties(this, c.getMetadata());
 		useTheoreticalEstimates(c);
@@ -313,7 +326,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 	 */
 
 	public void estimateSignalRange(ExperimentalData c) {
-		signalHeight = c.maxAdjustedSignal() - curve.getBaseline().valueAt(0);
+		signalHeight = c.maxAdjustedSignal() - baseline.valueAt(0);
 	}
 
 	/**
@@ -363,7 +376,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 
 		int size = output[0].dimension();
 
-		Baseline baseline = curve.getBaseline();
+		baseline.optimisationVector(output, flags);
 
 		for (int i = 0; i < size; i++) {
 
@@ -376,14 +389,6 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 			case MAXTEMP:
 				output[0].set(i, signalHeight);
 				output[1].set(i, 0.5 * signalHeight);
-				break;
-			case BASELINE_INTERCEPT:
-				output[0].set(i, baseline.parameters()[0]);
-				output[1].set(i, 5);
-				break;
-			case BASELINE_SLOPE:
-				output[0].set(i, baseline.parameters()[1]);
-				output[1].set(i, 1000);
 				break;
 			case HEAT_LOSS:
 				output[0].set(i,
@@ -413,6 +418,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 	 */
 
 	public void assign(IndexedVector params) {
+		baseline.assign(params);
 		for (int i = 0, size = params.dimension(); i < size; i++) {
 
 			switch (params.getIndex(i)) {
@@ -421,12 +427,6 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 				break;
 			case MAXTEMP:
 				signalHeight = params.get(i);
-				break;
-			case BASELINE_INTERCEPT:
-				(curve.getBaseline()).setParameter(0, params.get(i));
-				break;
-			case BASELINE_SLOPE:
-				(curve.getBaseline()).setParameter(1, params.get(i));
 				break;
 			case HEAT_LOSS:
 				double heatLoss = areThermalPropertiesLoaded() ? 0.5 * maxBiot() * (Math.tanh(params.get(i)) + 1.0)
@@ -591,6 +591,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 		list.add(NumericProperty.def(DIFFUSIVITY));
 		list.add(NumericProperty.def(THICKNESS));
 		list.add(NumericProperty.def(HEAT_LOSS));
+		list.add(instanceDescriptor);
 		return list;
 	}
 
@@ -634,6 +635,53 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 		this.complexity = complexity;
 	}
 
+	/**
+	 * Return the {@code Baseline} of this {@code Problem}.
+	 * 
+	 * @return the baseline
+	 */
+
+	public Baseline getBaseline() {
+		return baseline;
+	}
+
+	/**
+	 * Sets a new baseline. Calls {@code apply(baseline)} on the
+	 * {@code HeatingCurve} when done and sets the {@code parent} of the baseline to
+	 * this object.
+	 * 
+	 * @param baseline the new baseline.
+	 * @see pulse.baseline.Baseline.apply(Baseline)
+	 */
+
+	public void setBaseline(Baseline baseline) {
+		this.baseline = baseline;
+		if(! curve.isIncomplete() )
+			curve.apply(baseline);
+		baseline.setParent(this);
+	}
+
 	public abstract Class<? extends DifferenceScheme> defaultScheme();
+
+	public InstanceDescriptor<? extends Baseline> getBaselineDescriptor() {
+		return instanceDescriptor;
+	}
+
+	private void initBaseline() {
+		;
+		curve.removeHeatingCurveListeners();
+		var baseline = instanceDescriptor.newInstance(Baseline.class);
+		setBaseline(baseline);
+		var searchTask = (SearchTask) this.specificAncestor(SearchTask.class);
+		if (searchTask != null) {
+			var experimentalData = searchTask.getExperimentalCurve();
+			baseline.fitTo(experimentalData);
+		}
+		parameterListChanged();
+		curve.addHeatingCurveListener(() -> {
+			if (!curve.isIncomplete())
+				curve.apply(baseline);
+		});
+	}
 
 }

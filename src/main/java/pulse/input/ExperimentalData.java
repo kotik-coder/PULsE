@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import pulse.HeatingCurve;
+import pulse.baseline.FlatBaseline;
 import pulse.input.listeners.DataEvent;
 import pulse.properties.NumericProperty;
 import pulse.ui.Messages;
@@ -72,7 +73,6 @@ public class ExperimentalData extends HeatingCurve {
 		setPrefix("RawData");
 		setNumPoints(derive(NUMPOINTS, 0));
 		indexRange = new IndexRange();
-		getBaseline().setParent(null);	//no baseline required
 	}
 
 	/**
@@ -206,9 +206,10 @@ public class ExperimentalData extends HeatingCurve {
 	public double halfRiseTime() {
 		var degraded = runningAverage(REDUCTION_FACTOR);
 		double max = (max(degraded, pointComparator)).getY();
-		getBaseline().fitTo(this);
+		var baseline = new FlatBaseline();
+		baseline.fitTo(this);
 
-		double halfMax = (max + getBaseline().valueAt(0)) / 2.0;
+		double halfMax = (max + baseline.valueAt(0)) / 2.0;
 
 		int index = IndexRange.closestLeft(halfMax, 
 				degraded.stream().map(point -> point.getY()).collect(Collectors.toList()) 

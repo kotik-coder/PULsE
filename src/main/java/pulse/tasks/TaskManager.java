@@ -69,7 +69,7 @@ public class TaskManager extends UpwardsNavigable {
 	private static final String DEFAULT_NAME = "Project 1 - " + now().format(ISO_WEEK_DATE);
 
 	private TaskManager() {
-
+		//intentionally left blank
 	}
 
 	/**

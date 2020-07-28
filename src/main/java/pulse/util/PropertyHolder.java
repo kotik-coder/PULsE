@@ -212,7 +212,7 @@ public abstract class PropertyHolder extends Accessible {
 		propertyHolder.data().stream().forEach(entry -> this.updateProperty(sourceComponent, entry));
 	}
 
-	public void removeListeners() {
+	public void removeHeatingCurveListeners() {
 		this.listeners.clear();
 	}
 

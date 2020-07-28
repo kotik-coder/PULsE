@@ -139,17 +139,17 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 	}
 
 	@Override
-	public double fluxMeanDerivative(int u) {
+	public double meanFluxDerivative(int u) {
 		return 0.5 * (fluxDerivative[u] + storedFluxDerivative[u]);
 	}
 
 	@Override
-	public double fluxMeanDerivativeFront() {
+	public double meanFluxDerivativeFront() {
 		return 0.5 * (fluxDerivative[0] + storedFluxDerivative[0]);
 	}
 
 	@Override
-	public double fluxMeanDerivativeRear() {
+	public double meanFluxDerivativeveRear() {
 		return 0.5
 				* (fluxDerivative[fluxDerivative.length - 1] + storedFluxDerivative[storedFluxDerivative.length - 1]);
 	}

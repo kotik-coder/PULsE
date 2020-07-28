@@ -88,8 +88,8 @@ public class ReflexiveFinder {
 				var pathName = f.getName();
 
 				for (var parent = f.getParentFile(); !parent.equals(root); parent = parent.getParentFile()) {
-                                    pathName = parent.getName() + "." + pathName;
-                                }
+					pathName = parent.getName() + "." + pathName;
+				}
 
 				return pathName;
 
@@ -128,8 +128,7 @@ public class ReflexiveFinder {
 			} catch (IOException | ClassNotFoundException e) {
 				e.printStackTrace();
 			}
-                    // TODO Auto-generated catch block
-                    
+			// TODO Auto-generated catch block
 
 		}
 
@@ -175,10 +174,10 @@ public class ReflexiveFinder {
 						continue outer;
 
 					for (int i = 0; i < types.length; i++) {
-                                            if (!types[i].equals(params[i].getClass()))
-                                                if (!types[i].isAssignableFrom(params[i].getClass()))
-                                                    continue outer;
-                                        }
+						if (!types[i].equals(params[i].getClass()))
+							if (!types[i].isAssignableFrom(params[i].getClass()))
+								continue outer;
+					}
 
 					try {
 						var o = ctr.newInstance(params);

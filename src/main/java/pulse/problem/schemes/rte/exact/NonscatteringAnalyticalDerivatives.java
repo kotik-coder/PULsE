@@ -61,17 +61,17 @@ public class NonscatteringAnalyticalDerivatives extends NonscatteringRadiativeTr
 	}
 
 	@Override
-	public double fluxMeanDerivative(int uIndex) {
+	public double meanFluxDerivative(int uIndex) {
 		return 0.5 * (fd[uIndex] + fdStored[uIndex]);
 	}
 
 	@Override
-	public double fluxMeanDerivativeFront() {
+	public double meanFluxDerivativeFront() {
 		return 0.5 * (fd[0] + fdStored[0]);
 	}
 
 	@Override
-	public double fluxMeanDerivativeRear() {
+	public double meanFluxDerivativeveRear() {
 		int N = this.getExternalGridDensity();
 		return 0.5 * (fd[N] + fdStored[N]);
 	}
