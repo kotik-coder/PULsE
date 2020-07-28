@@ -9,8 +9,7 @@ import java.util.Objects;
 
 import pulse.input.ExperimentalData;
 import pulse.input.IndexRange;
-import pulse.math.IndexedVector;
-import pulse.properties.Flag;
+import pulse.search.Optimisable;
 import pulse.util.PropertyHolder;
 import pulse.util.Reflexive;
 
@@ -25,7 +24,7 @@ import pulse.util.Reflexive;
  * @see pulse.math.IndexedVector
  */
 
-public abstract class Baseline extends PropertyHolder implements Reflexive {
+public abstract class Baseline extends PropertyHolder implements Reflexive, Optimisable {
 
 	/**
 	 * Calculates the baseline at the given position.
@@ -51,28 +50,6 @@ public abstract class Baseline extends PropertyHolder implements Reflexive {
 	 */
 	
 	protected abstract void doFit(List<Double> x, List<Double> y, int size);
-	
-	/**
-	 * Calculates the vector argument defined on <math><b>R</b><sup>n</sup></math>
-	 * to the scalar objective function for this {@code Baseline}.
-	 * 
-	 * @param flags a list of {@code Flag} objects, which determine the basis of the
-	 *              search
-	 * @return an {@code IndexedVector} object, representing the objective function.
-	 */
-	
-	public abstract void optimisationVector(IndexedVector[] output, List<Flag> flags);
-	
-	/**
-	 * Assigns parameter values of this {@code Baseline} using the optimisation
-	 * vector {@code params}. Only those parameters will be updated, the types of
-	 * which are listed as indices in the {@code params} vector.
-	 * 
-	 * @param params the optimisation vector, containing a similar set of parameters
-	 *               to this {@code Problem}
-	 */
-	
-	public abstract void assign(IndexedVector params);
 	
 	/**
 	 * Selects part of the {@code data} that can be used for baseline estimation

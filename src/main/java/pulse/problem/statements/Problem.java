@@ -30,6 +30,7 @@ import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
+import pulse.search.Optimisable;
 import pulse.tasks.SearchTask;
 import pulse.util.InstanceDescriptor;
 import pulse.util.PropertyHolder;
@@ -46,7 +47,7 @@ import pulse.util.Reflexive;
  * @see pulse.problem.schemes.DifferenceScheme
  */
 
-public abstract class Problem extends PropertyHolder implements Reflexive {
+public abstract class Problem extends PropertyHolder implements Reflexive, Optimisable {
 
 	protected HeatingCurve curve;
 	protected Pulse pulse;
@@ -351,19 +352,11 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 	/**
 	 * Calculates the vector argument defined on <math><b>R</b><sup>n</sup></math>
 	 * to the scalar objective function for this {@code Problem}.
-	 * <p>
-	 * This arguments is represented by an {@code IndexedVector}.The indices in this
-	 * {@code IndexedVector} are determined based on the respective
-	 * {@code NumericPropertyKeyword} of each {@code Flag} contained in the
-	 * {@code flags}. To fill the vector with data, only those parameters from this
+	 * To fill the vector with data, only those parameters from this
 	 * {@code Problem} will be used which are defined by the {@code flags}, e.g. if
 	 * the flag associated with the {@code HEAT_LOSS} keyword is set to false, its
 	 * value will be skipped when creating the vector.
 	 * </p>
-	 * 
-	 * @param flags a list of {@code Flag} objects, which determine the basis of the
-	 *              search
-	 * @return an {@code IndexedVector} object, representing the objective function.
 	 * @see listedTypes()
 	 */
 
@@ -372,6 +365,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 	 * class, or putting them in the XML file
 	 */
 
+	@Override
 	public void optimisationVector(IndexedVector[] output, List<Flag> flags) {
 
 		int size = output[0].dimension();
@@ -412,11 +406,10 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 	 * vector {@code params}. Only those parameters will be updated, the types of
 	 * which are listed as indices in the {@code params} vector.
 	 * 
-	 * @param params the optimisation vector, containing a similar set of parameters
-	 *               to this {@code Problem}
 	 * @see listedTypes()
 	 */
 
+	@Override
 	public void assign(IndexedVector params) {
 		baseline.assign(params);
 		for (int i = 0, size = params.dimension(); i < size; i++) {
@@ -668,7 +661,6 @@ public abstract class Problem extends PropertyHolder implements Reflexive {
 	}
 
 	private void initBaseline() {
-		;
 		curve.removeHeatingCurveListeners();
 		var baseline = instanceDescriptor.newInstance(Baseline.class);
 		setBaseline(baseline);

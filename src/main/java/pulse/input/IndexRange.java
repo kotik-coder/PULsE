@@ -79,7 +79,7 @@ public class IndexRange {
 	 */
 
 	public void setLowerBound(List<Double> data, double a) {
-		iStart = a < 0 ? closest(0, data, true) : closest(a, data, false);
+		iStart = a > 0 ? closestLeft(a, data) : closestRight(0, data);
 	}
 
 	/**
@@ -96,12 +96,13 @@ public class IndexRange {
 	 */
 
 	public void setUpperBound(List<Double> data, double b) {
-		iEnd = closest(b, data, true);
+		iEnd = closestRight(b, data);
 	}
 
 	/**
 	 * Sets the bounds of this index range using the minimum and maximum values of
-	 * the segment specified in the {@code range} object.
+	 * the segment specified in the {@code range} object. If the minimum bound is
+	 * negative, it will be ignored and replaced by 0.0.
 	 * 
 	 * @param data  the data list to be processed
 	 * @param range a range with minimum and maximum values
@@ -110,8 +111,9 @@ public class IndexRange {
 	 */
 
 	public void set(List<Double> data, Range range) {
-		setLowerBound(data, range.getSegment().getMinimum());
-		setUpperBound(data, range.getSegment().getMaximum());
+		var segment = range.getSegment();
+		setLowerBound(data, Math.max(0.0, segment.getMinimum()) );
+		setUpperBound(data, segment.getMaximum());
 	}
 
 	/**

@@ -1,5 +1,7 @@
 package pulse.search.statistics;
 
+import static java.lang.Math.*;
+import static pulse.input.IndexRange.*;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -34,13 +36,14 @@ public abstract class ResidualStatistic extends Statistic {
 
 		residuals = new ArrayList<>();
 		IndexRange indexRange = reference.getIndexRange();
-
+		var time		= reference.getTimeSequence();
+		
 		var s = estimate.getSplineInterpolation();
 
-		for (int startIndex = Math.max(IndexRange.closestLeft(estimate.timeAt(0), reference.getTimeSequence()),
-				indexRange.getLowerBound()), endIndex = Math.min(
-						IndexRange.closestRight(estimate.timeLimit(), reference.getTimeSequence()),
-						indexRange.getUpperBound()), i = startIndex; i <= endIndex; i++) {
+		int startIndex	= max(closestLeft(estimate.timeAt(0), time), indexRange.getLowerBound());
+		int endIndex	= min(closestRight(estimate.timeLimit(), time), indexRange.getUpperBound());
+		
+		for (int i = startIndex; i <= endIndex; i++) {
 			/*
 			 * find the point on the calculated heating curve which has the closest time
 			 * value smaller than the experimental points' time value

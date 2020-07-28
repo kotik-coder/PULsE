@@ -14,6 +14,7 @@ import pulse.math.Segment;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
+import pulse.search.Optimisable;
 import pulse.util.PropertyHolder;
 
 /**
@@ -23,7 +24,7 @@ import pulse.util.PropertyHolder;
  *
  */
 
-public class Range extends PropertyHolder {
+public class Range extends PropertyHolder implements Optimisable {
 
 	private Segment segment;
 
@@ -167,6 +168,7 @@ public class Range extends PropertyHolder {
 	 * @param flags  a list of active flags
 	 */
 
+	@Override
 	public void optimisationVector(IndexedVector[] output, List<Flag> flags) {
 		int size = output[0].dimension();
 
@@ -195,6 +197,7 @@ public class Range extends PropertyHolder {
 	 * @param params an {@code IndexedVector} which may contain the bounds.
 	 */
 
+	@Override
 	public void assign(IndexedVector params) {
 
 		NumericProperty p = null;

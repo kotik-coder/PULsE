@@ -43,17 +43,17 @@ public class Chart {
 	private ChartPanel chartPanel;
 	private JFreeChart chart;
 	private XYPlot plot;
-	
+
 	private float opacity = 0.15f;
 	private boolean residualsShown = true;
 	private boolean zeroApproximationShown = false;
-	
+
 	private final static double TO_MILLIS = 1E3;
 	private final static double RANGE_THRESHOLD = 1E-1;
 	private double factor;
-	
+
 	public Chart() {
-		chart = createScatterPlot("", getString("Charting.TimeAxisLabel"), (getString("Charting.TemperatureAxisLabel") ),
+		chart = createScatterPlot("", getString("Charting.TimeAxisLabel"), (getString("Charting.TemperatureAxisLabel")),
 				null, VERTICAL, true, true, false);
 
 		plot = chart.getXYPlot();
@@ -65,16 +65,16 @@ public class Chart {
 		chart.removeLegend();
 		chartPanel = new ChartPanel(chart);
 	}
-	
+
 	private void setFonts() {
 		var fontLabel = new Font("Arial", Font.PLAIN, 20);
 		var fontTicks = new Font("Arial", Font.PLAIN, 14);
-		plot.getDomainAxis().setLabelFont( fontLabel );
-		plot.getDomainAxis().setTickLabelFont( fontTicks );
-		plot.getRangeAxis().setLabelFont( fontLabel );
-		plot.getRangeAxis().setTickLabelFont( fontTicks );
+		plot.getDomainAxis().setLabelFont(fontLabel);
+		plot.getDomainAxis().setTickLabelFont(fontTicks);
+		plot.getRangeAxis().setLabelFont(fontLabel);
+		plot.getRangeAxis().setTickLabelFont(fontTicks);
 	}
-	
+
 	private void setBackgroundAndGrid() {
 		plot.setBackgroundPaint(white);
 		plot.setRangeGridlinesVisible(true);
@@ -83,7 +83,7 @@ public class Chart {
 		plot.setDomainGridlinesVisible(true);
 		plot.setDomainGridlinePaint(GRAY);
 	}
-	
+
 	private void setLegendTitle() {
 		var lt = new LegendTitle(plot);
 		lt.setItemFont(new Font("Dialog", PLAIN, 14));
@@ -94,18 +94,18 @@ public class Chart {
 		ta.setMaxWidth(0.58);
 		plot.addAnnotation(ta);
 	}
-	
+
 	private void setRenderers() {
 		var renderer = (XYLineAndShapeRenderer) chart.getXYPlot().getRenderer();
 		renderer.setDefaultShapesFilled(false);
 		renderer.setUseFillPaint(false);
 		renderer.setSeriesPaint(0, new Color(1.0f, 0.0f, 0.0f, opacity));
-		
+
 		var rendererLines = new XYLineAndShapeRenderer();
 		rendererLines.setSeriesPaint(0, BLUE);
 		rendererLines.setSeriesStroke(0, new BasicStroke(2.0f));
 		rendererLines.setSeriesShapesVisible(0, false);
-		
+
 		var rendererResiduals = new XYLineAndShapeRenderer();
 		rendererResiduals.setSeriesPaint(0, GREEN);
 		rendererResiduals.setSeriesShapesVisible(0, false);
@@ -118,16 +118,16 @@ public class Chart {
 		rendererOld.setSeriesPaint(0, BLUE);
 		rendererOld.setSeriesStroke(0, new BasicStroke(2.0f, CAP_BUTT, JOIN_MITER, 2.0f, new float[] { 10f }, 0));
 		rendererOld.setSeriesShapesVisible(0, false);
-		
+
 		plot.setRenderer(0, renderer);
 		plot.setRenderer(1, rendererLines);
 		plot.setRenderer(2, rendererOld);
 		plot.setRenderer(3, rendererResiduals);
 		plot.setRenderer(4, rendererClassic);
 	}
-	
+
 	private void adjustAxisLabel(double maximum) {
-		if(maximum < RANGE_THRESHOLD) {
+		if (maximum < RANGE_THRESHOLD) {
 			factor = TO_MILLIS;
 			plot.getDomainAxis().setLabel("Time (ms)");
 		} else {
@@ -138,19 +138,19 @@ public class Chart {
 
 	public void plot(SearchTask task, boolean extendedCurve) {
 		requireNonNull(task);
-		
+
 		var plot = chart.getXYPlot();
 
-		for(int i = 0; i < 6; i++)
+		for (int i = 0; i < 6; i++)
 			plot.setDataset(i, null);
 
 		var rawData = task.getExperimentalCurve();
 		var segment = rawData.getRange().getSegment();
-		
+
 		adjustAxisLabel(segment.getMaximum());
-		
+
 		factor = segment.getMaximum() < RANGE_THRESHOLD ? TO_MILLIS : 1.0;
-		
+
 		var rawDataset = new XYSeriesCollection();
 
 		rawDataset.addSeries(series(rawData, "Raw data (" + task.getIdentifier() + ")", extendedCurve));
@@ -158,14 +158,14 @@ public class Chart {
 
 		plot.clearDomainMarkers();
 
-		var lowerMarker = new ValueMarker(segment.getMinimum()*factor);
+		var lowerMarker = new ValueMarker(segment.getMinimum() * factor);
 
 		Stroke dashed = new BasicStroke(1.5f, CAP_BUTT, JOIN_MITER, 5.0f, new float[] { 10f }, 0.0f);
 
 		lowerMarker.setPaint(black);
 		lowerMarker.setStroke(dashed);
 
-		var upperMarker = new ValueMarker(segment.getMaximum()*factor);
+		var upperMarker = new ValueMarker(segment.getMaximum() * factor);
 		upperMarker.setPaint(black);
 		upperMarker.setStroke(dashed);
 
@@ -173,7 +173,7 @@ public class Chart {
 		plot.addDomainMarker(lowerMarker);
 
 		var problem = task.getProblem();
-		
+
 		if (problem != null) {
 
 			var solution = problem.getHeatingCurve();
@@ -183,9 +183,10 @@ public class Chart {
 				if (solution.adjustedSize() > 0) {
 
 					var solutionDataset = new XYSeriesCollection();
+					var displayedCurve = extendedCurve ? solution.extendedTo(rawData, problem.getBaseline()) : solution;
 
-					solutionDataset.addSeries(series(solution.extendedTo(rawData, problem.getBaseline()),
-							"Solution with " + task.getScheme().getSimpleName(), extendedCurve));
+					solutionDataset.addSeries(
+							series(displayedCurve, "Solution with " + task.getScheme().getSimpleName(), extendedCurve));
 					plot.setDataset(1, solutionDataset);
 
 					/*
@@ -198,7 +199,7 @@ public class Chart {
 							residualsDataset.addSeries(residuals(task));
 							plot.setDataset(3, residualsDataset);
 						}
-					
+
 				}
 
 			}
@@ -229,7 +230,7 @@ public class Chart {
 		plot.setDataset(4, classicDataset);
 		plot.getRenderer(4).setSeriesPaint(0, black);
 	}
-	
+
 	public XYSeries series(HeatingCurve curve, String title, boolean extendedCurve) {
 		var series = new XYSeries(title);
 
@@ -237,11 +238,11 @@ public class Chart {
 		var startTime = (double) curve.getTimeShift().getValue();
 		int iStart = IndexRange.closestLeft(startTime, curve.getTimeSequence());
 
-		for (var i = 0; i < iStart && extendedCurve; i++) 
-			series.add(factor*curve.timeAt(i), curve.signalAt(i));
+		for (var i = 0; i < iStart && extendedCurve; i++)
+			series.add(factor * curve.timeAt(i), curve.signalAt(i));
 
-		for (var i = iStart; i < realCount; i++) 
-			series.add(factor*curve.timeAt(i), curve.signalAt(i));
+		for (var i = iStart; i < realCount; i++)
+			series.add(factor * curve.timeAt(i), curve.signalAt(i));
 
 		return series;
 	}
@@ -258,7 +259,7 @@ public class Chart {
 		var size = residuals.size();
 
 		for (var i = 0; i < size; i++) {
-			series.add(factor*residuals.get(i)[0], (Number) (residuals.get(i)[1] + offset));
+			series.add(factor * residuals.get(i)[0], (Number) (residuals.get(i)[1] + offset));
 		}
 
 		return series;
