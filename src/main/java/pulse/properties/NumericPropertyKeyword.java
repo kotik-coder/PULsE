@@ -149,6 +149,24 @@ public enum NumericPropertyKeyword {
 	 */
 
 	BASELINE_SLOPE,
+	
+	/**
+	 * Frequency of the sinusoidal baseline.
+	 */
+	
+	BASELINE_FREQUENCY,
+	
+	/**
+	 * Phase shift of the sinusoidal baseline.
+	 */
+	
+	BASELINE_PHASE_SHIFT,
+	
+	/**
+	 * Amplitude of the sinusoidal baseline.
+	 */
+	
+	BASELINE_AMPLITUDE,
 
 	/**
 	 * The baseline intercept value.

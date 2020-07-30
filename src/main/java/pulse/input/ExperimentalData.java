@@ -111,7 +111,7 @@ public class ExperimentalData extends HeatingCurve {
 	@Override
 	public void addPoint(double time, double signal) {
 		super.addPoint(time, signal);
-		getAdjustedSignal().add(signal);
+		getAlteredSignalData().add(signal);
 		incrementCount();
 	}
 

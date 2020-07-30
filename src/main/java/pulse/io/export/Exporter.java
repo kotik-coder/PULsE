@@ -57,7 +57,7 @@ public interface Exporter<T extends Descriptive> extends Reflexive {
 	 * @param extension the file extension. If it is not supported, the exporter
 	 *                  will revert to its default extension
 	 * @throws IllegalArgumentException if {@code directory} is not really a directory
-	 * @see printToStream(T,FileOutputStream,Extension)
+	 * @see printToStream
 	 */
 
 	public default void export(T target, File directory, Extension extension) {

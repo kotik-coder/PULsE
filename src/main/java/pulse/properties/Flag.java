@@ -1,7 +1,10 @@
 package pulse.properties;
 
 import static pulse.properties.NumericProperty.def;
+import static pulse.properties.NumericPropertyKeyword.BASELINE_AMPLITUDE;
+import static pulse.properties.NumericPropertyKeyword.BASELINE_FREQUENCY;
 import static pulse.properties.NumericPropertyKeyword.BASELINE_INTERCEPT;
+import static pulse.properties.NumericPropertyKeyword.BASELINE_PHASE_SHIFT;
 import static pulse.properties.NumericPropertyKeyword.BASELINE_SLOPE;
 import static pulse.properties.NumericPropertyKeyword.DIATHERMIC_COEFFICIENT;
 import static pulse.properties.NumericPropertyKeyword.DIFFUSIVITY;
@@ -109,6 +112,9 @@ public class Flag implements Property {
 		flags.add(new Flag(SCATTERING_ANISOTROPY, def(SCATTERING_ANISOTROPY).getDescriptor(true), true));
 		flags.add(new Flag(BASELINE_INTERCEPT, def(BASELINE_INTERCEPT).getDescriptor(true), false));
 		flags.add(new Flag(BASELINE_SLOPE, def(BASELINE_SLOPE).getDescriptor(true), false));
+		flags.add(new Flag(BASELINE_FREQUENCY, def(BASELINE_FREQUENCY).getDescriptor(true), false));
+		flags.add(new Flag(BASELINE_AMPLITUDE, def(BASELINE_AMPLITUDE).getDescriptor(true), false));
+		flags.add(new Flag(BASELINE_PHASE_SHIFT, def(BASELINE_PHASE_SHIFT).getDescriptor(true), false));
 		return flags;
 	}
 

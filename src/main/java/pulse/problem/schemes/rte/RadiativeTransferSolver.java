@@ -231,6 +231,11 @@ public abstract class RadiativeTransferSolver extends PropertyHolder implements 
 	public List<RTECalculationListener> getRTEListeners() {
 		return rteListeners;
 	}
+	
+	/**
+	 * Adds a listener that can listen to status updates.
+	 * @param listener a listener to track the calculation progress
+	 */
 
 	public void addRTEListener(RTECalculationListener listener) {
 		rteListeners.add(listener);

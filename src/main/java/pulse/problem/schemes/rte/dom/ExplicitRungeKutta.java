@@ -66,7 +66,7 @@ public class ExplicitRungeKutta extends AdaptiveIntegrator {
 		 * First stage
 		 */
 
-		if (tableau.isFSAL() && !firstRun) { // if FSAL
+		if (tableau.isFSAL() && ! firstRun) { // if FSAL
 
 			for (int l = n1; l < n2; l++) {
                             q[l - n1][0] = qLast[l - n1]; // assume first stage is the last stage of last step

@@ -544,8 +544,12 @@ public class HeatingCurve extends PropertyHolder {
 	public List<Double> getTimeSequence() {
 		return time;
 	}
+	
+	public List<Double> getSignalData() {
+		return signal;
+	}
 
-	public List<Double> getAdjustedSignal() {
+	public List<Double> getAlteredSignalData() {
 		return adjustedSignal;
 	}
 

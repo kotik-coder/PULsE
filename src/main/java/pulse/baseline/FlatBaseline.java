@@ -124,24 +124,14 @@ public class FlatBaseline extends Baseline {
 		for (int i = 0, size = output[0].dimension(); i < size; i++) {
 
 			if (output[0].getIndex(i) == BASELINE_INTERCEPT) {
-				output[0].set(i, (double) getIntercept().getValue());
+				output[0].set(i, intercept);
 				output[1].set(i, 5);
 			}
 
 		}
 
 	}
-
-	/**
-	 * Assigns parameter values of this {@code Problem} using the optimisation
-	 * vector {@code params}. Only those parameters will be updated, the types of
-	 * which are listed as indices in the {@code params} vector.
-	 * 
-	 * @param params the optimisation vector, containing a similar set of parameters
-	 *               to this {@code Problem}
-	 * @see listedTypes()
-	 */
-
+	
 	@Override
 	public void assign(IndexedVector params) {
 		for (int i = 0, size = params.dimension(); i < size; i++) {
