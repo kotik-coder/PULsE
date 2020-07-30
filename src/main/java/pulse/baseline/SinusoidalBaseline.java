@@ -144,13 +144,13 @@ public class SinusoidalBaseline extends FlatBaseline {
 
 			switch (params.getIndex(i)) {
 			case BASELINE_FREQUENCY:
-				setFrequency(NumericProperty.derive(BASELINE_FREQUENCY, params.get(i)));
+				setFrequency(derive(BASELINE_FREQUENCY, params.get(i)));
 				break;
 			case BASELINE_PHASE_SHIFT:
-				setPhaseShift(NumericProperty.derive(BASELINE_PHASE_SHIFT, params.get(i)));
+				setPhaseShift(derive(BASELINE_PHASE_SHIFT, params.get(i)));
 				break;
 			case BASELINE_AMPLITUDE:
-				setAmplitude(NumericProperty.derive(BASELINE_AMPLITUDE, params.get(i)));
+				setAmplitude(derive(BASELINE_AMPLITUDE, params.get(i)));
 				break;
 			default:
 				break;
