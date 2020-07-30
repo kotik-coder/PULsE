@@ -21,7 +21,8 @@ import pulse.util.Reflexive;
  *
  */
 
-public abstract class RadiativeTransferSolver extends PropertyHolder implements Reflexive, Descriptive {
+public abstract class RadiativeTransferSolver extends PropertyHolder
+		implements Reflexive, Descriptive, DerivativeCalculator {
 
 	private double[] fluxes;
 	private double[] storedFluxes;
@@ -99,59 +100,6 @@ public abstract class RadiativeTransferSolver extends PropertyHolder implements 
 
 		return (new SplineInterpolator()).interpolate(xArray, tempArray);
 	}
-
-	/**
-	 * Calculates the average value of the flux derivatives at the {@code uIndex}
-	 * grid point on the current and previous timesteps.
-	 * 
-	 * @param uIndex the grid point index
-	 * @return the time-averaged value of the flux derivative at {@code uIndex}
-	 */
-
-	public abstract double meanFluxDerivative(int uIndex);
-
-	/**
-	 * Calculates the average value of the flux derivatives at the first grid point
-	 * on the current and previous timesteps.
-	 * 
-	 * @return the time-averaged value of the flux derivative at the front surface
-	 */
-
-	public abstract double meanFluxDerivativeFront();
-
-	/**
-	 * Calculates the average value of the flux derivatives at the last grid point
-	 * on the current and previous timesteps.
-	 * 
-	 * @return the time-averaged value of the flux derivative at the rear surface
-	 */
-
-	public abstract double meanFluxDerivativeveRear();
-
-	/**
-	 * Calculates the flux derivative at the {@code uIndex} grid point.
-	 * 
-	 * @param uIndex the grid point index
-	 * @return the value of the flux derivative at {@code uIndex}
-	 */
-
-	public abstract double fluxDerivative(int uIndex);
-
-	/**
-	 * Calculates the flux derivative at the front surface.
-	 * 
-	 * @return the value of the flux derivative at the front surface
-	 */
-
-	public abstract double fluxDerivativeFront();
-
-	/**
-	 * Calculates the flux derivative at the rear surface.
-	 * 
-	 * @return the value of the flux derivative at the rear surface
-	 */
-
-	public abstract double fluxDerivativeRear();
 
 	/**
 	 * Retrieves the currently calculated flux at the {@code i} grid point

@@ -6,11 +6,14 @@ import static java.lang.Math.cos;
 import static java.lang.Math.exp;
 import static java.lang.Math.sqrt;
 import static pulse.math.MathUtils.fastPowLoop;
+import static pulse.properties.NumericProperty.def;
+import static pulse.properties.NumericProperty.derive;
 import static pulse.properties.NumericProperty.requireType;
 import static pulse.properties.NumericProperty.theDefault;
 import static pulse.properties.NumericPropertyKeyword.QUADRATURE_POINTS;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.math3.analysis.solvers.LaguerreSolver;
@@ -22,6 +25,14 @@ import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 
+/**
+ * This quadrature methods of evaluating the composition product of the exponential integral and 
+ * blackbody spectral power spectrum has been given by Chandrasekhar and is based
+ * on constructing a moment matrix.
+ * @see <a href="Chandrasekhar, S. Radiative transfer.">shorturl.at/de179</a> 
+ * 
+ */
+
 public class ChandrasekharsQuadrature extends CompositionProduct {
 
 	private int m;
@@ -30,12 +41,18 @@ public class ChandrasekharsQuadrature extends CompositionProduct {
 	private LaguerreSolver solver;
 	private double[] moments;
 
+	/**
+	 * Constructs a {@code ChandrasekharsQuadrature} object with a default 
+	 * number of nodes, a {@code LaguerreSolver} with default precision and 
+	 * integration bounds set to [0,1].
+	 */
+	
 	public ChandrasekharsQuadrature() {
 		super(new Segment(0, 1));
 		m = (int) theDefault(QUADRATURE_POINTS).getValue();
 		solver = new LaguerreSolver();
 	}
-
+	
 	@Override
 	public double integrate() {
 		expLower = -exp(-transformedMinimum());
@@ -49,7 +66,7 @@ public class ChandrasekharsQuadrature extends CompositionProduct {
 	}
 
 	public NumericProperty getQuadraturePoints() {
-		return NumericProperty.derive(NumericPropertyKeyword.QUADRATURE_POINTS, m);
+		return derive(QUADRATURE_POINTS, m);
 	}
 
 	public void setQuadraturePoints(NumericProperty m) {
@@ -67,9 +84,7 @@ public class ChandrasekharsQuadrature extends CompositionProduct {
 
 	@Override
 	public List<Property> listedTypes() {
-		List<Property> list = new ArrayList<>();
-		list.add(NumericProperty.def(NumericPropertyKeyword.QUADRATURE_POINTS));
-		return list;
+		return new ArrayList<Property>(Arrays.asList(def(QUADRATURE_POINTS)));
 	}
 
 	@Override
@@ -81,17 +96,17 @@ public class ChandrasekharsQuadrature extends CompositionProduct {
 	 * Private methods
 	 */
 
-	private Vector f(double[] roots) {
+	private Vector f(final double[] roots) {
 		double f[] = new double[roots.length];
+		final var ef = getEmissionFunction();
 
 		for (int i = 0; i < f.length; i++)
-			f[i] = getEmissionFunction().powerAt(roots[i]);
+			f[i] = ef.powerAt(roots[i]);
 
 		return new Vector(f);
-
 	}
 
-	private double transformedBound(double x) {
+	private double transformedBound(final double x) {
 		return getAlpha() + getBeta() * x;
 	}
 
@@ -103,9 +118,9 @@ public class ChandrasekharsQuadrature extends CompositionProduct {
 		return transformedBound(getBounds().getMinimum());
 	}
 
-	private Matrix xMatrix(int m, double[] roots) {
+	private Matrix xMatrix(final int m, final double[] roots) {
 		double[][] x = new double[m][m];
-
+		
 		for (int l = 0; l < m; l++) {
 			for (int j = 0; j < m; j++) {
 				x[l][j] = fastPowLoop(roots[j] * getBeta() + getAlpha(), l);
@@ -122,12 +137,12 @@ public class ChandrasekharsQuadrature extends CompositionProduct {
 	 * @return the value of this definite integral.
 	 */
 
-	private static double auxilliaryIntegral(double x, int l, int n, double exp) {
+	private static double auxilliaryIntegral(final double x, final int l, final int n, final double exp) {
 
 		double f = 0;
 		long m = 0;
 
-		int k = l + n - 1;
+		final int k = l + n - 1;
 
 		for (int i = 0, j = 0; i < k + 1; i++) {
 			m = 1;
@@ -141,15 +156,13 @@ public class ChandrasekharsQuadrature extends CompositionProduct {
 
 	}
 
-	private static double[] solveCubic(double a, double b, double c) {
-		double[] result;
+	private static double[] solveCubic(final double a, final double b, final double c) {
+		final double p = b / 3 - a * a / 9;
+		final double q = a * a * a / 27 - a * b / 6 + c / 2;
 
-		double p = b / 3 - a * a / 9;
-		double q = a * a * a / 27 - a * b / 6 + c / 2;
-
-		double ang = acos(-q / sqrt(-p * p * p));
-		double r = 2 * sqrt(-p);
-		result = new double[3];
+		final double ang = acos(-q / sqrt(-p * p * p));
+		final double r = 2 * sqrt(-p);
+		var result = new double[3];
 		double theta;
 		for (int k = -1; k <= 1; k++) {
 			theta = (ang - 2 * PI * k) / 3;
@@ -168,12 +181,12 @@ public class ChandrasekharsQuadrature extends CompositionProduct {
 				- momentIntegral(transformedMinimum(), l, n, expLower);
 	}
 
-	private double momentIntegral(double x, int l, int n, double exp) {
+	private double momentIntegral(final double x, final int l, final int n, final double exp) {
 
 		double e = 0;
 		int m = 0;
 
-		int lPlusOne = l + 1;
+		final int lPlusOne = l + 1;
 
 		for (int i = 0, j = 0; i < n; i++) {
 			m = lPlusOne;
@@ -187,11 +200,11 @@ public class ChandrasekharsQuadrature extends CompositionProduct {
 
 	}
 
-	private Vector coefficients(int m, int n) {
+	private Vector coefficients(final int m, final int n) {
 		return momentMatrix(m, n).inverse().multiply(momentVector(m, 2 * m));
 	}
 
-	private Matrix momentMatrix(int m, int n) {
+	private Matrix momentMatrix(final int m, final int n) {
 
 		double[][] data = new double[m][m];
 		moments = new double[2 * m];
@@ -220,7 +233,7 @@ public class ChandrasekharsQuadrature extends CompositionProduct {
 
 	}
 
-	private Vector momentVector(int lowerInclusive, int upperExclusive) {
+	private Vector momentVector(final int lowerInclusive, final int upperExclusive) {
 		Vector v = new Vector(upperExclusive - lowerInclusive);
 
 		for (int i = lowerInclusive; i < upperExclusive; i++) {
@@ -231,14 +244,14 @@ public class ChandrasekharsQuadrature extends CompositionProduct {
 
 	}
 
-	private Vector weights(int m, double[] roots) {
-		var x = xMatrix(m, roots);
-		var a = momentVector(0, m).inverted();
+	private Vector weights(final int m, final double[] roots) {
+		final var x = xMatrix(m, roots);
+		final var a = momentVector(0, m).inverted();
 
 		return x.inverse().multiply(a);
 	}
 
-	private double[] roots(int m, int n) {
+	private double[] roots(final int m, final int n) {
 		double[] roots = new double[m];
 		double[] c = new double[m + 1];
 
