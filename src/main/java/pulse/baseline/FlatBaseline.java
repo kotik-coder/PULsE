@@ -17,7 +17,8 @@ import pulse.properties.Property;
 import pulse.util.PropertyHolder;
 
 /**
- * A simple constant baseline with no slope. The intercept value can be used as an optimisation variable.
+ * A simple constant baseline with no slope. The intercept value can be used as
+ * an optimisation variable.
  *
  */
 
@@ -131,7 +132,7 @@ public class FlatBaseline extends Baseline {
 		}
 
 	}
-	
+
 	@Override
 	public void assign(IndexedVector params) {
 		for (int i = 0, size = params.dimension(); i < size; i++) {

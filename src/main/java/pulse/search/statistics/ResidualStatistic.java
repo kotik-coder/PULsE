@@ -39,13 +39,13 @@ public abstract class ResidualStatistic extends Statistic {
 
 		residuals = new ArrayList<>();
 		IndexRange indexRange = reference.getIndexRange();
-		var time		= reference.getTimeSequence();
-		
+		var time = reference.getTimeSequence();
+
 		var s = estimate.getSplineInterpolation();
 
-		int startIndex	= max(closestLeft(estimate.timeAt(0), time), indexRange.getLowerBound());
-		int endIndex	= min(closestRight(estimate.timeLimit(), time), indexRange.getUpperBound());
-		
+		int startIndex = max(closestLeft(estimate.timeAt(0), time), indexRange.getLowerBound());
+		int endIndex = min(closestRight(estimate.timeLimit(), time), indexRange.getUpperBound());
+
 		for (int i = startIndex; i <= endIndex; i++) {
 			/*
 			 * find the point on the calculated heating curve which has the closest time

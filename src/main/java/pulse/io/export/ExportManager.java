@@ -142,9 +142,10 @@ public class ExportManager {
 	public static void exportAllTasks(File directory, Extension extension) {
 		getTaskList().stream().forEach(t -> exportGroup(t, directory, extension));
 	}
-	
+
 	/**
 	 * Exports the currently selected task as a group of objects.
+	 * 
 	 * @param directory a pre-selected directory
 	 * @param extension the desired extension
 	 * @see exportGroup
@@ -154,9 +155,11 @@ public class ExportManager {
 	public static void exportCurrentTask(File directory, Extension extension) {
 		exportGroup(getSelectedTask(), directory, extension);
 	}
-	
+
 	/**
-	 * Exports the currently selected task as a group of objects using the default export extension.
+	 * Exports the currently selected task as a group of objects using the default
+	 * export extension.
+	 * 
 	 * @param directory a pre-selected directory
 	 * @see exportGroup
 	 * @see pulse.tasks.TaskManager.getSelectedTask
@@ -165,11 +168,12 @@ public class ExportManager {
 	public static void exportCurrentTask(File directory) {
 		exportCurrentTask(directory, getDefaultExportExtension());
 	}
-	
+
 	/**
-	 * Exports all results generated previously during task execution for 
-	 * all tasks listed by the TaskManager, provided those tasks had the 
-	 * respective result assigned to them. 
+	 * Exports all results generated previously during task execution for all tasks
+	 * listed by the TaskManager, provided those tasks had the respective result
+	 * assigned to them.
+	 * 
 	 * @param directory a pre-selected directory
 	 * @param extension the desired extension
 	 */
@@ -180,16 +184,20 @@ public class ExportManager {
 				.forEach(r -> export(r, directory, extension));
 
 	}
-	
+
 	/**
 	 * Fully exports {@code group} and all its contents to the root
-	 * {@code directory} requesting the files to be saved with the {@code extension}.<p>
+	 * {@code directory} requesting the files to be saved with the
+	 * {@code extension}.
+	 * <p>
 	 * If an {@code Exporter} exists that accepts the {@code group} as its argument,
-	 * this will create files in the root {@code directory} in accordance to the root {@code Exporter}
-	 * rules. All contents of the {@code group} will then be processed in a similar manner and 
-	 * the output will be stored in an internal directory, the name of which conforms to the 
-	 * respective description. Note this method is NOT recursive and it calls the {@code export} method
-	 * of the {@code ExportManager}.</p>
+	 * this will create files in the root {@code directory} in accordance to the
+	 * root {@code Exporter} rules. All contents of the {@code group} will then be
+	 * processed in a similar manner and the output will be stored in an internal
+	 * directory, the name of which conforms to the respective description. Note
+	 * this method is NOT recursive and it calls the {@code export} method of the
+	 * {@code ExportManager}.
+	 * </p>
 	 * 
 	 * @param group     a group
 	 * @param directory a pre-selected root directory

@@ -65,30 +65,30 @@ public class SystemPanel extends JPanel {
 		var executor = newSingleThreadScheduledExecutor();
 
 		Runnable periodicTask = () -> {
-            var cpuUsage = cpuUsage();
-            var memoryUsage = getMemoryUsage();
-            var cpuString = format("CPU usage: %3.1f%%", cpuUsage);
-            cpuLabel.setText(cpuString);
-            var memoryString = format("Memory usage: %3.1f%%", memoryUsage);
-            memoryLabel.setText(memoryString);
-            if (cpuUsage > 75) {
-                cpuLabel.setForeground(red);
-            } else if (cpuUsage > 50) {
-                cpuLabel.setForeground(yellow);
-            } else {
-                cpuLabel.setForeground(black);
-            }
-            /*
-             *
-             */
-            if (memoryUsage > 75) {
-                memoryLabel.setForeground(red);
-            } else if (memoryUsage > 50) {
-                memoryLabel.setForeground(yellow);
-            } else {
-                memoryLabel.setForeground(black);
-            }
-        };
+			var cpuUsage = cpuUsage();
+			var memoryUsage = getMemoryUsage();
+			var cpuString = format("CPU usage: %3.1f%%", cpuUsage);
+			cpuLabel.setText(cpuString);
+			var memoryString = format("Memory usage: %3.1f%%", memoryUsage);
+			memoryLabel.setText(memoryString);
+			if (cpuUsage > 75) {
+				cpuLabel.setForeground(red);
+			} else if (cpuUsage > 50) {
+				cpuLabel.setForeground(yellow);
+			} else {
+				cpuLabel.setForeground(black);
+			}
+			/*
+			 *
+			 */
+			if (memoryUsage > 75) {
+				memoryLabel.setForeground(red);
+			} else if (memoryUsage > 50) {
+				memoryLabel.setForeground(yellow);
+			} else {
+				memoryLabel.setForeground(black);
+			}
+		};
 
 		executor.scheduleAtFixedRate(periodicTask, 0, 2, SECONDS);
 	}

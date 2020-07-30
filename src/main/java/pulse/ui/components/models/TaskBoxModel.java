@@ -31,13 +31,13 @@ public class TaskBoxModel extends AbstractListModel<SearchTask> implements Combo
 		selectedTask = getSelectedTask();
 
 		addTaskRepositoryListener((TaskRepositoryEvent e) -> {
-            if (e.getState() == TASK_ADDED) {
-                notifyTaskAdded(e.getId());
-            }
-            if (e.getState() == TASK_REMOVED) {
-                notifyTaskRemoved(e.getId());
-            }
-        });
+			if (e.getState() == TASK_ADDED) {
+				notifyTaskAdded(e.getId());
+			}
+			if (e.getState() == TASK_REMOVED) {
+				notifyTaskRemoved(e.getId());
+			}
+		});
 
 	}
 

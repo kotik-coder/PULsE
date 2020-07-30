@@ -86,7 +86,7 @@ public class ImplicitLinearisedSolver extends ImplicitScheme implements Solver<L
 		curve = problem.getHeatingCurve();
 
 		var grid = getGrid();
-		
+
 		N = (int) grid.getGridDensity().getValue();
 		hx = grid.getXStep();
 		tau = grid.getTimeStep();
@@ -129,7 +129,7 @@ public class ImplicitLinearisedSolver extends ImplicitScheme implements Solver<L
 		int i, j, m, w;
 
 		final var discretePulse = getDiscretePulse();
-		
+
 		/*
 		 * The outer cycle iterates over the number of points of the HeatingCurve
 		 */
@@ -159,8 +159,8 @@ public class ImplicitLinearisedSolver extends ImplicitScheme implements Solver<L
 				V[N] = (HH * U[N] + 2. * tau * beta[N]) / (2 * Bi2HTAU + HH - 2. * tau * (alpha[N] - 1));
 
 				for (j = N - 1; j >= 0; j--) {
-                                    V[j] = alpha[j + 1] * V[j + 1] + beta[j + 1];
-                                }
+					V[j] = alpha[j + 1] * V[j + 1] + beta[j + 1];
+				}
 
 				System.arraycopy(V, 0, U, 0, N + 1);
 

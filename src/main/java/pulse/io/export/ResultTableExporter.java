@@ -13,8 +13,9 @@ import pulse.ui.components.ResultTable;
 import pulse.ui.components.models.ResultTableModel;
 
 /**
- * A singleton {@code Exporter} which can process the results table. Invoked when the user selects to export 
- * the calculation results. The output is a summary file in either {@code csv} or {@code html} format.
+ * A singleton {@code Exporter} which can process the results table. Invoked
+ * when the user selects to export the calculation results. The output is a
+ * summary file in either {@code csv} or {@code html} format.
  *
  */
 
@@ -29,20 +30,22 @@ public class ResultTableExporter implements Exporter<ResultTable> {
 	/**
 	 * Both {@code html} and {@code csv} are suported.
 	 */
-	
+
 	@Override
 	public Extension[] getSupportedExtensions() {
 		return new Extension[] { Extension.HTML, Extension.CSV };
 	}
-	
+
 	/**
-	 * This will create a single file with the output. Depending on whether the 
-	 * results table contain average results (with the respective error margins) or only individual results,
-	 * the file might consist of one or two tables, first listing the average results and then finding
-	 * what individual results have been used to calculate the latter. In the {@code html} format, the errors
-	 * are given in the same table cells as the values and are delimited by a plus-minus sign. The {@code html}
-	 * table gives a pretty representation of the results whereas the {@code csv}, while difficult to read by a human,
-	 * can be interpreted by most external tools such as LaTeX pgfplots, gnuplot, or excel.  
+	 * This will create a single file with the output. Depending on whether the
+	 * results table contain average results (with the respective error margins) or
+	 * only individual results, the file might consist of one or two tables, first
+	 * listing the average results and then finding what individual results have
+	 * been used to calculate the latter. In the {@code html} format, the errors are
+	 * given in the same table cells as the values and are delimited by a plus-minus
+	 * sign. The {@code html} table gives a pretty representation of the results
+	 * whereas the {@code csv}, while difficult to read by a human, can be
+	 * interpreted by most external tools such as LaTeX pgfplots, gnuplot, or excel.
 	 */
 
 	@Override
@@ -171,9 +174,10 @@ public class ResultTableExporter implements Exporter<ResultTable> {
 
 		}
 	}
-	
+
 	/**
 	 * Gets the single instance of this class.
+	 * 
 	 * @return the single instance of {@code ResultTableExporter}.
 	 */
 
@@ -184,7 +188,7 @@ public class ResultTableExporter implements Exporter<ResultTable> {
 	/**
 	 * @return {@code ResultTable.class}.
 	 */
-	
+
 	@Override
 	public Class<ResultTable> target() {
 		return ResultTable.class;

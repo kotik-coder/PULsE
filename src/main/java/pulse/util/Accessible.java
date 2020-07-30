@@ -84,8 +84,8 @@ public abstract class Accessible extends Group {
 		 */
 
 		for (var a : accessibleChildren()) {
-                    fields.addAll(a.numericProperties());
-                }
+			fields.addAll(a.numericProperties());
+		}
 
 		return fields;
 
@@ -124,8 +124,8 @@ public abstract class Accessible extends Group {
 		 */
 
 		for (var a : accessibleChildren()) {
-                    fields.addAll(a.genericProperties());
-                }
+			fields.addAll(a.genericProperties());
+		}
 
 		return fields;
 
@@ -180,8 +180,7 @@ public abstract class Accessible extends Group {
 
 	public Property genericProperty(Property sameClass) {
 
-		var match = genericProperties().stream().filter(p -> p.getClass().equals(sameClass.getClass()))
-				.findFirst();
+		var match = genericProperties().stream().filter(p -> p.getClass().equals(sameClass.getClass())).findFirst();
 
 		if (match.isPresent())
 			return match.get();
@@ -245,8 +244,8 @@ public abstract class Accessible extends Group {
 			var p = (NumericProperty) property;
 			this.set(p.getType(), p);
 			for (var a : children) {
-                            a.set(p.getType(), p);
-                        }
+				a.set(p.getType(), p);
+			}
 			return;
 		}
 
@@ -266,30 +265,30 @@ public abstract class Accessible extends Group {
 						&& property.getClass().equals(m.getParameterTypes()[1])) {
 
 					for (var met : methods) {
-                                            if (met.getReturnType().equals(m.getParameterTypes()[0]) && (met.getParameterCount() == 0)) {
-                                                Iterable<Property> returnType = null;
-                                                try {
-                                                    returnType = (Iterable<Property>) met.invoke(this);
-                                                } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-                                                    err.println("Cannot invoke method: " + met);
-                                                    e.printStackTrace();
-                                                }
-                                                Iterator<?> iterator = returnType.iterator();
-                                                
-                                                if (!iterator.hasNext())
-                                                    continue;
-                                                
-                                                if (!iterator.next().getClass().equals(m.getParameterTypes()[1]))
-                                                    continue;
-                                                
-                                                try {
-                                                    m.invoke(this, met.invoke(this), property);
-                                                } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-                                                    err.println("Cannot invoked method " + m);
-                                                    e.printStackTrace();
-                                                }
-                                            }
-                                        }
+						if (met.getReturnType().equals(m.getParameterTypes()[0]) && (met.getParameterCount() == 0)) {
+							Iterable<Property> returnType = null;
+							try {
+								returnType = (Iterable<Property>) met.invoke(this);
+							} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+								err.println("Cannot invoke method: " + met);
+								e.printStackTrace();
+							}
+							Iterator<?> iterator = returnType.iterator();
+
+							if (!iterator.hasNext())
+								continue;
+
+							if (!iterator.next().getClass().equals(m.getParameterTypes()[1]))
+								continue;
+
+							try {
+								m.invoke(this, met.invoke(this), property);
+							} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+								err.println("Cannot invoked method " + m);
+								e.printStackTrace();
+							}
+						}
+					}
 
 				}
 
@@ -347,8 +346,8 @@ public abstract class Accessible extends Group {
 		 */
 
 		for (var a : children) {
-                    a.update(property);
-                }
+			a.update(property);
+		}
 
 	}
 

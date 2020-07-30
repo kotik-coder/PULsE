@@ -22,14 +22,14 @@ import pulse.ui.Messages;
  * files.
  * <p>
  * This file format has been previously used to export data obtained with the
- * Kvant laser flash analyser. Files with a {@code .dat} extension should consist of a
- * one-line header listing the test temperature; second and subsequent lines should be made of two or three
- * tab-delimited data columns. The first column represents time
- * <math><i>t</i></math> [seconds], and the second column represents the rise of
- * the absolute temperature of the sample over the ambient temperature
- * <math><i>T</i>-<i>T</i><sub>0</sub></math>. Any other columns are ignored by
- * this reader. The temperature rise corresponds to an absolute scale, according
- * to NIST recommendations.
+ * Kvant laser flash analyser. Files with a {@code .dat} extension should
+ * consist of a one-line header listing the test temperature; second and
+ * subsequent lines should be made of two or three tab-delimited data columns.
+ * The first column represents time <math><i>t</i></math> [seconds], and the
+ * second column represents the rise of the absolute temperature of the sample
+ * over the ambient temperature <math><i>T</i>-<i>T</i><sub>0</sub></math>. Any
+ * other columns are ignored by this reader. The temperature rise corresponds to
+ * an absolute scale, according to NIST recommendations.
  * </p>
  */
 
@@ -39,7 +39,7 @@ public class DATReader implements CurveReader {
 	private final static double CONVERSION_TO_KELVIN = 273.15;
 
 	private DATReader() {
-		//intentionally blank
+		// intentionally blank
 	}
 
 	/**
@@ -71,21 +71,21 @@ public class DATReader implements CurveReader {
 
 		ExperimentalData curve = new ExperimentalData();
 
-            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-                double T = Double.parseDouble(reader.readLine()) + CONVERSION_TO_KELVIN;
-                Metadata met = new Metadata( NumericProperty.derive(NumericPropertyKeyword.TEST_TEMPERATURE, T), -1);
-                curve.setMetadata(met);
-                double time, temp;
-                String delims = Messages.getString("DATReader.2"); //$NON-NLS-1$
-                StringTokenizer tokenizer;
-                for (String line = reader.readLine(); line != null; line = reader.readLine()) {
-                    tokenizer = new StringTokenizer(line, delims);
-                    time = Double.parseDouble(tokenizer.nextToken());
-                    temp = Double.parseDouble(tokenizer.nextToken());
-                    curve.addPoint(time, temp);
-                }
-                curve.setRange(new Range(curve.getTimeSequence()));
-            }
+		try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+			double T = Double.parseDouble(reader.readLine()) + CONVERSION_TO_KELVIN;
+			Metadata met = new Metadata(NumericProperty.derive(NumericPropertyKeyword.TEST_TEMPERATURE, T), -1);
+			curve.setMetadata(met);
+			double time, temp;
+			String delims = Messages.getString("DATReader.2"); //$NON-NLS-1$
+			StringTokenizer tokenizer;
+			for (String line = reader.readLine(); line != null; line = reader.readLine()) {
+				tokenizer = new StringTokenizer(line, delims);
+				time = Double.parseDouble(tokenizer.nextToken());
+				temp = Double.parseDouble(tokenizer.nextToken());
+				curve.addPoint(time, temp);
+			}
+			curve.setRange(new Range(curve.getTimeSequence()));
+		}
 
 		return new ArrayList<>(Arrays.asList(curve));
 

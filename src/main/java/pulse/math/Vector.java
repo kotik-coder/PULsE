@@ -1,6 +1,11 @@
 package pulse.math;
 
-import java.util.Arrays;
+import static java.lang.Math.abs;
+import static java.lang.Math.sqrt;
+import static pulse.math.ArithmeticOperations.difference;
+import static pulse.math.ArithmeticOperations.differenceSquared;
+import static pulse.math.ArithmeticOperations.product;
+import static pulse.math.ArithmeticOperations.sum;
 
 import pulse.ui.Messages;
 
@@ -32,27 +37,13 @@ public class Vector {
 	}
 
 	/**
-	 * Creates a {@code Vector} consisting of {@code n} elements, each equal to
-	 * {@code fill}.
+	 * Copy constructor.
 	 * 
-	 * @param n    the dimension of this {@code Vector}
-	 * @param fill a fill value
-	 */
-
-	public Vector(int n, double fill) {
-		x = new double[n];
-		Arrays.fill(x, fill);
-	}
-
-	/**
-	 * Copy constructor. Uses {@code System.arraycopy()}.
-	 * 
-	 * @param v The vector to be copied.
+	 * @param v The vector to be copied
 	 */
 
 	public Vector(Vector v) {
-		x = new double[v.x.length];
-		System.arraycopy(v.x, 0, x, 0, v.x.length);
+		this(v.x);
 	}
 
 	/**
@@ -63,13 +54,7 @@ public class Vector {
 	 */
 
 	public Vector inverted() {
-		Vector v = new Vector(x.length);
-
-		for (int i = 0; i < v.x.length; i++) {
-			v.x[i] = -this.x[i];
-		}
-
-		return v;
+		return performOperation(new Vector(dimension()), this, difference);
 	}
 
 	/**
@@ -81,28 +66,16 @@ public class Vector {
 	public int dimension() {
 		return x.length;
 	}
-
+	
 	/**
 	 * Performs an element-wise summation of {@code this} and {@code v}.
 	 * 
 	 * @param v another {@code Vector} with the same number of elements.
 	 * @return the result of the summation.
-	 * @throws IllegalArgumentException f the dimension of {@code this} and
-	 *                                  {@code v} are different.
 	 */
 
-	public Vector sum(Vector v) throws IllegalArgumentException {
-		if (v.x.length != x.length)
-			throw new IllegalArgumentException(
-					Messages.getString("Vector.DimensionError1") + x.length + " != " + v.x.length);
-
-		Vector sum = new Vector(this);
-
-		for (int i = 0; i < v.x.length; i++) {
-			sum.x[i] += v.x[i];
-		}
-
-		return sum;
+	public Vector sum(Vector v) {
+		return performOperation(this, v, sum);
 	}
 
 	/**
@@ -114,18 +87,8 @@ public class Vector {
 	 *                                  {@code v} are different.
 	 */
 
-	public Vector subtract(Vector v) throws IllegalArgumentException {
-		if (v.x.length != x.length)
-			throw new IllegalArgumentException(
-					Messages.getString("Vector.DimensionError1") + x.length + " != " + v.x.length); //$NON-NLS-1$ //$NON-NLS-2$
-		Vector diff = new Vector(this);
-
-		for (int i = 0; i < v.x.length; i++) {
-			diff.x[i] -= v.x[i];
-		}
-
-		return diff;
-
+	public Vector subtract(Vector v) {
+		return performOperation(this, v, difference);
 	}
 
 	/**
@@ -154,11 +117,7 @@ public class Vector {
 	 */
 
 	public double dot(Vector v) {
-		double dotProduct = 0;
-		for (int i = 0; i < v.x.length; i++) {
-			dotProduct += this.x[i] * v.x[i];
-		}
-		return dotProduct;
+		return reduce(this, v, product);
 	}
 
 	/**
@@ -170,7 +129,7 @@ public class Vector {
 	 */
 
 	public double length() {
-		return Math.sqrt(lengthSq());
+		return sqrt(lengthSq());
 	}
 
 	/**
@@ -192,8 +151,7 @@ public class Vector {
 	 */
 
 	public Vector normalise() {
-		double l = length();
-		return this.multiply(1.0 / l);
+		return this.multiply(1.0 / length() );
 	}
 
 	/**
@@ -207,17 +165,7 @@ public class Vector {
 	 */
 
 	public double distanceToSq(Vector v) throws IllegalArgumentException {
-		if (v.x.length != x.length)
-			throw new IllegalArgumentException(
-					Messages.getString("Vector.DimensionError1") + x.length + " != " + v.x.length); //$NON-NLS-1$ //$NON-NLS-2$
-
-		double distSq = 0;
-
-		for (int i = 0; i < v.x.length; i++) {
-			distSq += Math.pow(this.x[i] - v.x[i], 2);
-		}
-
-		return distSq;
+		return reduce(this, v, differenceSquared);
 	}
 
 	/**
@@ -232,7 +180,7 @@ public class Vector {
 	 */
 
 	public double distanceTo(Vector p) {
-		return Math.sqrt(this.distanceToSq(p));
+		return sqrt(this.distanceToSq(p));
 	}
 
 	/**
@@ -305,17 +253,18 @@ public class Vector {
 		return true;
 
 	}
-	
+
 	/**
 	 * Determines the maximum absolute value of the vector components.
+	 * 
 	 * @return a component having the maximum absolute value.
 	 */
 
 	public double maxAbsComponent() {
-		double max = Math.abs(x[0]);
+		double max = abs(x[0]);
 		double abs = 0;
 		for (int i = 1; i < x.length; i++) {
-			abs = Math.abs(x[i]);
+			abs = abs(x[i]);
 			max = abs > max ? abs : max;
 		}
 		return max;
@@ -323,6 +272,34 @@ public class Vector {
 
 	public double[] getData() {
 		return x;
+	}
+	
+	private static void checkup(Vector v1, Vector v2) {
+		if (v1.x.length != v2.x.length)
+			throw new IllegalArgumentException(
+					Messages.getString("Vector.DimensionError1") + v1.x.length + " != " + v2.x.length);
+	}
+	
+	private static Vector performOperation(Vector v1, Vector v2, ArithmeticOperation op) {
+		checkup(v1, v2);
+		
+		Vector result = new Vector(v2.x.length);
+
+		for (int i = 0; i < v2.x.length; i++) 
+			result.x[i] = op.evaluate(v1.get(i), v2.get(i));
+
+		return result;
+	}
+	
+	private static double reduce(Vector v1, Vector v2, ArithmeticOperation op) {
+		checkup(v1, v2);
+		
+		double result = 0;
+
+		for (int i = 0; i < v2.x.length; i++) 
+			result += op.evaluate(v1.get(i), v2.get(i));
+
+		return result;
 	}
 
 }

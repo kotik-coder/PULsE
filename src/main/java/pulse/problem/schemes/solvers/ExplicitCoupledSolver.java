@@ -66,7 +66,7 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
 		super.prepare(problem);
 
 		var grid = getGrid();
-		
+
 		initRTE(problem, grid);
 
 		curve = problem.getHeatingCurve();
@@ -91,7 +91,7 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
 
 	}
 
-        @Override
+	@Override
 	public void solve(ParticipatingMedium problem) throws SolverException {
 		prepare(problem);
 
@@ -111,7 +111,7 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
 		var status = rte.compute(U);
 
 		final var discretePulse = getDiscretePulse();
-		
+
 		/*
 		 * The outer cycle iterates over the number of points of the HeatingCurve
 		 */
@@ -145,8 +145,8 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
 					 */
 
 					for (i = 1; i < N; i++) {
-                                            V[i] = U[i] + TAU_HH * (U[i + 1] - 2. * U[i] + U[i - 1]) + prefactor * rte.fluxDerivative(i);
-                                        }
+						V[i] = U[i] + TAU_HH * (U[i + 1] - 2. * U[i] + U[i - 1]) + prefactor * rte.fluxDerivative(i);
+					}
 
 					/*
 					 * Calculates boundary values

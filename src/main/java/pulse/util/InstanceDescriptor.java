@@ -41,8 +41,8 @@ public class InstanceDescriptor<T extends Reflexive> implements Property {
 	public void setSelectedDescriptor(String selectedDescriptor) {
 		this.selectedDescriptor = selectedDescriptor;
 		for (var l : listeners) {
-                    l.onDescriptorChanged();
-                }
+			l.onDescriptorChanged();
+		}
 	}
 
 	@Override

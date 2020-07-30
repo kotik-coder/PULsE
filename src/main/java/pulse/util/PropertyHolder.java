@@ -37,7 +37,7 @@ public abstract class PropertyHolder extends Accessible {
 	public List<Property> listedTypes() {
 
 		List<Property> properties = new ArrayList<>();
-		
+
 		for (var accessible : accessibleChildren()) {
 			if (accessible instanceof PropertyHolder) {
 				properties.addAll(((PropertyHolder) accessible).listedTypes());

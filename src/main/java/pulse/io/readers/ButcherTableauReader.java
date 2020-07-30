@@ -13,9 +13,9 @@ import pulse.problem.schemes.rte.dom.ButcherTableau;
 import pulse.ui.Messages;
 
 /**
- * Provides a reader class for Butcher tableaux. This is invoked at program start to 
- * read the available files in the resource folder (contained in the {@code jar}).
- * The coefficients are used by an explicit Runge-Kutta solver.
+ * Provides a reader class for Butcher tableaux. This is invoked at program
+ * start to read the available files in the resource folder (contained in the
+ * {@code jar}). The coefficients are used by an explicit Runge-Kutta solver.
  *
  */
 

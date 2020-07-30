@@ -17,12 +17,12 @@ import pulse.util.PropertyHolder;
 import pulse.util.Reflexive;
 
 /**
- * A {@code DifferenceScheme} is an abstract class that declares general 
- * methods for converting a {@code Problem} to a set of algebraic operations 
- * on a {@code Grid}. The {@code Grid} object defines the
- * time and coordinate partitioning, adjusted to ensure a stable or
- * conditionally-stable behaviour of the solution. The {@code Grid} is also used
- * to define a {@code DiscretePulse} function.
+ * A {@code DifferenceScheme} is an abstract class that declares general methods
+ * for converting a {@code Problem} to a set of algebraic operations on a
+ * {@code Grid}. The {@code Grid} object defines the time and coordinate
+ * partitioning, adjusted to ensure a stable or conditionally-stable behaviour
+ * of the solution. The {@code Grid} is also used to define a
+ * {@code DiscretePulse} function.
  * 
  * @see pulse.problem.schemes.Grid
  * @see pulse.problem.laser.DiscretePulse
@@ -39,7 +39,7 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 	private static boolean hideDetailedAdjustment = true;
 
 	/**
-	 * A constructor which merely sets the time limit to its default value. 
+	 * A constructor which merely sets the time limit to its default value.
 	 */
 
 	protected DifferenceScheme() {
@@ -48,20 +48,24 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 
 	/**
 	 * A constructor for setting the time limit to a pre-set value.
-	 * @param timeLimit the calculation time limit 
+	 * 
+	 * @param timeLimit the calculation time limit
 	 */
 
 	protected DifferenceScheme(NumericProperty timeLimit) {
 		setTimeLimit(timeLimit);
 	}
-	
+
 	/**
-	 * Used to get a class of problems on which this difference scheme is applicable.
-	 * @return a subclass of the {@code Problem} class which can be used as input for this difference scheme.
+	 * Used to get a class of problems on which this difference scheme is
+	 * applicable.
+	 * 
+	 * @return a subclass of the {@code Problem} class which can be used as input
+	 *         for this difference scheme.
 	 */
 
 	public abstract Class<? extends Problem> domain();
-	
+
 	/**
 	 * Creates a {@code DifferenceScheme}, which is an exact copy of this object.
 	 * 
@@ -82,12 +86,14 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 		timeLimit = df.timeLimit;
 	}
 
-	/**<p>
-	 * Contains preparatory steps to ensure smooth running of the solver. This includes 
-	 * creating a {@code DiscretePulse} object and calculating the {@code timeInterval}. 
-	 * The latter determines the real-time calculation of a {@code HeatingCurve} based on the numerical solution of
-	 * {@code problem}; it thus takes into account the difference between the scheme
-	 * timestep and the {@code HeatingCurve} point spacing. All subclasses of
+	/**
+	 * <p>
+	 * Contains preparatory steps to ensure smooth running of the solver. This
+	 * includes creating a {@code DiscretePulse} object and calculating the
+	 * {@code timeInterval}. The latter determines the real-time calculation of a
+	 * {@code HeatingCurve} based on the numerical solution of {@code problem}; it
+	 * thus takes into account the difference between the scheme timestep and the
+	 * {@code HeatingCurve} point spacing. All subclasses of
 	 * {@code DifferenceScheme} should override and explicitly call this superclass
 	 * method where appropriate.
 	 * </p>
@@ -100,14 +106,14 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 		grid.adjustTo(discretePulse);
 
 		var hc = problem.getHeatingCurve();
-		
+
 		final var numPoints = (int) hc.getNumPoints().getValue();
 		final var dt = timeLimit / (problem.timeFactor() * (numPoints - 1));
-		setTimeInterval( (int) (dt / grid.getTimeStep() ) + 1 );
+		setTimeInterval((int) (dt / grid.getTimeStep()) + 1);
 
 		hc.reinit();
 	}
-	
+
 	/**
 	 * The superclass only lists the {@code TIME_LIMIT} property.
 	 */
@@ -123,7 +129,7 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 	public String toString() {
 		return this.getClass().getSimpleName();
 	}
-	
+
 	/**
 	 * Gets the discrete representation of {@code Pulse} on the {@code Grid}.
 	 * 
@@ -134,7 +140,6 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 	public DiscretePulse getDiscretePulse() {
 		return discretePulse;
 	}
-	
 
 	/**
 	 * Gets the {@code Grid} object defining partioning used in this
@@ -146,9 +151,10 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 	public Grid getGrid() {
 		return grid;
 	}
-	
+
 	/**
 	 * Sets the grid and adopts it as its child.
+	 * 
 	 * @param grid the grid
 	 */
 
@@ -158,48 +164,52 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 	}
 
 	/**
-	 * The time interval is the number of discrete timesteps that will be 
-	 * discarded when storing the resulting solution into a {@code HeatingCurve}
-	 * object, thus ensuring that only a limited set of points is stored.  
+	 * The time interval is the number of discrete timesteps that will be discarded
+	 * when storing the resulting solution into a {@code HeatingCurve} object, thus
+	 * ensuring that only a limited set of points is stored.
+	 * 
 	 * @return the time interval
 	 */
 
 	public int getTimeInterval() {
 		return timeInterval;
 	}
-	
+
 	/**
 	 * Sets the time interval to the argument of this method.
+	 * 
 	 * @param timeInterval a positive integer.
 	 */
 
 	public void setTimeInterval(int timeInterval) {
 		this.timeInterval = timeInterval;
 	}
-	
+
 	/**
-	 * If true, Lets the UI know that the user only wants to have the most 
-	 * important properties displayed. Otherwise this will signal all
-	 * properties need to be displayed.
+	 * If true, Lets the UI know that the user only wants to have the most important
+	 * properties displayed. Otherwise this will signal all properties need to be
+	 * displayed.
 	 */
-	
+
 	@Override
 	public boolean areDetailsHidden() {
 		return hideDetailedAdjustment;
 	}
-	
+
 	/**
 	 * Changes the policy of displaying a detailed information about this scheme.
+	 * 
 	 * @param b a boolean.
 	 */
 
 	public static void setDetailsHidden(boolean b) {
 		hideDetailedAdjustment = b;
 	}
-	
+
 	/**
 	 * The time limit (in whatever units this {@code DifferenceScheme} uses to
-	 * process the solution), which serves as the ultimate breakpoint for the calculations.
+	 * process the solution), which serves as the ultimate breakpoint for the
+	 * calculations.
 	 * 
 	 * @return the {@code NumericProperty} with the type {@code TIME_LIMIT}
 	 * @see pulse.properties.NumericPropertyKeyword
@@ -222,10 +232,10 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 		requireType(timeLimit, TIME_LIMIT);
 		this.timeLimit = (double) timeLimit.getValue();
 	}
-	
+
 	@Override
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
-		if(type == TIME_LIMIT)
+		if (type == TIME_LIMIT)
 			setTimeLimit(property);
 	}
 

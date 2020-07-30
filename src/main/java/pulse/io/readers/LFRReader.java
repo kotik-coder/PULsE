@@ -186,10 +186,10 @@ public class LFRReader implements CurveReader {
 		ExperimentalData curve = new ExperimentalData();
 		curve.setMetadata(metadata);
 		curve.clear();
-		
+
 		String delims = Messages.getString("LFRReader.10");
 		StringTokenizer tokenizer;
-		
+
 		try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
 			reader.readLine(); // skip first line
 			double time, temp;

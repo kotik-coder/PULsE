@@ -39,31 +39,32 @@ public class ExperimentalData extends HeatingCurve {
 
 	/**
 	 * This is the cutoff factor which is used as a criterion for data truncation.
-	 * Described in Lunev, A., &amp; Heymer, R. (2020). Review of Scientific Instruments, 91(6), 064902.
+	 * Described in Lunev, A., &amp; Heymer, R. (2020). Review of Scientific
+	 * Instruments, 91(6), 064902.
 	 */
-	
+
 	public final static double CUTOFF_FACTOR = 7.2;
-	
+
 	/**
-	 * The binning factor used to build a crude approximation of the heating curve. 
-	 * Described in Lunev, A., &amp; Heymer, R. (2020). Review of Scientific Instruments, 91(6), 064902.
+	 * The binning factor used to build a crude approximation of the heating curve.
+	 * Described in Lunev, A., &amp; Heymer, R. (2020). Review of Scientific
+	 * Instruments, 91(6), 064902.
 	 */
-	
-	public final static int	REDUCTION_FACTOR = 32;
-	
+
+	public final static int REDUCTION_FACTOR = 32;
+
 	/**
 	 * A fail-safe factor.
 	 */
-	
+
 	public final static double FAIL_SAFE_FACTOR = 3.0;
 
-	private static Comparator<Point2D> pointComparator = (p1, p2) -> valueOf(p1.getY())
-			.compareTo(valueOf(p2.getY()));
+	private static Comparator<Point2D> pointComparator = (p1, p2) -> valueOf(p1.getY()).compareTo(valueOf(p2.getY()));
 
 	/**
-	 * Constructs an {@code ExperimentalData} object using the superclass constructor
-	 * and rejecting the responsibility for the {@code baseline}, making its parent
-	 * {@code null}. The number of points is set to zero by default.
+	 * Constructs an {@code ExperimentalData} object using the superclass
+	 * constructor and rejecting the responsibility for the {@code baseline}, making
+	 * its parent {@code null}. The number of points is set to zero by default.
 	 * 
 	 * @see HeatingCurve
 	 */
@@ -76,14 +77,16 @@ public class ExperimentalData extends HeatingCurve {
 	}
 
 	/**
-	 * Calls reset for both the {@code IndexRange} and {@code Range} objects using the current time sequence.
+	 * Calls reset for both the {@code IndexRange} and {@code Range} objects using
+	 * the current time sequence.
+	 * 
 	 * @see pulse.input.Range.reset()
 	 * @see pulse.input.IndexRange.reset()
 	 */
-	
+
 	public void resetRanges() {
-		indexRange.reset( getTimeSequence() );
-		range.reset(indexRange, getTimeSequence() );
+		indexRange.reset(getTimeSequence());
+		range.reset(indexRange, getTimeSequence());
 	}
 
 	@Override
@@ -104,7 +107,7 @@ public class ExperimentalData extends HeatingCurve {
 	 * Upon completion, the {@code count} variable will be incremented.
 	 * </p>
 	 * 
-	 * @param time the next time value
+	 * @param time   the next time value
 	 * @param signal the next signal value
 	 */
 
@@ -116,7 +119,8 @@ public class ExperimentalData extends HeatingCurve {
 	}
 
 	/**
-	 * Constructs a deliberately crude representation of this heating curve by calculating a running average.
+	 * Constructs a deliberately crude representation of this heating curve by
+	 * calculating a running average.
 	 * <p>
 	 * This is done using a binning algorithm, which will group the time-temperature
 	 * data associated with this {@code ExperimentalData} in
@@ -126,8 +130,8 @@ public class ExperimentalData extends HeatingCurve {
 	 * outliers, e.g. when calculating the half-rise time.
 	 * </p>
 	 * 
-	 * The algorithm is described in more detail in Lunev, A., &amp; Heymer, R. (2020). 
-	 * Review of Scientific Instruments, 91(6), 064902.
+	 * The algorithm is described in more detail in Lunev, A., &amp; Heymer, R.
+	 * (2020). Review of Scientific Instruments, 91(6), 064902.
 	 * 
 	 * @param reductionFactor the factor, by which the number of points
 	 *                        {@code count} will be reduced for this
@@ -140,9 +144,9 @@ public class ExperimentalData extends HeatingCurve {
 
 	public List<Point2D> runningAverage(int reductionFactor) {
 
-		int count = (int)getNumPoints().getValue();
-		
-		List<Point2D> crudeAverage = new ArrayList<>( count / reductionFactor);
+		int count = (int) getNumPoints().getValue();
+
+		List<Point2D> crudeAverage = new ArrayList<>(count / reductionFactor);
 
 		int start = indexRange.getLowerBound();
 		int end = indexRange.getUpperBound();
@@ -155,15 +159,15 @@ public class ExperimentalData extends HeatingCurve {
 		for (int i = 0, max = (count / reductionFactor) - 1; i < max; i++) {
 			i1 = start + step * i;
 			i2 = i1 + step;
-			
+
 			av = 0;
 
-			for (int j = i1; j < i2; j++) 
+			for (int j = i1; j < i2; j++)
 				av += signalAt(j);
-			
+
 			av /= step;
 
-			crudeAverage.add(new Point2D.Double( timeAt((i1 + i2) / 2), av ));
+			crudeAverage.add(new Point2D.Double(timeAt((i1 + i2) / 2), av));
 
 		}
 
@@ -173,8 +177,9 @@ public class ExperimentalData extends HeatingCurve {
 
 	/**
 	 * Instead of returning the absolute maximum (which can be an outlier!) of the
-	 * temperature, this overriden method calculates the (absolute) maximum of the {@code runningAverage} 
-	 * using the default reduction factor {@value REDUCTION_FACTOR}.
+	 * temperature, this overriden method calculates the (absolute) maximum of the
+	 * {@code runningAverage} using the default reduction factor
+	 * {@value REDUCTION_FACTOR}.
 	 * 
 	 * @see pulse.problem.statements.Problem.estimateSignalRange(ExperimentalData)
 	 */
@@ -192,12 +197,12 @@ public class ExperimentalData extends HeatingCurve {
 	 * This uses the {@code runningAverage} method by applying the default reduction
 	 * factor of {@value REDUCTION_FACTOR}. The calculation is based on finding the
 	 * approximate value corresponding to the half-maximum of the temperature. The
-	 * latter is calculated using the running average curve. The index
-	 * corresponding to the closest temperature value available for that curve
-	 *  is used to retrieve the half-rise time (which also has
-	 * the same index). If this fails, i.e. the associated index is less than 1,
-	 * this will print out a warning message and still return a value equal to 
-	 * the acquistion time divided by a fail-safe factor {@value FAIL_SAFE_FACTOR}.
+	 * latter is calculated using the running average curve. The index corresponding
+	 * to the closest temperature value available for that curve is used to retrieve
+	 * the half-rise time (which also has the same index). If this fails, i.e. the
+	 * associated index is less than 1, this will print out a warning message and
+	 * still return a value equal to the acquistion time divided by a fail-safe
+	 * factor {@value FAIL_SAFE_FACTOR}.
 	 * </p>
 	 * 
 	 * @return A double, representing the half-rise time (in seconds).
@@ -211,13 +216,12 @@ public class ExperimentalData extends HeatingCurve {
 
 		double halfMax = (max + baseline.valueAt(0)) / 2.0;
 
-		int index = IndexRange.closestLeft(halfMax, 
-				degraded.stream().map(point -> point.getY()).collect(Collectors.toList()) 
-				); 
+		int index = IndexRange.closestLeft(halfMax,
+				degraded.stream().map(point -> point.getY()).collect(Collectors.toList()));
 
 		if (index < 1) {
 			System.err.println(Messages.getString("ExperimentalData.HalfRiseError"));
-			return max( getTimeSequence() ) / FAIL_SAFE_FACTOR;
+			return max(getTimeSequence()) / FAIL_SAFE_FACTOR;
 		}
 
 		return degraded.get(index).getX();
@@ -264,13 +268,14 @@ public class ExperimentalData extends HeatingCurve {
 	public boolean isAcquisitionTimeSensible() {
 		double halfMaximum = halfRiseTime();
 		double cutoff = CUTOFF_FACTOR * halfMaximum;
-		int count = (int)getNumPoints().getValue();
+		int count = (int) getNumPoints().getValue();
 		return getTimeSequence().get(count - 1) < cutoff;
 	}
 
 	/**
-	 * Truncates the {@code range} and {@code indexRange} of this {@code ExperimentalData} above a certain threshold,
-	 * NOT removing any data elements.
+	 * Truncates the {@code range} and {@code indexRange} of this
+	 * {@code ExperimentalData} above a certain threshold, NOT removing any data
+	 * elements.
 	 * <p>
 	 * The threshold is calculated based on the {@code halfRiseTime} value and is
 	 * set by default to {@value CUTOFF_FACTOR}*{@code halfRiseTime}. A
@@ -290,7 +295,7 @@ public class ExperimentalData extends HeatingCurve {
 		this.range.setUpperBound(derive(UPPER_BOUND, cutoff));
 		this.indexRange.set(getTimeSequence(), range);
 
-		fireDataChanged( new DataEvent(TRUNCATED, this) );
+		fireDataChanged(new DataEvent(TRUNCATED, this));
 	}
 
 	/**
@@ -298,7 +303,8 @@ public class ExperimentalData extends HeatingCurve {
 	 * <p>
 	 * The {@code pulseWidth} property recorded in {@code Metadata} will be used to
 	 * set the time range for the reverse problem solution. Whenever this property
-	 * is changed in the {@code metadata}, a listener will ensure an updated range is used.
+	 * is changed in the {@code metadata}, a listener will ensure an updated range
+	 * is used.
 	 * </p>
 	 * 
 	 * @param metadata the new Metadata object
@@ -310,7 +316,7 @@ public class ExperimentalData extends HeatingCurve {
 		metadata.setParent(this);
 		doSetMetadata();
 	}
-	
+
 	private void doSetMetadata() {
 
 		if (range != null)
@@ -327,38 +333,46 @@ public class ExperimentalData extends HeatingCurve {
 			}
 
 		});
-		
+
 	}
-	
+
 	/**
-	 * Gets the time sequence element corresponding to the lower bound of the index range
-	 * @return the time (in seconds) associated with {@code indexRange.getLowerBound()}
+	 * Gets the time sequence element corresponding to the lower bound of the index
+	 * range
+	 * 
+	 * @return the time (in seconds) associated with
+	 *         {@code indexRange.getLowerBound()}
 	 */
 
 	public double getEffectiveStartTime() {
 		return getTimeSequence().get(indexRange.getLowerBound());
 	}
-	
+
 	/**
-	 * Gets the time sequence element corresponding to the upper bound of the index range
-	 * @return the time (in seconds) associated with {@code indexRange.getUpperBound()}
+	 * Gets the time sequence element corresponding to the upper bound of the index
+	 * range
+	 * 
+	 * @return the time (in seconds) associated with
+	 *         {@code indexRange.getUpperBound()}
 	 */
 
 	public double getEffectiveEndTime() {
 		return getTimeSequence().get(indexRange.getUpperBound());
 	}
-	
+
 	/**
 	 * Gets the dimensional time {@code Range} of this data.
+	 * 
 	 * @return the range
 	 */
 
 	public Range getRange() {
 		return range;
 	}
-	
+
 	/**
 	 * Gets the index range of this data.
+	 * 
 	 * @return the index range
 	 */
 
@@ -367,16 +381,18 @@ public class ExperimentalData extends HeatingCurve {
 	}
 
 	/**
-	 * Sets the range, assigning {@code this} to its parent, and forcing changes to the {@code indexRange}.
+	 * Sets the range, assigning {@code this} to its parent, and forcing changes to
+	 * the {@code indexRange}.
+	 * 
 	 * @param range the range
 	 */
-	
+
 	public void setRange(Range range) {
 		this.range = range;
 		range.setParent(this);
 		doSetRange();
 	}
-	
+
 	private void doSetRange() {
 		var time = getTimeSequence();
 		indexRange.set(time, range);
@@ -385,8 +401,8 @@ public class ExperimentalData extends HeatingCurve {
 			if (l.getSource() == range)
 				indexRange.set(time, range);
 		});
-		
-		if(metadata != null)
+
+		if (metadata != null)
 			range.updateMinimum(metadata.numericProperty(PULSE_WIDTH));
 	}
 

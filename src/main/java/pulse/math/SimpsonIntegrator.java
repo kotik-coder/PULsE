@@ -3,7 +3,9 @@ package pulse.math;
 import pulse.properties.NumericProperty;
 
 /**
- * Implements the Simpson's integration rule for the evaluation of definite integrals.
+ * Implements the Simpson's integration rule for the evaluation of definite
+ * integrals.
+ * 
  * @see <a href="Wiki page">https://en.wikipedia.org/wiki/Simpson%27s_rule</a>
  *
  */
@@ -19,15 +21,15 @@ public abstract class SimpsonIntegrator extends FixedIntervalIntegrator {
 	}
 
 	/**
-	 * Performs the integration with the Simpson's rule.
-	 * Based on: https://introcs.cs.princeton.edu/java/93integration/SimpsonsRule.java.html
+	 * Performs the integration with the Simpson's rule. Based on:
+	 * https://introcs.cs.princeton.edu/java/93integration/SimpsonsRule.java.html
 	 */
-	
+
 	@Override
 	public double integrate() {
 		double rmin = getBounds().getMinimum();
 		double rmax = getBounds().getMaximum();
-		
+
 		double fa = integrand(rmin);
 		double fb = integrand(rmax);
 
@@ -39,7 +41,7 @@ public abstract class SimpsonIntegrator extends FixedIntervalIntegrator {
 
 		int integrationSegments = (int) getIntegrationSegments().getValue();
 		double h = getStepSize();
-		
+
 		// 4/3 terms
 		for (int i = 1; i < integrationSegments; i += 2) {
 			x += integrand(rmin + h * i);
@@ -51,7 +53,7 @@ public abstract class SimpsonIntegrator extends FixedIntervalIntegrator {
 		}
 
 		sum += x * 4.0 + y * 2.0;
-		
+
 		return sum * h / 3.0;
 	}
 

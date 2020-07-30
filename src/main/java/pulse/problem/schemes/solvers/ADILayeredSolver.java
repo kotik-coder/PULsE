@@ -19,7 +19,7 @@ public class ADILayeredSolver extends ADIScheme implements Solver<CoreShellProbl
 
 	public ADILayeredSolver() {
 		super();
-		initGrid( getGrid().getGridDensity(), SHELL_GRID_DENSITY, getGrid().getTimeFactor() );
+		initGrid(getGrid().getGridDensity(), SHELL_GRID_DENSITY, getGrid().getTimeFactor());
 	}
 
 	public ADILayeredSolver(NumericProperty nCore, NumericProperty nShell, NumericProperty timeFactor) {
@@ -45,7 +45,7 @@ public class ADILayeredSolver extends ADIScheme implements Solver<CoreShellProbl
 	}
 
 	private void prepareGrid(CoreShellProblem problem) {
-		var layeredGrid = (LayeredGrid2D) getGrid();  //TODO
+		var layeredGrid = (LayeredGrid2D) getGrid(); // TODO
 		layeredGrid.getPartition(Location.FRONT_Y).setGridMultiplier(problem.axialFactor());
 		layeredGrid.getPartition(Location.REAR_Y).setGridMultiplier(problem.axialFactor());
 		layeredGrid.getPartition(Location.SIDE_X).setGridMultiplier(problem.radialFactor());

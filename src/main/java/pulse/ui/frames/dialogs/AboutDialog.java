@@ -28,8 +28,7 @@ public class AboutDialog extends JDialog {
 		setAlwaysOnTop(true);
 		setSize(WIDTH, HEIGHT);
 
-		var reader = new BufferedReader(
-				new InputStreamReader(getClass().getResourceAsStream("/About.html")));
+		var reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("/About.html")));
 		var sb = new StringBuilder();
 		String str;
 

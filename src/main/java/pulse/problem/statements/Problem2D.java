@@ -58,7 +58,7 @@ public abstract class Problem2D extends Problem implements TwoDimensional {
 		setComplexity(ProblemComplexity.MODERATE);
 	}
 
-        @Override
+	@Override
 	public void useTheoreticalEstimates(ExperimentalData c) {
 		super.useTheoreticalEstimates(c);
 		if (areThermalPropertiesLoaded())
@@ -177,7 +177,7 @@ public abstract class Problem2D extends Problem implements TwoDimensional {
 	@Override
 	public void assign(IndexedVector params) {
 		super.assign(params);
-		//TODO one-to-one mapping for FOV and SPOT_DIAMETER
+		// TODO one-to-one mapping for FOV and SPOT_DIAMETER
 		for (int i = 0, size = params.dimension(); i < size; i++) {
 			switch (params.getIndex(i)) {
 			case FOV_OUTER:

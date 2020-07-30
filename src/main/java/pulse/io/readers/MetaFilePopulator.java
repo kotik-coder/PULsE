@@ -203,10 +203,10 @@ public class MetaFilePopulator implements AbstractPopulator<Metadata> {
 
 					if (genericEntry instanceof InstanceDescriptor
 							|| dataEntry.getKey().equalsIgnoreCase(genericEntry.getClass().getSimpleName())) {
-						
+
 						if (genericEntry.attemptUpdate(dataEntry.getValue()))
 							met.updateProperty(instance, genericEntry);
-					
+
 					}
 
 				}
@@ -216,7 +216,7 @@ public class MetaFilePopulator implements AbstractPopulator<Metadata> {
 		}
 
 	}
-	
+
 	/**
 	 * @return {@code .met}, an internal PULsE meta-file format.
 	 */

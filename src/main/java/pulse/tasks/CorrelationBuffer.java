@@ -51,8 +51,7 @@ public class CorrelationBuffer {
 
 		var indices = params.get(0).getIndices();
 		var map = indices.stream()
-				.map(index -> new ImmutableDataEntry<>(index,
-						params.stream().mapToDouble(v -> v.get(index)).toArray()))
+				.map(index -> new ImmutableDataEntry<>(index, params.stream().mapToDouble(v -> v.get(index)).toArray()))
 				.collect(Collectors.toMap(x -> x.getKey(), x -> x.getValue()));
 
 		int indicesSize = indices.size();
@@ -81,9 +80,9 @@ public class CorrelationBuffer {
 			return false;
 
 		for (Double d : map.values()) {
-                    if (t.compareToThreshold(d))
-                        return true;
-                }
+			if (t.compareToThreshold(d))
+				return true;
+		}
 		return false;
 	}
 

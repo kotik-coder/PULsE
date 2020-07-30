@@ -12,7 +12,7 @@ public class AuxGraphFrame extends JInternalFrame {
 
 	private static AuxChart chart;
 	private static AuxGraphFrame instance = new AuxGraphFrame();
-	
+
 	private AuxGraphFrame() {
 		super("Laser Pulse", true, false, true, true);
 		initComponents();
@@ -39,7 +39,7 @@ public class AuxGraphFrame extends JInternalFrame {
 	public static AuxChart getChart() {
 		return chart;
 	}
-	
+
 	public static AuxGraphFrame getInstance() {
 		return instance;
 	}

@@ -163,16 +163,16 @@ public class PreviewFrame extends JInternalFrame {
 		selectXBox.removeAllItems();
 
 		for (var s : htmlDescriptors) {
-                    selectXBox.addItem(s);
-                }
+			selectXBox.addItem(s);
+		}
 
 		selectXBox.setSelectedIndex(fmt.indexOf(TEST_TEMPERATURE));
 
 		selectYBox.removeAllItems();
 
 		for (var s : htmlDescriptors) {
-                    selectYBox.addItem(s);
-                }
+			selectYBox.addItem(s);
+		}
 
 		selectYBox.setSelectedIndex(fmt.indexOf(DIFFUSIVITY));
 	}
@@ -189,8 +189,8 @@ public class PreviewFrame extends JInternalFrame {
 
 		var rendererSpline = new XYSplineRenderer();
 		rendererSpline.setSeriesPaint(0, SMOOTH_COLOR);
-		rendererSpline.setSeriesStroke(0, new BasicStroke(2.0f, CAP_ROUND, JOIN_ROUND, 1.0f,
-				new float[] { 6.0f, 6.0f }, 0.0f));
+		rendererSpline.setSeriesStroke(0,
+				new BasicStroke(2.0f, CAP_ROUND, JOIN_ROUND, 1.0f, new float[] { 6.0f, 6.0f }, 0.0f));
 
 		var size = 6.0;
 		var delta = size / 2.0;
@@ -232,8 +232,8 @@ public class PreviewFrame extends JInternalFrame {
 		var series = new XYIntervalSeries("Preview");
 
 		for (var i = 0; i < x.length; i++) {
-                    series.add(x[i], x[i] - xerr[i], x[i] + xerr[i], y[i], y[i] - yerr[i], y[i] + yerr[i]);
-                }
+			series.add(x[i], x[i] - xerr[i], x[i] + xerr[i], y[i], y[i] - yerr[i], y[i] + yerr[i]);
+		}
 
 		return series;
 	}
@@ -246,8 +246,8 @@ public class PreviewFrame extends JInternalFrame {
 		var series = new XYSeries("Preview");
 
 		for (var i = 0; i < x.length; i++) {
-                    series.add(x[i], y[i]);
-                }
+			series.add(x[i], y[i]);
+		}
 
 		return series;
 	}

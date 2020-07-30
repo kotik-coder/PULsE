@@ -16,7 +16,7 @@ public class MainGraphFrame extends JInternalFrame {
 
 	private static Chart chart;
 	private static MainGraphFrame instance = new MainGraphFrame();
-	
+
 	private MainGraphFrame() {
 		super("Time-temperature profile(s)", true, false, true, true);
 		initComponents();

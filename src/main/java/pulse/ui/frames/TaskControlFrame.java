@@ -98,7 +98,8 @@ public class TaskControlFrame extends JFrame {
 	private boolean exitConfirmed(Component closingComponent) {
 		Object[] options = { "Yes", "No" };
 		return showOptionDialog(closingComponent, getString("TaskControlFrame.ExitMessage"),
-				getString("TaskControlFrame.ExitTitle"), YES_NO_OPTION, WARNING_MESSAGE, null, options, options[1]) == YES_OPTION;
+				getString("TaskControlFrame.ExitTitle"), YES_NO_OPTION, WARNING_MESSAGE, null, options,
+				options[1]) == YES_OPTION;
 	}
 
 	private void initListeners() {
@@ -171,7 +172,7 @@ public class TaskControlFrame extends JFrame {
 		taskManagerFrame = new TaskManagerFrame();
 		graphFrame = MainGraphFrame.getInstance();
 		auxGraphFrame = AuxGraphFrame.getInstance();
-		
+
 		problemStatementFrame = new ProblemStatementFrame();
 
 		searchOptionsFrame = new SearchOptionsFrame();
@@ -284,10 +285,10 @@ public class TaskControlFrame extends JFrame {
 		f2.setLocation(p2);
 		f2.setSize(s2);
 	}
-	
+
 	private void resizeTriplet(JInternalFrame f1, JInternalFrame f2, JInternalFrame f3) {
 		final var gap = 10;
-		
+
 		final var h = this.getContentPane().getHeight() - 3 * gap;
 		var w = this.getContentPane().getWidth() - 2 * gap;
 
@@ -296,18 +297,18 @@ public class TaskControlFrame extends JFrame {
 
 		f1.setLocation(p1);
 		f1.setSize(s1);
-		
+
 		w = this.getContentPane().getWidth() - 3 * gap;
-		
+
 		var p2 = new Point(gap, 2 * gap + 6 * h / 10);
-		var s2 = new Dimension(w/4, 4 * h / 10);
-		
+		var s2 = new Dimension(w / 4, 4 * h / 10);
+
 		f2.setLocation(p2);
 		f2.setSize(s2);
-		
-		var p3 = new Point(2*gap + w/4, 2 * gap + 6 * h / 10);
-		var s3 = new Dimension(3*w/4, 4 * h / 10);
-		
+
+		var p3 = new Point(2 * gap + w / 4, 2 * gap + 6 * h / 10);
+		var s3 = new Dimension(3 * w / 4, 4 * h / 10);
+
 		f3.setLocation(p3);
 		f3.setSize(s3);
 	}

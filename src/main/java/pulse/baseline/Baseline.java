@@ -89,7 +89,7 @@ public abstract class Baseline extends PropertyHolder implements Reflexive, Opti
 			doFit(x, y, size);
 
 	}
-	
+
 	/**
 	 * Calls {@code fitTo} using the default time range for the data:
 	 * {@code -Infinity < t < ZERO_LEFT}, where the upper bound is

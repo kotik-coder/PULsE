@@ -61,9 +61,8 @@ public class PropertyHolderTable extends JTable {
 
 		this.propertyHolder = p;
 
-		var model = new DefaultTableModel(dataArray(p),
-				new String[] { getString("PropertyHolderTable.ParameterColumn"), //$NON-NLS-1$
-        getString("PropertyHolderTable.ValueColumn") } //$NON-NLS-1$
+		var model = new DefaultTableModel(dataArray(p), new String[] { getString("PropertyHolderTable.ParameterColumn"), //$NON-NLS-1$
+				getString("PropertyHolderTable.ValueColumn") } //$NON-NLS-1$
 		);
 
 		setModel(model);
@@ -90,21 +89,21 @@ public class PropertyHolderTable extends JTable {
 		final var reference = this;
 
 		model.addTableModelListener((TableModelEvent e) -> {
-            
+
 			int row = e.getFirstRow();
-            int column = e.getColumn();
-            
-            if ((row < 0) || (column < 0))
-                return;
-            
-            var changedObject = ((TableModel) e.getSource()).getValueAt(row, column);
-            
-            if (changedObject instanceof Property) {
-                var changedProperty = (Property) changedObject;
-                propertyHolder.updateProperty(reference, changedProperty);
-            }
-            
-        });
+			int column = e.getColumn();
+
+			if ((row < 0) || (column < 0))
+				return;
+
+			var changedObject = ((TableModel) e.getSource()).getValueAt(row, column);
+
+			if (changedObject instanceof Property) {
+				var changedProperty = (Property) changedObject;
+				propertyHolder.updateProperty(reference, changedProperty);
+			}
+
+		});
 
 		addListeners();
 
@@ -126,19 +125,18 @@ public class PropertyHolderTable extends JTable {
 			return null;
 
 		List<Object[]> dataList = new ArrayList<>();
-		var data = p.data().stream().map(property -> new Object[] { property.getDescriptor(true), property} ).collect(Collectors.toList());
+		var data = p.data().stream().map(property -> new Object[] { property.getDescriptor(true), property })
+				.collect(Collectors.toList());
 		dataList.addAll(data);
-		
+
 		if (p.ignoreSiblings())
 			return dataList.toArray(new Object[data.size()][2]);
 
-		p.subgroups().stream().
-								filter(group -> group instanceof PropertyHolder).forEach(
-									holder -> 
-									dataList.add(new Object[] { ( (PropertyHolder)holder ).getPrefix() != null ? ( (PropertyHolder)holder ).getPrefix()
-											: holder.getDescriptor(), holder })
-				
-								);
+		p.subgroups().stream().filter(group -> group instanceof PropertyHolder).forEach(holder -> dataList.add(
+				new Object[] { ((PropertyHolder) holder).getPrefix() != null ? ((PropertyHolder) holder).getPrefix()
+						: holder.getDescriptor(), holder })
+
+		);
 
 		return dataList.toArray(new Object[dataList.size()][2]);
 
@@ -255,17 +253,17 @@ public class PropertyHolderTable extends JTable {
 			this.dat = dat;
 
 			btn.addActionListener((ActionEvent e) -> {
-                            JFrame dataFrame = new DataFrame(dat, btn);
-                            dataFrame.setVisible(true);
-                            btn.setEnabled(false);
-                            dataFrame.addWindowListener(new WindowAdapter() {
-                                @Override
-                                public void windowClosed(WindowEvent we) {
-                                    btn.setText(((DataFrame) dataFrame).getDataObject().toString());
-                                    btn.setEnabled(true);
-                                }
-                            });
-            });
+				JFrame dataFrame = new DataFrame(dat, btn);
+				dataFrame.setVisible(true);
+				btn.setEnabled(false);
+				dataFrame.addWindowListener(new WindowAdapter() {
+					@Override
+					public void windowClosed(WindowEvent we) {
+						btn.setText(((DataFrame) dataFrame).getDataObject().toString());
+						btn.setEnabled(true);
+					}
+				});
+			});
 
 		}
 
@@ -274,10 +272,10 @@ public class PropertyHolderTable extends JTable {
 			this.type = index;
 
 			btn.addActionListener((ActionEvent e) -> {
-                var source = (IconCheckBox) e.getSource();
-                source.setHorizontalAlignment(CENTER);
-                ((JTable) (source.getParent())).getCellEditor().stopCellEditing();
-            });
+				var source = (IconCheckBox) e.getSource();
+				source.setHorizontalAlignment(CENTER);
+				((JTable) (source.getParent())).getCellEditor().stopCellEditing();
+			});
 
 		}
 

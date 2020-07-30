@@ -141,21 +141,21 @@ public class SearchOptionsFrame extends JInternalFrame {
 			setCellRenderer(new SearchListRenderer());
 
 			addListSelectionListener((ListSelectionEvent arg0) -> {
-                            if (arg0.getValueIsAdjusting())
-                                return;
-                            if (!(getSelectedValue() instanceof PathOptimiser)) {
-                                ((DefaultTableModel) pathTable.getModel()).setRowCount(0);
-                                return;
-                            }
-                var searchScheme = getSelectedValue();
-                if (searchScheme == null)
-                    return;
-                setSelectedPathOptimiser(searchScheme);
-                linearList.setEnabled(true);
-                for (var t : getTaskList()) {
-                    t.checkProblems();
-                }
-            });
+				if (arg0.getValueIsAdjusting())
+					return;
+				if (!(getSelectedValue() instanceof PathOptimiser)) {
+					((DefaultTableModel) pathTable.getModel()).setRowCount(0);
+					return;
+				}
+				var searchScheme = getSelectedValue();
+				if (searchScheme == null)
+					return;
+				setSelectedPathOptimiser(searchScheme);
+				linearList.setEnabled(true);
+				for (var t : getTaskList()) {
+					t.checkProblems();
+				}
+			});
 
 		}
 	}
@@ -189,25 +189,25 @@ public class SearchOptionsFrame extends JInternalFrame {
 					return linearSolvers.get(index);
 				}
 			});
-			
+
 			this.setCellRenderer(new SearchListRenderer());
 
 			addListSelectionListener((ListSelectionEvent arg0) -> {
-                            if (arg0.getValueIsAdjusting())
-                                return;
-                            if (!(getSelectedValue() instanceof LinearOptimiser)) {
-                                pathTable.setEnabled(false);
-                                return;
-                            }
-                var linearSolver = getSelectedValue();
-                var pathSolver = getSelectedPathOptimiser();
-                pathSolver.setLinearSolver(linearSolver);
-                pathTable.setPropertyHolder(pathSolver);
-                pathTable.setEnabled(true);
-                for (var t : getTaskList()) {
-                    t.checkProblems();
-                }
-            });
+				if (arg0.getValueIsAdjusting())
+					return;
+				if (!(getSelectedValue() instanceof LinearOptimiser)) {
+					pathTable.setEnabled(false);
+					return;
+				}
+				var linearSolver = getSelectedValue();
+				var pathSolver = getSelectedPathOptimiser();
+				pathSolver.setLinearSolver(linearSolver);
+				pathTable.setPropertyHolder(pathSolver);
+				pathTable.setEnabled(true);
+				for (var t : getTaskList()) {
+					t.checkProblems();
+				}
+			});
 
 		}
 

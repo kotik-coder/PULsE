@@ -67,32 +67,32 @@ public class TaskManagerFrame extends JInternalFrame {
 		var ttm = (TaskTableModel) taskTable.getModel();
 
 		ttm.addTableModelListener((TableModelEvent arg0) -> {
-                    if (ttm.getRowCount() < 1) {
-                        taskToolbar.setClearEnabled(false);
-                        taskToolbar.setResetEnabled(false);
-                        taskToolbar.setExecEnabled(false);
-                    } else {
-                        taskToolbar.setClearEnabled(true);
-                        taskToolbar.setResetEnabled(true);
-                        taskToolbar.setExecEnabled(true);
-                    }
-        });
+			if (ttm.getRowCount() < 1) {
+				taskToolbar.setClearEnabled(false);
+				taskToolbar.setResetEnabled(false);
+				taskToolbar.setExecEnabled(false);
+			} else {
+				taskToolbar.setClearEnabled(true);
+				taskToolbar.setResetEnabled(true);
+				taskToolbar.setExecEnabled(true);
+			}
+		});
 
 		taskTable.getSelectionModel().addListSelectionListener((ListSelectionEvent arg0) -> {
-            var selection = taskTable.getSelectedRows();
-            if (taskTable.getSelectedRow() < 0) {
-                taskToolbar.setRemoveEnabled(false);
-                taskToolbar.setGraphEnabled(false);
-            } else {
-                if (selection.length > 1) {
-                    taskToolbar.setRemoveEnabled(false);
-                    taskToolbar.setGraphEnabled(false);
-                } else if (selection.length > 0) {
-                    taskToolbar.setRemoveEnabled(true);
-                    taskToolbar.setGraphEnabled(true);
-                }
-            }
-        });
+			var selection = taskTable.getSelectedRows();
+			if (taskTable.getSelectedRow() < 0) {
+				taskToolbar.setRemoveEnabled(false);
+				taskToolbar.setGraphEnabled(false);
+			} else {
+				if (selection.length > 1) {
+					taskToolbar.setRemoveEnabled(false);
+					taskToolbar.setGraphEnabled(false);
+				} else if (selection.length > 0) {
+					taskToolbar.setRemoveEnabled(true);
+					taskToolbar.setGraphEnabled(true);
+				}
+			}
+		});
 	}
 
 	public TaskToolbar getTaskToolbar() {

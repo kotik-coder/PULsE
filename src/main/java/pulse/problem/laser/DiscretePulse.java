@@ -48,12 +48,13 @@ public class DiscretePulse {
 	}
 
 	/**
-	 * Uses the {@code PulseTemporalShape} of the {@code Pulse} object
-	 * to calculate the laser power at the specified moment of {@code time}.
+	 * Uses the {@code PulseTemporalShape} of the {@code Pulse} object to calculate
+	 * the laser power at the specified moment of {@code time}.
+	 * 
 	 * @param time the time argument
 	 * @return the laser power at the specified moment of {@code time}
 	 */
-	
+
 	public double laserPowerAt(double time) {
 		return pulse.getPulseShape().evaluateAt(time);
 	}

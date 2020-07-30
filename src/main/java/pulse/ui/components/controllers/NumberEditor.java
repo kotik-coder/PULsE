@@ -129,8 +129,7 @@ public class NumberEditor extends DefaultCellEditor {
 	// Override to invoke setValue on the formatted text field.
 	@Override
 	public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-		var ftf = (JFormattedTextField) super.getTableCellEditorComponent(table, value, isSelected, row,
-				column);
+		var ftf = (JFormattedTextField) super.getTableCellEditorComponent(table, value, isSelected, row, column);
 
 		Number num;
 		var prop = (NumericProperty) value;
@@ -164,9 +163,8 @@ public class NumberEditor extends DefaultCellEditor {
 				}
 			} catch (IllegalArgumentException e) {
 				getDefaultToolkit().beep();
-				showMessageDialog(getWindowAncestor(ftf), e.getMessage(),
-						getString("NumberEditor.IllegalTableEntry"), //$NON-NLS-1$
-                ERROR_MESSAGE);
+				showMessageDialog(getWindowAncestor(ftf), e.getMessage(), getString("NumberEditor.IllegalTableEntry"), //$NON-NLS-1$
+						ERROR_MESSAGE);
 				property.setValue(property.getMinimum());
 			}
 			return property;
@@ -214,16 +212,15 @@ public class NumberEditor extends DefaultCellEditor {
 	protected boolean userSaysRevert() {
 		getDefaultToolkit().beep();
 		ftf.selectAll();
-		Object[] options = { getString("NumberEditor.EditText"),
-				getString("NumberEditor.RevertText") };
+		Object[] options = { getString("NumberEditor.EditText"), getString("NumberEditor.RevertText") };
 		var answer = showOptionDialog(getWindowAncestor(ftf),
 				"The value must be a " + property.getMinimum().getClass().getSimpleName() + " between "
 						+ property.getMinimum().doubleValue() * property.getDimensionFactor().doubleValue() + " and "
 						+ property.getMaximum().doubleValue() * property.getDimensionFactor().doubleValue() + ".\n"
 						+ getString("NumberEditor.MessageLine1") //$NON-NLS-1$
 						+ getString("NumberEditor.MessageLine2"), //$NON-NLS-1$
-        getString("NumberEditor.InvalidText"), //$NON-NLS-1$
-        YES_NO_OPTION, ERROR_MESSAGE, null, options, options[1]);
+				getString("NumberEditor.InvalidText"), //$NON-NLS-1$
+				YES_NO_OPTION, ERROR_MESSAGE, null, options, options[1]);
 
 		if (answer == 1) { // Revert!
 			ftf.setValue(ftf.getValue());

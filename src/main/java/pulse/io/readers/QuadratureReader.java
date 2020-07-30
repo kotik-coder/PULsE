@@ -13,8 +13,9 @@ import pulse.problem.schemes.rte.dom.OrdinateSet;
 import pulse.ui.Messages;
 
 /**
- * A reader, which converts {@code quad} files into instances {@code OrdinateSet}.
- * Invoked at program start and reads through the associated resource folder.
+ * A reader, which converts {@code quad} files into instances
+ * {@code OrdinateSet}. Invoked at program start and reads through the
+ * associated resource folder.
  *
  */
 
@@ -29,11 +30,11 @@ public class QuadratureReader implements AbstractReader<OrdinateSet> {
 	}
 
 	/**
-	 * Reads an ordinate set. Scans the first line for any keywords and 
-	 * then treats any subsequent lines as consisting of two tokens, which
-	 * correspond to the quadrature node and weight. Ignores all other information.
+	 * Reads an ordinate set. Scans the first line for any keywords and then treats
+	 * any subsequent lines as consisting of two tokens, which correspond to the
+	 * quadrature node and weight. Ignores all other information.
 	 */
-	
+
 	@Override
 	public OrdinateSet read(File file) throws IOException {
 		Objects.requireNonNull(file, Messages.getString("TBLReader.1"));
@@ -77,7 +78,7 @@ public class QuadratureReader implements AbstractReader<OrdinateSet> {
 		return set;
 
 	}
-	
+
 	/**
 	 * @return {@code quad}
 	 */
@@ -89,9 +90,10 @@ public class QuadratureReader implements AbstractReader<OrdinateSet> {
 
 	/**
 	 * Returns the single instance of this class.
+	 * 
 	 * @return an instance of {@code QuadratureReader}.
 	 */
-	
+
 	public static QuadratureReader getInstance() {
 		return instance;
 	}

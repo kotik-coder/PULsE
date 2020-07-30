@@ -27,8 +27,8 @@ public class ResultFormat {
 
 	private List<NumericPropertyKeyword> nameMap;
 
-	private final static NumericPropertyKeyword[] minimalArray = new NumericPropertyKeyword[] {
-			IDENTIFIER, TEST_TEMPERATURE, DIFFUSIVITY};
+	private final static NumericPropertyKeyword[] minimalArray = new NumericPropertyKeyword[] { IDENTIFIER,
+			TEST_TEMPERATURE, DIFFUSIVITY };
 
 	/**
 	 * <p>
@@ -48,8 +48,8 @@ public class ResultFormat {
 	private ResultFormat(List<NumericPropertyKeyword> keys) {
 		nameMap = new ArrayList<>();
 		for (var key : keys) {
-                    nameMap.add(key);
-                }
+			nameMap.add(key);
+		}
 	}
 
 	private ResultFormat(ResultFormat fmt) {
@@ -66,8 +66,8 @@ public class ResultFormat {
 
 		var rfe = new ResultFormatEvent(format);
 		for (var rfl : listeners) {
-                    rfl.resultFormatChanged(rfe);
-                }
+			rfl.resultFormatChanged(rfe);
+		}
 
 		return format;
 	}
@@ -103,8 +103,7 @@ public class ResultFormat {
 	 */
 
 	public List<String> abbreviations() {
-		return nameMap.stream().map(keyword -> theDefault(keyword).getAbbreviation(true))
-				.collect(toList());
+		return nameMap.stream().map(keyword -> theDefault(keyword).getAbbreviation(true)).collect(toList());
 	}
 
 	/**
@@ -116,8 +115,7 @@ public class ResultFormat {
 	 */
 
 	public List<String> descriptors() {
-		return nameMap.stream().map(keyword -> theDefault(keyword).getDescriptor(false))
-				.collect(toList());
+		return nameMap.stream().map(keyword -> theDefault(keyword).getDescriptor(false)).collect(toList());
 	}
 
 	/**
@@ -130,8 +128,7 @@ public class ResultFormat {
 	 */
 
 	public NumericPropertyKeyword fromAbbreviation(String descriptor) {
-		return nameMap.stream()
-				.filter(keyword -> theDefault(keyword).getAbbreviation(true).equals(descriptor))
+		return nameMap.stream().filter(keyword -> theDefault(keyword).getAbbreviation(true).equals(descriptor))
 				.findFirst().get();
 	}
 

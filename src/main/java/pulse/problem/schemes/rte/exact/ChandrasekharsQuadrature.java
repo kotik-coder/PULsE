@@ -22,7 +22,7 @@ import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 
-public class ChandrasekharsQuadrature extends Convolution {
+public class ChandrasekharsQuadrature extends CompositionProduct {
 
 	private int m;
 	private double expLower;
@@ -31,9 +31,9 @@ public class ChandrasekharsQuadrature extends Convolution {
 	private double[] moments;
 
 	public ChandrasekharsQuadrature() {
-		super(new Segment(0,1));
-		m		= (int) theDefault(QUADRATURE_POINTS).getValue();
-		solver	= new LaguerreSolver();
+		super(new Segment(0, 1));
+		m = (int) theDefault(QUADRATURE_POINTS).getValue();
+		solver = new LaguerreSolver();
 	}
 
 	@Override
@@ -59,7 +59,7 @@ public class ChandrasekharsQuadrature extends Convolution {
 
 	@Override
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
-		if(type == QUADRATURE_POINTS) {
+		if (type == QUADRATURE_POINTS) {
 			setQuadraturePoints(property);
 			firePropertyChanged(this, property);
 		}
@@ -84,9 +84,9 @@ public class ChandrasekharsQuadrature extends Convolution {
 	private Vector f(double[] roots) {
 		double f[] = new double[roots.length];
 
-		for (int i = 0; i < f.length; i++) 
+		for (int i = 0; i < f.length; i++)
 			f[i] = getEmissionFunction().powerAt(roots[i]);
-		
+
 		return new Vector(f);
 
 	}

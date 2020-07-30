@@ -28,7 +28,7 @@ public class ResultListModel extends AbstractListModel<NumericPropertyKeyword> {
 		elements.addAll(getInstance().getKeywords());
 	}
 
-        @Override
+	@Override
 	public int getSize() {
 		return elements.size();
 	}
@@ -49,9 +49,9 @@ public class ResultListModel extends AbstractListModel<NumericPropertyKeyword> {
 			return;
 
 		for (var keyMin : getMinimalArray()) {
-                    if (key == keyMin)
-                        return;
-                }
+			if (key == keyMin)
+				return;
+		}
 		var index = elements.indexOf(key);
 		elements.remove(key);
 		this.fireContentsChanged(this, index - 1, index);

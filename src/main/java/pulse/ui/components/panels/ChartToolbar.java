@@ -183,14 +183,11 @@ public class ChartToolbar extends JPanel {
 	private static boolean userSaysRevert(JFormattedTextField ftf) {
 		getDefaultToolkit().beep();
 		ftf.selectAll();
-		Object[] options = { getString("NumberEditor.EditText"),
-				getString("NumberEditor.RevertText") };
+		Object[] options = { getString("NumberEditor.EditText"), getString("NumberEditor.RevertText") };
 		var answer = showOptionDialog(getWindowAncestor(ftf),
 				"<html>Time domain should be consistent with the experimental data range.<br>"
-						+ getString("NumberEditor.MessageLine1")
-						+ getString("NumberEditor.MessageLine2") + "</html>",
-				getString("NumberEditor.InvalidText"), YES_NO_OPTION, ERROR_MESSAGE,
-				null, options, options[1]);
+						+ getString("NumberEditor.MessageLine1") + getString("NumberEditor.MessageLine2") + "</html>",
+				getString("NumberEditor.InvalidText"), YES_NO_OPTION, ERROR_MESSAGE, null, options, options[1]);
 
 		if (answer == 1) { // Revert!
 			ftf.setValue(ftf.getValue());
@@ -224,8 +221,7 @@ public class ChartToolbar extends JPanel {
 		sb.append(format("%3.4f", a) + " to " + format("%3.4f", b));
 		sb.append("</html>");
 
-		var dialogResult = showConfirmDialog(getWindowAncestor(this), sb.toString(),
-				"Confirm chocie", YES_NO_OPTION);
+		var dialogResult = showConfirmDialog(getWindowAncestor(this), sb.toString(), "Confirm chocie", YES_NO_OPTION);
 
 		if (dialogResult == YES_OPTION)
 			expCurve.setRange(new Range(a, b));

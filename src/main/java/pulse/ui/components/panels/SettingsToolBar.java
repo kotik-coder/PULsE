@@ -62,21 +62,21 @@ public class SettingsToolBar extends JToolBar {
 		add(cbSingleStatement, gbc);
 
 		cbSingleStatement.addChangeListener((ChangeEvent e) -> {
-            setSingleStatement(cbSingleStatement.isSelected());
-        });
+			setSingleStatement(cbSingleStatement.isSelected());
+		});
 
 		gbc.gridx = 3;
 
 		add(cbHideDetails, gbc);
 
 		cbHideDetails.addChangeListener((ChangeEvent e) -> {
-            var selected = cbHideDetails.isSelected();
-            Problem.setDetailsHidden(selected);
-            DifferenceScheme.setDetailsHidden(selected);
-            for (var table : tables) {
-                table.updateTable();
-            }
-        });
+			var selected = cbHideDetails.isSelected();
+			Problem.setDetailsHidden(selected);
+			DifferenceScheme.setDetailsHidden(selected);
+			for (var table : tables) {
+				table.updateTable();
+			}
+		});
 
 	}
 

@@ -5,9 +5,10 @@ import java.io.File;
 import pulse.util.Reflexive;
 
 /**
- * There are two types of {@code AbstractHandler}s, which are used to either 
- * update/populate existing objects or convert data into new objects of a given type. The superclass
- * contains basic methods of checking compliance to a pre-set extension.
+ * There are two types of {@code AbstractHandler}s, which are used to either
+ * update/populate existing objects or convert data into new objects of a given
+ * type. The superclass contains basic methods of checking compliance to a
+ * pre-set extension.
  *
  */
 

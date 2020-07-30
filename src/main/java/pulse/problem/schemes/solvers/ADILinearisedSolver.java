@@ -51,7 +51,7 @@ public class ADILinearisedSolver extends ADIScheme implements Solver<LinearisedP
 		curve = problem.getHeatingCurve();
 
 		var grid = getGrid();
-		
+
 		N = (int) grid.getGridDensity().getValue();
 		hx = grid.getXStep();
 		hy = ((Grid2D) getGrid()).getYStep();
@@ -173,8 +173,8 @@ public class ADILinearisedSolver extends ADIScheme implements Solver<LinearisedP
 							/ ((1.0 - alpha[N] + hx * OMEGA * Bi3) * OMEGA_SQ * tau + HX2);
 
 					for (i = N - 1; i >= 0; i--) {
-                                            U2[i][j] = alpha[i + 1] * U2[i + 1][j] + beta[i + 1];
-                                        }
+						U2[i][j] = alpha[i + 1] * U2[i + 1][j] + beta[i + 1];
+					}
 
 				}
 
@@ -185,8 +185,8 @@ public class ADILinearisedSolver extends ADIScheme implements Solver<LinearisedP
 				for (j = 0; j <= N; j++) {
 
 					for (i = 0; i <= N; i++) {
-                                            U2_E[i + 1][j + 1] = U2[i][j];
-                                        }
+						U2_E[i + 1][j + 1] = U2[i][j];
+					}
 
 					U2_E[N + 2][j + 1] = U2[N - 1][j] - 2.0 * hx * OMEGA * Bi3 * U2[N][j];
 				}
@@ -214,8 +214,8 @@ public class ADILinearisedSolver extends ADIScheme implements Solver<LinearisedP
 							/ ((1 - alpha[N] + hy * Bi2) * tau + HY2);
 
 					for (j = N - 1; j >= 0; j--) {
-                                            U1[i][j] = alpha[j + 1] * U1[i][j + 1] + beta[j + 1];
-                                        }
+						U1[i][j] = alpha[j + 1] * U1[i][j + 1] + beta[j + 1];
+					}
 
 				}
 
@@ -233,8 +233,8 @@ public class ADILinearisedSolver extends ADIScheme implements Solver<LinearisedP
 						/ ((1 - alpha[N] + hy * Bi2) * tau + HY2);
 
 				for (j = N - 1; j >= 0; j--) {
-                                    U1[0][j] = alpha[j + 1] * U1[0][j + 1] + beta[j + 1];
-                                }
+					U1[0][j] = alpha[j + 1] * U1[0][j + 1] + beta[j + 1];
+				}
 
 			}
 
@@ -243,8 +243,8 @@ public class ADILinearisedSolver extends ADIScheme implements Solver<LinearisedP
 			double sum = 0;
 
 			for (i = firstIndex; i <= lastIndex; i++) {
-                            sum += U1[i][N];
-                        }
+				sum += U1[i][N];
+			}
 
 			sum /= (lastIndex - firstIndex + 1);
 

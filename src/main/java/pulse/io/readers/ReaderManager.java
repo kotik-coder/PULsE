@@ -167,42 +167,49 @@ public class ReaderManager {
 			throw new IllegalArgumentException(Messages.getString("ReaderManager.1") + file.getName());
 
 		T result = null;
-		
+
 		try {
 			result = optional.get().read(file);
 		} catch (IOException e) {
 			System.err.println("Error reading " + file + " with reader: " + optional.get());
 			e.printStackTrace();
 		}
-		
+
 		return result;
-		
+
 	}
-	
+
 	/**
-	 * Obtains a set of files in {@code directory} and attemps to convert each file to {@code T} using {@code readers}.
-	 * @param <T> a type recognised by {@code readers}
-	 * @param readers a list of {@code AbstractReader}s capable of processing {@code T}
+	 * Obtains a set of files in {@code directory} and attemps to convert each file
+	 * to {@code T} using {@code readers}.
+	 * 
+	 * @param <T>       a type recognised by {@code readers}
+	 * @param readers   a list of {@code AbstractReader}s capable of processing
+	 *                  {@code T}
 	 * @param directory a directory
 	 * @return the set of converted {@code T} objects
 	 * @throws IllegalArgumentException if second argument is not a directory
 	 */
-	
-	public static <T> Set<T> readDirectory(List<AbstractReader<T>> readers, File directory) throws IllegalArgumentException {
+
+	public static <T> Set<T> readDirectory(List<AbstractReader<T>> readers, File directory)
+			throws IllegalArgumentException {
 		if (!directory.isDirectory())
 			throw new IllegalArgumentException("Not a directory: " + directory);
 
-		return Arrays.stream(directory.listFiles()).map(f -> read(readers,f)).collect(Collectors.toSet());
-	
+		return Arrays.stream(directory.listFiles()).map(f -> read(readers, f)).collect(Collectors.toSet());
+
 	}
-	
+
 	/**
-	 * This method is specifically introduced to handle multiple files in a resources folder enclosed within
-	 * the {@code jar} archive. A list of files is required to be included in the same location, which is 
-	 * scanned and each entry is added to a temporary list of names. A combination of these names with the 
-	 * relative {@code location} allows reading separate files and collating the result in a unique {@code Set}.
-	 * @param <T> a type recognised by the {@code reader}
-	 * @param reader the reader specifically targetted at {@code T} 
+	 * This method is specifically introduced to handle multiple files in a
+	 * resources folder enclosed within the {@code jar} archive. A list of files is
+	 * required to be included in the same location, which is scanned and each entry
+	 * is added to a temporary list of names. A combination of these names with the
+	 * relative {@code location} allows reading separate files and collating the
+	 * result in a unique {@code Set}.
+	 * 
+	 * @param <T>      a type recognised by the {@code reader}
+	 * @param reader   the reader specifically targetted at {@code T}
 	 * @param location the relative location of files
 	 * @param listName the name of the list-file
 	 * @return a unique {@code Set} of {@code T}
@@ -212,7 +219,7 @@ public class ReaderManager {
 
 		var stream = ReaderManager.class.getResourceAsStream(location + listName);
 		var names = new ArrayList<String>();
-		
+
 		try (Scanner s = new Scanner(stream)) {
 			while (s.hasNext())
 				names.add(s.next());

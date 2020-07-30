@@ -6,8 +6,8 @@ import java.util.List;
 import pulse.properties.NumericPropertyKeyword;
 
 /**
- * A wrapper subclass that assigns {@code NumericPropertyKeyword}s to specific components of the vector.
- * Used when constructing the optimisation vector.
+ * A wrapper subclass that assigns {@code NumericPropertyKeyword}s to specific
+ * components of the vector. Used when constructing the optimisation vector.
  */
 
 public class IndexedVector extends Vector {
@@ -37,12 +37,12 @@ public class IndexedVector extends Vector {
 		super(v);
 		this.indices = indices;
 	}
-	
+
 	private IndexedVector(final int n) {
 		super(n);
 		indices = new ArrayList<>(n);
 	}
-	
+
 	/**
 	 * Finds the component of this vector that corresponds to {@code index} and sets
 	 * its value to {@code x}
@@ -89,18 +89,19 @@ public class IndexedVector extends Vector {
 	public double get(NumericPropertyKeyword index) {
 		return super.get(indexOf(index));
 	}
-	
+
 	/**
 	 * Gets the full list of indices recognised by this {@code IndexedVector}.
+	 * 
 	 * @return the full list of {@code NumericPropertyKeyword} indices.
 	 */
 
 	public List<NumericPropertyKeyword> getIndices() {
 		return indices;
 	}
-	
+
 	private void assign(List<NumericPropertyKeyword> indices) {
 		this.indices.addAll(indices);
 	}
-	
+
 }

@@ -1,9 +1,9 @@
 package pulse.io.export;
 
 /**
- * Describes the available extensions for the exported files. Each extensions is 
- * associated with the inherent format. The subclasses of the {@code Exporter} class
- * are responsible for observing adherence to that format.
+ * Describes the available extensions for the exported files. Each extensions is
+ * associated with the inherent format. The subclasses of the {@code Exporter}
+ * class are responsible for observing adherence to that format.
  *
  */
 
@@ -25,7 +25,8 @@ public enum Extension {
 	CSV;
 
 	/**
-	 * This will return the lower-case string with the name of the extension (e.g., html or csv).
+	 * This will return the lower-case string with the name of the extension (e.g.,
+	 * html or csv).
 	 */
 
 	@Override

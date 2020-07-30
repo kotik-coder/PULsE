@@ -150,7 +150,7 @@ public class FormattedInputDialog extends JDialog {
 		getDefaultToolkit().beep();
 		inputTextField.selectAll();
 		Object[] options = { getString("SimpleInputFrame.Edit"), //$NON-NLS-1$
-        getString("SimpleInputFrame.Revert") }; //$NON-NLS-1$
+				getString("SimpleInputFrame.Revert") }; //$NON-NLS-1$
 		var answer = showOptionDialog(getWindowAncestor(inputTextField),
 				"The value must be a " + p.getValue().getClass().getSimpleName() + " between " //$NON-NLS-1$
 						+ numFormatter.getMinimum() + " and " //$NON-NLS-1$
@@ -158,7 +158,7 @@ public class FormattedInputDialog extends JDialog {
 						+ getString("SimpleInputFrame.MessageLine1") //$NON-NLS-1$
 						+ getString("SimpleInputFrame.MessageLine2"), //$NON-NLS-1$
 				"Invalid Text Entered", //$NON-NLS-1$
-        YES_NO_OPTION, ERROR_MESSAGE, null, options, options[1]);
+				YES_NO_OPTION, ERROR_MESSAGE, null, options, options[1]);
 
 		if (answer == 1) { // Revert!
 			inputTextField.setValue(inputTextField.getValue());

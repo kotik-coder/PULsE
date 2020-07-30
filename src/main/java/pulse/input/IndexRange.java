@@ -112,7 +112,7 @@ public class IndexRange {
 
 	public void set(List<Double> data, Range range) {
 		var segment = range.getSegment();
-		setLowerBound(data, Math.max(0.0, segment.getMinimum()) );
+		setLowerBound(data, Math.max(0.0, segment.getMinimum()));
 		setUpperBound(data, segment.getMaximum());
 	}
 

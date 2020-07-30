@@ -66,8 +66,7 @@ public class ResultFrame extends JInternalFrame {
 			@Override
 			public void onPreviewRequest() {
 				if (!resultTable.hasEnoughElements(1)) {
-					showMessageDialog(getWindowAncestor(resultTable),
-							getString("ResultsToolBar.NoDataError"),
+					showMessageDialog(getWindowAncestor(resultTable), getString("ResultsToolBar.NoDataError"),
 							getString("ResultsToolBar.NoResultsError"), ERROR_MESSAGE);
 				} else
 					notifyPreview();
@@ -87,27 +86,26 @@ public class ResultFrame extends JInternalFrame {
 			@Override
 			public void onExportRequest() {
 				if (!resultTable.hasEnoughElements(1)) {
-					showMessageDialog(getWindowAncestor(resultTable),
-							getString("ResultsToolBar.7"), getString("ResultsToolBar.8"), ERROR_MESSAGE);
+					showMessageDialog(getWindowAncestor(resultTable), getString("ResultsToolBar.7"),
+							getString("ResultsToolBar.8"), ERROR_MESSAGE);
 					return;
 				}
 
-				askToExport(resultTable, (JFrame) getWindowAncestor(resultTable),
-						"Calculation results");
+				askToExport(resultTable, (JFrame) getWindowAncestor(resultTable), "Calculation results");
 			}
 
 		});
 
 		resultTable.getSelectionModel().addListSelectionListener((ListSelectionEvent arg0) -> {
-                    resultToolbar.setDeleteEnabled(!resultTable.isSelectionEmpty());
-        });
+			resultToolbar.setDeleteEnabled(!resultTable.isSelectionEmpty());
+		});
 
 		resultTable.getModel().addTableModelListener((TableModelEvent arg0) -> {
-                    resultToolbar.setPreviewEnabled(resultTable.hasEnoughElements(3));
-                    resultToolbar.setMergeEnabled(resultTable.hasEnoughElements(2));
-                    resultToolbar.setExportEnabled(resultTable.hasEnoughElements(1));
-                    resultToolbar.setUndoEnabled(resultTable.hasEnoughElements(1));
-        });
+			resultToolbar.setPreviewEnabled(resultTable.hasEnoughElements(3));
+			resultToolbar.setMergeEnabled(resultTable.hasEnoughElements(2));
+			resultToolbar.setExportEnabled(resultTable.hasEnoughElements(1));
+			resultToolbar.setUndoEnabled(resultTable.hasEnoughElements(1));
+		});
 	}
 
 	public void notifyPreview() {

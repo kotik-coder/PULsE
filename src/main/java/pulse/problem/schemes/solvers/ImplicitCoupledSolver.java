@@ -88,7 +88,7 @@ public class ImplicitCoupledSolver extends ImplicitScheme implements Solver<Part
 		super.prepare(problem);
 
 		final var grid = getGrid();
-		
+
 		initRTE(problem, grid);
 
 		curve = problem.getHeatingCurve();
@@ -142,11 +142,11 @@ public class ImplicitCoupledSolver extends ImplicitScheme implements Solver<Part
 		var status = rte.compute(U);
 
 		for (i = 1; i < N; i++) {
-                    alpha[i + 1] = c / (b - a * alpha[i]);
-                }
+			alpha[i + 1] = c / (b - a * alpha[i]);
+		}
 
 		final var discretePulse = getDiscretePulse();
-		
+
 		// time cycle
 
 		for (w = 1; w < counts; w++) {
@@ -172,8 +172,8 @@ public class ImplicitCoupledSolver extends ImplicitScheme implements Solver<Part
 
 					V_0 = V[0];
 					for (j = N - 1; j >= 0; j--) {
-                                            V[j] = alpha[j + 1] * V[j + 1] + beta[j + 1];
-                                        }
+						V[j] = alpha[j + 1] * V[j + 1] + beta[j + 1];
+					}
 
 				}
 

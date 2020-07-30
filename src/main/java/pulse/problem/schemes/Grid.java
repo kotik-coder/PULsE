@@ -207,7 +207,8 @@ public class Grid extends PropertyHolder {
 
 	/**
 	 * The dimensionless time on this {@code Grid}, which is the
-	 * {@code time/dimensionFactor} rounded up to a factor of the time step {@code tau}.
+	 * {@code time/dimensionFactor} rounded up to a factor of the time step
+	 * {@code tau}.
 	 * 
 	 * @param time            the time
 	 * @param dimensionFactor a conversion factor with the dimension of time

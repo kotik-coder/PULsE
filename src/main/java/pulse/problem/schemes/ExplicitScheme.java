@@ -8,9 +8,9 @@ import static pulse.ui.Messages.getString;
 import pulse.properties.NumericProperty;
 
 /**
- * This class provides the necessary framework to enable a simple explicit finite-difference scheme (also
- * called the forward-time centred space scheme) for solving the
- * one-dimensional heat conduction problem.
+ * This class provides the necessary framework to enable a simple explicit
+ * finite-difference scheme (also called the forward-time centred space scheme)
+ * for solving the one-dimensional heat conduction problem.
  * 
  * @see pulse.problem.statements.LinearisedProblem
  * @see pulse.problem.statements.NonlinearProblem
@@ -25,7 +25,7 @@ public abstract class ExplicitScheme extends DifferenceScheme {
 	 */
 
 	public ExplicitScheme() {
-		this(derive(GRID_DENSITY, 80), derive(TAU_FACTOR, 0.5) );
+		this(derive(GRID_DENSITY, 80), derive(TAU_FACTOR, 0.5));
 	}
 
 	/**
@@ -63,9 +63,10 @@ public abstract class ExplicitScheme extends DifferenceScheme {
 		super(timeLimit);
 		setGrid(new Grid(N, timeFactor));
 	}
-	
+
 	/**
 	 * Prints out the description of this problem type.
+	 * 
 	 * @return a verbose description of the problem.
 	 */
 

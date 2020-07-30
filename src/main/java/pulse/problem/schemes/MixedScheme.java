@@ -8,8 +8,8 @@ import static pulse.ui.Messages.getString;
 import pulse.properties.NumericProperty;
 
 /**
- * An abstraction describing a weighted semi-implicit finite-difference scheme for solving the
- * one-dimensional heat conduction problem.
+ * An abstraction describing a weighted semi-implicit finite-difference scheme
+ * for solving the one-dimensional heat conduction problem.
  * 
  * @see pulse.problem.statements.LinearisedProblem
  * @see pulse.problem.statements.NonlinearProblem
@@ -24,7 +24,7 @@ public abstract class MixedScheme extends DifferenceScheme {
 	 */
 
 	public MixedScheme() {
-		this( derive(GRID_DENSITY, 30), derive(TAU_FACTOR, 1.0) );
+		this(derive(GRID_DENSITY, 30), derive(TAU_FACTOR, 1.0));
 	}
 
 	/**
@@ -62,9 +62,10 @@ public abstract class MixedScheme extends DifferenceScheme {
 		super(timeLimit);
 		setGrid(new Grid(N, timeFactor));
 	}
-	
+
 	/**
 	 * Prints out the description of this problem type.
+	 * 
 	 * @return a verbose description of the problem.
 	 */
 

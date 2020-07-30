@@ -232,19 +232,19 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
 	public String formattedOutput() {
 		return formattedValueAndError(true);
 	}
-	
+
 	public String valueOutput() {
-		return numberFormat(true).format( valueInCurrentUnits() );
+		return numberFormat(true).format(valueInCurrentUnits());
 	}
-	
+
 	public String errorOutput() {
-		return numberFormat(true).format( errorInCurrentUnits() );
+		return numberFormat(true).format(errorInCurrentUnits());
 	}
-	
+
 	public Number valueInCurrentUnits() {
 		return value instanceof Double ? (double) value * dimensionFactor.doubleValue() : (int) value;
 	}
-	
+
 	public double errorInCurrentUnits() {
 		return error == null ? 0.0 : (double) error * dimensionFactor.doubleValue();
 	}
@@ -486,8 +486,8 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
 		return true;
 
 	}
-	
-	public static void requireType(NumericProperty property, NumericPropertyKeyword type) { 
+
+	public static void requireType(NumericProperty property, NumericPropertyKeyword type) {
 		if (property.getType() != type)
 			throw new IllegalArgumentException("Illegal type: " + property.getType());
 	}

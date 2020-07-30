@@ -351,12 +351,13 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
 
 	/**
 	 * Calculates the vector argument defined on <math><b>R</b><sup>n</sup></math>
-	 * to the scalar objective function for this {@code Problem}.
-	 * To fill the vector with data, only those parameters from this
-	 * {@code Problem} will be used which are defined by the {@code flags}, e.g. if
-	 * the flag associated with the {@code HEAT_LOSS} keyword is set to false, its
-	 * value will be skipped when creating the vector.
+	 * to the scalar objective function for this {@code Problem}. To fill the vector
+	 * with data, only those parameters from this {@code Problem} will be used which
+	 * are defined by the {@code flags}, e.g. if the flag associated with the
+	 * {@code HEAT_LOSS} keyword is set to false, its value will be skipped when
+	 * creating the vector.
 	 * </p>
+	 * 
 	 * @see listedTypes()
 	 */
 
@@ -649,7 +650,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
 
 	public void setBaseline(Baseline baseline) {
 		this.baseline = baseline;
-		if(! curve.isIncomplete() )
+		if (!curve.isIncomplete())
 			curve.apply(baseline);
 		baseline.setParent(this);
 	}

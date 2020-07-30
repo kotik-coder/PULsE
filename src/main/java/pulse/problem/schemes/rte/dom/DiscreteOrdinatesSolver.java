@@ -97,8 +97,8 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 			fluxesAndDerivatives(tempArray.length);
 
 		for (RTECalculationListener l : getRTEListeners()) {
-                    l.onStatusUpdate(status);
-                }
+			l.onStatusUpdate(status);
+		}
 
 		return status;
 	}

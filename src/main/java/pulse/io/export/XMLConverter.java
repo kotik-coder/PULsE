@@ -110,9 +110,9 @@ public class XMLConverter {
 
 			modifiers = field.getModifiers();
 
-			//filter only public final static NumericProperties
-			if ( (Modifier.isPublic(modifiers) && Modifier.isStatic(modifiers) && Modifier.isFinal(modifiers)) &&
-					field.getType().equals(NumericProperty.class) ) {
+			// filter only public final static NumericProperties
+			if ((Modifier.isPublic(modifiers) && Modifier.isStatic(modifiers) && Modifier.isFinal(modifiers))
+					&& field.getType().equals(NumericProperty.class)) {
 
 				NumericProperty value = null;
 				try {
@@ -146,9 +146,12 @@ public class XMLConverter {
 	}
 
 	/**
-	 * Utility method used to read {@code NumericProperty} constants from {@code xml} files.
+	 * Utility method used to read {@code NumericProperty} constants from
+	 * {@code xml} files.
+	 * 
 	 * @param inputStream the input stream used to read data from.
-	 * @return a list of {@code NumericProperty} objects with their attributes specified in the {@code xml} file. 
+	 * @return a list of {@code NumericProperty} objects with their attributes
+	 *         specified in the {@code xml} file.
 	 */
 
 	public static List<NumericProperty> readXML(InputStream inputStream)
@@ -175,7 +178,7 @@ public class XMLConverter {
 				String abbreviation = eElement.getAttribute("abbreviation");
 
 				Number value, minimum, maximum, dimensionFactor;
-				
+
 				if (eElement.getAttribute("primitive-type").equalsIgnoreCase("double")) {
 					value = Double.valueOf(eElement.getAttribute("value"));
 					minimum = Double.valueOf(eElement.getAttribute("minimum"));

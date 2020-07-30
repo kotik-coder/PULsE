@@ -8,10 +8,15 @@ import static pulse.properties.NumericPropertyKeyword.LAGUERRE_SOLVER_ERROR;
 import org.apache.commons.math3.analysis.solvers.LaguerreSolver;
 
 /**
- * A utility class represents the Legendre polynomial of a given order. <p>May be useful in some applications,
- * particularly, for calculating the ordinate sets in the discrete ordinates method. Allows calculating its 
- * coefficients, the value of the polynomial and its derivative at a given point, and the roots of the 
- * polynomial (with the help of a {@code LaguerreSolver}.</p>
+ * A utility class represents the Legendre polynomial of a given order.
+ * <p>
+ * May be useful in some applications, particularly, for calculating the
+ * ordinate sets in the discrete ordinates method. Allows calculating its
+ * coefficients, the value of the polynomial and its derivative at a given
+ * point, and the roots of the polynomial (with the help of a
+ * {@code LaguerreSolver}.
+ * </p>
+ * 
  * @see org.apache.commons.math3.analysis.solvers.LaguerreSolver
  *
  */
@@ -22,13 +27,14 @@ public class LegendrePoly {
 	private int n;
 
 	private LaguerreSolver solver;
-	
+
 	/**
-	 * Creates a Legendre polynomial of the order {@code n}. The coefficients of the 
+	 * Creates a Legendre polynomial of the order {@code n}. The coefficients of the
 	 * polynomial are immediately calculated.
+	 * 
 	 * @param n the order of the polynomial.
 	 */
-	
+
 	public LegendrePoly(final int n) {
 		this.n = n;
 		c = new double[n + 1];
@@ -36,7 +42,7 @@ public class LegendrePoly {
 		solver = new LaguerreSolver(solverError);
 		coefficients();
 	}
-	
+
 	/**
 	 * Fast calculation of binomial coefficient C<sub>m</sub><sup>k</sup> =
 	 * m!/(k!(m-k)!)
@@ -64,7 +70,7 @@ public class LegendrePoly {
 	/**
 	 * Calculates the generalised binomial coefficient.
 	 * 
-	 * @param k integer.
+	 * @param k     integer.
 	 * @param alpha a double value
 	 * @return the generalised binomial coefficient C<sub>&alpha;</sub><sup>k</sup>.
 	 */
@@ -83,8 +89,8 @@ public class LegendrePoly {
 
 	/**
 	 * This will generate the coefficients for the Legendre polynomial, arranged in
-	 * order of significance (from x<sup>0</sup> to x<sup>n</sup>). The coeffients will
-	 * then be stored in a double array for further use.
+	 * order of significance (from x<sup>0</sup> to x<sup>n</sup>). The coeffients
+	 * will then be stored in a double array for further use.
 	 */
 
 	public void coefficients() {
@@ -96,10 +102,11 @@ public class LegendrePoly {
 		}
 
 	}
-	
+
 	/**
-	 * Calculates the derivative of this Legendre polynomial. The coefficients 
-	 * are assumed to be known.
+	 * Calculates the derivative of this Legendre polynomial. The coefficients are
+	 * assumed to be known.
+	 * 
 	 * @param x a real value.
 	 * @return the derivative at {@code x}.
 	 */
@@ -114,7 +121,7 @@ public class LegendrePoly {
 		return d;
 
 	}
-	
+
 	/**
 	 * @return the order of this polynomial.
 	 */
@@ -122,9 +129,10 @@ public class LegendrePoly {
 	public int getOrder() {
 		return n;
 	}
-	
+
 	/**
 	 * Calculates the value of this Legendre polynomial at {@code x}
+	 * 
 	 * @param x a real value.
 	 * @return the value of the Legendre polynomial at {@code x}.
 	 */
@@ -139,10 +147,11 @@ public class LegendrePoly {
 		return poly;
 
 	}
-	
+
 	/**
-	 * Uses a {@code LaguerreSolver} to calculate the roots of this polynomial.
-	 * All coefficients are assumed to be known.
+	 * Uses a {@code LaguerreSolver} to calculate the roots of this polynomial. All
+	 * coefficients are assumed to be known.
+	 * 
 	 * @return the real roots of the Legendre polynomial.
 	 */
 

@@ -163,8 +163,7 @@ public class SearchTask extends Accessible implements Runnable {
 	}
 
 	public List<NumericProperty> alteredParameters() {
-		return activeParameters(this).stream().map(key -> this.numericProperty(key))
-				.collect(Collectors.toList());
+		return activeParameters(this).stream().map(key -> this.numericProperty(key)).collect(Collectors.toList());
 	}
 
 	/**
@@ -226,16 +225,14 @@ public class SearchTask extends Accessible implements Runnable {
 
 		if (cpCurve != null) {
 			cp = cpCurve.interpolateAt(testTemperature);
-			problem.set(NumericPropertyKeyword.SPECIFIC_HEAT, 
-                                derive(NumericPropertyKeyword.SPECIFIC_HEAT, cp));
+			problem.set(NumericPropertyKeyword.SPECIFIC_HEAT, derive(NumericPropertyKeyword.SPECIFIC_HEAT, cp));
 		}
 
 		var rhoCurve = getDataset(StandardType.DENSITY);
 
 		if (rhoCurve != null) {
 			rho = rhoCurve.interpolateAt(testTemperature);
-			problem.set(NumericPropertyKeyword.DENSITY, 
-                                derive(NumericPropertyKeyword.DENSITY, rho));
+			problem.set(NumericPropertyKeyword.DENSITY, derive(NumericPropertyKeyword.DENSITY, rho));
 		}
 
 	}
@@ -292,7 +289,7 @@ public class SearchTask extends Accessible implements Runnable {
 
 		/* preparatory steps */
 
-		getProblem().parameterListChanged(); //get updated list of parameters
+		getProblem().parameterListChanged(); // get updated list of parameters
 		solveProblemAndCalculateDeviation();
 
 		var pathSolver = getSelectedPathOptimiser();
@@ -357,7 +354,7 @@ public class SearchTask extends Accessible implements Runnable {
 		else {
 
 			var test = correlationBuffer.test(correlationTest); // second, check there are no unexpected
-																	// correlations
+																// correlations
 			notifyDataListeners(new CorrelationLogEntry(this));
 
 			if (test)
@@ -445,15 +442,15 @@ public class SearchTask extends Accessible implements Runnable {
 		problem.retrieveData(curve);
 
 		problem.addListener((PropertyEvent event) -> {
-                    if (event.getSource() instanceof Metadata) {
-                        problem.estimateSignalRange(curve);
-                        problem.useTheoreticalEstimates(curve);
-                    } else if (event.getSource() instanceof InterpolationDataset) {
-                        problem.useTheoreticalEstimates(curve);
-                    } else if (event.getSource() instanceof PropertyHolderTable) {
-                        problem.estimateSignalRange(curve);
-                    }
-        });
+			if (event.getSource() instanceof Metadata) {
+				problem.estimateSignalRange(curve);
+				problem.useTheoreticalEstimates(curve);
+			} else if (event.getSource() instanceof InterpolationDataset) {
+				problem.useTheoreticalEstimates(curve);
+			} else if (event.getSource() instanceof PropertyHolderTable) {
+				problem.estimateSignalRange(curve);
+			}
+		});
 
 		problem.getHeatingCurve().addDataListener(dataEvent -> {
 
@@ -603,14 +600,14 @@ public class SearchTask extends Accessible implements Runnable {
 
 	private void notifyDataListeners(LogEntry e) {
 		for (var l : listeners) {
-                    l.onDataCollected(e);
-                }
+			l.onDataCollected(e);
+		}
 	}
 
 	private void notifyStatusListeners(StateEntry e) {
 		for (var l : statusChangeListeners) {
-                    l.onStatusChange(e);
-                }
+			l.onStatusChange(e);
+		}
 	}
 
 	@Override
@@ -684,8 +681,7 @@ public class SearchTask extends Accessible implements Runnable {
 	}
 
 	public void initNormalityTest() {
-		normalityTest = instantiate(NormalityTest.class, 
-                        NormalityTest.getSelectedTestDescriptor());
+		normalityTest = instantiate(NormalityTest.class, NormalityTest.getSelectedTestDescriptor());
 
 		if (normalityTest instanceof RSquaredTest && rs instanceof SumOfSquares)
 			((RSquaredTest) normalityTest).setSumOfSquares((SumOfSquares) rs);
@@ -699,8 +695,7 @@ public class SearchTask extends Accessible implements Runnable {
 	}
 
 	public void initCorrelationTest() {
-		correlationTest = instantiate(CorrelationTest.class, 
-                        CorrelationTest.getSelectedTestDescriptor());
+		correlationTest = instantiate(CorrelationTest.class, CorrelationTest.getSelectedTestDescriptor());
 		correlationTest.setParent(this);
 	}
 

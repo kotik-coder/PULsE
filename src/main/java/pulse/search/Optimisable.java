@@ -6,9 +6,9 @@ import pulse.math.IndexedVector;
 import pulse.properties.Flag;
 
 /**
- * An interface for dealing with optimisation variables.
- * The variables are collected in {@code IndexedVector}s according 
- * to the pattern set up by a list of {@code Flag}s.
+ * An interface for dealing with optimisation variables. The variables are
+ * collected in {@code IndexedVector}s according to the pattern set up by a list
+ * of {@code Flag}s.
  */
 
 public interface Optimisable {

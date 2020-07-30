@@ -25,20 +25,21 @@ public class Grid2D extends Grid {
 	protected Grid2D() {
 		super();
 	}
-	
+
 	/**
-	 * Creates a {@code Grid2D} where the radial and axial spatial steps are 
-	 * equal to the inverse {@code gridDensity}. Otherwise, calls the superclass
+	 * Creates a {@code Grid2D} where the radial and axial spatial steps are equal
+	 * to the inverse {@code gridDensity}. Otherwise, calls the superclass
 	 * constructor.
+	 * 
 	 * @param gridDensity the grid density
-	 * @param timeFactor the {@code &tau;<sub>F</sub>} factor
+	 * @param timeFactor  the {@code &tau;<sub>F</sub>} factor
 	 */
 
 	public Grid2D(NumericProperty gridDensity, NumericProperty timeFactor) {
 		super(gridDensity, timeFactor);
 		hy = 1.0 / getGridDensityValue();
 	}
-	
+
 	@Override
 	public Grid2D copy() {
 		return new Grid2D(getGridDensity(), getTimeFactor());
@@ -47,9 +48,9 @@ public class Grid2D extends Grid {
 	@Override
 	public void setTimeFactor(NumericProperty timeFactor) {
 		super.setTimeFactor(timeFactor);
-		setTimeStep( (double) timeFactor.getValue() * (pow(getXStep(), 2) + pow(hy, 2)) );
+		setTimeStep((double) timeFactor.getValue() * (pow(getXStep(), 2) + pow(hy, 2)));
 	}
-	
+
 	/**
 	 * Calls the {@code adjustTo} method from superclass, then adjusts the
 	 * {@code gridDensity} of the {@code grid} if
@@ -61,22 +62,22 @@ public class Grid2D extends Grid {
 	@Override
 	public void adjustTo(DiscretePulse pulse) {
 		super.adjustTo(pulse);
-		if(pulse instanceof DiscretePulse2D)
-			adjustTo((DiscretePulse2D)pulse);
+		if (pulse instanceof DiscretePulse2D)
+			adjustTo((DiscretePulse2D) pulse);
 	}
 
 	private void adjustTo(DiscretePulse2D pulse) {
 		final int GRID_DENSITY_INCREMENT = 5;
-		
+
 		for (final var factor = 1.05; factor * hy > pulse.getDiscretePulseSpot(); pulse.recalculate()) {
 			int N = getGridDensityValue();
-			setGridDensityValue( N + GRID_DENSITY_INCREMENT );
+			setGridDensityValue(N + GRID_DENSITY_INCREMENT);
 			hy = 1. / N;
-			setXStep( 1. / N );
+			setXStep(1. / N);
 		}
-		
+
 	}
-	
+
 	/**
 	 * Sets the value of the {@code gridDensity}. Automatically recalculates the
 	 * {@code hx} an {@code hy} values.

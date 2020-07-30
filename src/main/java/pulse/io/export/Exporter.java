@@ -56,7 +56,8 @@ public interface Exporter<T extends Descriptive> extends Reflexive {
 	 * @param target    a {@code Descriptive} target
 	 * @param extension the file extension. If it is not supported, the exporter
 	 *                  will revert to its default extension
-	 * @throws IllegalArgumentException if {@code directory} is not really a directory
+	 * @throws IllegalArgumentException if {@code directory} is not really a
+	 *                                  directory
 	 * @see printToStream
 	 */
 
@@ -64,7 +65,7 @@ public interface Exporter<T extends Descriptive> extends Reflexive {
 
 		if (!directory.isDirectory())
 			throw new IllegalArgumentException("Not a directory: " + directory);
-		
+
 		var supportedExtension = extension;
 
 		if (!Arrays.stream(getSupportedExtensions()).anyMatch(extension::equals))
@@ -86,8 +87,8 @@ public interface Exporter<T extends Descriptive> extends Reflexive {
 
 	/**
 	 * Provides a {@code JFileChooser} for the user to select the export destination
-	 * for {@code target}. The name of the file and its extension come from the selection the user makes by
-	 * interacting with the dialog.
+	 * for {@code target}. The name of the file and its extension come from the
+	 * selection the user makes by interacting with the dialog.
 	 * 
 	 * @param target        the exported target
 	 * @param parentWindow  the parent frame.
@@ -130,9 +131,11 @@ public interface Exporter<T extends Descriptive> extends Reflexive {
 			}
 		}
 	}
-	
+
 	/**
-	 * Defines the class, instances of which can be fed into the exporter to produce a result. 
+	 * Defines the class, instances of which can be fed into the exporter to produce
+	 * a result.
+	 * 
 	 * @return a class implementing the {@code Descriptive} interface.
 	 */
 
@@ -140,10 +143,10 @@ public interface Exporter<T extends Descriptive> extends Reflexive {
 
 	/**
 	 * The interface method is implemented by the subclasses to define the
-	 * exportable content in detail. Depending on the supported extensions, this 
+	 * exportable content in detail. Depending on the supported extensions, this
 	 * will typically involve a switch statement that will invoke private methods
-	 * defined in the subclass handling the different choices. The stream {@code fos}
-	 * is usually closed implicitly in a try-with-resource clause.
+	 * defined in the subclass handling the different choices. The stream
+	 * {@code fos} is usually closed implicitly in a try-with-resource clause.
 	 * 
 	 * @param target    the exported target
 	 * @param fos       a FileOutputStream created by the {@code export} method

@@ -8,26 +8,27 @@ import static pulse.ui.Messages.getString;
 import pulse.properties.NumericProperty;
 
 /**
- * An {@code ADIScheme} uses a {@code Grid2D} to provide numerical capabilities 
- * needed to solve a {@code Problem}. 
+ * An {@code ADIScheme} uses a {@code Grid2D} to provide numerical capabilities
+ * needed to solve a {@code Problem}.
  *
  */
 
 public abstract class ADIScheme extends DifferenceScheme {
-	
+
 	/**
-	 * Creates a new {@code ADIScheme} with default values of grid density and time factor.
+	 * Creates a new {@code ADIScheme} with default values of grid density and time
+	 * factor.
 	 */
-	
+
 	public ADIScheme() {
-		this(derive(GRID_DENSITY, 30), 
-				derive(TAU_FACTOR, 1.0));
+		this(derive(GRID_DENSITY, 30), derive(TAU_FACTOR, 1.0));
 	}
-	
+
 	/**
-	 * Creates an {@code ADIScheme} with the specified arguments. This creates 
-	 * an associated {@code Grid2D} object.
-	 * @param N the grid density
+	 * Creates an {@code ADIScheme} with the specified arguments. This creates an
+	 * associated {@code Grid2D} object.
+	 * 
+	 * @param N          the grid density
 	 * @param timeFactor the time factor (&tau;<sub>F</sub>)
 	 */
 
@@ -35,22 +36,24 @@ public abstract class ADIScheme extends DifferenceScheme {
 		super();
 		setGrid(new Grid2D(N, timeFactor));
 	}
-	
+
 	/**
-	 * Creates an {@code ADIScheme} with the specified arguments. This creates 
-	 * an associated {@code Grid2D} object.
-	 * @param N the grid density
+	 * Creates an {@code ADIScheme} with the specified arguments. This creates an
+	 * associated {@code Grid2D} object.
+	 * 
+	 * @param N          the grid density
 	 * @param timeFactor the time factor (&tau;<sub>F</sub>)
-	 * @param timeLimit a custom time limit (<i>t</i><sub>lim</sub>)
+	 * @param timeLimit  a custom time limit (<i>t</i><sub>lim</sub>)
 	 */
 
 	public ADIScheme(NumericProperty N, NumericProperty timeFactor, NumericProperty timeLimit) {
 		super(timeLimit);
 		setGrid(new Grid2D(N, timeFactor));
 	}
-	
+
 	/**
 	 * Prints out the description of this problem type.
+	 * 
 	 * @return a verbose description of the problem.
 	 */
 

@@ -15,19 +15,19 @@ import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 
 /**
- * A linear {@code Baseline} which specifies the {@code intercept} and {@code slope} parameters.
+ * A linear {@code Baseline} which specifies the {@code intercept} and
+ * {@code slope} parameters.
  * <p>
  * The mathematical equivalent is the following expression:
- * {@code g(x) = intercept + slope * x}. The
- * {@code NumericPropertyKeyword} associated with the {@code intercept} and
- * {@code slope} parameters can be used as fitting variables.
+ * {@code g(x) = intercept + slope * x}. The {@code NumericPropertyKeyword}
+ * associated with the {@code intercept} and {@code slope} parameters can be
+ * used as fitting variables.
  * </p>
  * 
  * @see pulse.HeatingCurve
  * @see pulse.tasks.SearchTask
  * @see pulse.math.IndexedVector
  */
-
 
 public class LinearBaseline extends FlatBaseline {
 
@@ -131,19 +131,18 @@ public class LinearBaseline extends FlatBaseline {
 		}
 
 	}
-	
+
 	@Override
 	public void optimisationVector(IndexedVector[] output, List<Flag> flags) {
 		super.optimisationVector(output, flags);
-		
+
 		for (int i = 0, size = output[0].dimension(); i < size; i++) {
 
-			if(output[0].getIndex(i) == BASELINE_SLOPE) {
+			if (output[0].getIndex(i) == BASELINE_SLOPE) {
 				output[0].set(i, slope);
 				output[1].set(i, 1000);
 			}
-			
-			
+
 		}
 
 	}
@@ -161,20 +160,21 @@ public class LinearBaseline extends FlatBaseline {
 	@Override
 	public void assign(IndexedVector params) {
 		super.assign(params);
-		
+
 		for (int i = 0, size = params.dimension(); i < size; i++) {
 
-			if(params.getIndex(i) == BASELINE_SLOPE) 
+			if (params.getIndex(i) == BASELINE_SLOPE)
 				setSlope(derive(BASELINE_SLOPE, params.get(i)));
-			
+
 		}
 
 	}
-	
+
 	/**
-	 * @return a list containing {@code BASELINE_INTERCEPT} and {@code BASELINE_SLOPE} properties
+	 * @return a list containing {@code BASELINE_INTERCEPT} and
+	 *         {@code BASELINE_SLOPE} properties
 	 */
-	
+
 	@Override
 	public List<Property> listedTypes() {
 		var list = super.listedTypes();

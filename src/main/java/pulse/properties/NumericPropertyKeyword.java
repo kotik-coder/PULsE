@@ -149,23 +149,23 @@ public enum NumericPropertyKeyword {
 	 */
 
 	BASELINE_SLOPE,
-	
+
 	/**
 	 * Frequency of the sinusoidal baseline.
 	 */
-	
+
 	BASELINE_FREQUENCY,
-	
+
 	/**
 	 * Phase shift of the sinusoidal baseline.
 	 */
-	
+
 	BASELINE_PHASE_SHIFT,
-	
+
 	/**
 	 * Amplitude of the sinusoidal baseline.
 	 */
-	
+
 	BASELINE_AMPLITUDE,
 
 	/**
@@ -303,20 +303,19 @@ public enum NumericPropertyKeyword {
 	RTE_MAX_ITERATIONS,
 
 	RTE_INTEGRATION_TIMEOUT,
-	
+
 	TRAPEZOIDAL_RISE_PERCENTAGE,
-	
+
 	TRAPEZOIDAL_FALL_PERCENTAGE,
-	
+
 	SKEW_MU,
-	
+
 	SKEW_SIGMA,
-	
+
 	SKEW_LAMBDA;
-	
+
 	public static Optional<NumericPropertyKeyword> findAny(String key) {
-		return Arrays.asList( values() ).stream().
-		filter(keys -> keys.toString().equalsIgnoreCase(key) ).findAny();
+		return Arrays.asList(values()).stream().filter(keys -> keys.toString().equalsIgnoreCase(key)).findAny();
 	}
-	
+
 }

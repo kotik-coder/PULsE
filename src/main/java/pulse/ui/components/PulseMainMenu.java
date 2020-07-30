@@ -69,8 +69,7 @@ public class PulseMainMenu extends JMenuBar {
 	private static JMenuItem modelSettingsItem;
 
 	private static ExportDialog exportDialog = new ExportDialog();
-	private static FormattedInputDialog bufferDialog = new FormattedInputDialog(
-			theDefault(BUFFER_SIZE));
+	private static FormattedInputDialog bufferDialog = new FormattedInputDialog(theDefault(BUFFER_SIZE));
 
 	private static File dir;
 
@@ -103,8 +102,7 @@ public class PulseMainMenu extends JMenuBar {
 			var selectedTask = getSelectedTask();
 
 			if (selectedTask == null) {
-				showMessageDialog(getWindowAncestor(this), "No data to export!",
-						"No Data to Export", WARNING_MESSAGE);
+				showMessageDialog(getWindowAncestor(this), "No data to export!", "No Data to Export", WARNING_MESSAGE);
 				return;
 			}
 
@@ -212,10 +210,10 @@ public class PulseMainMenu extends JMenuBar {
 			});
 		}
 
-		var significanceDialog = new FormattedInputDialog(
-				theDefault(SIGNIFICANCE));
+		var significanceDialog = new FormattedInputDialog(theDefault(SIGNIFICANCE));
 
-		significanceDialog.setConfirmAction(() -> setStatisticalSignificance(derive(SIGNIFICANCE, significanceDialog.value())));
+		significanceDialog
+				.setConfirmAction(() -> setStatisticalSignificance(derive(SIGNIFICANCE, significanceDialog.value())));
 
 		var sigItem = new JMenuItem("Change significance...");
 		statisticsSubMenu.add(new JSeparator());
@@ -277,8 +275,7 @@ public class PulseMainMenu extends JMenuBar {
 			});
 		}
 
-		var thresholdDialog = new FormattedInputDialog(
-				theDefault(CORRELATION_THRESHOLD));
+		var thresholdDialog = new FormattedInputDialog(theDefault(CORRELATION_THRESHOLD));
 
 		thresholdDialog.setConfirmAction(() -> setThreshold(derive(CORRELATION_THRESHOLD, thresholdDialog.value())));
 
@@ -313,16 +310,16 @@ public class PulseMainMenu extends JMenuBar {
 		});
 
 		addTaskRepositoryListener((TaskRepositoryEvent e) -> {
-            if (getTaskList().size() > 0) {
-                loadMetadataItem.setEnabled(true);
-                modelSettingsItem.setEnabled(true);
-                searchSettingsItem.setEnabled(true);
-            } else {
-                loadMetadataItem.setEnabled(false);
-                modelSettingsItem.setEnabled(false);
-                searchSettingsItem.setEnabled(false);
-            }
-        });
+			if (getTaskList().size() > 0) {
+				loadMetadataItem.setEnabled(true);
+				modelSettingsItem.setEnabled(true);
+				searchSettingsItem.setEnabled(true);
+			} else {
+				loadMetadataItem.setEnabled(false);
+				modelSettingsItem.setEnabled(false);
+				searchSettingsItem.setEnabled(false);
+			}
+		});
 
 		exportAllItem.setEnabled(true);
 		exportAllItem.addActionListener(e -> {

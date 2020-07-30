@@ -75,7 +75,7 @@ public class NonlinearProblem extends Problem {
 	public double maximumHeating() {
 		double Q = (double) pulse.getLaserEnergy().getValue();
 		double dLas = (double) ((Pulse2D) pulse).getSpotDiameter().getValue();
-	
+
 		return 4.0 * emissivity * Q / (Math.PI * dLas * dLas * l * cP * rho);
 	}
 
@@ -105,7 +105,7 @@ public class NonlinearProblem extends Problem {
 		Bi2 = Bi1;
 	}
 
-        @Override
+	@Override
 	public void optimisationVector(IndexedVector[] output, List<Flag> flags) {
 		super.optimisationVector(output, flags);
 		int size = output[0].dimension();
@@ -135,7 +135,7 @@ public class NonlinearProblem extends Problem {
 	 * @see listedTypes()
 	 */
 
-        @Override
+	@Override
 	public void assign(IndexedVector params) {
 		super.assign(params);
 

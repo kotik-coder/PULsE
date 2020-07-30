@@ -58,10 +58,10 @@ public class DiscreteIntensities extends PropertyHolder {
 
 	public void clear() {
 		for (int i = 0, j = 0, N = grid.getDensity() + 1, n = ordinates.total; i < n; i++) {
-                    for (j = 0; j < N; j++) {
-                        I[j][i] = 0;
-                    }
-                }
+			for (j = 0; j < N; j++) {
+				I[j][i] = 0;
+			}
+		}
 		clearBoundaryFluxes();
 	}
 
@@ -137,8 +137,8 @@ public class DiscreteIntensities extends PropertyHolder {
 		final int nStart = ordinates.getFirstPositiveNode();
 
 		for (int i = nStart; i < nHalf; i++) {
-                    integral += ordinates.w[i] * (I[j][i] + I[j][i + nHalf]);
-                }
+			integral += ordinates.w[i] * (I[j][i] + I[j][i + nHalf]);
+		}
 
 		if (ordinates.hasZeroNode())
 			integral += ordinates.w[0] * I[j][0];
@@ -159,8 +159,8 @@ public class DiscreteIntensities extends PropertyHolder {
 		double integral = 0;
 
 		for (int i = startInclusive; i < endExclusive; i++) {
-                    integral += ordinates.w[i] * I[j][i];
-                }
+			integral += ordinates.w[i] * I[j][i];
+		}
 
 		return integral;
 
@@ -173,8 +173,8 @@ public class DiscreteIntensities extends PropertyHolder {
 		final int nStart = ordinates.getFirstPositiveNode();
 
 		for (int i = nStart; i < nHalf; i++) {
-                    integral += ordinates.w[i] * (Iext[j][i] - Iext[j][i + nHalf]) * ordinates.mu[i];
-                }
+			integral += ordinates.w[i] * (Iext[j][i] - Iext[j][i + nHalf]) * ordinates.mu[i];
+		}
 
 		return integral;
 	}
@@ -187,8 +187,8 @@ public class DiscreteIntensities extends PropertyHolder {
 		double integral = 0;
 
 		for (int i = startInclusive; i < endExclusive; i++) {
-                    integral += ordinates.w[i] * I[j][i] * ordinates.mu[i];
-                }
+			integral += ordinates.w[i] * I[j][i] * ordinates.mu[i];
+		}
 
 		return integral;
 	}
@@ -219,22 +219,23 @@ public class DiscreteIntensities extends PropertyHolder {
 		final int nStart = ordinates.getFirstPositiveNode();
 
 		for (int i = nStart; i < nHalf; i++) {
-                    // for positive streams
-                    I[0][i] = ef.radianceAt(0.0) - boundaryFluxFactor * qLeft(ef);
-                }
+			// for positive streams
+			I[0][i] = ef.radianceAt(0.0) - boundaryFluxFactor * qLeft(ef);
+		}
 
 	}
 
 	public double qLeft(final BlackbodySpectrum emissionFunction) {
 		final int nHalf = ordinates.getFirstNegativeNode();
-		return qLeft = emissivity * (Math.PI * emissionFunction.radianceAt(0.0) + DOUBLE_PI * q(0, nHalf, ordinates.total));
+		return qLeft = emissivity
+				* (Math.PI * emissionFunction.radianceAt(0.0) + DOUBLE_PI * q(0, nHalf, ordinates.total));
 	}
 
 	public double qRight(final BlackbodySpectrum emissionFunction) {
 		final int nHalf = ordinates.getFirstNegativeNode();
 		final int nStart = ordinates.getFirstPositiveNode();
-		return qRight = -emissivity
-				* (Math.PI * emissionFunction.radianceAt(grid.getDimension()) - DOUBLE_PI * q(grid.getDensity(), nStart, nHalf));
+		return qRight = -emissivity * (Math.PI * emissionFunction.radianceAt(grid.getDimension())
+				- DOUBLE_PI * q(grid.getDensity(), nStart, nHalf));
 	}
 
 	public void reinitInternalArrays() {
@@ -255,9 +256,9 @@ public class DiscreteIntensities extends PropertyHolder {
 		final int nHalf = ordinates.getFirstNegativeNode();
 
 		for (int i = nHalf; i < ordinates.total; i++) {
-                    // for negative streams
-                    I[N][i] = ef.radianceAt(grid.getDimension()) + boundaryFluxFactor * qRight(ef);
-                }
+			// for negative streams
+			I[N][i] = ef.radianceAt(grid.getDimension()) + boundaryFluxFactor * qRight(ef);
+		}
 
 	}
 

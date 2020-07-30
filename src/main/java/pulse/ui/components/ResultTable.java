@@ -82,23 +82,23 @@ public class ResultTable extends JTable implements Descriptive {
 		 */
 
 		addSelectionListener((TaskSelectionEvent e) -> {
-            var id = e.getSelection().getIdentifier();
-            getSelectionModel().clearSelection();
-            var results = ((ResultTableModel) getModel()).getResults();
-            var jj = 0;
-            for (var r : results) {
-                if (!(r instanceof Result))
-                    continue;
-                var rid = r.identify();
-                if (!rid.equals(id))
-                    continue;
-                jj = convertRowIndexToView(results.indexOf(r));
-                if (jj < -1)
-                    continue;
-                getSelectionModel().addSelectionInterval(jj, jj);
-                scrollToSelection(jj);
-            }
-        });
+			var id = e.getSelection().getIdentifier();
+			getSelectionModel().clearSelection();
+			var results = ((ResultTableModel) getModel()).getResults();
+			var jj = 0;
+			for (var r : results) {
+				if (!(r instanceof Result))
+					continue;
+				var rid = r.identify();
+				if (!rid.equals(id))
+					continue;
+				jj = convertRowIndexToView(results.indexOf(r));
+				if (jj < -1)
+					continue;
+				getSelectionModel().addSelectionInterval(jj, jj);
+				scrollToSelection(jj);
+			}
+		});
 
 		/*
 		 * Automatically add finished tasks to this result table Automatically remove
@@ -106,21 +106,21 @@ public class ResultTable extends JTable implements Descriptive {
 		 */
 
 		addTaskRepositoryListener((TaskRepositoryEvent e) -> {
-            switch (e.getState()) {
-                case TASK_FINISHED:
-                    var t = TaskManager.getTask(e.getId());
-                    var r = getResult(t);
-                    invokeLater(() -> ((ResultTableModel) getModel()).addRow(r));
-                    break;
-                case TASK_REMOVED:
-                case TASK_RESET:
-                    ((ResultTableModel) getModel()).removeAll(e.getId());
-                    getSelectionModel().clearSelection();
-                    break;
-                default:
-                    break;
-            }
-        });
+			switch (e.getState()) {
+			case TASK_FINISHED:
+				var t = TaskManager.getTask(e.getId());
+				var r = getResult(t);
+				invokeLater(() -> ((ResultTableModel) getModel()).addRow(r));
+				break;
+			case TASK_REMOVED:
+			case TASK_RESET:
+				((ResultTableModel) getModel()).removeAll(e.getId());
+				getSelectionModel().clearSelection();
+				break;
+			default:
+				break;
+			}
+		});
 
 	}
 
@@ -149,16 +149,16 @@ public class ResultTable extends JTable implements Descriptive {
 		NumericProperty property = null;
 
 		for (var i = 0; i < data.length; i++) {
-                    for (var j = 0; j < data[0][0].length; j++) {
-                        property = (NumericProperty) getValueAt(j, i);
-                        data[i][0][j] = ((Number) property.getValue()).doubleValue()
-                                * property.getDimensionFactor().doubleValue();
-                        if (property.getError() != null)
-                            data[i][1][j] = property.getError().doubleValue() * property.getDimensionFactor().doubleValue();
-                        else
-                            data[i][1][j] = 0;
-                    }
-                }
+			for (var j = 0; j < data[0][0].length; j++) {
+				property = (NumericProperty) getValueAt(j, i);
+				data[i][0][j] = ((Number) property.getValue()).doubleValue()
+						* property.getDimensionFactor().doubleValue();
+				if (property.getError() != null)
+					data[i][1][j] = property.getError().doubleValue() * property.getDimensionFactor().doubleValue();
+				else
+					data[i][1][j] = 0;
+			}
+		}
 		return data;
 	}
 
@@ -207,8 +207,8 @@ public class ResultTable extends JTable implements Descriptive {
 			if (indices.size() < 2)
 				newRows.add(model.getResults().get(indices.get(0)));
 			else
-				newRows.add(new AverageResult(
-						indices.stream().map(model.getResults()::get).collect(toList()), model.getFormat()));
+				newRows.add(new AverageResult(indices.stream().map(model.getResults()::get).collect(toList()),
+						model.getFormat()));
 
 		}
 
@@ -217,8 +217,8 @@ public class ResultTable extends JTable implements Descriptive {
 			model.getResults().clear();
 
 			for (var row : newRows) {
-                            model.addRow(row);
-                        }
+				model.addRow(row);
+			}
 
 		});
 
@@ -277,8 +277,8 @@ public class ResultTable extends JTable implements Descriptive {
 			return;
 
 		for (var i = selection.length - 1; i >= 0; i--) {
-                    rtm.remove(rtm.getResults().get(convertRowIndexToModel(selection[i])));
-                }
+			rtm.remove(rtm.getResults().get(convertRowIndexToModel(selection[i])));
+		}
 
 	}
 
@@ -286,8 +286,8 @@ public class ResultTable extends JTable implements Descriptive {
 		var dtm = (ResultTableModel) getModel();
 
 		for (var i = dtm.getRowCount() - 1; i >= 0; i--) {
-                    dtm.remove(dtm.getResults().get(convertRowIndexToModel(i)));
-                }
+			dtm.remove(dtm.getResults().get(convertRowIndexToModel(i)));
+		}
 
 		getTaskList().stream().map(t -> getResult(t)).forEach(r -> dtm.addRow(r));
 	}

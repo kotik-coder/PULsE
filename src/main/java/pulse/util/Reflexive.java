@@ -67,8 +67,7 @@ public interface Reflexive {
 	}
 
 	public static <T extends PropertyHolder & Reflexive> T instantiate(Class<T> c, String descriptor) {
-		var opt = Reflexive.instancesOf(c).stream().filter(test -> test.getDescriptor().equals(descriptor))
-				.findFirst();
+		var opt = Reflexive.instancesOf(c).stream().filter(test -> test.getDescriptor().equals(descriptor)).findFirst();
 		if (opt.isPresent())
 			return opt.get();
 		else

@@ -51,7 +51,7 @@ public class ImplicitNonlinearSolver extends ImplicitScheme implements Solver<No
 		curve = problem.getHeatingCurve();
 
 		var grid = getGrid();
-		
+
 		N = (int) grid.getGridDensity().getValue();
 		hx = grid.getXStep();
 		tau = grid.getTimeStep();
@@ -96,7 +96,7 @@ public class ImplicitNonlinearSolver extends ImplicitScheme implements Solver<No
 		double c2;
 
 		final var discretePulse = getDiscretePulse();
-		
+
 		// time cycle
 
 		for (w = 1; w < counts; w++) {
@@ -107,8 +107,8 @@ public class ImplicitNonlinearSolver extends ImplicitScheme implements Solver<No
 				alpha[1] = a1;
 
 				for (i = 1; i < N; i++) {
-                                    alpha[i + 1] = c / (b - a * alpha[i]);
-                                }
+					alpha[i + 1] = c / (b - a * alpha[i]);
+				}
 
 				c2 = 1. / (HH + 2. * tau - 2 * alpha[N] * tau);
 
@@ -127,8 +127,8 @@ public class ImplicitNonlinearSolver extends ImplicitScheme implements Solver<No
 					V[N] = c2 * (2. * beta[N] * tau + HH * U[N] + c1 * (pow(V[N] * dT / T + 1, 4) - 1));
 
 					for (j = N - 1; j >= 0; j--) {
-                                            V[j] = alpha[j + 1] * V[j + 1] + beta[j + 1];
-                                        }
+						V[j] = alpha[j + 1] * V[j + 1] + beta[j + 1];
+					}
 
 				}
 

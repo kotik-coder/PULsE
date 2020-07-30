@@ -68,11 +68,11 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 		double ONE_MINUS_W = 1.0 - W;
 
 		for (int i = 0, N = intensities.grid.getDensity() + 1; i < N; i++) {
-                    for (int j = 0; j < intensities.ordinates.total; j++) {
-                        intensities.I[i][j] = ONE_MINUS_W * Ik[i][j] + W * intensities.I[i][j];
-                        f[i][j] = ONE_MINUS_W * fk[i][j] + W * f[i][j];
-                    }
-                }
+			for (int j = 0; j < intensities.ordinates.total; j++) {
+				intensities.I[i][j] = ONE_MINUS_W * Ik[i][j] + W * intensities.I[i][j];
+				f[i][j] = ONE_MINUS_W * fk[i][j] + W * f[i][j];
+			}
+		}
 
 	}
 

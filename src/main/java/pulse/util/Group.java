@@ -56,12 +56,12 @@ public class Group extends UpwardsNavigable {
 		return fields;
 
 	}
-	
+
 	/**
 	 * <p>
-	 * Recursively analyses all {@code Group} objects that are identified as subgroups to {@code root} 
-	 * (explicitly checks that subgroups exclude parents of {@code root}) and chooses those for which an
-	 * {@code Exporter} exists.
+	 * Recursively analyses all {@code Group} objects that are identified as
+	 * subgroups to {@code root} (explicitly checks that subgroups exclude parents
+	 * of {@code root}) and chooses those for which an {@code Exporter} exists.
 	 * </p>
 	 * 
 	 * @param root the root group.

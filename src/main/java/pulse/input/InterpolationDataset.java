@@ -57,10 +57,10 @@ public class InterpolationDataset {
 	public void add(ImmutableDataEntry<Double, Double> entry) {
 		dataset.add(entry);
 	}
-	
+
 	/**
-	 * Constructs a new spline interpolator and uses the available dataset to produce
-	 * a {@code SplineInterpolation}.
+	 * Constructs a new spline interpolator and uses the available dataset to
+	 * produce a {@code SplineInterpolation}.
 	 */
 
 	public void doInterpolation() {
@@ -78,22 +78,24 @@ public class InterpolationDataset {
 	public List<ImmutableDataEntry<Double, Double>> getData() {
 		return dataset;
 	}
-	
+
 	/**
 	 * Retrieves a standard dataset previously loaded by the respective reader.
+	 * 
 	 * @param type the standard dataset type
-	 * @return an {@code InterpolationDataset} corresponding to {@code type} 
+	 * @return an {@code InterpolationDataset} corresponding to {@code type}
 	 */
 
 	public static InterpolationDataset getDataset(StandardType type) {
 		return standartDatasets.get(type);
 	}
-	
+
 	/**
-	 * Puts a datset specified by {@code type} into the static hash map of this class,
-	 * using {@code type} as key
+	 * Puts a datset specified by {@code type} into the static hash map of this
+	 * class, using {@code type} as key
+	 * 
 	 * @param dataset a dataset to be appended to the static hash map
-	 * @param type the dataset type
+	 * @param type    the dataset type
 	 */
 
 	public static void setDataset(InterpolationDataset dataset, StandardType type) {
@@ -101,19 +103,19 @@ public class InterpolationDataset {
 	}
 
 	public enum StandardType {
-		
+
 		/**
 		 * A keyword for the heat capacity dataset (in J/kg/K).
 		 */
-		
+
 		HEAT_CAPACITY,
-		
+
 		/**
 		 * A keyword for the density dataset (in kg/m<sup>3</sup>).
 		 */
-		
+
 		DENSITY;
-		
+
 	}
 
 }

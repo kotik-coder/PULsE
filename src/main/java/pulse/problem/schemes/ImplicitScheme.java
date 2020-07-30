@@ -8,8 +8,8 @@ import static pulse.ui.Messages.getString;
 import pulse.properties.NumericProperty;
 
 /**
- * An abstract implicit finite-difference scheme for solving
- * one-dimensional heat conduction problems.
+ * An abstract implicit finite-difference scheme for solving one-dimensional
+ * heat conduction problems.
  * 
  * @see pulse.problem.statements.LinearisedProblem
  * @see pulse.problem.statements.NonlinearProblem
@@ -23,7 +23,7 @@ public abstract class ImplicitScheme extends DifferenceScheme {
 	 */
 
 	public ImplicitScheme() {
-		this(derive(GRID_DENSITY, 30), derive(TAU_FACTOR, 0.25) );
+		this(derive(GRID_DENSITY, 30), derive(TAU_FACTOR, 0.25));
 	}
 
 	/**
@@ -61,9 +61,10 @@ public abstract class ImplicitScheme extends DifferenceScheme {
 		super(timeLimit);
 		setGrid(new Grid(N, timeFactor));
 	}
-	
+
 	/**
 	 * Prints out the description of this problem type.
+	 * 
 	 * @return a verbose description of the problem.
 	 */
 

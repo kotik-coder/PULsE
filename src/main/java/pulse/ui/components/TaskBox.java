@@ -31,26 +31,25 @@ public class TaskBox extends JComboBox<SearchTask> {
 		var reference = this;
 
 		addItemListener((ItemEvent event) -> {
-            if (event.getStateChange() == SELECTED) {
-                var id = ((SearchTask) reference.getModel().getSelectedItem())
-                        .getIdentifier();
-                /*
-                 * if task already selected, just ignore this event and return
-                 */
-                if (getSelectedTask() == getTask(id)) {
-                    return;
-                }
-                selectTask(id, reference);
-            }
-        });
+			if (event.getStateChange() == SELECTED) {
+				var id = ((SearchTask) reference.getModel().getSelectedItem()).getIdentifier();
+				/*
+				 * if task already selected, just ignore this event and return
+				 */
+				if (getSelectedTask() == getTask(id)) {
+					return;
+				}
+				selectTask(id, reference);
+			}
+		});
 
 		addSelectionListener((TaskSelectionEvent e) -> {
-                    // simply ignore if source of event is taskBox
-                    if (e.getSource() == reference)
-                        return;
-                    
-                    getModel().setSelectedItem(e.getSelection());
-        });
+			// simply ignore if source of event is taskBox
+			if (e.getSource() == reference)
+				return;
+
+			getModel().setSelectedItem(e.getSelection());
+		});
 	}
 
 	public void init() {

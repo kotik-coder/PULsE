@@ -10,8 +10,8 @@ import pulse.tasks.Result;
 import pulse.ui.Messages;
 
 /**
- * Provides export capabilities for instances of the {@code Result} class
- * both in the {@code csv} and {@code html} formats.
+ * Provides export capabilities for instances of the {@code Result} class both
+ * in the {@code csv} and {@code html} formats.
  *
  */
 
@@ -24,7 +24,8 @@ public class ResultExporter implements Exporter<Result> {
 	}
 
 	/**
-	 * Prints the data of this {@code Result} with {@code fos} either in a {@code html} or a {@code csv} file format.
+	 * Prints the data of this {@code Result} with {@code fos} either in a
+	 * {@code html} or a {@code csv} file format.
 	 */
 
 	@Override
@@ -42,24 +43,24 @@ public class ResultExporter implements Exporter<Result> {
 	}
 
 	private void printHTML(Result result, FileOutputStream fos) {
-            try (var stream = new PrintStream(fos)) {
-            	stream.print(Messages.getString("ResultTableExporter.style"));
-        		stream.print("<caption>Calculated parameters</caption>");
-                
-                for (var p : result.getProperties()) {
-                    stream.print("<tr>");
-                    stream.print("<td>");
-                    
-                    stream.print(p.getDescriptor(true));
-                    stream.print("</td><td>");
-                    stream.print(p.formattedValueAndError(true));
-                    
-                    stream.print("</td>");
-                    stream.println("</tr>");
-                }
-                
-                stream.print("</table>");
-            }
+		try (var stream = new PrintStream(fos)) {
+			stream.print(Messages.getString("ResultTableExporter.style"));
+			stream.print("<caption>Calculated parameters</caption>");
+
+			for (var p : result.getProperties()) {
+				stream.print("<tr>");
+				stream.print("<td>");
+
+				stream.print(p.getDescriptor(true));
+				stream.print("</td><td>");
+				stream.print(p.formattedValueAndError(true));
+
+				stream.print("</td>");
+				stream.println("</tr>");
+			}
+
+			stream.print("</table>");
+		}
 	}
 
 	/**
@@ -68,20 +69,20 @@ public class ResultExporter implements Exporter<Result> {
 
 	@Override
 	public Extension[] getSupportedExtensions() {
-		return new Extension[] { HTML, CSV};
+		return new Extension[] { HTML, CSV };
 	}
 
 	private void printCSV(Result result, FileOutputStream fos) {
-            try (var stream = new PrintStream(fos)) {
-                stream.print("(Results)");
-                
-                for (var p : result.getProperties()) {
-                    stream.printf("%n%-24.12s", p.getType());
-                    stream.printf("\t%-24.12s", p.formattedValueAndError(true));
-                }
-            }
+		try (var stream = new PrintStream(fos)) {
+			stream.print("(Results)");
+
+			for (var p : result.getProperties()) {
+				stream.printf("%n%-24.12s", p.getType());
+				stream.printf("\t%-24.12s", p.formattedValueAndError(true));
+			}
+		}
 	}
-	
+
 	/**
 	 * @return {@code Result.class}
 	 */
@@ -93,9 +94,10 @@ public class ResultExporter implements Exporter<Result> {
 
 	/**
 	 * Returns the single static instance of this class.
+	 * 
 	 * @return instance an instance of this class.
 	 */
-	
+
 	public static ResultExporter getInstance() {
 		return instance;
 	}

@@ -13,8 +13,8 @@ import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 
 /**
- * A trapezoidal pulse shape, which combines a rise segment, a constant-power segment, and a fall segment.
- * The rise and fall ratios can be changed. 
+ * A trapezoidal pulse shape, which combines a rise segment, a constant-power
+ * segment, and a fall segment. The rise and fall ratios can be changed.
  *
  */
 
@@ -23,12 +23,13 @@ public class TrapezoidalPulse extends PulseTemporalShape {
 	private double rise;
 	private double fall;
 	private double h;
-	
+
 	/**
-	 * Constructs a trapezoidal pulse using a default segmentation principle. The reader is referred
-	 * to the {@code .xml} file containing the default values of {@code TRAPEZOIDAL_RISE_PERCENTAGE}
-	 * and {@code TRAPEZOIDAL_FALL_PERCENTAGE}. The maximum laser power is adjusted to ensure 
-	 * the area of the shape is equal to unity.
+	 * Constructs a trapezoidal pulse using a default segmentation principle. The
+	 * reader is referred to the {@code .xml} file containing the default values of
+	 * {@code TRAPEZOIDAL_RISE_PERCENTAGE} and {@code TRAPEZOIDAL_FALL_PERCENTAGE}.
+	 * The maximum laser power is adjusted to ensure the area of the shape is equal
+	 * to unity.
 	 */
 
 	public TrapezoidalPulse() {
@@ -36,16 +37,17 @@ public class TrapezoidalPulse extends PulseTemporalShape {
 		fall = (int) def(TRAPEZOIDAL_FALL_PERCENTAGE).getValue() / 100.0;
 		h = height();
 	}
-	
+
 	@Override
 	public void init(DiscretePulse pulse) {
 		super.init(pulse);
 		h = height();
 	}
-	
+
 	/**
-	 * Calculates the height of the trapezium which under current segmentation
-	 * will yield an area of unity.
+	 * Calculates the height of the trapezium which under current segmentation will
+	 * yield an area of unity.
+	 * 
 	 * @return the calculated height of the constant segmment
 	 */
 
@@ -54,11 +56,12 @@ public class TrapezoidalPulse extends PulseTemporalShape {
 	}
 
 	/**
-	 * Calculates power using a piecewise function, which corresponds to either a linearly changing, 
-	 * a constant laser power or zero. 
+	 * Calculates power using a piecewise function, which corresponds to either a
+	 * linearly changing, a constant laser power or zero.
+	 * 
 	 * @param time the time measured from the start of the laser pulse.
 	 */
-	
+
 	@Override
 	public double evaluateAt(double time) {
 		final var reducedTime = time / getPulseWidth();

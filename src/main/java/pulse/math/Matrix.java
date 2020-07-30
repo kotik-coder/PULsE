@@ -1,5 +1,8 @@
 package pulse.math;
 
+import static pulse.math.ArithmeticOperations.difference;
+import static pulse.math.ArithmeticOperations.sum;
+
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.MatrixUtils;
 
@@ -29,7 +32,7 @@ public class Matrix {
 	 * @param args one or multiple vectors
 	 */
 
-	public Matrix(Vector... args) {
+	private Matrix(Vector... args) {
 		int n = args[0].dimension();
 		int m = args.length;
 
@@ -50,7 +53,7 @@ public class Matrix {
 	 */
 
 	public Matrix(int n) {
-		this(n, n);
+		this(n, 0.0);
 	}
 
 	/**
@@ -86,7 +89,7 @@ public class Matrix {
 			x[i][i] = f;
 
 	}
-
+	
 	/**
 	 * <p>
 	 * Checks whether both {@code this} and {@code m} have matching dimensions. If
@@ -96,23 +99,10 @@ public class Matrix {
 	 * @param m another {@code Matrix} of the same size as {@code this} one
 	 * @return a {@code Matrix} with elements formed as the result of summing up the
 	 *         respective elements in {@code this} and {@code m}
-	 * @throws IllegalArgumentException if the dimensions of the matrices do not
-	 *                                  match
 	 */
 
-	public Matrix sum(Matrix m) throws IllegalArgumentException {
-		if (!this.hasSameDimensions(m))
-			throw new IllegalArgumentException(Messages.getString("Matrix.DimensionError") + this + " != " + m);
-
-		double[][] y = new double[this.x.length][this.x[0].length];
-
-		for (int i = 0; i < x.length; i++) {
-			for (int j = 0; j < x[0].length; j++) {
-				y[i][j] = this.x[i][j] + m.x[i][j];
-			}
-		}
-
-		return new Matrix(y);
+	public Matrix sum(Matrix m) {
+		return performOperation(this, m, sum);
 	}
 
 	/**
@@ -125,23 +115,10 @@ public class Matrix {
 	 * @return a {@code Matrix} with elements formed as the result of subtracting an
 	 *         element of matrix {@code m} from the respective element in
 	 *         {@code this}
-	 * @throws IllegalArgumentException if the dimensions of the matrices do not
-	 *                                  match
 	 */
 
-	public Matrix subtract(Matrix m) throws IllegalArgumentException {
-		if (!this.hasSameDimensions(m))
-			throw new IllegalArgumentException(Messages.getString("Matrix.DimensionError") + this + " != " + m);
-
-		double[][] y = new double[this.x.length][this.x[0].length];
-
-		for (int i = 0; i < x.length; i++) {
-			for (int j = 0; j < x[0].length; j++) {
-				y[i][j] = this.x[i][j] - m.x[i][j];
-			}
-		}
-
-		return new Matrix(y);
+	public Matrix subtract(Matrix m) {
+		return performOperation(this, m, difference);
 	}
 
 	/**
@@ -154,12 +131,9 @@ public class Matrix {
 	 * @param m another {@code Matrix} suitable for multiplication
 	 * @return a {@code Matrix}, which is the result of multiplying {@code this} by
 	 *         {@code m}
-	 * @throws IllegalArgumentException if the number of columns in {@code this}
-	 *                                  matrix is not equal to the number of rows in
-	 *                                  {@code m}
 	 */
 
-	public Matrix multiply(Matrix m) throws IllegalArgumentException {
+	public Matrix multiply(Matrix m) {
 		if (this.x[0].length != m.x.length)
 			throw new IllegalArgumentException(Messages.getString("Matrix.MultiplicationError") + this + " and " + m);
 
@@ -584,5 +558,20 @@ public class Matrix {
 	public double get(int m, int k) {
 		return x[m][k];
 	}
+	
+	private static Matrix performOperation(Matrix m1, Matrix m2, ArithmeticOperation op) {
+		if (!m1.hasSameDimensions(m2))
+			throw new IllegalArgumentException(Messages.getString("Matrix.DimensionError") + m1 + " != " + m2);
 
+		double[][] y = new double[m1.x.length][m1.x[0].length];
+
+		for (int i = 0; i < m1.x.length; i++) {
+			for (int j = 0; j < m1.x[0].length; j++) {
+				y[i][j] = op.evaluate(m1.x[i][j], m2.x[i][j]);
+			}
+		}
+
+		return new Matrix(y);
+	}
+	
 }

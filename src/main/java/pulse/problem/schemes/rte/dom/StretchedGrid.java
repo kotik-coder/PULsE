@@ -44,8 +44,8 @@ public class StretchedGrid extends PropertyHolder {
 		// apply stretching function
 
 		for (int i = 0; i < nodes.length; i++) {
-                    nodes[i] = 0.5 * dimension * tanh(nodes[i], stretchingFactor);
-                }
+			nodes[i] = 0.5 * dimension * tanh(nodes[i], stretchingFactor);
+		}
 
 	}
 
@@ -59,8 +59,8 @@ public class StretchedGrid extends PropertyHolder {
 		double h = (scaled ? dimension : 1.0) / n;
 
 		for (int i = 0; i < nodes.length; i++) {
-                    nodes[i] = i * h;
-                }
+			nodes[i] = i * h;
+		}
 
 	}
 

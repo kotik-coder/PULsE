@@ -18,10 +18,16 @@ import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 
 /**
- * A simple sinusoidal baseline. <p>It is given by the expression <math><<i>y</i> = <i>y</i><sub>0</sub> + <i>A</i> sin(2&pi;<i>f t</i> + &phi;) </math>,
- * where <i>f</i> is the frequency (in Hz), <i>A</i> is the amplitude, &phi; is the phase shift. Extends the {@code FlatBaseline} class and 
- * thus inherits the {@code BASELINE_INTERCEPT} property. The sinusoidal baseline is useful to mitigate electromagnetic interferences, with 
- * the frequencies usually in the range of 25 to 60 Hz.</p>  
+ * A simple sinusoidal baseline.
+ * <p>
+ * It is given by the expression <math><<i>y</i> = <i>y</i><sub>0</sub> +
+ * <i>A</i> sin(2&pi;<i>f t</i> + &phi;) </math>, where <i>f</i> is the
+ * frequency (in Hz), <i>A</i> is the amplitude, &phi; is the phase shift.
+ * Extends the {@code FlatBaseline} class and thus inherits the
+ * {@code BASELINE_INTERCEPT} property. The sinusoidal baseline is useful to
+ * mitigate electromagnetic interferences, with the frequencies usually in the
+ * range of 25 to 60 Hz.
+ * </p>
  *
  */
 
@@ -35,7 +41,7 @@ public class SinusoidalBaseline extends FlatBaseline {
 	/**
 	 * Creates a sinusoidal baseline with default properties.
 	 */
-	
+
 	public SinusoidalBaseline() {
 		setFrequency(theDefault(BASELINE_FREQUENCY));
 		setAmplitude(theDefault(BASELINE_AMPLITUDE));
@@ -49,7 +55,8 @@ public class SinusoidalBaseline extends FlatBaseline {
 	}
 
 	/**
-	 * Listed properties include the frequency, amplitude, phase shift, and intercept.
+	 * Listed properties include the frequency, amplitude, phase shift, and
+	 * intercept.
 	 */
 
 	@Override

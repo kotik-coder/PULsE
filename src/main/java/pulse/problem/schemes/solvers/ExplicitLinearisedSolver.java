@@ -87,7 +87,7 @@ public class ExplicitLinearisedSolver extends ExplicitScheme implements Solver<L
 		curve = problem.getHeatingCurve();
 
 		var grid = getGrid();
-		
+
 		N = (int) grid.getGridDensity().getValue();
 		hx = grid.getXStep();
 		tau = grid.getTimeStep();
@@ -117,7 +117,7 @@ public class ExplicitLinearisedSolver extends ExplicitScheme implements Solver<L
 		double TAU_HH = tau / pow(hx, 2);
 
 		final var discretePulse = getDiscretePulse();
-		
+
 		/*
 		 * The outer cycle iterates over the number of points of the HeatingCurve
 		 */
@@ -138,8 +138,8 @@ public class ExplicitLinearisedSolver extends ExplicitScheme implements Solver<L
 				 */
 
 				for (i = 1; i < N; i++) {
-                                    V[i] = U[i] + TAU_HH * (U[i + 1] - 2. * U[i] + U[i - 1]);
-                                }
+					V[i] = U[i] + TAU_HH * (U[i + 1] - 2. * U[i] + U[i - 1]);
+				}
 
 				/*
 				 * Calculates boundary values

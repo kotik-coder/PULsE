@@ -106,8 +106,7 @@ public class PenetrationProblem extends LinearisedProblem {
 		for (int i = 0, size = params.dimension(); i < size; i++) {
 			switch (params.getIndex(i)) {
 			case LASER_ABSORPTIVITY:
-				absorption.setLaserAbsorptivity(
-						derive(NumericPropertyKeyword.LASER_ABSORPTIVITY, exp(params.get(i))));
+				absorption.setLaserAbsorptivity(derive(NumericPropertyKeyword.LASER_ABSORPTIVITY, exp(params.get(i))));
 				break;
 			case THERMAL_ABSORPTIVITY:
 				absorption.setThermalAbsorptivity(

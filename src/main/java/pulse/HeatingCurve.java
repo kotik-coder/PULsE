@@ -309,7 +309,7 @@ public class HeatingCurve extends PropertyHolder {
 	public double apparentMaximum() {
 		return max(signal);
 	}
-	
+
 	public boolean isIncomplete() {
 		return time.size() < count;
 	}
@@ -544,7 +544,7 @@ public class HeatingCurve extends PropertyHolder {
 	public List<Double> getTimeSequence() {
 		return time;
 	}
-	
+
 	public List<Double> getSignalData() {
 		return signal;
 	}

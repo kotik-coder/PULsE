@@ -11,8 +11,8 @@ import javax.swing.text.html.HTMLEditorKit;
 import pulse.ui.components.LogPane;
 
 /**
- * Similar to a {@code LogExporter}, except that it works only on the contents of 
- * a {@code LogPane} currently being displayed to the user.
+ * Similar to a {@code LogExporter}, except that it works only on the contents
+ * of a {@code LogPane} currently being displayed to the user.
  *
  */
 
@@ -23,13 +23,13 @@ public class LogPaneExporter implements Exporter<LogPane> {
 	private LogPaneExporter() {
 		// intentionally blank
 	}
-	
+
 	/**
-	 * This will write all contents of {@code pane}, which are accessed using an {@code HTMLEditorKit}
-	 * directly to {@code fos}. The {@code extension} argument is ignored. After exporting, the stream
-	 * is explicitly closed.
+	 * This will write all contents of {@code pane}, which are accessed using an
+	 * {@code HTMLEditorKit} directly to {@code fos}. The {@code extension} argument
+	 * is ignored. After exporting, the stream is explicitly closed.
 	 */
-	
+
 	@Override
 	public void printToStream(LogPane pane, FileOutputStream fos, Extension extension) {
 		var kit = (HTMLEditorKit) pane.getEditorKit();
@@ -46,32 +46,33 @@ public class LogPaneExporter implements Exporter<LogPane> {
 			e.printStackTrace();
 		}
 	}
-	
+
 	/**
 	 * Gets the only static instance of this subclass.
+	 * 
 	 * @return an instance of{@code LogPaneExporter}.
 	 */
 
 	public static LogPaneExporter getInstance() {
 		return instance;
 	}
-	
+
 	/**
-	 * @return {@code LogPane.class}. 
+	 * @return {@code LogPane.class}.
 	 */
 
 	@Override
 	public Class<LogPane> target() {
 		return LogPane.class;
 	}
-	
+
 	/**
 	 * Only html is currently supported by this exporter.
 	 */
 
 	@Override
 	public Extension[] getSupportedExtensions() {
-		return new Extension[] { HTML};
+		return new Extension[] { HTML };
 	}
 
 }

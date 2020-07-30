@@ -31,14 +31,14 @@ public class AuxChart {
 	private ChartPanel chartPanel;
 	private JFreeChart chart;
 	private XYPlot plot;
-	
+
 	private final static int NUM_PULSE_POINTS = 100;
 
 	private final static double TO_MILLIS = 1E3;
-	
+
 	public AuxChart() {
-		chart = ChartFactory.createScatterPlot("", "Time (ms)", "Laser Power (a. u.)",
-				null, VERTICAL, true, true, false);
+		chart = ChartFactory.createScatterPlot("", "Time (ms)", "Laser Power (a. u.)", null, VERTICAL, true, true,
+				false);
 
 		plot = chart.getXYPlot();
 		plot.setBackgroundPaint(white);
@@ -49,21 +49,21 @@ public class AuxChart {
 		chart.removeLegend();
 		chartPanel = new ChartPanel(chart);
 	}
-	
+
 	private void setRenderer() {
 		var rendererPulse = new XYDifferenceRenderer(new Color(0.0f, 0.2f, 0.8f, 0.1f), Color.red, false);
 		rendererPulse.setSeriesPaint(0, RED);
 		rendererPulse.setSeriesStroke(0, new BasicStroke(3.0f));
 		plot.setRenderer(rendererPulse);
 	}
-	
+
 	private void setFonts() {
 		var fontLabel = new Font("Arial", Font.PLAIN, 20);
 		var fontTicks = new Font("Arial", Font.PLAIN, 16);
-		plot.getDomainAxis().setLabelFont( fontLabel );
-		plot.getDomainAxis().setTickLabelFont( fontTicks );
-		plot.getRangeAxis().setLabelFont( fontLabel );
-		plot.getRangeAxis().setTickLabelFont( fontTicks );
+		plot.getDomainAxis().setLabelFont(fontLabel);
+		plot.getDomainAxis().setTickLabelFont(fontTicks);
+		plot.getRangeAxis().setLabelFont(fontLabel);
+		plot.getRangeAxis().setTickLabelFont(fontTicks);
 	}
 
 	private void setLegendTitle() {
@@ -76,15 +76,15 @@ public class AuxChart {
 		ta.setMaxWidth(0.58);
 		plot.addAnnotation(ta);
 	}
-	
+
 	public void plot(Problem problem) {
 		requireNonNull(problem);
 
-		double startTime = (double)problem.getHeatingCurve().getTimeShift().getValue();
+		double startTime = (double) problem.getHeatingCurve().getTimeShift().getValue();
 
 		var pulseDataset = new XYSeriesCollection();
 
-		pulseDataset.addSeries(series(problem, startTime ));
+		pulseDataset.addSeries(series(problem, startTime));
 
 		plot.setDataset(0, pulseDataset);
 	}
@@ -98,22 +98,22 @@ public class AuxChart {
 		double timeLimit = shape.getPulseWidth();
 		double dx = timeLimit / (NUM_PULSE_POINTS - 1);
 		double x = startTime;
-		
+
 		final double timeFactor = problem.timeFactor() * TO_MILLIS;
-		
-		series.add( (startTime - dx/10. ) * timeFactor, 0.0);
-		series.add( (timeLimit + dx/10. ) * timeFactor, 0.0);
-		
+
+		series.add((startTime - dx / 10.) * timeFactor, 0.0);
+		series.add((timeLimit + dx / 10.) * timeFactor, 0.0);
+
 		for (var i = 0; i < NUM_PULSE_POINTS; i++) {
 			series.add(x * timeFactor, shape.evaluateAt(x));
 			x += dx;
 		}
-			
+
 		return series;
 	}
 
 	public ChartPanel getChartPanel() {
 		return chartPanel;
 	}
-	
+
 }

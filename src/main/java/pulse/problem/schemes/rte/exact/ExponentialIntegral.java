@@ -11,14 +11,14 @@ import pulse.properties.NumericProperty;
 
 class ExponentialIntegral extends MidpointIntegrator {
 
-	private double t; 
+	private double t;
 	private int order;
-	
+
 	private final static double EPS = 1E-10;
 	private final static int DEFAULT_INTEGRATION_SEGMENTS = 2048;
-	
+
 	public ExponentialIntegral(int order, NumericProperty segments) {
-		super(new Segment(0, 1), segments); //[0, 1] - cosine domain
+		super(new Segment(0, 1), segments); // [0, 1] - cosine domain
 		setOrder(order);
 	}
 
@@ -26,10 +26,10 @@ class ExponentialIntegral extends MidpointIntegrator {
 		this(order, derive(INTEGRATION_SEGMENTS, DEFAULT_INTEGRATION_SEGMENTS));
 		setOrder(order);
 	}
-	
+
 	@Override
 	public double integrate() {
-		return t < EPS ? 1.0/(order - 1.0) : super.integrate();
+		return t < EPS ? 1.0 / (order - 1.0) : super.integrate();
 	}
 
 	@Override
@@ -45,7 +45,7 @@ class ExponentialIntegral extends MidpointIntegrator {
 	protected void setParameter(double t) {
 		this.t = t;
 	}
-	
+
 	public int getOrder() {
 		return order;
 	}

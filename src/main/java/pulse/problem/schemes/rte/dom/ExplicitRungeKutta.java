@@ -66,17 +66,17 @@ public class ExplicitRungeKutta extends AdaptiveIntegrator {
 		 * First stage
 		 */
 
-		if (tableau.isFSAL() && ! firstRun) { // if FSAL
+		if (tableau.isFSAL() && !firstRun) { // if FSAL
 
 			for (int l = n1; l < n2; l++) {
-                            q[l - n1][0] = qLast[l - n1]; // assume first stage is the last stage of last step
-                        }
+				q[l - n1][0] = qLast[l - n1]; // assume first stage is the last stage of last step
+			}
 
 		} else { // if not FSAL or on first run
 
 			for (int l = n1; l < n2; l++) {
-                            q[l - n1][0] = derivative(l, j, t, intensities.I[j][l]);
-                        }
+				q[l - n1][0] = derivative(l, j, t, intensities.I[j][l]);
+			}
 
 			firstRun = false;
 
@@ -111,7 +111,7 @@ public class ExplicitRungeKutta extends AdaptiveIntegrator {
 				sum = tableau.coefs.get(m, 0) * q[l - n1][0];
 				for (int k = 1; k < m; k++)
 					sum += tableau.coefs.get(m, k) * q[l - n1][k];
-                    
+
 				iOutward[l - n1] = intensities.I[j][l] + hSigned * sum; // outward intensities are simply found from the
 																		// RK explicit expressions
 

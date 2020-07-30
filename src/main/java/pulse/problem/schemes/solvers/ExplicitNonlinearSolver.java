@@ -51,7 +51,7 @@ public class ExplicitNonlinearSolver extends ExplicitScheme implements Solver<No
 		HeatingCurve curve = problem.getHeatingCurve();
 
 		var grid = getGrid();
-		
+
 		N = (int) grid.getGridDensity().getValue();
 		hx = grid.getXStep();
 		tau = grid.getTimeStep();
@@ -79,7 +79,7 @@ public class ExplicitNonlinearSolver extends ExplicitScheme implements Solver<No
 		double f0, fN;
 
 		final double fixedPointPrecisionSq = pow(nonlinearPrecision, 2);
-		
+
 		final var discretePulse = getDiscretePulse();
 
 		for (w = 1; w < counts; w++) {
@@ -87,8 +87,8 @@ public class ExplicitNonlinearSolver extends ExplicitScheme implements Solver<No
 			for (m = (w - 1) * getTimeInterval() + 1; m < w * getTimeInterval() + 1; m++) {
 
 				for (i = 1; i < N; i++) {
-                                    V[i] = U[i] + TAU_HH * (U[i + 1] - 2. * U[i] + U[i - 1]);
-                                }
+					V[i] = U[i] + TAU_HH * (U[i + 1] - 2. * U[i] + U[i - 1]);
+				}
 
 				pls = discretePulse.laserPowerAt((m - EPS) * tau);
 

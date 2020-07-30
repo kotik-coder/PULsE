@@ -174,7 +174,7 @@ public class ExportDialog extends JDialog {
 		directoryField.setEditable(false);
 
 		var formatLabel = new JLabel("Export format:");
-		var formats = new JComboBox<Extension>( Extension.values() );
+		var formats = new JComboBox<Extension>(Extension.values());
 
 		var projectLabel = new JLabel("Project name:");
 		var projectText = new JTextField(projectName);
@@ -249,7 +249,8 @@ public class ExportDialog extends JDialog {
 
 		var exportBtn = new JButton("Export");
 
-		exportBtn.addActionListener(e -> invokeLater(() -> export(valueOf(formats.getSelectedItem().toString().toUpperCase()))));
+		exportBtn.addActionListener(
+				e -> invokeLater(() -> export(valueOf(formats.getSelectedItem().toString().toUpperCase()))));
 
 		/*
 		 * layout
@@ -262,12 +263,12 @@ public class ExportDialog extends JDialog {
 				.addGroup(layout.createParallelGroup(LEADING).addComponent(directoryField)
 						// #2a
 						.addGroup(layout.createSequentialGroup()
-								.addGroup(layout.createParallelGroup(LEADING)
-										.addComponent(solutionCheckbox).addComponent(rawDataCheckbox))
-								.addGroup(layout.createParallelGroup(LEADING)
-										.addComponent(metadataCheckbox).addComponent(createDirCheckbox))
-								.addGroup(layout.createParallelGroup(LEADING)
-										.addComponent(logCheckbox).addComponent(resultsCheckbox)))
+								.addGroup(layout.createParallelGroup(LEADING).addComponent(solutionCheckbox)
+										.addComponent(rawDataCheckbox))
+								.addGroup(layout.createParallelGroup(LEADING).addComponent(metadataCheckbox)
+										.addComponent(createDirCheckbox))
+								.addGroup(layout.createParallelGroup(LEADING).addComponent(logCheckbox)
+										.addComponent(resultsCheckbox)))
 						// #2b
 						// .addGroup(layout.createSequentialGroup()
 						.addGroup(layout.createSequentialGroup().addComponent(formatLabel).addComponent(formats)
@@ -275,8 +276,7 @@ public class ExportDialog extends JDialog {
 				// )
 				)
 				// #3
-				.addGroup(layout.createParallelGroup(LEADING).addComponent(browseBtn)
-						.addComponent(exportBtn)));
+				.addGroup(layout.createParallelGroup(LEADING).addComponent(browseBtn).addComponent(exportBtn)));
 		layout.linkSize(HORIZONTAL, browseBtn, exportBtn);
 
 		layout.setVerticalGroup(layout.createSequentialGroup()
@@ -288,17 +288,15 @@ public class ExportDialog extends JDialog {
 				.addGroup(layout.createParallelGroup(LEADING)
 						// #2a
 						.addGroup(layout.createSequentialGroup()
-								.addGroup(layout.createParallelGroup(BASELINE)
-										.addComponent(solutionCheckbox).addComponent(metadataCheckbox)
-										.addComponent(logCheckbox))
-								.addGroup(layout.createParallelGroup(BASELINE)
-										.addComponent(rawDataCheckbox).addComponent(createDirCheckbox)
-										.addComponent(resultsCheckbox)))
+								.addGroup(layout.createParallelGroup(BASELINE).addComponent(solutionCheckbox)
+										.addComponent(metadataCheckbox).addComponent(logCheckbox))
+								.addGroup(layout.createParallelGroup(BASELINE).addComponent(rawDataCheckbox)
+										.addComponent(createDirCheckbox).addComponent(resultsCheckbox)))
 						// #2b
 						.addComponent(exportBtn))
 				// 2b
-				.addGroup(layout.createParallelGroup(BASELINE).addComponent(formats)
-						.addComponent(formatLabel).addComponent(projectLabel).addComponent(projectText)));
+				.addGroup(layout.createParallelGroup(BASELINE).addComponent(formats).addComponent(formatLabel)
+						.addComponent(projectLabel).addComponent(projectText)));
 
 	}
 

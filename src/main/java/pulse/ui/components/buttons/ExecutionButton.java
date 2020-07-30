@@ -35,54 +35,57 @@ public class ExecutionButton extends JButton {
 		setToolTipText(state.getMessage());
 
 		this.addActionListener((ActionEvent e) -> {
-            /*
-             * STOP PRESSED?
-             */
-            if (state == STOP) {
-                cancelAllTasks();
-                return;
-            }
-            /*
-             * EXECUTE PRESSED?
-             */
-            if (getTaskList().isEmpty()) {
-                showMessageDialog(getWindowAncestor((Component) e.getSource()), getString("TaskControlFrame.PleaseLoadData"), //$NON-NLS-1$
-                        "No Tasks", //$NON-NLS-1$
-                ERROR_MESSAGE);
-                return;
-            }
-            java.util.Optional<pulse.tasks.SearchTask> problematicTask = getTaskList().stream().filter((t) -> t.checkProblems() == INCOMPLETE).findFirst();
-            if (problematicTask.isPresent()) {
-                var t = problematicTask.get();
-                showMessageDialog(getWindowAncestor((Component) e.getSource()), t + " is " + t.getStatus().getMessage(), "Problems found", ERROR_MESSAGE);
-            } else {
-                if (getTaskList().stream().anyMatch(t -> !t.getProblem().isBatchProcessingEnabled())) {
-                    execute(getSelectedTask());
-                } else 
-                    executeAll();
-                
-            }
-        });
+			/*
+			 * STOP PRESSED?
+			 */
+			if (state == STOP) {
+				cancelAllTasks();
+				return;
+			}
+			/*
+			 * EXECUTE PRESSED?
+			 */
+			if (getTaskList().isEmpty()) {
+				showMessageDialog(getWindowAncestor((Component) e.getSource()),
+						getString("TaskControlFrame.PleaseLoadData"), //$NON-NLS-1$
+						"No Tasks", //$NON-NLS-1$
+						ERROR_MESSAGE);
+				return;
+			}
+			java.util.Optional<pulse.tasks.SearchTask> problematicTask = getTaskList().stream()
+					.filter((t) -> t.checkProblems() == INCOMPLETE).findFirst();
+			if (problematicTask.isPresent()) {
+				var t = problematicTask.get();
+				showMessageDialog(getWindowAncestor((Component) e.getSource()), t + " is " + t.getStatus().getMessage(),
+						"Problems found", ERROR_MESSAGE);
+			} else {
+				if (getTaskList().stream().anyMatch(t -> !t.getProblem().isBatchProcessingEnabled())) {
+					execute(getSelectedTask());
+				} else
+					executeAll();
+
+			}
+		});
 
 		addTaskRepositoryListener((TaskRepositoryEvent e) -> {
-            switch (e.getState()) {
-                case TASK_SUBMITTED:
-                    setExecutionState(STOP);
-                    break;
-                case TASK_FINISHED:
-                    if (isTaskQueueEmpty()) {
-                        setExecutionState(EXECUTE);
-                    } else {
-                        setExecutionState(STOP);
-                    }
-                    break;
-                case SHUTDOWN:
-                    setExecutionState(EXECUTE);
-                    break;
-                default:
-                    return;
-            }
-        });
+			switch (e.getState()) {
+			case TASK_SUBMITTED:
+				setExecutionState(STOP);
+				break;
+			case TASK_FINISHED:
+				if (isTaskQueueEmpty()) {
+					setExecutionState(EXECUTE);
+				} else {
+					setExecutionState(STOP);
+				}
+				break;
+			case SHUTDOWN:
+				setExecutionState(EXECUTE);
+				break;
+			default:
+				return;
+			}
+		});
 
 	}
 

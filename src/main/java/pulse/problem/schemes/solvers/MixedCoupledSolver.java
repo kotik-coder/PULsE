@@ -139,8 +139,8 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 		alpha[1] = 1.0 / (HX2 / (2.0 * tau * sigma) + 1. + hx * Bi1);
 
 		for (int i = 1; i < N; i++) {
-                    alpha[i + 1] = c / (b - a * alpha[i]);
-                }
+			alpha[i + 1] = c / (b - a * alpha[i]);
+		}
 	}
 
 	private void initConst() {
@@ -173,7 +173,7 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 		int w;
 
 		var status = rte.compute(U);
-		
+
 		final var discretePulse = getDiscretePulse();
 
 		// time cycle
@@ -181,15 +181,15 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 		for (w = 1; w < pulseEnd + 1 && status == RTECalculationStatus.NORMAL; w++) {
 
 			for (int m = (w - 1) * getTimeInterval() + 1; m < w * getTimeInterval() + 1; m++) {
-                            status = timeStep(discretePulse, m, true);
-                        }
+				status = timeStep(discretePulse, m, true);
+			}
 			curve.addPoint(w * wFactor, V[N]);
 		}
 
-		double timeLeft = (double)getTimeLimit().getValue() - (w - 1) * wFactor;
+		double timeLeft = (double) getTimeLimit().getValue() - (w - 1) * wFactor;
 
 		var grid = getGrid();
-		
+
 		// adjust timestep to make calculations faster
 		grid.setTimeFactor(TAU_FACTOR);
 
@@ -202,14 +202,14 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 		double numPoints = counts - (w - 1);
 		double dt = timeLeft / (problem.timeFactor() * (numPoints - 1));
 
-		setTimeInterval ( (int) (dt / tau) + 1 );
+		setTimeInterval((int) (dt / tau) + 1);
 
 		for (wFactor = getTimeInterval() * tau * problem.timeFactor(); w < counts
 				&& status == RTECalculationStatus.NORMAL; w++) {
 
 			for (int m = (w - 1) * getTimeInterval() + 1; m < w * getTimeInterval() + 1; m++) {
-                            status = timeStep(discretePulse, m, false);
-                        }
+				status = timeStep(discretePulse, m, false);
+			}
 
 			curve.addPoint(w * wFactor, V[N]);
 		}
@@ -227,7 +227,7 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 		int i, j;
 		double F, pls;
 		double V_0, V_N;
-		
+
 		pls = activePulse
 				? (discretePulse.laserPowerAt((m - 1 + EPS) * tau) * ONE_MINUS_SIGMA
 						+ discretePulse.laserPowerAt((m - EPS) * tau) * sigma)
@@ -271,8 +271,8 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 
 			V_0 = V[0];
 			for (j = N - 1; j >= 0; j--) {
-                            V[j] = alpha[j + 1] * V[j + 1] + beta[j + 1];
-                        }
+				V[j] = alpha[j + 1] * V[j + 1] + beta[j + 1];
+			}
 
 		}
 

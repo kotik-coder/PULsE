@@ -21,7 +21,7 @@ public class NonscatteringAnalyticalDerivatives extends NonscatteringRadiativeTr
 	public double getStoredFluxDerivative(int index) {
 		return fdStored[index];
 	}
-	
+
 	@Override
 	public RTECalculationStatus compute(double U[]) {
 		super.compute(U);
@@ -31,7 +31,7 @@ public class NonscatteringAnalyticalDerivatives extends NonscatteringRadiativeTr
 		}
 		return RTECalculationStatus.NORMAL;
 	}
-	
+
 	@Override
 	protected void reinitFluxes(int N) {
 		super.reinitFluxes(N);
@@ -86,8 +86,9 @@ public class NonscatteringAnalyticalDerivatives extends NonscatteringRadiativeTr
 	private void evalFluxDerivative(int uIndex) {
 		double t = opticalCoordinateAt(uIndex);
 
-		double value = getRadiosityFront() * ei2.valueAt(t) + getRadiosityRear() * ei2.valueAt(getOpticalThickness() - t)
-				- 2.0 * getEmissionFunction().powerAt(t) + integrateFirstOrder(t);
+		double value = getRadiosityFront() * ei2.valueAt(t)
+				+ getRadiosityRear() * ei2.valueAt(getOpticalThickness() - t) - 2.0 * getEmissionFunction().powerAt(t)
+				+ integrateFirstOrder(t);
 
 		fd[uIndex] = 2.0 * value;
 	}
@@ -96,7 +97,7 @@ public class NonscatteringAnalyticalDerivatives extends NonscatteringRadiativeTr
 		double integral = 0;
 		double tau0 = getOpticalThickness();
 		var quadrature = getQuadrature();
-		
+
 		setForIntegration(0, y);
 		quadrature.setCoefficients(y, -1);
 		integral += compare(y, 0) == 0 ? 0 : quadrature.integrate();
@@ -108,15 +109,16 @@ public class NonscatteringAnalyticalDerivatives extends NonscatteringRadiativeTr
 		return integral;
 	}
 
-	
 	/**
-	 * This will set integration bounds by creating a segment using {@code x} and {@code y} values.
-	 * Note this ignores the order of arguments, as the lower and upper bound will be equal to 
-	 * {@code min(x,y)} and {@code max(x,y)} respectively. The order of integration is set to unity.
+	 * This will set integration bounds by creating a segment using {@code x} and
+	 * {@code y} values. Note this ignores the order of arguments, as the lower and
+	 * upper bound will be equal to {@code min(x,y)} and {@code max(x,y)}
+	 * respectively. The order of integration is set to unity.
+	 * 
 	 * @param x lower bound
 	 * @param y upper bound
 	 */
-	
+
 	private void setForIntegration(double x, double y) {
 		var quadrature = getQuadrature();
 		quadrature.setBounds(new Segment(x, y));

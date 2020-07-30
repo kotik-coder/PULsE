@@ -36,7 +36,7 @@ import javax.swing.ImageIcon;
 public class Launcher {
 
 	private Launcher() {
-		//intentionally blank
+		// intentionally blank
 	}
 
 	/**
@@ -69,9 +69,9 @@ public class Launcher {
 
 		/* Create and display the form */
 		invokeLater(() -> {
-            getInstance().setLocationRelativeTo(null);
-            getInstance().setVisible(true);
-        });
+			getInstance().setLocationRelativeTo(null);
+			getInstance().setVisible(true);
+		});
 	}
 
 	private static void splashScreen() {
@@ -158,7 +158,7 @@ public class Launcher {
 
 	public static ImageIcon loadIcon(String path, int iconSize) {
 		var imageIcon = new ImageIcon(Launcher.class.getResource("/images/" + path)); // load the image to a
-																							// imageIcon
+																						// imageIcon
 		var image = imageIcon.getImage(); // transform it
 		var newimg = image.getScaledInstance(iconSize, iconSize, SCALE_SMOOTH); // scale it the smooth way
 		return new ImageIcon(newimg); // transform it back

@@ -21,8 +21,9 @@ import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 
 /**
- * Represents the exponentially modified Gaussian function, which is given by 
+ * Represents the exponentially modified Gaussian function, which is given by
  * three independent parameters (&mu;, &sigma; and &lambda;).
+ * 
  * @see <a href="Wikipedia page">https://tinyurl.com/ExpModifiedGaussian</a>
  *
  */
@@ -38,52 +39,54 @@ public class ExponentiallyModifiedGaussian extends PulseTemporalShape {
 	private FixedIntervalIntegrator integrator;
 
 	/**
-	 * Creates an exponentially modified Gaussian with the default 
-	 * parameter values. 
+	 * Creates an exponentially modified Gaussian with the default parameter values.
 	 */
-	
+
 	public ExponentiallyModifiedGaussian() {
 		mu = (double) def(SKEW_MU).getValue();
 		lambda = (double) def(SKEW_LAMBDA).getValue();
 		sigma = (double) def(SKEW_SIGMA).getValue();
 		norm = 1.0;
-		integrator = new MidpointIntegrator(new Segment(0.0, getPulseWidth()), derive(INTEGRATION_SEGMENTS, DEFAULT_POINTS) ) {
+		integrator = new MidpointIntegrator(new Segment(0.0, getPulseWidth()),
+				derive(INTEGRATION_SEGMENTS, DEFAULT_POINTS)) {
 
 			@Override
 			public double integrand(double... vars) {
 				return evaluateAt(vars[0]);
 			}
-			
+
 		};
 	}
 
 	/**
-	 * This calls the superclass {@code init method} and sets the normalisation factor 
-	 * to <math>1/&#8747;&Phi;(Fo)<i>d<i>Fo</math>.
+	 * This calls the superclass {@code init method} and sets the normalisation
+	 * factor to <math>1/&#8747;&Phi;(Fo)<i>d<i>Fo</math>.
 	 */
-	
+
 	@Override
 	public void init(DiscretePulse pulse) {
 		super.init(pulse);
-		norm = 1.0; //resets the normalisation factor to unity
-		norm = 1.0 / area(); //calculates the area. The normalisation factor is then set to the inverse of the area.
+		norm = 1.0; // resets the normalisation factor to unity
+		norm = 1.0 / area(); // calculates the area. The normalisation factor is then set to the inverse of
+								// the area.
 	}
 
 	/**
-	 * Uses numeric integration (midpoint rule) to calculate 
-	 * the area of the pulse shape corresponding to the selected
-	 * parameters.
+	 * Uses numeric integration (midpoint rule) to calculate the area of the pulse
+	 * shape corresponding to the selected parameters.
+	 * 
 	 * @return the area
 	 */
-	
+
 	private double area() {
 		integrator.setBounds(new Segment(0.0, getPulseWidth()));
 		return integrator.integrate();
 	}
-	
+
 	/**
-	 * Evaluates the laser power function. The error function is calculated using the ApacheCommonsMath 
-	 * library tools.
+	 * Evaluates the laser power function. The error function is calculated using
+	 * the ApacheCommonsMath library tools.
+	 * 
 	 * @see <a href="Wikipedia page">https://tinyurl.com/ExpModifiedGaussian</a>
 	 * @param time is measured from the 'start' of laser pulse
 	 */
@@ -94,9 +97,9 @@ public class ExponentiallyModifiedGaussian extends PulseTemporalShape {
 
 		final double lambdaHalf = 0.5 * lambda;
 		final double sigmaSq = sigma * sigma;
-		
+
 		return norm * lambdaHalf * exp(lambdaHalf * (2.0 * mu + lambda * sigmaSq - 2.0 * reducedTime))
-				* erfc( (mu + lambda * sigmaSq - reducedTime) / (sqrt(2) * sigma));
+				* erfc((mu + lambda * sigmaSq - reducedTime) / (sqrt(2) * sigma));
 
 	}
 
@@ -108,7 +111,7 @@ public class ExponentiallyModifiedGaussian extends PulseTemporalShape {
 		list.add(def(SKEW_SIGMA));
 		return list;
 	}
-	
+
 	/**
 	 * @return the &mu; parameter
 	 */
@@ -116,15 +119,15 @@ public class ExponentiallyModifiedGaussian extends PulseTemporalShape {
 	public NumericProperty getMu() {
 		return derive(SKEW_MU, mu);
 	}
-	
+
 	/**
 	 * @return the &sigma; parameter
 	 */
-	
+
 	public NumericProperty getSigma() {
 		return derive(SKEW_SIGMA, sigma);
 	}
-	
+
 	/**
 	 * @return the &lambda; parameter
 	 */
@@ -132,9 +135,10 @@ public class ExponentiallyModifiedGaussian extends PulseTemporalShape {
 	public NumericProperty getLambda() {
 		return derive(SKEW_LAMBDA, lambda);
 	}
-	
+
 	/**
 	 * Sets the {@code SKEW_LAMBDA} parameter
+	 * 
 	 * @param p the &lambda; parameter
 	 */
 
@@ -142,9 +146,10 @@ public class ExponentiallyModifiedGaussian extends PulseTemporalShape {
 		requireType(p, SKEW_LAMBDA);
 		this.lambda = (double) p.getValue();
 	}
-	
+
 	/**
 	 * Sets the {@code SKEW_MU} parameter
+	 * 
 	 * @param p the &mu; parameter
 	 */
 
@@ -152,9 +157,10 @@ public class ExponentiallyModifiedGaussian extends PulseTemporalShape {
 		requireType(p, SKEW_MU);
 		this.mu = (double) p.getValue();
 	}
-	
+
 	/**
 	 * Sets the {@code SKEW_SIGMA} parameter
+	 * 
 	 * @param p the &sigma; parameter
 	 */
 
@@ -162,7 +168,7 @@ public class ExponentiallyModifiedGaussian extends PulseTemporalShape {
 		requireType(p, SKEW_SIGMA);
 		this.sigma = (double) p.getValue();
 	}
-	
+
 	@Override
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
 		switch (type) {

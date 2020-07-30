@@ -10,7 +10,7 @@ public interface HeatingCurveListener {
 	/**
 	 * Signals that the {@code HeatingCurve} has been rescaled.
 	 */
-	
+
 	public void onCurveRescaled();
-	
+
 }

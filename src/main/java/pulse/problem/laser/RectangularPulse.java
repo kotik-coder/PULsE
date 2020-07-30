@@ -18,13 +18,13 @@ public class RectangularPulse extends PulseTemporalShape {
 	/**
 	 * @param time the time measured from the start of the laser pulse.
 	 */
-	
+
 	@Override
 	public double evaluateAt(double time) {
 		var width = getPulseWidth();
 		return 0.5 / width * (1 + signum(width - time));
 	}
-	
+
 	@Override
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
 		// intentionally blak

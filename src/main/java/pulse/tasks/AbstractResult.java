@@ -89,8 +89,7 @@ public abstract class AbstractResult extends UpwardsNavigable {
 	public static List<NumericProperty> filterProperties(AbstractResult result, ResultFormat format) {
 		return format.getKeywords().stream().map(keyword -> {
 			Optional<NumericProperty> p = result.properties.stream()
-					.filter(property -> property.getType()
-							.equals(keyword)).findFirst();
+					.filter(property -> property.getType().equals(keyword)).findFirst();
 			if (p.isPresent())
 				return p.get();
 			else

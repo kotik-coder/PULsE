@@ -26,8 +26,9 @@ import pulse.ui.Messages;
 import pulse.ui.frames.dialogs.ProgressDialog;
 
 /**
- * Manages loading the experimental time-temperature profiles, metadata files and {@code InterpolationDataset}s.
- * Tracks the load progress using a {@code ProgressDialog}.  
+ * Manages loading the experimental time-temperature profiles, metadata files
+ * and {@code InterpolationDataset}s. Tracks the load progress using a
+ * {@code ProgressDialog}.
  *
  */
 
@@ -50,10 +51,10 @@ public class DataLoader {
 	}
 
 	/**
-	 * Initiates a user dialog to load experimental time-temperature profiles. Multiple 
-	 * selection is possible. When the user finalises selection, the {@code TaskManager} will start generating
-	 * tasks using the files selected by the user as input. The tracker progress bar
-	 * is reset and made visible.
+	 * Initiates a user dialog to load experimental time-temperature profiles.
+	 * Multiple selection is possible. When the user finalises selection, the
+	 * {@code TaskManager} will start generating tasks using the files selected by
+	 * the user as input. The tracker progress bar is reset and made visible.
 	 */
 
 	public static void loadDataDialog() {
@@ -66,13 +67,17 @@ public class DataLoader {
 		}
 
 	}
-	
+
 	/**
-	 * Asks the user to select a single file containing the metadata, with the extension given by the {@code MetaFilePopulator} class.
-	 * If a valid selection is made and the task list is not empty, proceeds to populating each task's metadata object using the 
-	 * information contained in the selected file. If the task has a problem assigned to it, sets the parameters of that problem
-	 * to match the loaded {@code Metadata}. Throughout the process, progress is monitored in a separate dialog with a {@code JProgressBar}. 
-	 * Upon finishing, the data range will be checked to determine if truncation is needed.
+	 * Asks the user to select a single file containing the metadata, with the
+	 * extension given by the {@code MetaFilePopulator} class. If a valid selection
+	 * is made and the task list is not empty, proceeds to populating each task's
+	 * metadata object using the information contained in the selected file. If the
+	 * task has a problem assigned to it, sets the parameters of that problem to
+	 * match the loaded {@code Metadata}. Throughout the process, progress is
+	 * monitored in a separate dialog with a {@code JProgressBar}. Upon finishing,
+	 * the data range will be checked to determine if truncation is needed.
+	 * 
 	 * @see truncateDataDialog
 	 */
 
@@ -118,10 +123,11 @@ public class DataLoader {
 	}
 
 	/**
-	 * Uses the {@code ReaderManager} to create an {@code InterpolationDataset} from data stored in 
-	 * {@code f} and updates the associated properties of each task.
+	 * Uses the {@code ReaderManager} to create an {@code InterpolationDataset} from
+	 * data stored in {@code f} and updates the associated properties of each task.
 	 * 
-	 * @param f a {@code File} containing a property specified by the {@code type}
+	 * @param f    a {@code File} containing a property specified by the
+	 *             {@code type}
 	 * @param type the type of the loaded data
 	 * @throws IOException if file cannot be read
 	 * @see pulse.tasks.TaskManager.evaluate

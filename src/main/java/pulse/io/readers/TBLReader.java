@@ -76,18 +76,19 @@ public class TBLReader implements DatasetReader {
 
 	/**
 	 * Reads through a {@code file} with {@code .tbl extension}, converting each row
-	 * into an {@code ImmutableDataEntry<Double,Double>}, which is then added to a 
-	 * newly created {@code InterpolationDataset}. Upon completion, the {@code doInterpolation()} 
-	 * method of {@code InterpolationDataset} is invoked.
+	 * into an {@code ImmutableDataEntry<Double,Double>}, which is then added to a
+	 * newly created {@code InterpolationDataset}. Upon completion, the
+	 * {@code doInterpolation()} method of {@code InterpolationDataset} is invoked.
+	 * 
 	 * @see pulse.input.InterpolationDataset.doInterpolation()
 	 * @param file a {@code File} with {@code tbl} extension
 	 */
-	
+
 	@Override
 	public InterpolationDataset read(File file) throws IOException {
 		Objects.requireNonNull(file, Messages.getString("TBLReader.1"));
-		
-		if(! isExtensionSupported(file) )
+
+		if (!isExtensionSupported(file))
 			throw new IllegalArgumentException("Extension not supported: " + file.getName());
 
 		var curve = new InterpolationDataset();

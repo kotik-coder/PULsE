@@ -71,12 +71,9 @@ public class TaskTable extends JTable {
 		var model = new TaskTableModel();
 		setModel(model);
 
-		var th = new TableHeader(getColumnModel(),
-				new String[] { theDefault(IDENTIFIER).getDescriptor(true),
-						theDefault(TEST_TEMPERATURE).getDescriptor(true),
-						theDefault(OPTIMISER_STATISTIC).getDescriptor(true),
-						theDefault(TEST_STATISTIC).getDescriptor(true),
-						("Task status") });
+		var th = new TableHeader(getColumnModel(), new String[] { theDefault(IDENTIFIER).getDescriptor(true),
+				theDefault(TEST_TEMPERATURE).getDescriptor(true), theDefault(OPTIMISER_STATISTIC).getDescriptor(true),
+				theDefault(TEST_STATISTIC).getDescriptor(true), ("Task status") });
 
 		setTableHeader(th);
 
@@ -112,12 +109,12 @@ public class TaskTable extends JTable {
 		 */
 
 		addTaskRepositoryListener((TaskRepositoryEvent e) -> {
-            if (e.getState() == TASK_REMOVED) {
-                ((TaskTableModel) getModel()).removeTask(e.getId());
-            } else if (e.getState() == TASK_ADDED) {
-                ((TaskTableModel) getModel()).addTask(getTask(e.getId()));
-            }
-        });
+			if (e.getState() == TASK_REMOVED) {
+				((TaskTableModel) getModel()).removeTask(e.getId());
+			} else if (e.getState() == TASK_ADDED) {
+				((TaskTableModel) getModel()).addTask(getTask(e.getId()));
+			}
+		});
 
 		/*
 		 * mouse listener
@@ -149,30 +146,30 @@ public class TaskTable extends JTable {
 		var reference = this;
 
 		lsm.addListSelectionListener((ListSelectionEvent e) -> {
-                    if (lsm.getValueIsAdjusting())
-                        return;
-                    if (lsm.isSelectionEmpty())
-                        return;
-            var id = (Identifier) getValueAt(lsm.getMinSelectionIndex(), 0);
-            selectTask(id, reference);
-        });
+			if (lsm.getValueIsAdjusting())
+				return;
+			if (lsm.isSelectionEmpty())
+				return;
+			var id = (Identifier) getValueAt(lsm.getMinSelectionIndex(), 0);
+			selectTask(id, reference);
+		});
 
 		addSelectionListener((TaskSelectionEvent e) -> {
-                    // simply ignore call if event is triggered by taskTable
-                    if (e.getSource() instanceof TaskTable)
-                        return;
-            var id = e.getSelection().getIdentifier();
-            Identifier idFromTable = null;
-            for (var i = 0; i < getRowCount(); i++) {
-                idFromTable = (Identifier) getValueAt(i, 0);
-                
-                if (idFromTable.equals(id)) {
-                    setRowSelectionInterval(i, i);
-                    return;
-                }
-            }
-            clearSelection();
-        });
+			// simply ignore call if event is triggered by taskTable
+			if (e.getSource() instanceof TaskTable)
+				return;
+			var id = e.getSelection().getIdentifier();
+			Identifier idFromTable = null;
+			for (var i = 0; i < getRowCount(); i++) {
+				idFromTable = (Identifier) getValueAt(i, 0);
+
+				if (idFromTable.equals(id)) {
+					setRowSelectionInterval(i, i);
+					return;
+				}
+			}
+			clearSelection();
+		});
 
 	}
 
@@ -197,10 +194,8 @@ public class TaskTable extends JTable {
 			super(new Object[][] {},
 					new String[] { theDefault(IDENTIFIER).getAbbreviation(true),
 							theDefault(TEST_TEMPERATURE).getAbbreviation(true),
-							theDefault(OPTIMISER_STATISTIC)
-									.getAbbreviation(true),
-							theDefault(TEST_STATISTIC).getAbbreviation(true),
-							getString("TaskTable.Status") });
+							theDefault(OPTIMISER_STATISTIC).getAbbreviation(true),
+							theDefault(TEST_STATISTIC).getAbbreviation(true), getString("TaskTable.Status") });
 
 		}
 
@@ -211,16 +206,16 @@ public class TaskTable extends JTable {
 			invokeLater(() -> super.addRow(data));
 
 			t.addStatusChangeListener((StateEntry e) -> {
-                            setValueAt(e.getState(), searchRow(t.getIdentifier()), STATUS_COLUMN);
-                            if (t.getNormalityTest() != null)
-                                setValueAt(t.getNormalityTest().getStatistic(), searchRow(t.getIdentifier()),
-                                        TEST_STATISTIC_COLUMN);
-            });
+				setValueAt(e.getState(), searchRow(t.getIdentifier()), STATUS_COLUMN);
+				if (t.getNormalityTest() != null)
+					setValueAt(t.getNormalityTest().getStatistic(), searchRow(t.getIdentifier()),
+							TEST_STATISTIC_COLUMN);
+			});
 
 			t.addTaskListener((LogEntry e) -> {
-                            setValueAt(t.getResidualStatistic().getStatistic(), searchRow(t.getIdentifier()),
-                                    SEARCH_STATISTIC_COLUMN);
-            });
+				setValueAt(t.getResidualStatistic().getStatistic(), searchRow(t.getIdentifier()),
+						SEARCH_STATISTIC_COLUMN);
+			});
 
 		}
 

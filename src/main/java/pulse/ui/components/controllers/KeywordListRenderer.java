@@ -27,8 +27,7 @@ public class KeywordListRenderer extends DefaultListCellRenderer {
 			boolean cellHasFocus) {
 
 		var renderer = super.getListCellRendererComponent(list,
-				(def((NumericPropertyKeyword) value).getDescriptor(true)), index, cellHasFocus,
-				cellHasFocus);
+				(def((NumericPropertyKeyword) value).getDescriptor(true)), index, cellHasFocus, cellHasFocus);
 
 		renderer.setForeground(black);
 		if (isSelected)

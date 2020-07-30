@@ -39,8 +39,8 @@ public abstract class PhaseFunction implements Reflexive {
 		double result = 0;
 
 		for (int k = startInclusive; k < endExclusive; k++) {
-                    result += intensities.ordinates.w[k] * intensities.I[j][k] * function(i, k);
-                }
+			result += intensities.ordinates.w[k] * intensities.I[j][k] * function(i, k);
+		}
 		return result;
 	}
 
@@ -48,8 +48,8 @@ public abstract class PhaseFunction implements Reflexive {
 		double result = 0;
 
 		for (int k = kStart; k < kEndExclusive; k++) {
-                    result += intensities.ordinates.w[k] * inward[k - kStart] * function(i, k);
-                }
+			result += intensities.ordinates.w[k] * inward[k - kStart] * function(i, k);
+		}
 
 		return result;
 	}

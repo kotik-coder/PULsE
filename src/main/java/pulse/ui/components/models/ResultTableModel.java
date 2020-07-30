@@ -58,8 +58,8 @@ public class ResultTableModel extends DefaultTableModel {
 		this.fmt = fmt;
 
 		for (var r : results) {
-                    r.setFormat(fmt);
-                }
+			r.setFormat(fmt);
+		}
 
 		if (this.getRowCount() > 0) {
 			this.setRowCount(0);
@@ -70,8 +70,8 @@ public class ResultTableModel extends DefaultTableModel {
 			this.setColumnIdentifiers(fmt.abbreviations().toArray());
 
 			for (var r : oldResults) {
-                            addRow(r);
-                        }
+				addRow(r);
+			}
 
 		} else
 			this.setColumnIdentifiers(fmt.abbreviations().toArray());

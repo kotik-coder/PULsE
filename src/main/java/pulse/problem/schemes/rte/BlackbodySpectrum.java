@@ -58,20 +58,21 @@ public class BlackbodySpectrum {
 	 * @return the local emissive power value
 	 */
 
-	public double powerAt(double x) { 
+	public double powerAt(double x) {
 		return emissivePower(interpolation.value(x));
 	}
-	
+
 	/**
-	 * Sets a new function for the spatial temperature profile. The function is generally
-	 * constructed using a {@code SplineInterpolator}
-	 * @param interpolation 
+	 * Sets a new function for the spatial temperature profile. The function is
+	 * generally constructed using a {@code SplineInterpolator}
+	 * 
+	 * @param interpolation
 	 */
 
 	public void setInterpolation(UnivariateFunction interpolation) {
 		this.interpolation = interpolation;
 	}
-	
+
 	public UnivariateFunction getInterpolation() {
 		return interpolation;
 	}
