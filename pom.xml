@@ -77,6 +77,11 @@
  		 <artifactId>colt</artifactId>
   		<version>1.2.0</version>
   	</dependency>
+  	<dependency>
+	  <groupId>org.ejml</groupId>
+	  <artifactId>ejml-all</artifactId>
+	  <version>0.39</version>
+	</dependency>
 	<!-- https://mvnrepository.com/artifact/com.numericalmethod/suanshu-20120606 -->
   </dependencies>
   <properties>

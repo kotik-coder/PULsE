@@ -1,10 +1,11 @@
 package pulse.math;
 
+
 import static pulse.math.ArithmeticOperations.difference;
 import static pulse.math.ArithmeticOperations.sum;
 
-import org.apache.commons.math3.linear.Array2DRowRealMatrix;
-import org.apache.commons.math3.linear.MatrixUtils;
+import static org.ejml.dense.row.CommonOps_DDRM.invert;
+import org.ejml.data.DMatrixRMaj;
 
 import pulse.ui.Messages;
 
@@ -19,42 +20,6 @@ import pulse.ui.Messages;
 public class Matrix {
 
 	private final double[][] x;
-
-	/**
-	 * <p>
-	 * Constructs a matrix (not necessarily square), where {@code args} are mapped
-	 * to different <i>columns</i>, thus the {@code Vector} components are mapped
-	 * into different <i>rows</i>. In case if the {@code args.length == 1}, the
-	 * {@code Matrix} will represent a transposed {@code Vector}, i.e. a column
-	 * vector.
-	 * </p>
-	 * 
-	 * @param args one or multiple vectors
-	 */
-
-	private Matrix(Vector... args) {
-		int n = args[0].dimension();
-		int m = args.length;
-
-		x = new double[n][m];
-
-		for (int i = 0; i < m; i++) {
-			for (int j = 0; j < n; j++) {
-				this.x[j][i] = args[i].get(j);
-			}
-		}
-
-	}
-
-	/**
-	 * Constructs a square matrix of the size {@code n}.
-	 * 
-	 * @param n the size of the square matrix.
-	 */
-
-	public Matrix(int n) {
-		this(n, 0.0);
-	}
 
 	/**
 	 * Constructs a {@code Matrix} with the elements copied from {@code args}. The
@@ -89,7 +54,51 @@ public class Matrix {
 			x[i][i] = f;
 
 	}
+
+	/**
+	 * <p>
+	 * Constructs a matrix (not necessarily square), where {@code args} are mapped
+	 * to different <i>columns</i>, thus the {@code Vector} components are mapped
+	 * into different <i>rows</i>. In case if the {@code args.length == 1}, the
+	 * {@code Matrix} will represent a transposed {@code Vector}, i.e. a column
+	 * vector.
+	 * </p>
+	 * 
+	 * @param args one or multiple vectors
+	 */
+
+	private Matrix(Vector... args) {
+		int n = args[0].dimension();
+		int m = args.length;
+
+		x = new double[n][m];
+
+		for (int i = 0; i < m; i++) {
+			for (int j = 0; j < n; j++) {
+				this.x[j][i] = args[i].get(j);
+			}
+		}
+
+	}
+
+	/**
+	 * Constructs a square matrix of the size {@code n}.
+	 * 
+	 * @param n the size of the square matrix.
+	 */
+
+	private Matrix(int n) {
+		this(n, 0.0);
+	}
 	
+	private Matrix(double[] data, int n) {
+		this.x = new double[n][n];
+
+		for (int i = 0; i < n; i++) 
+			System.arraycopy(data, i*n, x[i], 0, n);
+	
+	}
+
 	/**
 	 * <p>
 	 * Checks whether both {@code this} and {@code m} have matching dimensions. If
@@ -188,8 +197,8 @@ public class Matrix {
 	public Vector multiply(Vector v) {
 		double[] r = new double[v.dimension()];
 
-		for (int i = 0, j = 0; i < r.length; i++) {
-			for (j = 0; j < r.length; j++) {
+		for (int i = 0; i < r.length; i++) {
+			for (int j = 0; j < r.length; j++) {
 				r[i] += x[i][j] * v.get(j);
 			}
 		}
@@ -233,16 +242,22 @@ public class Matrix {
 	public double det() {
 		int n = x[0].length;
 
+		double result = 0;
+
 		switch (n) {
 		case 0:
 			throw new IllegalArgumentException("Illegal matrix size: " + n);
 		case 1:
-			return x[0][0];
+			result = x[0][0];
+			break;
 		case 2:
-			return x[0][0] * x[1][1] - x[1][0] * x[0][1];
+			result = x[0][0] * x[1][1] - x[1][0] * x[0][1];
+			break;
 		default:
-			return detLaplace();
+			result = detLaplace();
 		}
+
+		return result;
 
 	}
 
@@ -255,9 +270,8 @@ public class Matrix {
 
 	public double detLaplace() {
 		double det = 0;
-		int n = x[0].length;
 
-		for (int j = 0; j < n; j++) {
+		for (int j = 0; j < x[0].length; j++) {
 			det += x[0][j] * cofactor(0, j);
 		}
 
@@ -287,8 +301,9 @@ public class Matrix {
 			m = fastInverse4();
 			break;
 		default:
-			var mx = new Array2DRowRealMatrix(x);
-			m = new Matrix(MatrixUtils.inverse(mx).getData());
+			var mx = new DMatrixRMaj(x);
+			invert(mx);
+			return new Matrix(mx.getData(), x.length);
 		}
 		return m;
 	}
@@ -558,7 +573,7 @@ public class Matrix {
 	public double get(int m, int k) {
 		return x[m][k];
 	}
-	
+
 	private static Matrix performOperation(Matrix m1, Matrix m2, ArithmeticOperation op) {
 		if (!m1.hasSameDimensions(m2))
 			throw new IllegalArgumentException(Messages.getString("Matrix.DimensionError") + m1 + " != " + m2);
@@ -573,5 +588,5 @@ public class Matrix {
 
 		return new Matrix(y);
 	}
-	
+
 }
