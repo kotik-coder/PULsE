@@ -7,7 +7,7 @@ import java.util.List;
 
 import pulse.math.IndexedVector;
 import pulse.math.Segment;
-import pulse.math.Vector;
+import pulse.math.linear.Vector;
 import pulse.problem.schemes.solvers.SolverException;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;

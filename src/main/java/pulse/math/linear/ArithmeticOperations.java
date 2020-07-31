@@ -1,4 +1,4 @@
-package pulse.math;
+package pulse.math.linear;
 
 import static pulse.math.MathUtils.fastPowLoop;
 

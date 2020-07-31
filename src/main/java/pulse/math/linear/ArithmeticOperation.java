@@ -1,4 +1,4 @@
-package pulse.math;
+package pulse.math.linear;
 
 interface ArithmeticOperation {
 

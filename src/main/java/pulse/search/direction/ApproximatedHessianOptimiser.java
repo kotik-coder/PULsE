@@ -1,9 +1,9 @@
 package pulse.search.direction;
 
-import static pulse.math.Matrix.outerProduct;
+import static pulse.math.linear.SquareMatrix.outerProduct;
 
-import pulse.math.Matrix;
-import pulse.math.Vector;
+import pulse.math.linear.SquareMatrix;
+import pulse.math.linear.Vector;
 import pulse.problem.schemes.solvers.SolverException;
 import pulse.tasks.SearchTask;
 import pulse.ui.Messages;
@@ -69,7 +69,7 @@ public class ApproximatedHessianOptimiser extends PathOptimiser {
 		Vector dir = p.getDirection();
 
 		final double minimumPoint = p.getMinimumPoint();
-		final Matrix prevHessian = p.getHessian();
+		final SquareMatrix prevHessian = p.getHessian();
 		final Vector g0 = p.getGradient(); // g0
 		Vector g1 = gradient(task); // g1
 
@@ -90,7 +90,7 @@ public class ApproximatedHessianOptimiser extends PathOptimiser {
 	 * @return a Hessian {@code Matrix}
 	 */
 
-	private Matrix hessian(Vector g1, Vector g2, Vector dir, Matrix prevHessian, double alpha) {
+	private SquareMatrix hessian(Vector g1, Vector g2, Vector dir, SquareMatrix prevHessian, double alpha) {
 		Vector y = g2.subtract(g1); // g[k+1] - g[k]
 		return prevHessian.sum((outerProduct(g1, g1)).multiply(1. / g1.dot(dir)))
 				.sum((outerProduct(y, y)).multiply(1. / (alpha * y.dot(dir)))); // BFGS for Ge[k+1]

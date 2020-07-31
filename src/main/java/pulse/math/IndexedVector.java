@@ -3,6 +3,7 @@ package pulse.math;
 import java.util.ArrayList;
 import java.util.List;
 
+import pulse.math.linear.Vector;
 import pulse.properties.NumericPropertyKeyword;
 
 /**

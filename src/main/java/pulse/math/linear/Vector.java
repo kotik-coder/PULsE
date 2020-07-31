@@ -1,19 +1,18 @@
-package pulse.math;
+package pulse.math.linear;
 
 import static java.lang.Math.abs;
 import static java.lang.Math.sqrt;
-import static pulse.math.ArithmeticOperations.difference;
-import static pulse.math.ArithmeticOperations.differenceSquared;
-import static pulse.math.ArithmeticOperations.product;
-import static pulse.math.ArithmeticOperations.sum;
+import static pulse.math.linear.ArithmeticOperations.difference;
+import static pulse.math.linear.ArithmeticOperations.differenceSquared;
+import static pulse.math.linear.ArithmeticOperations.product;
+import static pulse.math.linear.ArithmeticOperations.sum;
 
 import pulse.ui.Messages;
 
 /**
  * <p>
  * This is a general class for {@code Vector} operations useful for
- * optimisation. Note it does not currently include cross or mixed products, as
- * this is not needed in {@code PULsE}.
+ * optimisers and ODE solvers.
  * </p>
  */
 
@@ -21,6 +20,11 @@ public class Vector {
 
 	private double[] x;
 
+	/**
+	 * Constructs a new vector specified by the argument array
+	 * @param x an array of double
+	 */
+	
 	public Vector(double[] x) {
 		this.x = new double[x.length];
 		System.arraycopy(x, 0, this.x, 0, x.length);
@@ -166,21 +170,6 @@ public class Vector {
 
 	public double distanceToSq(Vector v) throws IllegalArgumentException {
 		return reduce(this, v, differenceSquared);
-	}
-
-	/**
-	 * Calculates distance from {@code this Vector} to {@code p} using square-root
-	 * on the squared distance.
-	 * 
-	 * @param p another {@code Vector}.
-	 * @return the length of the connecting {@code Vector}.
-	 * @see distanceToSq(Vector)
-	 * @throws IllegalArgumentException f the dimension of {@code this} and
-	 *                                  {@code v} are different.
-	 */
-
-	public double distanceTo(Vector p) {
-		return sqrt(this.distanceToSq(p));
 	}
 
 	/**

@@ -3,7 +3,7 @@ package pulse.problem.schemes.rte.dom;
 import java.util.ArrayList;
 import java.util.List;
 
-import pulse.math.Vector;
+import pulse.math.linear.Vector;
 import pulse.problem.schemes.rte.BlackbodySpectrum;
 import pulse.problem.schemes.rte.RTECalculationStatus;
 import pulse.problem.statements.ParticipatingMedium;

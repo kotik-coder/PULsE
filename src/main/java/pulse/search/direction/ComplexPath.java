@@ -1,6 +1,11 @@
 package pulse.search.direction;
 
-import pulse.math.Matrix;
+import static pulse.math.linear.Matrices.createIdentityMatrix;
+import static pulse.search.direction.PathOptimiser.activeParameters;
+import static pulse.search.direction.PathOptimiser.getSelectedPathOptimiser;
+import static pulse.search.direction.PathOptimiser.gradient;
+
+import pulse.math.linear.SquareMatrix;
 import pulse.problem.schemes.solvers.SolverException;
 import pulse.tasks.SearchTask;
 
@@ -15,7 +20,7 @@ import pulse.tasks.SearchTask;
 
 public class ComplexPath extends Path {
 
-	private Matrix hessian;
+	private SquareMatrix hessian;
 
 	protected ComplexPath(SearchTask task) {
 		super(task);
@@ -30,16 +35,16 @@ public class ComplexPath extends Path {
 
 	@Override
 	public void reset(SearchTask task) throws SolverException {
-		setGradient(PathOptimiser.gradient(task));
-		hessian = new Matrix(PathOptimiser.activeParameters(task).size(), 1.0);
-		setDirection(PathOptimiser.getSelectedPathOptimiser().direction(this));
+		setGradient(gradient(task));
+		hessian = createIdentityMatrix(activeParameters(task).size());
+		setDirection(getSelectedPathOptimiser().direction(this));
 	}
 
-	public Matrix getHessian() {
+	public SquareMatrix getHessian() {
 		return hessian;
 	}
 
-	public void setHessian(Matrix hes) {
+	public void setHessian(SquareMatrix hes) {
 		this.hessian = hes;
 	}
 

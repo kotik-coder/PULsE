@@ -2,7 +2,7 @@ package pulse.problem.schemes.rte.dom;
 
 import java.util.List;
 
-import pulse.math.Vector;
+import pulse.math.linear.Vector;
 import pulse.problem.schemes.rte.BlackbodySpectrum;
 import pulse.problem.statements.ParticipatingMedium;
 import pulse.properties.Property;

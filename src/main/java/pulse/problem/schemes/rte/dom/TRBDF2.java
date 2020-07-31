@@ -1,7 +1,8 @@
 package pulse.problem.schemes.rte.dom;
 
-import pulse.math.Matrix;
-import pulse.math.Vector;
+import pulse.math.linear.Matrices;
+import pulse.math.linear.SquareMatrix;
+import pulse.math.linear.Vector;
 import pulse.problem.schemes.rte.BlackbodySpectrum;
 import pulse.problem.statements.ParticipatingMedium;
 
@@ -58,7 +59,7 @@ public class TRBDF2 extends AdaptiveIntegrator {
 	private double[] est; // error estimator
 	private double[][] aMatrix; // matrix of linear set A * x = B
 
-	private Matrix invA; // inverse matrix
+	private SquareMatrix invA; // inverse matrix
 	private Vector i2; // second stage (trapezoidal)
 	private Vector i3; // third stage (backward-difference second order)
 
@@ -191,7 +192,7 @@ public class TRBDF2 extends AdaptiveIntegrator {
 
 		}
 
-		invA = (new Matrix(aMatrix)).inverse(); // this matrix is re-used for subsequent stages
+		invA = (Matrices.createMatrix(aMatrix)).inverse(); // this matrix is re-used for subsequent stages
 		i2 = invA.multiply(new Vector(bVector)); // intensity vector at 2nd stage
 
 		/*

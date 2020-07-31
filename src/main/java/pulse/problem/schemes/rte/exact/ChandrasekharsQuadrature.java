@@ -18,9 +18,10 @@ import java.util.List;
 
 import org.apache.commons.math3.analysis.solvers.LaguerreSolver;
 
-import pulse.math.Matrix;
 import pulse.math.Segment;
-import pulse.math.Vector;
+import pulse.math.linear.Matrices;
+import pulse.math.linear.SquareMatrix;
+import pulse.math.linear.Vector;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
@@ -118,7 +119,7 @@ public class ChandrasekharsQuadrature extends CompositionProduct {
 		return transformedBound(getBounds().getMinimum());
 	}
 
-	private Matrix xMatrix(final int m, final double[] roots) {
+	private SquareMatrix xMatrix(final int m, final double[] roots) {
 		double[][] x = new double[m][m];
 		
 		for (int l = 0; l < m; l++) {
@@ -127,7 +128,7 @@ public class ChandrasekharsQuadrature extends CompositionProduct {
 			}
 		}
 
-		return new Matrix(x);
+		return Matrices.createMatrix(x);
 	}
 
 	/**
@@ -204,7 +205,7 @@ public class ChandrasekharsQuadrature extends CompositionProduct {
 		return momentMatrix(m, n).inverse().multiply(momentVector(m, 2 * m));
 	}
 
-	private Matrix momentMatrix(final int m, final int n) {
+	private SquareMatrix momentMatrix(final int m, final int n) {
 
 		double[][] data = new double[m][m];
 		moments = new double[2 * m];
@@ -229,7 +230,7 @@ public class ChandrasekharsQuadrature extends CompositionProduct {
 
 		moments[2 * m - 1] = moment(2 * m - 1, n);
 
-		return new Matrix(data);
+		return Matrices.createMatrix(data);
 
 	}
 

@@ -1,6 +1,6 @@
 package pulse.search.direction;
 
-import pulse.math.Vector;
+import pulse.math.linear.Vector;
 import pulse.problem.schemes.solvers.SolverException;
 import pulse.tasks.SearchTask;
 import pulse.ui.Messages;

@@ -4,15 +4,16 @@ import java.util.Set;
 
 import pulse.io.readers.ButcherTableauReader;
 import pulse.io.readers.ReaderManager;
-import pulse.math.Matrix;
-import pulse.math.Vector;
+import pulse.math.linear.Matrices;
+import pulse.math.linear.SquareMatrix;
+import pulse.math.linear.Vector;
 import pulse.properties.Property;
 
 public class ButcherTableau implements Property {
 
 	protected Vector b, bHat;
 	protected Vector c;
-	protected Matrix coefs;
+	protected SquareMatrix coefs;
 
 	private boolean fsal;
 
@@ -33,7 +34,7 @@ public class ButcherTableau implements Property {
 		setName(name);
 		this.fsal = fsal;
 
-		this.coefs = new Matrix(coefs);
+		this.coefs = Matrices.createMatrix(coefs);
 		this.c = new Vector(c);
 		this.b = new Vector(b);
 		this.bHat = new Vector(bHat);
@@ -43,11 +44,11 @@ public class ButcherTableau implements Property {
 		return b.dimension();
 	}
 
-	public Matrix getMatrix() {
+	public SquareMatrix getMatrix() {
 		return coefs;
 	}
 
-	public void setMatrix(Matrix coefs) {
+	public void setMatrix(SquareMatrix coefs) {
 		this.coefs = coefs;
 	}
 

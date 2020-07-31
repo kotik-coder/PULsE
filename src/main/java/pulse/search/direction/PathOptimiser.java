@@ -10,7 +10,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import pulse.math.IndexedVector;
-import pulse.math.Vector;
+import pulse.math.linear.Vector;
 import pulse.problem.schemes.solvers.SolverException;
 import pulse.problem.statements.Problem;
 import pulse.properties.Flag;
