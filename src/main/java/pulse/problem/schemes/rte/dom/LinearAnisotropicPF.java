@@ -12,17 +12,18 @@ public class LinearAnisotropicPF extends PhaseFunction {
 	}
 
 	@Override
-	public double partialSum(int i, int j, int n1, int n2Exclusive) {
-		return intensities.g(j, n1, n2Exclusive) + g * intensities.ordinates.mu[i] * intensities.q(j, n1, n2Exclusive);
+	public double partialSum(final int i, final int j, final int n1, final int n2Exclusive) {
+		return intensities.incidentRadiation(j, n1, n2Exclusive) + g * intensities.getOrdinates().getNode(i) * intensities.flux(j, n1, n2Exclusive);
 	}
 
 	@Override
-	public double function(int i, int k) {
-		return 1.0 + g * intensities.ordinates.mu[i] * intensities.ordinates.mu[k];
+	public double function(final int i, final int k) {
+		var ordinates = intensities.getOrdinates();
+		return 1.0 + g * ordinates.getNode(i) * ordinates.getNode(k);
 	}
 
 	@Override
-	public void setAnisotropyFactor(double a1) {
+	public void setAnisotropyFactor(final double a1) {
 		super.setAnisotropyFactor(a1);
 		g = 3.0 * A1;
 	}

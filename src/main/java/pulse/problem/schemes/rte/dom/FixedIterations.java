@@ -15,16 +15,17 @@ public class FixedIterations extends IterativeSolver {
 		int iterations = 0;
 
 		RTECalculationStatus status = RTECalculationStatus.NORMAL;
-
+		final var ef = integrator.getEmissionFunction();
+		
 		for (double ql = 1e8, qr = ql; relativeError > iterationError
 				&& status == RTECalculationStatus.NORMAL; status = sanityCheck(status, ++iterations)) {
-			ql = discrete.getQLeft();
-			qr = discrete.getQRight();
+			ql = discrete.getFluxLeft();
+			qr = discrete.getFluxRight();
 
 			status = integrator.integrate();
 
-			qld = Math.abs(discrete.qLeft(integrator.emissionFunction) - ql);
-			qrd = Math.abs(discrete.qRight(integrator.emissionFunction) - qr);
+			qld = Math.abs(discrete.fluxLeft(ef) - ql);
+			qrd = Math.abs(discrete.fluxRight(ef) - qr);
 
 			// if the integrator attempted rescaling, last iteration is not valid anymore
 			relativeError = integrator.wasRescaled() ? Double.POSITIVE_INFINITY

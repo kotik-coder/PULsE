@@ -19,6 +19,12 @@ import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 
+/**
+ * A class for evaluating the composition product using a simple Newton-Cotes quadrature
+ * with a cutoff.
+ *
+ */
+
 public class NewtonCotesQuadrature extends CompositionProduct {
 
 	private final static int DEFAULT_SEGMENTS = 64;

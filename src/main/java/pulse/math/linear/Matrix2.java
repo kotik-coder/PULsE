@@ -5,7 +5,7 @@ package pulse.math.linear;
  *
  */
 
-public class Matrix2 extends SquareMatrix {
+class Matrix2 extends SquareMatrix {
 
 	protected Matrix2(double[][] args) {
 		super(args);

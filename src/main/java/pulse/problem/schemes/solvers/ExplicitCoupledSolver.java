@@ -94,6 +94,7 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
 	@Override
 	public void solve(ParticipatingMedium problem) throws SolverException {
 		prepare(problem);
+		final var fluxes = rte.getFluxes();
 
 		int i, m, w;
 		double pls;
@@ -145,7 +146,7 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
 					 */
 
 					for (i = 1; i < N; i++) {
-						V[i] = U[i] + TAU_HH * (U[i + 1] - 2. * U[i] + U[i - 1]) + prefactor * rte.fluxDerivative(i);
+						V[i] = U[i] + TAU_HH * (U[i + 1] - 2. * U[i] + U[i - 1]) + prefactor * fluxes.fluxDerivative(i);
 					}
 
 					/*
@@ -156,10 +157,10 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
 
 					// Front face
 					V_0 = V[0];
-					V[0] = (V[1] + hx * pls - HX_NP * rte.getFlux(0)) * a;
+					V[0] = (V[1] + hx * pls - HX_NP * fluxes.getFlux(0)) * a;
 					// Rear face
 					V_N = V[N];
-					V[N] = (V[N - 1] + HX_NP * rte.getFlux(N)) * b;
+					V[N] = (V[N - 1] + HX_NP * fluxes.getFlux(N)) * b;
 
 				}
 

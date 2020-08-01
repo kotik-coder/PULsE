@@ -21,8 +21,9 @@ public class HenyeyGreensteinPF extends PhaseFunction {
 
 	@Override
 	public double function(int i, int k) {
-		double theta = intensities.ordinates.mu[k] * intensities.ordinates.mu[i];
-		double f = a2 - b1 * theta;
+		final var ordinates = intensities.getOrdinates();
+		final double theta = ordinates.getNode(k) * ordinates.getNode(i);
+		final double f = a2 - b1 * theta;
 		return a1 / (f * Math.sqrt(f));
 	}
 

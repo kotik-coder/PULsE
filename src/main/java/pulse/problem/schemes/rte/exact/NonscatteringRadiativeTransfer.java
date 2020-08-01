@@ -18,8 +18,8 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 
 	private static FunctionWithInterpolation ei3 = ExponentialIntegrals.get(3);
 
-	private double emissivity, doubleReflectivity;
-	private double tau0;
+	private double emissivity;
+	private double doubleReflectivity;
 
 	private BlackbodySpectrum emissionFunction;
 	private CompositionProduct convolution;
@@ -47,8 +47,13 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 		super.init(p, grid);
 		emissivity = p.getEmissivity();
 		doubleReflectivity = 2.0 * (1.0 - emissivity);
-		tau0 = (double) p.getOpticalThickness().getValue();
 	}
+
+	/**
+	 * The superclass method will update the interpolation that the blackbody
+	 * spectrum uses to evaluate the temperature profile and calculate the
+	 * radiosities. A {@code NORMAL} status is always returned.
+	 */
 
 	@Override
 	public RTECalculationStatus compute(double[] array) {
@@ -57,39 +62,33 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 		return RTECalculationStatus.NORMAL;
 	}
 
-	public void fluxes() {
-		for (int i = 1, N = this.getExternalGridDensity(); i < N; i++) {
-			flux(i);
-		}
-		boundaryFluxes();
-	}
-
-	/*
-	 * Assumes radiosities have already been calculated using radiosities() F*(1) =
-	 * -R_2 + 2R_1 E_3(\tau_0) + 2 int
+	/**
+	 * Calculates the radiative fluxes on the grid specified in the constructor
+	 * arguments. This uses the values of radiosities and involves calculating the
+	 * composition product using the selected quadratures.
+	 * 
+	 * @see pulse.prroblem.schemes.rte.exact.CompositionProduct
 	 */
 
-	private double fluxRear() {
-		int N = this.getExternalGridDensity();
-		this.setFlux(N,
-				-radiosityRear + 2.0 * radiosityFront * ei3.valueAt(tau0) + 2.0 * integrateSecondOrder(tau0, -1.0));
-		return getFlux(N);
-	}
-
-	public void boundaryFluxes() {
+	public void fluxes() {
+		for (int i = 1, N = this.getFluxes().getDensity(); i < N; i++) {
+			flux(i);
+		}
 		fluxFront();
 		fluxRear();
 	}
 
-	public double fluxFront() {
-		this.setFlux(0,
-				radiosityFront - 2.0 * radiosityRear * ei3.valueAt(tau0) - 2.0 * integrateSecondOrder(0.0, 1.0));
-		return getFlux(0);
+	public void fluxFront() {
+		final double tau0 = getFluxes().getOpticalThickness();
+		final double flux = radiosityFront - 2.0 * radiosityRear * ei3.valueAt(tau0)
+				- 2.0 * integrateSecondOrder(0.0, 1.0);
+		getFluxes().setFlux(0, flux);
 	}
 
-	protected double flux(int uIndex) {
+	protected void flux(int uIndex) {
 		convolution.setOrder(2);
-		double t = getOpticalGridStep() * uIndex;
+		final double t = getFluxes().getOpticalGridStep() * uIndex;
+		final double tau0 = getFluxes().getOpticalThickness();
 
 		convolution.setBounds(new Segment(0, t));
 		convolution.setCoefficients(t, -1.0);
@@ -101,29 +100,28 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 
 		double result = radiosityFront * ei3.valueAt(t) - radiosityRear * ei3.valueAt(tau0 - t) + I_1 - I_2;
 
-		setFlux(uIndex, result * 2.0);
-
-		return getFlux(uIndex);
+		getFluxes().setFlux(uIndex, result * 2.0);
 
 	}
 
-	/*
-	 * Radiosities of front and rear surfaces respectively in the assumption of
-	 * diffuse and opaque boundaries
+	/**
+	 * Retrieves the quadrature that is used to evaluate the composition product
+	 * invoked when calculating the radiative fluxes.
+	 * 
+	 * @return the quadrature
 	 */
-
-	public void radiosities() {
-		final double b = b();
-		final double sq = 1.0 - b * b;
-		final double a1 = a1();
-		final double a2 = a2();
-		radiosityFront = (a1 + b * a2) / sq;
-		radiosityRear = (a2 + b * a1) / sq;
-	}
 
 	public CompositionProduct getQuadrature() {
 		return convolution;
 	}
+
+	/**
+	 * Sets the quadrature and updates its spectral function to that specified by
+	 * this object.
+	 * 
+	 * @param specialIntegrator the quadrature used to evaluate the composition
+	 *                          product
+	 */
 
 	public void setQuadrature(CompositionProduct specialIntegrator) {
 		this.convolution = specialIntegrator;
@@ -175,11 +173,38 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 	}
 
 	/*
+	 * Radiosities of front and rear surfaces respectively in the assumption of
+	 * diffuse and opaque boundaries
+	 */
+
+	private void radiosities() {
+		final double b = b();
+		final double sq = 1.0 - b * b;
+		final double a1 = a1();
+		final double a2 = a2();
+		radiosityFront = (a1 + b * a2) / sq;
+		radiosityRear = (a2 + b * a1) / sq;
+	}
+
+	/*
+	 * Assumes radiosities have already been calculated using radiosities() F*(1) =
+	 * -R_2 + 2R_1 E_3(\tau_0) + 2 int
+	 */
+
+	private void fluxRear() {
+		var fluxes = getFluxes();
+		final int N = fluxes.getDensity();
+		final double tau0 = fluxes.getOpticalThickness();
+		fluxes.setFlux(N,
+				-radiosityRear + 2.0 * radiosityFront * ei3.valueAt(tau0) + 2.0 * integrateSecondOrder(tau0, -1.0));
+	}
+
+	/*
 	 * Coefficient b
 	 */
 
 	private double b() {
-		return doubleReflectivity * ei3.valueAt(tau0);
+		return doubleReflectivity * ei3.valueAt( getFluxes().getOpticalThickness() );
 	}
 
 	/*
@@ -199,6 +224,7 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 	 */
 
 	private double a2() {
+		final double tau0 = getFluxes().getOpticalThickness();
 		return emissivity * emissionFunction.powerAt(tau0) + doubleReflectivity * integrateSecondOrder(tau0, -1.0);
 	}
 
@@ -208,7 +234,7 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 	 */
 
 	private double integrateSecondOrder(double a, double b) {
-		convolution.setBounds(new Segment(0, tau0));
+		convolution.setBounds(new Segment(0, getFluxes().getOpticalThickness() ));
 		convolution.setOrder(2);
 		convolution.setCoefficients(a, b);
 		return convolution.integrate();

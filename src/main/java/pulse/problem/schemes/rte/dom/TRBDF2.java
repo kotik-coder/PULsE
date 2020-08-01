@@ -79,6 +79,7 @@ public class TRBDF2 extends AdaptiveIntegrator {
 	protected void init() {
 		super.init();
 		halfAlbedo = getAlbedo() * 0.5;
+		final int nH = getIntensities().getOrdinates().getHalfLength();
 
 		bVector = new double[nH];
 		est = new double[nH];
@@ -90,7 +91,7 @@ public class TRBDF2 extends AdaptiveIntegrator {
 
 	@Override
 	public void generateGrid(int nNew) {
-		intensities.grid.generate(nNew);
+		getIntensities().getGrid().generate(nNew);
 	}
 
 	/**
@@ -99,26 +100,31 @@ public class TRBDF2 extends AdaptiveIntegrator {
 
 	@Override
 	public Vector[] step(final int j, final double sign) {
-		final double h = sign * intensities.grid.step(j, sign);
+		var intensities = getIntensities();
+		final double h = sign * intensities.getGrid().step(j, sign);
 		HermiteInterpolator.bMinusA = h; // <---- for Hermite interpolation
 
+		final int total = getIntensities().getOrdinates().getTotalNodes();
 		final int increment = (int) (1 * sign);
-		final double t = intensities.grid.getNode(j);
+		final double t = intensities.getGrid().getNode(j);
 		HermiteInterpolator.a = t; // <---- for Hermite interpolation
 
 		/*
 		 * Indices of OUTWARD intensities (n1 <= i < n2)
 		 */
 
+		final int nPositiveStart = intensities.getOrdinates().getFirstPositiveNode();
+		final int nNegativeStart = intensities.getOrdinates().getFirstNegativeNode();
+		final int halfLength = nNegativeStart - nPositiveStart;
 		final int n1 = sign > 0 ? nPositiveStart : nNegativeStart; // either first positive index or first negative
-		final int n2 = sign > 0 ? nNegativeStart : intensities.ordinates.total; // either first negative index or n
+		final int n2 = sign > 0 ? nNegativeStart : total; // either first negative index or n
 
 		/*
 		 * Indices of INWARD intensities (n3 <= i < n4)
 		 */
 
-		final int n3 = intensities.ordinates.total - n2; // either first negative index or 0 (for INWARD intensities)
-		final int n4 = intensities.ordinates.total - n1; // either n or first negative index (for INWARD intensities)
+		final int n3 = total - n2; // either first negative index or 0 (for INWARD intensities)
+		final int n4 = total - n1; // either n or first negative index (for INWARD intensities)
 		final int n5 = nNegativeStart - n3; // either 0 or first negative index
 
 		/*
@@ -128,13 +134,14 @@ public class TRBDF2 extends AdaptiveIntegrator {
 		if (!firstRun) { // if this is not the first step
 
 			for (int l = n1; l < n2; l++) {
-				k[0][l - n1] = qLast[l - n1];
+				k[0][l - n1] = getQLast(l - n1);
 			}
 
 		} else {
 
 			for (int l = n1; l < n2; l++) {
-				k[0][l - n1] = super.derivative(l, j, t, intensities.I[j][l]); // first-stage right-hand side: f( t, In)
+				k[0][l - n1] = super.derivative(l, j, t, intensities.getIntensity(j, l)); // first-stage right-hand
+																							// side: f( t, In)
 				// )
 			} // )
 
@@ -155,10 +162,10 @@ public class TRBDF2 extends AdaptiveIntegrator {
 		 */
 
 		for (int i = 0; i < inward.length; i++) {
-			HermiteInterpolator.y0 = intensities.I[j][i + n3];
-			HermiteInterpolator.y1 = intensities.I[j + increment][i + n3];
-			HermiteInterpolator.d0 = f[j][i + n3];
-			HermiteInterpolator.d1 = f[j + increment][i + n3];
+			HermiteInterpolator.y0 = intensities.getIntensity(j, i + n3);
+			HermiteInterpolator.y1 = intensities.getIntensity(j + increment, i + n3);
+			HermiteInterpolator.d0 = getDerivative(j,i + n3);
+			HermiteInterpolator.d1 = getDerivative(j + increment,i + n3);
 			inward[i] = HermiteInterpolator.interpolate(tPlusGamma);
 		}
 
@@ -168,27 +175,29 @@ public class TRBDF2 extends AdaptiveIntegrator {
 
 		final double prefactorNumerator = -hd * halfAlbedo;
 		double matrixPrefactor;
+		final var ordinates = intensities.getOrdinates();
 
-		for (int i = 0; i < nH; i++) {
+		for (int i = 0; i < halfLength; i++) {
 
-			f[j][i + n1] = k[0][i]; // store derivatives for Hermite interpolation
+			setDerivative(j,i + n1, k[0][i]); // store derivatives for Hermite interpolation
 
-			bVector[i] = intensities.I[j][i + n1] + hd * (k[0][i] + partial(i + n1, tPlusGamma, inward, n3, n4)); // only
-																													// INWARD
-																													// intensities
+			bVector[i] = intensities.getIntensity(j, i + n1)
+					+ hd * (k[0][i] + partial(i + n1, tPlusGamma, inward, n3, n4)); // only
+			// INWARD
+			// intensities
 
-			matrixPrefactor = prefactorNumerator / intensities.ordinates.mu[i + n1];
+			matrixPrefactor = prefactorNumerator / ordinates.getNode(i + n1);
 
 			// all elements
 			for (int k = 0; k < aMatrix[0].length; k++) {
-				aMatrix[i][k] = matrixPrefactor * intensities.ordinates.w[k + n5] * pf.function(i + n1, k + n5); // only
+				aMatrix[i][k] = matrixPrefactor * ordinates.getWeight(k + n5) * getPhaseFunction().function(i + n1, k + n5); // only
 				// OUTWARD
 				// (and zero)
 				// intensities
 			}
 
 			// additionally for the diagonal elements
-			aMatrix[i][i] += 1.0 + hd / intensities.ordinates.mu[i + n1];
+			aMatrix[i][i] += 1.0 + hd / ordinates.getNode(i + n1);
 
 		}
 
@@ -203,18 +212,19 @@ public class TRBDF2 extends AdaptiveIntegrator {
 
 		for (int i = 0; i < aMatrix.length; i++) {
 
-			bVector[i] = intensities.I[j][i + n1] * _1w_d + w_d * i2.get(i)
+			bVector[i] = intensities.getIntensity(j, i + n1) * _1w_d + w_d * i2.get(i)
 					+ hd * partial(i + n1, j + increment, th, n3, n4); // only INWARD intensities at node j + 1 (i.e. no
 																		// interpolation)
-			k[1][i] = (i2.get(i) - intensities.I[j][i + n1]) / hd - k[0][i];
+			k[1][i] = (i2.get(i) - intensities.getIntensity(j, i + n1)) / hd - k[0][i];
 
 		}
 
 		i3 = invA.multiply(new Vector(bVector));
 
 		for (int i = 0; i < aMatrix.length; i++) {
-			k[2][i] = (i3.get(i) - intensities.I[j][i + n1] - w_d * (i2.get(i) - intensities.I[j][i + n1])) / hd;
-			qLast[i] = k[2][i];
+			k[2][i] = (i3.get(i) - intensities.getIntensity(j, i + n1)
+					- w_d * (i2.get(i) - intensities.getIntensity(j, i + n1))) / hd;
+			setQLast(i, k[2][i]);
 			est[i] = (bbHat[0] * k[0][i] + bbHat[1] * k[1][i] + bbHat[2] * k[2][i]) * h;
 		}
 

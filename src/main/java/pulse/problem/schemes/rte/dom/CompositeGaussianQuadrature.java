@@ -56,14 +56,6 @@ public class CompositeGaussianQuadrature {
 
 	}
 
-	public static void main(String[] args) {
-		var q = new CompositeGaussianQuadrature(4);
-		q.init();
-		for (int i = 0; i < q.n; i++) {
-			System.out.printf("%n{%3.15f \t %3.15f}", q.nodes[i], q.weights[i]);
-		}
-	}
-
 	public void init() {
 		nodes();
 		weights();

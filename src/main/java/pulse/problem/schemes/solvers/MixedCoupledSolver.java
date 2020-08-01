@@ -12,7 +12,7 @@ import pulse.problem.schemes.Grid;
 import pulse.problem.schemes.MixedScheme;
 import pulse.problem.schemes.rte.RTECalculationStatus;
 import pulse.problem.schemes.rte.RadiativeTransferSolver;
-import pulse.problem.schemes.rte.dom.DiscreteOrdinatesSolver;
+import pulse.problem.schemes.rte.dom.DiscreteOrdinatesMethod;
 import pulse.problem.statements.ParticipatingMedium;
 import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
@@ -86,7 +86,7 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 			"RTE Solver Selector", RadiativeTransferSolver.class);
 
 	static {
-		instanceDescriptor.setSelectedDescriptor(DiscreteOrdinatesSolver.class.getSimpleName());
+		instanceDescriptor.setSelectedDescriptor(DiscreteOrdinatesMethod.class.getSimpleName());
 	}
 
 	public MixedCoupledSolver() {
@@ -223,6 +223,7 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 
 	private RTECalculationStatus timeStep(DiscretePulse discretePulse, int m, boolean activePulse) {
 		double phi;
+		final var fluxes = rte.getFluxes();
 
 		int i, j;
 		double F, pls;
@@ -240,8 +241,8 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 				&& status == RTECalculationStatus.NORMAL; status = rte.compute(V)) {
 
 			// i = 0
-			phi = TAU0_NP * rte.fluxDerivativeFront();
-			beta[1] = (_2TAUHX * (pls - SIGMA_NP * rte.getFlux(0) - ONE_MINUS_SIGMA_NP * rte.getStoredFlux(0))
+			phi = TAU0_NP * fluxes.fluxDerivativeFront();
+			beta[1] = (_2TAUHX * (pls - SIGMA_NP * fluxes.getFlux(0) - ONE_MINUS_SIGMA_NP * fluxes.getStoredFlux(0))
 					+ HX2 * (U[0] + phi * tau) + _2TAU_ONE_MINUS_SIGMA * (U[1] - U[0] * ONE_PLUS_Bi1_HX))
 					* BETA1_FACTOR;
 
@@ -263,10 +264,10 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 			beta[N] = (F + a * beta[N - 1]) / (b - a * alpha[N - 1]);
 
 			V_N = V[N];
-			phi = TAU0_NP * rte.fluxDerivativeRear();
+			phi = TAU0_NP * fluxes.fluxDerivativeRear();
 			V[N] = (sigma * beta[N] + HX2_2TAU * U[N] + 0.5 * HX2 * phi
 					+ ONE_MINUS_SIGMA * (U[N - 1] - U[N] * (1. + hx * Bi2))
-					+ HX_NP * (sigma * rte.getFlux(N) + ONE_MINUS_SIGMA * rte.getStoredFlux(N)))
+					+ HX_NP * (sigma * fluxes.getFlux(N) + ONE_MINUS_SIGMA * fluxes.getStoredFlux(N)))
 					/ (HX2_2TAU + sigma * (1. - alpha[N] + Bi2HX));
 
 			V_0 = V[0];
@@ -277,7 +278,7 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 		}
 
 		System.arraycopy(V, 0, U, 0, N + 1);
-		rte.store();
+		fluxes.store();
 		return status;
 
 	}
@@ -288,18 +289,21 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 	}
 
 	protected double phiNextToFront() {
-		return 0.833333333 * rte.meanFluxDerivative(1)
-				+ 0.083333333 * (rte.meanFluxDerivativeFront() + rte.meanFluxDerivative(2));
+		final var fluxes = rte.getFluxes();
+		return 0.833333333 * fluxes.meanFluxDerivative(1)
+				+ 0.083333333 * (fluxes.meanFluxDerivativeFront() + fluxes.meanFluxDerivative(2));
 	}
 
 	protected double phiNextToRear() {
-		return 0.833333333 * rte.meanFluxDerivative(N - 1)
-				+ 0.083333333 * (rte.meanFluxDerivative(N - 2) + rte.meanFluxDerivativeveRear());
+		final var fluxes = rte.getFluxes();
+		return 0.833333333 * fluxes.meanFluxDerivative(N - 1)
+				+ 0.083333333 * (fluxes.meanFluxDerivative(N - 2) + fluxes.meanFluxDerivativeveRear());
 	}
 
 	protected double phi(int i) {
-		return 0.833333333 * rte.meanFluxDerivative(i)
-				+ 0.083333333 * (rte.meanFluxDerivative(i - 1) + rte.meanFluxDerivative(i + 1));
+		final var fluxes = rte.getFluxes();
+		return 0.833333333 * fluxes.meanFluxDerivative(i)
+				+ 0.083333333 * (fluxes.meanFluxDerivative(i - 1) + fluxes.meanFluxDerivative(i + 1));
 	}
 
 	private void newRTE(ParticipatingMedium problem, Grid grid) {

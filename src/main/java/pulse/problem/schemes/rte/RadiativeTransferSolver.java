@@ -21,15 +21,9 @@ import pulse.util.Reflexive;
  *
  */
 
-public abstract class RadiativeTransferSolver extends PropertyHolder
-		implements Reflexive, Descriptive, DerivativeCalculator {
+public abstract class RadiativeTransferSolver extends PropertyHolder implements Reflexive, Descriptive {
 
-	private double[] fluxes;
-	private double[] storedFluxes;
-
-	private int N;
-	private double h;
-	private double opticalThickness;
+	private Fluxes fluxes;
 	private List<RTECalculationListener> rteListeners;
 
 	/**
@@ -44,7 +38,6 @@ public abstract class RadiativeTransferSolver extends PropertyHolder
 	 */
 
 	public RadiativeTransferSolver(ParticipatingMedium problem, Grid grid) {
-		reinitFluxes((int) grid.getGridDensity().getValue());
 		rteListeners = new ArrayList<>();
 	}
 
@@ -58,20 +51,6 @@ public abstract class RadiativeTransferSolver extends PropertyHolder
 	public abstract RTECalculationStatus compute(double[] temperatureArray);
 
 	/**
-	 * Resets the flux arrays by erasing all their contents and resizing to
-	 * {@code N}.
-	 * 
-	 * @param N the new size of flux arrays
-	 */
-
-	protected void reinitFluxes(int N) {
-		this.N = N;
-		this.h = opticalThickness / N;
-		fluxes = new double[N + 1];
-		storedFluxes = new double[N + 1];
-	}
-
-	/**
 	 * Retrieves the parameters from {@code p} and {@code grid} needed to run the
 	 * calculations. Resets the flux arrays.
 	 * 
@@ -80,8 +59,11 @@ public abstract class RadiativeTransferSolver extends PropertyHolder
 	 */
 
 	public void init(ParticipatingMedium p, Grid grid) {
-		this.opticalThickness = (double) p.getOpticalThickness().getValue();
-		reinitFluxes((int) grid.getGridDensity().getValue());
+		final double opticalThickness = (double) p.getOpticalThickness().getValue();
+		if (fluxes != null) {
+			fluxes.setDensity((int) grid.getGridDensity().getValue());
+			fluxes.setOpticalThickness(opticalThickness);
+		}
 	}
 
 	/**
@@ -102,49 +84,6 @@ public abstract class RadiativeTransferSolver extends PropertyHolder
 	}
 
 	/**
-	 * Retrieves the currently calculated flux at the {@code i} grid point
-	 * 
-	 * @param i the index of the grid point
-	 * @return the flux value at the specified grid point
-	 */
-
-	public double getFlux(int i) {
-		return fluxes[i];
-	}
-
-	/**
-	 * Sets the flux at the {@code i} grid point
-	 * 
-	 * @param i the index of the grid point
-	 */
-
-	public void setFlux(int i, double value) {
-		this.fluxes[i] = value;
-	}
-
-	/**
-	 * Retrieves the previously calculated flux at the {@code i} grid point.
-	 * 
-	 * @param i the index of the grid point
-	 * @return the previous flux value at the specified grid point
-	 * @see store()
-	 */
-
-	public double getStoredFlux(int i) {
-		return storedFluxes[i];
-	}
-
-	/**
-	 * Retrieves the grid density of the heat problem.
-	 * 
-	 * @return the grid density of the heat problem
-	 */
-
-	public int getExternalGridDensity() {
-		return N;
-	}
-
-	/**
 	 * Retrieves the optical coordinate corresponding to the grid index {@code i}
 	 * 
 	 * @param i the external grid index
@@ -152,35 +91,7 @@ public abstract class RadiativeTransferSolver extends PropertyHolder
 	 */
 
 	public double opticalCoordinateAt(int i) {
-		return h * i;
-	}
-
-	/**
-	 * Stores all currently calculated fluxes in a separate array.
-	 */
-
-	public void store() {
-		System.arraycopy(fluxes, 0, storedFluxes, 0, N + 1); // store previous results
-	}
-
-	/**
-	 * Retrieves the grid step multiplied by &tau;<sub>0</sub>.
-	 * 
-	 * @return the resized grid step
-	 */
-
-	public double getOpticalGridStep() {
-		return h;
-	}
-
-	/**
-	 * Retrieves the &tau;<sub>0</sub> value.
-	 * 
-	 * @return the optical thickness value.
-	 */
-
-	public double getOpticalThickness() {
-		return opticalThickness;
+		return fluxes.getOpticalGridStep() * i;
 	}
 
 	@Override
@@ -205,6 +116,19 @@ public abstract class RadiativeTransferSolver extends PropertyHolder
 
 	public void addRTEListener(RTECalculationListener listener) {
 		rteListeners.add(listener);
+	}
+
+	public void fireStatusUpdate(RTECalculationStatus status) {
+		for (RTECalculationListener l : getRTEListeners())
+			l.onStatusUpdate(status);
+	}
+
+	public Fluxes getFluxes() {
+		return fluxes;
+	}
+
+	public void setFluxes(Fluxes fluxes) {
+		this.fluxes = fluxes;
 	}
 
 }

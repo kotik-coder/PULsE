@@ -1,13 +1,24 @@
 package pulse.problem.schemes.rte.exact;
 
 import pulse.problem.schemes.Grid;
+import pulse.problem.schemes.rte.FluxesAndImplicitDerivatives;
 import pulse.problem.schemes.rte.RTECalculationStatus;
 import pulse.problem.statements.ParticipatingMedium;
+
+/**
+ * A solver of the radiative transfer equation for an absorbing-emitting medium
+ * where the fluxes are calculated using analytical formulae while their
+ * derivatives are calculated using the central-difference approximation.
+ *
+ */
 
 public class NonscatteringDiscreteDerivatives extends NonscatteringRadiativeTransfer {
 
 	public NonscatteringDiscreteDerivatives(ParticipatingMedium problem, Grid grid) {
 		super(problem, grid);
+		final int N = (int) grid.getGridDensity().getValue();
+		final double tau0 = (double) problem.getOpticalThickness().getValue();
+		setFluxes(new FluxesAndImplicitDerivatives(N, tau0));
 	}
 
 	@Override
@@ -15,42 +26,6 @@ public class NonscatteringDiscreteDerivatives extends NonscatteringRadiativeTran
 		super.compute(U);
 		fluxes();
 		return RTECalculationStatus.NORMAL;
-	}
-
-	@Override
-	public double meanFluxDerivative(int uIndex) {
-		double f = (getFlux(uIndex - 1) - getFlux(uIndex + 1))
-				+ (getStoredFlux(uIndex - 1) - getStoredFlux(uIndex + 1));
-		return f * 0.25 / getOpticalGridStep();
-	}
-
-	@Override
-	public double meanFluxDerivativeFront() {
-		double f = (getFlux(0) - getFlux(1)) + (getStoredFlux(0) - getStoredFlux(1));
-		return f * 0.5 / getOpticalGridStep();
-	}
-
-	@Override
-	public double meanFluxDerivativeveRear() {
-		final int N = this.getExternalGridDensity();
-		double f = (getFlux(N - 1) - getFlux(N)) + (getStoredFlux(N - 1) - getStoredFlux(N));
-		return f * 0.5 / getOpticalGridStep();
-	}
-
-	@Override
-	public double fluxDerivative(int uIndex) {
-		return (getFlux(uIndex - 1) - getFlux(uIndex + 1)) * 0.5 / getOpticalGridStep();
-	}
-
-	@Override
-	public double fluxDerivativeFront() {
-		return (getFlux(0) - getFlux(1)) / getOpticalGridStep();
-	}
-
-	@Override
-	public double fluxDerivativeRear() {
-		final int N = this.getExternalGridDensity();
-		return (getFlux(N - 1) - getFlux(N)) / getOpticalGridStep();
 	}
 
 }

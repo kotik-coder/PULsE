@@ -8,11 +8,13 @@ import pulse.properties.Property;
 
 public class OrdinateSet implements Property {
 
-	protected double[] mu;
-	protected double[] w;
+	private double[] mu;
+	private double[] w;
 
 	private boolean hasZeroNode;
-	protected int firstPositiveNode, firstNegativeNode, total;
+	private int firstPositiveNode;
+	private int firstNegativeNode;
+	private int totalNodes;
 
 	private static Set<OrdinateSet> allOptions = ReaderManager.load(QuadratureReader.getInstance(), "/quadratures/",
 			"Quadratures.list");
@@ -34,7 +36,7 @@ public class OrdinateSet implements Property {
 
 		setName(name);
 		this.mu = mu;
-		total = mu.length;
+		totalNodes = mu.length;
 		this.w = w;
 
 		if (!approximatelyEquals(summedWeights(), 2.0))
@@ -140,7 +142,23 @@ public class OrdinateSet implements Property {
 	}
 
 	public int getNumberOfNodes() {
-		return total;
+		return totalNodes;
+	}
+
+	public int getTotalNodes() {
+		return totalNodes;
+	}
+	
+	public double getNode(int i) {
+		return mu[i];
+	}
+	
+	public double getWeight(int i) {
+		return w[i];
+	}
+	
+	public int getHalfLength() {
+		return firstNegativeNode - firstPositiveNode;
 	}
 
 }

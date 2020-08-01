@@ -5,75 +5,42 @@ import static java.lang.Double.compare;
 import pulse.math.FunctionWithInterpolation;
 import pulse.math.Segment;
 import pulse.problem.schemes.Grid;
+import pulse.problem.schemes.rte.FluxesAndExplicitDerivatives;
 import pulse.problem.schemes.rte.RTECalculationStatus;
 import pulse.problem.statements.ParticipatingMedium;
 
+/**
+ * A solver of the radiative transfer equation for an absorbing-emitting medium
+ * where the fluxes and their derivatives are calculated using analytical
+ * formulae with the selected numerical quadrature.
+ *
+ */
+
 public class NonscatteringAnalyticalDerivatives extends NonscatteringRadiativeTransfer {
 
-	private FunctionWithInterpolation ei2 = ExponentialIntegrals.get(2);
-	private double fd[];
-	private double fdStored[];
+	private static FunctionWithInterpolation ei2 = ExponentialIntegrals.get(2);
 
 	public NonscatteringAnalyticalDerivatives(ParticipatingMedium problem, Grid grid) {
 		super(problem, grid);
+		final int N = (int) grid.getGridDensity().getValue();
+		final double tau0 = (double) problem.getOpticalThickness().getValue();
+		setFluxes(new FluxesAndExplicitDerivatives(N, tau0));
 	}
 
-	public double getStoredFluxDerivative(int index) {
-		return fdStored[index];
-	}
+	/**
+	 * Evaluates fluxes and their derivatives using analytical formulae and the
+	 * selected numerical quadrature. Usually works best with the
+	 * {@code ChandrasekharsQuadrature}.
+	 */
 
 	@Override
 	public RTECalculationStatus compute(double U[]) {
 		super.compute(U);
 		fluxes();
-		for (int i = 0, N = this.getExternalGridDensity(); i < N; i++) {
+		for (int i = 0, N = getFluxes().getDensity(); i < N; i++) {
 			evalFluxDerivative(i);
 		}
 		return RTECalculationStatus.NORMAL;
-	}
-
-	@Override
-	protected void reinitFluxes(int N) {
-		super.reinitFluxes(N);
-		fd = new double[N + 1];
-		fdStored = new double[N + 1];
-	}
-
-	@Override
-	public double fluxDerivative(int index) {
-		return fd[index];
-	}
-
-	@Override
-	public double fluxDerivativeRear() {
-		return fd[this.getExternalGridDensity()];
-	}
-
-	@Override
-	public double fluxDerivativeFront() {
-		return fd[0];
-	}
-
-	@Override
-	public void store() {
-		super.store();
-		System.arraycopy(fd, 0, fdStored, 0, this.getExternalGridDensity() + 1); // store previous results
-	}
-
-	@Override
-	public double meanFluxDerivative(int uIndex) {
-		return 0.5 * (fd[uIndex] + fdStored[uIndex]);
-	}
-
-	@Override
-	public double meanFluxDerivativeFront() {
-		return 0.5 * (fd[0] + fdStored[0]);
-	}
-
-	@Override
-	public double meanFluxDerivativeveRear() {
-		int N = this.getExternalGridDensity();
-		return 0.5 * (fd[N] + fdStored[N]);
 	}
 
 	/*
@@ -83,19 +50,19 @@ public class NonscatteringAnalyticalDerivatives extends NonscatteringRadiativeTr
 	 *
 	 */
 
-	private void evalFluxDerivative(int uIndex) {
+	private void evalFluxDerivative(final int uIndex) {
 		double t = opticalCoordinateAt(uIndex);
 
 		double value = getRadiosityFront() * ei2.valueAt(t)
-				+ getRadiosityRear() * ei2.valueAt(getOpticalThickness() - t) - 2.0 * getEmissionFunction().powerAt(t)
-				+ integrateFirstOrder(t);
+				+ getRadiosityRear() * ei2.valueAt(getFluxes().getOpticalThickness() - t)
+				- 2.0 * getEmissionFunction().powerAt(t) + integrateFirstOrder(t);
 
-		fd[uIndex] = 2.0 * value;
+		((FluxesAndExplicitDerivatives) getFluxes()).setFluxDerivative(uIndex, 2.0 * value);
 	}
 
-	private double integrateFirstOrder(double y) {
+	private double integrateFirstOrder(final double y) {
 		double integral = 0;
-		double tau0 = getOpticalThickness();
+		final double tau0 = getFluxes().getOpticalThickness();
 		var quadrature = getQuadrature();
 
 		setForIntegration(0, y);
@@ -119,8 +86,8 @@ public class NonscatteringAnalyticalDerivatives extends NonscatteringRadiativeTr
 	 * @param y upper bound
 	 */
 
-	private void setForIntegration(double x, double y) {
-		var quadrature = getQuadrature();
+	private void setForIntegration(final double x, final double y) {
+		final var quadrature = getQuadrature();
 		quadrature.setBounds(new Segment(x, y));
 		quadrature.setOrder(1);
 	}

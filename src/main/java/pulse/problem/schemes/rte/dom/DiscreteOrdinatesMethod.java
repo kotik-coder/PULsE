@@ -4,7 +4,7 @@ import java.util.List;
 
 import pulse.problem.schemes.Grid;
 import pulse.problem.schemes.rte.BlackbodySpectrum;
-import pulse.problem.schemes.rte.RTECalculationListener;
+import pulse.problem.schemes.rte.FluxesAndExplicitDerivatives;
 import pulse.problem.schemes.rte.RTECalculationStatus;
 import pulse.problem.schemes.rte.RadiativeTransferSolver;
 import pulse.problem.statements.ParticipatingMedium;
@@ -13,12 +13,14 @@ import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 import pulse.util.InstanceDescriptor;
 
-public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
+/**
+ * A class that manages the solution of the radiative transfer equation using the discrete ordinates method.
+ * The class provides an interface between the phase function, the ODE adaptive integrator and the iterative solver,
+ * a combination of which is used to solve the RTE. 
+ *
+ */
 
-	private final static double DOUBLE_PI = 2.0 * Math.PI;
-
-	private double[] fluxDerivative;
-	private double[] storedFluxDerivative;
+public class DiscreteOrdinatesMethod extends RadiativeTransferSolver {
 
 	private static InstanceDescriptor<AdaptiveIntegrator> integratorDescriptor = new InstanceDescriptor<AdaptiveIntegrator>(
 			"Integrator selector", AdaptiveIntegrator.class);
@@ -37,36 +39,33 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 	private AdaptiveIntegrator integrator;
 	private IterativeSolver iterativeSolver;
 
-	private DiscreteIntensities discrete;
-
 	/**
 	 * Constructs a discrete ordinates solver using the parameters (emissivity,
 	 * scattering albedo and optical thickness) declared by the {@code problem}
-	 * object. The nodes and weights of the quadrature are initialised using an
-	 * instance of the {@code LegendrePoly class}.
+	 * object. 
 	 * 
-	 * @see pulse.problem.schemes.rte.dom.CompositeGaussianQuadrature
-	 * @param problem statement
-	 * @param n       even number of direction pairs for DOM passed to the
-	 *                {@Code LegendrePoly constructor}
-	 * @param N       is the number of equal-length grid segments
-	 * @throws IllegalArgumentException if n is odd or less than two
+	 * @param problem the coupled problem statement
+	 * @param grid the heat problem grid
 	 */
 
-	public DiscreteOrdinatesSolver(ParticipatingMedium problem, Grid grid) {
+	public DiscreteOrdinatesMethod(ParticipatingMedium problem, Grid grid) {
 		super(problem, grid);
+		final int N = (int) grid.getGridDensity().getValue();
+		final double tau0 = (double) problem.getOpticalThickness().getValue();
+		setFluxes(new FluxesAndExplicitDerivatives(N, tau0));
 
-		discrete = new DiscreteIntensities(problem, (int) grid.getGridDensity().getValue());
-		discrete.setParent(this);
+		var discrete = new DiscreteIntensities(problem);
 
-		phaseFunction = phaseFunctionSelector.newInstance(PhaseFunction.class, problem, discrete);
 		var emissionFunction = new BlackbodySpectrum(problem);
+		
+		phaseFunction = phaseFunctionSelector.newInstance(PhaseFunction.class, problem, discrete);
 		integrator = integratorDescriptor.newInstance(AdaptiveIntegrator.class, problem, discrete, emissionFunction,
 				phaseFunction);
-		iterativeSolver = iterativeSolverSelector.newInstance(IterativeSolver.class);
-
+		integrator.setIntensities(discrete);
 		integrator.setParent(this);
+		iterativeSolver = iterativeSolverSelector.newInstance(IterativeSolver.class);
 		iterativeSolver.setParent(this);
+		
 		init(problem, grid);
 
 		integratorDescriptor.addListener(() -> setIntegrator(integratorDescriptor.newInstance(AdaptiveIntegrator.class,
@@ -80,36 +79,29 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 
 	}
 
-	private void temperatureInterpolation(double dimension, double[] tempArray) {
-		integrator.emissionFunction.setInterpolation(super.interpolateTemperatureProfile(tempArray));
-	}
-
 	@Override
 	public RTECalculationStatus compute(double[] tempArray) {
-		discrete.grid.generateUniform(true);
-		discrete.reinitInternalArrays();
+		integrator.getEmissionFunction().setInterpolation( interpolateTemperatureProfile(tempArray) );
 
-		temperatureInterpolation(discrete.getStretchedGrid().getDimension(), tempArray);
-
-		var status = iterativeSolver.doIterations(discrete, integrator);
+		var status = iterativeSolver.doIterations(integrator.getIntensities(), integrator);
 
 		if (status == RTECalculationStatus.NORMAL)
 			fluxesAndDerivatives(tempArray.length);
 
-		for (RTECalculationListener l : getRTEListeners()) {
-			l.onStatusUpdate(status);
-		}
-
+		fireStatusUpdate(status);
 		return status;
 	}
 
-	public void fluxesAndDerivatives(int nExclusive) {
-		var interpolation = discrete.interpolateOnExternalGrid(nExclusive, integrator.f);
-		fluxDerivative = new double[nExclusive];
-
+	private void fluxesAndDerivatives(final int nExclusive) {
+		final var interpolation = HermiteInterpolator.interpolateOnExternalGrid(nExclusive, integrator);
+		
+		final double DOUBLE_PI = 2.0 * Math.PI;
+		final var discrete = integrator.getIntensities();
+		var fluxes = (FluxesAndExplicitDerivatives)getFluxes();
+		
 		for (int i = 0; i < nExclusive; i++) {
-			setFlux(i, DOUBLE_PI * discrete.q(interpolation[0], i));
-			fluxDerivative[i] = -DOUBLE_PI * discrete.q(interpolation[1], i);
+			fluxes.setFlux(i, DOUBLE_PI * discrete.flux(interpolation[0], i));
+			fluxes.setFluxDerivative(i, -DOUBLE_PI * discrete.flux(interpolation[1], i) );
 		}
 	}
 
@@ -119,58 +111,13 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 	}
 
 	@Override
-	public int getExternalGridDensity() {
-		return discrete.grid.getDensity();
-	}
-
-	@Override
-	public double fluxDerivative(int u) {
-		return fluxDerivative[u];
-	}
-
-	@Override
-	public double fluxDerivativeFront() {
-		return fluxDerivative[0];
-	}
-
-	@Override
-	public double fluxDerivativeRear() {
-		return fluxDerivative[fluxDerivative.length - 1];
-	}
-
-	@Override
-	public double meanFluxDerivative(int u) {
-		return 0.5 * (fluxDerivative[u] + storedFluxDerivative[u]);
-	}
-
-	@Override
-	public double meanFluxDerivativeFront() {
-		return 0.5 * (fluxDerivative[0] + storedFluxDerivative[0]);
-	}
-
-	@Override
-	public double meanFluxDerivativeveRear() {
-		return 0.5
-				* (fluxDerivative[fluxDerivative.length - 1] + storedFluxDerivative[storedFluxDerivative.length - 1]);
-	}
-
-	@Override
 	public void init(ParticipatingMedium problem, Grid grid) {
 		super.init(problem, grid);
 
 		phaseFunction.setAnisotropyFactor((double) problem.getScatteringAnisostropy().getValue());
 
-		reinitDerivatives((int) grid.getGridDensity().getValue());
-
-		discrete.grid = new StretchedGrid((double) problem.getOpticalThickness().getValue());
-		discrete.reinitInternalArrays();
-
-		integrator.init(problem, grid);
-	}
-
-	private void reinitDerivatives(int gridDensity) {
-		storedFluxDerivative = new double[gridDensity + 1];
-		fluxDerivative = new double[gridDensity + 1];
+		getFluxes().setDensity((int)grid.getGridDensity().getValue());
+		integrator.init(problem);
 	}
 
 	@Override
@@ -184,12 +131,6 @@ public class DiscreteOrdinatesSolver extends RadiativeTransferSolver {
 
 	public AdaptiveIntegrator getIntegrator() {
 		return integrator;
-	}
-
-	@Override
-	public void store() {
-		super.store();
-		System.arraycopy(fluxDerivative, 0, storedFluxDerivative, 0, fluxDerivative.length);
 	}
 
 	public PhaseFunction getPhaseFunction() {

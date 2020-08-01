@@ -128,6 +128,7 @@ public class ImplicitCoupledSolver extends ImplicitScheme implements Solver<Part
 	public void solve(ParticipatingMedium problem) throws SolverException {
 
 		prepare(problem);
+		final var fluxes = rte.getFluxes();
 
 		final double errorSq = MathUtils.fastPowLoop(nonlinearPrecision, 2);
 
@@ -159,15 +160,15 @@ public class ImplicitCoupledSolver extends ImplicitScheme implements Solver<Part
 				for (V_0 = errorSq + 1, V_N = errorSq + 1; (MathUtils.fastPowLoop((V[0] - V_0), 2) > errorSq)
 						|| (MathUtils.fastPowLoop((V[N] - V_N), 2) > errorSq); status = rte.compute(V)) {
 
-					beta[1] = (HX2_2TAU * U[0] + hx * pls - HX_2NP * (rte.getFlux(0) + rte.getFlux(1))) * alpha[1];
+					beta[1] = (HX2_2TAU * U[0] + hx * pls - HX_2NP * (fluxes.getFlux(0) + fluxes.getFlux(1))) * alpha[1];
 
 					for (i = 1; i < N; i++) {
-						F = U[i] / tau + b11 * (rte.getFlux(i - 1) - rte.getFlux(i + 1));
+						F = U[i] / tau + b11 * (fluxes.getFlux(i - 1) - fluxes.getFlux(i + 1));
 						beta[i + 1] = (F + a * beta[i]) / (b - a * alpha[i]);
 					}
 
 					V_N = V[N];
-					V[N] = (beta[N] + HX2_2TAU * U[N] + HX_2NP * (rte.getFlux(N - 1) + rte.getFlux(N)))
+					V[N] = (beta[N] + HX2_2TAU * U[N] + HX_2NP * (fluxes.getFlux(N - 1) + fluxes.getFlux(N)))
 							/ (v1 - alpha[N]);
 
 					V_0 = V[0];

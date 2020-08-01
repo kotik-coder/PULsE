@@ -27,9 +27,16 @@ public class ExplicitRungeKutta extends AdaptiveIntegrator {
 	@Override
 	public Vector[] step(final int j, final double sign) {
 
-		final double h = intensities.grid.step(j, sign);
+		var intensities = getIntensities();
+		final var grid = intensities.getGrid();
+		final var ordinates = intensities.getOrdinates();
+		
+		final double h = grid.step(j, sign);
 		final double hSigned = h * sign;
-		final double t = intensities.grid.getNode(j);
+		final double t = grid.getNode(j);
+		
+		final int nPositiveStart = intensities.getOrdinates().getFirstPositiveNode();
+		final int nNegativeStart = intensities.getOrdinates().getFirstNegativeNode();
 
 		HermiteInterpolator.a = t;
 		HermiteInterpolator.bMinusA = hSigned;
@@ -40,9 +47,9 @@ public class ExplicitRungeKutta extends AdaptiveIntegrator {
 
 		final int n1 = sign > 0 ? nPositiveStart : nNegativeStart; // either first positive index (e.g. 0) or first
 																	// negative (n/2)
-		final int n2 = sign > 0 ? nNegativeStart : intensities.ordinates.total; // either first negative index (n/2) or
+		final int n2 = sign > 0 ? nNegativeStart : ordinates.getTotalNodes(); // either first negative index (n/2) or
 																				// n
-		final int n3 = intensities.ordinates.total - n2; // either nNegativeStart or 0
+		final int n3 = ordinates.getTotalNodes() - n2; // either nNegativeStart or 0
 		final int nH = n2 - n1;
 
 		var error = new double[nH];
@@ -69,13 +76,13 @@ public class ExplicitRungeKutta extends AdaptiveIntegrator {
 		if (tableau.isFSAL() && !firstRun) { // if FSAL
 
 			for (int l = n1; l < n2; l++) {
-				q[l - n1][0] = qLast[l - n1]; // assume first stage is the last stage of last step
+				q[l - n1][0] = getQLast(l - n1); // assume first stage is the last stage of last step
 			}
 
 		} else { // if not FSAL or on first run
 
 			for (int l = n1; l < n2; l++) {
-				q[l - n1][0] = derivative(l, j, t, intensities.I[j][l]);
+				q[l - n1][0] = derivative(l, j, t, intensities.getIntensity(j, l));
 			}
 
 			firstRun = false;
@@ -85,7 +92,7 @@ public class ExplicitRungeKutta extends AdaptiveIntegrator {
 		// in any case
 
 		for (int l = n1; l < n2; l++) {
-			f[j][l] = q[l - n1][0]; // store derivative for inward intensities
+			setDerivative(j,l, q[l - n1][0]); // store derivative for inward intensities
 			error[l - n1] = (tableau.b.get(0) - tableau.bHat.get(0)) * q[l - n1][0] * hSigned;
 		}
 
@@ -112,17 +119,17 @@ public class ExplicitRungeKutta extends AdaptiveIntegrator {
 				for (int k = 1; k < m; k++)
 					sum += tableau.coefs.get(m, k) * q[l - n1][k];
 
-				iOutward[l - n1] = intensities.I[j][l] + hSigned * sum; // outward intensities are simply found from the
+				iOutward[l - n1] = intensities.getIntensity(j, l) + hSigned * sum; // outward intensities are simply found from the
 																		// RK explicit expressions
 
 				/*
 				 * INWARD
 				 */
 
-				HermiteInterpolator.y0 = intensities.I[j][l + n3];
-				HermiteInterpolator.y1 = intensities.I[j + increment][l + n3];
-				HermiteInterpolator.d0 = f[j][l + n3];
-				HermiteInterpolator.d1 = f[j + increment][l + n3];
+				HermiteInterpolator.y0 = intensities.getIntensity(j, l + n3);
+				HermiteInterpolator.y1 = intensities.getIntensity(j + increment,l + n3);
+				HermiteInterpolator.d0 = getDerivative(j,l + n3);
+				HermiteInterpolator.d1 = getDerivative(j + increment,l + n3);
 
 				iInward[l - n1] = HermiteInterpolator.interpolate(tm); // inward intensities are interpolated with
 																		// Hermite polynomials
@@ -135,7 +142,7 @@ public class ExplicitRungeKutta extends AdaptiveIntegrator {
 
 			for (int l = n1; l < n2; l++) {
 				q[l - n1][m] = derivative(l, tm, iOutward, iInward, n1, n2);
-				qLast[l - n1] = q[l - n1][m];
+				setQLast(l - n1, q[l - n1][m]);
 				error[l - n1] += (tableau.b.get(m) - tableau.bHat.get(m)) * q[l - n1][m] * hSigned;
 			}
 
@@ -149,7 +156,7 @@ public class ExplicitRungeKutta extends AdaptiveIntegrator {
 
 		for (int l = 0; l < nH; l++) {
 			bDotQ = tableau.b.dot(new Vector(q[l]));
-			Is[l] = intensities.I[j][l + n1] + bDotQ * hSigned;
+			Is[l] = intensities.getIntensity(j,l + n1) + bDotQ * hSigned;
 		}
 
 		return new Vector[] { new Vector(Is), new Vector(error) };

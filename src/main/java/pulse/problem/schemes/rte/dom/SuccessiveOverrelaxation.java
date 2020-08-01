@@ -25,11 +25,12 @@ public class SuccessiveOverrelaxation extends IterativeSolver {
 		double qrd = 0;
 
 		int iterations = 0;
+		final var ef = integrator.getEmissionFunction();
 		RTECalculationStatus status = RTECalculationStatus.NORMAL;
 
 		for (double ql = 1e8, qr = ql; relativeError > iterationError; status = sanityCheck(status, ++iterations)) {
-			ql = discrete.getQLeft();
-			qr = discrete.getQRight();
+			ql = discrete.getFluxLeft();
+			qr = discrete.getFluxRight();
 
 			integrator.storeIteration();
 			status = integrator.integrate();
@@ -39,8 +40,8 @@ public class SuccessiveOverrelaxation extends IterativeSolver {
 				relativeError = Double.POSITIVE_INFINITY;
 			} else { // calculate the (k+1) iteration as: I_k+1 = I_k * (1 - W) + I*
 				integrator.successiveOverrelaxation(W);
-				qld = Math.abs(discrete.qLeft(integrator.emissionFunction) - ql);
-				qrd = Math.abs(discrete.qRight(integrator.emissionFunction) - qr);
+				qld = Math.abs(discrete.fluxLeft(ef) - ql);
+				qrd = Math.abs(discrete.fluxRight(ef) - qr);
 				relativeError = (qld + qrd) / (Math.abs(ql) + Math.abs(qr));
 			}
 

@@ -1,9 +1,6 @@
 package pulse.problem.schemes.rte.dom;
 
 import pulse.problem.statements.ParticipatingMedium;
-import pulse.properties.NumericProperty;
-import pulse.properties.NumericPropertyKeyword;
-import pulse.properties.Property;
 import pulse.util.Reflexive;
 
 public abstract class PhaseFunction implements Reflexive {
@@ -13,42 +10,32 @@ public abstract class PhaseFunction implements Reflexive {
 
 	public PhaseFunction(ParticipatingMedium medium, DiscreteIntensities intensities) {
 		this.intensities = intensities;
-
-		medium.addListener(e -> {
-
-			Property p = e.getProperty();
-
-			if (p instanceof NumericProperty) {
-				var np = (NumericProperty) p;
-				if (np.getType() == NumericPropertyKeyword.SCATTERING_ANISOTROPY)
-					setAnisotropyFactor((double) np.getValue());
-			}
-
-		});
 	}
 
 	public double fullSum(int i, int j) {
-		return partialSum(i, j, 0, intensities.ordinates.total);
+		return partialSum(i, j, 0, intensities.getOrdinates().getTotalNodes());
 	}
 
 	public double sumExcludingIndex(int i, int j, int index) {
-		return partialSum(i, j, 0, index) + partialSum(i, j, index + 1, intensities.ordinates.total);
+		return partialSum(i, j, 0, index) + partialSum(i, j, index + 1, intensities.getOrdinates().getTotalNodes());
 	}
 
 	public double partialSum(int i, int j, int startInclusive, int endExclusive) {
 		double result = 0;
+		final var ordinates = intensities.getOrdinates();
 
 		for (int k = startInclusive; k < endExclusive; k++) {
-			result += intensities.ordinates.w[k] * intensities.I[j][k] * function(i, k);
+			result += ordinates.getWeight(k) * intensities.getIntensity(j, k) * function(i, k);
 		}
 		return result;
 	}
 
 	public double inwardPartialSum(int i, double[] inward, int kStart, int kEndExclusive) {
 		double result = 0;
-
+		final var ordinates = intensities.getOrdinates();
+		
 		for (int k = kStart; k < kEndExclusive; k++) {
-			result += intensities.ordinates.w[k] * inward[k - kStart] * function(i, k);
+			result += ordinates.getWeight(k) * inward[k - kStart] * function(i, k);
 		}
 
 		return result;

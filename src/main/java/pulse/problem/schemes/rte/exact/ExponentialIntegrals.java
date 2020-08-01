@@ -3,6 +3,12 @@ package pulse.problem.schemes.rte.exact;
 import pulse.math.FunctionWithInterpolation;
 import pulse.math.Segment;
 
+/**
+ * A factory class for creating and evaluating {@code ExponentialIntegral}s of 
+ * orders from 1 to 4. 
+ *
+ */
+
 public class ExponentialIntegrals {
 
 	public final static double CUTOFF = 9.2; // corresponds to a precision of 1E-5
@@ -30,6 +36,12 @@ public class ExponentialIntegrals {
 		}
 	}
 
+	/**
+	 * Retrieves the pre-calculated interpolation functions for the exponential integrals.
+	 * @param order the order (1 to 4) of the exponential integral
+	 * @return a pre-calculated interpolation with the default bounds
+	 */
+	
 	public static FunctionWithInterpolation get(int order) {
 		return instance.exponentialIntegrals[order];
 	}
