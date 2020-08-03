@@ -1,18 +1,24 @@
 package pulse.problem.schemes.rte.dom;
 
-import java.util.ArrayList;
+import static pulse.properties.NumericProperty.theDefault;
+import static pulse.properties.NumericPropertyKeyword.ATOL;
+import static pulse.properties.NumericPropertyKeyword.GRID_SCALING_FACTOR;
+import static pulse.properties.NumericPropertyKeyword.RTE_INTEGRATION_TIMEOUT;
+import static pulse.properties.NumericPropertyKeyword.RTOL;
+
 import java.util.List;
 
 import pulse.math.linear.Vector;
 import pulse.problem.schemes.rte.BlackbodySpectrum;
 import pulse.problem.schemes.rte.RTECalculationStatus;
-import pulse.problem.statements.ParticipatingMedium;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 
-public abstract class AdaptiveIntegrator extends NumericIntegrator {
+public abstract class AdaptiveIntegrator extends ODEIntegrator {
 
+	private HermiteInterpolator hermite;
+	
 	private double atol;
 	private double rtol;
 	private double scalingFactor;
@@ -22,29 +28,30 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 	private double[][] fk;
 	private double[] qLast;
 
-	protected boolean firstRun;
+	private boolean firstRun;
 	private boolean rescaled;
-	private long calculationStartingTime;
 
+	private long calculationStartingTime;
 	private long timeThreshold;
 
-	public AdaptiveIntegrator(ParticipatingMedium medium, DiscreteIntensities intensities, BlackbodySpectrum ef,
-			PhaseFunction ipf) {
-		super(medium, intensities, ef, ipf);
-		atol = (double) NumericProperty.theDefault(NumericPropertyKeyword.ATOL).getValue();
-		rtol = (double) NumericProperty.theDefault(NumericPropertyKeyword.RTOL).getValue();
-		scalingFactor = (double) NumericProperty.theDefault(NumericPropertyKeyword.GRID_SCALING_FACTOR).getValue();
+	public AdaptiveIntegrator(DiscreteIntensities intensities, BlackbodySpectrum ef) {
+		super(intensities, ef);
+		atol = (double) theDefault(ATOL).getValue();
+		rtol = (double) theDefault(RTOL).getValue();
+		scalingFactor = (double) theDefault(GRID_SCALING_FACTOR).getValue();
 		f = new double[intensities.getGrid().getDensity() + 1][intensities.getOrdinates().getTotalNodes()];
-		timeThreshold = ((Number) NumericProperty.theDefault(NumericPropertyKeyword.RTE_INTEGRATION_TIMEOUT).getValue())
-				.longValue();
+		timeThreshold = ((Number) theDefault(RTE_INTEGRATION_TIMEOUT).getValue()).longValue();
+		hermite = new HermiteInterpolator();
 	}
 
-	protected void init() {
+	protected void prepare() {
 		final int total = getIntensities().getOrdinates().getTotalNodes();
+		final int N = getIntensities().getGrid().getDensity();
 		qLast = new double[total];
-		int N = getIntensities().getGrid().getDensity();
-		f = new double[N + 1][total]; // first index - spatial steps, second index - quadrature
-															// points
+		/*
+		 * first index - spatial steps, second index - quadrature points
+		 */
+		f = new double[N + 1][total];
 		rescaled = false;
 	}
 
@@ -55,27 +62,12 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 		Ik = new double[density + 1][total];
 		fk = new double[density + 1][total];
 
-		// store k-th components
+		/*
+		 * store k-th components
+		 */
 		for (int j = 0; j < Ik.length; j++) {
 			System.arraycopy(intensities.getIntensities()[j], 0, Ik[j], 0, Ik[0].length);
 			System.arraycopy(f[j], 0, fk[j], 0, fk[0].length);
-		}
-
-	}
-
-	public void successiveOverrelaxation(double W) {
-
-		final var intensities = getIntensities();
-		final int density = intensities.getGrid().getDensity();
-		final int total = intensities.getOrdinates().getTotalNodes();
-		
-		double ONE_MINUS_W = 1.0 - W;
-
-		for (int i = 0; i < density + 1; i++) {
-			for (int j = 0; j < total; j++) {
-				intensities.setIntensity(i, j, ONE_MINUS_W * Ik[i][j] + W * intensities.getIntensity(i,j));
-				f[i][j] = ONE_MINUS_W * fk[i][j] + W * f[i][j];
-			}
 		}
 
 	}
@@ -86,8 +78,8 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 		final var intensities = getIntensities();
 		int N = intensities.getGrid().getDensity();
 		final int total = intensities.getOrdinates().getTotalNodes();
-		init();
-		
+		prepare();
+
 		final int nPositiveStart = intensities.getOrdinates().getFirstPositiveNode();
 		final int nNegativeStart = intensities.getOrdinates().getFirstNegativeNode();
 		final int halfLength = nNegativeStart - nPositiveStart;
@@ -95,7 +87,8 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 		RTECalculationStatus status = RTECalculationStatus.NORMAL;
 
 		for (double error = 1.0, relFactor = 0.0, i0Max = 0, i1Max = 0; (error > atol + relFactor * rtol)
-				&& status == RTECalculationStatus.NORMAL; N = intensities.getGrid().getDensity(), status = sanityCheck()) {
+				&& status == RTECalculationStatus.NORMAL; N = intensities.getGrid()
+						.getDensity(), status = sanityCheck()) {
 
 			calculationStartingTime = System.nanoTime();
 			error = 0;
@@ -107,7 +100,7 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 			 * streams propagate in the positive hemisphere
 			 */
 
-			intensities.left(getEmissionFunction()); // initial value for tau = 0
+			intensities.intensitiesLeftBoundary(getEmissionFunction()); // initial value for tau = 0
 			i0Max = (new Vector(intensities.getIntensities()[0])).maxAbsComponent();
 
 			firstRun = true;
@@ -129,7 +122,7 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 			 * streams propagate in the negative hemisphere
 			 */
 
-			intensities.right(getEmissionFunction()); // initial value for tau = tau_0
+			intensities.intensitiesRightBoundary(getEmissionFunction()); // initial value for tau = tau_0
 			i0Max = (new Vector(intensities.getIntensities()[N])).maxAbsComponent();
 
 			firstRun = true;
@@ -154,7 +147,7 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 
 			if (error > atol + relFactor * rtol) {
 				reduceStepSize();
-				HermiteInterpolator.clear();
+				hermite.clear();
 			}
 
 		}
@@ -178,20 +171,27 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 		var intensities = getIntensities();
 		final int nNew = (roundEven(scalingFactor * intensities.getGrid().getDensity()));
 		generateGrid(nNew);
-		intensities.reinitInternalArrays();
+		intensities.reinitIntensityArray();
 		intensities.clearBoundaryFluxes();
 		rescaled = true;
 		int N = intensities.getGrid().getDensity();
-		f = new double[N + 1][intensities.getOrdinates().getTotalNodes()]; // first index - spatial steps, second index - quadrature
-															// points
+		f = new double[N + 1][intensities.getOrdinates().getTotalNodes()]; // first index - spatial steps, second index
+																			// - quadrature
+		// points
 	}
 
 	public boolean wasRescaled() {
 		return rescaled;
 	}
+	
+	/**
+	 * Generates a <b>uniform</b> grid using the 
+	 * argument as the density.
+	 * @param nNew new grid density
+	 */
 
 	public void generateGrid(int nNew) {
-		getIntensities().getGrid().generateUniform(nNew, true);
+		getIntensities().getGrid().generateUniformBase(nNew, true);
 	}
 
 	private int roundEven(double a) {
@@ -253,7 +253,7 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 
 	@Override
 	public List<Property> listedTypes() {
-		List<Property> list = new ArrayList<>();
+		List<Property> list = super.listedTypes();
 		list.add(NumericProperty.def(NumericPropertyKeyword.RTOL));
 		list.add(NumericProperty.def(NumericPropertyKeyword.ATOL));
 		list.add(NumericProperty.def(NumericPropertyKeyword.GRID_SCALING_FACTOR));
@@ -275,15 +275,15 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 		if (timeThreshold.getType() == NumericPropertyKeyword.RTE_INTEGRATION_TIMEOUT)
 			this.timeThreshold = ((Number) timeThreshold.getValue()).longValue();
 	}
-	
+
 	public double[][] getDerivatives() {
 		return f;
 	}
-	
+
 	public boolean isFirstRun() {
 		return firstRun;
 	}
-	
+
 	public void setFirstRun(boolean firstRun) {
 		this.firstRun = firstRun;
 	}
@@ -295,13 +295,29 @@ public abstract class AdaptiveIntegrator extends NumericIntegrator {
 	public void setQLast(int i, double q) {
 		this.qLast[i] = q;
 	}
-	
+
 	public double getDerivative(int i, int j) {
 		return f[i][j];
 	}
 
 	public void setDerivative(int i, int j, double f) {
 		this.f[i][j] = f;
+	}
+
+	public double getStoredIntensity(final int i, final int j) {
+		return Ik[i][j];
+	}
+
+	public double getStoredDerivative(final int i, final int j) {
+		return fk[i][j];
+	}
+	
+	public void setStoredDerivative(final int i, final int j, final double f) {
+		this.f[i][j] = f;
+	}
+
+	public HermiteInterpolator getHermiteInterpolator() {
+		return hermite;
 	}
 
 }

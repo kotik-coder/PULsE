@@ -1,5 +1,12 @@
 package pulse.problem.schemes.rte.dom;
 
+import static pulse.problem.schemes.rte.RTECalculationStatus.ITERATION_TIMEOUT;
+import static pulse.properties.NumericProperty.def;
+import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericProperty.theDefault;
+import static pulse.properties.NumericPropertyKeyword.DOM_ITERATION_ERROR;
+import static pulse.properties.NumericPropertyKeyword.RTE_MAX_ITERATIONS;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,26 +19,26 @@ import pulse.util.Reflexive;
 
 public abstract class IterativeSolver extends PropertyHolder implements Reflexive {
 
-	protected double iterationError;
+	private double iterationError;
 	private int maxIterations;
-
-	public abstract RTECalculationStatus doIterations(DiscreteIntensities discrete, AdaptiveIntegrator integrator);
-
+	
 	public IterativeSolver() {
-		iterationError = (double) NumericProperty.theDefault(NumericPropertyKeyword.DOM_ITERATION_ERROR).getValue();
-		maxIterations = (int) NumericProperty.theDefault(NumericPropertyKeyword.RTE_MAX_ITERATIONS).getValue();
+		iterationError = (double) theDefault(DOM_ITERATION_ERROR).getValue();
+		maxIterations = (int) theDefault(RTE_MAX_ITERATIONS).getValue();
 	}
+	
+	public abstract RTECalculationStatus doIterations(AdaptiveIntegrator integrator);
 
 	protected RTECalculationStatus sanityCheck(RTECalculationStatus status, int iterations) {
-		return iterations < maxIterations ? status : RTECalculationStatus.ITERATION_TIMEOUT;
+		return iterations < maxIterations ? status : ITERATION_TIMEOUT;
 	}
 
 	public NumericProperty getIterationErrorTolerance() {
-		return NumericProperty.derive(NumericPropertyKeyword.DOM_ITERATION_ERROR, this.iterationError);
+		return derive(DOM_ITERATION_ERROR, this.iterationError);
 	}
 
 	public void setIterationErrorTolerance(NumericProperty e) {
-		if (e.getType() != NumericPropertyKeyword.DOM_ITERATION_ERROR)
+		if (e.getType() != DOM_ITERATION_ERROR)
 			throw new IllegalArgumentException("Illegal type: " + e.getType());
 		this.iterationError = (double) e.getValue();
 	}
@@ -56,23 +63,27 @@ public abstract class IterativeSolver extends PropertyHolder implements Reflexiv
 	@Override
 	public List<Property> listedTypes() {
 		List<Property> list = new ArrayList<>();
-		list.add(NumericProperty.def(NumericPropertyKeyword.DOM_ITERATION_ERROR));
-		list.add(NumericProperty.def(NumericPropertyKeyword.RTE_MAX_ITERATIONS));
+		list.add(def(DOM_ITERATION_ERROR));
+		list.add(def(RTE_MAX_ITERATIONS));
 		return list;
 	}
 
 	public NumericProperty getMaxIterations() {
-		return NumericProperty.derive(NumericPropertyKeyword.RTE_MAX_ITERATIONS, maxIterations);
+		return derive(RTE_MAX_ITERATIONS, maxIterations);
 	}
 
 	public void setMaxIterations(NumericProperty iterations) {
-		if (iterations.getType() == NumericPropertyKeyword.RTE_MAX_ITERATIONS)
+		if (iterations.getType() == RTE_MAX_ITERATIONS)
 			this.maxIterations = (int) iterations.getValue();
 	}
 
 	@Override
 	public String toString() {
 		return getClass().getSimpleName() + " : " + this.getIterationErrorTolerance();
+	}
+
+	public double getIterationError() {
+		return iterationError;
 	}
 
 }

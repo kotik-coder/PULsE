@@ -7,6 +7,7 @@ import static pulse.properties.NumericProperty.theDefault;
 import static pulse.properties.NumericPropertyKeyword.INTEGRATION_SEGMENTS;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import pulse.properties.NumericProperty;
@@ -105,9 +106,7 @@ public abstract class FixedIntervalIntegrator extends AbstractIntegrator {
 
 	@Override
 	public List<Property> listedTypes() {
-		List<Property> list = new ArrayList<>();
-		list.add(def(INTEGRATION_SEGMENTS));
-		return list;
+		return new ArrayList<Property>(Arrays.asList(def(INTEGRATION_SEGMENTS)));
 	}
 
 	/**
@@ -124,6 +123,11 @@ public abstract class FixedIntervalIntegrator extends AbstractIntegrator {
 	@Override
 	public String toString() {
 		return getClass().getSimpleName() + " ; " + getIntegrationSegments();
+	}
+	
+	@Override
+	public String getPrefix() {
+		return "Fixed step integrator";
 	}
 
 }

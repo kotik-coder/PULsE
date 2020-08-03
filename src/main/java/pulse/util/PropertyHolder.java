@@ -273,6 +273,16 @@ public abstract class PropertyHolder extends Accessible {
 	public String getPrefix() {
 		return prefix;
 	}
+	
+	/**
+	 * If not null, will return the prefix, otherwise calls the superclass method.
+	 * 
+	 * @return the descriptor
+	 */
+
+	public String getDescriptor() {
+		return prefix != null ? getPrefix() : super.getDescriptor();
+	}
 
 	public void setPrefix(String prefix) {
 		this.prefix = prefix;

@@ -8,8 +8,6 @@ import static pulse.properties.NumericProperty.requireType;
 import static pulse.properties.NumericPropertyKeyword.INTEGRATION_CUTOFF;
 import static pulse.properties.NumericPropertyKeyword.INTEGRATION_SEGMENTS;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import pulse.math.FixedIntervalIntegrator;
@@ -75,10 +73,11 @@ public class NewtonCotesQuadrature extends CompositionProduct {
 
 			@Override
 			public String getDescriptor() {
-				return reference.getSimpleName();
+				return "Simpson's Integrator";
 			}
 
 		};
+		integrator.setParent(this);
 	}
 	
 	/**
@@ -124,7 +123,15 @@ public class NewtonCotesQuadrature extends CompositionProduct {
 
 	@Override
 	public List<Property> listedTypes() {
-		return new ArrayList<Property>(Arrays.asList(def(INTEGRATION_CUTOFF)));
+		var list = super.listedTypes();
+		list.add(def(INTEGRATION_CUTOFF));
+		list.add(def(INTEGRATION_SEGMENTS));
+		return list;
+	}
+	
+	@Override
+	public boolean ignoreSiblings() {
+		return true;
 	}
 	
 	private Segment truncatedBounds() {

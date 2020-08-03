@@ -1,5 +1,7 @@
 package pulse.problem.schemes.rte.dom;
 
+import static java.lang.Math.sqrt;
+
 import pulse.problem.statements.ParticipatingMedium;
 
 public class HenyeyGreensteinPF extends PhaseFunction {
@@ -10,27 +12,24 @@ public class HenyeyGreensteinPF extends PhaseFunction {
 
 	public HenyeyGreensteinPF(ParticipatingMedium medium, DiscreteIntensities intensities) {
 		super(medium, intensities);
-		init();
-	}
-
-	public void init() {
-		b1 = 2.0 * getAnisotropyFactor();
-		a1 = 1.0 - getAnisotropyFactor() * getAnisotropyFactor();
-		a2 = 1.0 + getAnisotropyFactor() * getAnisotropyFactor();
 	}
 
 	@Override
-	public double function(int i, int k) {
-		final var ordinates = intensities.getOrdinates();
+	public void init(ParticipatingMedium problem) {
+		super.init(problem);
+		final double anisotropy = getAnisotropyFactor();
+		b1 = 2.0 * anisotropy;
+		final double aSq = anisotropy * anisotropy;
+		a1 = 1.0 - aSq;
+		a2 = 1.0 + aSq;
+	}
+
+	@Override
+	public double function(final int i, final int k) {
+		final var ordinates = getDiscreteIntensities().getOrdinates();
 		final double theta = ordinates.getNode(k) * ordinates.getNode(i);
 		final double f = a2 - b1 * theta;
-		return a1 / (f * Math.sqrt(f));
-	}
-
-	@Override
-	public void setAnisotropyFactor(double A1) {
-		super.setAnisotropyFactor(A1);
-		init();
+		return a1 / (f * sqrt(f));
 	}
 
 }

@@ -3,6 +3,7 @@ package pulse.problem.schemes.rte.dom;
 import static java.lang.Math.PI;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import pulse.problem.schemes.rte.BlackbodySpectrum;
@@ -14,8 +15,6 @@ import pulse.util.PropertyHolder;
 
 public class DiscreteIntensities extends PropertyHolder {
 
-	private final static double DOUBLE_PI = 2.0 * Math.PI;
-
 	private double[][] I;
 
 	private StretchedGrid grid;
@@ -23,41 +22,36 @@ public class DiscreteIntensities extends PropertyHolder {
 
 	private double emissivity;
 	private double boundaryFluxFactor;
-	private double qLeft, qRight;
+	private double qLeft;
+	private double qRight;
+	
+	/**
+	 * Constructs a {@code DiscreteIntensities} with the default {@code OrdinateSet} and a new 
+	 * uniform grid.
+	 * @param problem the problem statement
+	 */
 
 	public DiscreteIntensities(ParticipatingMedium problem) {
-		ordinates = OrdinateSet.getDefaultInstance();
-
-		this.grid = new StretchedGrid((double) problem.getOpticalThickness().getValue());
+		ordinates = OrdinateSet.defaultSet();
+		setGrid( new StretchedGrid((double) problem.getOpticalThickness().getValue()) );
 		setEmissivity(problem.getEmissivity());
-
-		grid.setParent(this);
-		this.reinitInternalArrays();
 	}
 
-	public void clear() {
-		final int n = grid.getDensity() + 1;
-		final int m = ordinates.getTotalNodes();
-		for (int i = 0; i < m; i++) {
-			for (int j = 0; j < n; j++) {
-				I[j][i] = 0;
-			}
-		}
-		clearBoundaryFluxes();
-	}
-
-	public void clearBoundaryFluxes() {
-		qLeft = 0.0;
-		qRight = 0.0;
-	}
-
-	public double inidentRadation(final int j) {
+	/**
+	 * Calculates the incident radiation <math>&#8721;<sub>i</sub><i>w<sub>i</sub> I<sub>ij</sub></i></math>,
+	 * which is the zeroth moment of the intensities. The calculation uses the symmetry of the quadrature
+	 * weights for positive and negativ nodes.
+	 * @param j spatial index
+	 * @return the incident radiation at {@code j}
+	 */
+	
+	public double incidentRadation(final int j) {
 		double integral = 0;
 
 		final int nHalf = ordinates.getFirstNegativeNode();
 		final int nStart = ordinates.getFirstPositiveNode();
 
-		//uses symmetry
+		// uses symmetry
 		for (int i = nStart; i < nHalf; i++) {
 			integral += ordinates.getWeight(i) * (I[j][i] + I[j][i + nHalf]);
 		}
@@ -69,11 +63,13 @@ public class DiscreteIntensities extends PropertyHolder {
 	}
 
 	/**
-	 * Calculates the net zeroth moment of intensity (i.e., the incident radiation)
-	 * for the positive hemisphere).
-	 * 
-	 * @param j index on grid
-	 * @return incident radiation (positive hemisphere)
+	 * Calculates the incident radiation <math>&#8721;<sub>i</sub><i>w<sub>i</sub> I<sub>ij</sub></i></math>,
+	 * by performing simple summation for node points between {@code startInclusive and {@code endExclusive}.
+	 * @param j spatial index
+	 * @param startInclusive lower bound for summation
+	 * @param endExclusive upper bound (exclusive) for summation
+	 * @return the partial incident radiation at {@code j} 
+	 * @see pulse.problem.schemes.rte.dom.LinearAnisotropicPF
 	 */
 
 	public double incidentRadiation(final int j, final int startInclusive, final int endExclusive) {
@@ -86,8 +82,16 @@ public class DiscreteIntensities extends PropertyHolder {
 		return integral;
 
 	}
+	
+	/**
+	 * Calculates the first moment <math>&#8721;<sub>i</sub><i>w<sub>i</sub>&mu;<sub>i</sub>ext<sub>ij</sub></i></math>,
+	 * which can be applied e.g. for flux or flux derivative calculation. The calculation uses the symmetry of the quadrature
+	 * weights for positive and negativ nodes.
+	 * @param j spatial index
+	 * @return the first moment at {@code j}
+	 */
 
-	public double flux(final double[][] iExt, final int j) {
+	public double firstMoment(final double[][] ext, final int j) {
 		double integral = 0;
 
 		final int nHalf = ordinates.getFirstNegativeNode();
@@ -95,15 +99,30 @@ public class DiscreteIntensities extends PropertyHolder {
 
 		// uses symmetry
 		for (int i = nStart; i < nHalf; i++) {
-			integral += ordinates.getWeight(i) * (iExt[j][i] - iExt[j][i + nHalf]) * ordinates.getNode(i);
+			integral += ordinates.getWeight(i) * (ext[j][i] - ext[j][i + nHalf]) * ordinates.getNode(i);
 		}
 
 		return integral;
 	}
+	
+	/**
+	 * Calculates the net flux at {@code j}.
+	 * @param j the spatial coordinate
+	 * @return the flux
+	 * @see firstMoment(double[][],int)
+	 */
 
 	public double flux(final int j) {
-		return flux(I, j);
+		return firstMoment(I, j);
 	}
+	
+	/**
+	 * Calculates the partial flux by performing a simple summation bounded by the arguments.
+	 * @param j the spatial index
+	 * @param startInclusive node index lower bound
+	 * @param endExclusive node index upper bound (exclusive)
+	 * @return the partial flux
+	 */
 
 	public double flux(final int j, final int startInclusive, final int endExclusive) {
 		double integral = 0;
@@ -115,7 +134,7 @@ public class DiscreteIntensities extends PropertyHolder {
 		return integral;
 	}
 
-	public double getEmissivity() {
+	protected double getEmissivity() {
 		return emissivity;
 	}
 
@@ -123,20 +142,60 @@ public class DiscreteIntensities extends PropertyHolder {
 		return I;
 	}
 
-	public double getFluxLeft() {
+	protected void clearBoundaryFluxes() {
+		qLeft = 0.0;
+		qRight = 0.0;
+	}
+	
+	protected double getFluxLeft() {
 		return qLeft;
 	}
 
-	public double getFluxRight() {
+	protected double getFluxRight() {
 		return qRight;
 	}
-
+	
 	/**
-	 * Calculates the reflected intensity (positive angles, first half of indices)
-	 * at the left boundary (tau = 0).
+	 * Calculates the flux at the left boundary using an alternative formula.
+	 * @param emissionFunction the emission function
+	 * @return the net flux at the left boundary
+	 */
+	
+	public double fluxLeft(final BlackbodySpectrum emissionFunction) {
+		final int nHalf = ordinates.getFirstNegativeNode();
+		return qLeft = emissivity * PI
+				* (emissionFunction.radianceAt(0.0) + 2.0 * flux(0, nHalf, ordinates.getTotalNodes()));
+	}
+	
+	/**
+	 * Calculates the flux at the right boundary using an alternative formula.
+	 * @param emissionFunction the emission function
+	 * @return the net flux at the right boundary
 	 */
 
-	public void left(final BlackbodySpectrum ef) {
+	public double fluxRight(final BlackbodySpectrum emissionFunction) {
+		final int nHalf = ordinates.getFirstNegativeNode();
+		final int nStart = ordinates.getFirstPositiveNode();
+		return qRight = -emissivity * PI
+				* (emissionFunction.radianceAt(grid.getDimension()) - 2.0 * flux(grid.getDensity(), nStart, nHalf));
+	}
+	
+	/**
+	 * Clears memory of the internal intensity arrays and re-inits them using the current grid and ordinate set.
+	 */
+
+	protected void reinitIntensityArray() {
+		I = new double[0][0];
+		I = new double[grid.getDensity() + 1][ordinates.getTotalNodes()];
+	}
+	
+	/**
+	 * Calculates the reflected intensity (positive angles, first half of indices)
+	 * at the left boundary (&tau; = 0).
+	 * @param ef the emission function
+	 */
+
+	public void intensitiesLeftBoundary(final BlackbodySpectrum ef) {
 		final int nHalf = ordinates.getFirstNegativeNode();
 		final int nStart = ordinates.getFirstPositiveNode();
 
@@ -147,50 +206,33 @@ public class DiscreteIntensities extends PropertyHolder {
 
 	}
 
-	public double fluxLeft(final BlackbodySpectrum emissionFunction) {
-		final int nHalf = ordinates.getFirstNegativeNode();
-		return qLeft = emissivity
-				* (PI * emissionFunction.radianceAt(0.0) + DOUBLE_PI * flux(0, nHalf, ordinates.getTotalNodes()));
-	}
-
-	public double fluxRight(final BlackbodySpectrum emissionFunction) {
-		final int nHalf = ordinates.getFirstNegativeNode();
-		final int nStart = ordinates.getFirstPositiveNode();
-		return qRight = -emissivity * (PI * emissionFunction.radianceAt(grid.getDimension())
-				- DOUBLE_PI * flux(grid.getDensity(), nStart, nHalf));
-	}
-
-	public void reinitInternalArrays() {
-		int N = grid.getDensity() + 1;
-		I = new double[0][0];
-		I = new double[N][ordinates.getTotalNodes()];
-	}
-
 	/**
 	 * Calculates the reflected intensity (negative angles, second half of indices)
-	 * at the right boundary (tau = tau_0).
+	 * at the right boundary (&tau; = &tau;<sub>0</sub>).
+	 * @param ef the emission function
 	 */
 
-	public void right(final BlackbodySpectrum ef) {
+	public void intensitiesRightBoundary(final BlackbodySpectrum ef) {
 
 		final int N = grid.getDensity();
 		final int nHalf = ordinates.getFirstNegativeNode();
-
+		final double tau0 = grid.getDimension();
+		
 		for (int i = nHalf; i < ordinates.getTotalNodes(); i++) {
 			// for negative streams
-			I[N][i] = ef.radianceAt(grid.getDimension()) + boundaryFluxFactor * fluxRight(ef);
+			I[N][i] = ef.radianceAt(tau0) + boundaryFluxFactor * fluxRight(ef);
 		}
 
 	}
 
-	public void setEmissivity(double emissivity) {
+	protected void setEmissivity(double emissivity) {
 		this.emissivity = emissivity;
-		boundaryFluxFactor = (1.0 - emissivity) / (emissivity * Math.PI);
+		boundaryFluxFactor = (1.0 - emissivity) / (emissivity * PI);
 	}
 
 	public void setOrdinateSet(OrdinateSet set) {
 		this.ordinates = set;
-		reinitInternalArrays();
+		reinitIntensityArray();
 	}
 
 	@Override
@@ -200,9 +242,7 @@ public class DiscreteIntensities extends PropertyHolder {
 
 	@Override
 	public List<Property> listedTypes() {
-		List<Property> list = new ArrayList<>();
-		list.add(OrdinateSet.getDefaultInstance());
-		return list;
+		return new ArrayList<Property>(Arrays.asList(OrdinateSet.defaultSet()));
 	}
 
 	@Override
@@ -233,7 +273,8 @@ public class DiscreteIntensities extends PropertyHolder {
 
 	public void setGrid(StretchedGrid grid) {
 		this.grid = grid;
-		reinitInternalArrays();
+		this.grid.setParent(this);
+		reinitIntensityArray();
 	}
 
 	public OrdinateSet getOrdinates() {

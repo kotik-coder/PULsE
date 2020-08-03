@@ -4,7 +4,6 @@ import pulse.math.linear.Matrices;
 import pulse.math.linear.SquareMatrix;
 import pulse.math.linear.Vector;
 import pulse.problem.schemes.rte.BlackbodySpectrum;
-import pulse.problem.statements.ParticipatingMedium;
 
 /**
  * TRBDF2 Scheme
@@ -53,8 +52,6 @@ public class TRBDF2 extends AdaptiveIntegrator {
 	private double k[][];
 
 	private double[] inward;
-
-	private double halfAlbedo;
 	private double[] bVector; // right-hand side of linear set A * x = B
 	private double[] est; // error estimator
 	private double[][] aMatrix; // matrix of linear set A * x = B
@@ -70,15 +67,13 @@ public class TRBDF2 extends AdaptiveIntegrator {
 	private double w_d = w / d;
 	private double _1w_d = (1.0 - w_d);
 
-	public TRBDF2(ParticipatingMedium medium, DiscreteIntensities intensities, BlackbodySpectrum ef,
-			PhaseFunction ipf) {
-		super(medium, intensities, ef, ipf);
+	public TRBDF2(DiscreteIntensities intensities, BlackbodySpectrum ef) {
+		super(intensities, ef);
 	}
 
 	@Override
-	protected void init() {
-		super.init();
-		halfAlbedo = getAlbedo() * 0.5;
+	protected void prepare() {
+		super.prepare();
 		final int nH = getIntensities().getOrdinates().getHalfLength();
 
 		bVector = new double[nH];
@@ -88,6 +83,12 @@ public class TRBDF2 extends AdaptiveIntegrator {
 
 		k = new double[3][nH];
 	}
+	
+	/**
+	 * Generates a non-uniform (stretched at boundaries) grid using the 
+	 * argument as the density.
+	 * @param nNew new grid density
+	 */
 
 	@Override
 	public void generateGrid(int nNew) {
@@ -101,13 +102,14 @@ public class TRBDF2 extends AdaptiveIntegrator {
 	@Override
 	public Vector[] step(final int j, final double sign) {
 		var intensities = getIntensities();
+		var hermite = getHermiteInterpolator();
 		final double h = sign * intensities.getGrid().step(j, sign);
-		HermiteInterpolator.bMinusA = h; // <---- for Hermite interpolation
+		hermite.bMinusA = h; // <---- for Hermite interpolation
 
 		final int total = getIntensities().getOrdinates().getTotalNodes();
 		final int increment = (int) (1 * sign);
 		final double t = intensities.getGrid().getNode(j);
-		HermiteInterpolator.a = t; // <---- for Hermite interpolation
+		hermite.a = t; // <---- for Hermite interpolation
 
 		/*
 		 * Indices of OUTWARD intensities (n1 <= i < n2)
@@ -131,7 +133,7 @@ public class TRBDF2 extends AdaptiveIntegrator {
 		 * Try to use FSAL
 		 */
 
-		if (!firstRun) { // if this is not the first step
+		if (!isFirstRun()) { // if this is not the first step
 
 			for (int l = n1; l < n2; l++) {
 				k[0][l - n1] = getQLast(l - n1);
@@ -145,7 +147,7 @@ public class TRBDF2 extends AdaptiveIntegrator {
 				// )
 			} // )
 
-			firstRun = false;
+			setFirstRun(false);
 
 		}
 
@@ -162,24 +164,25 @@ public class TRBDF2 extends AdaptiveIntegrator {
 		 */
 
 		for (int i = 0; i < inward.length; i++) {
-			HermiteInterpolator.y0 = intensities.getIntensity(j, i + n3);
-			HermiteInterpolator.y1 = intensities.getIntensity(j + increment, i + n3);
-			HermiteInterpolator.d0 = getDerivative(j,i + n3);
-			HermiteInterpolator.d1 = getDerivative(j + increment,i + n3);
-			inward[i] = HermiteInterpolator.interpolate(tPlusGamma);
+			hermite.y0 = intensities.getIntensity(j, i + n3);
+			hermite.y1 = intensities.getIntensity(j + increment, i + n3);
+			hermite.d0 = getDerivative(j, i + n3);
+			hermite.d1 = getDerivative(j + increment, i + n3);
+			inward[i] = hermite.interpolate(tPlusGamma);
 		}
 
 		/*
 		 * Trapezoidal step
 		 */
 
-		final double prefactorNumerator = -hd * halfAlbedo;
+		final double prefactorNumerator = -hd * getPhaseFunction().getHalfAlbedo();
+		
 		double matrixPrefactor;
 		final var ordinates = intensities.getOrdinates();
 
 		for (int i = 0; i < halfLength; i++) {
 
-			setDerivative(j,i + n1, k[0][i]); // store derivatives for Hermite interpolation
+			setDerivative(j, i + n1, k[0][i]); // store derivatives for Hermite interpolation
 
 			bVector[i] = intensities.getIntensity(j, i + n1)
 					+ hd * (k[0][i] + partial(i + n1, tPlusGamma, inward, n3, n4)); // only
@@ -190,7 +193,8 @@ public class TRBDF2 extends AdaptiveIntegrator {
 
 			// all elements
 			for (int k = 0; k < aMatrix[0].length; k++) {
-				aMatrix[i][k] = matrixPrefactor * ordinates.getWeight(k + n5) * getPhaseFunction().function(i + n1, k + n5); // only
+				aMatrix[i][k] = matrixPrefactor * ordinates.getWeight(k + n5)
+						* getPhaseFunction().function(i + n1, k + n5); // only
 				// OUTWARD
 				// (and zero)
 				// intensities

@@ -5,11 +5,13 @@ import pulse.util.Reflexive;
 
 public abstract class PhaseFunction implements Reflexive {
 
-	protected DiscreteIntensities intensities;
-	protected double A1;
+	private DiscreteIntensities intensities;
+	private double anisotropy;
+	private double halfAlbedo;
 
 	public PhaseFunction(ParticipatingMedium medium, DiscreteIntensities intensities) {
 		this.intensities = intensities;
+		init(medium);
 	}
 
 	public double fullSum(int i, int j) {
@@ -44,24 +46,25 @@ public abstract class PhaseFunction implements Reflexive {
 	public abstract double function(int i, int k);
 
 	public double getAnisotropyFactor() {
-		return A1;
+		return anisotropy;
 	}
 
-	public DiscreteIntensities getDiscreteIntensities() {
+	protected DiscreteIntensities getDiscreteIntensities() {
 		return intensities;
 	}
 
-	public void setAnisotropyFactor(double a1) {
-		A1 = a1;
-	}
-
-	public void setDiscreteIntensities(DiscreteIntensities moments) {
-		this.intensities = moments;
+	public void init(ParticipatingMedium problem) {
+		this.anisotropy = (double) problem.getScatteringAnisostropy().getValue();
+		this.halfAlbedo = 0.5 * (double) problem.getScatteringAlbedo().getValue();
 	}
 
 	@Override
 	public String toString() {
 		return getClass().getSimpleName();
 	}
-
+	
+	public double getHalfAlbedo() {
+		return halfAlbedo;
+	}
+	
 }

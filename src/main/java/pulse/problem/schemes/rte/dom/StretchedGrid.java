@@ -1,5 +1,7 @@
 package pulse.problem.schemes.rte.dom;
 
+import static pulse.properties.NumericProperty.*;
+import static pulse.properties.NumericPropertyKeyword.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,31 +17,39 @@ public class StretchedGrid extends PropertyHolder {
 	private double stretchingFactor;
 	private double dimension;
 
-	public void setDimension(double dimension) {
-		this.dimension = dimension;
-	}
-
+	/**
+	 * Constructs a uniform grid where the dimension is set to the argument. The stretching factor 
+	 * and grid density are set to a default value.
+	 * @param dimension the dimension of the grid
+	 */
+	
 	public StretchedGrid(double dimension) {
-		this(NumericProperty.theDefault(NumericPropertyKeyword.DOM_GRID_DENSITY), dimension,
-				NumericProperty.theDefault(NumericPropertyKeyword.GRID_STRETCHING_FACTOR));
+		this(theDefault(DOM_GRID_DENSITY), dimension, theDefault(GRID_STRETCHING_FACTOR), true);
 	}
+	
+	/**
+	 * Constructs a non-uniform grid where the dimension and the grid density are specified by the arguments. The stretching factor 
+	 * and grid density are set to a default value.
+	 * @param gridDensity the grid density, which is a property of the {@code DOM_GRID_DENSITY} type
+	 * @param dimension the dimension of the grid
+	 */
 
 	public StretchedGrid(NumericProperty gridDensity, double dimension) {
-		this(gridDensity, dimension, NumericProperty.theDefault(NumericPropertyKeyword.GRID_STRETCHING_FACTOR));
+		this(gridDensity, dimension, theDefault(GRID_STRETCHING_FACTOR), false);
 	}
 
-	public StretchedGrid(NumericProperty gridDensity, double dimension, NumericProperty stretchingFactor) {
+	protected StretchedGrid(NumericProperty gridDensity, double dimension, NumericProperty stretchingFactor, boolean uniform) {
 		this.stretchingFactor = (double) stretchingFactor.getValue();
 		this.dimension = dimension;
 		int n = (int) gridDensity.getValue();
-		if (Double.compare(this.stretchingFactor, 1.0) == 0)
-			generateUniform(n, true);
+		if (uniform)
+			generateUniformBase(n, true);
 		else
 			generate(n);
 	}
 
 	public void generate(int n) {
-		generateUniform(n, false);
+		generateUniformBase(n, false);
 
 		// apply stretching function
 
@@ -50,11 +60,11 @@ public class StretchedGrid extends PropertyHolder {
 	}
 
 	public void generateUniform(boolean scaled) {
-		int n1 = (int) NumericProperty.theDefault(NumericPropertyKeyword.DOM_GRID_DENSITY).getValue();
-		generateUniform(n1, scaled);
+		int n1 = (int) theDefault(DOM_GRID_DENSITY).getValue();
+		generateUniformBase(n1, scaled);
 	}
 
-	public void generateUniform(int n, boolean scaled) {
+	public void generateUniformBase(int n, boolean scaled) {
 		nodes = new double[n + 1];
 		double h = (scaled ? dimension : 1.0) / n;
 
@@ -69,11 +79,11 @@ public class StretchedGrid extends PropertyHolder {
 	}
 
 	public NumericProperty getStretchingFactor() {
-		return NumericProperty.derive(NumericPropertyKeyword.GRID_STRETCHING_FACTOR, stretchingFactor);
+		return derive(GRID_STRETCHING_FACTOR, stretchingFactor);
 	}
 
 	public void setStretchingFactor(NumericProperty p) {
-		if (p.getType() != NumericPropertyKeyword.GRID_STRETCHING_FACTOR)
+		if (p.getType() != GRID_STRETCHING_FACTOR)
 			throw new IllegalArgumentException("Illegal type: " + p.getType());
 		this.stretchingFactor = (double) p.getValue();
 	}
@@ -120,8 +130,8 @@ public class StretchedGrid extends PropertyHolder {
 	@Override
 	public List<Property> listedTypes() {
 		List<Property> list = new ArrayList<>();
-		list.add(NumericProperty.theDefault(NumericPropertyKeyword.GRID_STRETCHING_FACTOR));
-		list.add(NumericProperty.theDefault(NumericPropertyKeyword.DOM_GRID_DENSITY));
+		list.add(theDefault(GRID_STRETCHING_FACTOR));
+		list.add(theDefault(DOM_GRID_DENSITY));
 		return list;
 	}
 

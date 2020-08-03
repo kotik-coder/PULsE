@@ -80,7 +80,7 @@ public abstract class CompositionProduct extends AbstractIntegrator {
 
 	@Override
 	public String getPrefix() {
-		return "Convolution Integrator";
+		return "Composition Product Integrator";
 	}
 
 }

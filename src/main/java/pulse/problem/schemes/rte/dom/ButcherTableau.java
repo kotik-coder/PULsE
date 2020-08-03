@@ -11,9 +11,10 @@ import pulse.properties.Property;
 
 public class ButcherTableau implements Property {
 
-	protected Vector b, bHat;
-	protected Vector c;
-	protected SquareMatrix coefs;
+	private Vector b;
+	private Vector bHat;
+	private Vector c;
+	private SquareMatrix coefs;
 
 	private boolean fsal;
 

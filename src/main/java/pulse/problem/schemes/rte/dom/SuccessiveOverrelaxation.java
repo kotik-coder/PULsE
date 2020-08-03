@@ -1,5 +1,6 @@
 package pulse.problem.schemes.rte.dom;
 
+import static java.lang.Math.abs;
 import java.util.List;
 
 import pulse.problem.schemes.rte.RTECalculationStatus;
@@ -16,9 +17,29 @@ public class SuccessiveOverrelaxation extends IterativeSolver {
 		this.W = (double) NumericProperty.theDefault(NumericPropertyKeyword.RELAXATION_PARAMETER).getValue();
 	}
 
-	@Override
-	public RTECalculationStatus doIterations(DiscreteIntensities discrete, AdaptiveIntegrator integrator) {
+	private void successiveOverrelaxation(AdaptiveIntegrator integrator) {
 
+		final var intensities = integrator.getIntensities();
+		final int density = intensities.getGrid().getDensity();
+		final int total = intensities.getOrdinates().getTotalNodes();
+
+		final double ONE_MINUS_W = 1.0 - W;
+
+		for (int i = 0; i < density + 1; i++) {
+			for (int j = 0; j < total; j++) {
+				intensities.setIntensity(i, j,
+						ONE_MINUS_W * integrator.getStoredIntensity(i, j) + W * intensities.getIntensity(i, j));
+				integrator.setStoredDerivative(i, j,
+						ONE_MINUS_W * integrator.getStoredDerivative(i, j) + W * integrator.getDerivative(i, j));
+			}
+		}
+
+	}
+
+	@Override
+	public RTECalculationStatus doIterations(AdaptiveIntegrator integrator) {
+
+		var discrete = integrator.getIntensities();
 		double relativeError = 100;
 
 		double qld = 0;
@@ -28,7 +49,8 @@ public class SuccessiveOverrelaxation extends IterativeSolver {
 		final var ef = integrator.getEmissionFunction();
 		RTECalculationStatus status = RTECalculationStatus.NORMAL;
 
-		for (double ql = 1e8, qr = ql; relativeError > iterationError; status = sanityCheck(status, ++iterations)) {
+		for (double ql = 1e8, qr = ql; relativeError > getIterationError(); status = sanityCheck(status,
+				++iterations)) {
 			ql = discrete.getFluxLeft();
 			qr = discrete.getFluxRight();
 
@@ -39,10 +61,10 @@ public class SuccessiveOverrelaxation extends IterativeSolver {
 			if (integrator.wasRescaled()) {
 				relativeError = Double.POSITIVE_INFINITY;
 			} else { // calculate the (k+1) iteration as: I_k+1 = I_k * (1 - W) + I*
-				integrator.successiveOverrelaxation(W);
-				qld = Math.abs(discrete.fluxLeft(ef) - ql);
-				qrd = Math.abs(discrete.fluxRight(ef) - qr);
-				relativeError = (qld + qrd) / (Math.abs(ql) + Math.abs(qr));
+				successiveOverrelaxation(integrator);
+				qld = abs(discrete.fluxLeft(ef) - ql);
+				qrd = abs(discrete.fluxRight(ef) - qr);
+				relativeError = (qld + qrd) / ( abs(ql) + abs(qr) );
 			}
 
 		}

@@ -1,5 +1,8 @@
 package pulse.problem.schemes.rte.dom;
 
+import static pulse.math.MathUtils.approximatelyEquals;
+
+import java.util.Arrays;
 import java.util.Set;
 
 import pulse.io.readers.QuadratureReader;
@@ -11,7 +14,6 @@ public class OrdinateSet implements Property {
 	private double[] mu;
 	private double[] w;
 
-	private boolean hasZeroNode;
 	private int firstPositiveNode;
 	private int firstNegativeNode;
 	private int totalNodes;
@@ -22,42 +24,20 @@ public class OrdinateSet implements Property {
 
 	private String name;
 
-	public double[] getNodes() {
-		return mu;
-	}
-
-	public double[] getWeights() {
-		return w;
-	}
-
 	public OrdinateSet(String name, double[] mu, double[] w) {
 		if (mu.length != w.length)
-			throw new IllegalArgumentException("Arrays size do not match: " + mu.length + " != " + w.length);
+			throw new IllegalArgumentException("Arrays sizes do not match: " + mu.length + " != " + w.length);
 
 		setName(name);
 		this.mu = mu;
-		totalNodes = mu.length;
 		this.w = w;
+		totalNodes = mu.length;
 
-		if (!approximatelyEquals(summedWeights(), 2.0))
-			throw new IllegalStateException("Summed quadrature weights != 2.0");
+		checkWeights();
 
-		hasZeroNode = Double.compare(mu[0], 0.0) == 0;
-
-		firstPositiveNode = 0;
-
-		firstNegativeNode = this.mu.length / 2;
-
-		if (hasZeroNode) {
-			firstPositiveNode += 1;
-			firstNegativeNode += 1;
-		}
-
-	}
-
-	private static boolean approximatelyEquals(double a, double b) {
-		final double tolerance = 1E-5;
-		return Math.abs(a - b) < tolerance;
+		firstPositiveNode = hasZeroNode() ? 1 : 0; //zero node should always be the first one
+		firstNegativeNode = totalNodes / 2 + (hasZeroNode() ? 1 : 0);
+		
 	}
 
 	@Override
@@ -66,7 +46,7 @@ public class OrdinateSet implements Property {
 	}
 
 	public String printOrdinateSet() {
-		StringBuilder sb = new StringBuilder();
+		var sb = new StringBuilder();
 
 		sb.append("Quadrature set: " + this.getName());
 		sb.append(System.lineSeparator());
@@ -79,16 +59,8 @@ public class OrdinateSet implements Property {
 
 	}
 
-	private double summedWeights() {
-		double sum = 0;
-		for (int i = 0; i < w.length; i++) {
-			sum += w[i];
-		}
-		return sum;
-	}
-
 	public boolean hasZeroNode() {
-		return hasZeroNode;
+		return Arrays.stream(mu).anyMatch(Double.valueOf(0.0)::equals);
 	}
 
 	public int getFirstPositiveNode() {
@@ -133,7 +105,7 @@ public class OrdinateSet implements Property {
 		return optional.get();
 	}
 
-	public static OrdinateSet getDefaultInstance() {
+	public static OrdinateSet defaultSet() {
 		return find(DEFAULT_SET);
 	}
 
@@ -148,17 +120,23 @@ public class OrdinateSet implements Property {
 	public int getTotalNodes() {
 		return totalNodes;
 	}
-	
+
 	public double getNode(int i) {
 		return mu[i];
 	}
-	
+
 	public double getWeight(int i) {
 		return w[i];
 	}
-	
+
 	public int getHalfLength() {
 		return firstNegativeNode - firstPositiveNode;
+	}
+
+	private void checkWeights() {
+		final double sum = Arrays.stream(w).sum();
+		if (!approximatelyEquals(sum, 2.0))
+			throw new IllegalStateException("Summed quadrature weights != 2.0");
 	}
 
 }

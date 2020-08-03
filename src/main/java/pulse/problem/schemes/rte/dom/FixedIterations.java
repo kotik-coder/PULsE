@@ -5,8 +5,9 @@ import pulse.problem.schemes.rte.RTECalculationStatus;
 public class FixedIterations extends IterativeSolver {
 
 	@Override
-	public RTECalculationStatus doIterations(DiscreteIntensities discrete, AdaptiveIntegrator integrator) {
+	public RTECalculationStatus doIterations(AdaptiveIntegrator integrator) {
 
+		var discrete = integrator.getIntensities();
 		double relativeError = 100;
 
 		double qld = 0;
@@ -17,7 +18,7 @@ public class FixedIterations extends IterativeSolver {
 		RTECalculationStatus status = RTECalculationStatus.NORMAL;
 		final var ef = integrator.getEmissionFunction();
 		
-		for (double ql = 1e8, qr = ql; relativeError > iterationError
+		for (double ql = 1e8, qr = ql; relativeError > getIterationError()
 				&& status == RTECalculationStatus.NORMAL; status = sanityCheck(status, ++iterations)) {
 			ql = discrete.getFluxLeft();
 			qr = discrete.getFluxRight();

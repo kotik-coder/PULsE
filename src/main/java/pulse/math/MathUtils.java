@@ -13,8 +13,22 @@ import static java.lang.Math.log;
 
 public class MathUtils {
 
+	public final static double EQUALS_TOLERANCE = 1E-5;
+	
 	private MathUtils() {
 		// intentionally blank
+	}
+	
+	/**
+	 * Checks if two numbers are approximately equal by comparing the modulus 
+	 * of their difference to {@value tolerance}. 
+	 * @param a a number
+	 * @param b another number
+	 * @return {@code true} if numbers are approximately equal, {@code false} otherwise
+	 */
+	
+	public static boolean approximatelyEquals(final double a, final double b) {
+		return Math.abs(a - b) < EQUALS_TOLERANCE;
 	}
 
 	/**
