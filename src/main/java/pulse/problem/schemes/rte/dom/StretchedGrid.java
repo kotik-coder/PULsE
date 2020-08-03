@@ -1,7 +1,10 @@
 package pulse.problem.schemes.rte.dom;
 
-import static pulse.properties.NumericProperty.*;
-import static pulse.properties.NumericPropertyKeyword.*;
+import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericProperty.theDefault;
+import static pulse.properties.NumericPropertyKeyword.DOM_GRID_DENSITY;
+import static pulse.properties.NumericPropertyKeyword.GRID_STRETCHING_FACTOR;
+
 import java.util.ArrayList;
 import java.util.List;
 

@@ -16,10 +16,6 @@ public class HermiteInterpolator {
 	protected double a;
 	protected double bMinusA;
 
-	public HermiteInterpolator() {
-		//intentionally blank
-	}
-
 	public void clear() {
 		y1 = 0;
 		y0 = 0;
