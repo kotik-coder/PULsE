@@ -56,7 +56,7 @@ public class Grid2D extends Grid {
 	 * {@code gridDensity} of the {@code grid} if
 	 * {@code discretePulseSpot < (Grid2D)grid.hy}.
 	 * 
-	 * @param grid an instance of {@code Grid2D}
+	 * @param pulse the discrete puls representation
 	 */
 
 	@Override

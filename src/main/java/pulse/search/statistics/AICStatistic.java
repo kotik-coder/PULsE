@@ -3,7 +3,7 @@ package pulse.search.statistics;
 import pulse.tasks.SearchTask;
 
 /**
- * AIC algorithm: Banks, H. T., & Joyner, M. L. (2017). Applied Mathematics
+ * AIC algorithm: Banks, H. T., &amp; Joyner, M. L. (2017). Applied Mathematics
  * Letters, 74, 33–45. doi:10.1016/j.aml.2017.05.005
  * 
  */

@@ -6,7 +6,7 @@ import pulse.properties.NumericProperty;
  * Implements the midpoint integration scheme for the evaluation of definite
  * integrals.
  * 
- * @see <a href="Wiki page">https://en.wikipedia.org/wiki/Midpoint_method</a>
+ * @see <a href="https://en.wikipedia.org/wiki/Midpoint_method">Wiki page</a>
  *
  */
 

@@ -67,7 +67,7 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 	 * arguments. This uses the values of radiosities and involves calculating the
 	 * composition product using the selected quadratures.
 	 * 
-	 * @see pulse.prroblem.schemes.rte.exact.CompositionProduct
+	 * @see pulse.problem.schemes.rte.exact.CompositionProduct
 	 */
 
 	public void fluxes() {

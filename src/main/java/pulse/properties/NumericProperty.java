@@ -225,7 +225,7 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
 	/**
 	 * Calls {@code formattedValue(true)}.
 	 * 
-	 * @see formattedValue(boolean)
+	 * @see formattedValueAndError(boolean)
 	 */
 
 	@Override

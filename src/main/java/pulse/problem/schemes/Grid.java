@@ -66,13 +66,13 @@ public class Grid extends PropertyHolder {
 	}
 
 	/**
-	 * Optimises the {@code grid} parameters.
+	 * Optimises the {@code Grid} parameters.
 	 * <p>
 	 * This can change the {@code tauFactor} and {@code tau} variables in the
-	 * {@code grid} object if {@code discretePulseWidth < grid.tau}.
+	 * {@code Grid} object if {@code discretePulseWidth < grid.tau}.
 	 * </p>
 	 * 
-	 * @param grid the grid to be adjusted
+	 * @param pulse the discrete pulse representation
 	 */
 
 	public void adjustTo(DiscretePulse pulse) {

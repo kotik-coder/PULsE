@@ -4,7 +4,7 @@
  * partitioning rules for space and time variables. Specific implementation of
  * the difference schemes may be found separately in a different package.
  * 
- * @see pulse.problem.schemes.solvers
+ * @see pulse.problem.schemes.solvers.Solver
  */
 
 package pulse.problem.schemes;

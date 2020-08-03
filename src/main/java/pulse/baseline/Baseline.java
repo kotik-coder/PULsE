@@ -93,7 +93,7 @@ public abstract class Baseline extends PropertyHolder implements Reflexive, Opti
 	/**
 	 * Calls {@code fitTo} using the default time range for the data:
 	 * {@code -Infinity < t < ZERO_LEFT}, where the upper bound is
-	 * {@value ZERO_LEFT}.
+	 * a small negative constant.
 	 * 
 	 * @param data the experimental data stretching to negative time values
 	 * @see fitTo(ExperimentalData,double,double)

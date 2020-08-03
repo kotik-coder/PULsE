@@ -78,7 +78,7 @@ import pulse.util.InstanceDescriptor;
  * </pre>
  * 
  * @see pulse.properties.NumericPropertyKeyword
- * @see pulse.problem.statements.Pulse.TemporalShape
+ * @see pulse.problem.laser.PulseTemporalShape
  */
 
 public class MetaFilePopulator implements AbstractPopulator<Metadata> {

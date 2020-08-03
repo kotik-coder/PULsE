@@ -3,6 +3,12 @@ package pulse.search.statistics;
 import pulse.input.ExperimentalData;
 import pulse.tasks.SearchTask;
 
+/**
+ *The coefficient of determination represents the goodness of fit that a {@code HeatingCurve}
+ *provides for the {@code ExperimentalData}
+ *
+ */
+
 public class RSquaredTest extends NormalityTest {
 
 	private SumOfSquares sos;
@@ -34,10 +40,7 @@ public class RSquaredTest extends NormalityTest {
 	 * combined together as: {@code 1 - RSS/TSS}.
 	 * </p>
 	 * 
-	 * @param data the experimental data, acting as reference for this curve
-	 * @return a double, representing the coefficient of determination, which
-	 *         characterises the goodness of fit that this {@code HeatingCurve}
-	 *         provides for the {@code data}
+	 * @param t the task containing the reference data
 	 * @see <a href=
 	 *      "https://en.wikipedia.org/wiki/Coefficient_of_determination">Wikipedia
 	 *      page</a>

@@ -233,7 +233,7 @@ public enum NumericPropertyKeyword {
 	THERMAL_ABSORPTIVITY,
 
 	/**
-	 * Reflectance of the sample (0 < R <= 1).
+	 * Reflectance of the sample (0 &lt; R &le; 1).
 	 */
 
 	REFLECTANCE,

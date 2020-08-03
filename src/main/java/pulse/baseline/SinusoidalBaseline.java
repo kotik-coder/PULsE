@@ -20,7 +20,7 @@ import pulse.properties.Property;
 /**
  * A simple sinusoidal baseline.
  * <p>
- * It is given by the expression <math><<i>y</i> = <i>y</i><sub>0</sub> +
+ * It is given by the expression <math><i>y</i> = <i>y</i><sub>0</sub> +
  * <i>A</i> sin(2&pi;<i>f t</i> + &phi;) </math>, where <i>f</i> is the
  * frequency (in Hz), <i>A</i> is the amplitude, &phi; is the phase shift.
  * Extends the {@code FlatBaseline} class and thus inherits the

@@ -21,7 +21,7 @@ public class MathUtils {
 	
 	/**
 	 * Checks if two numbers are approximately equal by comparing the modulus 
-	 * of their difference to {@value tolerance}. 
+	 * of their difference to {@value EQUALS_TOLERANCE}. 
 	 * @param a a number
 	 * @param b another number
 	 * @return {@code true} if numbers are approximately equal, {@code false} otherwise

@@ -10,7 +10,7 @@ import pulse.input.ExperimentalData;
  * {@code HeatingCurveExporter}, except that its target is specifically set to
  * {@code ExperimentalData}.
  * 
- * @see pulse.ui.dialogs.ExportDialog
+ * @see pulse.ui.frames.dialogs.ExportDialog
  *
  */
 

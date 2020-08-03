@@ -14,9 +14,8 @@ public class Pulse2D extends Pulse {
 
 	/**
 	 * Creates a {@code Pulse} with default values of pulse width and laser spot
-	 * diameter (as per XML specification), but with custom {@code PulseShape}.
+	 * diameter (as per XML specification).
 	 * 
-	 * @param pform the pulse shape
 	 */
 
 	public Pulse2D() {

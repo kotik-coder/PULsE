@@ -17,7 +17,7 @@ public class Group extends UpwardsNavigable {
 	 * same class as {@code this} one.
 	 * </p>
 	 * 
-	 * @return a {@code List} containing {@code Accessibles} objects which could be
+	 * @return a {@code List} containing {@code Accessible} objects which could be
 	 *         accessed by the declared getter methods.
 	 */
 
@@ -83,7 +83,7 @@ public class Group extends UpwardsNavigable {
 	/**
 	 * Searches for a specific {@code Accessible} with a {@code simpleName}.
 	 * 
-	 * @see accessibles()
+	 * @see subgroups
 	 * @param simpleName the name of the {@code Accessible},
 	 * @return the {@code Accessible} object.
 	 */
@@ -107,7 +107,7 @@ public class Group extends UpwardsNavigable {
 	 * </p>
 	 * 
 	 * @return a {@code List} of children that this {@code Accessible} has adopted.
-	 * @see accessibles()
+	 * @see subgroups
 	 */
 
 	public List<Group> children() {

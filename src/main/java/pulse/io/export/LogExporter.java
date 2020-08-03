@@ -39,7 +39,9 @@ public class LogExporter implements Exporter<Log> {
 	 * implementation ignores the {@code extension} parameter. After execution, the
 	 * stream is explicitly closed.
 	 * 
-	 * @param a log to be exported
+	 * @param log a log to be exported
+	 * @param fos an output stream
+	 * @param extension the desired extension
 	 * @see pulse.tasks.Log.toString()
 	 */
 

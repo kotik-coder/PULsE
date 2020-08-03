@@ -36,7 +36,7 @@ public class ExportManager {
 	 * @param <T>    an instance of {@code Descriptive}
 	 * @param target the exported target
 	 * @return an exporter that works for {@code target}
-	 * @see findExporter(Class<T>)
+	 * @see findExporter
 	 */
 
 	@SuppressWarnings("unchecked")
@@ -83,8 +83,8 @@ public class ExportManager {
 	 * @param parentWindow  a frame to which the file chooser dialog will be
 	 *                      attached
 	 * @param fileTypeLabel a brief description of the exported file types
-	 * @see findExporter(Class<T>)
-	 * @see pulse.io.export.Exporter.askToExport
+	 * @see findExporter
+	 * @see pulse.io.export.Exporter.askToExport()
 	 * @throws IllegalArgumentException if no exporter can be found
 	 */
 
@@ -149,7 +149,7 @@ public class ExportManager {
 	 * @param directory a pre-selected directory
 	 * @param extension the desired extension
 	 * @see exportGroup
-	 * @see pulse.tasks.TaskManager.getSelectedTask
+	 * @see pulse.tasks.TaskManager.getSelectedTask()
 	 */
 
 	public static void exportCurrentTask(File directory, Extension extension) {
@@ -162,7 +162,7 @@ public class ExportManager {
 	 * 
 	 * @param directory a pre-selected directory
 	 * @see exportGroup
-	 * @see pulse.tasks.TaskManager.getSelectedTask
+	 * @see pulse.tasks.TaskManager.getSelectedTask()
 	 */
 
 	public static void exportCurrentTask(File directory) {

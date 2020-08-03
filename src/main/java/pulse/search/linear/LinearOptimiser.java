@@ -96,7 +96,7 @@ public abstract class LinearOptimiser extends PropertyHolder implements Reflexiv
 	 * 
 	 * @return a {@code NumericProperty} with the current value of the linear
 	 *         resolution
-	 * @see domain(IndexedVector,Vector)
+	 * @see domain(IndexedVector,IndexedVector,Vector)
 	 */
 
 	public static NumericProperty getLinearResolution() {

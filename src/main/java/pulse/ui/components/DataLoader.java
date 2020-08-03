@@ -130,7 +130,7 @@ public class DataLoader {
 	 *             {@code type}
 	 * @param type the type of the loaded data
 	 * @throws IOException if file cannot be read
-	 * @see pulse.tasks.TaskManager.evaluate
+	 * @see pulse.tasks.TaskManager.evaluate()
 	 */
 
 	public static void load(StandardType type, File f) throws IOException {

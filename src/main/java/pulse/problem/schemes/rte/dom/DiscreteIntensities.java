@@ -64,7 +64,7 @@ public class DiscreteIntensities extends PropertyHolder {
 
 	/**
 	 * Calculates the incident radiation <math>&#8721;<sub>i</sub><i>w<sub>i</sub> I<sub>ij</sub></i></math>,
-	 * by performing simple summation for node points between {@code startInclusive and {@code endExclusive}.
+	 * by performing simple summation for node points between {@code startInclusive} and {@code endExclusive}.
 	 * @param j spatial index
 	 * @param startInclusive lower bound for summation
 	 * @param endExclusive upper bound (exclusive) for summation

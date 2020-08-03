@@ -20,7 +20,7 @@ public interface Optimisable {
 	 * 
 	 * @param params the optimisation vector, containing a similar set of parameters
 	 *               to this {@code Problem}
-	 * @see listedTypes()
+	 * @see pulse.util.PropertyHolder.listedTypes()
 	 */
 
 	public void assign(IndexedVector params);

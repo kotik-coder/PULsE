@@ -26,8 +26,7 @@ public class SumOfSquares extends ResidualStatistic {
 	 * {@code curve.getFittingStartIndex()} and {@code curve.getFittingEndIndex()}
 	 * methods.
 	 * 
-	 * @param curve The reference heating curve
-	 * @return a double, representing the result of the calculation.
+	 * @param t The task containing the reference and calculated curves
 	 */
 
 	@Override

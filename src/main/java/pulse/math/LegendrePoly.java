@@ -18,7 +18,7 @@ import org.apache.commons.math3.analysis.solvers.LaguerreSolver;
  * </p>
  * 
  * @see org.apache.commons.math3.analysis.solvers.LaguerreSolver
- *
+ * @see <a href="https://en.wikipedia.org/wiki/Legendre_polynomials">Wiki page</a>
  */
 
 public class LegendrePoly {
@@ -48,7 +48,7 @@ public class LegendrePoly {
 	 * m!/(k!(m-k)!)
 	 * 
 	 * @param m integer.
-	 * @param k integer, k <= m.
+	 * @param k integer, k &le; m.
 	 * @return binomial coefficient C<sub>m</sub><sup>k</sup>.
 	 */
 

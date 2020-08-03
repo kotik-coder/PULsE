@@ -24,7 +24,7 @@ import pulse.properties.Property;
  * Represents the exponentially modified Gaussian function, which is given by
  * three independent parameters (&mu;, &sigma; and &lambda;).
  * 
- * @see <a href="Wikipedia page">https://tinyurl.com/ExpModifiedGaussian</a>
+ * @see <a href="https://tinyurl.com/ExpModifiedGaussian">Wikipedia page</a>
  *
  */
 

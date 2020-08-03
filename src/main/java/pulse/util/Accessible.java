@@ -359,7 +359,7 @@ public abstract class Accessible extends Group {
 	 * </p>
 	 * 
 	 * @return a {@code List} of children that this {@code Accessible} has adopted.
-	 * @see accessibles()
+	 * @see children
 	 */
 
 	public List<Accessible> accessibleChildren() {

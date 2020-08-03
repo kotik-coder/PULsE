@@ -56,7 +56,7 @@ public class DiscretePulse2D extends DiscretePulse {
 	 * @param radialCoord - the radial coordinate [length dimension]
 	 * @return the pulse function at {@code time} and {@code coord}, or 0 if
 	 *         {@code coord > spotDiameter}.
-	 * @see evaluateAt(double)
+	 * @see pulse.problem.laser.PulseTemporalShape.laserPowerAt(double)
 	 */
 
 	public double evaluateAt(double time, double radialCoord) {

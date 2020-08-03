@@ -34,9 +34,8 @@ public class Pulse extends PropertyHolder {
 
 	/**
 	 * Creates a {@code Pulse} with default values of pulse width and laser spot
-	 * diameter (as per XML specification), but with custom {@code PulseShape}.
+	 * diameter (as per XML specification) and with a default pulse temporal shape (rectangular).
 	 * 
-	 * @param pform the pulse shape
 	 */
 
 	public Pulse() {

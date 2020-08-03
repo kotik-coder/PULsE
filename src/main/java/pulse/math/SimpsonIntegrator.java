@@ -6,7 +6,7 @@ import pulse.properties.NumericProperty;
  * Implements the Simpson's integration rule for the evaluation of definite
  * integrals.
  * 
- * @see <a href="Wiki page">https://en.wikipedia.org/wiki/Simpson%27s_rule</a>
+ * @see <a href="https://en.wikipedia.org/wiki/Simpson%27s_rule">Wiki page</a>
  *
  */
 

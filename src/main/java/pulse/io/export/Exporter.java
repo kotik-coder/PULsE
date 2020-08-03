@@ -21,7 +21,7 @@ import pulse.util.Reflexive;
 public interface Exporter<T extends Descriptive> extends Reflexive {
 
 	/**
-	 * Gets the default export extension. If not overridedn, will return
+	 * Gets the default export extension. If not overriden, will return
 	 * {@code Extension.CSV}.
 	 * 
 	 * @return the default export extension
@@ -151,8 +151,8 @@ public interface Exporter<T extends Descriptive> extends Reflexive {
 	 * @param target    the exported target
 	 * @param fos       a FileOutputStream created by the {@code export} method
 	 * @param extension an extension of the file saved on disk
-	 * @see export(T, File, extension)
-	 * @see askToExport(T, JFrame, String)
+	 * @see export
+	 * @see askToExport
 	 */
 
 	public void printToStream(T target, FileOutputStream fos, Extension extension);

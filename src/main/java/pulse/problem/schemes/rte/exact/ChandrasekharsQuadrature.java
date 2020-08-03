@@ -30,7 +30,7 @@ import pulse.properties.Property;
  * This quadrature methods of evaluating the composition product of the exponential integral and 
  * blackbody spectral power spectrum has been given by Chandrasekhar and is based
  * on constructing a moment matrix.
- * @see <a href="Chandrasekhar, S. Radiative transfer.">shorturl.at/de179</a> 
+ * @see <a href="https://archive.org/details/RadiativeTransfer">Chandrasekhar, S. Radiative transfer</a> 
  * 
  */
 
