@@ -1,9 +1,11 @@
 package pulse.problem.schemes.rte;
 
+import pulse.properties.NumericProperty;
+
 public class FluxesAndImplicitDerivatives extends Fluxes {
 	
-	public FluxesAndImplicitDerivatives(int N, double tau0) {
-		super(N, tau0);
+	public FluxesAndImplicitDerivatives(NumericProperty gridDensity, NumericProperty opticalThickness) {
+		super(gridDensity, opticalThickness);
 	}
 
 	@Override

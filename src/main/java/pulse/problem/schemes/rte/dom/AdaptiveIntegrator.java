@@ -1,5 +1,6 @@
 package pulse.problem.schemes.rte.dom;
 
+import static pulse.properties.NumericProperty.def;
 import static pulse.properties.NumericProperty.theDefault;
 import static pulse.properties.NumericPropertyKeyword.ATOL;
 import static pulse.properties.NumericPropertyKeyword.GRID_SCALING_FACTOR;
@@ -9,11 +10,15 @@ import static pulse.properties.NumericPropertyKeyword.RTOL;
 import java.util.List;
 
 import pulse.math.linear.Vector;
-import pulse.problem.schemes.rte.BlackbodySpectrum;
 import pulse.problem.schemes.rte.RTECalculationStatus;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
+
+/**
+ * An ODE integrator with an adaptive step size.
+ *
+ */
 
 public abstract class AdaptiveIntegrator extends ODEIntegrator {
 
@@ -34,8 +39,8 @@ public abstract class AdaptiveIntegrator extends ODEIntegrator {
 	private long calculationStartingTime;
 	private long timeThreshold;
 
-	public AdaptiveIntegrator(DiscreteIntensities intensities, BlackbodySpectrum ef) {
-		super(intensities, ef);
+	public AdaptiveIntegrator(DiscreteIntensities intensities) {
+		super(intensities);
 		atol = (double) theDefault(ATOL).getValue();
 		rtol = (double) theDefault(RTOL).getValue();
 		scalingFactor = (double) theDefault(GRID_SCALING_FACTOR).getValue();
@@ -254,10 +259,10 @@ public abstract class AdaptiveIntegrator extends ODEIntegrator {
 	@Override
 	public List<Property> listedTypes() {
 		List<Property> list = super.listedTypes();
-		list.add(NumericProperty.def(NumericPropertyKeyword.RTOL));
-		list.add(NumericProperty.def(NumericPropertyKeyword.ATOL));
-		list.add(NumericProperty.def(NumericPropertyKeyword.GRID_SCALING_FACTOR));
-		list.add(NumericProperty.def(NumericPropertyKeyword.RTE_INTEGRATION_TIMEOUT));
+		list.add(def(RTOL));
+		list.add(def(ATOL));
+		list.add(def(GRID_SCALING_FACTOR));
+		list.add(def(RTE_INTEGRATION_TIMEOUT));
 		return list;
 	}
 
@@ -268,11 +273,11 @@ public abstract class AdaptiveIntegrator extends ODEIntegrator {
 	}
 
 	public NumericProperty getTimeThreshold() {
-		return NumericProperty.derive(NumericPropertyKeyword.RTE_INTEGRATION_TIMEOUT, (double) timeThreshold);
+		return NumericProperty.derive(RTE_INTEGRATION_TIMEOUT, (double) timeThreshold);
 	}
 
 	public void setTimeThreshold(NumericProperty timeThreshold) {
-		if (timeThreshold.getType() == NumericPropertyKeyword.RTE_INTEGRATION_TIMEOUT)
+		if (timeThreshold.getType() == RTE_INTEGRATION_TIMEOUT)
 			this.timeThreshold = ((Number) timeThreshold.getValue()).longValue();
 	}
 

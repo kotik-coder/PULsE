@@ -238,9 +238,4 @@ public class ParticipatingMedium extends NonlinearProblem {
 		return MixedScheme.class;
 	}
 
-	@Override
-	public boolean isBatchProcessingEnabled() {
-		return false;
-	}
-
 }

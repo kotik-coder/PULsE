@@ -513,8 +513,8 @@ public class ProblemStatementFrame extends JInternalFrame {
 				schemeTable.setPropertyHolder(selectedTask.getScheme());
 				if (selectedTask.getProblem().getComplexity() == HIGH) {
 					showMessageDialog(null, "<html><body><p style='width: 300px;'>" + "You have selected a "
-							+ "high-complexity problem statement. Calculations will be slow, hence batch processing has been turned off. "
-							+ "You will be able to track the progress of your task with the logging option. Watch out for "
+							+ "high-complexity problem statement. Calculations will take longer than usual. "
+							+ "You may track the progress of your task with the verbose logging option. Watch out for "
 							+ "timeouts as they typically may occur for multi-variate optimisation when the problem is ill-posed."
 							+ "</p></body></html>", "High complexity", INFORMATION_MESSAGE);
 				}

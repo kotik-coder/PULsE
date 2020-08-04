@@ -1,8 +1,9 @@
 package pulse.math.linear;
 
 import static org.ejml.dense.row.CommonOps_DDRM.invert;
-import static pulse.math.linear.ArithmeticOperations.difference;
-import static pulse.math.linear.ArithmeticOperations.sum;
+import static pulse.math.MathUtils.approximatelyEquals;
+import static pulse.math.linear.ArithmeticOperations.DIFFERENCE;
+import static pulse.math.linear.ArithmeticOperations.SUM;
 import static pulse.math.linear.Matrices.createMatrix;
 
 import org.ejml.data.DMatrixRMaj;
@@ -13,15 +14,16 @@ import pulse.ui.Messages;
 /**
  * The matrix class.
  * <p>
- * Used for operations on small matrices (generally, not exceeding a
- * size of 10), used primarily in optimisation and Runge-Kutta calculations of
- * radiative transfer. Specific subclasses exist for matrices of size 2, 3, and 4,
- * which are used to boost performance in some cases.
+ * Used for operations on small matrices primarily in optimisation and
+ * Runge-Kutta calculations of radiative transfer. Fixed-size matrices of size
+ * 2, 3, and 4 are the direct subclasses and offer a boost in performance by
+ * implementing a reduced FLOP matrix inverse.
  * </p>
- * 
  * <p>
- * Note this class cannot be instantiated directly from outside the {@code pulse.math} package,
- * the user needs to invoke the factory class methods {@code Matrices} instead.
+ * Note this class cannot be instantiated directly from outside the
+ * {@code pulse.math} package, the user needs to invoke the factory class
+ * methods {@code Matrices} instead.
+ * </p>
  * 
  * @see pulse.math.linear.Matrices
  */
@@ -51,40 +53,33 @@ public class SquareMatrix {
 	private SquareMatrix(double[] data, int n) {
 		this.x = new double[n][n];
 
-		for (int i = 0; i < n; i++) 
-			System.arraycopy(data, i*n, x[i], 0, n);
-	
+		for (int i = 0; i < n; i++)
+			System.arraycopy(data, i * n, x[i], 0, n);
+
 	}
 
 	/**
-	 * <p>
-	 * Checks whether both {@code this} and {@code m} have matching dimensions. If
-	 * true, will perform an element-wise summation.
-	 * </p>
+	 * Performs an element-wise summation if {@code this} and {@code m} have
+	 * matching dimensions.
 	 * 
 	 * @param m another {@code Matrix} of the same size as {@code this} one
-	 * @return a {@code Matrix} with elements formed as the result of summing up the
-	 *         respective elements in {@code this} and {@code m}
+	 * @return the result of summation
 	 */
 
 	public SquareMatrix sum(SquareMatrix m) {
-		return performOperation(this, m, sum);
+		return performOperation(this, m, SUM);
 	}
 
 	/**
-	 * <p>
-	 * Checks whether both {@code this} and {@code m} have matching dimensions. If
-	 * true, will perform an element-wise subtraction.
-	 * </p>
+	 * Performs an element-wise subtraction of {@code m} from {@code this} if these
+	 * matrices have matching dimensions.
 	 * 
 	 * @param m another {@code Matrix} of the same size as {@code this} one
-	 * @return a {@code Matrix} with elements formed as the result of subtracting an
-	 *         element of matrix {@code m} from the respective element in
-	 *         {@code this}
+	 * @return the result of subtraction
 	 */
 
 	public SquareMatrix subtract(SquareMatrix m) {
-		return performOperation(this, m, difference);
+		return performOperation(this, m, DIFFERENCE);
 	}
 
 	/**
@@ -103,10 +98,10 @@ public class SquareMatrix {
 		if (this.x[0].length != m.x.length)
 			throw new IllegalArgumentException(Messages.getString("Matrix.MultiplicationError") + this + " and " + m);
 
-		int mm = this.x.length;
-		int nn = m.x[0].length;
+		final int mm = this.x.length;
+		final int nn = m.x[0].length;
 
-		double[][] y = new double[mm][nn];
+		var y = new double[mm][nn];
 
 		for (int i = 0; i < mm; i++) {
 			for (int j = 0; j < nn; j++) {
@@ -117,7 +112,7 @@ public class SquareMatrix {
 		}
 
 		return createMatrix(y);
-		
+
 	}
 
 	/**
@@ -129,24 +124,24 @@ public class SquareMatrix {
 	 */
 
 	public SquareMatrix multiply(double f) {
-		double[][] y = new double[this.x[0].length][this.x[0].length];
+		double[][] y = new double[x.length][x[0].length];
 
-		for (int i = 0; i < x[0].length; i++) {
+		for (int i = 0; i < x.length; i++) {
 			for (int j = 0; j < x[0].length; j++) {
 				y[i][j] = this.x[i][j] * f;
 			}
 		}
 
 		return createMatrix(y);
-		
+
 	}
 
 	/**
 	 * <p>
 	 * Multiplies this {@code Matrix} by the vector {@code v}, which is represented
-	 * by a {@code n x 1} {@code Matrix}, where {@code n} is the dimension of
-	 * {@code v}. Note {@code n} should be equal to the number of rows in this
-	 * {@code Matrix}.
+	 * by a <math><i>n</i> &times; 1</math> {@code Matrix}, where {@code n} is the
+	 * dimension of {@code v}. Note {@code n} should be equal to the number of rows
+	 * in this {@code Matrix}.
 	 * </p>
 	 * 
 	 * @param v a {@code Vector}.
@@ -157,8 +152,8 @@ public class SquareMatrix {
 		double[] r = new double[v.dimension()];
 
 		for (int i = 0; i < r.length; i++) {
-			for (int j = 0; j < r.length; j++) {
-				r[i] += x[i][j] * v.get(j);
+			for (int k = 0; k < r.length; k++) {
+				r[i] += x[i][k] * v.get(k);
 			}
 		}
 
@@ -187,8 +182,8 @@ public class SquareMatrix {
 	}
 
 	/**
-	 * Calculates the determinant for an <i>n</i>-by-<i>n</i> square matrix.
-	 * The determinant is calculated using the EJML library.
+	 * Calculates the determinant for an <i>n</i>-by-<i>n</i> square matrix. The
+	 * determinant is calculated using the EJML library.
 	 * 
 	 * @return a double, representing the determinant
 	 */
@@ -199,8 +194,8 @@ public class SquareMatrix {
 	}
 
 	/**
-	 * Conducts matrix inversion with the procedural EJML approach.
-	 * Can be overriden by subclasses to boost performance.
+	 * Conducts matrix inversion with the procedural EJML approach. Can be overriden
+	 * by subclasses to boost performance.
 	 * 
 	 * @return the inverted {@Code Matrix}.
 	 */
@@ -221,16 +216,22 @@ public class SquareMatrix {
 
 	public static SquareMatrix outerProduct(Vector a, Vector b) {
 		double[][] x = new double[a.dimension()][b.dimension()];
-		
-		for(int i = 0; i < x.length; i++) {
-			for(int j = 0; j < x[0].length; j++) {
+
+		for (int i = 0; i < x.length; i++) {
+			for (int j = 0; j < x[0].length; j++) {
 				x[i][j] = a.get(i) * b.get(j);
 			}
 		}
-		
+
 		return createMatrix(x);
 	}
 
+	/**
+	 * Checks whether {@code o} is a {@code SquareMatrix} with matching dimensions 
+	 * and all elements of which are (approximately) equal to the respective elements
+	 * of {@code this} matrix}.
+	 */
+	
 	@Override
 	public boolean equals(Object o) {
 		if (!(o instanceof SquareMatrix))
@@ -241,19 +242,22 @@ public class SquareMatrix {
 
 		var m = (SquareMatrix) o;
 
-		if (m.x.length != m.x[0].length)
+		if(! this.hasSameDimensions(m) )
 			return false;
 
-		final double EPS = 1E-8;
+		boolean result = true;
 
 		for (int i = 0; i < x.length; i++) {
 			for (int j = 0; j < x.length; j++) {
-				if (Math.abs(this.x[i][j] - m.x[i][j]) > EPS)
-					return false;
+				if (!approximatelyEquals(this.x[i][j], m.x[i][j])) {
+					result = false;
+					break;
+				}
 			}
 		}
 
-		return true;
+		return result;
+
 	}
 
 	/**
@@ -287,18 +291,13 @@ public class SquareMatrix {
 	 */
 
 	public boolean hasSameDimensions(SquareMatrix m) {
-
-		if (this.x.length != m.x.length)
-			return false;
-
-		return this.x[0].length == m.x[0].length;
-
+		return (x.length == m.x.length) && (x[0].length == m.x[0].length);
 	}
 
 	public double get(int m, int k) {
 		return x[m][k];
 	}
-	
+
 	public double[][] getData() {
 		return x;
 	}
@@ -309,8 +308,8 @@ public class SquareMatrix {
 
 		double[][] y = new double[m1.x.length][m1.x[0].length];
 
-		for (int i = 0; i < m1.x.length; i++) {
-			for (int j = 0; j < m1.x[0].length; j++) {
+		for (int i = 0; i < y.length; i++) {
+			for (int j = 0; j < y[0].length; j++) {
 				y[i][j] = op.evaluate(m1.x[i][j], m2.x[i][j]);
 			}
 		}

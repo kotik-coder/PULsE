@@ -19,20 +19,15 @@ public class BlackbodySpectrum {
 	private double reductionFactor;
 	private UnivariateFunction interpolation;
 
-	public BlackbodySpectrum(NonlinearProblem p) {
-		init(p);
-	}
-
 	/**
-	 * Calculates the reduction factor
-	 * <math>&delta;<i>T</i><sub>m</sub>/<i>T</i><sub>0</sub></math>
-	 * 
-	 * @param p a {@code NonlinearProblem}, which enables the calculation of
-	 *          {@code maximumHeating()}
-	 * @see pulse.problem.statements.NonlinearProblem.maximumHeating()
+	 * Creates a {@code BlackbodySpectrum}. Calculates the reduction factor
+	 * <math>&delta;<i>T</i><sub>m</sub>/<i>T</i><sub>0</sub></math>, which
+	 * is needed for calculations of the maximum heating. Note the interpolation
+	 * needs to be set 
+	 * @param p a problem statement
 	 */
-
-	public void init(NonlinearProblem p) {
+	
+	public BlackbodySpectrum(NonlinearProblem p) {
 		reductionFactor = p.maximumHeating() / ((double) p.getTestTemperature().getValue());
 	}
 

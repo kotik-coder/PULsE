@@ -1,30 +1,19 @@
 package pulse.problem.schemes.rte.dom;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import pulse.problem.schemes.rte.BlackbodySpectrum;
 import pulse.problem.schemes.rte.RTECalculationStatus;
 import pulse.problem.statements.ParticipatingMedium;
-import pulse.properties.Property;
-import pulse.util.InstanceDescriptor;
 import pulse.util.PropertyHolder;
 import pulse.util.Reflexive;
 
 public abstract class ODEIntegrator extends PropertyHolder implements Reflexive {
 
-	private static InstanceDescriptor<PhaseFunction> phaseFunctionSelector = new InstanceDescriptor<PhaseFunction>(
-			"Phase function selector", PhaseFunction.class);
-
 	private DiscreteIntensities intensities;
 	private PhaseFunction pf;
 	private BlackbodySpectrum spectrum;
 
-	public ODEIntegrator(DiscreteIntensities intensities, BlackbodySpectrum ef) {
+	public ODEIntegrator(DiscreteIntensities intensities) {
 		setIntensities(intensities);
-		this.spectrum = ef;
-		phaseFunctionSelector.setSelectedDescriptor(HenyeyGreensteinPF.class.getSimpleName());
 	}
 
 	public abstract RTECalculationStatus integrate();
@@ -32,8 +21,6 @@ public abstract class ODEIntegrator extends PropertyHolder implements Reflexive 
 	protected void init(ParticipatingMedium problem) {
 		intensities.setEmissivity(problem.getEmissivity());
 		intensities.setGrid(new StretchedGrid((double) problem.getOpticalThickness().getValue()));
-		setPhaseFunction(problem);
-		phaseFunctionSelector.addListener(() -> setPhaseFunction(problem));
 		setEmissionFunction(new BlackbodySpectrum(problem));
 	}
 
@@ -102,11 +89,6 @@ public abstract class ODEIntegrator extends PropertyHolder implements Reflexive 
 
 	}
 
-	@Override
-	public List<Property> listedTypes() {
-		return new ArrayList<Property>(Arrays.asList(phaseFunctionSelector));
-	}
-
 	public double emission(double t) {
 		return (1.0 - 2.0 * pf.getHalfAlbedo()) * spectrum.radianceAt(t);
 	}
@@ -115,13 +97,8 @@ public abstract class ODEIntegrator extends PropertyHolder implements Reflexive 
 		return pf;
 	}
 
-	public InstanceDescriptor<PhaseFunction> getPhaseFunctionSelector() {
-		return phaseFunctionSelector;
-	}
-
-	private void setPhaseFunction(ParticipatingMedium problem) {
-		this.pf = phaseFunctionSelector.newInstance(PhaseFunction.class, problem, intensities);
-		pf.init(problem);
+	protected void setPhaseFunction(PhaseFunction pf) {
+		this.pf = pf;
 	}
 
 	@Override

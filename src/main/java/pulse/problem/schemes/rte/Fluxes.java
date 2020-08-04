@@ -1,5 +1,7 @@
 package pulse.problem.schemes.rte;
 
+import pulse.properties.NumericProperty;
+
 public abstract class Fluxes implements DerivativeCalculator {
 
 	private int N;
@@ -7,15 +9,9 @@ public abstract class Fluxes implements DerivativeCalculator {
 	private double[] fluxes;
 	private double[] storedFluxes;
 
-	public Fluxes(int N, double tau0) {
-		setOpticalThickness(tau0);
-		setDensity(N);
-	}
-	
-	public void setDensity(int N) {
-		this.N = N;
-		fluxes = new double[N + 1];
-		storedFluxes = new double[N + 1];
+	public Fluxes(NumericProperty gridDensity, NumericProperty opticalThickness) {
+		setOpticalThickness(opticalThickness);
+		setDensity(gridDensity);
 	}
 	
 	/**
@@ -59,20 +55,26 @@ public abstract class Fluxes implements DerivativeCalculator {
 		return storedFluxes[i];
 	}
 	
-	public int getDensity() {
-		return N;
-	}
-	
 	public double getOpticalGridStep() { 
 		return opticalThickness/((double)N);
+	}
+	
+	public int getDensity() {
+		return N;
 	}
 
 	public double getOpticalThickness() {
 		return opticalThickness;
 	}
-
-	public void setOpticalThickness(double opticalThickness) {
-		this.opticalThickness = opticalThickness;
+	
+	public void setDensity(NumericProperty gridDensity) {
+		this.N = (int)gridDensity.getValue();
+		fluxes = new double[N + 1];
+		storedFluxes = new double[N + 1];
+	}
+	
+	public void setOpticalThickness(NumericProperty opticalThickness) {
+		this.opticalThickness = (double)opticalThickness.getValue();
 	}
 	
 }

@@ -3,7 +3,6 @@ package pulse.problem.schemes.rte.dom;
 import java.util.List;
 
 import pulse.problem.schemes.Grid;
-import pulse.problem.schemes.rte.BlackbodySpectrum;
 import pulse.problem.schemes.rte.FluxesAndExplicitDerivatives;
 import pulse.problem.schemes.rte.RTECalculationStatus;
 import pulse.problem.schemes.rte.RadiativeTransferSolver;
@@ -23,15 +22,12 @@ import pulse.util.InstanceDescriptor;
 
 public class DiscreteOrdinatesMethod extends RadiativeTransferSolver {
 
-	private static InstanceDescriptor<AdaptiveIntegrator> integratorDescriptor = new InstanceDescriptor<AdaptiveIntegrator>(
+	private InstanceDescriptor<AdaptiveIntegrator> integratorDescriptor = new InstanceDescriptor<AdaptiveIntegrator>(
 			"Integrator selector", AdaptiveIntegrator.class);
-	private static InstanceDescriptor<IterativeSolver> iterativeSolverSelector = new InstanceDescriptor<IterativeSolver>(
+	private InstanceDescriptor<IterativeSolver> iterativeSolverSelector = new InstanceDescriptor<IterativeSolver>(
 			"Iterative solver selector", IterativeSolver.class);
-
-	static {
-		integratorDescriptor.setSelectedDescriptor(TRBDF2.class.getSimpleName());
-		iterativeSolverSelector.setSelectedDescriptor(FixedIterations.class.getSimpleName());
-	}
+	private InstanceDescriptor<PhaseFunction> phaseFunctionSelector = new InstanceDescriptor<PhaseFunction>(
+			"Phase function selector", PhaseFunction.class);
 
 	private AdaptiveIntegrator integrator;
 	private IterativeSolver iterativeSolver;
@@ -46,20 +42,22 @@ public class DiscreteOrdinatesMethod extends RadiativeTransferSolver {
 	 */
 
 	public DiscreteOrdinatesMethod(ParticipatingMedium problem, Grid grid) {
-		super(problem, grid);
-		final int N = (int) grid.getGridDensity().getValue();
-		final double tau0 = (double) problem.getOpticalThickness().getValue();
-		setFluxes(new FluxesAndExplicitDerivatives(N, tau0));
+		super();
+		setFluxes(new FluxesAndExplicitDerivatives(grid.getGridDensity(), problem.getOpticalThickness()));
 
 		var discrete = new DiscreteIntensities(problem);
-		var emissionFunction = new BlackbodySpectrum(problem);
 
-		setIntegrator(integratorDescriptor.newInstance(AdaptiveIntegrator.class, discrete, emissionFunction));
+		integratorDescriptor.setSelectedDescriptor(TRBDF2.class.getSimpleName());
+		setIntegrator(integratorDescriptor.newInstance(AdaptiveIntegrator.class, discrete));
+		iterativeSolverSelector.setSelectedDescriptor(FixedIterations.class.getSimpleName());
 		setIterativeSolver(iterativeSolverSelector.newInstance(IterativeSolver.class));
+		phaseFunctionSelector.setSelectedDescriptor(HenyeyGreensteinPF.class.getSimpleName());
+		phaseFunctionSelector.addListener(() -> initPhaseFunction(problem, discrete));
+		initPhaseFunction(problem, discrete);
 		init(problem, grid);
 
 		integratorDescriptor.addListener(() -> setIntegrator(
-				integratorDescriptor.newInstance(AdaptiveIntegrator.class, discrete, emissionFunction)));
+				integratorDescriptor.newInstance(AdaptiveIntegrator.class, discrete)));
 
 		iterativeSolverSelector
 				.addListener(() -> setIterativeSolver(iterativeSolverSelector.newInstance(IterativeSolver.class)));
@@ -100,8 +98,8 @@ public class DiscreteOrdinatesMethod extends RadiativeTransferSolver {
 	@Override
 	public void init(ParticipatingMedium problem, Grid grid) {
 		super.init(problem, grid);
-		getFluxes().setDensity((int) grid.getGridDensity().getValue());
 		integrator.init(problem);
+		integrator.getPhaseFunction().init(problem);
 	}
 
 	@Override
@@ -109,6 +107,7 @@ public class DiscreteOrdinatesMethod extends RadiativeTransferSolver {
 		List<Property> list = super.listedTypes();
 		list.add(integratorDescriptor);
 		list.add(iterativeSolverSelector);
+		list.add(phaseFunctionSelector);
 		return list;
 	}
 
@@ -116,7 +115,7 @@ public class DiscreteOrdinatesMethod extends RadiativeTransferSolver {
 		return integrator;
 	}
 
-	public static InstanceDescriptor<AdaptiveIntegrator> getIntegratorDescriptor() {
+	public InstanceDescriptor<AdaptiveIntegrator> getIntegratorDescriptor() {
 		return integratorDescriptor;
 	}
 
@@ -129,13 +128,17 @@ public class DiscreteOrdinatesMethod extends RadiativeTransferSolver {
 		return iterativeSolver;
 	}
 
-	public static InstanceDescriptor<IterativeSolver> getIterativeSolverSelector() {
+	public InstanceDescriptor<IterativeSolver> getIterativeSolverSelector() {
 		return iterativeSolverSelector;
 	}
 
 	public void setIterativeSolver(IterativeSolver solver) {
 		this.iterativeSolver = solver;
 		solver.setParent(this);
+	}
+
+	public InstanceDescriptor<PhaseFunction> getPhaseFunctionSelector() {
+		return phaseFunctionSelector;
 	}
 
 	@Override
@@ -146,6 +149,12 @@ public class DiscreteOrdinatesMethod extends RadiativeTransferSolver {
 	@Override
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
 		// intentionally left blank
+	}
+
+	private void initPhaseFunction(ParticipatingMedium problem, DiscreteIntensities discrete) {
+		var pf = phaseFunctionSelector.newInstance(PhaseFunction.class, problem, discrete);
+		integrator.setPhaseFunction(pf);
+		pf.init(problem);
 	}
 
 }

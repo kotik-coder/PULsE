@@ -22,9 +22,7 @@ public class NonscatteringAnalyticalDerivatives extends NonscatteringRadiativeTr
 
 	public NonscatteringAnalyticalDerivatives(ParticipatingMedium problem, Grid grid) {
 		super(problem, grid);
-		final int N = (int) grid.getGridDensity().getValue();
-		final double tau0 = (double) problem.getOpticalThickness().getValue();
-		setFluxes(new FluxesAndExplicitDerivatives(N, tau0));
+		setFluxes(new FluxesAndExplicitDerivatives(grid.getGridDensity(), problem.getOpticalThickness()));
 	}
 
 	/**

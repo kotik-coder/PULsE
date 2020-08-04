@@ -3,7 +3,6 @@ package pulse.problem.schemes.rte.dom;
 import java.util.List;
 
 import pulse.math.linear.Vector;
-import pulse.problem.schemes.rte.BlackbodySpectrum;
 import pulse.properties.Property;
 
 /**
@@ -17,8 +16,8 @@ public class ExplicitRungeKutta extends AdaptiveIntegrator {
 
 	private ButcherTableau tableau;
 
-	public ExplicitRungeKutta(DiscreteIntensities intensities, BlackbodySpectrum ef) {
-		super(intensities, ef);
+	public ExplicitRungeKutta(DiscreteIntensities intensities) {
+		super(intensities);
 		tableau = ButcherTableau.getDefaultInstance();
 	}
 

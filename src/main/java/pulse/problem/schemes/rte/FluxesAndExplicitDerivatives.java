@@ -1,19 +1,21 @@
 package pulse.problem.schemes.rte;
 
+import pulse.properties.NumericProperty;
+
 public class FluxesAndExplicitDerivatives extends Fluxes {
 
 	private double fd[];
 	private double fdStored[];
 	
-	public FluxesAndExplicitDerivatives(int N, double tau0) {
-		super(N, tau0);
+	public FluxesAndExplicitDerivatives(NumericProperty gridDensity, NumericProperty opticalThickness) {
+		super(gridDensity, opticalThickness);
 	}
 	
 	@Override 
-	public void setDensity(int N) { 
-		super.setDensity(N);
-		fd = new double[N + 1];
-		fdStored = new double[N + 1];
+	public void setDensity(NumericProperty gridDensity) { 
+		super.setDensity(gridDensity);
+		fd = new double[getDensity() + 1];
+		fdStored = new double[getDensity() + 1];
 	}
 	
 	@Override

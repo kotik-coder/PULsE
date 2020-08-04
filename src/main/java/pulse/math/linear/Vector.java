@@ -2,10 +2,10 @@ package pulse.math.linear;
 
 import static java.lang.Math.abs;
 import static java.lang.Math.sqrt;
-import static pulse.math.linear.ArithmeticOperations.difference;
-import static pulse.math.linear.ArithmeticOperations.differenceSquared;
-import static pulse.math.linear.ArithmeticOperations.product;
-import static pulse.math.linear.ArithmeticOperations.sum;
+import static pulse.math.linear.ArithmeticOperations.DIFFERENCE;
+import static pulse.math.linear.ArithmeticOperations.DIFF_SQUARED;
+import static pulse.math.linear.ArithmeticOperations.PRODUCT;
+import static pulse.math.linear.ArithmeticOperations.SUM;
 
 import pulse.ui.Messages;
 
@@ -58,7 +58,7 @@ public class Vector {
 	 */
 
 	public Vector inverted() {
-		return performOperation(new Vector(dimension()), this, difference);
+		return performOperation(new Vector(dimension()), this, DIFFERENCE);
 	}
 
 	/**
@@ -79,7 +79,7 @@ public class Vector {
 	 */
 
 	public Vector sum(Vector v) {
-		return performOperation(this, v, sum);
+		return performOperation(this, v, SUM);
 	}
 
 	/**
@@ -92,7 +92,7 @@ public class Vector {
 	 */
 
 	public Vector subtract(Vector v) {
-		return performOperation(this, v, difference);
+		return performOperation(this, v, DIFFERENCE);
 	}
 
 	/**
@@ -121,7 +121,7 @@ public class Vector {
 	 */
 
 	public double dot(Vector v) {
-		return reduce(this, v, product);
+		return reduce(this, v, PRODUCT);
 	}
 
 	/**
@@ -169,7 +169,7 @@ public class Vector {
 	 */
 
 	public double distanceToSq(Vector v) throws IllegalArgumentException {
-		return reduce(this, v, differenceSquared);
+		return reduce(this, v, DIFF_SQUARED);
 	}
 
 	/**

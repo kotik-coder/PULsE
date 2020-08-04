@@ -13,8 +13,8 @@ import pulse.util.PropertyHolder;
 import pulse.util.Reflexive;
 
 /**
- * An abstract class defining the radiative fluxes and their derivatives for use
- * within the coupled conductive-radiative problem solver. Uses a
+ * Manages processes to solve the radiative transfer equation and generate the
+ * input needed by the heat problem, i.e. fluxes and their derivatives. Uses a
  * {@code SplineInterpolator} to generate a smooth spatial temperature profile.
  * Provides means of probing the calculation health and tracking calculation
  * steps with listeners.
@@ -27,24 +27,18 @@ public abstract class RadiativeTransferSolver extends PropertyHolder implements 
 	private List<RTECalculationListener> rteListeners;
 
 	/**
-	 * Abstract constructor that initialises flux arrays based on the {@code grid}
-	 * density. The reason why flux arrays should have the same dimension as the
-	 * grid number of elements is because they will be used from within the heat
-	 * problem solver, which in turn requires the fluxes to be defined at
-	 * {@code Grid} points.
+	 * Dummy constructor.
 	 * 
-	 * @param grid the {@code Grid} object specifying the number of elements in the
-	 *             flux arrays.
 	 */
 
-	public RadiativeTransferSolver(ParticipatingMedium problem, Grid grid) {
+	public RadiativeTransferSolver() {
 		rteListeners = new ArrayList<>();
 	}
 
 	/**
 	 * Launches a calculation of the radiative transfer equation.
 	 * 
-	 * @param temperatureArray
+	 * @param temperatureArray the input temperature profile
 	 * @return the status of calculation
 	 */
 
@@ -59,10 +53,9 @@ public abstract class RadiativeTransferSolver extends PropertyHolder implements 
 	 */
 
 	public void init(ParticipatingMedium p, Grid grid) {
-		final double opticalThickness = (double) p.getOpticalThickness().getValue();
 		if (fluxes != null) {
-			fluxes.setDensity((int) grid.getGridDensity().getValue());
-			fluxes.setOpticalThickness(opticalThickness);
+			fluxes.setDensity(grid.getGridDensity());
+			fluxes.setOpticalThickness(p.getOpticalThickness());
 		}
 	}
 
@@ -74,13 +67,18 @@ public abstract class RadiativeTransferSolver extends PropertyHolder implements 
 	 *         {@code SplineInterpolator}
 	 */
 
-	public UnivariateFunction interpolateTemperatureProfile(double[] tempArray) {
-		double[] xArray = new double[tempArray.length];
+	public UnivariateFunction interpolateTemperatureProfile(final double[] tempArray) {
+		var xArray = new double[tempArray.length + 1];
 
-		for (int i = 0; i < xArray.length; i++)
-			xArray[i] = opticalCoordinateAt(i);
-
-		return (new SplineInterpolator()).interpolate(xArray, tempArray);
+		for (int i = -1; i < xArray.length - 1; i++)
+			xArray[i + 1] = opticalCoordinateAt(i);
+		
+		var tarray = new double[tempArray.length + 1];
+		System.arraycopy(tempArray, 0, tarray, 1, tempArray.length);
+		final double alpha = (xArray[0] - xArray[1])/(xArray[2] - xArray[1]);
+		tarray[0] = tarray[1] * alpha + (1.0 - alpha) * tarray[2];
+		
+		return (new SplineInterpolator()).interpolate(xArray, tarray);
 	}
 
 	/**
@@ -90,7 +88,7 @@ public abstract class RadiativeTransferSolver extends PropertyHolder implements 
 	 * @return <math>&tau;<sub>0</sub>/<i>N</i> <i>i</i> </math>
 	 */
 
-	public double opticalCoordinateAt(int i) {
+	public double opticalCoordinateAt(final int i) {
 		return fluxes.getOpticalGridStep() * i;
 	}
 

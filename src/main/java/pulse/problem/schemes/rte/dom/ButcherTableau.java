@@ -156,9 +156,19 @@ public class ButcherTableau implements Property {
 		return optional.get();
 	}
 
+	/**
+	 * Gets the default Butcher tableau, which corresponds to the Bogacki-Shampine (2,3) scheme.
+	 * @return the default Butcher tableau
+	 */
+	
 	public static ButcherTableau getDefaultInstance() {
 		return find(DEFAULT_TABLEAU);
 	}
+	
+	/**
+	 * Retrieves all available Butcher tableaux.
+	 * @return a {@code Set} of {@code ButcherTableau} objects
+	 */
 
 	public static Set<ButcherTableau> getAllOptions() {
 		return allOptions;

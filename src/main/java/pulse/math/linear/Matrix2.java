@@ -20,7 +20,7 @@ class Matrix2 extends SquareMatrix {
 		double[][] mx = new double[2][2];
 		final var x = this.getData();
 
-		final double det = x[0][0] * x[1][1] - x[0][1] * x[1][0];
+		final double det = det();
 
 		mx[0][0] = x[1][1] / det;
 		mx[0][1] = -x[0][1] / det;

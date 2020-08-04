@@ -16,9 +16,7 @@ public class NonscatteringDiscreteDerivatives extends NonscatteringRadiativeTran
 
 	public NonscatteringDiscreteDerivatives(ParticipatingMedium problem, Grid grid) {
 		super(problem, grid);
-		final int N = (int) grid.getGridDensity().getValue();
-		final double tau0 = (double) problem.getOpticalThickness().getValue();
-		setFluxes(new FluxesAndImplicitDerivatives(N, tau0));
+		setFluxes(new FluxesAndImplicitDerivatives(grid.getGridDensity(), problem.getOpticalThickness()));
 	}
 
 	@Override

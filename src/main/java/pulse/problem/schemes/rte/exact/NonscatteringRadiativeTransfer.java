@@ -35,7 +35,7 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 	}
 
 	protected NonscatteringRadiativeTransfer(ParticipatingMedium problem, Grid grid) {
-		super(problem, grid);
+		super();
 		init(problem, grid);
 		emissionFunction = new BlackbodySpectrum(problem);
 		initQuadrature();

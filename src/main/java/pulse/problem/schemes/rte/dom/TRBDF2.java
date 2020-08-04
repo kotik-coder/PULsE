@@ -3,7 +3,6 @@ package pulse.problem.schemes.rte.dom;
 import pulse.math.linear.Matrices;
 import pulse.math.linear.SquareMatrix;
 import pulse.math.linear.Vector;
-import pulse.problem.schemes.rte.BlackbodySpectrum;
 
 /**
  * TRBDF2 Scheme
@@ -67,8 +66,8 @@ public class TRBDF2 extends AdaptiveIntegrator {
 	private double w_d = w / d;
 	private double _1w_d = (1.0 - w_d);
 
-	public TRBDF2(DiscreteIntensities intensities, BlackbodySpectrum ef) {
-		super(intensities, ef);
+	public TRBDF2(DiscreteIntensities intensities) {
+		super(intensities);
 	}
 
 	@Override
