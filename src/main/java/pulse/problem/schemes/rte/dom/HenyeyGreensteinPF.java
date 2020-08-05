@@ -10,7 +10,7 @@ public class HenyeyGreensteinPF extends PhaseFunction {
 	private double a2;
 	private double b1;
 
-	public HenyeyGreensteinPF(ParticipatingMedium medium, DiscreteIntensities intensities) {
+	public HenyeyGreensteinPF(ParticipatingMedium medium, Discretisation intensities) {
 		super(medium, intensities);
 	}
 

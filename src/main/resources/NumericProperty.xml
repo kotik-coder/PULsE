@@ -51,11 +51,11 @@
 		dimensionfactor="1" discreet="false" keyword="RTE_MAX_ITERATIONS"
 		maximum="10000" minimum="1" primitive-type="int" value="100">
 	</NumericProperty>
-	<NumericProperty abbreviation="Integration timeout (ms)"
-		auto-adjustable="false" descriptor="Integration timeout (ms)"
-		dimensionfactor="1E-6" discreet="false"
-		keyword="RTE_INTEGRATION_TIMEOUT" maximum="1e10" minimum="1e6"
-		primitive-type="double" value="1e8">
+	<NumericProperty abbreviation="Integration timeout (s)"
+		auto-adjustable="false" descriptor="Integration timeout (s)"
+		dimensionfactor="1" discreet="false"
+		keyword="RTE_INTEGRATION_TIMEOUT" maximum="10" minimum="1E-3"
+		primitive-type="double" value="0.1">
 	</NumericProperty>
 	<NumericProperty abbreviation="&lt;i&gt;W&lt;/i&gt;"
 		auto-adjustable="false"

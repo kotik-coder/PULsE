@@ -8,35 +8,37 @@ import pulse.util.Reflexive;
 
 public abstract class ODEIntegrator extends PropertyHolder implements Reflexive {
 
-	private DiscreteIntensities intensities;
+	private Discretisation discretisation;
 	private PhaseFunction pf;
 	private BlackbodySpectrum spectrum;
 
-	public ODEIntegrator(DiscreteIntensities intensities) {
-		setIntensities(intensities);
+	public ODEIntegrator(Discretisation intensities) {
+		setDiscretisation(intensities);
 	}
 
 	public abstract RTECalculationStatus integrate();
 
 	protected void init(ParticipatingMedium problem) {
-		intensities.setEmissivity(problem.getEmissivity());
-		intensities.setGrid(new StretchedGrid((double) problem.getOpticalThickness().getValue()));
+		discretisation.setEmissivity(problem.getEmissivity());
+		discretisation.setGrid(new StretchedGrid((double) problem.getOpticalThickness().getValue()));
 		setEmissionFunction(new BlackbodySpectrum(problem));
 	}
 
 	protected void treatZeroIndex() {
 
-		var ordinates = intensities.getOrdinates();
+		var ordinates = discretisation.getOrdinates();
+		var grid = discretisation.getGrid();
+		var quantities = discretisation.getQuantities();
 		double denominator = 0;
 		final double halfAlbedo = pf.getHalfAlbedo();
 
 		// loop through the spatial indices
-		for (int j = 0; j < intensities.getGrid().getDensity() + 1; j++) {
+		for (int j = 0; j < grid.getDensity() + 1; j++) {
 
 			// solve I_k = S_k for mu[k] = 0
 			denominator = 1.0 - halfAlbedo * ordinates.getWeight(0) * pf.function(0, 0);
-			intensities.setIntensity(j, 0,
-					(emission(intensities.getGrid().getNode(j)) + halfAlbedo * pf.sumExcludingIndex(0, j, 0))
+			quantities.setIntensity(j, 0,
+					(emission(grid.getNode(j)) + halfAlbedo * pf.sumExcludingIndex(0, j, 0))
 							/ denominator);
 
 		}
@@ -44,32 +46,32 @@ public abstract class ODEIntegrator extends PropertyHolder implements Reflexive 
 	}
 
 	public double derivative(int i, int j, double t, double I) {
-		return 1.0 / intensities.getOrdinates().getNode(i) * (source(i, j, t, I) - I);
+		return 1.0 / discretisation.getOrdinates().getNode(i) * (source(i, j, t, I) - I);
 	}
 
 	public double derivative(int i, double t, double[] out, double[] in, int l1, int l2) {
-		return 1.0 / intensities.getOrdinates().getNode(i) * (source(i, out, in, t, l1, l2) - out[i - l1]);
+		return 1.0 / discretisation.getOrdinates().getNode(i) * (source(i, out, in, t, l1, l2) - out[i - l1]);
 	}
 
 	public double partial(int i, double t, double[] inward, int l1, int l2) {
 		return (emission(t) + pf.getHalfAlbedo() * pf.inwardPartialSum(i, inward, l1, l2))
-				/ intensities.getOrdinates().getNode(i);
+				/ discretisation.getOrdinates().getNode(i);
 	}
 
 	public double partial(int i, int j, double t, int l1, int l2) {
-		return (emission(t) + pf.getHalfAlbedo() * pf.partialSum(i, j, l1, l2)) / intensities.getOrdinates().getNode(i);
+		return (emission(t) + pf.getHalfAlbedo() * pf.partialSum(i, j, l1, l2)) / discretisation.getOrdinates().getNode(i);
 	}
 
 	public double source(int i, int j, double t, double I) {
 		return emission(t) + pf.getHalfAlbedo()
-				* (pf.sumExcludingIndex(i, j, i) + pf.function(i, i) * intensities.getOrdinates().getWeight(i) * I);
+				* (pf.sumExcludingIndex(i, j, i) + pf.function(i, i) * discretisation.getOrdinates().getWeight(i) * I);
 	}
 
 	public double source(final int i, final double[] iOut, final double[] iIn, final double t, final int l1,
 			final int l2) {
 
 		double sumOut = 0;
-		final var ordinates = intensities.getOrdinates();
+		final var ordinates = discretisation.getOrdinates();
 
 		for (int l = l1; l < l2; l++) {
 			// sum over the OUTWARD intensities iOut
@@ -111,18 +113,13 @@ public abstract class ODEIntegrator extends PropertyHolder implements Reflexive 
 		return getClass().getSimpleName();
 	}
 
-	@Override
-	public boolean ignoreSiblings() {
-		return true;
+	public Discretisation getDiscretisation() {
+		return discretisation;
 	}
 
-	public DiscreteIntensities getIntensities() {
-		return intensities;
-	}
-
-	public void setIntensities(DiscreteIntensities intensities) {
-		this.intensities = intensities;
-		intensities.setParent(this);
+	public void setDiscretisation(Discretisation discretisation) {
+		this.discretisation = discretisation;
+		discretisation.setParent(this);
 	}
 
 	public BlackbodySpectrum getEmissionFunction() {

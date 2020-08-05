@@ -7,7 +7,8 @@ public class FixedIterations extends IterativeSolver {
 	@Override
 	public RTECalculationStatus doIterations(AdaptiveIntegrator integrator) {
 
-		var discrete = integrator.getIntensities();
+		var discrete = integrator.getDiscretisation();
+		var quantities = discrete.getQuantities();
 		double relativeError = 100;
 
 		double qld = 0;
@@ -20,8 +21,8 @@ public class FixedIterations extends IterativeSolver {
 		
 		for (double ql = 1e8, qr = ql; relativeError > getIterationError()
 				&& status == RTECalculationStatus.NORMAL; status = sanityCheck(status, ++iterations)) {
-			ql = discrete.getFluxLeft();
-			qr = discrete.getFluxRight();
+			ql = quantities.getFluxLeft();
+			qr = quantities.getFluxRight();
 
 			status = integrator.integrate();
 

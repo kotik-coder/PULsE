@@ -5,11 +5,11 @@ import pulse.util.Reflexive;
 
 public abstract class PhaseFunction implements Reflexive {
 
-	private DiscreteIntensities intensities;
+	private Discretisation intensities;
 	private double anisotropy;
 	private double halfAlbedo;
 
-	public PhaseFunction(ParticipatingMedium medium, DiscreteIntensities intensities) {
+	public PhaseFunction(ParticipatingMedium medium, Discretisation intensities) {
 		this.intensities = intensities;
 		init(medium);
 	}
@@ -25,9 +25,10 @@ public abstract class PhaseFunction implements Reflexive {
 	public double partialSum(int i, int j, int startInclusive, int endExclusive) {
 		double result = 0;
 		final var ordinates = intensities.getOrdinates();
+		final var quantities = intensities.getQuantities();
 
 		for (int k = startInclusive; k < endExclusive; k++) {
-			result += ordinates.getWeight(k) * intensities.getIntensity(j, k) * function(i, k);
+			result += ordinates.getWeight(k) * quantities.getIntensity(j, k) * function(i, k);
 		}
 		return result;
 	}
@@ -49,7 +50,7 @@ public abstract class PhaseFunction implements Reflexive {
 		return anisotropy;
 	}
 
-	protected DiscreteIntensities getDiscreteIntensities() {
+	protected Discretisation getDiscreteIntensities() {
 		return intensities;
 	}
 

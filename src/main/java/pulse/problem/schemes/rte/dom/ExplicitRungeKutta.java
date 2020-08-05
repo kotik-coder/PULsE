@@ -16,7 +16,7 @@ public class ExplicitRungeKutta extends AdaptiveIntegrator {
 
 	private ButcherTableau tableau;
 
-	public ExplicitRungeKutta(DiscreteIntensities intensities) {
+	public ExplicitRungeKutta(Discretisation intensities) {
 		super(intensities);
 		tableau = ButcherTableau.getDefaultInstance();
 	}
@@ -24,16 +24,17 @@ public class ExplicitRungeKutta extends AdaptiveIntegrator {
 	@Override
 	public Vector[] step(final int j, final double sign) {
 
-		var intensities = getIntensities();
-		final var grid = intensities.getGrid();
-		final var ordinates = intensities.getOrdinates();
+		var quantities = getDiscretisation().getQuantities();
+		
+		final var grid = getDiscretisation().getGrid();
+		final var ordinates = getDiscretisation().getOrdinates();
 
 		final double h = grid.step(j, sign);
 		final double hSigned = h * sign;
 		final double t = grid.getNode(j);
 
-		final int nPositiveStart = intensities.getOrdinates().getFirstPositiveNode();
-		final int nNegativeStart = intensities.getOrdinates().getFirstNegativeNode();
+		final int nPositiveStart = ordinates.getFirstPositiveNode();
+		final int nNegativeStart = ordinates.getFirstNegativeNode();
 
 		var hermite = getHermiteInterpolator();
 		
@@ -75,13 +76,13 @@ public class ExplicitRungeKutta extends AdaptiveIntegrator {
 		if (tableau.isFSAL() && ! isFirstRun() ) { // if FSAL
 
 			for (int l = n1; l < n2; l++) {
-				q[l - n1][0] = getQLast(l - n1); // assume first stage is the last stage of last step
+				q[l - n1][0] = quantities.getQLast(l - n1); // assume first stage is the last stage of last step
 			}
 
 		} else { // if not FSAL or on first run
 
 			for (int l = n1; l < n2; l++) {
-				q[l - n1][0] = derivative(l, j, t, intensities.getIntensity(j, l));
+				q[l - n1][0] = derivative(l, j, t, quantities.getIntensity(j, l));
 			}
 
 			setFirstRun(false);
@@ -91,7 +92,7 @@ public class ExplicitRungeKutta extends AdaptiveIntegrator {
 		// in any case
 
 		for (int l = n1; l < n2; l++) {
-			setDerivative(j, l, q[l - n1][0]); // store derivative for inward intensities
+			quantities.setDerivative(j, l, q[l - n1][0]); // store derivative for inward intensities
 			error[l - n1] = (tableau.getInterpolator().get(0) - tableau.getEstimator().get(0)) * q[l - n1][0] * hSigned;
 		}
 
@@ -118,7 +119,7 @@ public class ExplicitRungeKutta extends AdaptiveIntegrator {
 				for (int k = 1; k < m; k++)
 					sum += tableau.getMatrix().get(m, k) * q[l - n1][k];
 
-				iOutward[l - n1] = intensities.getIntensity(j, l) + hSigned * sum; // outward intensities are simply
+				iOutward[l - n1] = quantities.getIntensity(j, l) + hSigned * sum; // outward intensities are simply
 																					// found from the
 				// RK explicit expressions
 
@@ -126,10 +127,10 @@ public class ExplicitRungeKutta extends AdaptiveIntegrator {
 				 * INWARD
 				 */
 
-				hermite.y0 = intensities.getIntensity(j, l + n3);
-				hermite.y1 = intensities.getIntensity(j + increment, l + n3);
-				hermite.d0 = getDerivative(j, l + n3);
-				hermite.d1 = getDerivative(j + increment, l + n3);
+				hermite.y0 = quantities.getIntensity(j, l + n3);
+				hermite.y1 = quantities.getIntensity(j + increment, l + n3);
+				hermite.d0 = quantities.getDerivative(j, l + n3);
+				hermite.d1 = quantities.getDerivative(j + increment, l + n3);
 
 				iInward[l - n1] = hermite.interpolate(tm); // inward intensities are interpolated with
 																		// Hermite polynomials
@@ -142,7 +143,7 @@ public class ExplicitRungeKutta extends AdaptiveIntegrator {
 
 			for (int l = n1; l < n2; l++) {
 				q[l - n1][m] = derivative(l, tm, iOutward, iInward, n1, n2);
-				setQLast(l - n1, q[l - n1][m]);
+				quantities.setQLast(l - n1, q[l - n1][m]);
 				error[l - n1] += (tableau.getInterpolator().get(m) - tableau.getEstimator().get(m)) * q[l - n1][m]
 						* hSigned;
 			}
@@ -157,7 +158,7 @@ public class ExplicitRungeKutta extends AdaptiveIntegrator {
 
 		for (int l = 0; l < nH; l++) {
 			bDotQ = tableau.getInterpolator().dot(new Vector(q[l]));
-			Is[l] = intensities.getIntensity(j, l + n1) + bDotQ * hSigned;
+			Is[l] = quantities.getIntensity(j, l + n1) + bDotQ * hSigned;
 		}
 
 		return new Vector[] { new Vector(Is), new Vector(error) };

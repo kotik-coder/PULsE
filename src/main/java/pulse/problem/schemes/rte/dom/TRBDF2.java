@@ -66,14 +66,9 @@ public class TRBDF2 extends AdaptiveIntegrator {
 	private double w_d = w / d;
 	private double _1w_d = (1.0 - w_d);
 
-	public TRBDF2(DiscreteIntensities intensities) {
+	public TRBDF2(Discretisation intensities) {
 		super(intensities);
-	}
-
-	@Override
-	protected void prepare() {
-		super.prepare();
-		final int nH = getIntensities().getOrdinates().getHalfLength();
+		final int nH = getDiscretisation().getOrdinates().getHalfLength();
 
 		bVector = new double[nH];
 		est = new double[nH];
@@ -91,7 +86,7 @@ public class TRBDF2 extends AdaptiveIntegrator {
 
 	@Override
 	public void generateGrid(int nNew) {
-		getIntensities().getGrid().generate(nNew);
+		getDiscretisation().getGrid().generate(nNew);
 	}
 
 	/**
@@ -100,12 +95,13 @@ public class TRBDF2 extends AdaptiveIntegrator {
 
 	@Override
 	public Vector[] step(final int j, final double sign) {
-		var intensities = getIntensities();
+		var intensities = getDiscretisation();
+		var quantities = intensities.getQuantities();
 		var hermite = getHermiteInterpolator();
 		final double h = sign * intensities.getGrid().step(j, sign);
 		hermite.bMinusA = h; // <---- for Hermite interpolation
 
-		final int total = getIntensities().getOrdinates().getTotalNodes();
+		final int total = getDiscretisation().getOrdinates().getTotalNodes();
 		final int increment = (int) (1 * sign);
 		final double t = intensities.getGrid().getNode(j);
 		hermite.a = t; // <---- for Hermite interpolation
@@ -135,13 +131,13 @@ public class TRBDF2 extends AdaptiveIntegrator {
 		if (!isFirstRun()) { // if this is not the first step
 
 			for (int l = n1; l < n2; l++) {
-				k[0][l - n1] = getQLast(l - n1);
+				k[0][l - n1] = quantities.getQLast(l - n1);
 			}
 
 		} else {
 
 			for (int l = n1; l < n2; l++) {
-				k[0][l - n1] = super.derivative(l, j, t, intensities.getIntensity(j, l)); // first-stage right-hand
+				k[0][l - n1] = super.derivative(l, j, t, quantities.getIntensity(j, l)); // first-stage right-hand
 																							// side: f( t, In)
 				// )
 			} // )
@@ -163,10 +159,10 @@ public class TRBDF2 extends AdaptiveIntegrator {
 		 */
 
 		for (int i = 0; i < inward.length; i++) {
-			hermite.y0 = intensities.getIntensity(j, i + n3);
-			hermite.y1 = intensities.getIntensity(j + increment, i + n3);
-			hermite.d0 = getDerivative(j, i + n3);
-			hermite.d1 = getDerivative(j + increment, i + n3);
+			hermite.y0 = quantities.getIntensity(j, i + n3);
+			hermite.y1 = quantities.getIntensity(j + increment, i + n3);
+			hermite.d0 = quantities.getDerivative(j, i + n3);
+			hermite.d1 = quantities.getDerivative(j + increment, i + n3);
 			inward[i] = hermite.interpolate(tPlusGamma);
 		}
 
@@ -181,9 +177,9 @@ public class TRBDF2 extends AdaptiveIntegrator {
 
 		for (int i = 0; i < halfLength; i++) {
 
-			setDerivative(j, i + n1, k[0][i]); // store derivatives for Hermite interpolation
+			quantities.setDerivative(j, i + n1, k[0][i]); // store derivatives for Hermite interpolation
 
-			bVector[i] = intensities.getIntensity(j, i + n1)
+			bVector[i] = quantities.getIntensity(j, i + n1)
 					+ hd * (k[0][i] + partial(i + n1, tPlusGamma, inward, n3, n4)); // only
 			// INWARD
 			// intensities
@@ -215,19 +211,19 @@ public class TRBDF2 extends AdaptiveIntegrator {
 
 		for (int i = 0; i < aMatrix.length; i++) {
 
-			bVector[i] = intensities.getIntensity(j, i + n1) * _1w_d + w_d * i2.get(i)
+			bVector[i] = quantities.getIntensity(j, i + n1) * _1w_d + w_d * i2.get(i)
 					+ hd * partial(i + n1, j + increment, th, n3, n4); // only INWARD intensities at node j + 1 (i.e. no
 																		// interpolation)
-			k[1][i] = (i2.get(i) - intensities.getIntensity(j, i + n1)) / hd - k[0][i];
+			k[1][i] = (i2.get(i) - quantities.getIntensity(j, i + n1)) / hd - k[0][i];
 
 		}
 
 		i3 = invA.multiply(new Vector(bVector));
 
 		for (int i = 0; i < aMatrix.length; i++) {
-			k[2][i] = (i3.get(i) - intensities.getIntensity(j, i + n1)
-					- w_d * (i2.get(i) - intensities.getIntensity(j, i + n1))) / hd;
-			setQLast(i, k[2][i]);
+			k[2][i] = (i3.get(i) - quantities.getIntensity(j, i + n1)
+					- w_d * (i2.get(i) - quantities.getIntensity(j, i + n1))) / hd;
+			quantities.setQLast(i, k[2][i]);
 			est[i] = (bbHat[0] * k[0][i] + bbHat[1] * k[1][i] + bbHat[2] * k[2][i]) * h;
 		}
 

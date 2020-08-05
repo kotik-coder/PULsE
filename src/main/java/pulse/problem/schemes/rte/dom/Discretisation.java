@@ -13,17 +13,23 @@ import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 import pulse.util.PropertyHolder;
 
-public class DiscreteIntensities extends PropertyHolder {
+/**
+ * A class specifying the discretisation (both spatial and angular) scheme used
+ * to solve the radiative transfer equation with the discrete ordinates method.
+ * Has references to the grid and ordinate sets and the discrete quantities appearing
+ * in the calculations. Introduces methods to calculate the moments and intensities
+ * based on the discrete ordinates method.
+ *
+ */
 
-	private double[][] I;
+public class Discretisation extends PropertyHolder {
 
+	private DiscreteQuantities quantities;
 	private StretchedGrid grid;
 	private OrdinateSet ordinates;
 
 	private double emissivity;
 	private double boundaryFluxFactor;
-	private double qLeft;
-	private double qRight;
 	
 	/**
 	 * Constructs a {@code DiscreteIntensities} with the default {@code OrdinateSet} and a new 
@@ -31,12 +37,13 @@ public class DiscreteIntensities extends PropertyHolder {
 	 * @param problem the problem statement
 	 */
 
-	public DiscreteIntensities(ParticipatingMedium problem) {
+	public Discretisation(ParticipatingMedium problem) {
 		ordinates = OrdinateSet.defaultSet();
 		setGrid( new StretchedGrid((double) problem.getOpticalThickness().getValue()) );
+		quantities = new DiscreteQuantities(grid.getDensity(), ordinates.getTotalNodes());
 		setEmissivity(problem.getEmissivity());
 	}
-
+		
 	/**
 	 * Calculates the incident radiation <math>&#8721;<sub>i</sub><i>w<sub>i</sub> I<sub>ij</sub></i></math>,
 	 * which is the zeroth moment of the intensities. The calculation uses the symmetry of the quadrature
@@ -53,11 +60,11 @@ public class DiscreteIntensities extends PropertyHolder {
 
 		// uses symmetry
 		for (int i = nStart; i < nHalf; i++) {
-			integral += ordinates.getWeight(i) * (I[j][i] + I[j][i + nHalf]);
+			integral += ordinates.getWeight(i) * ( quantities.getIntensity(j, i) + quantities.getIntensity(j,i + nHalf) );
 		}
 
 		if (ordinates.hasZeroNode())
-			integral += ordinates.getWeight(0) * I[j][0];
+			integral += ordinates.getWeight(0) * quantities.getIntensity(j, 0);
 
 		return integral;
 	}
@@ -76,7 +83,7 @@ public class DiscreteIntensities extends PropertyHolder {
 		double integral = 0;
 
 		for (int i = startInclusive; i < endExclusive; i++) {
-			integral += ordinates.getWeight(i) * I[j][i];
+			integral += ordinates.getWeight(i) * quantities.getIntensity(j, i);
 		}
 
 		return integral;
@@ -113,7 +120,7 @@ public class DiscreteIntensities extends PropertyHolder {
 	 */
 
 	public double flux(final int j) {
-		return firstMoment(I, j);
+		return firstMoment(quantities.getIntensities(), j);
 	}
 	
 	/**
@@ -128,31 +135,10 @@ public class DiscreteIntensities extends PropertyHolder {
 		double integral = 0;
 
 		for (int i = startInclusive; i < endExclusive; i++) {
-			integral += ordinates.getWeight(i) * I[j][i] * ordinates.getNode(i);
+			integral += ordinates.getWeight(i) * quantities.getIntensity(j, i) * ordinates.getNode(i);
 		}
 
 		return integral;
-	}
-
-	protected double getEmissivity() {
-		return emissivity;
-	}
-
-	public double[][] getIntensities() {
-		return I;
-	}
-
-	protected void clearBoundaryFluxes() {
-		qLeft = 0.0;
-		qRight = 0.0;
-	}
-	
-	protected double getFluxLeft() {
-		return qLeft;
-	}
-
-	protected double getFluxRight() {
-		return qRight;
 	}
 	
 	/**
@@ -163,8 +149,10 @@ public class DiscreteIntensities extends PropertyHolder {
 	
 	public double fluxLeft(final BlackbodySpectrum emissionFunction) {
 		final int nHalf = ordinates.getFirstNegativeNode();
-		return qLeft = emissivity * PI
+		var qLeft = emissivity * PI
 				* (emissionFunction.radianceAt(0.0) + 2.0 * flux(0, nHalf, ordinates.getTotalNodes()));
+		quantities.setFluxLeft(qLeft);
+		return qLeft;
 	}
 	
 	/**
@@ -176,17 +164,10 @@ public class DiscreteIntensities extends PropertyHolder {
 	public double fluxRight(final BlackbodySpectrum emissionFunction) {
 		final int nHalf = ordinates.getFirstNegativeNode();
 		final int nStart = ordinates.getFirstPositiveNode();
-		return qRight = -emissivity * PI
+		var qRight = -emissivity * PI
 				* (emissionFunction.radianceAt(grid.getDimension()) - 2.0 * flux(grid.getDensity(), nStart, nHalf));
-	}
-	
-	/**
-	 * Clears memory of the internal intensity arrays and re-inits them using the current grid and ordinate set.
-	 */
-
-	protected void reinitIntensityArray() {
-		I = new double[0][0];
-		I = new double[grid.getDensity() + 1][ordinates.getTotalNodes()];
+		quantities.setFluxRight(qRight);
+		return qRight;
 	}
 	
 	/**
@@ -201,7 +182,7 @@ public class DiscreteIntensities extends PropertyHolder {
 
 		for (int i = nStart; i < nHalf; i++) {
 			// for positive streams
-			I[0][i] = ef.radianceAt(0.0) - boundaryFluxFactor * fluxLeft(ef);
+			quantities.setIntensity(0, i, ef.radianceAt(0.0) - boundaryFluxFactor * fluxLeft(ef) );
 		}
 
 	}
@@ -220,7 +201,7 @@ public class DiscreteIntensities extends PropertyHolder {
 		
 		for (int i = nHalf; i < ordinates.getTotalNodes(); i++) {
 			// for negative streams
-			I[N][i] = ef.radianceAt(tau0) + boundaryFluxFactor * fluxRight(ef);
+			quantities.setIntensity(N, i, ef.radianceAt(tau0) + boundaryFluxFactor * fluxRight(ef));
 		}
 
 	}
@@ -229,10 +210,14 @@ public class DiscreteIntensities extends PropertyHolder {
 		this.emissivity = emissivity;
 		boundaryFluxFactor = (1.0 - emissivity) / (emissivity * PI);
 	}
+	
+	public OrdinateSet getOrdinates() {
+		return ordinates;
+	}
 
 	public void setOrdinateSet(OrdinateSet set) {
 		this.ordinates = set;
-		reinitIntensityArray();
+		quantities.init(grid.getDensity(), ordinates.getTotalNodes());
 	}
 
 	@Override
@@ -258,15 +243,6 @@ public class DiscreteIntensities extends PropertyHolder {
 		return sb.toString();
 	}
 
-	public StretchedGrid getStretchedGrid() {
-		return grid;
-	}
-
-	@Override
-	public boolean ignoreSiblings() {
-		return true;
-	}
-
 	public StretchedGrid getGrid() {
 		return grid;
 	}
@@ -274,23 +250,10 @@ public class DiscreteIntensities extends PropertyHolder {
 	public void setGrid(StretchedGrid grid) {
 		this.grid = grid;
 		this.grid.setParent(this);
-		reinitIntensityArray();
 	}
 
-	public OrdinateSet getOrdinates() {
-		return ordinates;
+	public DiscreteQuantities getQuantities() {
+		return quantities;
 	}
-
-	public void setOrdinates(OrdinateSet ordinates) {
-		this.ordinates = ordinates;
-	}
-
-	public double getIntensity(int i, int j) {
-		return I[i][j];
-	}
-
-	public void setIntensity(int i, int j, double value) {
-		I[i][j] = value;
-	}
-
+	
 }

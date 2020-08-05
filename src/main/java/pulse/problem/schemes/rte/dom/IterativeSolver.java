@@ -1,6 +1,6 @@
 package pulse.problem.schemes.rte.dom;
 
-import static pulse.problem.schemes.rte.RTECalculationStatus.ITERATION_TIMEOUT;
+import static pulse.problem.schemes.rte.RTECalculationStatus.ITERATION_LIMIT_REACHED;
 import static pulse.properties.NumericProperty.def;
 import static pulse.properties.NumericProperty.derive;
 import static pulse.properties.NumericProperty.theDefault;
@@ -30,7 +30,7 @@ public abstract class IterativeSolver extends PropertyHolder implements Reflexiv
 	public abstract RTECalculationStatus doIterations(AdaptiveIntegrator integrator);
 
 	protected RTECalculationStatus sanityCheck(RTECalculationStatus status, int iterations) {
-		return iterations < maxIterations ? status : ITERATION_TIMEOUT;
+		return iterations < maxIterations ? status : ITERATION_LIMIT_REACHED;
 	}
 
 	public NumericProperty getIterationErrorTolerance() {

@@ -20,7 +20,8 @@ public class SuccessiveOverrelaxation extends IterativeSolver {
 
 	private void successiveOverrelaxation(AdaptiveIntegrator integrator) {
 
-		final var intensities = integrator.getIntensities();
+		final var intensities = integrator.getDiscretisation();
+		final var quantities = intensities.getQuantities();
 		final int density = intensities.getGrid().getDensity();
 		final int total = intensities.getOrdinates().getTotalNodes();
 
@@ -28,10 +29,10 @@ public class SuccessiveOverrelaxation extends IterativeSolver {
 
 		for (int i = 0; i < density + 1; i++) {
 			for (int j = 0; j < total; j++) {
-				intensities.setIntensity(i, j,
-						ONE_MINUS_W * integrator.getStoredIntensity(i, j) + W * intensities.getIntensity(i, j));
-				integrator.setStoredDerivative(i, j,
-						ONE_MINUS_W * integrator.getStoredDerivative(i, j) + W * integrator.getDerivative(i, j));
+				quantities.setIntensity(i, j,
+						ONE_MINUS_W * quantities.getStoredIntensity(i, j) + W * quantities.getIntensity(i, j));
+				quantities.setStoredDerivative(i, j,
+						ONE_MINUS_W * quantities.getStoredDerivative(i, j) + W * quantities.getDerivative(i, j));
 			}
 		}
 
@@ -40,7 +41,8 @@ public class SuccessiveOverrelaxation extends IterativeSolver {
 	@Override
 	public RTECalculationStatus doIterations(AdaptiveIntegrator integrator) {
 
-		var discrete = integrator.getIntensities();
+		var discrete = integrator.getDiscretisation();
+		var quantities = discrete.getQuantities();
 		double relativeError = 100;
 
 		double qld = 0;
@@ -52,10 +54,10 @@ public class SuccessiveOverrelaxation extends IterativeSolver {
 
 		for (double ql = 1e8, qr = ql; relativeError > getIterationError(); status = sanityCheck(status,
 				++iterations)) {
-			ql = discrete.getFluxLeft();
-			qr = discrete.getFluxRight();
+			ql = quantities.getFluxLeft();
+			qr = quantities.getFluxRight();
 
-			integrator.storeIteration();
+			quantities.store();
 			status = integrator.integrate();
 
 			// if the integrator attempted rescaling, last iteration is not valid anymore

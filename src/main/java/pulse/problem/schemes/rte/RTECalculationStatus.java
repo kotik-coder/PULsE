@@ -23,7 +23,7 @@ public enum RTECalculationStatus {
 	 * The iterative solver took too long to finish.
 	 */
 
-	ITERATION_TIMEOUT,
+	ITERATION_LIMIT_REACHED,
 
 	/**
 	 * The grid density required to reach the error threshold was too large.

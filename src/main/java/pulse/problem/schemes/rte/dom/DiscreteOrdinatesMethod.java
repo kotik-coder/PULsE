@@ -45,7 +45,7 @@ public class DiscreteOrdinatesMethod extends RadiativeTransferSolver {
 		super();
 		setFluxes(new FluxesAndExplicitDerivatives(grid.getGridDensity(), problem.getOpticalThickness()));
 
-		var discrete = new DiscreteIntensities(problem);
+		var discrete = new Discretisation(problem);
 
 		integratorDescriptor.setSelectedDescriptor(TRBDF2.class.getSimpleName());
 		setIntegrator(integratorDescriptor.newInstance(AdaptiveIntegrator.class, discrete));
@@ -81,7 +81,7 @@ public class DiscreteOrdinatesMethod extends RadiativeTransferSolver {
 		final var interpolation = integrator.getHermiteInterpolator().interpolateOnExternalGrid(nExclusive, integrator);
 
 		final double DOUBLE_PI = 2.0 * Math.PI;
-		final var discrete = integrator.getIntensities();
+		final var discrete = integrator.getDiscretisation();
 		var fluxes = (FluxesAndExplicitDerivatives) getFluxes();
 
 		for (int i = 0; i < nExclusive; i++) {
@@ -98,6 +98,7 @@ public class DiscreteOrdinatesMethod extends RadiativeTransferSolver {
 	@Override
 	public void init(ParticipatingMedium problem, Grid grid) {
 		super.init(problem, grid);
+		initPhaseFunction(problem, integrator.getDiscretisation());
 		integrator.init(problem);
 		integrator.getPhaseFunction().init(problem);
 	}
@@ -151,7 +152,7 @@ public class DiscreteOrdinatesMethod extends RadiativeTransferSolver {
 		// intentionally left blank
 	}
 
-	private void initPhaseFunction(ParticipatingMedium problem, DiscreteIntensities discrete) {
+	private void initPhaseFunction(ParticipatingMedium problem, Discretisation discrete) {
 		var pf = phaseFunctionSelector.newInstance(PhaseFunction.class, problem, discrete);
 		integrator.setPhaseFunction(pf);
 		pf.init(problem);

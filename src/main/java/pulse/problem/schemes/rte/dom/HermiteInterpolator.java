@@ -53,10 +53,10 @@ public class HermiteInterpolator {
 	 */
 
 	public double[][][] interpolateOnExternalGrid(final int externalGridSize, AdaptiveIntegrator integrator) {
-		final var discrete = integrator.getIntensities();
-		final var intensities = discrete.getIntensities();
+		final var discrete = integrator.getDiscretisation();
+		final var intensities = discrete.getQuantities().getIntensities();
 		final var internalGrid = discrete.getGrid();
-		final var derivatives = integrator.getDerivatives();
+		final var derivatives = discrete.getQuantities().getDerivatives();
 		final int total = discrete.getOrdinates().getTotalNodes();
 
 		var iExt = new double[2][externalGridSize][total];

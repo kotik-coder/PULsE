@@ -6,7 +6,7 @@ public class LinearAnisotropicPF extends PhaseFunction {
 
 	private double g;
 
-	public LinearAnisotropicPF(ParticipatingMedium medium, DiscreteIntensities intensities) {
+	public LinearAnisotropicPF(ParticipatingMedium medium, Discretisation intensities) {
 		super(medium, intensities);
 	}
 	
