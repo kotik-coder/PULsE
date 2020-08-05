@@ -6,7 +6,7 @@ import pulse.math.linear.Vector;
 import pulse.properties.Property;
 
 /**
- * Explicit Runge-Kutta integrator with Hermite interpolation for the radiative transfer equation.
+ * Explicit Runge-Kutta integrator with Hermite interpolation for the solution of one-dimensional radiative transfer problems.
  * 
  * @author Artem Lunev, Vadim Zborovskii
  *

@@ -9,6 +9,12 @@ import pulse.io.readers.QuadratureReader;
 import pulse.io.readers.ReaderManager;
 import pulse.properties.Property;
 
+/**
+ * A fixed set of discrete cosine nodes and weights for the angular discretisation of a radiative
+ * transfer equation.
+ *
+ */
+
 public class OrdinateSet implements Property {
 
 	private double[] mu;

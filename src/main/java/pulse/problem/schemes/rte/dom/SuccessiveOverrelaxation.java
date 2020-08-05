@@ -47,6 +47,7 @@ public class SuccessiveOverrelaxation extends IterativeSolver {
 
 		double qld = 0;
 		double qrd = 0;
+		double qsum;
 
 		int iterations = 0;
 		final var ef = integrator.getEmissionFunction();
@@ -54,20 +55,25 @@ public class SuccessiveOverrelaxation extends IterativeSolver {
 
 		for (double ql = 1e8, qr = ql; relativeError > getIterationError(); status = sanityCheck(status,
 				++iterations)) {
-			ql = quantities.getFluxLeft();
-			qr = quantities.getFluxRight();
-
 			quantities.store();
+			ql = qld;
+			qr = qrd;
+			
 			status = integrator.integrate();
-
+			
 			// if the integrator attempted rescaling, last iteration is not valid anymore
 			if (integrator.wasRescaled()) {
 				relativeError = Double.POSITIVE_INFINITY;
 			} else { // calculate the (k+1) iteration as: I_k+1 = I_k * (1 - W) + I*
+
+				// get the difference in boundary heat fluxes
+				qld = discrete.fluxLeft(ef);
+				qrd = discrete.fluxRight(ef);
+				qsum = abs(qld - ql) + abs(qrd - qr);
+
 				successiveOverrelaxation(integrator);
-				qld = abs(discrete.fluxLeft(ef) - ql);
-				qrd = abs(discrete.fluxRight(ef) - qr);
-				relativeError = (qld + qrd) / ( abs(ql) + abs(qr) );
+				relativeError = qsum / ( abs(qld) + abs(qrd) );
+				
 			}
 
 		}

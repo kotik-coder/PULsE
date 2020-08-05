@@ -1,5 +1,6 @@
 package pulse.problem.schemes.rte.dom;
 
+import static java.lang.Math.abs;
 import pulse.problem.schemes.rte.RTECalculationStatus;
 
 public class FixedIterations extends IterativeSolver {
@@ -8,30 +9,33 @@ public class FixedIterations extends IterativeSolver {
 	public RTECalculationStatus doIterations(AdaptiveIntegrator integrator) {
 
 		var discrete = integrator.getDiscretisation();
-		var quantities = discrete.getQuantities();
 		double relativeError = 100;
 
 		double qld = 0;
 		double qrd = 0;
+		double qsum;
 
 		int iterations = 0;
 
 		RTECalculationStatus status = RTECalculationStatus.NORMAL;
 		final var ef = integrator.getEmissionFunction();
-		
+
 		for (double ql = 1e8, qr = ql; relativeError > getIterationError()
 				&& status == RTECalculationStatus.NORMAL; status = sanityCheck(status, ++iterations)) {
-			ql = quantities.getFluxLeft();
-			qr = quantities.getFluxRight();
-
+			//use previous iteration
+			ql = qld;
+			qr = qrd;
+			
+			// do the integration
 			status = integrator.integrate();
 
-			qld = Math.abs(discrete.fluxLeft(ef) - ql);
-			qrd = Math.abs(discrete.fluxRight(ef) - qr);
+			// get the difference in boundary heat fluxes
+			qld = discrete.fluxLeft(ef);
+			qrd = discrete.fluxRight(ef);
+			qsum = abs(qld - ql) + abs(qrd - qr);
 
 			// if the integrator attempted rescaling, last iteration is not valid anymore
-			relativeError = integrator.wasRescaled() ? Double.POSITIVE_INFINITY
-					: (qld + qrd) / (Math.abs(ql) + Math.abs(qr));
+			relativeError = integrator.wasRescaled() ? Double.POSITIVE_INFINITY : qsum / (abs(qld) + abs(qrd));
 		}
 
 		return status;

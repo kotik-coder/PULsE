@@ -9,6 +9,12 @@ import pulse.math.linear.SquareMatrix;
 import pulse.math.linear.Vector;
 import pulse.properties.Property;
 
+/**
+ * The Butcher tableau coefficients used by the explicit Runge-Kutta solvers. Variable
+ * names correspond to the standard notations.
+ *
+ */
+
 public class ButcherTableau implements Property {
 
 	private Vector b;

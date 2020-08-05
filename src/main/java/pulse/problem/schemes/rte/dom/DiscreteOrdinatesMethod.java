@@ -49,11 +49,14 @@ public class DiscreteOrdinatesMethod extends RadiativeTransferSolver {
 
 		integratorDescriptor.setSelectedDescriptor(TRBDF2.class.getSimpleName());
 		setIntegrator(integratorDescriptor.newInstance(AdaptiveIntegrator.class, discrete));
+		
 		iterativeSolverSelector.setSelectedDescriptor(FixedIterations.class.getSimpleName());
 		setIterativeSolver(iterativeSolverSelector.newInstance(IterativeSolver.class));
+		
 		phaseFunctionSelector.setSelectedDescriptor(HenyeyGreensteinPF.class.getSimpleName());
 		phaseFunctionSelector.addListener(() -> initPhaseFunction(problem, discrete));
 		initPhaseFunction(problem, discrete);
+		
 		init(problem, grid);
 
 		integratorDescriptor.addListener(() -> setIntegrator(

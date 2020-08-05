@@ -4,7 +4,8 @@ import pulse.math.LegendrePoly;
 import pulse.math.MathUtils;
 
 /**
- * 
+ * A composite Gaussian quadrature for numerical evaluation of the scattering integral in
+ * one-dimensional heat transfer. 
  * @author Teymur Aliev, Vadim Zborovskii, Artem Lunev
  *
  */
@@ -20,10 +21,19 @@ public class CompositeGaussianQuadrature {
 
 	private int n;
 
+	/**
+	 * Constructs a composite Gaussian quadrature for an even {@code n}
+	 * @param n an even integer
+	 */
+	
 	public CompositeGaussianQuadrature(final int n) {
+		if(n % 2 != 0)
+			throw new IllegalArgumentException(n + " is odd. Even number expected.");
+		this.n = n;
 		poly = new LegendrePoly(n / 2);
 		roots = poly.roots();
-		this.n = n;
+		nodes();
+		weights();
 	}
 
 	private void nodes() {
@@ -56,9 +66,22 @@ public class CompositeGaussianQuadrature {
 
 	}
 
-	public void init() {
-		nodes();
-		weights();
+	/**
+	 * The weights of the composite quadrature.
+	 * @return the weights
+	 */
+	
+	public double[] getWeights() {
+		return weights;
+	}
+	
+	/**
+	 * The cosine nodes of the composite quadrature.
+	 * @return the cosine nodes
+	 */
+
+	public double[] getNodes() {
+		return nodes;
 	}
 
 }

@@ -5,7 +5,7 @@ import pulse.math.linear.SquareMatrix;
 import pulse.math.linear.Vector;
 
 /**
- * TRBDF2 Scheme
+ * TRBDF2 (Trapezoidal Backward Differencing Second Order) Scheme for the solution of one-dimensional radiative transfer problems.
  * 
  * @author Artem Lunev, Vadim Zborovskii
  *

@@ -149,10 +149,8 @@ public class Discretisation extends PropertyHolder {
 	
 	public double fluxLeft(final BlackbodySpectrum emissionFunction) {
 		final int nHalf = ordinates.getFirstNegativeNode();
-		var qLeft = emissivity * PI
+		return emissivity * PI
 				* (emissionFunction.radianceAt(0.0) + 2.0 * flux(0, nHalf, ordinates.getTotalNodes()));
-		quantities.setFluxLeft(qLeft);
-		return qLeft;
 	}
 	
 	/**
@@ -164,10 +162,8 @@ public class Discretisation extends PropertyHolder {
 	public double fluxRight(final BlackbodySpectrum emissionFunction) {
 		final int nHalf = ordinates.getFirstNegativeNode();
 		final int nStart = ordinates.getFirstPositiveNode();
-		var qRight = -emissivity * PI
+		return -emissivity * PI
 				* (emissionFunction.radianceAt(grid.getDimension()) - 2.0 * flux(grid.getDensity(), nStart, nHalf));
-		quantities.setFluxRight(qRight);
-		return qRight;
 	}
 	
 	/**

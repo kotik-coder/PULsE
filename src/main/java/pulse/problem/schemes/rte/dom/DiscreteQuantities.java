@@ -7,9 +7,6 @@ package pulse.problem.schemes.rte.dom;
 
 class DiscreteQuantities {
 
-	private double qLeft;
-	private double qRight;
-	
 	private double[][] I;
 	private double[][] Ik;
 	private double[][] f;
@@ -56,27 +53,6 @@ class DiscreteQuantities {
 		return I;
 	}
 
-	protected void clearBoundaryFluxes() {
-		qLeft = 0.0;
-		qRight = 0.0;
-	}
-	
-	protected double getFluxLeft() {
-		return qLeft;
-	}
-	
-	protected void setFluxLeft(double qLeft) {
-		this.qLeft = qLeft;
-	}
-
-	protected double getFluxRight() {
-		return qRight;
-	}
-
-	protected void setFluxRight(double qRight) {
-		this.qRight = qRight;
-	}
-	
 	public double[][] getDerivatives() {
 		return f;
 	}

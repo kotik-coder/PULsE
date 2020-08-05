@@ -49,13 +49,13 @@
 	<NumericProperty abbreviation="Max iterations"
 		auto-adjustable="false" descriptor="Max iterations"
 		dimensionfactor="1" discreet="false" keyword="RTE_MAX_ITERATIONS"
-		maximum="10000" minimum="1" primitive-type="int" value="100">
+		maximum="10000" minimum="1" primitive-type="int" value="200">
 	</NumericProperty>
 	<NumericProperty abbreviation="Integration timeout (s)"
 		auto-adjustable="false" descriptor="Integration timeout (s)"
 		dimensionfactor="1" discreet="false"
 		keyword="RTE_INTEGRATION_TIMEOUT" maximum="10" minimum="1E-3"
-		primitive-type="double" value="0.1">
+		primitive-type="double" value="0.25">
 	</NumericProperty>
 	<NumericProperty abbreviation="&lt;i&gt;W&lt;/i&gt;"
 		auto-adjustable="false"
