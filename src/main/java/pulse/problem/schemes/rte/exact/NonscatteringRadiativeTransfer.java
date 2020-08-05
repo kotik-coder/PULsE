@@ -248,6 +248,7 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 		setQuadrature(instanceDescriptor.newInstance(CompositionProduct.class));
 	}
 
+	/*
 	public static void main(String[] args) {
 		var problem = new ParticipatingMedium();
 		problem.setSpecificHeat(NumericProperty.derive(NumericPropertyKeyword.SPECIFIC_HEAT, 540.0));
@@ -301,5 +302,5 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 		}
 
 	}
-
+	*/
 }
