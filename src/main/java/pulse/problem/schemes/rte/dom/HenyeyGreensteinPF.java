@@ -4,6 +4,11 @@ import static java.lang.Math.sqrt;
 
 import pulse.problem.statements.ParticipatingMedium;
 
+/**
+ * The single-parameter Henyey-Greenstein scattering phase function.
+ *
+ */
+
 public class HenyeyGreensteinPF extends PhaseFunction {
 
 	private double a1;

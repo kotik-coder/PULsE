@@ -2,6 +2,11 @@ package pulse.problem.schemes.rte.dom;
 
 import pulse.problem.statements.ParticipatingMedium;
 
+/**
+ * The linear-anisotropic scattering phase function.
+ *
+ */
+
 public class LinearAnisotropicPF extends PhaseFunction {
 
 	private double g;

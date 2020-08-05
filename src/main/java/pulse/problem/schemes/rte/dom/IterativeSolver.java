@@ -17,18 +17,39 @@ import pulse.properties.Property;
 import pulse.util.PropertyHolder;
 import pulse.util.Reflexive;
 
+/**
+ * Used to iteratively solve the radiative transfer problem. <p>This is necessary since the latter can
+ * only be solved separately for rays travelling in the positive or negative hemispheres. The problem
+ * lies in the fact that the intensities of incoming and outward rays are coupled. The only way to 
+ * solve the coupled set of two Cauchy problems is iterative in nature.</p> 
+ * <p>This abstract class only defines the basic functionaly, its implementation is defined by the 
+ * subclasses.</p>
+ *
+ */
+
 public abstract class IterativeSolver extends PropertyHolder implements Reflexive {
 
 	private double iterationError;
 	private int maxIterations;
+	
+	/**
+	 * Constructs an {@code IterativeSolver} with the default thresholds for 
+	 * iteration error and number of iterations.
+	 */
 	
 	public IterativeSolver() {
 		iterationError = (double) theDefault(DOM_ITERATION_ERROR).getValue();
 		maxIterations = (int) theDefault(RTE_MAX_ITERATIONS).getValue();
 	}
 	
+	/**
+	 * De-facto solves the radiative transfer problem iteratively.
+	 * @param integrator the integerator embedded in the iterative approach
+	 * @return a calculation status
+	 */
+	
 	public abstract RTECalculationStatus doIterations(AdaptiveIntegrator integrator);
-
+	
 	protected RTECalculationStatus sanityCheck(RTECalculationStatus status, int iterations) {
 		return iterations < maxIterations ? status : ITERATION_LIMIT_REACHED;
 	}

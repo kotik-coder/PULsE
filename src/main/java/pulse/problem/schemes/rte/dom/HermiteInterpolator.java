@@ -1,7 +1,9 @@
 package pulse.problem.schemes.rte.dom;
 
 /**
- * 
+ * A globally C<sup>1</sup> Hermite interpolator used to interpolate intensities and derivatives
+ * in discrete ordinates method when solving the radiative transfer equation with a Runge-Kutta
+ * solver (either implicit or explicit). 
  * @author Vadim Zborovskii, Artem Lunev
  *
  */
@@ -24,6 +26,12 @@ public class HermiteInterpolator {
 		a = 0;
 		bMinusA = 0;
 	}
+	
+	/**
+	 * Interpolates the function at {@code x}
+	 * @param x the value within the specified bounds
+	 * @return the interpolated value
+	 */
 
 	public double interpolate(final double x) {
 		final double t = (x - a) / bMinusA;
@@ -31,6 +39,12 @@ public class HermiteInterpolator {
 		return t * t * (3.0 - 2.0 * t) * y1 + tMinusOne * tMinusOne * (1.0 + 2.0 * t) * y0
 				+ (t * t * tMinusOne * d1 + tMinusOne * tMinusOne * t * d0) * bMinusA;
 	}
+	
+	/**
+	 * Calculates the derivative of the interpolant at {@code x}
+	 * @param x the value within the specified bounds
+	 * @return the derivative of the interpolant
+	 */
 
 	public double derivative(final double x) {
 		final double t = (x - a) / bMinusA;
@@ -39,7 +53,8 @@ public class HermiteInterpolator {
 		return 6.0 * tt1 * (y0 - y1) / bMinusA + (t * (3.0 * t - 2.0) * d1 + (3.0 * t * t - 4.0 * t + 1.0) * d0);
 	}
 
-	public String printout() {
+	@Override
+	public String toString() {
 		return String.format("%n (%3.6f ; %3.6f), (%3.6f ; %3.6f), (%3.6f, %3.6f)", y0, y1, d0, d1, a, (bMinusA - a));
 	}
 
