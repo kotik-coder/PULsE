@@ -140,7 +140,7 @@ public class StretchedGrid extends PropertyHolder {
 
 	@Override
 	public String toString() {
-		return "{ " + getDensity() + " ; " + getStretchingFactor() + " }";
+		return "{ " + derive(DOM_GRID_DENSITY, getDensity()) + " ; " + getStretchingFactor() + " }";
 	}
 
 	@Override

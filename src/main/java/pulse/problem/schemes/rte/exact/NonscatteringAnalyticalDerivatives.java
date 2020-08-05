@@ -2,6 +2,8 @@ package pulse.problem.schemes.rte.exact;
 
 import static java.lang.Double.compare;
 
+import java.util.stream.IntStream;
+
 import pulse.math.FunctionWithInterpolation;
 import pulse.math.Segment;
 import pulse.problem.schemes.Grid;
@@ -35,9 +37,10 @@ public class NonscatteringAnalyticalDerivatives extends NonscatteringRadiativeTr
 	public RTECalculationStatus compute(double U[]) {
 		super.compute(U);
 		fluxes();
-		for (int i = 0, N = getFluxes().getDensity(); i < N; i++) {
-			evalFluxDerivative(i);
-		}
+		var fluxContainer = (FluxesAndExplicitDerivatives) getFluxes();
+		IntStream.range(0, fluxContainer.getDensity() + 1)
+				.forEach(i -> fluxContainer.setFluxDerivative(i, evalFluxDerivative(i)));
+
 		return RTECalculationStatus.NORMAL;
 	}
 
@@ -48,20 +51,19 @@ public class NonscatteringAnalyticalDerivatives extends NonscatteringRadiativeTr
 	 *
 	 */
 
-	private void evalFluxDerivative(final int uIndex) {
+	private double evalFluxDerivative(final int uIndex) {
 		double t = opticalCoordinateAt(uIndex);
 
 		double value = getRadiosityFront() * ei2.valueAt(t)
 				+ getRadiosityRear() * ei2.valueAt(getFluxes().getOpticalThickness() - t)
 				- 2.0 * getEmissionFunction().powerAt(t) + integrateFirstOrder(t);
-
-		((FluxesAndExplicitDerivatives) getFluxes()).setFluxDerivative(uIndex, 2.0 * value);
+		return 2.0 * value;
 	}
 
 	private double integrateFirstOrder(final double y) {
 		double integral = 0;
 		final double tau0 = getFluxes().getOpticalThickness();
-		var quadrature = getQuadrature();
+		var quadrature = getCompositionProduct();
 
 		setForIntegration(0, y);
 		quadrature.setCoefficients(y, -1);
@@ -85,7 +87,7 @@ public class NonscatteringAnalyticalDerivatives extends NonscatteringRadiativeTr
 	 */
 
 	private void setForIntegration(final double x, final double y) {
-		final var quadrature = getQuadrature();
+		final var quadrature = getCompositionProduct();
 		quadrature.setBounds(new Segment(x, y));
 		quadrature.setOrder(1);
 	}

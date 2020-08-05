@@ -63,9 +63,9 @@ public class ChandrasekharsQuadrature extends CompositionProduct {
 		expLower = -exp(-bounds[0]);
 		expUpper = -exp(-bounds[1]);
 
-		double[] roots = roots(m, getOrder());
+		double[] roots = roots();
 
-		Vector weights = weights(m, roots);
+		Vector weights = weights(roots);
 
 		return f(roots).dot(weights) / getBeta();
 	}
@@ -112,7 +112,7 @@ public class ChandrasekharsQuadrature extends CompositionProduct {
 		return new double[] { getAlpha() + getBeta() * min, getAlpha() + getBeta() * max };
 	}
 
-	private SquareMatrix xMatrix(final int m, final double[] roots) {
+	private SquareMatrix xMatrix(final double[] roots) {
 		double[][] x = new double[m][m];
 
 		for (int l = 0; l < m; l++) {
@@ -170,16 +170,17 @@ public class ChandrasekharsQuadrature extends CompositionProduct {
 		return result;
 	}
 
-	private double moment(int l, int n) {
+	private double moment(int l) {
 		var bounds = this.transformedBounds();
-		return momentIntegral(bounds[1], l, n, expUpper) - momentIntegral(bounds[0], l, n, expLower);
+		return momentIntegral(bounds[1], l, expUpper) - momentIntegral(bounds[0], l, expLower);
 	}
 
-	private double momentIntegral(final double x, final int l, final int n, final double exp) {
+	private double momentIntegral(final double x, final int l, final double exp) {
 
 		double e = 0;
 		int m = 0;
 
+		final int n = getOrder();
 		final int lPlusOne = l + 1;
 
 		for (int i = 0; i < n; i++) {
@@ -194,22 +195,22 @@ public class ChandrasekharsQuadrature extends CompositionProduct {
 
 	}
 
-	private Vector coefficients(final int m, final int n) {
-		return momentMatrix(m, n).inverse().multiply(momentVector(m, 2 * m));
+	private Vector coefficients() {
+		return momentMatrix().inverse().multiply(momentVector(m, 2 * m));
 	}
 
-	private SquareMatrix momentMatrix(final int m, final int n) {
+	private SquareMatrix momentMatrix() {
 
 		double[][] data = new double[m][m];
 		moments = new double[2 * m];
 
 		// diagonal elements
-		IntStream.of(0, m - 1).forEach(i -> data[i][i] = moment(i * 2, n));
+		IntStream.range(0, m).forEach(i -> data[i][i] = moment(i * 2));
 
 		// find (symmetric) non-diagonal elements
 		for (int i = 1, j = 0; i < m; i++) {
 			for (j = 0; j < i; j++) {
-				data[i][j] = moment(i + j, n);
+				data[i][j] = moment(i + j);
 				data[j][i] = data[i][j];
 			}
 		}
@@ -219,30 +220,30 @@ public class ChandrasekharsQuadrature extends CompositionProduct {
 			moments[i + m - 1] = data[i][m - 1];
 		}
 
-		moments[2 * m - 1] = moment(2 * m - 1, n);
+		moments[2 * m - 1] = moment(2 * m - 1);
 
 		return Matrices.createMatrix(data);
 
 	}
 
 	private Vector momentVector(final int lowerInclusive, final int upperExclusive) {
-		var array = IntStream.of(lowerInclusive, upperExclusive - 1).mapToDouble(i -> -moments[i]).toArray();
+		var array = IntStream.range(lowerInclusive, upperExclusive).mapToDouble(i -> -moments[i]).toArray();
 		return new Vector(array);
 	}
 
-	private Vector weights(final int m, final double[] roots) {
-		final var x = xMatrix(m, roots);
+	private Vector weights(final double[] roots) {
+		final var x = xMatrix(roots);
 		final var a = momentVector(0, m).inverted();
 
 		return x.inverse().multiply(a);
 	}
 
-	private double[] roots(final int m, final int n) {
+	private double[] roots() {
 		double[] roots;
 		double[] c = new double[m + 1];
 
 		// coefficients of the monic polynomial x_j^m + sum_{l=0}^{m-1}{c_lx_j^l}
-		System.arraycopy(coefficients(m, n).getData(), 0, c, 0, m);
+		System.arraycopy(coefficients().getData(), 0, c, 0, m);
 		c[m] = 1.0;
 
 		switch (m) {

@@ -1,6 +1,11 @@
 package pulse.problem.schemes.rte.exact;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 import pulse.math.FunctionWithInterpolation;
 import pulse.math.Segment;
@@ -8,6 +13,8 @@ import pulse.problem.schemes.Grid;
 import pulse.problem.schemes.rte.BlackbodySpectrum;
 import pulse.problem.schemes.rte.RTECalculationStatus;
 import pulse.problem.schemes.rte.RadiativeTransferSolver;
+import pulse.problem.schemes.rte.dom.DiscreteOrdinatesMethod;
+import pulse.problem.schemes.solvers.ImplicitCoupledSolver;
 import pulse.problem.statements.ParticipatingMedium;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
@@ -22,20 +29,17 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 	private double doubleReflectivity;
 
 	private BlackbodySpectrum emissionFunction;
-	private CompositionProduct convolution;
+	private CompositionProduct quadrature;
 
 	private double radiosityFront;
 	private double radiosityRear;
 
-	private static InstanceDescriptor<CompositionProduct> instanceDescriptor = new InstanceDescriptor<CompositionProduct>(
+	private InstanceDescriptor<CompositionProduct> instanceDescriptor = new InstanceDescriptor<CompositionProduct>(
 			"Quadrature Selector", CompositionProduct.class);
-
-	static {
-		instanceDescriptor.setSelectedDescriptor(ChandrasekharsQuadrature.class.getSimpleName());
-	}
 
 	protected NonscatteringRadiativeTransfer(ParticipatingMedium problem, Grid grid) {
 		super();
+		instanceDescriptor.setSelectedDescriptor(ChandrasekharsQuadrature.class.getSimpleName());
 		init(problem, grid);
 		emissionFunction = new BlackbodySpectrum(problem);
 		initQuadrature();
@@ -78,25 +82,38 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 		fluxRear();
 	}
 
-	public void fluxFront() {
+	private void fluxFront() {
 		final double tau0 = getFluxes().getOpticalThickness();
-		final double flux = radiosityFront - 2.0 * radiosityRear * ei3.valueAt(tau0)
-				- 2.0 * integrateSecondOrder(0.0, 1.0);
+		double flux = radiosityFront - 2.0 * radiosityRear * ei3.valueAt(tau0) - 2.0 * integrateSecondOrder(0.0, 1.0);
 		getFluxes().setFlux(0, flux);
 	}
 
+	/*
+	 * Assumes radiosities have already been calculated using radiosities() F*(1) =
+	 * -R_2 + 2R_1 E_3(\tau_0) + 2 int
+	 */
+
+	private void fluxRear() {
+		var fluxes = getFluxes();
+		final int N = fluxes.getDensity();
+		final double tau0 = fluxes.getOpticalThickness();
+		double flux = -radiosityRear + 2.0 * radiosityFront * ei3.valueAt(tau0)
+				+ 2.0 * integrateSecondOrder(tau0, -1.0);
+		fluxes.setFlux(N, flux);
+	}
+
 	protected void flux(int uIndex) {
-		convolution.setOrder(2);
 		final double t = getFluxes().getOpticalGridStep() * uIndex;
 		final double tau0 = getFluxes().getOpticalThickness();
 
-		convolution.setBounds(new Segment(0, t));
-		convolution.setCoefficients(t, -1.0);
-		double I_1 = convolution.integrate();
+		quadrature.setOrder(2);
+		quadrature.setBounds(new Segment(0, t));
+		quadrature.setCoefficients(t, -1.0);
+		final double I_1 = quadrature.integrate();
 
-		convolution.setBounds(new Segment(t, tau0));
-		convolution.setCoefficients(-t, 1.0);
-		double I_2 = convolution.integrate();
+		quadrature.setBounds(new Segment(t, tau0));
+		quadrature.setCoefficients(-t, 1.0);
+		final double I_2 = quadrature.integrate();
 
 		double result = radiosityFront * ei3.valueAt(t) - radiosityRear * ei3.valueAt(tau0 - t) + I_1 - I_2;
 
@@ -111,8 +128,8 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 	 * @return the quadrature
 	 */
 
-	public CompositionProduct getQuadrature() {
-		return convolution;
+	public CompositionProduct getCompositionProduct() {
+		return quadrature;
 	}
 
 	/**
@@ -124,9 +141,9 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 	 */
 
 	public void setQuadrature(CompositionProduct specialIntegrator) {
-		this.convolution = specialIntegrator;
-		convolution.setParent(this);
-		convolution.setEmissionFunction(emissionFunction);
+		this.quadrature = specialIntegrator;
+		quadrature.setParent(this);
+		quadrature.setEmissionFunction(emissionFunction);
 	}
 
 	public BlackbodySpectrum getEmissionFunction() {
@@ -135,7 +152,7 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 
 	public void setEmissionFunction(BlackbodySpectrum emissionFunction) {
 		this.emissionFunction = emissionFunction;
-		convolution.setEmissionFunction(emissionFunction);
+		quadrature.setEmissionFunction(emissionFunction);
 	}
 
 	@Override
@@ -155,7 +172,7 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 		return "( " + this.getSimpleName() + " )";
 	}
 
-	public static InstanceDescriptor<CompositionProduct> getInstanceDescriptor() {
+	public InstanceDescriptor<CompositionProduct> getInstanceDescriptor() {
 		return instanceDescriptor;
 	}
 
@@ -187,24 +204,11 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 	}
 
 	/*
-	 * Assumes radiosities have already been calculated using radiosities() F*(1) =
-	 * -R_2 + 2R_1 E_3(\tau_0) + 2 int
-	 */
-
-	private void fluxRear() {
-		var fluxes = getFluxes();
-		final int N = fluxes.getDensity();
-		final double tau0 = fluxes.getOpticalThickness();
-		fluxes.setFlux(N,
-				-radiosityRear + 2.0 * radiosityFront * ei3.valueAt(tau0) + 2.0 * integrateSecondOrder(tau0, -1.0));
-	}
-
-	/*
 	 * Coefficient b
 	 */
 
 	private double b() {
-		return doubleReflectivity * ei3.valueAt( getFluxes().getOpticalThickness() );
+		return doubleReflectivity * ei3.valueAt(getFluxes().getOpticalThickness());
 	}
 
 	/*
@@ -234,61 +238,68 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 	 */
 
 	private double integrateSecondOrder(double a, double b) {
-		convolution.setBounds(new Segment(0, getFluxes().getOpticalThickness() ));
-		convolution.setOrder(2);
-		convolution.setCoefficients(a, b);
-		return convolution.integrate();
+		quadrature.setOrder(2);
+		quadrature.setBounds(new Segment(0, getFluxes().getOpticalThickness()));
+		quadrature.setCoefficients(a, b);
+		return quadrature.integrate();
 	}
 
 	private void initQuadrature() {
 		setQuadrature(instanceDescriptor.newInstance(CompositionProduct.class));
 	}
-	/*
-	 * public static void main(String[] args) { var problem = new
-	 * ParticipatingMedium();
-	 * problem.setSpecificHeat(NumericProperty.derive(NumericPropertyKeyword.
-	 * SPECIFIC_HEAT, 540.0));
-	 * problem.setDensity(NumericProperty.derive(NumericPropertyKeyword.DENSITY,
-	 * 10000.0));
-	 * problem.setTestTemperature(NumericProperty.derive(NumericPropertyKeyword.
-	 * TEST_TEMPERATURE, 800.0));
-	 * problem.setOpticalThickness(NumericProperty.derive(NumericPropertyKeyword.
-	 * OPTICAL_THICKNESS, 0.1));
-	 * problem.setScatteringAlbedo(NumericProperty.derive(NumericPropertyKeyword.
-	 * SCATTERING_ALBEDO, 0.0)); System.out.println("Maximum heating: " +
-	 * problem.maximumHeating() + " at " + problem.getTestTemperature()); var scheme
-	 * = new ImplicitCoupledSolver();
-	 * 
-	 * File test = null; try { test = new
-	 * File(NonscatteringRadiativeTransfer.class.getResource(
-	 * "/test/TestSolution.dat").toURI()); } catch (URISyntaxException e) { // TODO
-	 * Auto-generated catch block e.printStackTrace(); } Scanner scanner = null; try
-	 * { scanner = new Scanner(test); } catch (FileNotFoundException e) { // TODO
-	 * Auto-generated catch block e.printStackTrace(); }
-	 * 
-	 * List<Double> doubleList = new ArrayList<Double>();
-	 * 
-	 * while (scanner.hasNextLine()) { String line = scanner.nextLine(); var
-	 * numbersStrings = line.split(" ");
-	 * doubleList.add(Double.valueOf(numbersStrings[0])); }
-	 * 
-	 * int size = doubleList.size();
-	 * 
-	 * scheme.getGrid().setGridDensity(NumericProperty.derive(NumericPropertyKeyword
-	 * .GRID_DENSITY, size - 1)); var rad = new
-	 * NonscatteringAnalyticalDerivatives(problem, scheme.getGrid());
-	 * //rad.setQuadrature(new NewtonCotesQuadrature()); rad.setQuadrature(new
-	 * ChandrasekharsQuadrature()); var rad2 = new DiscreteOrdinatesSolver(problem,
-	 * scheme.getGrid());
-	 * 
-	 * rad.compute(doubleList.stream().mapToDouble(d -> d).toArray());
-	 * rad2.compute(doubleList.stream().mapToDouble(d -> d).toArray());
-	 * 
-	 * for (int i = 1; i < size - 1; i++) {
-	 * System.out.printf("%n%3.2f \t %2.4e \t %2.4e \t %2.4e \t %2.4e",
-	 * rad.opticalCoordinateAt(i), rad.getFlux(i), rad2.getFlux(i),
-	 * rad.fluxDerivative(i), +rad2.fluxDerivative(i)); }
-	 * 
-	 * }
-	 */
+
+	public static void main(String[] args) {
+		var problem = new ParticipatingMedium();
+		problem.setSpecificHeat(NumericProperty.derive(NumericPropertyKeyword.SPECIFIC_HEAT, 540.0));
+		problem.setDensity(NumericProperty.derive(NumericPropertyKeyword.DENSITY, 10000.0));
+		problem.setTestTemperature(NumericProperty.derive(NumericPropertyKeyword.TEST_TEMPERATURE, 800.0));
+		problem.setOpticalThickness(NumericProperty.derive(NumericPropertyKeyword.OPTICAL_THICKNESS, 100.0));
+		problem.setScatteringAlbedo(NumericProperty.derive(NumericPropertyKeyword.SCATTERING_ALBEDO, 0.0));
+		System.out.println("Maximum heating: " + problem.maximumHeating() + " at " + problem.getTestTemperature());
+		var scheme = new ImplicitCoupledSolver();
+
+		File test = null;
+		try {
+			test = new File(NonscatteringRadiativeTransfer.class.getResource("/test/TestSolution.dat").toURI());
+		} catch (URISyntaxException e) {
+			e.printStackTrace();
+		}
+		Scanner scanner = null;
+		try {
+			scanner = new Scanner(test);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+
+		List<Double> doubleList = new ArrayList<Double>();
+
+		while (scanner.hasNextLine()) {
+			String line = scanner.nextLine();
+			var numbersStrings = line.split(" ");
+			doubleList.add(Double.valueOf(numbersStrings[0]));
+		}
+
+		int size = doubleList.size();
+
+		scheme.getGrid().setGridDensity(NumericProperty.derive(NumericPropertyKeyword.GRID_DENSITY, size - 1));
+		var rad = new NonscatteringAnalyticalDerivatives(problem, scheme.getGrid());
+		//rad.setQuadrature(new NewtonCotesQuadrature());
+		var quad = new ChandrasekharsQuadrature();
+		quad.setQuadraturePoints(NumericProperty.derive(NumericPropertyKeyword.QUADRATURE_POINTS, 4));
+		rad.setQuadrature(quad);
+		var rad2 = new DiscreteOrdinatesMethod(problem, scheme.getGrid());
+
+		rad.compute(doubleList.stream().mapToDouble(d -> d).toArray());
+		rad2.compute(doubleList.stream().mapToDouble(d -> d).toArray());
+
+		var f = rad.getFluxes();
+		var f2 = rad2.getFluxes();
+
+		for (int i = 1; i < size - 1; i++) {
+			System.out.printf("%n%3.2f \t %2.4e \t %2.4e \t %2.4e \t %2.4e", rad.opticalCoordinateAt(i), f.getFlux(i),
+					f2.getFlux(i), f.fluxDerivative(i), f2.fluxDerivative(i));
+		}
+
+	}
+
 }

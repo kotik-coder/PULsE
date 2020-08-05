@@ -21,11 +21,7 @@ public class FixedIterations extends IterativeSolver {
 		final var ef = integrator.getEmissionFunction();
 
 		for (double ql = 1e8, qr = ql; relativeError > getIterationError()
-				&& status == RTECalculationStatus.NORMAL; status = sanityCheck(status, ++iterations)) {
-			//use previous iteration
-			ql = qld;
-			qr = qrd;
-			
+				&& status == RTECalculationStatus.NORMAL; status = sanityCheck(status, ++iterations)) {	
 			// do the integration
 			status = integrator.integrate();
 
@@ -33,9 +29,13 @@ public class FixedIterations extends IterativeSolver {
 			qld = discrete.fluxLeft(ef);
 			qrd = discrete.fluxRight(ef);
 			qsum = abs(qld - ql) + abs(qrd - qr);
-
+		
 			// if the integrator attempted rescaling, last iteration is not valid anymore
-			relativeError = integrator.wasRescaled() ? Double.POSITIVE_INFINITY : qsum / (abs(qld) + abs(qrd));
+			relativeError = integrator.wasRescaled() ? Double.POSITIVE_INFINITY : qsum / (abs(ql) + abs(qr));
+			
+			//use previous iteration
+			ql = qld;
+			qr = qrd;			
 		}
 
 		return status;

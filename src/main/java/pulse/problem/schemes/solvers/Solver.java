@@ -4,7 +4,8 @@ import pulse.problem.statements.Problem;
 
 /**
  * A solver interface which provides the capability to use the {@code solve}
- * method on a {@code Problem}
+ * method on a {@code Problem}. This interface is implemented by the subclasses
+ * of {@code DifferenceSCheme}.
  * 
  * @param <T> an instance of Problem
  */

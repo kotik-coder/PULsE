@@ -72,8 +72,6 @@ public abstract class CompositionProduct extends AbstractIntegrator {
 	 */
 	
 	public void setOrder(int order) {
-		if (order < 1 || order > 4)
-			throw new IllegalArgumentException("Unsupported integration order: " + order);
 		this.order = order;
 		expIntegral = ExponentialIntegrals.get(order);
 	}

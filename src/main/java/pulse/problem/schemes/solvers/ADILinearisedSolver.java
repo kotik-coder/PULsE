@@ -13,24 +13,42 @@ import pulse.problem.statements.Problem;
 import pulse.problem.statements.Problem2D;
 import pulse.properties.NumericProperty;
 
+/**
+ * An alternating direction implicit (ADI) solver for a classical two-dimensional linearised problem.
+ *
+ */
+
 public class ADILinearisedSolver extends ADIScheme implements Solver<LinearisedProblem2D> {
 
 	private HeatingCurve curve;
 
 	private int N;
-	private double hx, hy;
+	private double hx;
+	private double hy;
 	private double tau;
-	private int firstIndex, lastIndex;
+	private int firstIndex;
+	private int lastIndex;
 
-	private double d, l;
-	private double Bi1, Bi2, Bi3;
+	private double d;
+	private double l;
+	private double Bi1;
+	private double Bi2;
+	private double Bi3;
 
-	private double maxTemp, maxVal;
+	private double maxTemp;
+	private double maxVal;
 	private int counts;
 
-	private double[][] U1, U2, U1_E, U2_E;
-	private double[] alpha, beta;
-	private double[] a1, b1, c1;
+	private double[][] U1;
+	private double[][] U2; 
+	private double[][] U1_E;
+	private double[][] U2_E; 
+	
+	private double[] alpha;
+	private double[] beta;
+	private double[] a1;
+	private double[] b1;
+	private double[] c1;
 
 	private final static double EPS = 1e-8;
 

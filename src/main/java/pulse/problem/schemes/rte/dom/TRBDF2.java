@@ -98,6 +98,7 @@ public class TRBDF2 extends AdaptiveIntegrator {
 		var intensities = getDiscretisation();
 		var quantities = intensities.getQuantities();
 		var hermite = getHermiteInterpolator();
+		
 		final double h = sign * intensities.getGrid().step(j, sign);
 		hermite.bMinusA = h; // <---- for Hermite interpolation
 
