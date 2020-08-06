@@ -1,8 +1,15 @@
 package repository;
 
-import static java.lang.Math.*;
-import static pulse.properties.NumericProperty.*;
-import static pulse.properties.NumericPropertyKeyword.*;
+import static java.lang.Math.abs;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericPropertyKeyword.DENSITY;
+import static pulse.properties.NumericPropertyKeyword.GRID_DENSITY;
+import static pulse.properties.NumericPropertyKeyword.OPTICAL_THICKNESS;
+import static pulse.properties.NumericPropertyKeyword.QUADRATURE_POINTS;
+import static pulse.properties.NumericPropertyKeyword.SCATTERING_ALBEDO;
+import static pulse.properties.NumericPropertyKeyword.SPECIFIC_HEAT;
+import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -11,13 +18,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.rte.FluxesAndExplicitDerivatives;
 import pulse.problem.schemes.rte.dom.DiscreteOrdinatesMethod;
 import pulse.problem.schemes.rte.exact.ChandrasekharsQuadrature;
@@ -28,8 +32,6 @@ import pulse.problem.statements.ParticipatingMedium;
 
 class RadiativeTransferCrossVerification {
 
-	private ParticipatingMedium testProblem;
-	private DifferenceScheme testScheme;
 	private static List<Double> testProfile;
 
 	private FluxesAndExplicitDerivatives analyticalFluxes;
@@ -63,14 +65,14 @@ class RadiativeTransferCrossVerification {
 	
 	@BeforeEach
 	void setUp() throws Exception {
-		testProblem = new ParticipatingMedium();
+		var testProblem = new ParticipatingMedium();
 		testProblem.setSpecificHeat(derive(SPECIFIC_HEAT, 540.0));
 		testProblem.setDensity(derive(DENSITY, 10000.0));
 		testProblem.setTestTemperature(derive(TEST_TEMPERATURE, 800.0));
 		testProblem.setOpticalThickness(derive(OPTICAL_THICKNESS, 0.1));
 		testProblem.setScatteringAlbedo(derive(SCATTERING_ALBEDO, 0.0));
 
-		testScheme = new ImplicitCoupledSolver();
+		var testScheme = new ImplicitCoupledSolver();
 		int size = testProfile.size();
 		testScheme.getGrid().setGridDensity(derive(GRID_DENSITY, size - 1));
 		
