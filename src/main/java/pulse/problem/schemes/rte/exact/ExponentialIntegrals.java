@@ -11,7 +11,7 @@ import pulse.math.Segment;
 
 public class ExponentialIntegrals {
 
-	public final static double CUTOFF = 9.2; // corresponds to a precision of 1E-5
+	public final static double CUTOFF = 20.0; // corresponds to a precision of 1E-5
 	public final static int HIGHEST_ORDER = 4;
 
 	private FunctionWithInterpolation[] exponentialIntegrals = new FunctionWithInterpolation[HIGHEST_ORDER + 1];

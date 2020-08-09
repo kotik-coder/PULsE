@@ -2,6 +2,7 @@ package pulse.problem.schemes.rte;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
 
 import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
@@ -69,10 +70,8 @@ public abstract class RadiativeTransferSolver extends PropertyHolder implements 
 
 	public UnivariateFunction interpolateTemperatureProfile(final double[] tempArray) {
 		var xArray = new double[tempArray.length + 1];
-
-		for (int i = -1; i < xArray.length - 1; i++)
-			xArray[i + 1] = opticalCoordinateAt(i);
-		
+		IntStream.range(0, xArray.length).forEach(i -> xArray[i] = opticalCoordinateAt(i - 1));
+				
 		var tarray = new double[tempArray.length + 1];
 		System.arraycopy(tempArray, 0, tarray, 1, tempArray.length);
 		final double alpha = (xArray[0] - xArray[1])/(xArray[2] - xArray[1]);

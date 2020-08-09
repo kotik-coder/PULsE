@@ -86,7 +86,7 @@ public class DiscreteOrdinatesMethod extends RadiativeTransferSolver {
 		final double DOUBLE_PI = 2.0 * Math.PI;
 		final var discrete = integrator.getDiscretisation();
 		var fluxes = (FluxesAndExplicitDerivatives) getFluxes();
-
+		
 		for (int i = 0; i < nExclusive; i++) {
 			fluxes.setFlux(i, DOUBLE_PI * discrete.firstMoment(interpolation[0], i));
 			fluxes.setFluxDerivative(i, -DOUBLE_PI * discrete.firstMoment(interpolation[1], i));

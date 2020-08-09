@@ -63,7 +63,7 @@ public class NonscatteringAnalyticalDerivatives extends NonscatteringRadiativeTr
 	private double integrateFirstOrder(final double y) {
 		double integral = 0;
 		final double tau0 = getFluxes().getOpticalThickness();
-		var quadrature = getCompositionProduct();
+		var quadrature = getQuadrature();
 
 		setForIntegration(0, y);
 		quadrature.setCoefficients(y, -1);
@@ -87,7 +87,7 @@ public class NonscatteringAnalyticalDerivatives extends NonscatteringRadiativeTr
 	 */
 
 	private void setForIntegration(final double x, final double y) {
-		final var quadrature = getCompositionProduct();
+		final var quadrature = getQuadrature();
 		quadrature.setBounds(new Segment(x, y));
 		quadrature.setOrder(1);
 	}

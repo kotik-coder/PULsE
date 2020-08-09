@@ -11,8 +11,8 @@ import static pulse.properties.NumericPropertyKeyword.INTEGRATION_SEGMENTS;
 import java.util.List;
 
 import pulse.math.FixedIntervalIntegrator;
+import pulse.math.MidpointIntegrator;
 import pulse.math.Segment;
-import pulse.math.SimpsonIntegrator;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
@@ -59,7 +59,7 @@ public class NewtonCotesQuadrature extends CompositionProduct {
 		super(bounds);
 		setCutoff(derive(INTEGRATION_CUTOFF, DEFAULT_CUTOFF));
 		CompositionProduct reference = this;
-		integrator = new SimpsonIntegrator(new Segment(0.0, 1.0), segments) {
+		integrator = new MidpointIntegrator(new Segment(0.0, 1.0), segments) {
 
 			@Override
 			public double integrand(double... vars) {
@@ -73,7 +73,7 @@ public class NewtonCotesQuadrature extends CompositionProduct {
 
 			@Override
 			public String getDescriptor() {
-				return "Simpson's Integrator";
+				return "Midpoint Integrator";
 			}
 
 		};

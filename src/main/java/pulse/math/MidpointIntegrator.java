@@ -33,7 +33,7 @@ public abstract class MidpointIntegrator extends FixedIntervalIntegrator {
 		final int points = (int) getIntegrationSegments().getValue();
 
 		double sum = 0;
-		double h = getStepSize();
+		double h = stepSize();
 		for (int i = 0; i < points; i++) {
 			sum += integrand(a + (i + 0.5) * h) * h;
 		}

@@ -30,17 +30,14 @@ public abstract class SimpsonIntegrator extends FixedIntervalIntegrator {
 		double rmin = getBounds().getMinimum();
 		double rmax = getBounds().getMaximum();
 
-		double fa = integrand(rmin);
-		double fb = integrand(rmax);
-
 		// 1/3 terms
-		double sum = (fa + fb);
+		double sum = integrand(rmin) + integrand(rmax);
 
 		double x = 0;
 		double y = 0;
 
 		int integrationSegments = (int) getIntegrationSegments().getValue();
-		double h = getStepSize();
+		double h = stepSize();
 
 		// 4/3 terms
 		for (int i = 1; i < integrationSegments; i += 2) {

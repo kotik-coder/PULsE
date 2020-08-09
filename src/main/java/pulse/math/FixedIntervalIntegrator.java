@@ -25,7 +25,6 @@ import pulse.properties.Property;
 
 public abstract class FixedIntervalIntegrator extends AbstractIntegrator {
 
-	private double dx;
 	private int integrationSegments;
 
 	/**
@@ -73,7 +72,6 @@ public abstract class FixedIntervalIntegrator extends AbstractIntegrator {
 	public void setIntegrationSegments(NumericProperty integrationSegments) {
 		requireType(integrationSegments, INTEGRATION_SEGMENTS);
 		this.integrationSegments = (int) integrationSegments.getValue();
-		evaluateStepSize();
 	}
 
 	/**
@@ -85,11 +83,6 @@ public abstract class FixedIntervalIntegrator extends AbstractIntegrator {
 	@Override
 	public void setBounds(Segment bounds) {
 		super.setBounds(bounds);
-		evaluateStepSize();
-	}
-
-	private void evaluateStepSize() {
-		dx = getBounds().length() / (double) this.integrationSegments;
 	}
 
 	@Override
@@ -116,8 +109,8 @@ public abstract class FixedIntervalIntegrator extends AbstractIntegrator {
 	 * @return the integration step size.
 	 */
 
-	public double getStepSize() {
-		return dx;
+	public double stepSize() {
+		return getBounds().length() / (double) this.integrationSegments;
 	}
 
 	@Override
