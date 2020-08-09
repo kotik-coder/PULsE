@@ -1,12 +1,12 @@
 package repository;
 
-import static repository.NonscatteringTestCase.*;
-import static java.lang.Math.*;
-import static pulse.properties.NumericPropertyKeyword.*;
-import static pulse.properties.NumericProperty.*;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static repository.TestProfileLoader.*;
+import static java.lang.Math.pow;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericPropertyKeyword.INTEGRATION_SEGMENTS;
+import static pulse.properties.NumericPropertyKeyword.QUADRATURE_POINTS;
+import static repository.NonscatteringTestCase.approximatelyEquals;
+import static repository.TestProfileLoader.loadTestProfileDense;
 
 import java.util.ArrayList;
 import java.util.List;

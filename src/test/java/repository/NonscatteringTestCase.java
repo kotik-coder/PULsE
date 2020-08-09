@@ -2,7 +2,12 @@ package repository;
 
 import static java.lang.Math.abs;
 import static pulse.properties.NumericProperty.derive;
-import static pulse.properties.NumericPropertyKeyword.*;
+import static pulse.properties.NumericPropertyKeyword.DENSITY;
+import static pulse.properties.NumericPropertyKeyword.GRID_DENSITY;
+import static pulse.properties.NumericPropertyKeyword.LASER_ENERGY;
+import static pulse.properties.NumericPropertyKeyword.SCATTERING_ALBEDO;
+import static pulse.properties.NumericPropertyKeyword.SPECIFIC_HEAT;
+import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
 
 import java.util.List;
 
