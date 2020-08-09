@@ -1,39 +1,18 @@
 package pulse.problem.schemes.solvers;
 
-import static pulse.properties.NumericPropertyKeyword.NONLINEAR_PRECISION;
-
-import java.util.List;
+import static pulse.properties.NumericPropertyKeyword.*;
+import static pulse.ui.Messages.getString;
+import static pulse.properties.NumericProperty.*;
 
 import pulse.HeatingCurve;
 import pulse.math.MathUtils;
+import pulse.problem.schemes.CoupledScheme;
 import pulse.problem.schemes.DifferenceScheme;
-import pulse.problem.schemes.Grid;
-import pulse.problem.schemes.ImplicitScheme;
 import pulse.problem.schemes.rte.RTECalculationStatus;
-import pulse.problem.schemes.rte.RadiativeTransferSolver;
-import pulse.problem.schemes.rte.exact.NonscatteringDiscreteDerivatives;
 import pulse.problem.statements.ParticipatingMedium;
-import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
-import pulse.properties.NumericPropertyKeyword;
-import pulse.properties.Property;
-import pulse.util.InstanceDescriptor;
 
-public class ImplicitCoupledSolver extends ImplicitScheme implements Solver<ParticipatingMedium> {
-
-	/**
-	 * The default value of {@code tauFactor}, which is set to {@code 0.66667} for
-	 * this scheme.
-	 */
-
-	public final static NumericProperty TAU_FACTOR = NumericProperty.derive(NumericPropertyKeyword.TAU_FACTOR, 0.66667);
-
-	/**
-	 * The default value of {@code gridDensity}, which is set to {@code 20} for this
-	 * scheme.
-	 */
-
-	public final static NumericProperty GRID_DENSITY = NumericProperty.derive(NumericPropertyKeyword.GRID_DENSITY, 20);
+public class ImplicitCoupledSolver extends CoupledScheme implements Solver<ParticipatingMedium> {
 
 	private int N;
 	private int counts;
@@ -45,8 +24,6 @@ public class ImplicitCoupledSolver extends ImplicitScheme implements Solver<Part
 
 	private double[] U, V;
 	private double[] alpha, beta;
-
-	private RadiativeTransferSolver rte;
 
 	private double Np;
 
@@ -62,26 +39,12 @@ public class ImplicitCoupledSolver extends ImplicitScheme implements Solver<Part
 
 	private double v1;
 
-	private double nonlinearPrecision = (double) NumericProperty.def(NONLINEAR_PRECISION).getValue();
-
-	private static InstanceDescriptor<? extends RadiativeTransferSolver> instanceDescriptor = new InstanceDescriptor<RadiativeTransferSolver>(
-			"RTE Solver Selector", RadiativeTransferSolver.class);
-
-	static {
-		instanceDescriptor.setSelectedDescriptor(NonscatteringDiscreteDerivatives.class.getSimpleName());
-	}
-
 	public ImplicitCoupledSolver() {
-		this(GRID_DENSITY, TAU_FACTOR);
+		super(derive(GRID_DENSITY, 20), derive(TAU_FACTOR, 0.66667));
 	}
 
-	public ImplicitCoupledSolver(NumericProperty N, NumericProperty timeFactor) {
-		super(GRID_DENSITY, TAU_FACTOR);
-	}
-
-	public ImplicitCoupledSolver(NumericProperty N, NumericProperty timeFactor, NumericProperty timeLimit) {
-		this(N, timeFactor);
-		setTimeLimit(timeLimit);
+	public ImplicitCoupledSolver(NumericProperty gridDensity, NumericProperty timeFactor, NumericProperty timeLimit) {
+		super(gridDensity, timeFactor, timeLimit);
 	}
 
 	private void prepare(ParticipatingMedium problem) {
@@ -89,7 +52,7 @@ public class ImplicitCoupledSolver extends ImplicitScheme implements Solver<Part
 
 		final var grid = getGrid();
 
-		initRTE(problem, grid);
+		getCoupling().init(problem, grid);
 
 		curve = problem.getHeatingCurve();
 
@@ -128,9 +91,10 @@ public class ImplicitCoupledSolver extends ImplicitScheme implements Solver<Part
 	public void solve(ParticipatingMedium problem) throws SolverException {
 
 		prepare(problem);
+		var rte = getCoupling().getRadiativeTransferEquation();
 		final var fluxes = rte.getFluxes();
 
-		final double errorSq = MathUtils.fastPowLoop(nonlinearPrecision, 2);
+		final double errorSq = MathUtils.fastPowLoop((double)getNonlinearPrecision().getValue(), 2);
 
 		int i, m, w, j;
 		double F, pls;
@@ -198,75 +162,16 @@ public class ImplicitCoupledSolver extends ImplicitScheme implements Solver<Part
 		curve.scale(maxTemp / curve.apparentMaximum());
 
 	}
+	
+	@Override
+	public String toString() {
+		return getString("ImplicitScheme.4");
+	}
 
 	@Override
 	public DifferenceScheme copy() {
 		var grid = getGrid();
 		return new ImplicitCoupledSolver(grid.getGridDensity(), grid.getTimeFactor(), getTimeLimit());
-	}
-
-	@Override
-	public Class<? extends Problem> domain() {
-		return ParticipatingMedium.class;
-	}
-
-	public RadiativeTransferSolver getRadiativeTransferEquation() {
-		return rte;
-	}
-
-	public NumericProperty getNonlinearPrecision() {
-		return NumericProperty.derive(NONLINEAR_PRECISION, nonlinearPrecision);
-	}
-
-	public void setNonlinearPrecision(NumericProperty nonlinearPrecision) {
-		this.nonlinearPrecision = (double) nonlinearPrecision.getValue();
-	}
-
-	@Override
-	public List<Property> listedTypes() {
-		List<Property> list = super.listedTypes();
-		list.add(NumericProperty.def(NumericPropertyKeyword.NONLINEAR_PRECISION));
-		list.add(instanceDescriptor);
-		return list;
-	}
-
-	@Override
-	public void set(NumericPropertyKeyword type, NumericProperty property) {
-		switch (type) {
-		case NONLINEAR_PRECISION:
-			setNonlinearPrecision(property);
-			break;
-		default:
-			throw new IllegalArgumentException("Property not recognised: " + property);
-		}
-	}
-
-	public static InstanceDescriptor<? extends RadiativeTransferSolver> getInstanceDescriptor() {
-		return instanceDescriptor;
-	}
-
-	public static void setInstanceDescriptor(InstanceDescriptor<? extends RadiativeTransferSolver> instanceDescriptor) {
-		ImplicitCoupledSolver.instanceDescriptor = instanceDescriptor;
-	}
-
-	private void initRTE(ParticipatingMedium problem, Grid grid) {
-
-		if (rte == null) {
-			newRTE(problem, grid);
-			instanceDescriptor.addListener(() -> {
-				newRTE(problem, grid);
-				rte.init(problem, grid);
-			});
-
-		}
-
-		rte.init(problem, grid);
-
-	}
-
-	private void newRTE(ParticipatingMedium problem, Grid grid) {
-		rte = instanceDescriptor.newInstance(RadiativeTransferSolver.class, problem, grid);
-		rte.setParent(this);
 	}
 
 }

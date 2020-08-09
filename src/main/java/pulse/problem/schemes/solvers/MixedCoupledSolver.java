@@ -1,114 +1,83 @@
 package pulse.problem.schemes.solvers;
 
-import static pulse.properties.NumericPropertyKeyword.NONLINEAR_PRECISION;
-
+import static pulse.properties.NumericPropertyKeyword.*;
+import static pulse.properties.NumericProperty.*;
 import java.util.List;
 
 import pulse.HeatingCurve;
 import pulse.math.MathUtils;
 import pulse.problem.laser.DiscretePulse;
+import pulse.problem.schemes.CoupledScheme;
 import pulse.problem.schemes.DifferenceScheme;
-import pulse.problem.schemes.Grid;
-import pulse.problem.schemes.MixedScheme;
 import pulse.problem.schemes.rte.RTECalculationStatus;
 import pulse.problem.schemes.rte.RadiativeTransferSolver;
-import pulse.problem.schemes.rte.dom.DiscreteOrdinatesMethod;
 import pulse.problem.statements.ParticipatingMedium;
-import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 import pulse.ui.Messages;
-import pulse.util.InstanceDescriptor;
 
-public class MixedCoupledSolver extends MixedScheme implements Solver<ParticipatingMedium> {
+public class MixedCoupledSolver extends CoupledScheme implements Solver<ParticipatingMedium> {
 
-	/**
-	 * The default value of {@code tauFactor}, which is set to {@code 1.0} for this
-	 * scheme.
-	 */
+	private int N;
+	private int counts;
+	private double hx;
+	private double tau;
+	private double maxTemp;
 
-	public final static NumericProperty TAU_FACTOR = NumericProperty.derive(NumericPropertyKeyword.TAU_FACTOR, 0.25);
+	private double sigma;
 
-	/**
-	 * The default value of {@code gridDensity}, which is set to {@code 30} for this
-	 * scheme.
-	 */
+	private HeatingCurve curve;
 
-	public final static NumericProperty GRID_DENSITY = NumericProperty.derive(NumericPropertyKeyword.GRID_DENSITY, 16);
+	private double[] U, V;
+	private double[] alpha, beta;
 
-	protected int N;
-	protected int counts;
-	protected double hx;
-	protected double tau;
-	protected double maxTemp;
+	private double opticalThickness;
+	private double Np;
 
-	protected double sigma;
+	private final static double EPS = 1e-7; // a small value ensuring numeric stability
 
-	protected HeatingCurve curve;
+	private double a;
+	private double b;
+	private double c;
 
-	protected double[] U, V;
-	protected double[] alpha, beta;
+	private double Bi1, Bi2;
 
-	private RadiativeTransferSolver rte;
+	private double HX2;
 
-	protected double opticalThickness;
-	protected double Np;
+	private double errorSq;
 
-	protected final static double EPS = 1e-7; // a small value ensuring numeric stability
+	private double HX_NP;
+	private double TAU0_NP;
+	private double Bi2HX;
+	private double ONE_PLUS_Bi1_HX;
+	private double SIGMA_NP;
 
-	protected double a;
-	protected double b;
-	protected double c;
+	private double _2TAUHX;
+	private double HX2_2TAU;
+	private double ONE_MINUS_SIGMA_NP;
+	private double _2TAU_ONE_MINUS_SIGMA;
+	private double BETA1_FACTOR;
+	private double ONE_MINUS_SIGMA;
 
-	protected double Bi1, Bi2;
-
-	protected double HX2;
-
-	protected double nonlinearPrecision = (double) NumericProperty.def(NONLINEAR_PRECISION).getValue();
-
-	double errorSq;
-
-	double HX_NP;
-	double TAU0_NP;
-	double Bi2HX;
-	double ONE_PLUS_Bi1_HX;
-	double SIGMA_NP;
-
-	double _2TAUHX;
-	double HX2_2TAU;
-	double ONE_MINUS_SIGMA_NP;
-	double _2TAU_ONE_MINUS_SIGMA;
-	double BETA1_FACTOR;
-	double ONE_MINUS_SIGMA;
-
-	private static InstanceDescriptor<? extends RadiativeTransferSolver> instanceDescriptor = new InstanceDescriptor<RadiativeTransferSolver>(
-			"RTE Solver Selector", RadiativeTransferSolver.class);
-
-	static {
-		instanceDescriptor.setSelectedDescriptor(DiscreteOrdinatesMethod.class.getSimpleName());
-	}
+	private final static NumericProperty TIMEFACTOR = derive(TAU_FACTOR, 0.25);
 
 	public MixedCoupledSolver() {
-		this(GRID_DENSITY, TAU_FACTOR);
-	}
-
-	public MixedCoupledSolver(NumericProperty N, NumericProperty timeFactor) {
-		super(GRID_DENSITY, TAU_FACTOR);
-		sigma = (double) NumericProperty.theDefault(NumericPropertyKeyword.SCHEME_WEIGHT).getValue();
+		super(derive(GRID_DENSITY, 16), TIMEFACTOR);
+		sigma = (double) theDefault(SCHEME_WEIGHT).getValue();
 	}
 
 	public MixedCoupledSolver(NumericProperty N, NumericProperty timeFactor, NumericProperty timeLimit) {
-		this(N, timeFactor);
-		setTimeLimit(timeLimit);
+		super(N, timeFactor, timeLimit);
+		sigma = (double) theDefault(SCHEME_WEIGHT).getValue();
 	}
 
-	protected void prepare(ParticipatingMedium problem) {
+	private void prepare(ParticipatingMedium problem) {
 		super.prepare(problem);
 
 		var grid = getGrid();
 
-		initRTE(problem, grid);
+		getCoupling().init(problem, grid);
 
 		curve = problem.getHeatingCurve();
 
@@ -164,7 +133,7 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 		adjustSchemeWeight();
 
 		double wFactor = getTimeInterval() * tau * problem.timeFactor();
-		errorSq = MathUtils.fastPowLoop(nonlinearPrecision, 2);
+		errorSq = MathUtils.fastPowLoop( (double)super.getNonlinearPrecision().getValue(), 2);
 
 		initConst();
 		initAlpha();
@@ -172,7 +141,8 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 		int pulseEnd = (int) Math.rint(this.getDiscretePulse().getDiscretePulseWidth() / wFactor) + 1;
 		int w;
 
-		var status = rte.compute(U);
+
+		var status = getCoupling().getRadiativeTransferEquation().compute(U);
 
 		final var discretePulse = getDiscretePulse();
 
@@ -191,7 +161,7 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 		var grid = getGrid();
 
 		// adjust timestep to make calculations faster
-		grid.setTimeFactor(TAU_FACTOR);
+		grid.setTimeFactor(TIMEFACTOR);
 
 		tau = grid.getTimeStep();
 		adjustSchemeWeight();
@@ -223,6 +193,7 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 
 	private RTECalculationStatus timeStep(DiscretePulse discretePulse, int m, boolean activePulse) {
 		double phi;
+		var rte = getCoupling().getRadiativeTransferEquation();
 		final var fluxes = rte.getFluxes();
 
 		int i, j;
@@ -247,19 +218,19 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 					* BETA1_FACTOR;
 
 			// i = 1
-			phi = TAU0_NP * phiNextToFront();
+			phi = TAU0_NP * phiNextToFront(rte);
 			F = U[1] / tau + phi + ONE_MINUS_SIGMA * (U[2] - 2 * U[1] + U[0]) / HX2;
 			beta[2] = (F + a * beta[1]) / (b - a * alpha[1]);
 
 			for (i = 2; i < N - 1; i++) {
-				phi = TAU0_NP * phi(i);
+				phi = TAU0_NP * phi(rte, i);
 				F = U[i] / tau + phi + ONE_MINUS_SIGMA * (U[i + 1] - 2 * U[i] + U[i - 1]) / HX2;
 				beta[i + 1] = (F + a * beta[i]) / (b - a * alpha[i]);
 			}
 
 			// i = N - 1
 
-			phi = TAU0_NP * phiNextToRear();
+			phi = TAU0_NP * phiNextToRear(rte);
 			F = U[N - 1] / tau + phi + ONE_MINUS_SIGMA * (U[N] - 2 * U[N - 1] + U[N - 2]) / HX2;
 			beta[N] = (F + a * beta[N - 1]) / (b - a * alpha[N - 1]);
 
@@ -285,95 +256,49 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 
 	private void adjustSchemeWeight() {
 		double newSigma = 0.5 - hx * hx / (12.0 * tau);
-		setWeight(NumericProperty.derive(NumericPropertyKeyword.SCHEME_WEIGHT, newSigma > 0 ? newSigma : 0.5));
+		setWeight(derive(SCHEME_WEIGHT, newSigma > 0 ? newSigma : 0.5));
 	}
 
-	protected double phiNextToFront() {
+	private double phiNextToFront(RadiativeTransferSolver rte) {
 		final var fluxes = rte.getFluxes();
 		return 0.833333333 * fluxes.meanFluxDerivative(1)
 				+ 0.083333333 * (fluxes.meanFluxDerivativeFront() + fluxes.meanFluxDerivative(2));
 	}
 
-	protected double phiNextToRear() {
+	private double phiNextToRear(RadiativeTransferSolver rte) {
 		final var fluxes = rte.getFluxes();
 		return 0.833333333 * fluxes.meanFluxDerivative(N - 1)
 				+ 0.083333333 * (fluxes.meanFluxDerivative(N - 2) + fluxes.meanFluxDerivativeveRear());
 	}
 
-	protected double phi(int i) {
+	private double phi(RadiativeTransferSolver rte, int i) {
 		final var fluxes = rte.getFluxes();
 		return 0.833333333 * fluxes.meanFluxDerivative(i)
 				+ 0.083333333 * (fluxes.meanFluxDerivative(i - 1) + fluxes.meanFluxDerivative(i + 1));
 	}
 
-	private void newRTE(ParticipatingMedium problem, Grid grid) {
-		rte = instanceDescriptor.newInstance(RadiativeTransferSolver.class, problem, grid);
-		rte.setParent(this);
-	}
-
-	private void initRTE(ParticipatingMedium problem, Grid grid) {
-
-		if (rte == null) {
-			newRTE(problem, grid);
-			instanceDescriptor.addListener(() -> {
-				newRTE(problem, grid);
-				rte.init(problem, grid);
-			});
-
-		}
-
-		rte.init(problem, grid);
-
-	}
-
-	@Override
-	public Class<? extends Problem> domain() {
-		return ParticipatingMedium.class;
-	}
-
-	public RadiativeTransferSolver getRadiativeTransferEquation() {
-		return rte;
-	}
-
 	public void setWeight(NumericProperty weight) {
-		if (weight.getType() != NumericPropertyKeyword.SCHEME_WEIGHT)
-			throw new IllegalArgumentException("Illegal type: " + weight.getType());
+		requireType(weight, SCHEME_WEIGHT);
 		this.sigma = (double) weight.getValue();
 	}
 
 	public NumericProperty getWeight() {
-		return NumericProperty.derive(NumericPropertyKeyword.SCHEME_WEIGHT, sigma);
+		return derive(SCHEME_WEIGHT, sigma);
 	}
 
 	@Override
 	public List<Property> listedTypes() {
 		List<Property> list = super.listedTypes();
-		list.add(NumericProperty.def(NumericPropertyKeyword.SCHEME_WEIGHT));
-		list.add(NumericProperty.def(NumericPropertyKeyword.NONLINEAR_PRECISION));
-		list.add(instanceDescriptor);
+		list.add(def(SCHEME_WEIGHT));
 		return list;
 	}
 
 	@Override
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
-		switch (type) {
-		case SCHEME_WEIGHT:
+		if(type == SCHEME_WEIGHT) 
 			setWeight(property);
-			break;
-		case NONLINEAR_PRECISION:
-			setNonlinearPrecision(property);
-			break;
-		default:
+		else
 			super.set(type, property);
-		}
-	}
-
-	public NumericProperty getNonlinearPrecision() {
-		return NumericProperty.derive(NONLINEAR_PRECISION, nonlinearPrecision);
-	}
-
-	public void setNonlinearPrecision(NumericProperty nonlinearPrecision) {
-		this.nonlinearPrecision = (double) nonlinearPrecision.getValue();
 	}
 
 	@Override
@@ -385,14 +310,6 @@ public class MixedCoupledSolver extends MixedScheme implements Solver<Participat
 	public DifferenceScheme copy() {
 		var grid = getGrid();
 		return new MixedCoupledSolver(grid.getGridDensity(), grid.getTimeFactor(), getTimeLimit());
-	}
-
-	public static InstanceDescriptor<? extends RadiativeTransferSolver> getInstanceDescriptor() {
-		return instanceDescriptor;
-	}
-
-	public static void setInstanceDescriptor(InstanceDescriptor<? extends RadiativeTransferSolver> instanceDescriptor) {
-		MixedCoupledSolver.instanceDescriptor = instanceDescriptor;
 	}
 
 }

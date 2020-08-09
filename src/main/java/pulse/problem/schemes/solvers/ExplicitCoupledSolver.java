@@ -1,65 +1,43 @@
 package pulse.problem.schemes.solvers;
 
 import static java.lang.Math.pow;
-import static pulse.properties.NumericPropertyKeyword.NONLINEAR_PRECISION;
+import static pulse.properties.NumericPropertyKeyword.GRID_DENSITY;
+import static pulse.properties.NumericPropertyKeyword.TAU_FACTOR;
+import static pulse.ui.Messages.getString;
+import static pulse.properties.NumericProperty.*;
 
-import java.util.List;
-
-import pulse.HeatingCurve;
+import pulse.problem.schemes.CoupledScheme;
 import pulse.problem.schemes.DifferenceScheme;
-import pulse.problem.schemes.ExplicitScheme;
-import pulse.problem.schemes.Grid;
 import pulse.problem.schemes.rte.RTECalculationStatus;
-import pulse.problem.schemes.rte.RadiativeTransferSolver;
-import pulse.problem.schemes.rte.exact.NonscatteringAnalyticalDerivatives;
 import pulse.problem.statements.ParticipatingMedium;
-import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
-import pulse.properties.NumericPropertyKeyword;
-import pulse.properties.Property;
-import pulse.util.InstanceDescriptor;
 
-public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<ParticipatingMedium> {
+public class ExplicitCoupledSolver extends CoupledScheme implements Solver<ParticipatingMedium> {
 
 	private double[] U;
 	private double[] V;
 
-	private RadiativeTransferSolver rte;
-
 	private double opticalThickness;
 	private double Np;
-	private double Bi1, Bi2;
+	private double Bi1;
+	private double Bi2;
 
-	private HeatingCurve curve;
 	private int N;
 	private int counts;
 	private double hx;
 	private double tau;
 	private double maxTemp;
-	private double a, b;
+	private double a;
+	private double b;
 
 	private final static double EPS = 1e-7; // a small value ensuring numeric stability
 
-	private double nonlinearPrecision = (double) NumericProperty.def(NONLINEAR_PRECISION).getValue();
-
-	private static InstanceDescriptor<? extends RadiativeTransferSolver> instanceDescriptor = new InstanceDescriptor<RadiativeTransferSolver>(
-			"RTE Solver Selector", RadiativeTransferSolver.class);
-
-	static {
-		instanceDescriptor.setSelectedDescriptor(NonscatteringAnalyticalDerivatives.class.getSimpleName());
-	}
-
 	public ExplicitCoupledSolver() {
-		super();
+		super( derive(GRID_DENSITY, 80), derive(TAU_FACTOR, 0.5) );
 	}
 
-	public ExplicitCoupledSolver(NumericProperty N, NumericProperty timeFactor) {
-		super(N, timeFactor);
-	}
-
-	public ExplicitCoupledSolver(NumericProperty N, NumericProperty timeFactor, NumericProperty timeLimit) {
-		this(N, timeFactor);
-		setTimeLimit(timeLimit);
+	public ExplicitCoupledSolver(NumericProperty gridDensity, NumericProperty timeFactor, NumericProperty timeLimit) {
+		super(gridDensity, timeFactor, timeLimit);
 	}
 
 	private void prepare(ParticipatingMedium problem) {
@@ -67,9 +45,9 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
 
 		var grid = getGrid();
 
-		initRTE(problem, grid);
+		getCoupling().init(problem, grid);
 
-		curve = problem.getHeatingCurve();
+		var curve = problem.getHeatingCurve();
 
 		N = (int) grid.getGridDensity().getValue();
 		hx = grid.getXStep();
@@ -94,18 +72,16 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
 	@Override
 	public void solve(ParticipatingMedium problem) throws SolverException {
 		prepare(problem);
+		var curve = problem.getHeatingCurve();
+		var rte = getCoupling().getRadiativeTransferEquation();
 		final var fluxes = rte.getFluxes();
 
-		int i, m, w;
-		double pls;
 		final double TAU_HH = tau / pow(hx, 2);
 		final double HX_NP = hx / Np;
 
 		final double prefactor = tau * opticalThickness / Np;
 
-		double V_0, V_N;
-
-		final double errorSq = pow(nonlinearPrecision, 2);
+		final double errorSq = pow((double)getNonlinearPrecision().getValue(), 2);
 
 		double wFactor = getTimeInterval() * tau * problem.timeFactor();
 
@@ -117,7 +93,7 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
 		 * The outer cycle iterates over the number of points of the HeatingCurve
 		 */
 
-		for (w = 1; w < counts; w++) {
+		for (int w = 1; w < counts; w++) {
 
 			/*
 			 * Two adjacent points of the heating curves are separated by timeInterval on
@@ -125,7 +101,7 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
 			 * timeInterval/tau time steps have to be made first.
 			 */
 
-			for (m = (w - 1) * getTimeInterval() + 1; m < w * getTimeInterval() + 1
+			for (int m = (w - 1) * getTimeInterval() + 1; m < w * getTimeInterval() + 1
 					&& status == RTECalculationStatus.NORMAL; m++) {
 
 				/*
@@ -137,15 +113,15 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
 				 * recalculates the latter using the solution at previous iteration
 				 */
 
-				for (V_0 = Double.POSITIVE_INFINITY, V_N = Double.POSITIVE_INFINITY; (pow((V[0] - V_0), 2) > errorSq)
-						|| (pow((V[N] - V_N), 2) > errorSq); status = rte.compute(V)) {
+				for (double V_0 = Double.POSITIVE_INFINITY, V_N = Double.POSITIVE_INFINITY; (pow((V[0] - V_0),
+						2) > errorSq) || (pow((V[N] - V_N), 2) > errorSq); status = rte.compute(V)) {
 
 					/*
 					 * Uses the heat equation explicitly to calculate the grid-function everywhere
 					 * except the boundaries
 					 */
 
-					for (i = 1; i < N; i++) {
+					for (int i = 1; i < N; i++) {
 						V[i] = U[i] + TAU_HH * (U[i + 1] - 2. * U[i] + U[i - 1]) + prefactor * fluxes.fluxDerivative(i);
 					}
 
@@ -153,7 +129,7 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
 					 * Calculates boundary values
 					 */
 
-					pls = discretePulse.laserPowerAt((m - EPS) * tau);
+					double pls = discretePulse.laserPowerAt((m - EPS) * tau);
 
 					// Front face
 					V_0 = V[0];
@@ -177,79 +153,22 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
 
 		curve.scale(maxTemp / curve.apparentMaximum());
 	}
+	
+	/**
+	 * Prints out the description of this problem type.
+	 * 
+	 * @return a verbose description of the problem.
+	 */
+
+	@Override
+	public String toString() {
+		return getString("ExplicitScheme.4");
+	}
 
 	@Override
 	public DifferenceScheme copy() {
 		var grid = getGrid();
 		return new ExplicitCoupledSolver(grid.getGridDensity(), grid.getTimeFactor(), getTimeLimit());
-	}
-
-	@Override
-	public Class<? extends Problem> domain() {
-		return ParticipatingMedium.class;
-	}
-
-	public enum Mode {
-		GENERAL, OPTICALLY_THIN, OPTICALLY_THICK;
-	}
-
-	public RadiativeTransferSolver getRadiativeTransferEquation() {
-		return rte;
-	}
-
-	public NumericProperty getNonlinearPrecision() {
-		return NumericProperty.derive(NONLINEAR_PRECISION, nonlinearPrecision);
-	}
-
-	public void setNonlinearPrecision(NumericProperty nonlinearPrecision) {
-		this.nonlinearPrecision = (double) nonlinearPrecision.getValue();
-	}
-
-	@Override
-	public List<Property> listedTypes() {
-		List<Property> list = super.listedTypes();
-		list.add(NumericProperty.def(NumericPropertyKeyword.NONLINEAR_PRECISION));
-		list.add(instanceDescriptor);
-		return list;
-	}
-
-	@Override
-	public void set(NumericPropertyKeyword type, NumericProperty property) {
-		switch (type) {
-		case NONLINEAR_PRECISION:
-			setNonlinearPrecision(property);
-			break;
-		default:
-			throw new IllegalArgumentException("Property not recognised: " + property);
-		}
-	}
-
-	private void initRTE(ParticipatingMedium problem, Grid grid) {
-
-		if (rte == null) {
-			newRTE(problem, grid);
-			instanceDescriptor.addListener(() -> {
-				newRTE(problem, grid);
-				rte.init(problem, grid);
-			});
-
-		}
-
-		rte.init(problem, grid);
-
-	}
-
-	private void newRTE(ParticipatingMedium problem, Grid grid) {
-		rte = instanceDescriptor.newInstance(RadiativeTransferSolver.class, problem, grid);
-		rte.setParent(this);
-	}
-
-	public static InstanceDescriptor<? extends RadiativeTransferSolver> getInstanceDescriptor() {
-		return instanceDescriptor;
-	}
-
-	public static void setInstanceDescriptor(InstanceDescriptor<? extends RadiativeTransferSolver> instanceDescriptor) {
-		ExplicitCoupledSolver.instanceDescriptor = instanceDescriptor;
 	}
 
 }
