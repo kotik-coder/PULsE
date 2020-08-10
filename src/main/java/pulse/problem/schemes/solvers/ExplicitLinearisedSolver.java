@@ -2,7 +2,6 @@ package pulse.problem.schemes.solvers;
 
 import static java.lang.Math.pow;
 
-import pulse.HeatingCurve;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.ExplicitScheme;
 import pulse.problem.statements.LinearisedProblem;
@@ -12,7 +11,7 @@ import pulse.properties.NumericProperty;
 /**
  * Performs a fully-dimensionless calculation for the {@code LinearisedProblem}.
  * <p>
- * Calls {@code super.solve(Problem)}. Relies on using the heat equation to
+ * Relies on using the heat equation to
  * calculate the value of the grid-function at the next timestep. Fills the
  * {@code grid} completely at each specified spatial point. The heating curve is
  * updated with the rear-side temperature
@@ -54,18 +53,10 @@ public class ExplicitLinearisedSolver extends ExplicitScheme implements Solver<L
 	private double[] U;
 	private double[] V;
 
-	private double maxTemp;
-
 	private int N;
-	private int counts;
 	private double hx;
-	private double tau;
 
-	private HeatingCurve curve;
-
-	private double a, b;
-
-	private double maxVal;
+	private double a;
 
 	private final static double EPS = 1e-7; // a small value ensuring numeric stability
 
@@ -84,36 +75,27 @@ public class ExplicitLinearisedSolver extends ExplicitScheme implements Solver<L
 	@Override
 	public void prepare(Problem problem) {
 		super.prepare(problem);
-		curve = problem.getHeatingCurve();
 
-		var grid = getGrid();
-
-		N = (int) grid.getGridDensity().getValue();
-		hx = grid.getXStep();
-		tau = grid.getTimeStep();
+		N = (int) getGrid().getGridDensity().getValue();
+		hx = getGrid().getXStep();
 
 		U = new double[N + 1];
 		V = new double[N + 1];
 
 		double Bi1 = (double) problem.getHeatLoss().getValue();
-		double Bi2 = Bi1;
-		maxTemp = (double) problem.getMaximumTemperature().getValue();
-
-		counts = (int) curve.getNumPoints().getValue();
-
-		maxVal = 0;
 
 		a = 1. / (1. + Bi1 * hx);
-		b = 1. / (1. + Bi2 * hx);
 	}
 
 	@Override
 	public void solve(LinearisedProblem problem) {
 
 		prepare(problem);
-
-		int i, m, w;
-		double pls;
+		var curve = problem.getHeatingCurve();
+		final double maxTemp = (double) problem.getMaximumTemperature().getValue();
+		final double tau = getGrid().getTimeStep();
+		
+		double maxVal = 0;
 		double TAU_HH = tau / pow(hx, 2);
 
 		final var discretePulse = getDiscretePulse();
@@ -122,7 +104,7 @@ public class ExplicitLinearisedSolver extends ExplicitScheme implements Solver<L
 		 * The outer cycle iterates over the number of points of the HeatingCurve
 		 */
 
-		for (w = 1; w < counts; w++) {
+		for (int w = 1, counts = (int) curve.getNumPoints().getValue(); w < counts; w++) {
 
 			/*
 			 * Two adjacent points of the heating curves are separated by timeInterval on
@@ -130,14 +112,14 @@ public class ExplicitLinearisedSolver extends ExplicitScheme implements Solver<L
 			 * timeInterval/tau time steps have to be made first.
 			 */
 
-			for (m = (w - 1) * getTimeInterval() + 1; m < w * getTimeInterval() + 1; m++) {
+			for (int m = (w - 1) * getTimeInterval() + 1; m < w * getTimeInterval() + 1; m++) {
 
 				/*
 				 * Uses the heat equation explicitly to calculate the grid-function everywhere
 				 * except the boundaries
 				 */
 
-				for (i = 1; i < N; i++) {
+				for (int i = 1; i < N; i++) {
 					V[i] = U[i] + TAU_HH * (U[i + 1] - 2. * U[i] + U[i - 1]);
 				}
 
@@ -145,9 +127,9 @@ public class ExplicitLinearisedSolver extends ExplicitScheme implements Solver<L
 				 * Calculates boundary values
 				 */
 
-				pls = discretePulse.laserPowerAt((m - EPS) * tau);
+				double pls = discretePulse.laserPowerAt((m - EPS) * tau);
 				V[0] = (V[1] + hx * pls) * a;
-				V[N] = V[N - 1] * b;
+				V[N] = V[N - 1] * a;
 
 				System.arraycopy(V, 0, U, 0, N + 1);
 

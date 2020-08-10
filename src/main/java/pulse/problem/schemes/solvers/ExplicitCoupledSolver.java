@@ -1,10 +1,10 @@
 package pulse.problem.schemes.solvers;
 
 import static java.lang.Math.pow;
+import static pulse.properties.NumericProperty.derive;
 import static pulse.properties.NumericPropertyKeyword.GRID_DENSITY;
 import static pulse.properties.NumericPropertyKeyword.TAU_FACTOR;
 import static pulse.ui.Messages.getString;
-import static pulse.properties.NumericProperty.*;
 
 import pulse.problem.schemes.CoupledScheme;
 import pulse.problem.schemes.DifferenceScheme;
@@ -16,19 +16,10 @@ public class ExplicitCoupledSolver extends CoupledScheme implements Solver<Parti
 
 	private double[] U;
 	private double[] V;
-
-	private double opticalThickness;
-	private double Np;
-	private double Bi1;
-	private double Bi2;
-
+	
 	private int N;
-	private int counts;
 	private double hx;
-	private double tau;
-	private double maxTemp;
 	private double a;
-	private double b;
 
 	private final static double EPS = 1e-7; // a small value ensuring numeric stability
 
@@ -47,26 +38,15 @@ public class ExplicitCoupledSolver extends CoupledScheme implements Solver<Parti
 
 		getCoupling().init(problem, grid);
 
-		var curve = problem.getHeatingCurve();
-
 		N = (int) grid.getGridDensity().getValue();
 		hx = grid.getXStep();
-		tau = grid.getTimeStep();
 
 		U = new double[N + 1];
 		V = new double[N + 1];
 
-		Bi1 = (double) problem.getHeatLoss().getValue();
-		maxTemp = (double) problem.getMaximumTemperature().getValue();
+		double Bi = (double) problem.getHeatLoss().getValue();
 
-		counts = (int) curve.getNumPoints().getValue();
-
-		a = 1. / (1. + Bi1 * hx);
-		b = 1. / (1. + Bi2 * hx);
-
-		opticalThickness = (double) problem.getOpticalThickness().getValue();
-		Np = (double) problem.getPlanckNumber().getValue();
-
+		a = 1. / (1. + Bi * hx);
 	}
 
 	@Override
@@ -76,6 +56,10 @@ public class ExplicitCoupledSolver extends CoupledScheme implements Solver<Parti
 		var rte = getCoupling().getRadiativeTransferEquation();
 		final var fluxes = rte.getFluxes();
 
+		final double opticalThickness = (double) problem.getOpticalThickness().getValue();
+		final double Np = (double) problem.getPlanckNumber().getValue();
+		final double tau = getGrid().getTimeStep();
+		
 		final double TAU_HH = tau / pow(hx, 2);
 		final double HX_NP = hx / Np;
 
@@ -93,7 +77,7 @@ public class ExplicitCoupledSolver extends CoupledScheme implements Solver<Parti
 		 * The outer cycle iterates over the number of points of the HeatingCurve
 		 */
 
-		for (int w = 1; w < counts; w++) {
+		for (int w = 1, counts = (int) curve.getNumPoints().getValue(); w < counts; w++) {
 
 			/*
 			 * Two adjacent points of the heating curves are separated by timeInterval on
@@ -136,7 +120,7 @@ public class ExplicitCoupledSolver extends CoupledScheme implements Solver<Parti
 					V[0] = (V[1] + hx * pls - HX_NP * fluxes.getFlux(0)) * a;
 					// Rear face
 					V_N = V[N];
-					V[N] = (V[N - 1] + HX_NP * fluxes.getFlux(N)) * b;
+					V[N] = (V[N - 1] + HX_NP * fluxes.getFlux(N)) * a;
 
 				}
 
@@ -151,6 +135,7 @@ public class ExplicitCoupledSolver extends CoupledScheme implements Solver<Parti
 		if (status != RTECalculationStatus.NORMAL)
 			throw new SolverException(status.toString());
 
+		final double maxTemp = (double) problem.getMaximumTemperature().getValue();
 		curve.scale(maxTemp / curve.apparentMaximum());
 	}
 	

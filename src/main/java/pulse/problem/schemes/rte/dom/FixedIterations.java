@@ -1,6 +1,7 @@
 package pulse.problem.schemes.rte.dom;
 
 import static java.lang.Math.abs;
+
 import pulse.problem.schemes.rte.RTECalculationStatus;
 
 public class FixedIterations extends IterativeSolver {

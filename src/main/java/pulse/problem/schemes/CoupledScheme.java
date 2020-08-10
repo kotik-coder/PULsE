@@ -14,10 +14,11 @@ import pulse.properties.Property;
 public abstract class CoupledScheme extends DifferenceScheme {
 	
 	private RadiativeTransferCoupling coupling;
-	private double nonlinearPrecision = (double) NumericProperty.def(NONLINEAR_PRECISION).getValue();
+	private double nonlinearPrecision;
 
 	public CoupledScheme(NumericProperty N, NumericProperty timeFactor) {
 		super();
+		nonlinearPrecision = (double) NumericProperty.def(NONLINEAR_PRECISION).getValue();
 		setGrid(new Grid(N, timeFactor));
 		setCoupling(new RadiativeTransferCoupling());
 	}

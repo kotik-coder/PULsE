@@ -1,8 +1,9 @@
 package pulse.problem.schemes.solvers;
 
-import static pulse.properties.NumericPropertyKeyword.*;
+import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericPropertyKeyword.GRID_DENSITY;
+import static pulse.properties.NumericPropertyKeyword.TAU_FACTOR;
 import static pulse.ui.Messages.getString;
-import static pulse.properties.NumericProperty.*;
 
 import pulse.HeatingCurve;
 import pulse.math.MathUtils;

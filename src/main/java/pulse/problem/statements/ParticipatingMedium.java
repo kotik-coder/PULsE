@@ -11,7 +11,7 @@ import pulse.input.ExperimentalData;
 import pulse.math.IndexedVector;
 import pulse.math.MathUtils;
 import pulse.problem.schemes.DifferenceScheme;
-import pulse.problem.schemes.MixedScheme;
+import pulse.problem.schemes.solvers.MixedCoupledSolver;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
@@ -235,7 +235,7 @@ public class ParticipatingMedium extends NonlinearProblem {
 
 	@Override
 	public Class<? extends DifferenceScheme> defaultScheme() {
-		return MixedScheme.class;
+		return MixedCoupledSolver.class;
 	}
 
 }

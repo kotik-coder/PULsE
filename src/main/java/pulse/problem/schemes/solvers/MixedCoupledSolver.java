@@ -1,7 +1,13 @@
 package pulse.problem.schemes.solvers;
 
-import static pulse.properties.NumericPropertyKeyword.*;
-import static pulse.properties.NumericProperty.*;
+import static pulse.properties.NumericProperty.def;
+import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericProperty.requireType;
+import static pulse.properties.NumericProperty.theDefault;
+import static pulse.properties.NumericPropertyKeyword.GRID_DENSITY;
+import static pulse.properties.NumericPropertyKeyword.SCHEME_WEIGHT;
+import static pulse.properties.NumericPropertyKeyword.TAU_FACTOR;
+
 import java.util.List;
 
 import pulse.HeatingCurve;

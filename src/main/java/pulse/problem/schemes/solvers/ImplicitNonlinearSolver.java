@@ -23,14 +23,23 @@ public class ImplicitNonlinearSolver extends ImplicitScheme implements Solver<No
 
 	private HeatingCurve curve;
 
-	private double[] U, V;
-	private double[] alpha, beta;
+	private double[] U;
+	private double[] V;
+	private double[] alpha;
+	private double[] beta;
 
 	private final static double EPS = 1e-7; // a small value ensuring numeric stability
 
 	private double T, dT;
 
-	private double a1, b1, c1, b2, b3, a, b, c;
+	private double a1;
+	private double b1;
+	private double c1;
+	private double b2;
+	private double b3;
+	private double a;
+	private double b;
+	private double c;
 
 	private double nonlinearPrecision = (double) NumericProperty.def(NONLINEAR_PRECISION).getValue();
 
