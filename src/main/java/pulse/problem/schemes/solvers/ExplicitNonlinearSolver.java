@@ -49,6 +49,9 @@ public class ExplicitNonlinearSolver extends ExplicitScheme implements Solver<No
 		N = (int) grid.getGridDensity().getValue();
 		hx = grid.getXStep();
 		tau = grid.getTimeStep();
+		
+		U = new double[N + 1];
+		V = new double[N + 1];
 
 		T = (double) problem.getTestTemperature().getValue();
 		dT = problem.maximumHeating();

@@ -1,6 +1,6 @@
 package pulse.problem.schemes;
 
-import static pulse.properties.NumericProperty.def;
+import static pulse.properties.NumericProperty.*;
 import static pulse.properties.NumericPropertyKeyword.NONLINEAR_PRECISION;
 
 import java.util.List;
@@ -18,7 +18,7 @@ public abstract class CoupledScheme extends DifferenceScheme {
 
 	public CoupledScheme(NumericProperty N, NumericProperty timeFactor) {
 		super();
-		nonlinearPrecision = (double) NumericProperty.def(NONLINEAR_PRECISION).getValue();
+		nonlinearPrecision = (double) def(NONLINEAR_PRECISION).getValue();
 		setGrid(new Grid(N, timeFactor));
 		setCoupling(new RadiativeTransferCoupling());
 	}
@@ -45,7 +45,7 @@ public abstract class CoupledScheme extends DifferenceScheme {
 	}
 	
 	public NumericProperty getNonlinearPrecision() {
-		return NumericProperty.derive(NONLINEAR_PRECISION, nonlinearPrecision);
+		return derive(NONLINEAR_PRECISION, nonlinearPrecision);
 	}
 
 	public void setNonlinearPrecision(NumericProperty nonlinearPrecision) {
