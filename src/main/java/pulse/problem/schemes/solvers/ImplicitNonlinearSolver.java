@@ -5,7 +5,6 @@ import static pulse.properties.NumericPropertyKeyword.NONLINEAR_PRECISION;
 
 import java.util.List;
 
-import pulse.HeatingCurve;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.ImplicitScheme;
 import pulse.problem.statements.NonlinearProblem;
@@ -17,11 +16,8 @@ import pulse.properties.Property;
 public class ImplicitNonlinearSolver extends ImplicitScheme implements Solver<NonlinearProblem> {
 
 	private int N;
-	private int counts;
 	private double hx;
 	private double tau;
-
-	private HeatingCurve curve;
 
 	private double[] U;
 	private double[] V;
@@ -30,7 +26,8 @@ public class ImplicitNonlinearSolver extends ImplicitScheme implements Solver<No
 
 	private final static double EPS = 1e-7; // a small value ensuring numeric stability
 
-	private double T, dT;
+	private double T;
+	private double dT;
 
 	private double a1;
 	private double b1;
@@ -57,7 +54,6 @@ public class ImplicitNonlinearSolver extends ImplicitScheme implements Solver<No
 
 	private void prepare(NonlinearProblem problem) {
 		super.prepare(problem);
-		curve = problem.getHeatingCurve();
 
 		var grid = getGrid();
 
@@ -66,11 +62,8 @@ public class ImplicitNonlinearSolver extends ImplicitScheme implements Solver<No
 		tau = grid.getTimeStep();
 
 		final double HH = pow(hx, 2);
+		final double Bi1 = (double) problem.getHeatLoss().getValue();
 
-		counts = (int) curve.getNumPoints().getValue();
-
-		double Bi1 = (double) problem.getHeatLoss().getValue();
-		double Bi2 = Bi1;
 		T = (double) problem.getTestTemperature().getValue();
 		dT = problem.maximumHeating();
 
@@ -85,7 +78,7 @@ public class ImplicitNonlinearSolver extends ImplicitScheme implements Solver<No
 		b1 = HH / (2. * tau + HH);
 		b2 = a1 * hx;
 		b3 = Bi1 * T / (4.0 * dT);
-		c1 = -0.5 * hx * tau * Bi2 * T / dT;
+		c1 = -0.5 * hx * tau * Bi1 * T / dT;
 
 		a = 1. / pow(hx, 2);
 		b = 1. / tau + 2. / pow(hx, 2);
@@ -94,13 +87,12 @@ public class ImplicitNonlinearSolver extends ImplicitScheme implements Solver<No
 
 	@Override
 	public void solve(NonlinearProblem problem) {
-
 		prepare(problem);
+		var curve = problem.getHeatingCurve();
 
 		final double fixedPointPrecisionSq = pow(nonlinearPrecision, 2);
 		final double HH = pow(hx, 2);
 
-		int i, m, w, j;
 		double F, pls;
 		double c2;
 
@@ -108,14 +100,14 @@ public class ImplicitNonlinearSolver extends ImplicitScheme implements Solver<No
 
 		// time cycle
 
-		for (w = 1; w < counts; w++) {
+		for (int w = 1, counts = (int) curve.getNumPoints().getValue(); w < counts; w++) {
 
-			for (m = (w - 1) * getTimeInterval() + 1; m < w * getTimeInterval() + 1; m++) {
+			for (int m = (w - 1) * getTimeInterval() + 1; m < w * getTimeInterval() + 1; m++) {
 
 				pls = discretePulse.laserPowerAt((m - EPS) * tau);
 				alpha[1] = a1;
 
-				for (i = 1; i < N; i++) {
+				for (int i = 1; i < N; i++) {
 					alpha[i + 1] = c / (b - a * alpha[i]);
 				}
 
@@ -128,14 +120,14 @@ public class ImplicitNonlinearSolver extends ImplicitScheme implements Solver<No
 
 					beta[1] = b1 * U[0] + b2 * (pls - b3 * (pow(V[0] * dT / T + 1, 4) - 1));
 
-					for (i = 1; i < N; i++) {
+					for (int i = 1; i < N; i++) {
 						F = -U[i] / tau;
 						beta[i + 1] = (F - a * beta[i]) / (a * alpha[i] - b);
 					}
 
 					V[N] = c2 * (2. * beta[N] * tau + HH * U[N] + c1 * (pow(V[N] * dT / T + 1, 4) - 1));
 
-					for (j = N - 1; j >= 0; j--) {
+					for (int j = N - 1; j >= 0; j--) {
 						V[j] = alpha[j + 1] * V[j + 1] + beta[j + 1];
 					}
 

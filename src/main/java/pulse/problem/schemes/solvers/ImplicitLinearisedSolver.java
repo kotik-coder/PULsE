@@ -2,7 +2,6 @@ package pulse.problem.schemes.solvers;
 
 import static java.lang.Math.pow;
 
-import pulse.HeatingCurve;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.ImplicitScheme;
 import pulse.problem.statements.LinearisedProblem;
@@ -12,7 +11,7 @@ import pulse.properties.NumericProperty;
 /**
  * Performs a fully-dimensionless calculation for the {@code LinearisedProblem}.
  * <p>
- * Calls {@code super.solve(Problem)}, then initiates constants for calculations
+ * Initiates constants for calculations
  * and uses a sweep method to evaluate the solution for each subsequent
  * timestep, filling the {@code grid} completely at each specified spatial
  * point. The heating curve is updated with the rear-side temperature
@@ -48,23 +47,20 @@ import pulse.properties.NumericProperty;
 
 public class ImplicitLinearisedSolver extends ImplicitScheme implements Solver<LinearisedProblem> {
 
-	private double maxTemp;
-	private double Bi1HTAU, Bi2HTAU;
+	private double Bi1HTAU;
 
 	private int N;
-	private int counts;
 	private double hx;
 	private double tau;
 
-	private HeatingCurve curve;
-
-	private double a, b, c;
+	private double a;
+	private double b;
+	private double c;
 
 	private double[] U;
 	private double[] V;
 	private double[] alpha;
 	private double[] beta;
-	private double maxVal;
 
 	private final static double EPS = 1e-7; // a small value ensuring numeric stability
 
@@ -83,7 +79,6 @@ public class ImplicitLinearisedSolver extends ImplicitScheme implements Solver<L
 	@Override
 	public void prepare(Problem problem) {
 		super.prepare(problem);
-		curve = problem.getHeatingCurve();
 
 		var grid = getGrid();
 
@@ -91,16 +86,12 @@ public class ImplicitLinearisedSolver extends ImplicitScheme implements Solver<L
 		hx = grid.getXStep();
 		tau = grid.getTimeStep();
 
-		double Bi1 = (double) problem.getHeatLoss().getValue();
-		double Bi2 = Bi1;
-		maxTemp = (double) problem.getMaximumTemperature().getValue();
+		final double Bi1 = (double) problem.getHeatLoss().getValue();
 
 		U = new double[N + 1];
 		V = new double[N + 1];
 		alpha = new double[N + 1];
 		beta = new double[N + 1];
-
-		counts = (int) curve.getNumPoints().getValue();
 
 		// coefficients for difference equation
 
@@ -109,32 +100,27 @@ public class ImplicitLinearisedSolver extends ImplicitScheme implements Solver<L
 		c = 1. / pow(hx, 2);
 
 		Bi1HTAU = Bi1 * hx * tau;
-		Bi2HTAU = Bi2 * hx * tau;
-
-		maxVal = 0;
 	}
 
 	@Override
 	public void solve(LinearisedProblem problem) {
-
 		prepare(problem);
+		var curve = problem.getHeatingCurve();
 
 		// precalculated constants
 
 		double HH = pow(hx, 2);
 		double _2HTAU = 2. * hx * tau;
 
-		double F;
-		double pls;
-		int i, j, m, w;
+		double maxVal = 0;
 
 		final var discretePulse = getDiscretePulse();
-
+		
 		/*
 		 * The outer cycle iterates over the number of points of the HeatingCurve
 		 */
 
-		for (w = 1; w < counts; w++) {
+		for (int w = 1, counts = (int) curve.getNumPoints().getValue(); w < counts; w++) {
 
 			/*
 			 * Two adjacent points of the heating curves are separated by timeInterval on
@@ -142,23 +128,23 @@ public class ImplicitLinearisedSolver extends ImplicitScheme implements Solver<L
 			 * timeInterval/tau time steps have to be made first.
 			 */
 
-			for (m = (w - 1) * getTimeInterval() + 1; m < w * getTimeInterval() + 1; m++) {
+			for (int m = (w - 1) * getTimeInterval() + 1; m < w * getTimeInterval() + 1; m++) {
 
-				pls = discretePulse.laserPowerAt((m - EPS) * tau); // NOTE: EPS is very important here and ensures
+				double pls = discretePulse.laserPowerAt((m - EPS) * tau); // NOTE: EPS is very important here and ensures
 																	// numeric stability!
 
 				alpha[1] = 2. * tau / (2. * Bi1HTAU + 2. * tau + HH);
 				beta[1] = (HH * U[0] + _2HTAU * pls) / (2. * Bi1HTAU + 2. * tau + HH);
 
-				for (i = 1; i < N; i++) {
+				for (int i = 1; i < N; i++) {
 					alpha[i + 1] = c / (b - a * alpha[i]);
-					F = -U[i] / tau;
+					double F = -U[i] / tau;
 					beta[i + 1] = (F - a * beta[i]) / (a * alpha[i] - b);
 				}
 
-				V[N] = (HH * U[N] + 2. * tau * beta[N]) / (2 * Bi2HTAU + HH - 2. * tau * (alpha[N] - 1));
+				V[N] = (HH * U[N] + 2. * tau * beta[N]) / (2 * Bi1HTAU + HH - 2. * tau * (alpha[N] - 1));
 
-				for (j = N - 1; j >= 0; j--) {
+				for (int j = N - 1; j >= 0; j--) {
 					V[j] = alpha[j + 1] * V[j + 1] + beta[j + 1];
 				}
 
@@ -177,6 +163,7 @@ public class ImplicitLinearisedSolver extends ImplicitScheme implements Solver<L
 
 		}
 
+		final double maxTemp = (double) problem.getMaximumTemperature().getValue();
 		curve.scale(maxTemp / maxVal);
 
 	}

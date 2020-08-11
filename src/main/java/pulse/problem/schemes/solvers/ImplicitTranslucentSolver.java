@@ -2,34 +2,27 @@ package pulse.problem.schemes.solvers;
 
 import static java.lang.Math.pow;
 
-import pulse.HeatingCurve;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.ImplicitScheme;
 import pulse.problem.statements.PenetrationProblem;
 import pulse.problem.statements.Problem;
-import pulse.problem.statements.penetration.AbsorptionModel;
 import pulse.problem.statements.penetration.AbsorptionModel.SpectralRange;
 import pulse.properties.NumericProperty;
 
 public class ImplicitTranslucentSolver extends ImplicitScheme implements Solver<PenetrationProblem> {
 
-	private double Bi1;
-	private double Bi2;
-	private double maxTemp;
-	private AbsorptionModel absorption;
-
 	private int N;
-	private int counts;
 	private double hx;
 	private double tau;
 
-	private HeatingCurve curve;
+	private double a;
+	private double b;
+	private double c;
 
-	private double a, b, c;
-
-	private double[] U, V;
-	private double[] alpha, beta;
-	private double maxVal;
+	private double[] U;
+	private double[] V;
+	private double[] alpha;
+	private double[] beta;
 
 	private final static double EPS = 1e-7; // a small value ensuring numeric stability
 
@@ -48,14 +41,6 @@ public class ImplicitTranslucentSolver extends ImplicitScheme implements Solver<
 	private void prepare(PenetrationProblem problem) {
 		super.prepare(problem);
 
-		curve = problem.getHeatingCurve();
-
-		absorption = problem.getAbsorptionModel();
-
-		Bi1 = (double) problem.getHeatLoss().getValue();
-		Bi2 = Bi1;
-		maxTemp = (double) problem.getMaximumTemperature().getValue();
-
 		var grid = getGrid();
 
 		N = (int) grid.getGridDensity().getValue();
@@ -67,36 +52,28 @@ public class ImplicitTranslucentSolver extends ImplicitScheme implements Solver<
 		alpha = new double[N + 2];
 		beta = new double[N + 2];
 
-		counts = (int) curve.getNumPoints().getValue();
-
 		// coefficients for difference equation
 
 		a = 1. / pow(hx, 2);
 		b = 1. / tau + 2. / pow(hx, 2);
 		c = 1. / pow(hx, 2);
 
-		maxVal = 0;
-
 	}
 
 	@Override
 	public void solve(PenetrationProblem problem) {
-
 		prepare(problem);
-
-		int i, j, m, w;
-		double pls;
-		double signal = 0;
+		var curve = problem.getHeatingCurve();
+		var absorption = problem.getAbsorptionModel();
 
 		// precalculated constants
 
 		double HH = pow(hx, 2);
-		double F;
+		double maxVal = 0;
 
 		// precalculated constants
 
-		double Bi1H = Bi1 * hx;
-		double Bi2H = Bi2 * hx;
+		final double Bi1H = (double) problem.getHeatLoss().getValue() * hx;
 
 		final var discretePulse = getDiscretePulse();
 
@@ -104,7 +81,7 @@ public class ImplicitTranslucentSolver extends ImplicitScheme implements Solver<
 		 * The outer cycle iterates over the number of points of the HeatingCurve
 		 */
 
-		for (w = 1; w < counts; w++) {
+		for (int w = 1, counts = (int) curve.getNumPoints().getValue(); w < counts; w++) {
 
 			/*
 			 * Two adjacent points of the heating curves are separated by timeInterval on
@@ -112,25 +89,25 @@ public class ImplicitTranslucentSolver extends ImplicitScheme implements Solver<
 			 * timeInterval/tau time steps have to be made first.
 			 */
 
-			for (m = (w - 1) * getTimeInterval() + 1; m < w * getTimeInterval() + 1; m++) {
+			for (int m = (w - 1) * getTimeInterval() + 1; m < w * getTimeInterval() + 1; m++) {
 
-				pls = discretePulse.laserPowerAt((m - EPS) * tau); // NOTE: EPS is very important here and ensures
+				double pls = discretePulse.laserPowerAt((m - EPS) * tau); // NOTE: EPS is very important here and ensures
 																	// numeric stability!
 
 				alpha[1] = 1.0 / (1.0 + HH / (2.0 * tau) + Bi1H);
 				beta[1] = (U[0] + tau * pls * absorption.absorption(SpectralRange.LASER, 0.0))
 						/ (1.0 + 2.0 * tau / HH * (1 + Bi1H));
 
-				for (i = 1; i < N; i++) {
+				for (int i = 1; i < N; i++) {
 					alpha[i + 1] = c / (b - a * alpha[i]);
-					F = -U[i] / tau - pls * absorption.absorption(SpectralRange.LASER, (i - EPS) * hx);
+					double F = -U[i] / tau - pls * absorption.absorption(SpectralRange.LASER, (i - EPS) * hx);
 					beta[i + 1] = (F - a * beta[i]) / (a * alpha[i] - b);
 				}
 
 				V[N] = (HH * (U[N] + tau * pls * absorption.absorption(SpectralRange.LASER, (N - EPS) * hx))
-						+ 2. * tau * beta[N]) / (2 * Bi2H * tau + HH + 2. * tau * (1 - alpha[N]));
+						+ 2. * tau * beta[N]) / (2 * Bi1H * tau + HH + 2. * tau * (1 - alpha[N]));
 
-				for (j = N - 1; j >= 0; j--) {
+				for (int j = N - 1; j >= 0; j--) {
 					V[j] = alpha[j + 1] * V[j + 1] + beta[j + 1];
 				}
 
@@ -138,9 +115,9 @@ public class ImplicitTranslucentSolver extends ImplicitScheme implements Solver<
 
 			}
 
-			signal = 0;
+			double signal = 0;
 
-			for (i = 0; i < N; i++) {
+			for (int i = 0; i < N; i++) {
 				signal += V[N - i] * absorption.absorption(SpectralRange.THERMAL, i * hx)
 						+ V[N - 1 - i] * absorption.absorption(SpectralRange.THERMAL, (i + 1) * hx);
 			}
@@ -159,6 +136,7 @@ public class ImplicitTranslucentSolver extends ImplicitScheme implements Solver<
 
 		}
 
+		final double maxTemp = (double) problem.getMaximumTemperature().getValue();
 		curve.scale(maxTemp / maxVal);
 
 	}

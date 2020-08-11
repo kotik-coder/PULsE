@@ -2,7 +2,6 @@ package pulse.problem.schemes.solvers;
 
 import static java.lang.Math.pow;
 
-import pulse.HeatingCurve;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.ImplicitScheme;
 import pulse.problem.statements.DiathermicMedium;
@@ -13,23 +12,15 @@ public class ImplicitDiathermicSolver extends ImplicitScheme implements Solver<D
 
 	private final static double EPS = 1e-7; // a small value ensuring numeric stability
 
-	private double[] U, V;
-	private double[] p, q;
-	private double a, b, c;
-	private double[] alpha, beta, gamma;
-
-	private double Bi1;
-	private double maxTemp;
-	private double eta;
-
-	private double maxVal;
+	private double[] U;
+	private double[] V;
+	private double[] p;
+	private double[] q;
+	private double[] alpha;
+	private double[] beta;
+	private double[] gamma;
 
 	private int N;
-	private int counts;
-	private double hx;
-	private double tau;
-
-	private HeatingCurve curve;
 
 	public ImplicitDiathermicSolver() {
 		super();
@@ -45,17 +36,10 @@ public class ImplicitDiathermicSolver extends ImplicitScheme implements Solver<D
 
 	private void prepare(DiathermicMedium problem) {
 		super.prepare(problem);
-		curve = problem.getHeatingCurve();
-		maxTemp = (double) problem.getMaximumTemperature().getValue();
-
-		Bi1 = (double) problem.getHeatLoss().getValue();
-		eta = (double) problem.getDiathermicCoefficient().getValue();
 
 		var grid = getGrid();
 
 		N = (int) grid.getGridDensity().getValue();
-		hx = grid.getXStep();
-		tau = grid.getTimeStep();
 
 		U = new double[N + 1];
 		V = new double[N + 1];
@@ -65,21 +49,19 @@ public class ImplicitDiathermicSolver extends ImplicitScheme implements Solver<D
 		alpha = new double[N + 1];
 		beta = new double[N + 1];
 		gamma = new double[N + 1];
-
-		counts = (int) curve.getNumPoints().getValue();
-		maxVal = 0;
-
-		// coefficients for difference equation
-
-		a = 1.0;
-		c = 1.0;
 	}
 
 	@Override
 	public void solve(DiathermicMedium problem) {
-
 		prepare(problem);
-
+		var curve = problem.getHeatingCurve();
+		var grid = getGrid();
+		
+		final double Bi1 = (double) problem.getHeatLoss().getValue();
+		final double eta = (double) problem.getDiathermicCoefficient().getValue();
+		
+		final double hx = grid.getXStep();
+		final double tau = grid.getTimeStep();
 		final double HX2_TAU = pow(hx, 2) / tau;
 
 		// precalculated constants
@@ -89,15 +71,14 @@ public class ImplicitDiathermicSolver extends ImplicitScheme implements Solver<D
 		final double f01 = HX2_TAU / 2.0;
 		final double fN1 = f01;
 
-		double F;
+		double maxVal = 0;
 
 		alpha[1] = 1.0 / z0;
 		gamma[1] = -zN_1 / z0;
 
-		int i, m, w;
-		double pls;
-
-		b = 2.0 + HX2_TAU;
+		final double a = 1.0;
+		final double c = 1.0;
+		final double b = 2.0 + HX2_TAU;
 
 		final var discretePulse = getDiscretePulse();
 
@@ -105,7 +86,7 @@ public class ImplicitDiathermicSolver extends ImplicitScheme implements Solver<D
 		 * The outer cycle iterates over the number of points of the HeatingCurve
 		 */
 
-		for (w = 1; w < counts; w++) {
+		for (int w = 1, counts = (int) curve.getNumPoints().getValue(); w < counts; w++) {
 
 			/*
 			 * Two adjacent points of the heating curves are separated by timeInterval on
@@ -113,16 +94,16 @@ public class ImplicitDiathermicSolver extends ImplicitScheme implements Solver<D
 			 * timeInterval/tau time steps have to be made first.
 			 */
 
-			for (m = (w - 1) * getTimeInterval() + 1; m < w * getTimeInterval() + 1; m++) {
+			for (int m = (w - 1) * getTimeInterval() + 1; m < w * getTimeInterval() + 1; m++) {
 
-				pls = discretePulse.laserPowerAt((m - EPS) * tau); // NOTE: EPS is very important here and ensures
+				double pls = discretePulse.laserPowerAt((m - EPS) * tau); // NOTE: EPS is very important here and ensures
 																	// numeric stability!
 
 				beta[1] = (hx * hx / (2.0 * tau) * U[0] + hx * pls) / z0;
 
-				for (i = 1; i < N; i++) {
+				for (int i = 1; i < N; i++) {
 					alpha[i + 1] = c / (b - a * alpha[i]);
-					F = -U[i] * HX2_TAU;
+					double F = -U[i] * HX2_TAU;
 					beta[i + 1] = (a * beta[i] - F) / (b - a * alpha[i]);
 					gamma[i + 1] = a * gamma[i] / (b - a * alpha[i]);
 				}
@@ -130,14 +111,14 @@ public class ImplicitDiathermicSolver extends ImplicitScheme implements Solver<D
 				p[N - 1] = beta[N];
 				q[N - 1] = alpha[N] + gamma[N];
 
-				for (i = N - 2; i >= 0; i--) {
+				for (int i = N - 2; i >= 0; i--) {
 					p[i] = alpha[i + 1] * p[i + 1] + beta[i + 1];
 					q[i] = alpha[i + 1] * q[i + 1] + gamma[i + 1];
 				}
 
 				V[N] = (fN1 * U[N] - zN_1 * p[0] + p[N - 1]) / (z0 + zN_1 * q[0] - q[N - 1]);
 
-				for (i = N - 1; i >= 0; i--) {
+				for (int i = N - 1; i >= 0; i--) {
 					V[i] = p[i] + V[N] * q[i];
 				}
 
@@ -156,7 +137,8 @@ public class ImplicitDiathermicSolver extends ImplicitScheme implements Solver<D
 			// debug(problem, V, w);
 
 		}
-
+		
+		final double maxTemp = (double) problem.getMaximumTemperature().getValue();
 		curve.scale(maxTemp / maxVal);
 
 	}

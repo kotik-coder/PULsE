@@ -2,7 +2,6 @@ package pulse.problem.schemes.solvers;
 
 import static java.lang.Math.pow;
 
-import pulse.HeatingCurve;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.MixedScheme;
 import pulse.problem.statements.LinearisedProblem;
@@ -51,22 +50,24 @@ import pulse.properties.NumericProperty;
 
 public class MixedLinearisedSolver extends MixedScheme implements Solver<LinearisedProblem> {
 
-	private double maxTemp;
-
-	private HeatingCurve curve;
-
 	private int N;
-	private int counts;
 	private double hx;
 	private double tau;
 
-	private double a, b, c, a1, b1, c1, b2, b3, c2;
+	private double a;
+	private double b;
+	private double c;
+	private double a1;
+	private double b1;
+	private double c1;
+	private double b2;
+	private double b3;
+	private double c2;
 
 	private double[] U;
 	private double[] V;
 	private double[] alpha;
 	private double[] beta;
-	private double maxVal;
 
 	private final static double EPS = 1e-7; // a small value ensuring numeric stability
 
@@ -85,7 +86,6 @@ public class MixedLinearisedSolver extends MixedScheme implements Solver<Lineari
 	@Override
 	public void prepare(Problem problem) {
 		super.prepare(problem);
-		curve = problem.getHeatingCurve();
 
 		var grid = getGrid();
 
@@ -93,16 +93,12 @@ public class MixedLinearisedSolver extends MixedScheme implements Solver<Lineari
 		hx = grid.getXStep();
 		tau = grid.getTimeStep();
 
-		double Bi1 = (double) problem.getHeatLoss().getValue();
-		double Bi2 = Bi1;
-		maxTemp = (double) problem.getMaximumTemperature().getValue();
+		final double Bi1 = (double) problem.getHeatLoss().getValue();
 
 		U = new double[N + 1];
 		V = new double[N + 1];
 		alpha = new double[N + 2];
 		beta = new double[N + 2];
-
-		counts = (int) curve.getNumPoints().getValue();
 
 		// coefficients for the finite-difference heat equation
 
@@ -112,10 +108,9 @@ public class MixedLinearisedSolver extends MixedScheme implements Solver<Lineari
 
 		// precalculated constants
 
-		double HH = pow(hx, 2);
+		final double HH = pow(hx, 2);
 
-		double Bi1HTAU = Bi1 * hx * tau;
-		double Bi2HTAU = Bi2 * hx * tau;
+		final double Bi1HTAU = Bi1 * hx * tau;
 
 		// constant for boundary-conditions calculation
 
@@ -124,22 +119,18 @@ public class MixedLinearisedSolver extends MixedScheme implements Solver<Lineari
 		b2 = -hx * (Bi1 * tau - hx);
 		b3 = hx * tau;
 		c1 = b2;
-		c2 = Bi2HTAU + HH;
-
-		maxVal = 0;
+		c2 = Bi1HTAU + HH;
 	}
 
 	@Override
 	public void solve(LinearisedProblem problem) {
-		prepare(problem);
+		this.prepare(problem);
+		var curve = problem.getHeatingCurve();
 
 		// precalculated constants
 
-		double HH = pow(hx, 2);
-		double F;
-
-		int i, j, m, w;
-		double pls;
+		final double HH = pow(hx, 2);
+		double maxVal = 0;
 
 		final var discretePulse = getDiscretePulse();
 
@@ -147,7 +138,7 @@ public class MixedLinearisedSolver extends MixedScheme implements Solver<Lineari
 		 * The outer cycle iterates over the number of points of the HeatingCurve
 		 */
 
-		for (w = 1; w < counts; w++) {
+		for (int w = 1, counts = (int) curve.getNumPoints().getValue(); w < counts; w++) {
 
 			/*
 			 * Two adjacent points of the heating curves are separated by timeInterval on
@@ -155,21 +146,21 @@ public class MixedLinearisedSolver extends MixedScheme implements Solver<Lineari
 			 * timeInterval/tau time steps have to be made first.
 			 */
 
-			for (m = (w - 1) * getTimeInterval() + 1; m < w * getTimeInterval() + 1; m++) {
+			for (int m = (w - 1) * getTimeInterval() + 1; m < w * getTimeInterval() + 1; m++) {
 
 				alpha[1] = a1;
-				pls = discretePulse.laserPowerAt((m - 1 + EPS) * tau) + discretePulse.laserPowerAt((m - EPS) * tau);
+				double pls = discretePulse.laserPowerAt((m - 1 + EPS) * tau) + discretePulse.laserPowerAt((m - EPS) * tau);
 				beta[1] = b1 * (b2 * U[0] + b3 * pls - tau * (U[0] - U[1]));
 
-				for (i = 1; i < N; i++) {
+				for (int i = 1; i < N; i++) {
 					alpha[i + 1] = c / (b - a * alpha[i]);
-					F = -2. * U[i] / tau - (U[i + 1] - 2. * U[i] + U[i - 1]) / HH;
+					double F = -2. * U[i] / tau - (U[i + 1] - 2. * U[i] + U[i - 1]) / HH;
 					beta[i + 1] = (F - a * beta[i]) / (a * alpha[i] - b);
 				}
 
 				V[N] = (c1 * U[N] + tau * beta[N] - tau * (U[N] - U[N - 1])) / (c2 - tau * (alpha[N] - 1));
 
-				for (j = N - 1; j >= 0; j--) {
+				for (int j = N - 1; j >= 0; j--) {
 					V[j] = alpha[j + 1] * V[j + 1] + beta[j + 1];
 				}
 
@@ -183,6 +174,7 @@ public class MixedLinearisedSolver extends MixedScheme implements Solver<Lineari
 
 		}
 
+		final double maxTemp = (double) problem.getMaximumTemperature().getValue();
 		curve.scale(maxTemp / maxVal);
 
 	}

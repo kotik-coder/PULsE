@@ -1,6 +1,7 @@
 package pulse.problem.schemes;
 
-import static pulse.properties.NumericProperty.*;
+import static pulse.properties.NumericProperty.def;
+import static pulse.properties.NumericProperty.derive;
 import static pulse.properties.NumericPropertyKeyword.NONLINEAR_PRECISION;
 
 import java.util.List;

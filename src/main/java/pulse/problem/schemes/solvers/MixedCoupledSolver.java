@@ -10,7 +10,6 @@ import static pulse.properties.NumericPropertyKeyword.TAU_FACTOR;
 
 import java.util.List;
 
-import pulse.HeatingCurve;
 import pulse.math.MathUtils;
 import pulse.problem.laser.DiscretePulse;
 import pulse.problem.schemes.CoupledScheme;
@@ -26,20 +25,15 @@ import pulse.ui.Messages;
 public class MixedCoupledSolver extends CoupledScheme implements Solver<ParticipatingMedium> {
 
 	private int N;
-	private int counts;
 	private double hx;
 	private double tau;
-	private double maxTemp;
 
 	private double sigma;
 
-	private HeatingCurve curve;
-
-	private double[] U, V;
-	private double[] alpha, beta;
-
-	private double opticalThickness;
-	private double Np;
+	private double[] U;
+	private double[] V;
+	private double[] alpha;
+	private double[] beta;
 
 	private final static double EPS = 1e-7; // a small value ensuring numeric stability
 
@@ -47,7 +41,7 @@ public class MixedCoupledSolver extends CoupledScheme implements Solver<Particip
 	private double b;
 	private double c;
 
-	private double Bi1, Bi2;
+	private double Bi1;
 
 	private double HX2;
 
@@ -85,18 +79,10 @@ public class MixedCoupledSolver extends CoupledScheme implements Solver<Particip
 
 		getCoupling().init(problem, grid);
 
-		curve = problem.getHeatingCurve();
-
 		N = (int) grid.getGridDensity().getValue();
 		hx = grid.getXStep();
-		maxTemp = (double) problem.getMaximumTemperature().getValue();
-
-		counts = (int) curve.getNumPoints().getValue();
 
 		Bi1 = (double) problem.getHeatLoss().getValue();
-		Bi2 = Bi1;
-		opticalThickness = (double) problem.getOpticalThickness().getValue();
-		Np = (double) problem.getPlanckNumber().getValue();
 
 		U = new double[N + 1];
 		V = new double[N + 1];
@@ -118,7 +104,10 @@ public class MixedCoupledSolver extends CoupledScheme implements Solver<Particip
 		}
 	}
 
-	private void initConst() {
+	private void initConst(ParticipatingMedium problem) {
+		final double Np = (double) problem.getPlanckNumber().getValue();
+		final double opticalThickness = (double) problem.getOpticalThickness().getValue();
+		
 		HX2 = hx * hx;
 		_2TAUHX = 2.0 * tau * hx;
 		HX2_2TAU = HX2 / (2.0 * tau);
@@ -129,25 +118,25 @@ public class MixedCoupledSolver extends CoupledScheme implements Solver<Particip
 		SIGMA_NP = sigma / Np;
 		HX_NP = hx / Np;
 		TAU0_NP = opticalThickness / Np;
-		Bi2HX = Bi2 * hx;
+		Bi2HX = Bi1 * hx;
 		ONE_PLUS_Bi1_HX = (1. + Bi1 * hx);
 	}
 
 	@Override
 	public void solve(ParticipatingMedium problem) throws SolverException {
 		prepare(problem);
+		var curve = problem.getHeatingCurve();
 		adjustSchemeWeight();
 
 		double wFactor = getTimeInterval() * tau * problem.timeFactor();
 		errorSq = MathUtils.fastPowLoop( (double)super.getNonlinearPrecision().getValue(), 2);
 
-		initConst();
+		initConst(problem);
 		initAlpha();
 
 		int pulseEnd = (int) Math.rint(this.getDiscretePulse().getDiscretePulseWidth() / wFactor) + 1;
 		int w;
-
-
+		
 		var status = getCoupling().getRadiativeTransferEquation().compute(U);
 
 		final var discretePulse = getDiscretePulse();
@@ -172,9 +161,10 @@ public class MixedCoupledSolver extends CoupledScheme implements Solver<Particip
 		tau = grid.getTimeStep();
 		adjustSchemeWeight();
 
-		initConst();
+		initConst(problem);
 		initAlpha();
 
+		final int counts = (int) curve.getNumPoints().getValue();
 		double numPoints = counts - (w - 1);
 		double dt = timeLeft / (problem.timeFactor() * (numPoints - 1));
 
@@ -193,42 +183,38 @@ public class MixedCoupledSolver extends CoupledScheme implements Solver<Particip
 		if (status != RTECalculationStatus.NORMAL)
 			throw new SolverException(status.toString());
 
+		final double maxTemp = (double) problem.getMaximumTemperature().getValue();
 		curve.scale(maxTemp / curve.apparentMaximum());
 
 	}
 
-	private RTECalculationStatus timeStep(DiscretePulse discretePulse, int m, boolean activePulse) {
-		double phi;
+	private RTECalculationStatus timeStep(DiscretePulse discretePulse, final int m, final boolean activePulse) {
 		var rte = getCoupling().getRadiativeTransferEquation();
 		final var fluxes = rte.getFluxes();
 
-		int i, j;
-		double F, pls;
-		double V_0, V_N;
-
-		pls = activePulse
+		double pls = activePulse
 				? (discretePulse.laserPowerAt((m - 1 + EPS) * tau) * ONE_MINUS_SIGMA
 						+ discretePulse.laserPowerAt((m - EPS) * tau) * sigma)
 				: 0.0;
 
 		RTECalculationStatus status = RTECalculationStatus.NORMAL;
 
-		for (V_0 = errorSq + 1, V_N = errorSq + 1; ((MathUtils.fastPowLoop((V[0] - V_0), 2) > errorSq)
+		for (double V_0 = errorSq + 1, V_N = errorSq + 1; ((MathUtils.fastPowLoop((V[0] - V_0), 2) > errorSq)
 				|| (MathUtils.fastPowLoop((V[N] - V_N), 2) > errorSq))
 				&& status == RTECalculationStatus.NORMAL; status = rte.compute(V)) {
 
 			// i = 0
-			phi = TAU0_NP * fluxes.fluxDerivativeFront();
+			double phi = TAU0_NP * fluxes.fluxDerivativeFront();
 			beta[1] = (_2TAUHX * (pls - SIGMA_NP * fluxes.getFlux(0) - ONE_MINUS_SIGMA_NP * fluxes.getStoredFlux(0))
 					+ HX2 * (U[0] + phi * tau) + _2TAU_ONE_MINUS_SIGMA * (U[1] - U[0] * ONE_PLUS_Bi1_HX))
 					* BETA1_FACTOR;
 
 			// i = 1
 			phi = TAU0_NP * phiNextToFront(rte);
-			F = U[1] / tau + phi + ONE_MINUS_SIGMA * (U[2] - 2 * U[1] + U[0]) / HX2;
+			double F = U[1] / tau + phi + ONE_MINUS_SIGMA * (U[2] - 2 * U[1] + U[0]) / HX2;
 			beta[2] = (F + a * beta[1]) / (b - a * alpha[1]);
 
-			for (i = 2; i < N - 1; i++) {
+			for (int i = 2; i < N - 1; i++) {
 				phi = TAU0_NP * phi(rte, i);
 				F = U[i] / tau + phi + ONE_MINUS_SIGMA * (U[i + 1] - 2 * U[i] + U[i - 1]) / HX2;
 				beta[i + 1] = (F + a * beta[i]) / (b - a * alpha[i]);
@@ -243,12 +229,12 @@ public class MixedCoupledSolver extends CoupledScheme implements Solver<Particip
 			V_N = V[N];
 			phi = TAU0_NP * fluxes.fluxDerivativeRear();
 			V[N] = (sigma * beta[N] + HX2_2TAU * U[N] + 0.5 * HX2 * phi
-					+ ONE_MINUS_SIGMA * (U[N - 1] - U[N] * (1. + hx * Bi2))
+					+ ONE_MINUS_SIGMA * (U[N - 1] - U[N] * (1. + hx * Bi1))
 					+ HX_NP * (sigma * fluxes.getFlux(N) + ONE_MINUS_SIGMA * fluxes.getStoredFlux(N)))
 					/ (HX2_2TAU + sigma * (1. - alpha[N] + Bi2HX));
 
 			V_0 = V[0];
-			for (j = N - 1; j >= 0; j--) {
+			for (int j = N - 1; j >= 0; j--) {
 				V[j] = alpha[j + 1] * V[j + 1] + beta[j + 1];
 			}
 
@@ -261,7 +247,7 @@ public class MixedCoupledSolver extends CoupledScheme implements Solver<Particip
 	}
 
 	private void adjustSchemeWeight() {
-		double newSigma = 0.5 - hx * hx / (12.0 * tau);
+		final double newSigma = 0.5 - hx * hx / (12.0 * tau);
 		setWeight(derive(SCHEME_WEIGHT, newSigma > 0 ? newSigma : 0.5));
 	}
 

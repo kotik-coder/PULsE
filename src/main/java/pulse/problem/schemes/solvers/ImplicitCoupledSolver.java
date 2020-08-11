@@ -5,7 +5,6 @@ import static pulse.properties.NumericPropertyKeyword.GRID_DENSITY;
 import static pulse.properties.NumericPropertyKeyword.TAU_FACTOR;
 import static pulse.ui.Messages.getString;
 
-import pulse.HeatingCurve;
 import pulse.math.MathUtils;
 import pulse.problem.schemes.CoupledScheme;
 import pulse.problem.schemes.DifferenceScheme;
@@ -16,17 +15,14 @@ import pulse.properties.NumericProperty;
 public class ImplicitCoupledSolver extends CoupledScheme implements Solver<ParticipatingMedium> {
 
 	private int N;
-	private int counts;
 	private double hx;
 	private double tau;
-	private double maxTemp;
-
-	private HeatingCurve curve;
-
-	private double[] U, V;
-	private double[] alpha, beta;
-
 	private double Np;
+
+	private double[] U;
+	private double[] V;
+	private double[] alpha;
+	private double[] beta;
 
 	private final static double EPS = 1e-7; // a small value ensuring numeric stability
 
@@ -55,17 +51,11 @@ public class ImplicitCoupledSolver extends CoupledScheme implements Solver<Parti
 
 		getCoupling().init(problem, grid);
 
-		curve = problem.getHeatingCurve();
-
 		N = (int) grid.getGridDensity().getValue();
 		hx = grid.getXStep();
 		tau = grid.getTimeStep();
-		maxTemp = (double) problem.getMaximumTemperature().getValue();
-
-		counts = (int) curve.getNumPoints().getValue();
 
 		double Bi1 = (double) problem.getHeatLoss().getValue();
-		double Bi2 = Bi1;
 		Np = (double) problem.getPlanckNumber().getValue();
 
 		U = new double[N + 1];
@@ -83,8 +73,12 @@ public class ImplicitCoupledSolver extends CoupledScheme implements Solver<Parti
 		HX_2NP = hx / (2.0 * Np);
 
 		alpha[1] = 1.0 / (1.0 + Bi1 * hx + HX2_2TAU);
+		
+		for (int i = 1; i < N; i++) {
+			alpha[i + 1] = c / (b - a * alpha[i]);
+		}
 
-		v1 = 1.0 + HX2_2TAU + hx * Bi2;
+		v1 = 1.0 + HX2_2TAU + hx * Bi1;
 
 	}
 
@@ -92,43 +86,34 @@ public class ImplicitCoupledSolver extends CoupledScheme implements Solver<Parti
 	public void solve(ParticipatingMedium problem) throws SolverException {
 
 		prepare(problem);
+		
+		var curve = problem.getHeatingCurve();
 		var rte = getCoupling().getRadiativeTransferEquation();
-		final var fluxes = rte.getFluxes();
+		var fluxes = rte.getFluxes();
+		var discretePulse = getDiscretePulse();
 
 		final double errorSq = MathUtils.fastPowLoop((double)getNonlinearPrecision().getValue(), 2);
-
-		int i, m, w, j;
-		double F, pls;
-
-		double V_0 = 0;
-		double V_N = 0;
-
-		double wFactor = getTimeInterval() * tau * problem.timeFactor();
+		final double maxTemp = (double) problem.getMaximumTemperature().getValue();
+		final double wFactor = getTimeInterval() * tau * problem.timeFactor();
 
 		var status = rte.compute(U);
 
-		for (i = 1; i < N; i++) {
-			alpha[i + 1] = c / (b - a * alpha[i]);
-		}
-
-		final var discretePulse = getDiscretePulse();
-
 		// time cycle
 
-		for (w = 1; w < counts; w++) {
+		for (int w = 1, counts = (int) curve.getNumPoints().getValue(); w < counts; w++) {
 
-			for (m = (w - 1) * getTimeInterval() + 1; m < w * getTimeInterval() + 1
+			for (int m = (w - 1) * getTimeInterval() + 1; m < w * getTimeInterval() + 1
 					&& status == RTECalculationStatus.NORMAL; m++) {
 
-				pls = discretePulse.laserPowerAt((m - EPS) * tau);
+				double pls = discretePulse.laserPowerAt((m - EPS) * tau);
 
-				for (V_0 = errorSq + 1, V_N = errorSq + 1; (MathUtils.fastPowLoop((V[0] - V_0), 2) > errorSq)
+				for (double V_0 = errorSq + 1, V_N = errorSq + 1; (MathUtils.fastPowLoop((V[0] - V_0), 2) > errorSq)
 						|| (MathUtils.fastPowLoop((V[N] - V_N), 2) > errorSq); status = rte.compute(V)) {
 
 					beta[1] = (HX2_2TAU * U[0] + hx * pls - HX_2NP * (fluxes.getFlux(0) + fluxes.getFlux(1))) * alpha[1];
 
-					for (i = 1; i < N; i++) {
-						F = U[i] / tau + b11 * (fluxes.getFlux(i - 1) - fluxes.getFlux(i + 1));
+					for (int i = 1; i < N; i++) {
+						double F = U[i] / tau + b11 * (fluxes.getFlux(i - 1) - fluxes.getFlux(i + 1));
 						beta[i + 1] = (F + a * beta[i]) / (b - a * alpha[i]);
 					}
 
@@ -137,7 +122,7 @@ public class ImplicitCoupledSolver extends CoupledScheme implements Solver<Parti
 							/ (v1 - alpha[N]);
 
 					V_0 = V[0];
-					for (j = N - 1; j >= 0; j--) {
+					for (int j = N - 1; j >= 0; j--) {
 						V[j] = alpha[j + 1] * V[j + 1] + beta[j + 1];
 					}
 
