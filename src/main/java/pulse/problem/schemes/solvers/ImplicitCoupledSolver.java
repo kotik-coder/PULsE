@@ -29,7 +29,6 @@ public class ImplicitCoupledSolver extends CoupledScheme implements Solver<Parti
 	private double b11;
 	private double a;
 	private double b;
-	private double c;
 
 	private double HX2_2TAU;
 	private double HX_2NP;
@@ -65,7 +64,7 @@ public class ImplicitCoupledSolver extends CoupledScheme implements Solver<Parti
 
 		a = 1. / (hx * hx);
 		b = 1. / tau + 2. / (hx * hx);
-		c = 1. / (hx * hx);
+		final double c = 1. / (hx * hx);
 
 		b11 = 1.0 / (2.0 * Np * hx);
 

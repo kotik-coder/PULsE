@@ -56,8 +56,6 @@ public class MixedLinearisedSolver extends MixedScheme implements Solver<Lineari
 
 	private double a;
 	private double b;
-	private double c;
-	private double a1;
 	private double b1;
 	private double c1;
 	private double b2;
@@ -104,7 +102,7 @@ public class MixedLinearisedSolver extends MixedScheme implements Solver<Lineari
 
 		a = 1. / pow(hx, 2);
 		b = 2. / tau + 2. / pow(hx, 2);
-		c = 1. / pow(hx, 2);
+		double c = 1. / pow(hx, 2);
 
 		// precalculated constants
 
@@ -114,12 +112,17 @@ public class MixedLinearisedSolver extends MixedScheme implements Solver<Lineari
 
 		// constant for boundary-conditions calculation
 
-		a1 = tau / (Bi1HTAU + HH + tau);
+		double a1 = tau / (Bi1HTAU + HH + tau);
 		b1 = 1. / (Bi1HTAU + HH + tau);
 		b2 = -hx * (Bi1 * tau - hx);
 		b3 = hx * tau;
 		c1 = b2;
 		c2 = Bi1HTAU + HH;
+		
+		alpha[1] = a1;
+		for (int i = 1; i < N; i++) {
+			alpha[i + 1] = c / (b - a * alpha[i]);
+		}
 	}
 
 	@Override
@@ -148,12 +151,10 @@ public class MixedLinearisedSolver extends MixedScheme implements Solver<Lineari
 
 			for (int m = (w - 1) * getTimeInterval() + 1; m < w * getTimeInterval() + 1; m++) {
 
-				alpha[1] = a1;
 				double pls = discretePulse.laserPowerAt((m - 1 + EPS) * tau) + discretePulse.laserPowerAt((m - EPS) * tau);
 				beta[1] = b1 * (b2 * U[0] + b3 * pls - tau * (U[0] - U[1]));
 
 				for (int i = 1; i < N; i++) {
-					alpha[i + 1] = c / (b - a * alpha[i]);
 					double F = -2. * U[i] / tau - (U[i + 1] - 2. * U[i] + U[i - 1]) / HH;
 					beta[i + 1] = (F - a * beta[i]) / (a * alpha[i] - b);
 				}
