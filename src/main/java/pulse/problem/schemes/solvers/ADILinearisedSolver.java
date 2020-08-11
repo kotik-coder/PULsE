@@ -216,9 +216,7 @@ public class ADILinearisedSolver extends ADIScheme implements Solver<LinearisedP
 									+ (1 - 1.0 / (2.0 * i)) * U2_E[i][N + 1]))
 							/ ((1 - alpha[N] + hy * Bi2) * tau + HY2);
 
-					for (int j = N - 1; j >= 0; j--) {
-						U1[i][j] = alpha[j + 1] * U1[i][j + 1] + beta[j + 1];
-					}
+					sweep(U1[i], alpha, beta);
 
 				}
 
@@ -235,9 +233,7 @@ public class ADILinearisedSolver extends ADIScheme implements Solver<LinearisedP
 				U1[0][N] = (tau * beta[N] + HY2 * U2_E[1][N + 1] + 2.0 * _c11 * (U2_E[2][N + 1] - U2_E[1][N + 1]))
 						/ ((1 - alpha[N] + hy * Bi2) * tau + HY2);
 
-				for (int j = N - 1; j >= 0; j--) {
-					U1[0][j] = alpha[j + 1] * U1[0][j + 1] + beta[j + 1];
-				}
+				sweep(U1[0], alpha, beta);
 
 			}
 

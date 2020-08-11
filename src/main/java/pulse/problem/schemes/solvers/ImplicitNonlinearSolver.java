@@ -127,9 +127,7 @@ public class ImplicitNonlinearSolver extends ImplicitScheme implements Solver<No
 
 					V[N] = c2 * (2. * beta[N] * tau + HH * U[N] + c1 * (pow(V[N] * dT / T + 1, 4) - 1));
 
-					for (int j = N - 1; j >= 0; j--) {
-						V[j] = alpha[j + 1] * V[j + 1] + beta[j + 1];
-					}
+					sweep(V, alpha, beta);
 
 				}
 

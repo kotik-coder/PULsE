@@ -85,6 +85,21 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 		discretePulse = null;
 		timeLimit = df.timeLimit;
 	}
+	
+	/**
+	 * Calculates the solution {@code V} using the tridiagonal matrix algorithm.
+	 * This performs a backwards sweep from {@code N - 1} to {@code 0} where {@code N}
+	 * is the grid density value. The coefficients {@code alpha} and {@code beta} 
+	 * should have been precalculated
+	 * @param V the array containing the {@code N}th value previously calculated from the respective boundary condition 
+	 * @param alpha an array of coefficients for the tridiagonal algorithm
+	 * @param beta an array of coefficients for the tridiagonal algorithm
+	 */
+	
+	public void sweep(double[] V, final double[] alpha, final double[] beta) {
+		for (int j = grid.getGridDensityValue() - 1; j >= 0; j--) 
+			V[j] = alpha[j + 1] * V[j + 1] + beta[j + 1];
+	}
 
 	/**
 	 * <p>

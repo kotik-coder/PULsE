@@ -121,9 +121,7 @@ public class ImplicitCoupledSolver extends CoupledScheme implements Solver<Parti
 							/ (v1 - alpha[N]);
 
 					V_0 = V[0];
-					for (int j = N - 1; j >= 0; j--) {
-						V[j] = alpha[j + 1] * V[j + 1] + beta[j + 1];
-					}
+					sweep(V, alpha, beta);
 
 				}
 
