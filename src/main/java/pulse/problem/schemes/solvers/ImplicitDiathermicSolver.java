@@ -73,13 +73,14 @@ public class ImplicitDiathermicSolver extends ImplicitScheme implements Solver<D
 
 		double maxVal = 0;
 
-		alpha[1] = 1.0 / z0;
 		gamma[1] = -zN_1 / z0;
 
 		final double a = 1.0;
 		final double c = 1.0;
 		final double b = 2.0 + HX2_TAU;
 
+		alpha = ImplicitScheme.alpha(grid, 1.0/z0, a, b, c);
+		
 		final var discretePulse = getDiscretePulse();
 
 		/*
@@ -102,7 +103,6 @@ public class ImplicitDiathermicSolver extends ImplicitScheme implements Solver<D
 				beta[1] = (hx * hx / (2.0 * tau) * U[0] + hx * pls) / z0;
 
 				for (int i = 1; i < N; i++) {
-					alpha[i + 1] = c / (b - a * alpha[i]);
 					double F = -U[i] * HX2_TAU;
 					beta[i + 1] = (a * beta[i] - F) / (b - a * alpha[i]);
 					gamma[i + 1] = a * gamma[i] / (b - a * alpha[i]);
@@ -118,7 +118,7 @@ public class ImplicitDiathermicSolver extends ImplicitScheme implements Solver<D
 
 				V[N] = (fN1 * U[N] - zN_1 * p[0] + p[N - 1]) / (z0 + zN_1 * q[0] - q[N - 1]);
 
-				sweep(V, alpha, beta);
+				ImplicitScheme.sweep(grid, V, alpha, beta);
 
 				System.arraycopy(V, 0, U, 0, N + 1);
 

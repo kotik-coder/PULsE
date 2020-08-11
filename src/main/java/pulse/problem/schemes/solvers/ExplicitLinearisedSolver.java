@@ -1,7 +1,5 @@
 package pulse.problem.schemes.solvers;
 
-import static java.lang.Math.pow;
-
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.ExplicitScheme;
 import pulse.problem.statements.LinearisedProblem;
@@ -92,11 +90,11 @@ public class ExplicitLinearisedSolver extends ExplicitScheme implements Solver<L
 
 		prepare(problem);
 		var curve = problem.getHeatingCurve();
+		var grid = getGrid();
 		final double maxTemp = (double) problem.getMaximumTemperature().getValue();
 		final double tau = getGrid().getTimeStep();
 		
 		double maxVal = 0;
-		double TAU_HH = tau / pow(hx, 2);
 
 		final var discretePulse = getDiscretePulse();
 
@@ -114,14 +112,7 @@ public class ExplicitLinearisedSolver extends ExplicitScheme implements Solver<L
 
 			for (int m = (w - 1) * getTimeInterval() + 1; m < w * getTimeInterval() + 1; m++) {
 
-				/*
-				 * Uses the heat equation explicitly to calculate the grid-function everywhere
-				 * except the boundaries
-				 */
-
-				for (int i = 1; i < N; i++) {
-					V[i] = U[i] + TAU_HH * (U[i + 1] - 2. * U[i] + U[i - 1]);
-				}
+				explicitSolution(grid, V, U);
 
 				/*
 				 * Calculates boundary values

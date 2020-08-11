@@ -69,7 +69,6 @@ public class ImplicitNonlinearSolver extends ImplicitScheme implements Solver<No
 
 		U = new double[N + 1];
 		V = new double[N + 1];
-		alpha = new double[N + 2];
 		beta = new double[N + 2];
 
 		// constant for bc calc
@@ -83,6 +82,8 @@ public class ImplicitNonlinearSolver extends ImplicitScheme implements Solver<No
 		a = 1. / pow(hx, 2);
 		b = 1. / tau + 2. / pow(hx, 2);
 		c = 1. / pow(hx, 2);
+		
+		alpha = alpha(grid, a1, a, b, c);
 	}
 
 	@Override
@@ -93,8 +94,7 @@ public class ImplicitNonlinearSolver extends ImplicitScheme implements Solver<No
 		final double fixedPointPrecisionSq = pow(nonlinearPrecision, 2);
 		final double HH = pow(hx, 2);
 
-		double F, pls;
-		double c2;
+		var grid = getGrid();
 
 		final var discretePulse = getDiscretePulse();
 
@@ -104,14 +104,9 @@ public class ImplicitNonlinearSolver extends ImplicitScheme implements Solver<No
 
 			for (int m = (w - 1) * getTimeInterval() + 1; m < w * getTimeInterval() + 1; m++) {
 
-				pls = discretePulse.laserPowerAt((m - EPS) * tau);
-				alpha[1] = a1;
+				double pls = discretePulse.laserPowerAt((m - EPS) * tau);
 
-				for (int i = 1; i < N; i++) {
-					alpha[i + 1] = c / (b - a * alpha[i]);
-				}
-
-				c2 = 1. / (HH + 2. * tau - 2 * alpha[N] * tau);
+				double c2 = 1. / (HH + 2. * tau - 2 * alpha[N] * tau);
 
 				for (double lastIteration = Double.POSITIVE_INFINITY; pow((0.5 * (V[0] + V[N]) - lastIteration),
 						2) > fixedPointPrecisionSq;) {
@@ -121,13 +116,13 @@ public class ImplicitNonlinearSolver extends ImplicitScheme implements Solver<No
 					beta[1] = b1 * U[0] + b2 * (pls - b3 * (pow(V[0] * dT / T + 1, 4) - 1));
 
 					for (int i = 1; i < N; i++) {
-						F = -U[i] / tau;
+						double F = -U[i] / tau;
 						beta[i + 1] = (F - a * beta[i]) / (a * alpha[i] - b);
 					}
 
 					V[N] = c2 * (2. * beta[N] * tau + HH * U[N] + c1 * (pow(V[N] * dT / T + 1, 4) - 1));
 
-					sweep(V, alpha, beta);
+					sweep(grid, V, alpha, beta);
 
 				}
 

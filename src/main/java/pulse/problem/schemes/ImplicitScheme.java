@@ -61,6 +61,41 @@ public abstract class ImplicitScheme extends DifferenceScheme {
 		super(timeLimit);
 		setGrid(new Grid(N, timeFactor));
 	}
+	
+	/**
+	 * Calculates the solution {@code V} using the tridiagonal matrix algorithm.
+	 * This performs a backwards sweep from {@code N - 1} to {@code 0} where {@code N}
+	 * is the grid density value. The coefficients {@code alpha} and {@code beta} 
+	 * should have been precalculated
+	 * @param V the array containing the {@code N}th value previously calculated from the respective boundary condition 
+	 * @param alpha an array of coefficients for the tridiagonal algorithm
+	 * @param beta an array of coefficients for the tridiagonal algorithm
+	 */
+	
+	public static void sweep(Grid grid, double[] V, final double[] alpha, final double[] beta) {
+		for (int j = grid.getGridDensityValue() - 1; j >= 0; j--) 
+			V[j] = alpha[j + 1] * V[j + 1] + beta[j + 1];
+	}
+	
+	/**
+	 * Calculates the {@code alpha} coefficients as part of the tridiagonal matrix algorithm.
+	 * @param grid the grid 
+	 * @param alpha0 the first value &alpha;<sub>0</sub> used to calculate the array
+	 * @param a the heat equation coefficient corresponding to &theta;<sub>i+1</sub>
+	 * @param b the heat equation coefficient corresponding to &theta;<sub>i</sub>
+	 * @param c the heat equation coefficient corresponding to &theta;<sub>i-1</sub>
+	 * @return
+	 */
+	
+	public static double[] alpha(Grid grid, final double alpha0, final double a, final double b, final double c) {
+		final int N = grid.getGridDensityValue();
+		var alpha = new double[N + 2];
+		alpha[1] = alpha0;
+		for (int i = 1; i < N; i++) {
+			alpha[i + 1] = c / (b - a * alpha[i]);
+		}
+		return alpha;
+	}
 
 	/**
 	 * Prints out the description of this problem type.

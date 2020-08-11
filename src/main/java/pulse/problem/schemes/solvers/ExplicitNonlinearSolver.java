@@ -62,8 +62,8 @@ public class ExplicitNonlinearSolver extends ExplicitScheme implements Solver<No
 		prepare(problem);
 		
 		var curve = problem.getHeatingCurve();
+		var grid = getGrid();
 
-		final double TAU_HH = tau / pow(hx, 2);
 		final double a00 = 2 * tau / (hx * hx + 2 * tau);
 		final double a11 = hx * hx / (2.0 * tau);
 		final double Bi1 = (double) problem.getHeatLoss().getValue();
@@ -80,9 +80,7 @@ public class ExplicitNonlinearSolver extends ExplicitScheme implements Solver<No
 
 			for (int m = (w - 1) * getTimeInterval() + 1; m < w * getTimeInterval() + 1; m++) {
 
-				for (int i = 1; i < N; i++) {
-					V[i] = U[i] + TAU_HH * (U[i + 1] - 2. * U[i] + U[i - 1]);
-				}
+				explicitSolution(grid, V, U);
 
 				double pls = discretePulse.laserPowerAt((m - EPS) * tau);
 

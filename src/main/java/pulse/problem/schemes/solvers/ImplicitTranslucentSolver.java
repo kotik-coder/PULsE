@@ -1,8 +1,10 @@
 package pulse.problem.schemes.solvers;
 
 import static java.lang.Math.pow;
+import static pulse.ui.Messages.getString;
 
 import pulse.problem.schemes.DifferenceScheme;
+import pulse.problem.schemes.DistributedDetection;
 import pulse.problem.schemes.ImplicitScheme;
 import pulse.problem.statements.PenetrationProblem;
 import pulse.problem.statements.Problem;
@@ -14,6 +16,8 @@ public class ImplicitTranslucentSolver extends ImplicitScheme implements Solver<
 	private int N;
 	private double hx;
 	private double tau;
+	
+	private double Bi1H;
 
 	private double a;
 	private double b;
@@ -28,10 +32,6 @@ public class ImplicitTranslucentSolver extends ImplicitScheme implements Solver<
 
 	public ImplicitTranslucentSolver() {
 		super();
-	}
-
-	public ImplicitTranslucentSolver(NumericProperty N, NumericProperty timeFactor) {
-		super(N, timeFactor);
 	}
 
 	public ImplicitTranslucentSolver(NumericProperty N, NumericProperty timeFactor, NumericProperty timeLimit) {
@@ -49,7 +49,6 @@ public class ImplicitTranslucentSolver extends ImplicitScheme implements Solver<
 
 		U = new double[N + 1];
 		V = new double[N + 1];
-		alpha = new double[N + 2];
 		beta = new double[N + 2];
 
 		// coefficients for difference equation
@@ -58,22 +57,24 @@ public class ImplicitTranslucentSolver extends ImplicitScheme implements Solver<
 		b = 1. / tau + 2. / pow(hx, 2);
 		c = 1. / pow(hx, 2);
 
+		Bi1H = (double) problem.getHeatLoss().getValue() * hx;
+		
+		final double alpha0 = 1.0 / (1.0 + hx*hx / (2.0 * tau) + Bi1H);
+		alpha = alpha(grid, alpha0, a, b, c);
+
 	}
 
 	@Override
 	public void solve(PenetrationProblem problem) {
 		prepare(problem);
 		var curve = problem.getHeatingCurve();
+		var grid = getGrid();
 		var absorption = problem.getAbsorptionModel();
 
 		// precalculated constants
 
-		double HH = pow(hx, 2);
+		final double HH = hx*hx;
 		double maxVal = 0;
-
-		// precalculated constants
-
-		final double Bi1H = (double) problem.getHeatLoss().getValue() * hx;
 
 		final var discretePulse = getDiscretePulse();
 
@@ -94,12 +95,10 @@ public class ImplicitTranslucentSolver extends ImplicitScheme implements Solver<
 				double pls = discretePulse.laserPowerAt((m - EPS) * tau); // NOTE: EPS is very important here and ensures
 																	// numeric stability!
 
-				alpha[1] = 1.0 / (1.0 + HH / (2.0 * tau) + Bi1H);
 				beta[1] = (U[0] + tau * pls * absorption.absorption(SpectralRange.LASER, 0.0))
 						/ (1.0 + 2.0 * tau / HH * (1 + Bi1H));
 
 				for (int i = 1; i < N; i++) {
-					alpha[i + 1] = c / (b - a * alpha[i]);
 					double F = -U[i] / tau - pls * absorption.absorption(SpectralRange.LASER, (i - EPS) * hx);
 					beta[i + 1] = (F - a * beta[i]) / (a * alpha[i] - b);
 				}
@@ -107,21 +106,13 @@ public class ImplicitTranslucentSolver extends ImplicitScheme implements Solver<
 				V[N] = (HH * (U[N] + tau * pls * absorption.absorption(SpectralRange.LASER, (N - EPS) * hx))
 						+ 2. * tau * beta[N]) / (2 * Bi1H * tau + HH + 2. * tau * (1 - alpha[N]));
 
-				sweep(V, alpha, beta);
+				sweep(grid, V, alpha, beta);
 
 				System.arraycopy(V, 0, U, 0, N + 1);
 
 			}
 
-			double signal = 0;
-
-			for (int i = 0; i < N; i++) {
-				signal += V[N - i] * absorption.absorption(SpectralRange.THERMAL, i * hx)
-						+ V[N - 1 - i] * absorption.absorption(SpectralRange.THERMAL, (i + 1) * hx);
-			}
-
-			signal *= hx / 2.0;
-
+			double signal = DistributedDetection.evaluateSignal(absorption, grid, V);
 			maxVal = Math.max(maxVal, signal);
 
 			curve.addPoint((w * getTimeInterval()) * tau * problem.timeFactor(), signal);
@@ -143,6 +134,17 @@ public class ImplicitTranslucentSolver extends ImplicitScheme implements Solver<
 	public DifferenceScheme copy() {
 		var grid = getGrid();
 		return new ImplicitTranslucentSolver(grid.getGridDensity(), grid.getTimeFactor(), getTimeLimit());
+	}
+
+	/**
+	 * Prints out the description of this problem type.
+	 * 
+	 * @return a verbose description of the problem.
+	 */
+
+	@Override
+	public String toString() {
+		return getString("ImplicitScheme.4");
 	}
 
 	@Override

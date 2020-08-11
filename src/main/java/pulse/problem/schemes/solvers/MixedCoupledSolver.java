@@ -14,6 +14,7 @@ import pulse.math.MathUtils;
 import pulse.problem.laser.DiscretePulse;
 import pulse.problem.schemes.CoupledScheme;
 import pulse.problem.schemes.DifferenceScheme;
+import pulse.problem.schemes.ImplicitScheme;
 import pulse.problem.schemes.rte.RTECalculationStatus;
 import pulse.problem.schemes.rte.RadiativeTransferSolver;
 import pulse.problem.statements.ParticipatingMedium;
@@ -86,7 +87,6 @@ public class MixedCoupledSolver extends CoupledScheme implements Solver<Particip
 
 		U = new double[N + 1];
 		V = new double[N + 1];
-		alpha = new double[N + 2];
 		beta = new double[N + 2];
 
 		tau = grid.getTimeStep();
@@ -96,12 +96,8 @@ public class MixedCoupledSolver extends CoupledScheme implements Solver<Particip
 		a = sigma / HX2;
 		b = 1. / tau + 2. * sigma / HX2;
 		c = sigma / HX2;
-
-		alpha[1] = 1.0 / (HX2 / (2.0 * tau * sigma) + 1. + hx * Bi1);
-
-		for (int i = 1; i < N; i++) {
-			alpha[i + 1] = c / (b - a * alpha[i]);
-		}
+		final double alpha0 = 1.0 / (HX2 / (2.0 * tau * sigma) + 1. + hx * Bi1);
+		alpha = ImplicitScheme.alpha(getGrid(), alpha0, a, b, c);
 	}
 
 	private void initConst(ParticipatingMedium problem) {
@@ -190,6 +186,7 @@ public class MixedCoupledSolver extends CoupledScheme implements Solver<Particip
 
 	private RTECalculationStatus timeStep(DiscretePulse discretePulse, final int m, final boolean activePulse) {
 		var rte = getCoupling().getRadiativeTransferEquation();
+		var grid = getGrid();
 		final var fluxes = rte.getFluxes();
 
 		double pls = activePulse
@@ -234,7 +231,7 @@ public class MixedCoupledSolver extends CoupledScheme implements Solver<Particip
 					/ (HX2_2TAU + sigma * (1. - alpha[N] + Bi2HX));
 
 			V_0 = V[0];
-			sweep(V, alpha, beta);
+			ImplicitScheme.sweep(grid, V, alpha, beta);
 
 		}
 

@@ -95,7 +95,6 @@ public class MixedLinearisedSolver extends MixedScheme implements Solver<Lineari
 
 		U = new double[N + 1];
 		V = new double[N + 1];
-		alpha = new double[N + 2];
 		beta = new double[N + 2];
 
 		// coefficients for the finite-difference heat equation
@@ -107,7 +106,6 @@ public class MixedLinearisedSolver extends MixedScheme implements Solver<Lineari
 		// precalculated constants
 
 		final double HH = pow(hx, 2);
-
 		final double Bi1HTAU = Bi1 * hx * tau;
 
 		// constant for boundary-conditions calculation
@@ -119,16 +117,15 @@ public class MixedLinearisedSolver extends MixedScheme implements Solver<Lineari
 		c1 = b2;
 		c2 = Bi1HTAU + HH;
 		
-		alpha[1] = a1;
-		for (int i = 1; i < N; i++) {
-			alpha[i + 1] = c / (b - a * alpha[i]);
-		}
+		alpha = alpha(grid, a1, a, b, c);
+
 	}
 
 	@Override
 	public void solve(LinearisedProblem problem) {
 		this.prepare(problem);
 		var curve = problem.getHeatingCurve();
+		var grid = getGrid();
 
 		// precalculated constants
 
@@ -161,7 +158,7 @@ public class MixedLinearisedSolver extends MixedScheme implements Solver<Lineari
 
 				V[N] = (c1 * U[N] + tau * beta[N] - tau * (U[N] - U[N - 1])) / (c2 - tau * (alpha[N] - 1));
 
-				sweep(V, alpha, beta);
+				sweep(grid, V, alpha, beta);
 
 				System.arraycopy(V, 0, U, 0, N + 1);
 

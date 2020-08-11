@@ -7,6 +7,8 @@ import static pulse.properties.NumericProperty.derive;
 import java.util.List;
 
 import pulse.math.IndexedVector;
+import pulse.problem.schemes.DifferenceScheme;
+import pulse.problem.schemes.solvers.ImplicitTranslucentSolver;
 import pulse.problem.statements.penetration.AbsorptionModel;
 import pulse.problem.statements.penetration.BeerLambertAbsorption;
 import pulse.properties.Flag;
@@ -118,6 +120,11 @@ public class PenetrationProblem extends LinearisedProblem {
 		}
 	}
 
+	@Override
+	public Class<? extends DifferenceScheme> defaultScheme() {
+		return ImplicitTranslucentSolver.class;
+	}
+	
 	@Override
 	public String toString() {
 		return Messages.getString("DistributedProblem.Descriptor");

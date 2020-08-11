@@ -1,5 +1,6 @@
 package pulse.problem.schemes;
 
+import static pulse.math.MathUtils.fastPowLoop;
 import static pulse.properties.NumericProperty.derive;
 import static pulse.properties.NumericPropertyKeyword.GRID_DENSITY;
 import static pulse.properties.NumericPropertyKeyword.TAU_FACTOR;
@@ -62,6 +63,20 @@ public abstract class ExplicitScheme extends DifferenceScheme {
 	public ExplicitScheme(NumericProperty N, NumericProperty timeFactor, NumericProperty timeLimit) {
 		super(timeLimit);
 		setGrid(new Grid(N, timeFactor));
+	}
+	
+	/**
+	 * Uses the heat equation explicitly to calculate the grid-function everywhere
+	 * except for the boundaries
+	 * @param grid the grid 
+	 * @param V the output temperature profile 
+	 * @param U the input temperature profile
+	 */
+	
+	public static void explicitSolution(Grid grid, double[] V, double[] U) {
+		final double TAU_HH = grid.getTimeStep()/(fastPowLoop(grid.getXStep(), 2));
+		for (int i = 1, N = grid.getGridDensityValue(); i < N; i++) 
+			V[i] = U[i] + TAU_HH * (U[i + 1] - 2. * U[i] + U[i - 1]);
 	}
 
 	/**

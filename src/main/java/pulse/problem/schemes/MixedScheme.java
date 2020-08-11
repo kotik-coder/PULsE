@@ -16,7 +16,7 @@ import pulse.properties.NumericProperty;
  *
  */
 
-public abstract class MixedScheme extends DifferenceScheme {
+public abstract class MixedScheme extends ImplicitScheme {
 
 	/**
 	 * Constructs a default semi-implicit scheme using the default values of
@@ -39,8 +39,7 @@ public abstract class MixedScheme extends DifferenceScheme {
 	 */
 
 	public MixedScheme(NumericProperty N, NumericProperty timeFactor) {
-		super();
-		setGrid(new Grid(N, timeFactor));
+		super(N, timeFactor);
 	}
 
 	/**
@@ -59,8 +58,7 @@ public abstract class MixedScheme extends DifferenceScheme {
 	 */
 
 	public MixedScheme(NumericProperty N, NumericProperty timeFactor, NumericProperty timeLimit) {
-		super(timeLimit);
-		setGrid(new Grid(N, timeFactor));
+		super(N, timeFactor, timeLimit);
 	}
 
 	/**

@@ -13,7 +13,7 @@ import pulse.properties.NumericProperty;
  *
  */
 
-public abstract class ADIScheme extends DifferenceScheme {
+public abstract class ADIScheme extends ImplicitScheme {
 
 	/**
 	 * Creates a new {@code ADIScheme} with default values of grid density and time
@@ -47,7 +47,7 @@ public abstract class ADIScheme extends DifferenceScheme {
 	 */
 
 	public ADIScheme(NumericProperty N, NumericProperty timeFactor, NumericProperty timeLimit) {
-		super(timeLimit);
+		setTimeLimit(timeLimit);
 		setGrid(new Grid2D(N, timeFactor));
 	}
 

@@ -90,7 +90,6 @@ public class ImplicitLinearisedSolver extends ImplicitScheme implements Solver<L
 
 		U = new double[N + 1];
 		V = new double[N + 1];
-		alpha = new double[N + 1];
 		beta = new double[N + 1];
 
 		// coefficients for difference equation
@@ -100,16 +99,21 @@ public class ImplicitLinearisedSolver extends ImplicitScheme implements Solver<L
 		c = 1. / pow(hx, 2);
 
 		Bi1HTAU = Bi1 * hx * tau;
+		
+		final double alpha0 = 2. * tau / (2. * Bi1HTAU + 2. * tau + hx*hx);
+		alpha = alpha(grid, alpha0, a, b, c);
+
 	}
 
 	@Override
 	public void solve(LinearisedProblem problem) {
 		prepare(problem);
 		var curve = problem.getHeatingCurve();
+		var grid = getGrid();
 
 		// precalculated constants
 
-		double HH = pow(hx, 2);
+		double HH = hx*hx;
 		double _2HTAU = 2. * hx * tau;
 
 		double maxVal = 0;
@@ -133,18 +137,16 @@ public class ImplicitLinearisedSolver extends ImplicitScheme implements Solver<L
 				double pls = discretePulse.laserPowerAt((m - EPS) * tau); // NOTE: EPS is very important here and ensures
 																	// numeric stability!
 
-				alpha[1] = 2. * tau / (2. * Bi1HTAU + 2. * tau + HH);
 				beta[1] = (HH * U[0] + _2HTAU * pls) / (2. * Bi1HTAU + 2. * tau + HH);
 
 				for (int i = 1; i < N; i++) {
-					alpha[i + 1] = c / (b - a * alpha[i]);
 					double F = -U[i] / tau;
 					beta[i + 1] = (F - a * beta[i]) / (a * alpha[i] - b);
 				}
 
 				V[N] = (HH * U[N] + 2. * tau * beta[N]) / (2 * Bi1HTAU + HH - 2. * tau * (alpha[N] - 1));
 
-				sweep(V, alpha, beta);
+				sweep(grid, V, alpha, beta);
 
 				System.arraycopy(V, 0, U, 0, N + 1);
 

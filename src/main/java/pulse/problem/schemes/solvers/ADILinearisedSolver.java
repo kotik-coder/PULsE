@@ -102,6 +102,7 @@ public class ADILinearisedSolver extends ADIScheme implements Solver<LinearisedP
 	public void solve(LinearisedProblem2D problem) {
 		prepare(problem);
 		var curve = problem.getHeatingCurve();
+		var grid = getGrid();
 		final double maxTemp = (double) problem.getMaximumTemperature().getValue();
 		
 		final double hy = ((Grid2D) getGrid()).getYStep();
@@ -216,7 +217,7 @@ public class ADILinearisedSolver extends ADIScheme implements Solver<LinearisedP
 									+ (1 - 1.0 / (2.0 * i)) * U2_E[i][N + 1]))
 							/ ((1 - alpha[N] + hy * Bi2) * tau + HY2);
 
-					sweep(U1[i], alpha, beta);
+					sweep(grid, U1[i], alpha, beta);
 
 				}
 
@@ -233,7 +234,7 @@ public class ADILinearisedSolver extends ADIScheme implements Solver<LinearisedP
 				U1[0][N] = (tau * beta[N] + HY2 * U2_E[1][N + 1] + 2.0 * _c11 * (U2_E[2][N + 1] - U2_E[1][N + 1]))
 						/ ((1 - alpha[N] + hy * Bi2) * tau + HY2);
 
-				sweep(U1[0], alpha, beta);
+				sweep(grid, U1[0], alpha, beta);
 
 			}
 

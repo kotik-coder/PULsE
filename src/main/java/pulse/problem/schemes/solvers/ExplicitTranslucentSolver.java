@@ -1,8 +1,10 @@
 package pulse.problem.schemes.solvers;
 
 import static java.lang.Math.pow;
+import static pulse.ui.Messages.getString;
 
 import pulse.problem.schemes.DifferenceScheme;
+import pulse.problem.schemes.DistributedDetection;
 import pulse.problem.schemes.ExplicitScheme;
 import pulse.problem.statements.PenetrationProblem;
 import pulse.problem.statements.Problem;
@@ -23,10 +25,6 @@ public class ExplicitTranslucentSolver extends ExplicitScheme implements Solver<
 
 	public ExplicitTranslucentSolver() {
 		super();
-	}
-
-	public ExplicitTranslucentSolver(NumericProperty N, NumericProperty timeFactor) {
-		super(N, timeFactor);
 	}
 
 	public ExplicitTranslucentSolver(NumericProperty N, NumericProperty timeFactor, NumericProperty timeLimit) {
@@ -57,6 +55,7 @@ public class ExplicitTranslucentSolver extends ExplicitScheme implements Solver<
 		
 		var absorb = problem.getAbsorptionModel();
 		var curve = problem.getHeatingCurve();
+		var grid = getGrid();
 		
 		final double TAU_HH = tau / pow(hx, 2);
 
@@ -101,14 +100,7 @@ public class ExplicitTranslucentSolver extends ExplicitScheme implements Solver<
 
 			}
 
-			double signal = 0;
-
-			for (int i = 0; i < N; i++) {
-				signal += V[N - i] * absorb.absorption(SpectralRange.THERMAL, i * hx)
-						+ V[N - 1 - i] * absorb.absorption(SpectralRange.THERMAL, (i + 1) * hx);
-			}
-
-			signal *= hx / 2.0;
+			double signal = DistributedDetection.evaluateSignal(absorb, grid, V);
 
 			maxVal = Math.max(maxVal, signal);
 
@@ -124,6 +116,17 @@ public class ExplicitTranslucentSolver extends ExplicitScheme implements Solver<
 	public DifferenceScheme copy() {
 		var grid = getGrid();
 		return new ExplicitTranslucentSolver(grid.getGridDensity(), grid.getTimeFactor(), getTimeLimit());
+	}
+
+	/**
+	 * Prints out the description of this problem type.
+	 * 
+	 * @return a verbose description of the problem.
+	 */
+
+	@Override
+	public String toString() {
+		return getString("ExplicitScheme.4");
 	}
 
 	@Override

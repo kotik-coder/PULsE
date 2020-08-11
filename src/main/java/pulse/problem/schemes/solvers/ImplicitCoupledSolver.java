@@ -8,6 +8,7 @@ import static pulse.ui.Messages.getString;
 import pulse.math.MathUtils;
 import pulse.problem.schemes.CoupledScheme;
 import pulse.problem.schemes.DifferenceScheme;
+import pulse.problem.schemes.ImplicitScheme;
 import pulse.problem.schemes.rte.RTECalculationStatus;
 import pulse.problem.statements.ParticipatingMedium;
 import pulse.properties.NumericProperty;
@@ -17,7 +18,6 @@ public class ImplicitCoupledSolver extends CoupledScheme implements Solver<Parti
 	private int N;
 	private double hx;
 	private double tau;
-	private double Np;
 
 	private double[] U;
 	private double[] V;
@@ -54,12 +54,11 @@ public class ImplicitCoupledSolver extends CoupledScheme implements Solver<Parti
 		hx = grid.getXStep();
 		tau = grid.getTimeStep();
 
-		double Bi1 = (double) problem.getHeatLoss().getValue();
-		Np = (double) problem.getPlanckNumber().getValue();
+		final double Bi1 = (double) problem.getHeatLoss().getValue();
+		final double Np = (double) problem.getPlanckNumber().getValue();
 
 		U = new double[N + 1];
 		V = new double[N + 1];
-		alpha = new double[N + 2];
 		beta = new double[N + 2];
 
 		a = 1. / (hx * hx);
@@ -71,14 +70,10 @@ public class ImplicitCoupledSolver extends CoupledScheme implements Solver<Parti
 		HX2_2TAU = hx * hx / (2.0 * tau);
 		HX_2NP = hx / (2.0 * Np);
 
-		alpha[1] = 1.0 / (1.0 + Bi1 * hx + HX2_2TAU);
+		double alpha0 = 1.0 / (1.0 + Bi1 * hx + HX2_2TAU);
 		
-		for (int i = 1; i < N; i++) {
-			alpha[i + 1] = c / (b - a * alpha[i]);
-		}
-
+		alpha = ImplicitScheme.alpha(grid, alpha0, a, b, c);
 		v1 = 1.0 + HX2_2TAU + hx * Bi1;
-
 	}
 
 	@Override
@@ -87,6 +82,7 @@ public class ImplicitCoupledSolver extends CoupledScheme implements Solver<Parti
 		prepare(problem);
 		
 		var curve = problem.getHeatingCurve();
+		var grid = getGrid();
 		var rte = getCoupling().getRadiativeTransferEquation();
 		var fluxes = rte.getFluxes();
 		var discretePulse = getDiscretePulse();
@@ -121,7 +117,7 @@ public class ImplicitCoupledSolver extends CoupledScheme implements Solver<Parti
 							/ (v1 - alpha[N]);
 
 					V_0 = V[0];
-					sweep(V, alpha, beta);
+					ImplicitScheme.sweep(grid, V, alpha, beta);
 
 				}
 
