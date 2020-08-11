@@ -55,7 +55,6 @@ public class ImplicitLinearisedSolver extends ImplicitScheme implements Solver<L
 
 	private double a;
 	private double b;
-	private double c;
 
 	private double[] U;
 	private double[] V;
@@ -96,7 +95,7 @@ public class ImplicitLinearisedSolver extends ImplicitScheme implements Solver<L
 
 		a = 1. / pow(hx, 2);
 		b = 1. / tau + 2. / pow(hx, 2);
-		c = 1. / pow(hx, 2);
+		var c = 1. / pow(hx, 2);
 
 		Bi1HTAU = Bi1 * hx * tau;
 		

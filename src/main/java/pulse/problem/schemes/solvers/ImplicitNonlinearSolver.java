@@ -29,14 +29,12 @@ public class ImplicitNonlinearSolver extends ImplicitScheme implements Solver<No
 	private double T;
 	private double dT;
 
-	private double a1;
 	private double b1;
 	private double c1;
 	private double b2;
 	private double b3;
 	private double a;
 	private double b;
-	private double c;
 
 	private double nonlinearPrecision = (double) NumericProperty.def(NONLINEAR_PRECISION).getValue();
 
@@ -73,7 +71,7 @@ public class ImplicitNonlinearSolver extends ImplicitScheme implements Solver<No
 
 		// constant for bc calc
 
-		a1 = 2. * tau / (HH + 2. * tau);
+		final double a1 = 2. * tau / (HH + 2. * tau);
 		b1 = HH / (2. * tau + HH);
 		b2 = a1 * hx;
 		b3 = Bi1 * T / (4.0 * dT);
@@ -81,7 +79,7 @@ public class ImplicitNonlinearSolver extends ImplicitScheme implements Solver<No
 
 		a = 1. / pow(hx, 2);
 		b = 1. / tau + 2. / pow(hx, 2);
-		c = 1. / pow(hx, 2);
+		final double c = 1. / pow(hx, 2);
 		
 		alpha = alpha(grid, a1, a, b, c);
 	}

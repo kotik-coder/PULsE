@@ -21,7 +21,6 @@ public class ImplicitTranslucentSolver extends ImplicitScheme implements Solver<
 
 	private double a;
 	private double b;
-	private double c;
 
 	private double[] U;
 	private double[] V;
@@ -55,7 +54,7 @@ public class ImplicitTranslucentSolver extends ImplicitScheme implements Solver<
 
 		a = 1. / pow(hx, 2);
 		b = 1. / tau + 2. / pow(hx, 2);
-		c = 1. / pow(hx, 2);
+		final double c = 1. / pow(hx, 2);
 
 		Bi1H = (double) problem.getHeatLoss().getValue() * hx;
 		
