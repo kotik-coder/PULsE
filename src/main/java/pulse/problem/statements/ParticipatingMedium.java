@@ -1,5 +1,6 @@
 package pulse.problem.statements;
 
+import static pulse.math.MathUtils.*;
 import static java.lang.Math.exp;
 import static java.lang.Math.log;
 import static java.lang.Math.tanh;
@@ -180,7 +181,7 @@ public class ParticipatingMedium extends NonlinearProblem {
 			switch (params.getIndex(i)) {
 
 			case PLANCK_NUMBER:
-				planckNumber = 0.5 * maxNp() * (Math.tanh(params.get(i)) + 1.0);
+				planckNumber = 0.5 * maxNp() * (tanh(params.get(i)) + 1.0);
 				changed = getPlanckNumber();
 				break;
 			case OPTICAL_THICKNESS:
@@ -237,7 +238,7 @@ public class ParticipatingMedium extends NonlinearProblem {
 		if (this.allDetailsPresent()) {
 			final double nSq = 4;
 			final double lambda = thermalConductivity();
-			planckNumber = lambda / (4.0 * nSq * STEFAN_BOTLZMAN * Math.pow(T, 3) * l);
+			planckNumber = lambda / (4.0 * nSq * STEFAN_BOTLZMAN * fastPowLoop(T, 3) * l);
 		}
 	}
 

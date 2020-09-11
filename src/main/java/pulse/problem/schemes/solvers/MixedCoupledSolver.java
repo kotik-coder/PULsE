@@ -43,7 +43,6 @@ public class MixedCoupledSolver extends CoupledImplicitScheme implements Solver<
 	private double HX2;
 	private double HX_NP;
 	private double TAU0_NP;
-	private double Bi2HX;
 	private double ONE_PLUS_Bi1_HX;
 	private double SIGMA_NP;
 
@@ -124,7 +123,7 @@ public class MixedCoupledSolver extends CoupledImplicitScheme implements Solver<
 		ONE_MINUS_SIGMA = 1.0 - sigma;
 		TAU0_NP = opticalThickness / Np;
 
-		Bi2HX = Bi1 * hx;
+		final double Bi2HX = Bi1 * hx;
 		ONE_PLUS_Bi1_HX = 1. + Bi2HX;
 
 		_2TAUHX = 2.0 * tau * hx;

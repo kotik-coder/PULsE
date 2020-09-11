@@ -50,7 +50,6 @@ public class ImplicitLinearisedSolver extends ImplicitScheme implements Solver<L
 	private double Bi1HTAU;
 
 	private int N;
-	private double hx;
 	private double tau;
 	
 	private double HH;
@@ -77,7 +76,7 @@ public class ImplicitLinearisedSolver extends ImplicitScheme implements Solver<L
 		var grid = getGrid();
 
 		N = (int) grid.getGridDensity().getValue();
-		hx = grid.getXStep();
+		final double hx = grid.getXStep();
 		tau = grid.getTimeStep();
 
 		final double Bi1 = (double) problem.getHeatLoss().getValue();

@@ -23,7 +23,6 @@ public class ImplicitCoupledSolver extends CoupledImplicitScheme implements Solv
 	private int N;
 
 	private double hx;
-	private double tau;
 
 	private double HX2_2TAU;
 	private double HX2TAU0_2NP;
@@ -51,7 +50,7 @@ public class ImplicitCoupledSolver extends CoupledImplicitScheme implements Solv
 		N = (int) getGrid().getGridDensity().getValue();
 		hx = grid.getXStep();
 		final double HH = hx * hx;
-		tau = grid.getTimeStep();
+		final double tau = grid.getTimeStep();
 
 		final double Bi1 = (double) problem.getHeatLoss().getValue();
 		final double Np = (double) problem.getPlanckNumber().getValue();

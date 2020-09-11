@@ -17,13 +17,10 @@ import pulse.properties.Property;
 public class ImplicitNonlinearSolver extends ImplicitScheme implements Solver<NonlinearProblem> {
 
 	private int N;
-	private double hx;
 	private double HH;
 	private double tau;
 	private double pls;
 	
-	private double T;
-	private double dT;
 	private double dT_T;
 
 	private double b1;
@@ -54,14 +51,14 @@ public class ImplicitNonlinearSolver extends ImplicitScheme implements Solver<No
 		var grid = getGrid();
 
 		N = (int) grid.getGridDensity().getValue();
-		hx = grid.getXStep();
+		final double hx = grid.getXStep();
 		tau = grid.getTimeStep();
 
 		HH = hx*hx;
 		final double Bi1 = (double) problem.getHeatLoss().getValue();
 
-		T = (double) problem.getTestTemperature().getValue();
-		dT = problem.maximumHeating();
+		final double T = (double) problem.getTestTemperature().getValue();
+		final double dT = problem.maximumHeating();
 		dT_T = dT/T;
 
 		// constant for bc calc
