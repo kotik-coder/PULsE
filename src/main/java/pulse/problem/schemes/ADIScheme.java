@@ -13,7 +13,7 @@ import pulse.properties.NumericProperty;
  *
  */
 
-public abstract class ADIScheme extends ImplicitScheme {
+public abstract class ADIScheme extends DifferenceScheme {
 
 	/**
 	 * Creates a new {@code ADIScheme} with default values of grid density and time

@@ -33,7 +33,7 @@ public interface DerivativeCalculator {
 	 * @return the time-averaged value of the flux derivative at the rear surface
 	 */
 
-	public double meanFluxDerivativeveRear();
+	public double meanFluxDerivativeRear();
 
 	/**
 	 * Calculates the flux derivative at the {@code uIndex} grid point.

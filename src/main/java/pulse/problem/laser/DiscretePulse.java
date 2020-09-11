@@ -77,7 +77,7 @@ public class DiscretePulse {
 	 * @return a double, representing the discrete pulse width.
 	 */
 
-	public double getDiscretePulseWidth() {
+	public double getDiscreteWidth() {
 		return discretePulseWidth;
 	}
 

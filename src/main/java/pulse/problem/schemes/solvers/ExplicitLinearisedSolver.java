@@ -48,15 +48,9 @@ import pulse.properties.NumericProperty;
 
 public class ExplicitLinearisedSolver extends ExplicitScheme implements Solver<LinearisedProblem> {
 
-	private double[] U;
-	private double[] V;
-
 	private int N;
 	private double hx;
-
 	private double a;
-
-	private final static double EPS = 1e-7; // a small value ensuring numeric stability
 
 	public ExplicitLinearisedSolver() {
 		super();
@@ -77,62 +71,14 @@ public class ExplicitLinearisedSolver extends ExplicitScheme implements Solver<L
 		N = (int) getGrid().getGridDensity().getValue();
 		hx = getGrid().getXStep();
 
-		U = new double[N + 1];
-		V = new double[N + 1];
-
-		double Bi1 = (double) problem.getHeatLoss().getValue();
-
+		final double Bi1 = (double) problem.getHeatLoss().getValue();
 		a = 1. / (1. + Bi1 * hx);
 	}
 
 	@Override
 	public void solve(LinearisedProblem problem) {
-
 		prepare(problem);
-		var curve = problem.getHeatingCurve();
-		var grid = getGrid();
-		final double maxTemp = (double) problem.getMaximumTemperature().getValue();
-		final double tau = getGrid().getTimeStep();
-		
-		double maxVal = 0;
-
-		final var discretePulse = getDiscretePulse();
-
-		/*
-		 * The outer cycle iterates over the number of points of the HeatingCurve
-		 */
-
-		for (int w = 1, counts = (int) curve.getNumPoints().getValue(); w < counts; w++) {
-
-			/*
-			 * Two adjacent points of the heating curves are separated by timeInterval on
-			 * the time grid. Thus, to calculate the next point on the heating curve,
-			 * timeInterval/tau time steps have to be made first.
-			 */
-
-			for (int m = (w - 1) * getTimeInterval() + 1; m < w * getTimeInterval() + 1; m++) {
-
-				explicitSolution(grid, V, U);
-
-				/*
-				 * Calculates boundary values
-				 */
-
-				double pls = discretePulse.laserPowerAt((m - EPS) * tau);
-				V[0] = (V[1] + hx * pls) * a;
-				V[N] = V[N - 1] * a;
-
-				System.arraycopy(V, 0, U, 0, N + 1);
-
-			}
-
-			maxVal = Math.max(maxVal, V[N]);
-			curve.addPoint((w * getTimeInterval()) * tau * problem.timeFactor(), V[N]);
-
-		}
-
-		curve.scale(maxTemp / maxVal);
-
+		runTimeSequence(problem);
 	}
 
 	@Override
@@ -144,6 +90,14 @@ public class ExplicitLinearisedSolver extends ExplicitScheme implements Solver<L
 	@Override
 	public Class<? extends Problem> domain() {
 		return LinearisedProblem.class;
+	}
+
+	@Override
+	public void timeStep(int m) {
+		explicitSolution();
+		var V = getCurrentSolution();
+		setSolutionAt(0, (V[1] + hx * pulse(m)) * a);
+		setSolutionAt(N, V[N - 1] * a);
 	}
 
 }

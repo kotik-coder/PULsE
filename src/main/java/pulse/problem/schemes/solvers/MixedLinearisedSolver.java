@@ -4,6 +4,7 @@ import static java.lang.Math.pow;
 
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.MixedScheme;
+import pulse.problem.schemes.TridiagonalMatrixAlgorithm;
 import pulse.problem.statements.LinearisedProblem;
 import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
@@ -50,22 +51,11 @@ import pulse.properties.NumericProperty;
 
 public class MixedLinearisedSolver extends MixedScheme implements Solver<LinearisedProblem> {
 
-	private int N;
-	private double hx;
-	private double tau;
-
-	private double a;
-	private double b;
 	private double b1;
-	private double c1;
 	private double b2;
 	private double b3;
+	private double c1;
 	private double c2;
-
-	private double[] U;
-	private double[] V;
-	private double[] alpha;
-	private double[] beta;
 
 	private final static double EPS = 1e-7; // a small value ensuring numeric stability
 
@@ -87,21 +77,10 @@ public class MixedLinearisedSolver extends MixedScheme implements Solver<Lineari
 
 		var grid = getGrid();
 
-		N = (int) grid.getGridDensity().getValue();
-		hx = grid.getXStep();
-		tau = grid.getTimeStep();
+		final double hx = grid.getXStep();
+		final double tau = grid.getTimeStep();
 
 		final double Bi1 = (double) problem.getHeatLoss().getValue();
-
-		U = new double[N + 1];
-		V = new double[N + 1];
-		beta = new double[N + 2];
-
-		// coefficients for the finite-difference heat equation
-
-		a = 1. / pow(hx, 2);
-		b = 2. / tau + 2. / pow(hx, 2);
-		double c = 1. / pow(hx, 2);
 
 		// precalculated constants
 
@@ -110,69 +89,62 @@ public class MixedLinearisedSolver extends MixedScheme implements Solver<Lineari
 
 		// constant for boundary-conditions calculation
 
-		double a1 = tau / (Bi1HTAU + HH + tau);
 		b1 = 1. / (Bi1HTAU + HH + tau);
 		b2 = -hx * (Bi1 * tau - hx);
 		b3 = hx * tau;
 		c1 = b2;
 		c2 = Bi1HTAU + HH;
 		
-		alpha = alpha(grid, a1, a, b, c);
+		var tridiagonal = new TridiagonalMatrixAlgorithm(grid) {
 
+			@Override
+			public double phi(int i) {
+				final var U = getPreviousSolution();
+				return U[i] / tau + (U[i + 1] - 2. * U[i] + U[i - 1]) / HH;
+			}			
+
+		};
+		
+		setTridiagonalMatrixAlgorithm(tridiagonal);
+		
+		final double a1 = tau / (Bi1HTAU + HH + tau);
+		tridiagonal.setAlpha(1, a1);
+		
+		// coefficients for the finite-difference heat equation
+
+		tridiagonal.setCoefA( 1. / pow(hx, 2) );
+		tridiagonal.setCoefB( 2. / tau + 2. / pow(hx, 2) );
+		tridiagonal.setCoefC( 1. / pow(hx, 2) );
+		
+		tridiagonal.evaluateAlpha();
+
+	}
+	
+	@Override
+	public double evalRightBoundary(final int m, final double alphaN, final double betaN) {
+		final var U = getPreviousSolution();
+		
+		final var grid = getGrid();
+		final double tau = grid.getTimeStep();
+		final int N = (int)grid.getGridDensity().getValue();
+		
+		return (c1 * U[N] + tau * betaN - tau * (U[N] - U[N - 1])) / (c2 - tau * (alphaN - 1));
+	}
+	
+	@Override
+	public double firstBeta(final int m) {
+		final double tau = getGrid().getTimeStep();
+		final var pulse = getDiscretePulse();
+		final double pls = pulse.laserPowerAt((m - 1 + EPS) * tau) + pulse.laserPowerAt((m - EPS) * tau);
+		
+		final var U = getPreviousSolution();
+		return b1 * (b2 * U[0] + b3 * pls - tau * (U[0] - U[1]));
 	}
 
 	@Override
 	public void solve(LinearisedProblem problem) {
 		this.prepare(problem);
-		var curve = problem.getHeatingCurve();
-		var grid = getGrid();
-
-		// precalculated constants
-
-		final double HH = pow(hx, 2);
-		double maxVal = 0;
-
-		final var discretePulse = getDiscretePulse();
-
-		/*
-		 * The outer cycle iterates over the number of points of the HeatingCurve
-		 */
-
-		for (int w = 1, counts = (int) curve.getNumPoints().getValue(); w < counts; w++) {
-
-			/*
-			 * Two adjacent points of the heating curves are separated by timeInterval on
-			 * the time grid. Thus, to calculate the next point on the heating curve,
-			 * timeInterval/tau time steps have to be made first.
-			 */
-
-			for (int m = (w - 1) * getTimeInterval() + 1; m < w * getTimeInterval() + 1; m++) {
-
-				double pls = discretePulse.laserPowerAt((m - 1 + EPS) * tau) + discretePulse.laserPowerAt((m - EPS) * tau);
-				beta[1] = b1 * (b2 * U[0] + b3 * pls - tau * (U[0] - U[1]));
-
-				for (int i = 1; i < N; i++) {
-					double F = -2. * U[i] / tau - (U[i + 1] - 2. * U[i] + U[i - 1]) / HH;
-					beta[i + 1] = (F - a * beta[i]) / (a * alpha[i] - b);
-				}
-
-				V[N] = (c1 * U[N] + tau * beta[N] - tau * (U[N] - U[N - 1])) / (c2 - tau * (alpha[N] - 1));
-
-				sweep(grid, V, alpha, beta);
-
-				System.arraycopy(V, 0, U, 0, N + 1);
-
-			}
-
-			maxVal = Math.max(maxVal, V[N]);
-
-			curve.addPoint((w * getTimeInterval()) * tau * problem.timeFactor(), V[N]);
-
-		}
-
-		final double maxTemp = (double) problem.getMaximumTemperature().getValue();
-		curve.scale(maxTemp / maxVal);
-
+		runTimeSequence(problem);
 	}
 
 	@Override

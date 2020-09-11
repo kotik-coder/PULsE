@@ -38,6 +38,8 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 
 	private static boolean hideDetailedAdjustment = true;
 
+	private final static double EPS = 1e-7; // a small value ensuring numeric stability
+
 	/**
 	 * A constructor which merely sets the time limit to its default value.
 	 */
@@ -85,7 +87,7 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 		discretePulse = null;
 		timeLimit = df.timeLimit;
 	}
-	
+
 	/**
 	 * <p>
 	 * Contains preparatory steps to ensure smooth running of the solver. This
@@ -112,6 +114,75 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 		setTimeInterval((int) (dt / grid.getTimeStep()) + 1);
 
 		hc.reinit();
+	}
+
+	public void runTimeSequence(Problem problem) {
+		runTimeSequence(problem, 1, (int) problem.getHeatingCurve().getNumPoints().getValue());
+	}
+
+	public void runTimeSequence(Problem problem, final int startOnTimeStep, final int endOnTimeStep) {
+		final var grid = getGrid();
+
+		var curve = problem.getHeatingCurve();
+
+		final int timeInterval = getTimeInterval();
+		final double tau = grid.getTimeStep();
+		final double wFactor = getTimeInterval() * tau * problem.timeFactor();
+
+		double maxVal = 0;
+
+		/*
+		 * The outer cycle iterates over the number of points of the HeatingCurve
+		 */
+
+		for (int w = startOnTimeStep; w < endOnTimeStep; w++) {
+
+			/*
+			 * Two adjacent points of the heating curves are separated by timeInterval on
+			 * the time grid. Thus, to calculate the next point on the heating curve,
+			 * timeInterval/tau time steps have to be made first.
+			 */
+
+			for (int m = (w - 1) * timeInterval + 1; m < w * timeInterval + 1 && normalOperation(); m++) {
+
+				timeStep(m);
+				finaliseStep();
+
+			}
+
+			double signal = signal();
+			maxVal = Math.max(maxVal, signal);
+			curve.addPoint(w * wFactor, signal);
+
+			/*
+			 * UNCOMMENT TO DEBUG
+			 */
+
+			// debug(problem, V, w);
+
+		}
+
+		// scale curve
+
+		if (endOnTimeStep >= (int) curve.getNumPoints().getValue()) {
+			final double maxTemp = (double) problem.getMaximumTemperature().getValue();
+			curve.scale(maxTemp / maxVal);
+		}
+
+	}
+
+	public double pulse(final int m) {
+		return getDiscretePulse().laserPowerAt((m - EPS) * getGrid().getTimeStep());
+	}
+
+	public abstract double signal();
+
+	public abstract void timeStep(final int m);
+
+	public abstract void finaliseStep();
+
+	public boolean normalOperation() {
+		return true;
 	}
 
 	/**

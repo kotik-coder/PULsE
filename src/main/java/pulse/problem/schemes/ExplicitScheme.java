@@ -18,7 +18,7 @@ import pulse.properties.NumericProperty;
  *
  */
 
-public abstract class ExplicitScheme extends DifferenceScheme {
+public abstract class ExplicitScheme extends OneDimensionalScheme {
 
 	/**
 	 * Constructs a default explicit scheme using the default values of
@@ -73,10 +73,12 @@ public abstract class ExplicitScheme extends DifferenceScheme {
 	 * @param U the input temperature profile
 	 */
 	
-	public static void explicitSolution(Grid grid, double[] V, double[] U) {
+	public void explicitSolution() {
+		var grid = getGrid();
+		var U = getPreviousSolution();
 		final double TAU_HH = grid.getTimeStep()/(fastPowLoop(grid.getXStep(), 2));
 		for (int i = 1, N = grid.getGridDensityValue(); i < N; i++) 
-			V[i] = U[i] + TAU_HH * (U[i + 1] - 2. * U[i] + U[i - 1]);
+			setSolutionAt(i, U[i] + TAU_HH * (U[i + 1] - 2. * U[i] + U[i - 1]) );
 	}
 
 	/**

@@ -1,5 +1,7 @@
 package pulse.problem.statements;
 
+import static pulse.properties.NumericProperty.def;
+import static pulse.properties.NumericProperty.derive;
 import static pulse.properties.NumericPropertyKeyword.SPOT_DIAMETER;
 
 import java.util.List;
@@ -20,7 +22,7 @@ public class Pulse2D extends Pulse {
 
 	public Pulse2D() {
 		super();
-		spotDiameter = (double) NumericProperty.def(SPOT_DIAMETER).getValue();
+		spotDiameter = (double) def(SPOT_DIAMETER).getValue();
 	}
 
 	/**
@@ -34,11 +36,11 @@ public class Pulse2D extends Pulse {
 		if (p instanceof Pulse2D)
 			this.spotDiameter = ((Pulse2D) p).spotDiameter;
 		else
-			spotDiameter = (double) NumericProperty.def(SPOT_DIAMETER).getValue();
+			spotDiameter = (double) def(SPOT_DIAMETER).getValue();
 	}
 
 	public NumericProperty getSpotDiameter() {
-		return NumericProperty.derive(SPOT_DIAMETER, spotDiameter);
+		return derive(SPOT_DIAMETER, spotDiameter);
 	}
 
 	public void setSpotDiameter(NumericProperty spotDiameter) {
@@ -57,22 +59,15 @@ public class Pulse2D extends Pulse {
 	@Override
 	public List<Property> listedTypes() {
 		List<Property> list = super.listedTypes();
-		list.add(NumericProperty.def(SPOT_DIAMETER));
+		list.add(def(SPOT_DIAMETER));
 		return list;
 	}
 
 	@Override
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
-		switch (type) {
-		case SPOT_DIAMETER:
+		super.set(type, property);
+		if(type == SPOT_DIAMETER)
 			setSpotDiameter(property);
-			break;
-		default:
-			break;
-		}
-
-		firePropertyChanged(this, property);
-
 	}
 
 }

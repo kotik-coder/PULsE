@@ -379,7 +379,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
 			case DIFFUSIVITY:
 				double prefactor = pow(l, -2);
 				output[0].set(i, a * prefactor);
-				output[1].set(i, 0.75 * a * prefactor);
+				output[1].set(i, 0.45 * a * prefactor);
 				break;
 			case MAXTEMP:
 				output[0].set(i, signalHeight);

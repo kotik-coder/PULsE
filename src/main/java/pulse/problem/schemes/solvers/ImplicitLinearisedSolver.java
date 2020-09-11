@@ -52,14 +52,9 @@ public class ImplicitLinearisedSolver extends ImplicitScheme implements Solver<L
 	private int N;
 	private double hx;
 	private double tau;
-
-	private double a;
-	private double b;
-
-	private double[] U;
-	private double[] V;
-	private double[] alpha;
-	private double[] beta;
+	
+	private double HH;
+	private double _2HTAU;
 
 	private final static double EPS = 1e-7; // a small value ensuring numeric stability
 
@@ -87,84 +82,41 @@ public class ImplicitLinearisedSolver extends ImplicitScheme implements Solver<L
 
 		final double Bi1 = (double) problem.getHeatLoss().getValue();
 
-		U = new double[N + 1];
-		V = new double[N + 1];
-		beta = new double[N + 1];
-
-		// coefficients for difference equation
-
-		a = 1. / pow(hx, 2);
-		b = 1. / tau + 2. / pow(hx, 2);
-		var c = 1. / pow(hx, 2);
-
 		Bi1HTAU = Bi1 * hx * tau;
 		
-		final double alpha0 = 2. * tau / (2. * Bi1HTAU + 2. * tau + hx*hx);
-		alpha = alpha(grid, alpha0, a, b, c);
+		// precalculated constants
 
+		HH = hx*hx;
+		_2HTAU = 2. * hx * tau;
+				
+		final double alpha0 = 2. * tau / (2. * Bi1HTAU + 2. * tau + hx*hx);
+		final var tridiagonal = getTridiagonalMatrixAlgorithm();
+		tridiagonal.setAlpha(1, alpha0);
+		
+		// coefficients for difference equation
+
+		tridiagonal.setCoefA( 1. / pow(hx, 2) );
+		tridiagonal.setCoefB( 1. / tau + 2. / pow(hx, 2) );
+		tridiagonal.setCoefC( 1. / pow(hx, 2) );		
+		
+		tridiagonal.evaluateAlpha();
 	}
 
 	@Override
 	public void solve(LinearisedProblem problem) {
 		prepare(problem);
-		var curve = problem.getHeatingCurve();
-		var grid = getGrid();
-
-		// precalculated constants
-
-		double HH = hx*hx;
-		double _2HTAU = 2. * hx * tau;
-
-		double maxVal = 0;
-
-		final var discretePulse = getDiscretePulse();
-		
-		/*
-		 * The outer cycle iterates over the number of points of the HeatingCurve
-		 */
-
-		for (int w = 1, counts = (int) curve.getNumPoints().getValue(); w < counts; w++) {
-
-			/*
-			 * Two adjacent points of the heating curves are separated by timeInterval on
-			 * the time grid. Thus, to calculate the next point on the heating curve,
-			 * timeInterval/tau time steps have to be made first.
-			 */
-
-			for (int m = (w - 1) * getTimeInterval() + 1; m < w * getTimeInterval() + 1; m++) {
-
-				double pls = discretePulse.laserPowerAt((m - EPS) * tau); // NOTE: EPS is very important here and ensures
-																	// numeric stability!
-
-				beta[1] = (HH * U[0] + _2HTAU * pls) / (2. * Bi1HTAU + 2. * tau + HH);
-
-				for (int i = 1; i < N; i++) {
-					double F = -U[i] / tau;
-					beta[i + 1] = (F - a * beta[i]) / (a * alpha[i] - b);
-				}
-
-				V[N] = (HH * U[N] + 2. * tau * beta[N]) / (2 * Bi1HTAU + HH - 2. * tau * (alpha[N] - 1));
-
-				sweep(grid, V, alpha, beta);
-
-				System.arraycopy(V, 0, U, 0, N + 1);
-
-			}
-
-			maxVal = Math.max(maxVal, V[N]);
-			curve.addPoint((w * getTimeInterval()) * tau * problem.timeFactor(), V[N]);
-
-			/*
-			 * UNCOMMENT TO DEBUG
-			 */
-
-			// debug(problem, V, w);
-
-		}
-
-		final double maxTemp = (double) problem.getMaximumTemperature().getValue();
-		curve.scale(maxTemp / maxVal);
-
+		runTimeSequence(problem);
+	}
+	
+	@Override
+	public double firstBeta(final int m) {
+		final double pls = getDiscretePulse().laserPowerAt((m - EPS) * tau); // NOTE: EPS is very important here and ensures numeric stability!
+		return (HH * getPreviousSolution()[0] + _2HTAU * pls) / (2. * Bi1HTAU + 2. * tau + HH);
+	}
+	
+	@Override
+	public double evalRightBoundary(final int m, final double alphaN, final double betaN) {
+		return (HH * getPreviousSolution()[N] + 2. * tau * betaN) / (2 * Bi1HTAU + HH - 2. * tau * (alphaN - 1));
 	}
 
 	@Override

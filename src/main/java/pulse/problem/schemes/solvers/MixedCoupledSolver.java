@@ -1,5 +1,6 @@
 package pulse.problem.schemes.solvers;
 
+import static java.lang.Math.rint;
 import static pulse.properties.NumericProperty.def;
 import static pulse.properties.NumericProperty.derive;
 import static pulse.properties.NumericProperty.requireType;
@@ -10,11 +11,10 @@ import static pulse.properties.NumericPropertyKeyword.TAU_FACTOR;
 
 import java.util.List;
 
-import pulse.math.MathUtils;
-import pulse.problem.laser.DiscretePulse;
-import pulse.problem.schemes.CoupledScheme;
+import pulse.problem.schemes.CoupledImplicitScheme;
 import pulse.problem.schemes.DifferenceScheme;
-import pulse.problem.schemes.ImplicitScheme;
+import pulse.problem.schemes.TridiagonalMatrixAlgorithm;
+import pulse.problem.schemes.rte.Fluxes;
 import pulse.problem.schemes.rte.RTECalculationStatus;
 import pulse.problem.schemes.rte.RadiativeTransferSolver;
 import pulse.problem.statements.ParticipatingMedium;
@@ -23,31 +23,24 @@ import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 import pulse.ui.Messages;
 
-public class MixedCoupledSolver extends CoupledScheme implements Solver<ParticipatingMedium> {
+public class MixedCoupledSolver extends CoupledImplicitScheme implements Solver<ParticipatingMedium> {
+
+	private RadiativeTransferSolver rte;
+	private Fluxes fluxes;
 
 	private int N;
 	private double hx;
 	private double tau;
-
 	private double sigma;
 
-	private double[] U;
-	private double[] V;
-	private double[] alpha;
-	private double[] beta;
+	private final static double A = 5.0 / 6.0;
+	private final static double B = 1.0 / 12.0;
 
 	private final static double EPS = 1e-7; // a small value ensuring numeric stability
-
-	private double a;
-	private double b;
-	private double c;
 
 	private double Bi1;
 
 	private double HX2;
-
-	private double errorSq;
-
 	private double HX_NP;
 	private double TAU0_NP;
 	private double Bi2HX;
@@ -61,10 +54,8 @@ public class MixedCoupledSolver extends CoupledScheme implements Solver<Particip
 	private double BETA1_FACTOR;
 	private double ONE_MINUS_SIGMA;
 
-	private final static NumericProperty TIMEFACTOR = derive(TAU_FACTOR, 0.25);
-
 	public MixedCoupledSolver() {
-		super(derive(GRID_DENSITY, 16), TIMEFACTOR);
+		super(derive(GRID_DENSITY, 16), derive(TAU_FACTOR, 0.25));
 		sigma = (double) theDefault(SCHEME_WEIGHT).getValue();
 	}
 
@@ -78,190 +69,144 @@ public class MixedCoupledSolver extends CoupledScheme implements Solver<Particip
 
 		var grid = getGrid();
 
-		getCoupling().init(problem, grid);
+		var coupling = getCoupling();
+		coupling.init(problem, grid);
+		rte = coupling.getRadiativeTransferEquation();
+
+		var U = getPreviousSolution();
 
 		N = (int) grid.getGridDensity().getValue();
 		hx = grid.getXStep();
+		tau = grid.getTimeStep();
 
 		Bi1 = (double) problem.getHeatLoss().getValue();
 
-		U = new double[N + 1];
-		V = new double[N + 1];
-		beta = new double[N + 2];
+		fluxes = rte.getFluxes();
 
-		tau = grid.getTimeStep();
-	}
+		var tridiagonal = new TridiagonalMatrixAlgorithm(grid) {
 
-	private void initAlpha() {
-		a = sigma / HX2;
-		b = 1. / tau + 2. * sigma / HX2;
-		c = sigma / HX2;
-		final double alpha0 = 1.0 / (HX2 / (2.0 * tau * sigma) + 1. + hx * Bi1);
-		alpha = ImplicitScheme.alpha(getGrid(), alpha0, a, b, c);
+			@Override
+			public double phi(int i) {
+				return A * fluxes.meanFluxDerivative(i)
+						+ B * (fluxes.meanFluxDerivative(i - 1) + fluxes.meanFluxDerivative(i + 1));
+			}
+
+			@Override
+			public double beta(final double f, final double phi, final int i) {
+				return super.beta(f + ONE_MINUS_SIGMA * (U[i] - 2.0 * U[i - 1] + U[i - 2]) / HX2, TAU0_NP * phi, i);
+			}
+
+			@Override
+			public void evaluateBeta(final double[] U) {
+				final double phiSecond = A * fluxes.meanFluxDerivative(1)
+						+ B * (fluxes.meanFluxDerivativeFront() + fluxes.meanFluxDerivative(2));
+				setBeta(2, beta(U[1] / tau, phiSecond, 2));
+
+				super.evaluateBeta(U, 3, N);
+
+				final double phiLast = A * fluxes.meanFluxDerivative(N - 1)
+						+ B * (fluxes.meanFluxDerivative(N - 2) + fluxes.meanFluxDerivativeRear());
+				setBeta(N, beta(U[N - 1] / tau, phiLast, N));
+
+			}
+
+		};
+		setTridiagonalMatrixAlgorithm(tridiagonal);
 	}
 
 	private void initConst(ParticipatingMedium problem) {
 		final double Np = (double) problem.getPlanckNumber().getValue();
 		final double opticalThickness = (double) problem.getOpticalThickness().getValue();
-		
+
 		HX2 = hx * hx;
+		adjustSchemeWeight();
+
+		ONE_MINUS_SIGMA = 1.0 - sigma;
+		TAU0_NP = opticalThickness / Np;
+
+		Bi2HX = Bi1 * hx;
+		ONE_PLUS_Bi1_HX = 1. + Bi2HX;
+
 		_2TAUHX = 2.0 * tau * hx;
 		HX2_2TAU = HX2 / (2.0 * tau);
-		ONE_MINUS_SIGMA = 1.0 - sigma;
 		ONE_MINUS_SIGMA_NP = ONE_MINUS_SIGMA / Np;
 		_2TAU_ONE_MINUS_SIGMA = 2.0 * tau * ONE_MINUS_SIGMA;
-		BETA1_FACTOR = 1.0 / (HX2 + 2.0 * tau * sigma * (1.0 + hx * Bi1));
+		BETA1_FACTOR = 1.0 / (HX2 + 2.0 * tau * sigma * ONE_PLUS_Bi1_HX);
 		SIGMA_NP = sigma / Np;
 		HX_NP = hx / Np;
-		TAU0_NP = opticalThickness / Np;
-		Bi2HX = Bi1 * hx;
-		ONE_PLUS_Bi1_HX = (1. + Bi1 * hx);
+
+		final double sigma_HX2 = sigma / HX2;
+		var tridiagonal = getTridiagonalMatrixAlgorithm();
+		tridiagonal.setCoefA(sigma_HX2);
+		tridiagonal.setCoefB(1. / tau + 2. * sigma_HX2);
+		tridiagonal.setCoefC(sigma_HX2);
+		final double alpha0 = 1.0 / (HX2_2TAU / sigma + ONE_PLUS_Bi1_HX);
+		tridiagonal.setAlpha(1, alpha0);
+		tridiagonal.evaluateAlpha();
 	}
 
 	@Override
 	public void solve(ParticipatingMedium problem) throws SolverException {
-		prepare(problem);
-		var curve = problem.getHeatingCurve();
-		adjustSchemeWeight();
-
-		double wFactor = getTimeInterval() * tau * problem.timeFactor();
-		errorSq = MathUtils.fastPowLoop( (double)super.getNonlinearPrecision().getValue(), 2);
-
+		this.prepare(problem);
 		initConst(problem);
-		initAlpha();
 
-		int pulseEnd = (int) Math.rint(this.getDiscretePulse().getDiscretePulseWidth() / wFactor) + 1;
-		int w;
-		
-		var status = getCoupling().getRadiativeTransferEquation().compute(U);
+		final double wFactor = getTimeInterval() * tau * problem.timeFactor();
+		final int pulseEnd = (int) rint(getDiscretePulse().getDiscreteWidth() / wFactor) + 1;
 
-		final var discretePulse = getDiscretePulse();
+		setCalculationStatus(rte.compute(getPreviousSolution()));
 
-		// time cycle
+		this.runTimeSequence(problem, 1, pulseEnd);
 
-		for (w = 1; w < pulseEnd + 1 && status == RTECalculationStatus.NORMAL; w++) {
-
-			for (int m = (w - 1) * getTimeInterval() + 1; m < w * getTimeInterval() + 1; m++) {
-				status = timeStep(discretePulse, m, true);
-			}
-			curve.addPoint(w * wFactor, V[N]);
-		}
-
-		double timeLeft = (double) getTimeLimit().getValue() - (w - 1) * wFactor;
+		final double timeLeft = (double) getTimeLimit().getValue() - pulseEnd * wFactor;
 
 		var grid = getGrid();
-
-		// adjust timestep to make calculations faster
-		grid.setTimeFactor(TIMEFACTOR);
-
+		grid.setTimeFactor(derive(TAU_FACTOR, 0.25)); // adjust timestep to make calculations faster
 		tau = grid.getTimeStep();
-		adjustSchemeWeight();
 
 		initConst(problem);
-		initAlpha();
 
-		final int counts = (int) curve.getNumPoints().getValue();
-		double numPoints = counts - (w - 1);
+		final int counts = (int) problem.getHeatingCurve().getNumPoints().getValue();
+		double numPoints = counts - pulseEnd;
 		double dt = timeLeft / (problem.timeFactor() * (numPoints - 1));
 
 		setTimeInterval((int) (dt / tau) + 1);
+		this.runTimeSequence(problem, pulseEnd, counts);
 
-		for (wFactor = getTimeInterval() * tau * problem.timeFactor(); w < counts
-				&& status == RTECalculationStatus.NORMAL; w++) {
-
-			for (int m = (w - 1) * getTimeInterval() + 1; m < w * getTimeInterval() + 1; m++) {
-				status = timeStep(discretePulse, m, false);
-			}
-
-			curve.addPoint(w * wFactor, V[N]);
-		}
-
+		var status = getCalculationStatus();
 		if (status != RTECalculationStatus.NORMAL)
 			throw new SolverException(status.toString());
 
-		final double maxTemp = (double) problem.getMaximumTemperature().getValue();
-		curve.scale(maxTemp / curve.apparentMaximum());
-
 	}
 
-	private RTECalculationStatus timeStep(DiscretePulse discretePulse, final int m, final boolean activePulse) {
-		var rte = getCoupling().getRadiativeTransferEquation();
-		var grid = getGrid();
-		final var fluxes = rte.getFluxes();
+	@Override
+	public double pulse(final int m) {
+		var pulse = getDiscretePulse();
+		return (pulse.laserPowerAt((m - 1 + EPS) * tau) * ONE_MINUS_SIGMA
+				+ pulse.laserPowerAt((m - EPS) * tau) * sigma);
+	}
 
-		double pls = activePulse
-				? (discretePulse.laserPowerAt((m - 1 + EPS) * tau) * ONE_MINUS_SIGMA
-						+ discretePulse.laserPowerAt((m - EPS) * tau) * sigma)
-				: 0.0;
+	@Override
+	public double firstBeta(final int m) {
+		var U = getPreviousSolution();
+		final double phi = TAU0_NP * fluxes.fluxDerivativeFront();
+		return (_2TAUHX
+				* (getCurrentPulseValue() - SIGMA_NP * fluxes.getFlux(0) - ONE_MINUS_SIGMA_NP * fluxes.getStoredFlux(0))
+				+ HX2 * (U[0] + phi * tau) + _2TAU_ONE_MINUS_SIGMA * (U[1] - U[0] * ONE_PLUS_Bi1_HX)) * BETA1_FACTOR;
+	}
 
-		RTECalculationStatus status = RTECalculationStatus.NORMAL;
-
-		for (double V_0 = errorSq + 1, V_N = errorSq + 1; ((MathUtils.fastPowLoop((V[0] - V_0), 2) > errorSq)
-				|| (MathUtils.fastPowLoop((V[N] - V_N), 2) > errorSq))
-				&& status == RTECalculationStatus.NORMAL; status = rte.compute(V)) {
-
-			// i = 0
-			double phi = TAU0_NP * fluxes.fluxDerivativeFront();
-			beta[1] = (_2TAUHX * (pls - SIGMA_NP * fluxes.getFlux(0) - ONE_MINUS_SIGMA_NP * fluxes.getStoredFlux(0))
-					+ HX2 * (U[0] + phi * tau) + _2TAU_ONE_MINUS_SIGMA * (U[1] - U[0] * ONE_PLUS_Bi1_HX))
-					* BETA1_FACTOR;
-
-			// i = 1
-			phi = TAU0_NP * phiNextToFront(rte);
-			double F = U[1] / tau + phi + ONE_MINUS_SIGMA * (U[2] - 2 * U[1] + U[0]) / HX2;
-			beta[2] = (F + a * beta[1]) / (b - a * alpha[1]);
-
-			for (int i = 2; i < N - 1; i++) {
-				phi = TAU0_NP * phi(rte, i);
-				F = U[i] / tau + phi + ONE_MINUS_SIGMA * (U[i + 1] - 2 * U[i] + U[i - 1]) / HX2;
-				beta[i + 1] = (F + a * beta[i]) / (b - a * alpha[i]);
-			}
-
-			// i = N - 1
-
-			phi = TAU0_NP * phiNextToRear(rte);
-			F = U[N - 1] / tau + phi + ONE_MINUS_SIGMA * (U[N] - 2 * U[N - 1] + U[N - 2]) / HX2;
-			beta[N] = (F + a * beta[N - 1]) / (b - a * alpha[N - 1]);
-
-			V_N = V[N];
-			phi = TAU0_NP * fluxes.fluxDerivativeRear();
-			V[N] = (sigma * beta[N] + HX2_2TAU * U[N] + 0.5 * HX2 * phi
-					+ ONE_MINUS_SIGMA * (U[N - 1] - U[N] * (1. + hx * Bi1))
-					+ HX_NP * (sigma * fluxes.getFlux(N) + ONE_MINUS_SIGMA * fluxes.getStoredFlux(N)))
-					/ (HX2_2TAU + sigma * (1. - alpha[N] + Bi2HX));
-
-			V_0 = V[0];
-			ImplicitScheme.sweep(grid, V, alpha, beta);
-
-		}
-
-		System.arraycopy(V, 0, U, 0, N + 1);
-		fluxes.store();
-		return status;
-
+	@Override
+	public double evalRightBoundary(final int m, final double alphaN, final double betaN) {
+		final double phi = TAU0_NP * fluxes.fluxDerivativeRear();
+		final var U = getPreviousSolution();
+		return (sigma * betaN + HX2_2TAU * U[N] + 0.5 * HX2 * phi
+				+ ONE_MINUS_SIGMA * (U[N - 1] - U[N] * ONE_PLUS_Bi1_HX)
+				+ HX_NP * (sigma * fluxes.getFlux(N) + ONE_MINUS_SIGMA * fluxes.getStoredFlux(N)))
+				/ (HX2_2TAU + sigma * (ONE_PLUS_Bi1_HX - alphaN));
 	}
 
 	private void adjustSchemeWeight() {
-		final double newSigma = 0.5 - hx * hx / (12.0 * tau);
+		final double newSigma = 0.5 - HX2 / (12.0 * tau);
 		setWeight(derive(SCHEME_WEIGHT, newSigma > 0 ? newSigma : 0.5));
-	}
-
-	private double phiNextToFront(RadiativeTransferSolver rte) {
-		final var fluxes = rte.getFluxes();
-		return 0.833333333 * fluxes.meanFluxDerivative(1)
-				+ 0.083333333 * (fluxes.meanFluxDerivativeFront() + fluxes.meanFluxDerivative(2));
-	}
-
-	private double phiNextToRear(RadiativeTransferSolver rte) {
-		final var fluxes = rte.getFluxes();
-		return 0.833333333 * fluxes.meanFluxDerivative(N - 1)
-				+ 0.083333333 * (fluxes.meanFluxDerivative(N - 2) + fluxes.meanFluxDerivativeveRear());
-	}
-
-	private double phi(RadiativeTransferSolver rte, int i) {
-		final var fluxes = rte.getFluxes();
-		return 0.833333333 * fluxes.meanFluxDerivative(i)
-				+ 0.083333333 * (fluxes.meanFluxDerivative(i - 1) + fluxes.meanFluxDerivative(i + 1));
 	}
 
 	public void setWeight(NumericProperty weight) {
@@ -282,7 +227,7 @@ public class MixedCoupledSolver extends CoupledScheme implements Solver<Particip
 
 	@Override
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
-		if(type == SCHEME_WEIGHT) 
+		if (type == SCHEME_WEIGHT)
 			setWeight(property);
 		else
 			super.set(type, property);

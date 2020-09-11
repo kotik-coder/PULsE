@@ -22,7 +22,7 @@ public class FluxesAndImplicitDerivatives extends Fluxes {
 	}
 
 	@Override
-	public double meanFluxDerivativeveRear() {
+	public double meanFluxDerivativeRear() {
 		final int N = this.getDensity();
 		double f = (getFlux(N - 1) - getFlux(N)) + (getStoredFlux(N - 1) - getStoredFlux(N));
 		return f * 0.5 / getOpticalGridStep();

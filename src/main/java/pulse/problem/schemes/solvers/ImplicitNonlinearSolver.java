@@ -1,6 +1,7 @@
 package pulse.problem.schemes.solvers;
 
-import static java.lang.Math.pow;
+import static pulse.math.MathUtils.fastPowLoop;
+import static pulse.properties.NumericProperty.def;
 import static pulse.properties.NumericPropertyKeyword.NONLINEAR_PRECISION;
 
 import java.util.List;
@@ -17,33 +18,30 @@ public class ImplicitNonlinearSolver extends ImplicitScheme implements Solver<No
 
 	private int N;
 	private double hx;
+	private double HH;
 	private double tau;
-
-	private double[] U;
-	private double[] V;
-	private double[] alpha;
-	private double[] beta;
-
-	private final static double EPS = 1e-7; // a small value ensuring numeric stability
-
+	private double pls;
+	
 	private double T;
 	private double dT;
+	private double dT_T;
 
 	private double b1;
 	private double c1;
+	private double c2;
 	private double b2;
 	private double b3;
-	private double a;
-	private double b;
 
-	private double nonlinearPrecision = (double) NumericProperty.def(NONLINEAR_PRECISION).getValue();
+	private double nonlinearPrecision;
 
 	public ImplicitNonlinearSolver() {
 		super();
+		nonlinearPrecision = (double) def(NONLINEAR_PRECISION).getValue();
 	}
 
 	public ImplicitNonlinearSolver(NumericProperty N, NumericProperty timeFactor) {
 		super(N, timeFactor);
+		nonlinearPrecision = (double) def(NONLINEAR_PRECISION).getValue();
 	}
 
 	public ImplicitNonlinearSolver(NumericProperty N, NumericProperty timeFactor, NumericProperty timeLimit) {
@@ -59,15 +57,12 @@ public class ImplicitNonlinearSolver extends ImplicitScheme implements Solver<No
 		hx = grid.getXStep();
 		tau = grid.getTimeStep();
 
-		final double HH = pow(hx, 2);
+		HH = hx*hx;
 		final double Bi1 = (double) problem.getHeatLoss().getValue();
 
 		T = (double) problem.getTestTemperature().getValue();
 		dT = problem.maximumHeating();
-
-		U = new double[N + 1];
-		V = new double[N + 1];
-		beta = new double[N + 2];
+		dT_T = dT/T;
 
 		// constant for bc calc
 
@@ -77,69 +72,21 @@ public class ImplicitNonlinearSolver extends ImplicitScheme implements Solver<No
 		b3 = Bi1 * T / (4.0 * dT);
 		c1 = -0.5 * hx * tau * Bi1 * T / dT;
 
-		a = 1. / pow(hx, 2);
-		b = 1. / tau + 2. / pow(hx, 2);
-		final double c = 1. / pow(hx, 2);
+		var tridiagonal = getTridiagonalMatrixAlgorithm();
 		
-		alpha = alpha(grid, a1, a, b, c);
+		tridiagonal.setCoefA(  1.0/HH);
+		tridiagonal.setCoefB(  1.0/tau + 2.0/HH);
+		tridiagonal.setCoefC(  1.0/HH);
+	
+		tridiagonal.setAlpha(1, a1);
+		tridiagonal.evaluateAlpha();
+		c2 = 1. / (HH + 2. * tau - 2 * tridiagonal.getAlpha()[N] * tau);
 	}
 
 	@Override
 	public void solve(NonlinearProblem problem) {
 		prepare(problem);
-		var curve = problem.getHeatingCurve();
-
-		final double fixedPointPrecisionSq = pow(nonlinearPrecision, 2);
-		final double HH = pow(hx, 2);
-
-		var grid = getGrid();
-
-		final var discretePulse = getDiscretePulse();
-
-		// time cycle
-
-		for (int w = 1, counts = (int) curve.getNumPoints().getValue(); w < counts; w++) {
-
-			for (int m = (w - 1) * getTimeInterval() + 1; m < w * getTimeInterval() + 1; m++) {
-
-				double pls = discretePulse.laserPowerAt((m - EPS) * tau);
-
-				double c2 = 1. / (HH + 2. * tau - 2 * alpha[N] * tau);
-
-				for (double lastIteration = Double.POSITIVE_INFINITY; pow((0.5 * (V[0] + V[N]) - lastIteration),
-						2) > fixedPointPrecisionSq;) {
-
-					lastIteration = 0.5 * (V[0] + V[N]);
-
-					beta[1] = b1 * U[0] + b2 * (pls - b3 * (pow(V[0] * dT / T + 1, 4) - 1));
-
-					for (int i = 1; i < N; i++) {
-						double F = -U[i] / tau;
-						beta[i + 1] = (F - a * beta[i]) / (a * alpha[i] - b);
-					}
-
-					V[N] = c2 * (2. * beta[N] * tau + HH * U[N] + c1 * (pow(V[N] * dT / T + 1, 4) - 1));
-
-					sweep(grid, V, alpha, beta);
-
-				}
-
-				System.arraycopy(V, 0, U, 0, N + 1);
-
-			}
-
-			curve.addPoint((w * getTimeInterval()) * tau * problem.timeFactor(), V[N]);
-
-			/*
-			 * UNCOMMENT TO DEBUG
-			 */
-
-			// debug(problem, V, w);
-
-		}
-
-		curve.scale(dT);
-
+		runTimeSequence(problem);
 	}
 
 	@Override
@@ -177,6 +124,34 @@ public class ImplicitNonlinearSolver extends ImplicitScheme implements Solver<No
 		default:
 			throw new IllegalArgumentException("Property not recognised: " + property);
 		}
+	}
+
+	@Override
+	public void timeStep(final int m) {
+		pls = pulse(m);
+		final double errorSq = fastPowLoop((double) getNonlinearPrecision().getValue(), 2);
+		
+		var V = getCurrentSolution();
+		
+		for (double V_0 = errorSq + 1, V_N = errorSq + 1; (fastPowLoop((V[0] - V_0), 2) > errorSq)
+				|| (fastPowLoop((V[N] - V_N), 2) > errorSq); ) {
+
+			V_N = V[N];
+			V_0 = V[0];
+			super.timeStep(m);
+
+		}	
+		
+	}
+	
+	@Override
+	public double evalRightBoundary(int m, double alphaN, double betaN) {
+		return c2 * (2. * betaN * tau + HH * getPreviousSolution()[N] + c1 * (fastPowLoop(getCurrentSolution()[N] * dT_T + 1, 4) - 1));
+	}
+
+	@Override
+	public double firstBeta(int m) {
+		return b1 * getPreviousSolution()[0] + b2 * (pls - b3 * (fastPowLoop(getCurrentSolution()[0] * dT_T + 1, 4) - 1));
 	}
 
 }

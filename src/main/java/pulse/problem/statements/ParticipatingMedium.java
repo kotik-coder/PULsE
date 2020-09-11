@@ -1,5 +1,13 @@
 package pulse.problem.statements;
 
+import static java.lang.Math.exp;
+import static java.lang.Math.log;
+import static java.lang.Math.tanh;
+import static pulse.math.MathUtils.atanh;
+import static pulse.properties.NumericProperty.def;
+import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericProperty.theDefault;
+import static pulse.properties.NumericPropertyKeyword.NUMPOINTS;
 import static pulse.properties.NumericPropertyKeyword.OPTICAL_THICKNESS;
 import static pulse.properties.NumericPropertyKeyword.PLANCK_NUMBER;
 import static pulse.properties.NumericPropertyKeyword.SCATTERING_ALBEDO;
@@ -31,21 +39,21 @@ public class ParticipatingMedium extends NonlinearProblem {
 
 	public ParticipatingMedium() {
 		super();
-		curve.setNumPoints(NumericProperty.derive(NumericPropertyKeyword.NUMPOINTS, DEFAULT_CURVE_POINTS));
-		this.opticalThickness = (double) NumericProperty.def(OPTICAL_THICKNESS).getValue();
-		this.planckNumber = (double) NumericProperty.def(PLANCK_NUMBER).getValue();
-		scatteringAnisotropy = (double) NumericProperty.theDefault(NumericPropertyKeyword.SCATTERING_ANISOTROPY)
+		curve.setNumPoints(derive(NUMPOINTS, DEFAULT_CURVE_POINTS));
+		this.opticalThickness = (double) def(OPTICAL_THICKNESS).getValue();
+		this.planckNumber = (double) def(PLANCK_NUMBER).getValue();
+		scatteringAnisotropy = (double) theDefault(SCATTERING_ANISOTROPY)
 				.getValue();
-		scatteringAlbedo = (double) NumericProperty.theDefault(NumericPropertyKeyword.SCATTERING_ALBEDO).getValue();
+		scatteringAlbedo = (double) theDefault(SCATTERING_ALBEDO).getValue();
 		setComplexity(ProblemComplexity.HIGH);
 	}
 
 	public ParticipatingMedium(Problem p) {
 		super(p);
-		this.opticalThickness = (double) NumericProperty.theDefault(OPTICAL_THICKNESS).getValue();
-		this.planckNumber = (double) NumericProperty.theDefault(PLANCK_NUMBER).getValue();
-		scatteringAlbedo = (double) NumericProperty.theDefault(NumericPropertyKeyword.SCATTERING_ALBEDO).getValue();
-		scatteringAnisotropy = (double) NumericProperty.theDefault(NumericPropertyKeyword.SCATTERING_ANISOTROPY)
+		this.opticalThickness = (double) theDefault(OPTICAL_THICKNESS).getValue();
+		this.planckNumber = (double) theDefault(PLANCK_NUMBER).getValue();
+		scatteringAlbedo = (double) theDefault(SCATTERING_ALBEDO).getValue();
+		scatteringAnisotropy = (double) theDefault(SCATTERING_ANISOTROPY)
 				.getValue();
 		setComplexity(ProblemComplexity.HIGH);
 	}
@@ -71,7 +79,7 @@ public class ParticipatingMedium extends NonlinearProblem {
 	}
 
 	public NumericProperty getOpticalThickness() {
-		return NumericProperty.derive(OPTICAL_THICKNESS, opticalThickness);
+		return derive(OPTICAL_THICKNESS, opticalThickness);
 	}
 
 	public void setOpticalThickness(NumericProperty tau0) {
@@ -81,7 +89,7 @@ public class ParticipatingMedium extends NonlinearProblem {
 	}
 
 	public NumericProperty getPlanckNumber() {
-		return NumericProperty.derive(PLANCK_NUMBER, planckNumber);
+		return derive(PLANCK_NUMBER, planckNumber);
 	}
 
 	public void setPlanckNumber(NumericProperty planckNumber) {
@@ -122,10 +130,10 @@ public class ParticipatingMedium extends NonlinearProblem {
 	@Override
 	public List<Property> listedTypes() {
 		List<Property> list = super.listedTypes();
-		list.add(NumericProperty.def(PLANCK_NUMBER));
-		list.add(NumericProperty.def(OPTICAL_THICKNESS));
-		list.add(NumericProperty.def(SCATTERING_ALBEDO));
-		list.add(NumericProperty.def(SCATTERING_ANISOTROPY));
+		list.add(def(PLANCK_NUMBER));
+		list.add(def(OPTICAL_THICKNESS));
+		list.add(def(SCATTERING_ALBEDO));
+		list.add(def(SCATTERING_ANISOTROPY));
 		return list;
 	}
 
@@ -140,20 +148,20 @@ public class ParticipatingMedium extends NonlinearProblem {
 		for (int i = 0, size = output[0].dimension(); i < size; i++) {
 			switch (output[0].getIndex(i)) {
 			case PLANCK_NUMBER:
-				output[0].set(i, MathUtils.atanh(2.0 * planckNumber / maxNp() - 1.0));
+				output[0].set(i, atanh(2.0 * planckNumber / maxNp() - 1.0));
 				output[1].set(i, 1.0);
 				break;
 			case OPTICAL_THICKNESS:
-				output[0].set(i, Math.log(opticalThickness));
-				output[1].set(i, 10.0);
+				output[0].set(i, log(opticalThickness));
+				output[1].set(i, 1.0);
 				break;
 			case SCATTERING_ALBEDO:
-				output[0].set(i, MathUtils.atanh(2.0 * scatteringAlbedo - 1.0));
-				output[1].set(i, 10.0);
+				output[0].set(i, atanh(2.0 * scatteringAlbedo - 1.0));
+				output[1].set(i, 1.0);
 				break;
 			case SCATTERING_ANISOTROPY:
-				output[0].set(i, MathUtils.atanh(scatteringAnisotropy));
-				output[1].set(i, 10.0);
+				output[0].set(i, atanh(scatteringAnisotropy));
+				output[1].set(i, 1.0);
 				break;
 			default:
 				continue;
@@ -176,15 +184,15 @@ public class ParticipatingMedium extends NonlinearProblem {
 				changed = getPlanckNumber();
 				break;
 			case OPTICAL_THICKNESS:
-				opticalThickness = Math.exp(params.get(i));
+				opticalThickness = exp(params.get(i));
 				changed = getOpticalThickness();
 				break;
 			case SCATTERING_ALBEDO:
-				scatteringAlbedo = 0.5 * (Math.tanh(params.get(i)) + 1.0);
+				scatteringAlbedo = 0.5 * (tanh(params.get(i)) + 1.0);
 				changed = getScatteringAlbedo();
 				break;
 			case SCATTERING_ANISOTROPY:
-				scatteringAnisotropy = Math.tanh(params.get(i));
+				scatteringAnisotropy = tanh(params.get(i));
 				changed = getScatteringAnisostropy();
 				break;
 			case HEAT_LOSS:
@@ -204,21 +212,21 @@ public class ParticipatingMedium extends NonlinearProblem {
 	}
 
 	public NumericProperty getScatteringAnisostropy() {
-		return NumericProperty.derive(NumericPropertyKeyword.SCATTERING_ANISOTROPY, scatteringAnisotropy);
+		return derive(SCATTERING_ANISOTROPY, scatteringAnisotropy);
 	}
 
 	public void setScatteringAnisotropy(NumericProperty A1) {
-		if (A1.getType() != NumericPropertyKeyword.SCATTERING_ANISOTROPY)
+		if (A1.getType() != SCATTERING_ANISOTROPY)
 			throw new IllegalArgumentException("Illegal type: " + A1.getType());
 		this.scatteringAnisotropy = (double) A1.getValue();
 	}
 
 	public NumericProperty getScatteringAlbedo() {
-		return NumericProperty.derive(NumericPropertyKeyword.SCATTERING_ALBEDO, scatteringAlbedo);
+		return derive(SCATTERING_ALBEDO, scatteringAlbedo);
 	}
 
 	public void setScatteringAlbedo(NumericProperty omega0) {
-		if (omega0.getType() != NumericPropertyKeyword.SCATTERING_ALBEDO)
+		if (omega0.getType() != SCATTERING_ALBEDO)
 			throw new IllegalArgumentException("Illegal type: " + omega0.getType());
 		this.scatteringAlbedo = (double) omega0.getValue();
 	}

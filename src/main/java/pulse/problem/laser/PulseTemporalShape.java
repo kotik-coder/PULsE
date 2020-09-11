@@ -26,7 +26,7 @@ public abstract class PulseTemporalShape extends PropertyHolder implements Refle
 	public abstract double evaluateAt(double time);
 
 	public void init(DiscretePulse pulse) {
-		width = pulse.getDiscretePulseWidth();
+		width = pulse.getDiscreteWidth();
 	}
 
 	@Override

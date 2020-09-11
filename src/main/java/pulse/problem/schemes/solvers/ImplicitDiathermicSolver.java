@@ -1,7 +1,6 @@
 package pulse.problem.schemes.solvers;
 
-import static java.lang.Math.pow;
-
+import pulse.problem.schemes.BlockMatrixAlgorithm;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.ImplicitScheme;
 import pulse.problem.statements.DiathermicMedium;
@@ -10,17 +9,13 @@ import pulse.properties.NumericProperty;
 
 public class ImplicitDiathermicSolver extends ImplicitScheme implements Solver<DiathermicMedium> {
 
-	private final static double EPS = 1e-7; // a small value ensuring numeric stability
-
-	private double[] U;
-	private double[] V;
-	private double[] p;
-	private double[] q;
-	private double[] alpha;
-	private double[] beta;
-	private double[] gamma;
-
+	private double hx;
 	private int N;
+
+	private double HX2_2TAU;
+	private double z0;
+	private double zN_1;
+	private double fN1;
 
 	public ImplicitDiathermicSolver() {
 		super();
@@ -40,105 +35,60 @@ public class ImplicitDiathermicSolver extends ImplicitScheme implements Solver<D
 		var grid = getGrid();
 
 		N = (int) grid.getGridDensity().getValue();
+		hx = grid.getXStep();
 
-		U = new double[N + 1];
-		V = new double[N + 1];
-		p = new double[N];
-		q = new double[N];
+		final double HX2 = hx * hx;
+		final double tau = grid.getTimeStep();
+		HX2_2TAU = HX2 / (2.0 * grid.getTimeStep());
 
-		alpha = new double[N + 1];
-		beta = new double[N + 1];
-		gamma = new double[N + 1];
+		/* Constants */
+
+		final double Bi1 = (double) problem.getHeatLoss().getValue();
+		final double eta = (double) problem.getDiathermicCoefficient().getValue();
+
+		z0 = 1.0 + HX2_2TAU + hx * Bi1 * (1.0 + eta);
+		zN_1 = -hx * eta * Bi1;
+		final double f01 = HX2_2TAU;
+		fN1 = f01;
+
+		/* End of constants */
+
+		var tridiagonal = new BlockMatrixAlgorithm(grid);
+
+		tridiagonal.setCoefA(1.0);
+		tridiagonal.setCoefB(2.0 + HX2 / tau);
+		tridiagonal.setCoefC(1.0);
+
+		tridiagonal.setAlpha(1, 1.0 / z0);
+		tridiagonal.evaluateAlpha();
+		setTridiagonalMatrixAlgorithm(tridiagonal);
+
+	}
+
+	@Override
+	public void leftBoundary(final int m) {
+		var tridiagonal = (BlockMatrixAlgorithm) getTridiagonalMatrixAlgorithm();
+		tridiagonal.setGamma(1, -zN_1 / z0);
+		super.leftBoundary(m);
+	}
+
+	@Override
+	public double firstBeta(final int m) {
+		return (HX2_2TAU * getPreviousSolution()[0] + hx * pulse(m)) / z0;
+	}
+
+	@Override
+	public double evalRightBoundary(int m, double alphaN, double betaN) {
+		var tri = (BlockMatrixAlgorithm) getTridiagonalMatrixAlgorithm();
+		var p = tri.getP();
+		var q = tri.getQ();
+		return (fN1 * getPreviousSolution()[N] - zN_1 * p[0] + p[N - 1]) / (z0 + zN_1 * q[0] - q[N - 1]);
 	}
 
 	@Override
 	public void solve(DiathermicMedium problem) {
 		prepare(problem);
-		var curve = problem.getHeatingCurve();
-		var grid = getGrid();
-		
-		final double Bi1 = (double) problem.getHeatLoss().getValue();
-		final double eta = (double) problem.getDiathermicCoefficient().getValue();
-		
-		final double hx = grid.getXStep();
-		final double tau = grid.getTimeStep();
-		final double HX2_TAU = pow(hx, 2) / tau;
-
-		// precalculated constants
-
-		final double z0 = 1.0 + 0.5 * HX2_TAU + hx * Bi1 * (1.0 + eta);
-		final double zN_1 = -hx * eta * Bi1;
-		final double f01 = HX2_TAU / 2.0;
-		final double fN1 = f01;
-
-		double maxVal = 0;
-
-		gamma[1] = -zN_1 / z0;
-
-		final double a = 1.0;
-		final double c = 1.0;
-		final double b = 2.0 + HX2_TAU;
-
-		alpha = ImplicitScheme.alpha(grid, 1.0/z0, a, b, c);
-		
-		final var discretePulse = getDiscretePulse();
-
-		/*
-		 * The outer cycle iterates over the number of points of the HeatingCurve
-		 */
-
-		for (int w = 1, counts = (int) curve.getNumPoints().getValue(); w < counts; w++) {
-
-			/*
-			 * Two adjacent points of the heating curves are separated by timeInterval on
-			 * the time grid. Thus, to calculate the next point on the heating curve,
-			 * timeInterval/tau time steps have to be made first.
-			 */
-
-			for (int m = (w - 1) * getTimeInterval() + 1; m < w * getTimeInterval() + 1; m++) {
-
-				double pls = discretePulse.laserPowerAt((m - EPS) * tau); // NOTE: EPS is very important here and ensures
-																	// numeric stability!
-
-				beta[1] = (hx * hx / (2.0 * tau) * U[0] + hx * pls) / z0;
-
-				for (int i = 1; i < N; i++) {
-					double F = -U[i] * HX2_TAU;
-					beta[i + 1] = (a * beta[i] - F) / (b - a * alpha[i]);
-					gamma[i + 1] = a * gamma[i] / (b - a * alpha[i]);
-				}
-
-				p[N - 1] = beta[N];
-				q[N - 1] = alpha[N] + gamma[N];
-
-				for (int i = N - 2; i >= 0; i--) {
-					p[i] = alpha[i + 1] * p[i + 1] + beta[i + 1];
-					q[i] = alpha[i + 1] * q[i + 1] + gamma[i + 1];
-				}
-
-				V[N] = (fN1 * U[N] - zN_1 * p[0] + p[N - 1]) / (z0 + zN_1 * q[0] - q[N - 1]);
-
-				ImplicitScheme.sweep(grid, V, alpha, beta);
-
-				System.arraycopy(V, 0, U, 0, N + 1);
-
-			}
-
-			maxVal = Math.max(maxVal, V[N]);
-
-			curve.addPoint((w * getTimeInterval()) * tau * problem.timeFactor(), V[N]);
-
-			/*
-			 * UNCOMMENT TO DEBUG
-			 */
-
-			// debug(problem, V, w);
-
-		}
-		
-		final double maxTemp = (double) problem.getMaximumTemperature().getValue();
-		curve.scale(maxTemp / maxVal);
-
+		runTimeSequence(problem);
 	}
 
 	@Override

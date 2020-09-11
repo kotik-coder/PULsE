@@ -50,7 +50,7 @@ public class FluxesAndExplicitDerivatives extends Fluxes {
 	}
 
 	@Override
-	public double meanFluxDerivativeveRear() {
+	public double meanFluxDerivativeRear() {
 		return 0.5 * (fd[getDensity()] + fdStored[getDensity()]);
 	}
 	

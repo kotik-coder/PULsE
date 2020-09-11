@@ -77,7 +77,7 @@ public class Grid extends PropertyHolder {
 
 	public void adjustTo(DiscretePulse pulse) {
 		final double ADJUSTMENT_FACTOR = 0.75;
-		for (final double factor = 0.95; factor * tau > pulse.getDiscretePulseWidth(); pulse.recalculate()) {
+		for (final double factor = 0.95; factor * tau > pulse.getDiscreteWidth(); pulse.recalculate()) {
 			tauFactor *= ADJUSTMENT_FACTOR;
 			tau = tauFactor * pow(hx, 2);
 		}

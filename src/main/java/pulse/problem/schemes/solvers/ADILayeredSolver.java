@@ -70,4 +70,22 @@ public class ADILayeredSolver extends ADIScheme implements Solver<CoreShellProbl
 		return CoreShellProblem.class;
 	}
 
+	@Override
+	public double signal() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public void timeStep(int m) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void finaliseStep() {
+		// TODO Auto-generated method stub
+		
+	}
+
 }
