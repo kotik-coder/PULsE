@@ -18,13 +18,11 @@ import pulse.ui.Messages;
 public class DiathermicMedium extends LinearisedProblem {
 
 	private double diathermicCoefficient;
-	private final static boolean DEBUG = false;
 	private final static int DEFAULT_CURVE_POINTS = 300;
 
 	public DiathermicMedium() {
 		super();
-		this.diathermicCoefficient = (double) def(DIATHERMIC_COEFFICIENT)
-				.getValue();
+		this.diathermicCoefficient = (double) def(DIATHERMIC_COEFFICIENT).getValue();
 		getHeatingCurve().setNumPoints(derive(NUMPOINTS, DEFAULT_CURVE_POINTS));
 	}
 
@@ -39,8 +37,7 @@ public class DiathermicMedium extends LinearisedProblem {
 		if (sdd instanceof DiathermicMedium)
 			this.diathermicCoefficient = ((DiathermicMedium) sdd).diathermicCoefficient;
 		else
-			this.diathermicCoefficient = (double) def(DIATHERMIC_COEFFICIENT)
-					.getValue();
+			this.diathermicCoefficient = (double) def(DIATHERMIC_COEFFICIENT).getValue();
 		getHeatingCurve().setNumPoints(derive(NUMPOINTS, DEFAULT_CURVE_POINTS));
 	}
 
@@ -75,11 +72,6 @@ public class DiathermicMedium extends LinearisedProblem {
 	}
 
 	@Override
-	public boolean isEnabled() {
-		return !DEBUG;
-	}
-
-	@Override
 	public void optimisationVector(IndexedVector[] output, List<Flag> flags) {
 		super.optimisationVector(output, flags);
 
@@ -107,9 +99,7 @@ public class DiathermicMedium extends LinearisedProblem {
 				break;
 			case HEAT_LOSS:
 				if (areThermalPropertiesLoaded()) {
-					double emissivity = emissivity();
-					if (emissivity > 1.0)
-						System.out.println(emissivity);
+					final double emissivity = emissivity();
 					diathermicCoefficient = emissivity / (2.0 - emissivity);
 				}
 				break;

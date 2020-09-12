@@ -28,8 +28,6 @@ public class NonlinearProblem extends Problem {
 
 	private double emissivity = 0.85;
 
-	private final static boolean DEBUG = false;
-
 	public NonlinearProblem() {
 		super();
 		setPulse( new Pulse2D() );
@@ -74,15 +72,9 @@ public class NonlinearProblem extends Problem {
 		return Messages.getString("NonlinearProblem.Descriptor");
 	}
 
-	@Override
-	public boolean isEnabled() {
-		return !DEBUG;
-	}
-
 	public double maximumHeating() {
 		final double Q = (double) getPulse().getLaserEnergy().getValue();
 		final double dLas = (double) ((Pulse2D) getPulse()).getSpotDiameter().getValue();
-
 		final double l = (double)this.getSampleThickness().getValue();
 		final double cP = (double)this.getSpecificHeat().getValue();
 		final double rho = (double)this.getDensity().getValue();

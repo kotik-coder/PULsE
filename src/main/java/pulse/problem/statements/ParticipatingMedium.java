@@ -5,9 +5,7 @@ import static java.lang.Math.log;
 import static java.lang.Math.tanh;
 import static pulse.math.MathUtils.atanh;
 import static pulse.math.MathUtils.fastPowLoop;
-import static pulse.properties.NumericProperty.def;
-import static pulse.properties.NumericProperty.derive;
-import static pulse.properties.NumericProperty.theDefault;
+import static pulse.properties.NumericProperty.*;
 import static pulse.properties.NumericPropertyKeyword.NUMPOINTS;
 import static pulse.properties.NumericPropertyKeyword.OPTICAL_THICKNESS;
 import static pulse.properties.NumericPropertyKeyword.PLANCK_NUMBER;
@@ -42,8 +40,7 @@ public class ParticipatingMedium extends NonlinearProblem {
 		getHeatingCurve().setNumPoints(derive(NUMPOINTS, DEFAULT_CURVE_POINTS));
 		this.opticalThickness = (double) def(OPTICAL_THICKNESS).getValue();
 		this.planckNumber = (double) def(PLANCK_NUMBER).getValue();
-		scatteringAnisotropy = (double) theDefault(SCATTERING_ANISOTROPY)
-				.getValue();
+		scatteringAnisotropy = (double) theDefault(SCATTERING_ANISOTROPY).getValue();
 		scatteringAlbedo = (double) theDefault(SCATTERING_ALBEDO).getValue();
 		setComplexity(ProblemComplexity.HIGH);
 	}
@@ -53,8 +50,7 @@ public class ParticipatingMedium extends NonlinearProblem {
 		this.opticalThickness = (double) theDefault(OPTICAL_THICKNESS).getValue();
 		this.planckNumber = (double) theDefault(PLANCK_NUMBER).getValue();
 		scatteringAlbedo = (double) theDefault(SCATTERING_ALBEDO).getValue();
-		scatteringAnisotropy = (double) theDefault(SCATTERING_ANISOTROPY)
-				.getValue();
+		scatteringAnisotropy = (double) theDefault(SCATTERING_ANISOTROPY).getValue();
 		setComplexity(ProblemComplexity.HIGH);
 	}
 
@@ -82,8 +78,7 @@ public class ParticipatingMedium extends NonlinearProblem {
 	}
 
 	public void setOpticalThickness(NumericProperty tau0) {
-		if (tau0.getType() != OPTICAL_THICKNESS)
-			throw new IllegalArgumentException("Illegal type: " + tau0.getType());
+		requireType(tau0, OPTICAL_THICKNESS);
 		this.opticalThickness = (double) tau0.getValue();
 	}
 
@@ -92,8 +87,7 @@ public class ParticipatingMedium extends NonlinearProblem {
 	}
 
 	public void setPlanckNumber(NumericProperty planckNumber) {
-		if (planckNumber.getType() != PLANCK_NUMBER)
-			throw new IllegalArgumentException("Illegal type: " + planckNumber.getType());
+		requireType(planckNumber, PLANCK_NUMBER);
 		this.planckNumber = (double) planckNumber.getValue();
 	}
 

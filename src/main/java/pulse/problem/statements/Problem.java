@@ -50,13 +50,13 @@ import pulse.util.Reflexive;
 public abstract class Problem extends PropertyHolder implements Reflexive, Optimisable {
 
 	private HeatingCurve curve;
-	private  Pulse pulse;
-	private  double a;
+	private Pulse pulse;
+	private double a;
 	private double l;
-	private  double Bi1;
+	private double Bi1;
 	private double Bi2;
-	private  double signalHeight;
-	private  double cP;
+	private double signalHeight;
+	private double cP;
 	private double rho;
 	private double T;
 
@@ -231,7 +231,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
 		firePropertyChanged(this, value);
 
 	}
-	
+
 	public void setHeatLoss(NumericProperty Bi) {
 		this.Bi1 = (double) Bi.getValue();
 		this.Bi2 = Bi1;
