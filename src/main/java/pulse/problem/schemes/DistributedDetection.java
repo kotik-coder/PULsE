@@ -12,7 +12,7 @@ import pulse.problem.statements.penetration.AbsorptionModel.SpectralRange;
  *
  */
 
-public interface DistributedDetection {
+public class DistributedDetection {
 
 	/**
 	 * Calculates the effective signal registered by the detector, which takes into account 

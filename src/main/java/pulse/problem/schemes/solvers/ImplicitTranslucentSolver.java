@@ -8,6 +8,7 @@ import static pulse.ui.Messages.getString;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.Grid;
 import pulse.problem.schemes.ImplicitScheme;
+import pulse.problem.schemes.TridiagonalMatrixAlgorithm;
 import pulse.problem.statements.PenetrationProblem;
 import pulse.problem.statements.Problem;
 import pulse.problem.statements.penetration.AbsorptionModel;
@@ -18,12 +19,15 @@ public class ImplicitTranslucentSolver extends ImplicitScheme implements Solver<
 	private AbsorptionModel absorption;
 	private Grid grid;
 	private double pls;
+	private int N;
 
 	private double HH;
-	private double Bi1H;
-
-	private final static double EPS = 1e-7; // a small value ensuring numeric stability
-
+	private double _2Bi1HTAU;
+	private double b11;
+	
+	private double frontAbsorption;
+	private double rearAbsorption;
+	
 	public ImplicitTranslucentSolver() {
 		super();
 	}
@@ -37,13 +41,27 @@ public class ImplicitTranslucentSolver extends ImplicitScheme implements Solver<
 
 		grid = getGrid();
 		final double tau = grid.getTimeStep();
+		N = (int) grid.getGridDensity().getValue();
 
-		Bi1H = (double) problem.getHeatLoss().getValue() * grid.getXStep();
-		HH = fastPowLoop(grid.getXStep(), 2);
+		final double Bi1H = (double) problem.getHeatLoss().getValue() * grid.getXStep();
+		final double hx = grid.getXStep();
+		HH = hx * hx;
+		_2Bi1HTAU = 2.0 * Bi1H * tau;
+		b11 = 1.0 / (1.0 + 2.0 * tau / HH * (1 + Bi1H));
 
 		absorption = problem.getAbsorptionModel();
+		final double EPS = 1E-7;
+		rearAbsorption = tau * absorption.absorption(LASER, (N - EPS) * hx);
+		frontAbsorption = tau * absorption.absorption(LASER, 0.0);
 
-		var tridiagonal = getTridiagonalMatrixAlgorithm();
+		var tridiagonal = new TridiagonalMatrixAlgorithm(grid) {
+			
+			@Override
+			public double phi(final int i) {
+				return pls * absorption.absorption(LASER, (i - EPS) * hx);
+			}
+			
+		};
 
 		// coefficients for difference equation
 
@@ -75,18 +93,15 @@ public class ImplicitTranslucentSolver extends ImplicitScheme implements Solver<
 
 	@Override
 	public double evalRightBoundary(final int m, final double alphaN, final double betaN) {
-		final int N = (int) grid.getGridDensity().getValue();
 		final double tau = grid.getTimeStep();
 
-		return (HH * (getPreviousSolution()[N] + tau * pls * absorption.absorption(LASER, (N - EPS) * grid.getXStep()))
-				+ 2. * tau * betaN) / (2 * Bi1H * tau + HH + 2. * tau * (1 - alphaN));
+		return (HH * (getPreviousSolution()[N] + pls * rearAbsorption)
+				+ 2. * tau * betaN) / (_2Bi1HTAU + HH + 2. * tau * (1 - alphaN));
 	}
 
 	@Override
 	public double firstBeta(int m) {
-		final double tau = grid.getTimeStep();
-		return (getPreviousSolution()[0] + tau * pls * absorption.absorption(LASER, 0.0))
-				/ (1.0 + 2.0 * tau / HH * (1 + Bi1H));
+		return (getPreviousSolution()[0] + pls * frontAbsorption) * b11;
 	}
 
 	@Override
