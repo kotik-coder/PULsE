@@ -78,7 +78,11 @@ public abstract class ExplicitScheme extends OneDimensionalScheme {
 		var U = getPreviousSolution();
 		final double TAU_HH = grid.getTimeStep()/(fastPowLoop(grid.getXStep(), 2));
 		for (int i = 1, N = grid.getGridDensityValue(); i < N; i++) 
-			setSolutionAt(i, U[i] + TAU_HH * (U[i + 1] - 2. * U[i] + U[i - 1]) );
+			setSolutionAt(i, U[i] + TAU_HH * (U[i + 1] - 2. * U[i] + U[i - 1]) + phi(i) );
+	}
+	
+	public double phi(final int i) {
+		return 0;
 	}
 
 	/**

@@ -1,7 +1,15 @@
 package pulse.problem.statements;
 
+import static java.lang.Math.PI;
+import static java.lang.Math.tanh;
+import static pulse.math.MathUtils.atanh;
+import static pulse.properties.NumericProperty.def;
+import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericProperty.requireType;
 import static pulse.properties.NumericPropertyKeyword.CONDUCTIVITY;
 import static pulse.properties.NumericPropertyKeyword.DENSITY;
+import static pulse.properties.NumericPropertyKeyword.EMISSIVITY;
+import static pulse.properties.NumericPropertyKeyword.HEAT_LOSS;
 import static pulse.properties.NumericPropertyKeyword.SPECIFIC_HEAT;
 import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
 
@@ -9,36 +17,35 @@ import java.util.List;
 
 import pulse.input.ExperimentalData;
 import pulse.math.IndexedVector;
-import pulse.math.MathUtils;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.ImplicitScheme;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
-import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 import pulse.ui.Messages;
 
 public class NonlinearProblem extends Problem {
 
-	protected double emissivity = 0.85;
+	private double emissivity = 0.85;
 
 	private final static boolean DEBUG = false;
 
 	public NonlinearProblem() {
 		super();
-		pulse = new Pulse2D();
+		setPulse( new Pulse2D() );
 		setComplexity(ProblemComplexity.MODERATE);
 	}
 
 	public NonlinearProblem(Problem p) {
 		super(p);
-		pulse = new Pulse2D(p.getPulse());
+		setPulse( new Pulse2D(p.getPulse()));
 		setComplexity(ProblemComplexity.MODERATE);
 	}
 
 	public NonlinearProblem(NonlinearProblem p) {
 		super(p);
-		pulse = new Pulse2D(p.getPulse());
+		setPulse(new Pulse2D(p.getPulse()));
+		this.emissivity = p.emissivity;
 		setComplexity(ProblemComplexity.MODERATE);
 	}
 
@@ -56,9 +63,9 @@ public class NonlinearProblem extends Problem {
 	@Override
 	public List<Property> listedTypes() {
 		List<Property> list = super.listedTypes();
-		list.add(NumericProperty.def(TEST_TEMPERATURE));
-		list.add(NumericProperty.def(SPECIFIC_HEAT));
-		list.add(NumericProperty.def(DENSITY));
+		list.add(def(TEST_TEMPERATURE));
+		list.add(def(SPECIFIC_HEAT));
+		list.add(def(DENSITY));
 		return list;
 	}
 
@@ -73,10 +80,18 @@ public class NonlinearProblem extends Problem {
 	}
 
 	public double maximumHeating() {
-		double Q = (double) pulse.getLaserEnergy().getValue();
-		double dLas = (double) ((Pulse2D) pulse).getSpotDiameter().getValue();
+		final double Q = (double) getPulse().getLaserEnergy().getValue();
+		final double dLas = (double) ((Pulse2D) getPulse()).getSpotDiameter().getValue();
 
-		return 4.0 * emissivity * Q / (Math.PI * dLas * dLas * l * cP * rho);
+		final double l = (double)this.getSampleThickness().getValue();
+		final double cP = (double)this.getSpecificHeat().getValue();
+		final double rho = (double)this.getDensity().getValue();
+		
+		return 4.0 * emissivity * Q / (PI * dLas * dLas * l * cP * rho);
+	}
+	
+	public double getEmissivity() {
+		return emissivity;
 	}
 
 	@Override
@@ -90,19 +105,17 @@ public class NonlinearProblem extends Problem {
 	}
 
 	public NumericProperty getThermalConductivity() {
-		return NumericProperty.derive(CONDUCTIVITY, thermalConductivity());
+		return derive(CONDUCTIVITY, thermalConductivity());
 	}
 
 	public NumericProperty getEmissivityProperty() {
-		return NumericProperty.derive(NumericPropertyKeyword.EMISSIVITY, emissivity);
+		return derive(EMISSIVITY, emissivity);
 	}
 
 	public void setEmissivity(NumericProperty e) {
-		if (e.getType() != NumericPropertyKeyword.EMISSIVITY)
-			throw new IllegalArgumentException("Illegal type: " + e.getType());
+		requireType(e, EMISSIVITY);
 		this.emissivity = (double) e.getValue();
-		Bi1 = biot();
-		Bi2 = Bi1;
+		setHeatLoss( derive(HEAT_LOSS, biot()) );
 	}
 
 	@Override
@@ -112,8 +125,9 @@ public class NonlinearProblem extends Problem {
 
 		for (int i = 0; i < size; i++) {
 
-			if (output[0].getIndex(i) == NumericPropertyKeyword.HEAT_LOSS) {
-				output[0].set(i, MathUtils.atanh(2.0 * Bi1 / maxBiot() - 1.0));
+			if (output[0].getIndex(i) == HEAT_LOSS) {
+				final double Bi1 = (double)this.getHeatLoss().getValue();
+				output[0].set(i, atanh(2.0 * Bi1 / maxBiot() - 1.0));
 				output[1].set(i, 10.0);
 			}
 		}
@@ -141,10 +155,9 @@ public class NonlinearProblem extends Problem {
 
 		for (int i = 0, size = params.dimension(); i < size; i++) {
 
-			if (params.getIndex(i) == NumericPropertyKeyword.HEAT_LOSS) {
-				double heatLoss = 0.5 * maxBiot() * (Math.tanh(params.get(i)) + 1.0);
-				Bi1 = heatLoss;
-				Bi2 = heatLoss;
+			if (params.getIndex(i) == HEAT_LOSS) {
+				final double heatLoss = 0.5 * maxBiot() * (tanh(params.get(i)) + 1.0);
+				setHeatLoss(derive(HEAT_LOSS, heatLoss));
 				emissivity = emissivity();
 			}
 

@@ -11,6 +11,7 @@ import static pulse.ui.Messages.getString;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.ExplicitScheme;
 import pulse.problem.schemes.RadiativeTransferCoupling;
+import pulse.problem.schemes.rte.Fluxes;
 import pulse.problem.schemes.rte.RTECalculationStatus;
 import pulse.problem.statements.ParticipatingMedium;
 import pulse.problem.statements.Problem;
@@ -20,13 +21,14 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
 
 	private RadiativeTransferCoupling coupling;
 	private RTECalculationStatus status;
+	private Fluxes fluxes;
+	
+	private double hx;
+	private double a;
 	private double nonlinearPrecision;
 	
 	private int N;
-	private double hx;
-	private double a;
 	
-	private double TAU_HH;
 	private double HX_NP;
 	private double prefactor;
 	
@@ -48,7 +50,8 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
 
 		var grid = getGrid();
 
-		getCoupling().init(problem, grid);
+		coupling.init(problem, grid);
+		fluxes = coupling.getRadiativeTransferEquation().getFluxes();
 
 		N = (int) grid.getGridDensity().getValue();
 		hx = grid.getXStep();
@@ -61,7 +64,6 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
 		final double Np = (double) problem.getPlanckNumber().getValue();
 		final double tau = getGrid().getTimeStep();
 		
-		TAU_HH = tau / (hx*hx);
 		HX_NP = hx / Np;
 		prefactor = tau * opticalThickness / Np;
 
@@ -88,10 +90,8 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
 		double pls = pulse(m);
 		
 		var rte = coupling.getRadiativeTransferEquation();
-		var fluxes = rte.getFluxes();
 		
 		var V = getCurrentSolution();
-		var U = getPreviousSolution();
 		
 		for (double V_0 = Double.POSITIVE_INFINITY, V_N = Double.POSITIVE_INFINITY; (fastPowLoop((V[0] - V_0),
 				2) > errorSq) || (fastPowLoop((V[N] - V_N), 2) > errorSq); status = rte.compute(V)) {
@@ -100,10 +100,7 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
 			 * Uses the heat equation explicitly to calculate the grid-function everywhere
 			 * except the boundaries
 			 */
-
-			for (int i = 1; i < N; i++) {
-				V[i] = U[i] + TAU_HH * (U[i + 1] - 2. * U[i] + U[i - 1]) + prefactor * fluxes.fluxDerivative(i);
-			}
+			explicitSolution();
 
 			// Front face
 			V_0 = V[0];
@@ -113,6 +110,11 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
 			V[N] = (V[N - 1] + HX_NP * fluxes.getFlux(N)) * a;
 
 		}
+	}
+	
+	@Override
+	public double phi(final int i) {
+		return prefactor * fluxes.fluxDerivative(i);
 	}
 	
 	@Override

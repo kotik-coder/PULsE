@@ -39,7 +39,7 @@ public class ParticipatingMedium extends NonlinearProblem {
 
 	public ParticipatingMedium() {
 		super();
-		curve.setNumPoints(derive(NUMPOINTS, DEFAULT_CURVE_POINTS));
+		getHeatingCurve().setNumPoints(derive(NUMPOINTS, DEFAULT_CURVE_POINTS));
 		this.opticalThickness = (double) def(OPTICAL_THICKNESS).getValue();
 		this.planckNumber = (double) def(PLANCK_NUMBER).getValue();
 		scatteringAnisotropy = (double) theDefault(SCATTERING_ANISOTROPY)
@@ -62,7 +62,6 @@ public class ParticipatingMedium extends NonlinearProblem {
 		super(p);
 		this.opticalThickness = p.opticalThickness;
 		this.planckNumber = p.planckNumber;
-		this.emissivity = p.emissivity;
 		this.scatteringAlbedo = p.scatteringAlbedo;
 		this.scatteringAnisotropy = p.scatteringAnisotropy;
 		setComplexity(ProblemComplexity.HIGH);
@@ -123,10 +122,6 @@ public class ParticipatingMedium extends NonlinearProblem {
 
 	}
 
-	public double getEmissivity() {
-		return emissivity;
-	}
-
 	@Override
 	public List<Property> listedTypes() {
 		List<Property> list = super.listedTypes();
@@ -138,6 +133,8 @@ public class ParticipatingMedium extends NonlinearProblem {
 	}
 
 	private double maxNp() {
+		final double l = (double) getSampleThickness().getValue();
+		final double T = (double) getTestTemperature().getValue();
 		return thermalConductivity() / (4.0 * NonlinearProblem.STEFAN_BOTLZMAN * fastPowLoop(T, 3) * l);
 	}
 
@@ -237,6 +234,8 @@ public class ParticipatingMedium extends NonlinearProblem {
 		if (this.allDetailsPresent()) {
 			final double nSq = 4;
 			final double lambda = thermalConductivity();
+			final double l = (double) getSampleThickness().getValue();
+			final double T = (double) getTestTemperature().getValue();
 			planckNumber = lambda / (4.0 * nSq * STEFAN_BOTLZMAN * fastPowLoop(T, 3) * l);
 		}
 	}

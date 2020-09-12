@@ -49,13 +49,16 @@ import pulse.util.Reflexive;
 
 public abstract class Problem extends PropertyHolder implements Reflexive, Optimisable {
 
-	protected HeatingCurve curve;
-	protected Pulse pulse;
-	protected double a, l;
-	protected double Bi1, Bi2;
-	protected double signalHeight;
-	protected double cP, rho;
-	protected double T;
+	private HeatingCurve curve;
+	private  Pulse pulse;
+	private  double a;
+	private double l;
+	private  double Bi1;
+	private double Bi2;
+	private  double signalHeight;
+	private  double cP;
+	private double rho;
+	private double T;
 
 	private static boolean singleStatement = true;
 	private static boolean hideDetailedAdjustment = true;
@@ -210,8 +213,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
 			setSampleThickness(value);
 			break;
 		case HEAT_LOSS:
-			this.Bi1 = (double) value.getValue();
-			this.Bi2 = Bi1;
+			setHeatLoss(value);
 			break;
 		case SPECIFIC_HEAT:
 			setSpecificHeat(value);
@@ -228,6 +230,11 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
 
 		firePropertyChanged(this, value);
 
+	}
+	
+	public void setHeatLoss(NumericProperty Bi) {
+		this.Bi1 = (double) Bi.getValue();
+		this.Bi2 = Bi1;
 	}
 
 	public NumericProperty getDiffusivity() {

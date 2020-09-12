@@ -18,7 +18,7 @@ public class ExplicitTranslucentSolver extends ExplicitScheme implements Solver<
 	private double tau;
 	private double a;
 
-	private double TAU_HH;
+	private double pls;
 
 	private final static double EPS = 1e-7; // a small value ensuring numeric stability
 
@@ -44,7 +44,6 @@ public class ExplicitTranslucentSolver extends ExplicitScheme implements Solver<
 
 		final double Bi1 = (double) problem.getHeatLoss().getValue();
 		a = 1. / (1. + Bi1 * hx);
-		TAU_HH = tau / (hx * hx);
 	}
 
 	@Override
@@ -55,17 +54,13 @@ public class ExplicitTranslucentSolver extends ExplicitScheme implements Solver<
 
 	@Override
 	public void timeStep(final int m) {
-		var U = getPreviousSolution();
-		final double pls = this.pulse(m);
+		pls = this.pulse(m);
 
 		/*
 		 * Uses the heat equation explicitly to calculate the grid-function everywhere
 		 * except the boundaries
 		 */
-		for (int i = 1; i < N; i++) {
-			setSolutionAt(i, U[i] + TAU_HH * (U[i + 1] - 2. * U[i] + U[i - 1])
-					+ tau * pls * model.absorption(LASER, (i - EPS) * hx));
-		}
+		explicitSolution();
 
 		/*
 		 * Calculates boundary values
@@ -75,6 +70,11 @@ public class ExplicitTranslucentSolver extends ExplicitScheme implements Solver<
 		setSolutionAt(0, V[1] * a);
 		setSolutionAt(N, V[N - 1] * a);
 
+	}
+	
+	@Override
+	public double phi(final int i) {
+		return tau * pls * model.absorption(LASER, (i - EPS) * hx);
 	}
 
 	@Override

@@ -1,5 +1,11 @@
 package pulse.problem.schemes;
 
+/**
+ * Implements the tridiagonal matrix algorithm (Thomas algorithms) for solving systems of linear equations.
+ * Applicable to such systems where the forming matrix has a tridiagonal form.
+ *
+ */
+
 public class TridiagonalMatrixAlgorithm {
 
 	private Grid grid;

@@ -1,6 +1,5 @@
 package pulse.problem.schemes.solvers;
 
-import static pulse.math.MathUtils.fastPowLoop;
 import static pulse.problem.schemes.DistributedDetection.evaluateSignal;
 import static pulse.problem.statements.penetration.AbsorptionModel.SpectralRange.LASER;
 import static pulse.ui.Messages.getString;

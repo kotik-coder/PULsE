@@ -1,6 +1,9 @@
 package pulse.problem.statements;
 
 import static java.lang.Math.pow;
+import static pulse.properties.NumericProperty.def;
+import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericProperty.theDefault;
 import static pulse.properties.NumericPropertyKeyword.AXIAL_COATING_THICKNESS;
 import static pulse.properties.NumericPropertyKeyword.COATING_DIFFUSIVITY;
 import static pulse.properties.NumericPropertyKeyword.RADIAL_COATING_THICKNESS;
@@ -17,22 +20,24 @@ import pulse.ui.Messages;
 
 public class CoreShellProblem extends LinearisedProblem2D {
 
-	protected double tA, tR, coatingDiffusivity;
+	private double tA;
+	private double tR;
+	private double coatingDiffusivity;
 	private final static boolean DEBUG = true;
 
 	public CoreShellProblem() {
 		super();
-		tA = (double) NumericProperty.theDefault(AXIAL_COATING_THICKNESS).getValue();
-		tR = (double) NumericProperty.theDefault(RADIAL_COATING_THICKNESS).getValue();
-		coatingDiffusivity = (double) NumericProperty.theDefault(COATING_DIFFUSIVITY).getValue();
+		tA = (double) theDefault(AXIAL_COATING_THICKNESS).getValue();
+		tR = (double) theDefault(RADIAL_COATING_THICKNESS).getValue();
+		coatingDiffusivity = (double) theDefault(COATING_DIFFUSIVITY).getValue();
 		setComplexity(ProblemComplexity.HIGH);
 	}
 
 	public CoreShellProblem(Problem sdd) {
 		super(sdd);
-		tA = (double) NumericProperty.theDefault(AXIAL_COATING_THICKNESS).getValue();
-		tR = (double) NumericProperty.theDefault(RADIAL_COATING_THICKNESS).getValue();
-		coatingDiffusivity = (double) NumericProperty.theDefault(COATING_DIFFUSIVITY).getValue();
+		tA = (double) theDefault(AXIAL_COATING_THICKNESS).getValue();
+		tR = (double) theDefault(RADIAL_COATING_THICKNESS).getValue();
+		coatingDiffusivity = (double) theDefault(COATING_DIFFUSIVITY).getValue();
 		setComplexity(ProblemComplexity.HIGH);
 	}
 
@@ -50,19 +55,19 @@ public class CoreShellProblem extends LinearisedProblem2D {
 	}
 
 	public NumericProperty getCoatingAxialThickness() {
-		return NumericProperty.derive(AXIAL_COATING_THICKNESS, tA);
+		return derive(AXIAL_COATING_THICKNESS, tA);
 	}
 
 	public NumericProperty getCoatingRadialThickness() {
-		return NumericProperty.derive(RADIAL_COATING_THICKNESS, tR);
+		return derive(RADIAL_COATING_THICKNESS, tR);
 	}
 
 	public double axialFactor() {
-		return tA / l;
+		return tA / (double)getSampleThickness().getValue();
 	}
 
 	public double radialFactor() {
-		return tR / l;
+		return tR / (double)getSampleThickness().getValue();
 	}
 
 	public void setCoatingAxialThickness(NumericProperty t) {
@@ -74,7 +79,7 @@ public class CoreShellProblem extends LinearisedProblem2D {
 	}
 
 	public NumericProperty getCoatingDiffusivity() {
-		return NumericProperty.derive(COATING_DIFFUSIVITY, coatingDiffusivity);
+		return derive(COATING_DIFFUSIVITY, coatingDiffusivity);
 	}
 
 	public void setCoatingDiffusivity(NumericProperty a) {
@@ -85,9 +90,9 @@ public class CoreShellProblem extends LinearisedProblem2D {
 	public List<Property> listedTypes() {
 		List<Property> list = new ArrayList<>();
 		list.addAll(super.listedTypes());
-		list.add(NumericProperty.def(AXIAL_COATING_THICKNESS));
-		list.add(NumericProperty.def(RADIAL_COATING_THICKNESS));
-		list.add(NumericProperty.def(COATING_DIFFUSIVITY));
+		list.add(def(AXIAL_COATING_THICKNESS));
+		list.add(def(RADIAL_COATING_THICKNESS));
+		list.add(def(COATING_DIFFUSIVITY));
 		return list;
 	}
 
@@ -121,7 +126,7 @@ public class CoreShellProblem extends LinearisedProblem2D {
 		for (int i = 0, size = output[0].dimension(); i < size; i++) {
 			switch (output[0].getIndex(i)) {
 			case AXIAL_COATING_THICKNESS:
-				output[0].set(i, tA / l);
+				output[0].set(i, tA / (double)getSampleThickness().getValue());
 				output[1].set(i, 0.01);
 				break;
 			case RADIAL_COATING_THICKNESS:
@@ -147,7 +152,7 @@ public class CoreShellProblem extends LinearisedProblem2D {
 		for (int i = 0, size = params.dimension(); i < size; i++) {
 			switch (params.getIndex(i)) {
 			case AXIAL_COATING_THICKNESS:
-				tA = params.get(i) * l;
+				tA = params.get(i) * (double)getSampleThickness().getValue();
 				break;
 			case RADIAL_COATING_THICKNESS:
 				tR = params.get(i) / (d / 2.0);

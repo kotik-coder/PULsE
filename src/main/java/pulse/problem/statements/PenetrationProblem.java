@@ -3,6 +3,9 @@ package pulse.problem.statements;
 import static java.lang.Math.exp;
 import static java.lang.Math.log;
 import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericPropertyKeyword.LASER_ABSORPTIVITY;
+import static pulse.properties.NumericPropertyKeyword.NUMPOINTS;
+import static pulse.properties.NumericPropertyKeyword.THERMAL_ABSORPTIVITY;
 
 import java.util.List;
 
@@ -12,8 +15,6 @@ import pulse.problem.schemes.solvers.ImplicitTranslucentSolver;
 import pulse.problem.statements.penetration.AbsorptionModel;
 import pulse.problem.statements.penetration.BeerLambertAbsorption;
 import pulse.properties.Flag;
-import pulse.properties.NumericProperty;
-import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 import pulse.ui.Messages;
 import pulse.util.InstanceDescriptor;
@@ -32,14 +33,14 @@ public class PenetrationProblem extends LinearisedProblem {
 
 	public PenetrationProblem() {
 		super();
-		curve.setNumPoints(NumericProperty.derive(NumericPropertyKeyword.NUMPOINTS, DEFAULT_CURVE_POINTS));
+		getHeatingCurve().setNumPoints(derive(NUMPOINTS, DEFAULT_CURVE_POINTS));
 		instanceDescriptor.addListener(() -> initAbsorption());
 		absorption.setParent(this);
 	}
 
 	public PenetrationProblem(Problem sdd) {
 		super(sdd);
-		curve.setNumPoints(NumericProperty.derive(NumericPropertyKeyword.NUMPOINTS, DEFAULT_CURVE_POINTS));
+		getHeatingCurve().setNumPoints(derive(NUMPOINTS, DEFAULT_CURVE_POINTS));
 		if (sdd instanceof PenetrationProblem) {
 			PenetrationProblem tp = (PenetrationProblem) sdd;
 			setAbsorptionModel(tp.absorption);
@@ -52,7 +53,7 @@ public class PenetrationProblem extends LinearisedProblem {
 
 	public PenetrationProblem(PenetrationProblem tp) {
 		super(tp);
-		curve.setNumPoints(NumericProperty.derive(NumericPropertyKeyword.NUMPOINTS, DEFAULT_CURVE_POINTS));
+		getHeatingCurve().setNumPoints(derive(NUMPOINTS, DEFAULT_CURVE_POINTS));
 		setAbsorptionModel(tp.absorption);
 	}
 
@@ -108,11 +109,11 @@ public class PenetrationProblem extends LinearisedProblem {
 		for (int i = 0, size = params.dimension(); i < size; i++) {
 			switch (params.getIndex(i)) {
 			case LASER_ABSORPTIVITY:
-				absorption.setLaserAbsorptivity(derive(NumericPropertyKeyword.LASER_ABSORPTIVITY, exp(params.get(i))));
+				absorption.setLaserAbsorptivity(derive(LASER_ABSORPTIVITY, exp(params.get(i))));
 				break;
 			case THERMAL_ABSORPTIVITY:
 				absorption.setThermalAbsorptivity(
-						derive(NumericPropertyKeyword.THERMAL_ABSORPTIVITY, exp(params.get(i))));
+						derive(THERMAL_ABSORPTIVITY, exp(params.get(i))));
 				break;
 			default:
 				continue;

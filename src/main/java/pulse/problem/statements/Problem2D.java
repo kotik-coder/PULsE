@@ -1,5 +1,11 @@
 package pulse.problem.statements;
 
+import static java.lang.Math.exp;
+import static java.lang.Math.log;
+import static java.lang.Math.tanh;
+import static pulse.math.MathUtils.atanh;
+import static pulse.properties.NumericProperty.def;
+import static pulse.properties.NumericProperty.derive;
 import static pulse.properties.NumericPropertyKeyword.DIAMETER;
 import static pulse.properties.NumericPropertyKeyword.FOV_INNER;
 import static pulse.properties.NumericPropertyKeyword.FOV_OUTER;
@@ -11,7 +17,6 @@ import java.util.List;
 
 import pulse.input.ExperimentalData;
 import pulse.math.IndexedVector;
-import pulse.math.MathUtils;
 import pulse.problem.laser.DiscretePulse;
 import pulse.problem.laser.DiscretePulse2D;
 import pulse.problem.schemes.ADIScheme;
@@ -30,27 +35,27 @@ public abstract class Problem2D extends Problem implements TwoDimensional {
 
 	protected Problem2D() {
 		super();
-		this.pulse = new Pulse2D();
-		Bi3 = (double) NumericProperty.def(HEAT_LOSS_SIDE).getValue();
-		d = (double) NumericProperty.def(DIAMETER).getValue();
-		fovOuter = (double) NumericProperty.def(FOV_OUTER).getValue();
-		fovInner = (double) NumericProperty.def(FOV_INNER).getValue();
+		setPulse(new Pulse2D() );
+		Bi3 = (double) def(HEAT_LOSS_SIDE).getValue();
+		d = (double) def(DIAMETER).getValue();
+		fovOuter = (double) def(FOV_OUTER).getValue();
+		fovInner = (double) def(FOV_INNER).getValue();
 		setComplexity(ProblemComplexity.MODERATE);
 	}
 
 	protected Problem2D(Problem sdd) {
 		super(sdd);
-		this.pulse = new Pulse2D(sdd.getPulse());
-		Bi3 = (double) NumericProperty.def(HEAT_LOSS_SIDE).getValue();
-		d = (double) NumericProperty.def(DIAMETER).getValue();
-		fovOuter = (double) NumericProperty.def(FOV_OUTER).getValue();
-		fovInner = (double) NumericProperty.def(FOV_INNER).getValue();
+		setPulse(new Pulse2D(sdd.getPulse()) );
+		Bi3 = (double) def(HEAT_LOSS_SIDE).getValue();
+		d = (double) def(DIAMETER).getValue();
+		fovOuter = (double) def(FOV_OUTER).getValue();
+		fovInner = (double) def(FOV_INNER).getValue();
 		setComplexity(ProblemComplexity.MODERATE);
 	}
 
 	protected Problem2D(Problem2D sdd) {
 		super(sdd);
-		this.pulse = new Pulse2D(sdd.getPulse());
+		setPulse(new Pulse2D(sdd.getPulse()) );
 		this.d = sdd.d;
 		this.Bi3 = sdd.Bi3;
 		this.fovOuter = sdd.fovOuter;
@@ -67,7 +72,7 @@ public abstract class Problem2D extends Problem implements TwoDimensional {
 
 	@Override
 	public NumericProperty getSampleDiameter() {
-		return NumericProperty.derive(DIAMETER, d);
+		return derive(DIAMETER, d);
 	}
 
 	public void setSampleDiameter(NumericProperty d) {
@@ -75,7 +80,7 @@ public abstract class Problem2D extends Problem implements TwoDimensional {
 	}
 
 	public NumericProperty getSideLosses() {
-		return NumericProperty.derive(HEAT_LOSS_SIDE, Bi3);
+		return derive(HEAT_LOSS_SIDE, Bi3);
 	}
 
 	public void setSideLosses(NumericProperty bi3) {
@@ -84,7 +89,7 @@ public abstract class Problem2D extends Problem implements TwoDimensional {
 
 	@Override
 	public NumericProperty getFOVOuter() {
-		return NumericProperty.derive(FOV_OUTER, fovOuter);
+		return derive(FOV_OUTER, fovOuter);
 	}
 
 	public void setFOVOuter(NumericProperty fovOuter) {
@@ -93,7 +98,7 @@ public abstract class Problem2D extends Problem implements TwoDimensional {
 
 	@Override
 	public NumericProperty getFOVInner() {
-		return NumericProperty.derive(FOV_INNER, fovInner);
+		return derive(FOV_INNER, fovInner);
 	}
 
 	public void setFOVInner(NumericProperty fovInner) {
@@ -104,10 +109,10 @@ public abstract class Problem2D extends Problem implements TwoDimensional {
 	public List<Property> listedTypes() {
 		List<Property> list = new ArrayList<>();
 		list.addAll(super.listedTypes());
-		list.add(NumericProperty.def(HEAT_LOSS_SIDE));
-		list.add(NumericProperty.def(DIAMETER));
-		list.add(NumericProperty.def(FOV_OUTER));
-		list.add(NumericProperty.def(FOV_INNER));
+		list.add(def(HEAT_LOSS_SIDE));
+		list.add(def(DIAMETER));
+		list.add(def(FOV_OUTER));
+		list.add(def(FOV_INNER));
 		return list;
 	}
 
@@ -139,7 +144,7 @@ public abstract class Problem2D extends Problem implements TwoDimensional {
 
 	@Override
 	public DiscretePulse discretePulseOn(Grid grid) {
-		return grid instanceof Grid2D ? new DiscretePulse2D(this, (Pulse2D) pulse, (Grid2D) grid)
+		return grid instanceof Grid2D ? new DiscretePulse2D(this, (Pulse2D) getPulse(), (Grid2D) grid)
 				: super.discretePulseOn(grid);
 	}
 
@@ -158,13 +163,13 @@ public abstract class Problem2D extends Problem implements TwoDimensional {
 				output[1].set(i, 0.25);
 				break;
 			case SPOT_DIAMETER:
-				double fov = (double) ((Pulse2D) pulse).getSpotDiameter().getValue();
+				double fov = (double) ((Pulse2D) getPulse()).getSpotDiameter().getValue();
 				output[0].set(i, fov / d);
 				output[1].set(i, 0.25);
 				break;
 			case HEAT_LOSS_SIDE:
 				output[0].set(i,
-						areThermalPropertiesLoaded() ? MathUtils.atanh(2.0 * Bi3 / maxBiot() - 1.0) : Math.log(Bi3));
+						areThermalPropertiesLoaded() ? atanh(2.0 * Bi3 / maxBiot() - 1.0) : log(Bi3));
 				output[1].set(i, 2.0);
 				break;
 			default:
@@ -187,12 +192,12 @@ public abstract class Problem2D extends Problem implements TwoDimensional {
 				fovInner = params.get(i) * d;
 				break;
 			case SPOT_DIAMETER:
-				NumericProperty spotDiameter = NumericProperty.derive(SPOT_DIAMETER, params.get(i) * d);
-				((Pulse2D) pulse).setSpotDiameter(spotDiameter);
+				NumericProperty spotDiameter = derive(SPOT_DIAMETER, params.get(i) * d);
+				((Pulse2D) getPulse()).setSpotDiameter(spotDiameter);
 				break;
 			case HEAT_LOSS_SIDE:
-				Bi3 = areThermalPropertiesLoaded() ? 0.5 * maxBiot() * (Math.tanh(params.get(i)) + 1.0)
-						: Math.exp(params.get(i));
+				Bi3 = areThermalPropertiesLoaded() ? 0.5 * maxBiot() * (tanh(params.get(i)) + 1.0)
+						: exp(params.get(i));
 				break;
 			default:
 				continue;

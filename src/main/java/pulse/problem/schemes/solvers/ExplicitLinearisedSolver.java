@@ -80,6 +80,14 @@ public class ExplicitLinearisedSolver extends ExplicitScheme implements Solver<L
 		prepare(problem);
 		runTimeSequence(problem);
 	}
+	
+	@Override
+	public void timeStep(int m) {
+		explicitSolution();
+		var V = getCurrentSolution();
+		setSolutionAt(0, (V[1] + hx * pulse(m)) * a);
+		setSolutionAt(N, V[N - 1] * a);
+	}
 
 	@Override
 	public DifferenceScheme copy() {
@@ -90,14 +98,6 @@ public class ExplicitLinearisedSolver extends ExplicitScheme implements Solver<L
 	@Override
 	public Class<? extends Problem> domain() {
 		return LinearisedProblem.class;
-	}
-
-	@Override
-	public void timeStep(int m) {
-		explicitSolution();
-		var V = getCurrentSolution();
-		setSolutionAt(0, (V[1] + hx * pulse(m)) * a);
-		setSolutionAt(N, V[N - 1] * a);
 	}
 
 }

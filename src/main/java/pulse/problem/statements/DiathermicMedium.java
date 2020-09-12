@@ -1,5 +1,10 @@
 package pulse.problem.statements;
 
+import static pulse.properties.NumericProperty.def;
+import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericPropertyKeyword.DIATHERMIC_COEFFICIENT;
+import static pulse.properties.NumericPropertyKeyword.NUMPOINTS;
+
 import java.util.List;
 
 import pulse.math.IndexedVector;
@@ -18,15 +23,15 @@ public class DiathermicMedium extends LinearisedProblem {
 
 	public DiathermicMedium() {
 		super();
-		this.diathermicCoefficient = (double) NumericProperty.def(NumericPropertyKeyword.DIATHERMIC_COEFFICIENT)
+		this.diathermicCoefficient = (double) def(DIATHERMIC_COEFFICIENT)
 				.getValue();
-		curve.setNumPoints(NumericProperty.derive(NumericPropertyKeyword.NUMPOINTS, DEFAULT_CURVE_POINTS));
+		getHeatingCurve().setNumPoints(derive(NUMPOINTS, DEFAULT_CURVE_POINTS));
 	}
 
 	public DiathermicMedium(NumericProperty diathermicCoefficient) {
 		super();
 		this.diathermicCoefficient = (double) (diathermicCoefficient.getValue());
-		curve.setNumPoints(NumericProperty.derive(NumericPropertyKeyword.NUMPOINTS, DEFAULT_CURVE_POINTS));
+		getHeatingCurve().setNumPoints(derive(NUMPOINTS, DEFAULT_CURVE_POINTS));
 	}
 
 	public DiathermicMedium(Problem sdd) {
@@ -34,19 +39,19 @@ public class DiathermicMedium extends LinearisedProblem {
 		if (sdd instanceof DiathermicMedium)
 			this.diathermicCoefficient = ((DiathermicMedium) sdd).diathermicCoefficient;
 		else
-			this.diathermicCoefficient = (double) NumericProperty.def(NumericPropertyKeyword.DIATHERMIC_COEFFICIENT)
+			this.diathermicCoefficient = (double) def(DIATHERMIC_COEFFICIENT)
 					.getValue();
-		curve.setNumPoints(NumericProperty.derive(NumericPropertyKeyword.NUMPOINTS, DEFAULT_CURVE_POINTS));
+		getHeatingCurve().setNumPoints(derive(NUMPOINTS, DEFAULT_CURVE_POINTS));
 	}
 
 	public DiathermicMedium(DiathermicMedium sdd) {
 		super(sdd);
 		this.diathermicCoefficient = sdd.diathermicCoefficient;
-		curve.setNumPoints(NumericProperty.derive(NumericPropertyKeyword.NUMPOINTS, DEFAULT_CURVE_POINTS));
+		getHeatingCurve().setNumPoints(derive(NUMPOINTS, DEFAULT_CURVE_POINTS));
 	}
 
 	public NumericProperty getDiathermicCoefficient() {
-		return NumericProperty.derive(NumericPropertyKeyword.DIATHERMIC_COEFFICIENT, diathermicCoefficient);
+		return derive(DIATHERMIC_COEFFICIENT, diathermicCoefficient);
 	}
 
 	public void setDiathermicCoefficient(NumericProperty diathermicCoefficient) {
@@ -117,7 +122,7 @@ public class DiathermicMedium extends LinearisedProblem {
 	@Override
 	public List<Property> listedTypes() {
 		List<Property> list = super.listedTypes();
-		list.add(NumericProperty.def(NumericPropertyKeyword.DIATHERMIC_COEFFICIENT));
+		list.add(def(DIATHERMIC_COEFFICIENT));
 		return list;
 	}
 
