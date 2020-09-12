@@ -1,10 +1,10 @@
 package pulse.problem.statements;
 
-import static pulse.math.MathUtils.*;
 import static java.lang.Math.exp;
 import static java.lang.Math.log;
 import static java.lang.Math.tanh;
 import static pulse.math.MathUtils.atanh;
+import static pulse.math.MathUtils.fastPowLoop;
 import static pulse.properties.NumericProperty.def;
 import static pulse.properties.NumericProperty.derive;
 import static pulse.properties.NumericProperty.theDefault;
@@ -18,7 +18,6 @@ import java.util.List;
 
 import pulse.input.ExperimentalData;
 import pulse.math.IndexedVector;
-import pulse.math.MathUtils;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.solvers.MixedCoupledSolver;
 import pulse.properties.Flag;
@@ -139,7 +138,7 @@ public class ParticipatingMedium extends NonlinearProblem {
 	}
 
 	private double maxNp() {
-		return thermalConductivity() / (4.0 * NonlinearProblem.STEFAN_BOTLZMAN * MathUtils.fastPowLoop(T, 3) * l);
+		return thermalConductivity() / (4.0 * NonlinearProblem.STEFAN_BOTLZMAN * fastPowLoop(T, 3) * l);
 	}
 
 	@Override

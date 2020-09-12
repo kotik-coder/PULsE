@@ -3,7 +3,6 @@ package pulse;
 import static java.lang.Math.abs;
 import static java.util.Collections.max;
 import static java.util.Collections.min;
-import static java.util.Collections.nCopies;
 import static java.util.stream.Collectors.toList;
 import static pulse.input.listeners.DataEventType.CHANGE_OF_ORIGIN;
 import static pulse.properties.NumericProperty.def;
@@ -174,10 +173,6 @@ public class HeatingCurve extends PropertyHolder {
 	public void setNumPoints(NumericProperty c) {
 		requireType(c, NUMPOINTS);
 		this.count = (int) c.getValue();
-
-		signal = new ArrayList<>(nCopies(this.count, 0.0));
-		adjustedSignal = new ArrayList<>(nCopies(this.count, 0.0));
-		time = new ArrayList<>(nCopies(this.count, 0.0));
 	}
 
 	/**

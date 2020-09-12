@@ -12,7 +12,7 @@ import pulse.properties.Property;
 
 public class Pulse2D extends Pulse {
 
-	protected double spotDiameter;
+	private double spotDiameter;
 
 	/**
 	 * Creates a {@code Pulse} with default values of pulse width and laser spot

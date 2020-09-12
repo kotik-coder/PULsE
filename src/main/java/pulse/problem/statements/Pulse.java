@@ -70,6 +70,7 @@ public class Pulse extends PropertyHolder {
 
 	public void setPulseWidth(NumericProperty pulseWidth) {
 		this.pulseWidth = (double) pulseWidth.getValue();
+		firePropertyChanged(this, pulseWidth);
 	}
 
 	public NumericProperty getLaserEnergy() {
@@ -78,6 +79,7 @@ public class Pulse extends PropertyHolder {
 
 	public void setLaserEnergy(NumericProperty laserEnergy) {
 		this.laserEnergy = (double) laserEnergy.getValue();
+		firePropertyChanged(this, laserEnergy);
 	}
 
 	@Override
@@ -117,8 +119,6 @@ public class Pulse extends PropertyHolder {
 		default:
 			break;
 		}
-
-		firePropertyChanged(this, property);
 
 	}
 

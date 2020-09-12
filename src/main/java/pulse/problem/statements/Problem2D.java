@@ -124,7 +124,7 @@ public abstract class Problem2D extends Problem implements TwoDimensional {
 		case DIAMETER:
 			setSampleDiameter(property);
 			break;
-		case HEAT_LOSS:
+		case HEAT_LOSS_SIDE:
 			setSideLosses(property);
 			break;
 		default:
