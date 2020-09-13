@@ -13,8 +13,9 @@ import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 import static org.jfree.chart.ChartFactory.createScatterPlot;
 import static org.jfree.chart.plot.PlotOrientation.VERTICAL;
-import static pulse.HeatingCurve.classicSolution;
 import static pulse.ui.Messages.getString;
+
+import static pulse.problem.statements.AdiabaticSolution.*;
 
 import java.awt.BasicStroke;
 import java.awt.Color;

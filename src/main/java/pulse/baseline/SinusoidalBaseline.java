@@ -125,7 +125,7 @@ public class SinusoidalBaseline extends FlatBaseline {
 			switch (output[0].getIndex(i)) {
 			case BASELINE_FREQUENCY:
 				output[0].set(i, frequency);
-				output[1].set(i, 10);
+				output[1].set(i, 30);
 				break;
 			case BASELINE_PHASE_SHIFT:
 				output[0].set(i, phaseShift);

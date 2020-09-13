@@ -1,7 +1,5 @@
 package pulse.problem.statements;
 
-import static java.lang.Math.PI;
-import static java.lang.Math.exp;
 import static java.lang.Math.pow;
 import static pulse.properties.NumericPropertyKeyword.DENSITY;
 import static pulse.properties.NumericPropertyKeyword.DIFFUSIVITY;
@@ -133,40 +131,6 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
 		instanceDescriptor.setSelectedDescriptor(p.getBaseline().getClass().getSimpleName());
 		initBaseline();
 		instanceDescriptor.addListener(() -> initBaseline());
-	}
-
-	/**
-	 * <p>
-	 * Calculates the classic analytical solution
-	 * <math><i>T(x=l</i>,<code>time</code>)</math> of Parker et al. at the
-	 * specified {@code time} using the first {@code n = precision} terms of the
-	 * solution series. The results is then scaled by a factor of
-	 * {@code signalHeight} and returned.
-	 * </p>
-	 * 
-	 * @param time      The calculation time
-	 * @param precision The number of terms in the approximated solution
-	 * @return a double, representing <math><i>T(x=l</i>,<code>time</code>)</math>
-	 * @see <a href="https://doi.org/10.1063/1.1728417">Parker <i>et al.</i> Journal
-	 *      of Applied Physics <b>32</b> (1961) 1679</a>
-	 */
-
-	public final double classicSolutionAt(double time, int precision) {
-
-		final double EPS = 1E-8;
-		double Fo = time * a / pow(l, 2);
-
-		if (time < EPS)
-			return 0;
-
-		double sum = 0;
-
-		for (int i = 1; i <= precision; i++) {
-			sum += pow(-1, i) * exp(-pow(i * PI, 2) * Fo);
-		}
-
-		return (1. + 2. * sum) * signalHeight;
-
 	}
 
 	/**

@@ -2,7 +2,6 @@ package pulse;
 
 import static java.lang.Math.abs;
 import static java.util.Collections.max;
-import static java.util.Collections.min;
 import static java.util.stream.Collectors.toList;
 import static pulse.input.listeners.DataEventType.CHANGE_OF_ORIGIN;
 import static pulse.properties.NumericProperty.def;
@@ -22,7 +21,6 @@ import pulse.baseline.Baseline;
 import pulse.input.ExperimentalData;
 import pulse.input.listeners.DataEvent;
 import pulse.input.listeners.DataListener;
-import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
@@ -57,8 +55,6 @@ public class HeatingCurve extends PropertyHolder {
 
 	private UnivariateInterpolator splineInterpolator;
 	private UnivariateFunction splineInterpolation;
-
-	public final static int DEFAULT_CLASSIC_PRECISION = 200;
 
 	private List<HeatingCurveListener> listeners = new ArrayList<HeatingCurveListener>();
 
@@ -343,10 +339,10 @@ public class HeatingCurve extends PropertyHolder {
 
 	public void apply(Baseline baseline) {
 		adjustedSignal.clear();
-		for (int i = 0, size = time.size(); i < size; i++)
+		for (int i = 0, size = time.size(); i < size; i++) 
 			adjustedSignal.add(signal.get(i) + baseline.valueAt(time.get(i) + startTime));
-
-		if (min(time) > 0) {
+		
+		if ( ! time.contains(0.0) ) {
 			time.add(0, 0.0);
 			adjustedSignal.add(0, baseline.valueAt(0.0));
 		}
@@ -405,69 +401,7 @@ public class HeatingCurve extends PropertyHolder {
 		return newCurve;
 
 	}
-
-	/**
-	 * A static factory method for calculating a heating curve based on the
-	 * analytical solution of Parker et al.
-	 * <p>
-	 * The math itself is done separately in the {@code Problem} class. This method
-	 * creates a {@code HeatingCurve} with the number of points equal to that of the
-	 * {@code p.getHeatingCurve()}, and with the same baseline. The solution is
-	 * calculated for the time range {@code 0 <= t <= timeLimit}.
-	 * </p>
-	 * 
-	 * @param p         The problem statement, providing access to the
-	 *                  {@code classicSolutionAt} method and to the
-	 *                  {@code HeatingCurve} object it owns.
-	 * @param timeLimit The upper time limit (in seconds)
-	 * @param precision The second argument passed to the {@code classicSolutionAt}
-	 * @return a {@code HeatingCurve} representing the analytical solution.
-	 * @see <a href="https://doi.org/10.1063/1.1728417">Parker <i>et al.</i> Journal
-	 *      of Applied Physics <b>32</b> (1961) 1679</a>
-	 * @see Problem.classicSolutionAt(double,int)
-	 */
-
-	public static HeatingCurve classicSolution(Problem p, double timeLimit, int precision) {
-		var hc = p.getHeatingCurve();
-		var classicCurve = new HeatingCurve(derive(NUMPOINTS, hc.count));
-
-		double time, step;
-
-		if (hc.time.size() < hc.count)
-			step = timeLimit / (hc.count - 1.0);
-		else
-			step = hc.timeAt(1) - hc.timeAt(0);
-
-		for (int i = 0; i < hc.count; i++) {
-			time = i * step;
-			classicCurve.addPoint(time, p.classicSolutionAt(time, precision));
-			classicCurve.adjustedSignal.add(classicCurve.signal.get(i) + p.getBaseline().valueAt(time));
-		}
-
-		classicCurve.setName("Classic solution");
-
-		return classicCurve;
-
-	}
-
-	/**
-	 * Calculates the classic solution, using the default value of the
-	 * {@code precision} and the time limit specified by the {@code HeatingCurve} of
-	 * {@code p}.
-	 * 
-	 * @param p the problem statement
-	 * @return a {@code HeatinCurve}, representing the classic solution.
-	 * @see classicSolution
-	 */
-
-	public static HeatingCurve classicSolution(Problem p) {
-		return classicSolution(p, p.getHeatingCurve().timeLimit(), DEFAULT_CLASSIC_PRECISION);
-	}
-
-	public static HeatingCurve classicSolution(Problem p, double timeLimit) {
-		return classicSolution(p, timeLimit, DEFAULT_CLASSIC_PRECISION);
-	}
-
+	
 	/**
 	 * Provides general setter accessibility for the number of points of this
 	 * {@code HeatingCurve}.

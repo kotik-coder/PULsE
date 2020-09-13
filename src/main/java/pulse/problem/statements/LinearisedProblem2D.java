@@ -4,6 +4,12 @@ import pulse.problem.schemes.ADIScheme;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.ui.Messages;
 
+/**
+ * The complete problem statement for a fully two-dimensional problem, which includes
+ * side heat losses, a variable field of view and variable pulse-to-diameter ratio.  
+ *
+ */
+
 public class LinearisedProblem2D extends Problem2D {
 
 	public LinearisedProblem2D() {

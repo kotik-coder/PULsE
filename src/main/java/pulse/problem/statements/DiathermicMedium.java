@@ -6,14 +6,31 @@ import static pulse.properties.NumericPropertyKeyword.DIATHERMIC_COEFFICIENT;
 import static pulse.properties.NumericPropertyKeyword.NUMPOINTS;
 
 import java.util.List;
+import static java.lang.Math.*;
 
 import pulse.math.IndexedVector;
-import pulse.math.MathUtils;
+import static pulse.math.MathUtils.*;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 import pulse.ui.Messages;
+
+/**
+ * The diathermic model is based on the following propositions: - A
+ * cylindrically shaped sample is completely transparent to thermal radiation; -
+ * The front~(laser-facing) and rear (detector-facing) sides of the sample are
+ * coated by a thin grey absorber; - The coatings are in perfect thermal contact
+ * with the bulk material; - The side surface is free from any coating.
+ * <p>
+ * Consequently, the monochromatic laser radiation is largely absorbed at the
+ * front face of the sample (y = 0), causing immediate heating. A portion of
+ * thermal radiation causes the rear face (y = 1) to start heating precisely at
+ * the same time~(ahead of thermal conduction). The remainder energy dissipates
+ * in the ambient.
+ * </p>
+ *
+ */
 
 public class DiathermicMedium extends LinearisedProblem {
 
@@ -21,9 +38,7 @@ public class DiathermicMedium extends LinearisedProblem {
 	private final static int DEFAULT_CURVE_POINTS = 300;
 
 	public DiathermicMedium() {
-		super();
-		this.diathermicCoefficient = (double) def(DIATHERMIC_COEFFICIENT).getValue();
-		getHeatingCurve().setNumPoints(derive(NUMPOINTS, DEFAULT_CURVE_POINTS));
+		this(def(DIATHERMIC_COEFFICIENT));
 	}
 
 	public DiathermicMedium(NumericProperty diathermicCoefficient) {
@@ -34,16 +49,8 @@ public class DiathermicMedium extends LinearisedProblem {
 
 	public DiathermicMedium(Problem sdd) {
 		super(sdd);
-		if (sdd instanceof DiathermicMedium)
-			this.diathermicCoefficient = ((DiathermicMedium) sdd).diathermicCoefficient;
-		else
-			this.diathermicCoefficient = (double) def(DIATHERMIC_COEFFICIENT).getValue();
-		getHeatingCurve().setNumPoints(derive(NUMPOINTS, DEFAULT_CURVE_POINTS));
-	}
-
-	public DiathermicMedium(DiathermicMedium sdd) {
-		super(sdd);
-		this.diathermicCoefficient = sdd.diathermicCoefficient;
+		this.diathermicCoefficient = sdd instanceof DiathermicMedium ? ((DiathermicMedium) sdd).diathermicCoefficient
+				: (double) def(DIATHERMIC_COEFFICIENT).getValue();
 		getHeatingCurve().setNumPoints(derive(NUMPOINTS, DEFAULT_CURVE_POINTS));
 	}
 
@@ -57,18 +64,11 @@ public class DiathermicMedium extends LinearisedProblem {
 
 	@Override
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
-		NumericPropertyKeyword prop = type;
-		double newVal = ((Number) property.getValue()).doubleValue();
-
-		switch (prop) {
-		case DIATHERMIC_COEFFICIENT:
-			diathermicCoefficient = newVal;
-			break;
-		default:
+		if (type == DIATHERMIC_COEFFICIENT) {
+			diathermicCoefficient = ((Number) property.getValue()).doubleValue();
+		} else {
 			super.set(type, property);
-			break;
 		}
-
 	}
 
 	@Override
@@ -76,13 +76,9 @@ public class DiathermicMedium extends LinearisedProblem {
 		super.optimisationVector(output, flags);
 
 		for (int i = 0, size = output[0].dimension(); i < size; i++) {
-			switch (output[0].getIndex(i)) {
-			case DIATHERMIC_COEFFICIENT:
-				output[0].set(i, MathUtils.atanh(2.0 * diathermicCoefficient - 1.0));
+			if (output[0].getIndex(i) == DIATHERMIC_COEFFICIENT) {
+				output[0].set(i, atanh(2.0 * diathermicCoefficient - 1.0));
 				output[1].set(i, 10.0);
-				break;
-			default:
-				continue;
 			}
 		}
 
@@ -95,7 +91,7 @@ public class DiathermicMedium extends LinearisedProblem {
 		for (int i = 0, size = params.dimension(); i < size; i++) {
 			switch (params.getIndex(i)) {
 			case DIATHERMIC_COEFFICIENT:
-				diathermicCoefficient = 0.5 * (Math.tanh(params.get(i)) + 1.0);
+				diathermicCoefficient = 0.5 * (tanh(params.get(i)) + 1.0);
 				break;
 			case HEAT_LOSS:
 				if (areThermalPropertiesLoaded()) {
