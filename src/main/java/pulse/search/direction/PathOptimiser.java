@@ -178,7 +178,7 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 	 * @throws SolverException
 	 */
 
-	public static Vector gradient(SearchTask task) throws SolverException {
+	public static Vector gradient(SearchTask task) {
 
 		final IndexedVector params = task.searchVector()[0];
 		Vector grad = new Vector(params.dimension());

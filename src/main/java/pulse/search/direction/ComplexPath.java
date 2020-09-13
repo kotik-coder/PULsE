@@ -34,7 +34,7 @@ public class ComplexPath extends Path {
 	 */
 
 	@Override
-	public void reset(SearchTask task) throws SolverException {
+	public void reset(SearchTask task) {
 		setGradient(gradient(task));
 		hessian = createIdentityMatrix(activeParameters(task).size());
 		setDirection(getSelectedPathOptimiser().direction(this));

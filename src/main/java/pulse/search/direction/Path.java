@@ -1,7 +1,6 @@
 package pulse.search.direction;
 
 import pulse.math.linear.Vector;
-import pulse.problem.schemes.solvers.SolverException;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.tasks.SearchTask;
@@ -34,12 +33,7 @@ public class Path {
 	private int iteration;
 
 	protected Path(SearchTask t) {
-		try {
-			reset(t);
-		} catch (SolverException e) {
-			System.err.println("Task failed to execute: " + t);
-			e.printStackTrace();
-		}
+		reset(t);
 	}
 
 	/**
@@ -47,11 +41,10 @@ public class Path {
 	 * search. Sets the minimum point to 0.0.
 	 * 
 	 * @param t the {@code SearchTask}, for which this {@code Path} is created.
-	 * @throws SolverException
 	 * @see pulse.search.direction.PathSolver.direction(Path)
 	 */
 
-	public void reset(SearchTask t) throws SolverException {
+	public void reset(SearchTask t) {
 		this.gradient = PathOptimiser.gradient(t);
 		this.direction = PathOptimiser.getSelectedPathOptimiser().direction(this);
 		minimumPoint = 0.0;

@@ -8,16 +8,18 @@ import java.util.List;
 
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.ExplicitScheme;
+import pulse.problem.schemes.FixedPointIterations;
 import pulse.problem.statements.NonlinearProblem;
 import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 
-public class ExplicitNonlinearSolver extends ExplicitScheme implements Solver<NonlinearProblem> {
+public class ExplicitNonlinearSolver extends ExplicitScheme implements Solver<NonlinearProblem>, FixedPointIterations {
 
 	private int N;
 	private double hx;
+	private double pls;
 
 	private double dT_T;
 	
@@ -27,7 +29,6 @@ public class ExplicitNonlinearSolver extends ExplicitScheme implements Solver<No
 	private double fN1;
 
 	private double nonlinearPrecision;
-	private double fixedPointPrecisionSq;
 
 	public ExplicitNonlinearSolver() {
 		super();
@@ -41,6 +42,7 @@ public class ExplicitNonlinearSolver extends ExplicitScheme implements Solver<No
 
 	public ExplicitNonlinearSolver(NumericProperty N, NumericProperty timeFactor, NumericProperty timeLimit) {
 		super(N, timeFactor, timeLimit);
+		nonlinearPrecision = (double) def(NONLINEAR_PRECISION).getValue();
 	}
 
 	private void prepare(NonlinearProblem problem) {
@@ -53,7 +55,7 @@ public class ExplicitNonlinearSolver extends ExplicitScheme implements Solver<No
 		final double tau = grid.getTimeStep();
 
 		final double T = (double) problem.getTestTemperature().getValue();
-		double dT = problem.maximumHeating();
+		final double dT = problem.maximumHeating();
 		
 		a00 = 2 * tau / (hx * hx + 2 * tau);
 		a11 = hx * hx / (2.0 * tau);
@@ -62,40 +64,33 @@ public class ExplicitNonlinearSolver extends ExplicitScheme implements Solver<No
 		fN1 = 0.25 * Bi1 * T / dT;
 		
 		dT_T = dT/T;
-		
-		fixedPointPrecisionSq = nonlinearPrecision*nonlinearPrecision;
 	}
 	
 	@Override
 	public void timeStep(int m) {
 		explicitSolution();
-
-		final double pls = pulse(m);
+		pls = pulse(m);
+		doIterations(getCurrentSolution(), nonlinearPrecision, m);	
+	}
+	
+	@Override
+	public void iteration(int m) {
 		var V = getCurrentSolution();
 		var U = getPreviousSolution();
-
+		
 		/**
 		 * y = 0
 		 */
-
-		for (double lastIteration = Double.POSITIVE_INFINITY; fastPowLoop((V[0] - lastIteration),
-				2) > fixedPointPrecisionSq;) {
-			lastIteration = V[0];
-			final double f0 = f01 * (fastPowLoop(lastIteration * dT_T + 1, 4) - 1);
-			V[0] = a00 * (V[1] + a11 * U[0] + hx * (pls - f0));
-		}
-
+		
+		final double f0 = f01 * (fastPowLoop(V[0] * dT_T + 1, 4) - 1);
+		V[0] = a00 * (V[1] + a11 * U[0] + hx * (pls - f0));
+		
 		/**
 		 * y = 1
 		 */
-
-		for (double lastIteration = Double.POSITIVE_INFINITY; fastPowLoop((V[N] - lastIteration),
-				2) > fixedPointPrecisionSq;) {
-			lastIteration = V[N];
-			final double fN = fN1 * (fastPowLoop(lastIteration * dT_T  + 1, 4) - 1);
-			V[N] = a00 * (V[N - 1] + a11 * U[N] - hx * fN);
-		}
 		
+		final double fN = fN1 * (fastPowLoop(V[N] * dT_T  + 1, 4) - 1);
+		V[N] = a00 * (V[N - 1] + a11 * U[N] - hx * fN);
 	}
 
 	@Override

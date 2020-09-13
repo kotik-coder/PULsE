@@ -1,6 +1,5 @@
 package pulse.problem.schemes.solvers;
 
-import static pulse.math.MathUtils.fastPowLoop;
 import static pulse.properties.NumericProperty.def;
 import static pulse.properties.NumericProperty.derive;
 import static pulse.properties.NumericPropertyKeyword.GRID_DENSITY;
@@ -10,30 +9,32 @@ import static pulse.ui.Messages.getString;
 
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.ExplicitScheme;
+import pulse.problem.schemes.FixedPointIterations;
 import pulse.problem.schemes.RadiativeTransferCoupling;
 import pulse.problem.schemes.rte.Fluxes;
 import pulse.problem.schemes.rte.RTECalculationStatus;
+import pulse.problem.schemes.rte.RadiativeTransferSolver;
 import pulse.problem.statements.ParticipatingMedium;
 import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
 
-public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<ParticipatingMedium> {
+public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<ParticipatingMedium>, FixedPointIterations {
 
 	private RadiativeTransferCoupling coupling;
+	private RadiativeTransferSolver rte;
 	private RTECalculationStatus status;
 	private Fluxes fluxes;
 	
 	private double hx;
 	private double a;
 	private double nonlinearPrecision;
+	private double pls;
 	
 	private int N;
 	
 	private double HX_NP;
 	private double prefactor;
 	
-	private double errorSq;
-
 	public ExplicitCoupledSolver() {
 		this( derive(GRID_DENSITY, 80), derive(TAU_FACTOR, 0.5) );
 	}
@@ -51,6 +52,7 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
 		var grid = getGrid();
 
 		coupling.init(problem, grid);
+		rte = coupling.getRadiativeTransferEquation();
 		fluxes = coupling.getRadiativeTransferEquation().getFluxes();
 
 		N = (int) grid.getGridDensity().getValue();
@@ -66,8 +68,6 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
 		
 		HX_NP = hx / Np;
 		prefactor = tau * opticalThickness / Np;
-
-		errorSq = nonlinearPrecision*nonlinearPrecision;
 	}
 
 	@Override
@@ -87,29 +87,29 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
 
 	@Override
 	public void timeStep(int m) {
-		double pls = pulse(m);
-		
-		var rte = coupling.getRadiativeTransferEquation();
+		pls = pulse(m);
+		doIterations(getCurrentSolution(), nonlinearPrecision, m);	
+	}
+	
+	@Override
+	public void iteration(final int m) {
+		/*
+		 * Uses the heat equation explicitly to calculate the grid-function everywhere
+		 * except the boundaries
+		 */
+		explicitSolution();
 		
 		var V = getCurrentSolution();
 		
-		for (double V_0 = Double.POSITIVE_INFINITY, V_N = Double.POSITIVE_INFINITY; (fastPowLoop((V[0] - V_0),
-				2) > errorSq) || (fastPowLoop((V[N] - V_N), 2) > errorSq); status = rte.compute(V)) {
+		// Front face
+		V[0] = (V[1] + hx * pls - HX_NP * fluxes.getFlux(0)) * a;
+		// Rear face
+		V[N] = (V[N - 1] + HX_NP * fluxes.getFlux(N)) * a;
+	}
 
-			/*
-			 * Uses the heat equation explicitly to calculate the grid-function everywhere
-			 * except the boundaries
-			 */
-			explicitSolution();
-
-			// Front face
-			V_0 = V[0];
-			V[0] = (V[1] + hx * pls - HX_NP * fluxes.getFlux(0)) * a;
-			// Rear face
-			V_N = V[N];
-			V[N] = (V[N - 1] + HX_NP * fluxes.getFlux(N)) * a;
-
-		}
+	@Override
+	public void finaliseIteration(double[] V) {
+		status = rte.compute(V);
 	}
 	
 	@Override

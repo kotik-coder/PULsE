@@ -343,7 +343,7 @@
 		auto-adjustable="false" descriptor="Resolution (linear)"
 		dimensionfactor="1.0" keyword="LINEAR_RESOLUTION" maximum="0.1"
 		minimum="1.0E-8" value="1.0E-7" primitive-type="double"
-		discreet="false" />
+		discreet="false" ></NumericProperty>
 	<NumericProperty abbreviation="Resolution (gradient)"
 		auto-adjustable="false" descriptor="Resolution (gradient)"
 		dimensionfactor="1.0" keyword="GRADIENT_RESOLUTION" maximum="0.1"

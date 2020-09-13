@@ -7,6 +7,7 @@ import static pulse.properties.NumericPropertyKeyword.NONLINEAR_PRECISION;
 import java.util.List;
 
 import pulse.problem.schemes.DifferenceScheme;
+import pulse.problem.schemes.FixedPointIterations;
 import pulse.problem.schemes.ImplicitScheme;
 import pulse.problem.statements.NonlinearProblem;
 import pulse.problem.statements.Problem;
@@ -14,7 +15,7 @@ import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 
-public class ImplicitNonlinearSolver extends ImplicitScheme implements Solver<NonlinearProblem> {
+public class ImplicitNonlinearSolver extends ImplicitScheme implements Solver<NonlinearProblem>, FixedPointIterations {
 
 	private int N;
 	private double HH;
@@ -43,6 +44,7 @@ public class ImplicitNonlinearSolver extends ImplicitScheme implements Solver<No
 
 	public ImplicitNonlinearSolver(NumericProperty N, NumericProperty timeFactor, NumericProperty timeLimit) {
 		super(N, timeFactor, timeLimit);
+		nonlinearPrecision = (double) def(NONLINEAR_PRECISION).getValue();
 	}
 
 	private void prepare(NonlinearProblem problem) {
@@ -126,19 +128,12 @@ public class ImplicitNonlinearSolver extends ImplicitScheme implements Solver<No
 	@Override
 	public void timeStep(final int m) {
 		pls = pulse(m);
-		final double errorSq = fastPowLoop((double) getNonlinearPrecision().getValue(), 2);
-		
-		var V = getCurrentSolution();
-		
-		for (double V_0 = errorSq + 1, V_N = errorSq + 1; (fastPowLoop((V[0] - V_0), 2) > errorSq)
-				|| (fastPowLoop((V[N] - V_N), 2) > errorSq); ) {
-
-			V_N = V[N];
-			V_0 = V[0];
-			super.timeStep(m);
-
-		}	
-		
+		doIterations(getCurrentSolution(), nonlinearPrecision, m);		
+	}
+	
+	@Override
+	public void iteration(int m) {
+		super.timeStep(m);
 	}
 	
 	@Override
