@@ -6,12 +6,7 @@ import static pulse.math.MathUtils.atanh;
 import static pulse.properties.NumericProperty.def;
 import static pulse.properties.NumericProperty.derive;
 import static pulse.properties.NumericProperty.requireType;
-import static pulse.properties.NumericPropertyKeyword.CONDUCTIVITY;
-import static pulse.properties.NumericPropertyKeyword.DENSITY;
-import static pulse.properties.NumericPropertyKeyword.EMISSIVITY;
-import static pulse.properties.NumericPropertyKeyword.HEAT_LOSS;
-import static pulse.properties.NumericPropertyKeyword.SPECIFIC_HEAT;
-import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
+import static pulse.properties.NumericPropertyKeyword.*;
 
 import java.util.List;
 
@@ -64,6 +59,7 @@ public class NonlinearProblem extends Problem {
 		list.add(def(TEST_TEMPERATURE));
 		list.add(def(SPECIFIC_HEAT));
 		list.add(def(DENSITY));
+		list.remove(def(SPOT_DIAMETER));
 		return list;
 	}
 

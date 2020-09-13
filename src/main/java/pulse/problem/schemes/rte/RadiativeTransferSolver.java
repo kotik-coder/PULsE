@@ -7,6 +7,7 @@ import java.util.stream.IntStream;
 import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
 
+import static pulse.math.MathUtils.*;
 import pulse.problem.schemes.Grid;
 import pulse.problem.statements.ParticipatingMedium;
 import pulse.util.Descriptive;
@@ -69,13 +70,19 @@ public abstract class RadiativeTransferSolver extends PropertyHolder implements 
 	 */
 
 	public UnivariateFunction interpolateTemperatureProfile(final double[] tempArray) {
-		var xArray = new double[tempArray.length + 1];
+		var xArray = new double[tempArray.length + 2];
 		IntStream.range(0, xArray.length).forEach(i -> xArray[i] = opticalCoordinateAt(i - 1));
 				
-		var tarray = new double[tempArray.length + 1];
-		System.arraycopy(tempArray, 0, tarray, 1, tempArray.length);
-		final double alpha = (xArray[0] - xArray[1])/(xArray[2] - xArray[1]);
-		tarray[0] = tarray[1] * alpha + (1.0 - alpha) * tarray[2];
+		var tarray = new double[tempArray.length + 2];
+		System.arraycopy(tempArray, 0, tarray, 1, tempArray.length - 1);
+		
+		final double[] p1 = new double[] { xArray[1], tempArray[0] };
+		final double[] p2 = new double[] { xArray[2], tempArray[1] };
+		tarray[0] =	linearExtrapolation(p1, p2, xArray[0]); 
+		
+		final double[] p3 = new double[] { xArray[xArray.length - 2], tempArray[tempArray.length - 1] };
+		final double[] p4 = new double[] { xArray[xArray.length - 3], tempArray[tempArray.length - 2] };
+		tarray[tarray.length - 1] = linearExtrapolation(p3, p4, xArray[xArray.length - 1]);
 		
 		return (new SplineInterpolator()).interpolate(xArray, tarray);
 	}

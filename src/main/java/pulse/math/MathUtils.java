@@ -14,19 +14,21 @@ import static java.lang.Math.log;
 public class MathUtils {
 
 	public final static double EQUALS_TOLERANCE = 1E-5;
-	
+
 	private MathUtils() {
 		// intentionally blank
 	}
-	
+
 	/**
-	 * Checks if two numbers are approximately equal by comparing the modulus 
-	 * of their difference to {@value EQUALS_TOLERANCE}. 
+	 * Checks if two numbers are approximately equal by comparing the modulus of
+	 * their difference to {@value EQUALS_TOLERANCE}.
+	 * 
 	 * @param a a number
 	 * @param b another number
-	 * @return {@code true} if numbers are approximately equal, {@code false} otherwise
+	 * @return {@code true} if numbers are approximately equal, {@code false}
+	 *         otherwise
 	 */
-	
+
 	public static boolean approximatelyEquals(final double a, final double b) {
 		return Math.abs(a - b) < EQUALS_TOLERANCE;
 	}
@@ -160,6 +162,18 @@ public class MathUtils {
 
 	public static double fastAbs(final double a) {
 		return longBitsToDouble((doubleToLongBits(a) << 1) >>> 1);
+	}
+	
+	/**
+	 * Performs linear extrapolation according to the rule y(xStar) = y1 + (xStar - x1)/(x2 - x1) * (y2 - y1)
+	 * @param p1 point 1 (x1, y1)
+	 * @param p2 point 2 (x2, y2)
+	 * @param xStar interpolation x coordinate
+	 * @return
+	 */
+
+	public static double linearExtrapolation(final double[] p1, final double[] p2, final double xStar) {
+		return p1[1] + (xStar - p1[0]) / (p2[0] - p1[0]) * (p2[1] - p1[1]);
 	}
 
 }

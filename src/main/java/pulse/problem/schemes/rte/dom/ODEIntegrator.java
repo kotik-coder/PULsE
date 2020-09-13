@@ -25,22 +25,24 @@ public abstract class ODEIntegrator extends PropertyHolder implements Reflexive 
 	}
 
 	protected void treatZeroIndex() {
-
 		var ordinates = discretisation.getOrdinates();
-		var grid = discretisation.getGrid();
-		var quantities = discretisation.getQuantities();
-		double denominator = 0;
-		final double halfAlbedo = pf.getHalfAlbedo();
 
-		// loop through the spatial indices
-		for (int j = 0; j < grid.getDensity() + 1; j++) {
+		if (ordinates.hasZeroNode()) {
 
-			// solve I_k = S_k for mu[k] = 0
-			denominator = 1.0 - halfAlbedo * ordinates.getWeight(0) * pf.function(0, 0);
-			quantities.setIntensity(j, 0,
-					(emission(grid.getNode(j)) + halfAlbedo * pf.sumExcludingIndex(0, j, 0))
-							/ denominator);
+			var grid = discretisation.getGrid();
+			var quantities = discretisation.getQuantities();
+			double denominator = 0;
+			final double halfAlbedo = pf.getHalfAlbedo();
 
+			// loop through the spatial indices
+			for (int j = 0; j < grid.getDensity() + 1; j++) {
+
+				// solve I_k = S_k for mu[k] = 0
+				denominator = 1.0 - halfAlbedo * ordinates.getWeight(0) * pf.function(0, 0);
+				quantities.setIntensity(j, 0,
+						(emission(grid.getNode(j)) + halfAlbedo * pf.sumExcludingIndex(0, j, 0)) / denominator);
+
+			}
 		}
 
 	}
@@ -59,7 +61,8 @@ public abstract class ODEIntegrator extends PropertyHolder implements Reflexive 
 	}
 
 	public double partial(int i, int j, double t, int l1, int l2) {
-		return (emission(t) + pf.getHalfAlbedo() * pf.partialSum(i, j, l1, l2)) / discretisation.getOrdinates().getNode(i);
+		return (emission(t) + pf.getHalfAlbedo() * pf.partialSum(i, j, l1, l2))
+				/ discretisation.getOrdinates().getNode(i);
 	}
 
 	public double source(int i, int j, double t, double I) {
