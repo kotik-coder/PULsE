@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
 
 import pulse.input.ExperimentalData;
 import pulse.input.InterpolationDataset;
-import pulse.input.InterpolationDataset.StandardType;
+import pulse.input.InterpolationDataset.StandartType;
 import pulse.input.Metadata;
 import pulse.math.IndexedVector;
 import pulse.problem.schemes.DifferenceScheme;
@@ -221,14 +221,14 @@ public class SearchTask extends Accessible implements Runnable {
 		if (problem == null)
 			return;
 
-		var cpCurve = getDataset(StandardType.HEAT_CAPACITY);
+		var cpCurve = getDataset(StandartType.HEAT_CAPACITY);
 
 		if (cpCurve != null) {
 			cp = cpCurve.interpolateAt(testTemperature);
 			problem.set(NumericPropertyKeyword.SPECIFIC_HEAT, derive(NumericPropertyKeyword.SPECIFIC_HEAT, cp));
 		}
 
-		var rhoCurve = getDataset(StandardType.DENSITY);
+		var rhoCurve = getDataset(StandartType.DENSITY);
 
 		if (rhoCurve != null) {
 			rho = rhoCurve.interpolateAt(testTemperature);
@@ -444,11 +444,17 @@ public class SearchTask extends Accessible implements Runnable {
 		problem.addListener((PropertyEvent event) -> {
 			if (event.getSource() instanceof Metadata) {
 				problem.estimateSignalRange(curve);
-				problem.useTheoreticalEstimates(curve);
-			} else if (event.getSource() instanceof InterpolationDataset) {
-				problem.useTheoreticalEstimates(curve);
+				problem.getProperties().useTheoreticalEstimates(curve);
 			} else if (event.getSource() instanceof PropertyHolderTable) {
 				problem.estimateSignalRange(curve);
+			}
+		});
+
+		problem.getProperties().addListener((PropertyEvent event) -> {
+			if (event.getSource() instanceof PropertyHolderTable) {
+				problem.estimateSignalRange(curve);
+			} else if (event.getSource() instanceof InterpolationDataset) {
+				problem.getProperties().useTheoreticalEstimates(curve);
 			}
 		});
 
@@ -569,7 +575,7 @@ public class SearchTask extends Accessible implements Runnable {
 
 		if (problem == null)
 			s.setDetails(MISSING_PROBLEM_STATEMENT);
-		else if (!problem.allDetailsPresent())
+		else if (!problem.isReady())
 			s.setDetails(INSUFFICIENT_DATA_IN_PROBLEM_STATEMENT);
 		else if (scheme == null)
 			s.setDetails(MISSING_DIFFERENCE_SCHEME);

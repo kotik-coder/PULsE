@@ -43,9 +43,10 @@ public class AdiabaticSolution {
 		var classicCurve = new HeatingCurve(derive(NUMPOINTS, points));
 
 		final double step = timeLimit / (points - 1.0);
-
+		var prop = p.getProperties();
+		
 		for (int i = 1; i < points; i++) 
-			classicCurve.addPoint(i * step, solutionAt(p, i * step, precision));
+			classicCurve.addPoint(i * step, solutionAt(prop, i * step, precision));
 
 		classicCurve.apply(p.getBaseline());
 		classicCurve.setName("Adiabatic Solution");
@@ -69,7 +70,7 @@ public class AdiabaticSolution {
 	 *      of Applied Physics <b>32</b> (1961) 1679</a>
 	 */
 
-	private final static double solutionAt(Problem p, double time, int precision) {
+	private final static double solutionAt(ThermalProperties p, double time, int precision) {
 
 		final double EPS = 1E-8;
 		final double Fo = time / p.timeFactor();

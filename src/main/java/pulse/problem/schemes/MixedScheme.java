@@ -11,7 +11,7 @@ import pulse.properties.NumericProperty;
  * An abstraction describing a weighted semi-implicit finite-difference scheme
  * for solving the one-dimensional heat conduction problem.
  * 
- * @see pulse.problem.statements.LinearisedProblem
+ * @see pulse.problem.statements.ClassicalProblem
  * @see pulse.problem.statements.NonlinearProblem
  *
  */

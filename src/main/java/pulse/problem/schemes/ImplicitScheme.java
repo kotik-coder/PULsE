@@ -12,7 +12,7 @@ import pulse.properties.NumericProperty;
  * An abstract implicit finite-difference scheme for solving one-dimensional
  * heat conduction problems.
  * 
- * @see pulse.problem.statements.LinearisedProblem
+ * @see pulse.problem.statements.ClassicalProblem
  * @see pulse.problem.statements.NonlinearProblem
  */
 

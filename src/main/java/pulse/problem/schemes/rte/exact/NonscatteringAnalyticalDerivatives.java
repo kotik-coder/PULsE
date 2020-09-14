@@ -10,6 +10,7 @@ import pulse.problem.schemes.Grid;
 import pulse.problem.schemes.rte.FluxesAndExplicitDerivatives;
 import pulse.problem.schemes.rte.RTECalculationStatus;
 import pulse.problem.statements.ParticipatingMedium;
+import pulse.problem.statements.ThermoOpticalProperties;
 
 /**
  * A solver of the radiative transfer equation for an absorbing-emitting medium
@@ -24,7 +25,8 @@ public class NonscatteringAnalyticalDerivatives extends NonscatteringRadiativeTr
 
 	public NonscatteringAnalyticalDerivatives(ParticipatingMedium problem, Grid grid) {
 		super(problem, grid);
-		setFluxes(new FluxesAndExplicitDerivatives(grid.getGridDensity(), problem.getOpticalThickness()));
+		var properties = (ThermoOpticalProperties)problem.getProperties();
+		setFluxes(new FluxesAndExplicitDerivatives(grid.getGridDensity(), properties.getOpticalThickness()));
 	}
 
 	/**

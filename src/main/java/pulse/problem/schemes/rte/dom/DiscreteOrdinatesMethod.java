@@ -7,6 +7,7 @@ import pulse.problem.schemes.rte.FluxesAndExplicitDerivatives;
 import pulse.problem.schemes.rte.RTECalculationStatus;
 import pulse.problem.schemes.rte.RadiativeTransferSolver;
 import pulse.problem.statements.ParticipatingMedium;
+import pulse.problem.statements.ThermoOpticalProperties;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
@@ -43,7 +44,8 @@ public class DiscreteOrdinatesMethod extends RadiativeTransferSolver {
 
 	public DiscreteOrdinatesMethod(ParticipatingMedium problem, Grid grid) {
 		super();
-		setFluxes(new FluxesAndExplicitDerivatives(grid.getGridDensity(), problem.getOpticalThickness()));
+		var properties = (ThermoOpticalProperties)problem.getProperties();
+		setFluxes(new FluxesAndExplicitDerivatives(grid.getGridDensity(), properties.getOpticalThickness()));
 
 		var discrete = new Discretisation(problem);
 

@@ -11,6 +11,7 @@ import pulse.problem.schemes.FixedPointIterations;
 import pulse.problem.schemes.ImplicitScheme;
 import pulse.problem.statements.NonlinearProblem;
 import pulse.problem.statements.Problem;
+import pulse.problem.statements.Pulse2D;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
@@ -57,10 +58,13 @@ public class ImplicitNonlinearSolver extends ImplicitScheme implements Solver<No
 		tau = grid.getTimeStep();
 
 		HH = hx*hx;
-		final double Bi1 = (double) problem.getHeatLoss().getValue();
+		
+		var p = problem.getProperties();
+		
+		final double Bi1 = (double) p.getHeatLoss().getValue();
 
-		final double T = (double) problem.getTestTemperature().getValue();
-		final double dT = problem.maximumHeating();
+		final double T = (double) p.getTestTemperature().getValue();
+		final double dT = p.maximumHeating((Pulse2D)problem.getPulse());
 		dT_T = dT/T;
 
 		// constant for bc calc

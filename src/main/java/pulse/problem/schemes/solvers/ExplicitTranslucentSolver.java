@@ -42,7 +42,7 @@ public class ExplicitTranslucentSolver extends ExplicitScheme implements Solver<
 		hx = grid.getXStep();
 		tau = grid.getTimeStep();
 
-		final double Bi1 = (double) problem.getHeatLoss().getValue();
+		final double Bi1 = (double) problem.getProperties().getHeatLoss().getValue();
 		a = 1. / (1. + Bi1 * hx);
 	}
 

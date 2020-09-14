@@ -17,6 +17,7 @@ import pulse.problem.schemes.rte.dom.DiscreteOrdinatesMethod;
 import pulse.problem.schemes.rte.exact.ChandrasekharsQuadrature;
 import pulse.problem.schemes.rte.exact.NonscatteringAnalyticalDerivatives;
 import pulse.problem.schemes.rte.exact.NonscatteringRadiativeTransfer;
+import pulse.problem.statements.ThermoOpticalProperties;
 
 class AnalyticalNonscatteringTransferValidation {
 
@@ -44,21 +45,24 @@ class AnalyticalNonscatteringTransferValidation {
 	@Test
 	void testFluxesLowThickness() {
 		quadrature.setQuadraturePoints(derive(QUADRATURE_POINTS, 2));
-		testCase.getTestProblem().setOpticalThickness(derive(OPTICAL_THICKNESS, 0.1));
+		var properties = (ThermoOpticalProperties)testCase.getTestProblem().getProperties();
+		properties.setOpticalThickness(derive(OPTICAL_THICKNESS, 0.1));
 		assertTrue(testCase.testFluxesAndDerivatives(testProfile, chand, dom, 1e-2, 3e-1));
 	}
 
 	@Test
 	void testFluxesMediumThickness() {
 		quadrature.setQuadraturePoints(derive(QUADRATURE_POINTS, 3));
-		testCase.getTestProblem().setOpticalThickness(derive(OPTICAL_THICKNESS, 1.5));
+		var properties = (ThermoOpticalProperties)testCase.getTestProblem().getProperties();
+		properties.setOpticalThickness(derive(OPTICAL_THICKNESS, 1.5));
 		assertTrue(testCase.testFluxesAndDerivatives(testProfile, chand, dom, 1e-2, 1));
 	}
 	
 	@Test
 	void testFluxesHighThickness() {
 		quadrature.setQuadraturePoints(derive(QUADRATURE_POINTS, 6));
-		testCase.getTestProblem().setOpticalThickness(derive(OPTICAL_THICKNESS, 100.0));
+		var properties = (ThermoOpticalProperties)testCase.getTestProblem().getProperties();
+		properties.setOpticalThickness(derive(OPTICAL_THICKNESS, 100.0));
 		assertTrue(testCase.testFluxesAndDerivatives(testProfile, chand, dom, 1e-1, Double.POSITIVE_INFINITY));
 	}
 	

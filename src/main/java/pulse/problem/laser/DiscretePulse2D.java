@@ -3,9 +3,9 @@ package pulse.problem.laser;
 import static java.lang.Math.signum;
 
 import pulse.problem.schemes.Grid2D;
-import pulse.problem.statements.Problem;
+import pulse.problem.statements.ExtendedThermalProperties;
+import pulse.problem.statements.ClassicalProblem2D;
 import pulse.problem.statements.Pulse2D;
-import pulse.problem.statements.TwoDimensional;
 
 /**
  * The discrete pulse on a {@code Grid2D}.
@@ -36,9 +36,11 @@ public class DiscretePulse2D extends DiscretePulse {
 	 * @param grid    the two-dimensional grid
 	 */
 
-	public <T extends Problem & TwoDimensional> DiscretePulse2D(T problem, Pulse2D pulse, Grid2D grid) {
-		super(problem, pulse, grid);
-		coordFactor = (double) problem.getSampleDiameter().getValue() / 2.0;
+	public DiscretePulse2D(ClassicalProblem2D problem, Grid2D grid) {
+		super(problem, grid);
+		var properties = (ExtendedThermalProperties)problem.getProperties();
+		coordFactor = (double) properties.getSampleDiameter().getValue() / 2.0;
+		var pulse = (Pulse2D)problem.getPulse();
 		discretePulseSpot = grid.gridRadialDistance((double) pulse.getSpotDiameter().getValue() / 2.0, coordFactor);
 
 	}

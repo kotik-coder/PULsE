@@ -5,6 +5,7 @@ import static pulse.math.MathUtils.fastPowLoop;
 import org.apache.commons.math3.analysis.UnivariateFunction;
 
 import pulse.problem.statements.NonlinearProblem;
+import pulse.problem.statements.Pulse2D;
 
 /**
  * Contains methods for calculating the integral spectral characteristics of a
@@ -28,7 +29,8 @@ public class BlackbodySpectrum {
 	 */
 	
 	public BlackbodySpectrum(NonlinearProblem p) {
-		reductionFactor = p.maximumHeating() / ((double) p.getTestTemperature().getValue());
+		final double maxHeating = p.getProperties().maximumHeating((Pulse2D)p.getPulse());
+		reductionFactor = maxHeating / ((double) p.getProperties().getTestTemperature().getValue());
 	}
 
 	/**

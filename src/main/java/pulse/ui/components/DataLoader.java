@@ -16,7 +16,7 @@ import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import pulse.input.InterpolationDataset;
-import pulse.input.InterpolationDataset.StandardType;
+import pulse.input.InterpolationDataset.StandartType;
 import pulse.io.readers.MetaFilePopulator;
 import pulse.io.readers.ReaderManager;
 import pulse.tasks.SearchTask;
@@ -133,7 +133,7 @@ public class DataLoader {
 	 * @see pulse.tasks.TaskManager.evaluate()
 	 */
 
-	public static void load(StandardType type, File f) throws IOException {
+	public static void load(StandartType type, File f) throws IOException {
 		Objects.requireNonNull(f);
 		InterpolationDataset.setDataset(read(datasetReaders(), f), type);
 		TaskManager.evaluate();

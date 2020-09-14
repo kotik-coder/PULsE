@@ -1,13 +1,16 @@
 package pulse.problem.statements;
 
-import static java.lang.Math.pow;
-import static pulse.properties.NumericPropertyKeyword.DENSITY;
+import static java.lang.Math.exp;
+import static java.lang.Math.log;
+import static java.lang.Math.tanh;
+import static pulse.math.MathUtils.atanh;
+import static pulse.properties.NumericProperty.def;
+import static pulse.properties.NumericProperty.derive;
 import static pulse.properties.NumericPropertyKeyword.DIFFUSIVITY;
 import static pulse.properties.NumericPropertyKeyword.HEAT_LOSS;
 import static pulse.properties.NumericPropertyKeyword.MAXTEMP;
-import static pulse.properties.NumericPropertyKeyword.SPECIFIC_HEAT;
-import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
 import static pulse.properties.NumericPropertyKeyword.THICKNESS;
+import static pulse.properties.NumericPropertyKeyword.TIME_SHIFT;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -16,10 +19,7 @@ import pulse.HeatingCurve;
 import pulse.baseline.Baseline;
 import pulse.baseline.FlatBaseline;
 import pulse.input.ExperimentalData;
-import pulse.input.InterpolationDataset;
-import pulse.input.InterpolationDataset.StandardType;
 import pulse.math.IndexedVector;
-import pulse.math.MathUtils;
 import pulse.problem.laser.DiscretePulse;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.Grid;
@@ -47,38 +47,17 @@ import pulse.util.Reflexive;
 
 public abstract class Problem extends PropertyHolder implements Reflexive, Optimisable {
 
+	private ThermalProperties properties;
 	private HeatingCurve curve;
+	private Baseline baseline;
 	private Pulse pulse;
-	private double a;
-	private double l;
-	private double Bi1;
-	private double Bi2;
-	private double signalHeight;
-	private double cP;
-	private double rho;
-	private double T;
 
 	private static boolean singleStatement = true;
 	private static boolean hideDetailedAdjustment = true;
 	private ProblemComplexity complexity = ProblemComplexity.LOW;
-	private Baseline baseline;
 
 	private InstanceDescriptor<? extends Baseline> instanceDescriptor = new InstanceDescriptor<Baseline>(
 			"Baseline Selector", Baseline.class);
-
-	/**
-	 * The <b>corrected</b> proportionality factor setting out the relation between
-	 * the thermal diffusivity and the half-rise time of an {@code ExperimentalData}
-	 * curve.
-	 * 
-	 * @see <a href="https://doi.org/10.1063/1.1728417">Parker <i>et al.</i> Journal
-	 *      of Applied Physics <b>32</b> (1961) 1679</a>
-	 * @see <a href="https://doi.org/10.1016/j.ces.2019.01.014">Parker <i>et al.</i>
-	 *      Chem. Eng. Sci. <b>199</b> (2019) 546-551</a>
-	 */
-
-	public final double PARKERS_COEFFICIENT = 0.1370; // in mm
-	public final static double STEFAN_BOTLZMAN = 5.6703E-08; // Stephan-Boltzmann constant
 
 	/**
 	 * Creates a {@code Problem} with default parameters (as found in the .XML
@@ -93,19 +72,14 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
 
 	protected Problem() {
 		super();
-		a = (double) NumericProperty.def(DIFFUSIVITY).getValue();
-		l = (double) NumericProperty.def(THICKNESS).getValue();
-		Bi1 = (double) NumericProperty.def(HEAT_LOSS).getValue();
-		Bi2 = (double) NumericProperty.def(HEAT_LOSS).getValue();
-		signalHeight = (double) NumericProperty.def(MAXTEMP).getValue();
-		pulse = new Pulse();
+		initProperties();
+
 		curve = new HeatingCurve();
 		curve.setParent(this);
-		pulse.setParent(this);
-		this.T = (double) NumericProperty.def(TEST_TEMPERATURE).getValue();
+
 		instanceDescriptor.setSelectedDescriptor(FlatBaseline.class.getSimpleName());
+		addListeners();
 		initBaseline();
-		instanceDescriptor.addListener(() -> initBaseline());
 	}
 
 	/**
@@ -117,20 +91,23 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
 
 	public Problem(Problem p) {
 		super();
-		this.l = p.l;
+		initProperties(p.getProperties().copy());
 
-		this.pulse = new Pulse(p.getPulse());
 		this.curve = new HeatingCurve();
+		this.curve.setParent(this);
 		this.curve.setNumPoints(p.getHeatingCurve().getNumPoints());
 
-		this.a = p.a;
-		this.Bi1 = p.Bi1;
-		this.Bi2 = p.Bi2;
-
-		this.T = p.T;
 		instanceDescriptor.setSelectedDescriptor(p.getBaseline().getClass().getSimpleName());
+		addListeners();
 		initBaseline();
+	}
+	
+	private void addListeners() {
 		instanceDescriptor.addListener(() -> initBaseline());
+		curve.addHeatingCurveListener(() -> {
+			if (!curve.isIncomplete())
+				curve.apply(getBaseline());
+		});
 	}
 
 	/**
@@ -149,7 +126,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
 	 */
 
 	public List<DifferenceScheme> availableSolutions() {
-		List<DifferenceScheme> allSchemes = Reflexive.instancesOf(DifferenceScheme.class);
+		var allSchemes = Reflexive.instancesOf(DifferenceScheme.class);
 		return allSchemes.stream().filter(scheme -> scheme instanceof Solver).filter(s -> s.domain() == this.getClass())
 				.collect(Collectors.toList());
 	}
@@ -164,80 +141,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
 
 	@Override
 	public void set(NumericPropertyKeyword type, NumericProperty value) {
-		NumericPropertyKeyword prop = type;
-
-		switch (prop) {
-		case DIFFUSIVITY:
-			setDiffusivity(value);
-			break;
-		case MAXTEMP:
-			setMaximumTemperature(value);
-			break;
-		case THICKNESS:
-			setSampleThickness(value);
-			break;
-		case HEAT_LOSS:
-			setHeatLoss(value);
-			break;
-		case SPECIFIC_HEAT:
-			setSpecificHeat(value);
-			break;
-		case DENSITY:
-			setDensity(value);
-			break;
-		case TEST_TEMPERATURE:
-			setTestTemperature(value);
-			break;
-		default:
-			return;
-		}
-
-		firePropertyChanged(this, value);
-
-	}
-
-	public void setHeatLoss(NumericProperty Bi) {
-		this.Bi1 = (double) Bi.getValue();
-		this.Bi2 = Bi1;
-	}
-
-	public NumericProperty getDiffusivity() {
-		return NumericProperty.derive(DIFFUSIVITY, a);
-	}
-
-	public void setDiffusivity(NumericProperty a) {
-		this.a = (double) a.getValue();
-	}
-
-	public NumericProperty getMaximumTemperature() {
-		return NumericProperty.derive(MAXTEMP, signalHeight);
-	}
-
-	public void setMaximumTemperature(NumericProperty maxTemp) {
-		this.signalHeight = (double) maxTemp.getValue();
-	}
-
-	public NumericProperty getSampleThickness() {
-		return NumericProperty.derive(THICKNESS, l);
-	}
-
-	public void setSampleThickness(NumericProperty l) {
-		this.l = (double) l.getValue();
-	}
-
-	/**
-	 * <p>
-	 * Assuming that <code>Bi<sub>1</sub> = Bi<sub>2</sub></code>, returns the value
-	 * of <code>Bi<sub>1</sub></code>. If
-	 * <code>Bi<sub>1</sub> = Bi<sub>2</sub></code>, this will print a warning
-	 * message (but will not throw an exception)
-	 * </p>
-	 * 
-	 * @return Bi<sub>1</sub> as a {@code NumericProperty}
-	 */
-
-	public NumericProperty getHeatLoss() {
-		return NumericProperty.derive(HEAT_LOSS, Bi1);
+		properties.set(type, value);
 	}
 
 	public HeatingCurve getHeatingCurve() {
@@ -261,18 +165,6 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
 	}
 
 	/**
-	 * Performs simple calculation of the <math><i>l<sup>2</sup>/a</i></math> factor
-	 * that is commonly used to evaluate the dimensionless time
-	 * {@code t/timeFactor}.
-	 * 
-	 * @return the time factor
-	 */
-
-	public double timeFactor() {
-		return pow(l, 2) / a;
-	}
-
-	/**
 	 * This will use the data contained in {@code c} to estimate the detector signal
 	 * span and the thermal diffusivity for this {@code Problem}. Note these
 	 * estimates may be very rough.
@@ -284,7 +176,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
 		baseline.fitTo(c); // used to estimate the floor of the signal range
 		estimateSignalRange(c);
 		updateProperties(this, c.getMetadata());
-		useTheoreticalEstimates(c);
+		properties.useTheoreticalEstimates(c);
 	}
 
 	/**
@@ -298,26 +190,8 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
 	 */
 
 	public void estimateSignalRange(ExperimentalData c) {
-		signalHeight = c.maxAdjustedSignal() - baseline.valueAt(0);
-	}
-
-	/**
-	 * Calculates the half-rise time <i>t</i><sub>1/2</sub> of {@code c} and uses it
-	 * to estimate the thermal diffusivity of this problem:
-	 * <code><i>a</i>={@value PARKERS_COEFFICIENT}*<i>l</i><sup>2</sup>/<i>t</i><sub>1/2</sub></code>.
-	 * 
-	 * @param c the {@code ExperimentalData} used to estimate the thermal
-	 *          diffusivity value
-	 * @see pulse.input.ExperimentalData.halfRiseTime()
-	 */
-
-	public void useTheoreticalEstimates(ExperimentalData c) {
-		double t0 = c.halfRiseTime();
-		this.a = PARKERS_COEFFICIENT * l * l / t0;
-		if (areThermalPropertiesLoaded()) {
-			Bi1 = biot();
-			Bi2 = Bi1;
-		}
+		final double signalHeight = c.maxAdjustedSignal() - baseline.valueAt(0);
+		properties.setMaximumTemperature(derive(MAXTEMP, signalHeight));
 	}
 
 	/**
@@ -340,31 +214,32 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
 	@Override
 	public void optimisationVector(IndexedVector[] output, List<Flag> flags) {
 
-		int size = output[0].dimension();
-
 		baseline.optimisationVector(output, flags);
 
-		for (int i = 0; i < size; i++) {
+		for (int i = 0, size = output[0].dimension(); i < size; i++) {
 
 			switch (output[0].getIndex(i)) {
 			case DIFFUSIVITY:
-				double prefactor = pow(l, -2);
+				final double l = (double)properties.getSampleThickness().getValue();
+				final double a = (double)properties.getDiffusivity().getValue();
+				final double prefactor = 1.0/(l*l);
 				output[0].set(i, a * prefactor);
 				output[1].set(i, 0.45 * a * prefactor);
 				break;
 			case MAXTEMP:
+				final double signalHeight = (double)properties.getMaximumTemperature().getValue();
 				output[0].set(i, signalHeight);
 				output[1].set(i, 0.5 * signalHeight);
 				break;
 			case HEAT_LOSS:
+				final double Bi = (double)properties.getHeatLoss().getValue();
 				output[0].set(i,
-						areThermalPropertiesLoaded() ? MathUtils.atanh(2.0 * Bi1 / maxBiot() - 1.0) : Math.log(Bi1));
+						properties.areThermalPropertiesLoaded() ? atanh(2.0 * Bi / properties.maxBiot() - 1.0) : log(Bi));
 				output[1].set(i, 2.0);
 				break;
 			case TIME_SHIFT:
 				output[0].set(i, (double) curve.getTimeShift().getValue());
-				double timeLimit = curve.timeLimit();
-				output[1].set(i, timeLimit * 0.25);
+				output[1].set(i, curve.timeLimit() * 0.25);
 				break;
 			default:
 				continue;
@@ -388,20 +263,19 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
 
 			switch (params.getIndex(i)) {
 			case DIFFUSIVITY:
-				a = params.get(i) * (l * l);
+				final double l = (double)properties.getSampleThickness().getValue();
+				properties.setDiffusivity(derive(DIFFUSIVITY, params.get(i) * (l * l)));
 				break;
 			case MAXTEMP:
-				signalHeight = params.get(i);
+				properties.setMaximumTemperature(derive(MAXTEMP, params.get(i)));
 				break;
 			case HEAT_LOSS:
-				double heatLoss = areThermalPropertiesLoaded() ? 0.5 * maxBiot() * (Math.tanh(params.get(i)) + 1.0)
-						: Math.exp(params.get(i));
-				Bi1 = heatLoss;
-				Bi2 = heatLoss;
+				final double bi = properties.areThermalPropertiesLoaded() ? 0.5 * properties.maxBiot() * (tanh(params.get(i)) + 1.0)
+						: exp(params.get(i));
+				properties.setHeatLoss(derive(HEAT_LOSS, bi));
 				break;
 			case TIME_SHIFT:
-				curve.set(NumericPropertyKeyword.TIME_SHIFT,
-						NumericProperty.derive(NumericPropertyKeyword.TIME_SHIFT, params.get(i)));
+				curve.set(TIME_SHIFT, derive(TIME_SHIFT, params.get(i)));
 				break;
 			default:
 				continue;
@@ -409,21 +283,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
 		}
 
 	}
-
-	/**
-	 * Checks if all the details necessary to calculate the solution of this
-	 * {@code Problem} are specified. May only return {@code false} in instances of
-	 * {@code NonlinearProblem} or {@code NonlinearProblem2D} if the specific heat
-	 * or density data have not been loaded.
-	 * 
-	 * @return {@code true} if the calculation can proceed, {@code false} if
-	 *         something is missing
-	 */
-
-	public boolean allDetailsPresent() {
-		return true;
-	}
-
+	
 	/**
 	 * Checks whether changes in this {@code Problem} should automatically be
 	 * accounted for by other instances of this class.
@@ -474,47 +334,10 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
 		Problem.hideDetailedAdjustment = b;
 	}
 
-	public NumericProperty getSpecificHeat() {
-		return NumericProperty.derive(SPECIFIC_HEAT, cP);
-	}
-
-	public void setSpecificHeat(NumericProperty cV) {
-		this.cP = (double) cV.getValue();
-		this.firePropertyChanged(InterpolationDataset.getDataset(StandardType.HEAT_CAPACITY), cV);
-	}
-
-	public NumericProperty getDensity() {
-		return NumericProperty.derive(DENSITY, rho);
-	}
-
-	public void setDensity(NumericProperty p) {
-		this.rho = (double) (p.getValue());
-		this.firePropertyChanged(InterpolationDataset.getDataset(StandardType.DENSITY), p);
-	}
-
 	public String shortName() {
 		return getClass().getSimpleName();
 	}
-
-	public NumericProperty getTestTemperature() {
-		return NumericProperty.derive(TEST_TEMPERATURE, T);
-	}
-
-	public void setTestTemperature(NumericProperty T) {
-		this.T = (double) T.getValue();
-
-		var heatCapacity = InterpolationDataset.getDataset(StandardType.HEAT_CAPACITY);
-
-		if (heatCapacity != null)
-			cP = heatCapacity.interpolateAt(this.T);
-
-		var density = InterpolationDataset.getDataset(StandardType.DENSITY);
-
-		if (density != null)
-			rho = density.interpolateAt(this.T);
-
-	}
-
+	
 	/**
 	 * Used for debugging. Initially, the nonlinear and two-dimensional problem
 	 * statements are disabled, since they have not yet been thoroughly tested
@@ -524,10 +347,6 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
 	 */
 
 	public boolean isEnabled() {
-		return true;
-	}
-
-	public boolean isBatchProcessingEnabled() {
 		return true;
 	}
 
@@ -541,7 +360,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
 	 */
 
 	public DiscretePulse discretePulseOn(Grid grid) {
-		return new DiscretePulse(this, getPulse(), grid);
+		return new DiscretePulse(this, grid);
 	}
 
 	/**
@@ -552,10 +371,10 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
 	@Override
 	public List<Property> listedTypes() {
 		List<Property> list = super.listedTypes();
-		list.add(NumericProperty.def(MAXTEMP));
-		list.add(NumericProperty.def(DIFFUSIVITY));
-		list.add(NumericProperty.def(THICKNESS));
-		list.add(NumericProperty.def(HEAT_LOSS));
+		list.add(def(MAXTEMP));
+		list.add(def(DIFFUSIVITY));
+		list.add(def(THICKNESS));
+		list.add(def(HEAT_LOSS));
 		list.add(instanceDescriptor);
 		return list;
 	}
@@ -563,33 +382,6 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
 	@Override
 	public String toString() {
 		return this.getClass().getSimpleName();
-	}
-
-	public final boolean areThermalPropertiesLoaded() {
-		return (Double.compare(cP, 0.0) > 0 && Double.compare(rho, 0.0) > 0);
-	}
-
-	public double thermalConductivity() {
-		return a * cP * rho;
-	}
-
-	public double emissivity() {
-		final double lambda = thermalConductivity();
-		return Bi1 * lambda / (4. * Math.pow(T, 3) * l * STEFAN_BOTLZMAN);
-	}
-
-	protected double maxBiot() {
-		double lambda = thermalConductivity();
-		return 4.0 * STEFAN_BOTLZMAN * Math.pow(T, 3) * l / lambda;
-	}
-
-	protected double biot(double emissivity) {
-		double lambda = thermalConductivity();
-		return 4.0 * emissivity * STEFAN_BOTLZMAN * Math.pow(T, 3) * l / lambda;
-	}
-
-	protected double biot() {
-		return biot((double) NumericProperty.theDefault(NumericPropertyKeyword.EMISSIVITY).getValue());
 	}
 
 	public ProblemComplexity getComplexity() {
@@ -624,28 +416,37 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
 		if (!curve.isIncomplete())
 			curve.apply(baseline);
 		baseline.setParent(this);
+		
+		var searchTask = (SearchTask) this.specificAncestor(SearchTask.class);
+		if (searchTask != null) {
+			var experimentalData = searchTask.getExperimentalCurve();
+			baseline.fitTo(experimentalData);
+		}
 	}
-
-	public abstract Class<? extends DifferenceScheme> defaultScheme();
 
 	public InstanceDescriptor<? extends Baseline> getBaselineDescriptor() {
 		return instanceDescriptor;
 	}
 
 	private void initBaseline() {
-		curve.removeHeatingCurveListeners();
+		//TODO
 		var baseline = instanceDescriptor.newInstance(Baseline.class);
 		setBaseline(baseline);
-		var searchTask = (SearchTask) this.specificAncestor(SearchTask.class);
-		if (searchTask != null) {
-			var experimentalData = searchTask.getExperimentalCurve();
-			baseline.fitTo(experimentalData);
-		}
 		parameterListChanged();
-		curve.addHeatingCurveListener(() -> {
-			if (!curve.isIncomplete())
-				curve.apply(baseline);
-		});
 	}
 
+	public ThermalProperties getProperties() {
+		return properties;
+	}
+	
+	public final void setProperties(ThermalProperties properties) {
+		this.properties = properties;
+		this.properties.setParent(this);
+	}
+
+	public abstract void initProperties();
+	public abstract void initProperties(ThermalProperties properties);
+	public abstract Class<? extends DifferenceScheme> defaultScheme();
+	public abstract boolean isReady();
+	
 }

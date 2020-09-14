@@ -5,9 +5,9 @@ import pulse.problem.schemes.ADIScheme;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.Grid2D;
 import pulse.problem.schemes.TridiagonalMatrixAlgorithm;
-import pulse.problem.statements.LinearisedProblem2D;
+import pulse.problem.statements.ExtendedThermalProperties;
 import pulse.problem.statements.Problem;
-import pulse.problem.statements.Problem2D;
+import pulse.problem.statements.ClassicalProblem2D;
 import pulse.properties.NumericProperty;
 
 /**
@@ -16,7 +16,7 @@ import pulse.properties.NumericProperty;
  *
  */
 
-public class ADILinearisedSolver extends ADIScheme implements Solver<LinearisedProblem2D> {
+public class ADILinearisedSolver extends ADIScheme implements Solver<ClassicalProblem2D> {
 
 	private TridiagonalMatrixAlgorithm tridiagonal;
 
@@ -79,7 +79,7 @@ public class ADILinearisedSolver extends ADIScheme implements Solver<LinearisedP
 		super(N, timeFactor, timeLimit);
 	}
 
-	private void prepare(Problem2D problem) {
+	private void prepare(ClassicalProblem2D problem) {
 		super.prepare(problem);
 
 		var grid = getGrid();
@@ -94,13 +94,15 @@ public class ADILinearisedSolver extends ADIScheme implements Solver<LinearisedP
 
 		tau = grid.getTimeStep();
 
-		Bi1 = (double) problem.getHeatLoss().getValue();
-		Bi3 = (double) problem.getSideLosses().getValue();
+		var properties = (ExtendedThermalProperties)problem.getProperties();
+		
+		Bi1 = (double) properties.getHeatLoss().getValue();
+		Bi3 = (double) properties.getSideLosses().getValue();
 
-		d = (double) problem.getSampleDiameter().getValue();
-		final double fovOuter = (double) problem.getFOVOuter().getValue();
-		final double fovInner = (double) problem.getFOVInner().getValue();
-		l = (double) problem.getSampleThickness().getValue();
+		d = (double) properties.getSampleDiameter().getValue();
+		final double fovOuter = (double) properties.getFOVOuter().getValue();
+		final double fovInner = (double) properties.getFOVInner().getValue();
+		l = (double) properties.getSampleThickness().getValue();
 
 		// end
 
@@ -164,7 +166,7 @@ public class ADILinearisedSolver extends ADIScheme implements Solver<LinearisedP
 	}
 
 	@Override
-	public void solve(LinearisedProblem2D problem) {
+	public void solve(ClassicalProblem2D problem) {
 		prepare(problem);
 		runTimeSequence(problem);
 	}
@@ -177,7 +179,7 @@ public class ADILinearisedSolver extends ADIScheme implements Solver<LinearisedP
 
 	@Override
 	public Class<? extends Problem> domain() {
-		return LinearisedProblem2D.class;
+		return ClassicalProblem2D.class;
 	}
 
 	@Override

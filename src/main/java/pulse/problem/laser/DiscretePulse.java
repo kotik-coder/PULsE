@@ -28,14 +28,13 @@ public class DiscretePulse {
 	 * </p>
 	 * 
 	 * @param problem the problem, used to extract the dimensional time factor
-	 * @param pulse   the physical (continuous) pulse
 	 * @param grid    a grid used to discretise the {@code pulse}
 	 */
 
-	public DiscretePulse(Problem problem, Pulse pulse, Grid grid) {
-		timeFactor = problem.timeFactor();
+	public DiscretePulse(Problem problem, Grid grid) {
+		timeFactor = problem.getProperties().timeFactor();
 		this.grid = grid;
-		this.pulse = pulse;
+		this.pulse = problem.getPulse();
 
 		recalculate();
 

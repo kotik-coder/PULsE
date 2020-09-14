@@ -22,7 +22,7 @@ import pulse.util.ImmutableDataEntry;
 public class InterpolationDataset {
 
 	private List<ImmutableDataEntry<Double, Double>> dataset;
-	private static Map<StandardType, InterpolationDataset> standartDatasets = new HashMap<StandardType, InterpolationDataset>();
+	private static Map<StandartType, InterpolationDataset> standartDatasets = new HashMap<StandartType, InterpolationDataset>();
 	private UnivariateFunction interpolation;
 
 	/**
@@ -86,7 +86,7 @@ public class InterpolationDataset {
 	 * @return an {@code InterpolationDataset} corresponding to {@code type}
 	 */
 
-	public static InterpolationDataset getDataset(StandardType type) {
+	public static InterpolationDataset getDataset(StandartType type) {
 		return standartDatasets.get(type);
 	}
 
@@ -98,11 +98,11 @@ public class InterpolationDataset {
 	 * @param type    the dataset type
 	 */
 
-	public static void setDataset(InterpolationDataset dataset, StandardType type) {
+	public static void setDataset(InterpolationDataset dataset, StandartType type) {
 		standartDatasets.put(type, dataset);
 	}
 
-	public enum StandardType {
+	public enum StandartType {
 
 		/**
 		 * A keyword for the heat capacity dataset (in J/kg/K).

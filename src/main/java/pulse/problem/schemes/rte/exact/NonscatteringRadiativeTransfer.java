@@ -42,7 +42,7 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 	@Override
 	public void init(ParticipatingMedium p, Grid grid) {
 		super.init(p, grid);
-		emissivity = p.getEmissivity();
+		emissivity = (double)p.getProperties().getEmissivity().getValue();
 	}
 
 	/**

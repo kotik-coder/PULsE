@@ -19,7 +19,7 @@ import pulse.properties.Property;
 import pulse.ui.Messages;
 import pulse.util.InstanceDescriptor;
 
-public class PenetrationProblem extends LinearisedProblem {
+public class PenetrationProblem extends ClassicalProblem {
 	private final static int DEFAULT_CURVE_POINTS = 300;
 
 	private static InstanceDescriptor<? extends AbsorptionModel> instanceDescriptor = new InstanceDescriptor<AbsorptionModel>(

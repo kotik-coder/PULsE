@@ -18,7 +18,7 @@ import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 import pulse.ui.Messages;
 
-public class CoreShellProblem extends LinearisedProblem2D {
+public class CoreShellProblem extends ClassicalProblem2D {
 
 	private double tA;
 	private double tR;
@@ -45,7 +45,7 @@ public class CoreShellProblem extends LinearisedProblem2D {
 		super(csp);
 		tA = (double) csp.getCoatingAxialThickness().getValue();
 		tR = (double) csp.getCoatingRadialThickness().getValue();
-		coatingDiffusivity = (double) csp.getDiffusivity().getValue();
+		coatingDiffusivity = (double) csp.getProperties().getDiffusivity().getValue();
 		setComplexity(ProblemComplexity.HIGH);
 	}
 
@@ -63,11 +63,11 @@ public class CoreShellProblem extends LinearisedProblem2D {
 	}
 
 	public double axialFactor() {
-		return tA / (double)getSampleThickness().getValue();
+		return tA / (double)getProperties().getSampleThickness().getValue();
 	}
 
 	public double radialFactor() {
-		return tR / (double)getSampleThickness().getValue();
+		return tR / (double)getProperties().getSampleThickness().getValue();
 	}
 
 	public void setCoatingAxialThickness(NumericProperty t) {
@@ -126,10 +126,11 @@ public class CoreShellProblem extends LinearisedProblem2D {
 		for (int i = 0, size = output[0].dimension(); i < size; i++) {
 			switch (output[0].getIndex(i)) {
 			case AXIAL_COATING_THICKNESS:
-				output[0].set(i, tA / (double)getSampleThickness().getValue());
+				output[0].set(i, tA / (double)getProperties().getSampleThickness().getValue());
 				output[1].set(i, 0.01);
 				break;
 			case RADIAL_COATING_THICKNESS:
+				final double d = (double)((ExtendedThermalProperties)getProperties()).getSampleDiameter().getValue();
 				output[0].set(i, 2.0 * tR / d);
 				output[1].set(i, 0.01);
 				break;
@@ -152,9 +153,11 @@ public class CoreShellProblem extends LinearisedProblem2D {
 		for (int i = 0, size = params.dimension(); i < size; i++) {
 			switch (params.getIndex(i)) {
 			case AXIAL_COATING_THICKNESS:
-				tA = params.get(i) * (double)getSampleThickness().getValue();
+				final double l = (double)((ExtendedThermalProperties)getProperties()).getSampleThickness().getValue();
+				tA = params.get(i) * l;
 				break;
 			case RADIAL_COATING_THICKNESS:
+				final double d = (double)((ExtendedThermalProperties)getProperties()).getSampleDiameter().getValue();
 				tR = params.get(i) / (d / 2.0);
 				break;
 			case COATING_DIFFUSIVITY:

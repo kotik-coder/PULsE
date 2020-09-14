@@ -16,6 +16,7 @@ import pulse.problem.schemes.rte.RTECalculationStatus;
 import pulse.problem.schemes.rte.RadiativeTransferSolver;
 import pulse.problem.statements.ParticipatingMedium;
 import pulse.problem.statements.Problem;
+import pulse.problem.statements.ThermoOpticalProperties;
 import pulse.properties.NumericProperty;
 
 public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<ParticipatingMedium>, FixedPointIterations {
@@ -58,12 +59,13 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
 		N = (int) grid.getGridDensity().getValue();
 		hx = grid.getXStep();
 
-		double Bi = (double) problem.getHeatLoss().getValue();
+		var p = (ThermoOpticalProperties) problem.getProperties();
+		double Bi = (double) p.getHeatLoss().getValue();
 
 		a = 1. / (1. + Bi * hx);
 
-		final double opticalThickness = (double) problem.getOpticalThickness().getValue();
-		final double Np = (double) problem.getPlanckNumber().getValue();
+		final double opticalThickness = (double) p.getOpticalThickness().getValue();
+		final double Np = (double) p.getPlanckNumber().getValue();
 		final double tau = getGrid().getTimeStep();
 		
 		HX_NP = hx / Np;

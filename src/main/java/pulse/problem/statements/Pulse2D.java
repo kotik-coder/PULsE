@@ -33,10 +33,7 @@ public class Pulse2D extends Pulse {
 
 	public Pulse2D(Pulse p) {
 		super(p);
-		if (p instanceof Pulse2D)
-			this.spotDiameter = ((Pulse2D) p).spotDiameter;
-		else
-			spotDiameter = (double) def(SPOT_DIAMETER).getValue();
+		this.spotDiameter = p instanceof Pulse2D ? ((Pulse2D) p).spotDiameter : (double) def(SPOT_DIAMETER).getValue();
 	}
 
 	public NumericProperty getSpotDiameter() {
@@ -65,9 +62,10 @@ public class Pulse2D extends Pulse {
 
 	@Override
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
-		super.set(type, property);
-		if(type == SPOT_DIAMETER)
+		if (type == SPOT_DIAMETER)
 			setSpotDiameter(property);
+		else
+			super.set(type, property);
 	}
 
 }

@@ -5,7 +5,7 @@ import static java.lang.Math.pow;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.MixedScheme;
 import pulse.problem.schemes.TridiagonalMatrixAlgorithm;
-import pulse.problem.statements.LinearisedProblem;
+import pulse.problem.statements.ClassicalProblem;
 import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
 
@@ -49,7 +49,7 @@ import pulse.properties.NumericProperty;
  * @see super.solve(Problem)
  */
 
-public class MixedLinearisedSolver extends MixedScheme implements Solver<LinearisedProblem> {
+public class MixedLinearisedSolver extends MixedScheme implements Solver<ClassicalProblem> {
 
 	private double b1;
 	private double b2;
@@ -80,7 +80,7 @@ public class MixedLinearisedSolver extends MixedScheme implements Solver<Lineari
 		final double hx = grid.getXStep();
 		final double tau = grid.getTimeStep();
 
-		final double Bi1 = (double) problem.getHeatLoss().getValue();
+		final double Bi1 = (double) problem.getProperties().getHeatLoss().getValue();
 
 		// precalculated constants
 
@@ -142,7 +142,7 @@ public class MixedLinearisedSolver extends MixedScheme implements Solver<Lineari
 	}
 
 	@Override
-	public void solve(LinearisedProblem problem) {
+	public void solve(ClassicalProblem problem) {
 		this.prepare(problem);
 		runTimeSequence(problem);
 	}
@@ -155,7 +155,7 @@ public class MixedLinearisedSolver extends MixedScheme implements Solver<Lineari
 
 	@Override
 	public Class<? extends Problem> domain() {
-		return LinearisedProblem.class;
+		return ClassicalProblem.class;
 	}
 
 }

@@ -18,6 +18,7 @@ import pulse.problem.schemes.rte.Fluxes;
 import pulse.problem.schemes.rte.RTECalculationStatus;
 import pulse.problem.schemes.rte.RadiativeTransferSolver;
 import pulse.problem.statements.ParticipatingMedium;
+import pulse.problem.statements.ThermoOpticalProperties;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
@@ -78,7 +79,7 @@ public class MixedCoupledSolver extends CoupledImplicitScheme implements Solver<
 		hx = grid.getXStep();
 		tau = grid.getTimeStep();
 
-		Bi1 = (double) problem.getHeatLoss().getValue();
+		Bi1 = (double) problem.getProperties().getHeatLoss().getValue();
 
 		fluxes = rte.getFluxes();
 
@@ -114,8 +115,9 @@ public class MixedCoupledSolver extends CoupledImplicitScheme implements Solver<
 	}
 
 	private void initConst(ParticipatingMedium problem) {
-		final double Np = (double) problem.getPlanckNumber().getValue();
-		final double opticalThickness = (double) problem.getOpticalThickness().getValue();
+		var p = (ThermoOpticalProperties)problem.getProperties();
+		final double Np = (double) p.getPlanckNumber().getValue();
+		final double opticalThickness = (double) p.getOpticalThickness().getValue();
 
 		HX2 = hx * hx;
 		adjustSchemeWeight();
@@ -149,7 +151,7 @@ public class MixedCoupledSolver extends CoupledImplicitScheme implements Solver<
 		this.prepare(problem);
 		initConst(problem);
 
-		final double wFactor = getTimeInterval() * tau * problem.timeFactor();
+		final double wFactor = getTimeInterval() * tau * problem.getProperties().timeFactor();
 		final int pulseEnd = (int) rint(getDiscretePulse().getDiscreteWidth() / wFactor) + 1;
 
 		setCalculationStatus(rte.compute(getPreviousSolution()));
@@ -166,7 +168,7 @@ public class MixedCoupledSolver extends CoupledImplicitScheme implements Solver<
 
 		final int counts = (int) problem.getHeatingCurve().getNumPoints().getValue();
 		double numPoints = counts - pulseEnd;
-		double dt = timeLeft / (problem.timeFactor() * (numPoints - 1));
+		double dt = timeLeft / (problem.getProperties().timeFactor() * (numPoints - 1));
 
 		setTimeInterval((int) (dt / tau) + 1);
 		this.runTimeSequence(problem, pulseEnd, counts);

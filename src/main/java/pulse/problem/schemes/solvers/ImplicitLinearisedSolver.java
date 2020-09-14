@@ -4,7 +4,7 @@ import static java.lang.Math.pow;
 
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.ImplicitScheme;
-import pulse.problem.statements.LinearisedProblem;
+import pulse.problem.statements.ClassicalProblem;
 import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
 
@@ -45,7 +45,7 @@ import pulse.properties.NumericProperty;
  * @see super.solve(Problem)
  */
 
-public class ImplicitLinearisedSolver extends ImplicitScheme implements Solver<LinearisedProblem> {
+public class ImplicitLinearisedSolver extends ImplicitScheme implements Solver<ClassicalProblem> {
 
 	private double Bi1HTAU;
 
@@ -79,7 +79,7 @@ public class ImplicitLinearisedSolver extends ImplicitScheme implements Solver<L
 		final double hx = grid.getXStep();
 		tau = grid.getTimeStep();
 
-		final double Bi1 = (double) problem.getHeatLoss().getValue();
+		final double Bi1 = (double) problem.getProperties().getHeatLoss().getValue();
 
 		Bi1HTAU = Bi1 * hx * tau;
 		
@@ -102,7 +102,7 @@ public class ImplicitLinearisedSolver extends ImplicitScheme implements Solver<L
 	}
 
 	@Override
-	public void solve(LinearisedProblem problem) {
+	public void solve(ClassicalProblem problem) {
 		prepare(problem);
 		runTimeSequence(problem);
 	}
@@ -126,7 +126,7 @@ public class ImplicitLinearisedSolver extends ImplicitScheme implements Solver<L
 
 	@Override
 	public Class<? extends Problem> domain() {
-		return LinearisedProblem.class;
+		return ClassicalProblem.class;
 	}
 
 }

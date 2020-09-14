@@ -3,6 +3,7 @@ package pulse.problem.schemes.rte.dom;
 import pulse.problem.schemes.rte.BlackbodySpectrum;
 import pulse.problem.schemes.rte.RTECalculationStatus;
 import pulse.problem.statements.ParticipatingMedium;
+import pulse.problem.statements.ThermoOpticalProperties;
 import pulse.util.PropertyHolder;
 import pulse.util.Reflexive;
 
@@ -19,8 +20,9 @@ public abstract class ODEIntegrator extends PropertyHolder implements Reflexive 
 	public abstract RTECalculationStatus integrate();
 
 	protected void init(ParticipatingMedium problem) {
-		discretisation.setEmissivity(problem.getEmissivity());
-		discretisation.setGrid(new StretchedGrid((double) problem.getOpticalThickness().getValue()));
+		discretisation.setEmissivity((double)problem.getProperties().getEmissivity().getValue());
+		var properties = (ThermoOpticalProperties)problem.getProperties();
+		discretisation.setGrid(new StretchedGrid((double) properties.getOpticalThickness().getValue()));
 		setEmissionFunction(new BlackbodySpectrum(problem));
 	}
 

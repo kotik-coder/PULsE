@@ -2,7 +2,7 @@ package pulse.problem.schemes.solvers;
 
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.ExplicitScheme;
-import pulse.problem.statements.LinearisedProblem;
+import pulse.problem.statements.ClassicalProblem;
 import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
 
@@ -46,7 +46,7 @@ import pulse.properties.NumericProperty;
  * @see super.solve(Problem)
  */
 
-public class ExplicitLinearisedSolver extends ExplicitScheme implements Solver<LinearisedProblem> {
+public class ExplicitLinearisedSolver extends ExplicitScheme implements Solver<ClassicalProblem> {
 
 	private int N;
 	private double hx;
@@ -71,12 +71,12 @@ public class ExplicitLinearisedSolver extends ExplicitScheme implements Solver<L
 		N = (int) getGrid().getGridDensity().getValue();
 		hx = getGrid().getXStep();
 
-		final double Bi1 = (double) problem.getHeatLoss().getValue();
+		final double Bi1 = (double) problem.getProperties().getHeatLoss().getValue();
 		a = 1. / (1. + Bi1 * hx);
 	}
 
 	@Override
-	public void solve(LinearisedProblem problem) {
+	public void solve(ClassicalProblem problem) {
 		prepare(problem);
 		runTimeSequence(problem);
 	}
@@ -97,7 +97,7 @@ public class ExplicitLinearisedSolver extends ExplicitScheme implements Solver<L
 
 	@Override
 	public Class<? extends Problem> domain() {
-		return LinearisedProblem.class;
+		return ClassicalProblem.class;
 	}
 
 }

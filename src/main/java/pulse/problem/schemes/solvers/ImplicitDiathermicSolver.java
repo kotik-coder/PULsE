@@ -43,7 +43,7 @@ public class ImplicitDiathermicSolver extends ImplicitScheme implements Solver<D
 
 		/* Constants */
 
-		final double Bi1 = (double) problem.getHeatLoss().getValue();
+		final double Bi1 = (double) problem.getProperties().getHeatLoss().getValue();
 		final double eta = (double) problem.getDiathermicCoefficient().getValue();
 
 		z0 = 1.0 + HX2_2TAU + hx * Bi1 * (1.0 + eta);

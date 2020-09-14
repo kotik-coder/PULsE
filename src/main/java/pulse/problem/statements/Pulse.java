@@ -109,17 +109,10 @@ public class Pulse extends PropertyHolder {
 
 	@Override
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
-		switch (type) {
-		case PULSE_WIDTH:
+		if(type == PULSE_WIDTH) 
 			setPulseWidth(property);
-			break;
-		case LASER_ENERGY:
+		else if(type == LASER_ENERGY)
 			setLaserEnergy(property);
-			break;
-		default:
-			break;
-		}
-
 	}
 
 	public InstanceDescriptor<? extends PulseTemporalShape> getPulseDescriptor() {
@@ -128,6 +121,7 @@ public class Pulse extends PropertyHolder {
 
 	public void setPulseDescriptor(InstanceDescriptor<? extends PulseTemporalShape> shapeDescriptor) {
 		this.instanceDescriptor = shapeDescriptor;
+		//TODO
 		initShape();
 	}
 

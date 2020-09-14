@@ -110,7 +110,7 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 		var hc = problem.getHeatingCurve();
 
 		final var numPoints = (int) hc.getNumPoints().getValue();
-		final var dt = timeLimit / (problem.timeFactor() * (numPoints - 1));
+		final var dt = timeLimit / (problem.getProperties().timeFactor() * (numPoints - 1));
 		setTimeInterval((int) (dt / grid.getTimeStep()) + 1);
 
 		hc.reinit();
@@ -127,7 +127,7 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 
 		final int timeInterval = getTimeInterval();
 		final double tau = grid.getTimeStep();
-		final double wFactor = getTimeInterval() * tau * problem.timeFactor();
+		final double wFactor = getTimeInterval() * tau * problem.getProperties().timeFactor();
 
 		double maxVal = 0;
 
@@ -165,7 +165,7 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 		// scale curve
 
 		if (endOnTimeStep >= (int) curve.getNumPoints().getValue()) {
-			final double maxTemp = (double) problem.getMaximumTemperature().getValue();
+			final double maxTemp = (double) problem.getProperties().getMaximumTemperature().getValue();
 			curve.scale(maxTemp / maxVal);
 		}
 

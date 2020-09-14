@@ -13,8 +13,8 @@ import static javax.swing.JOptionPane.WARNING_MESSAGE;
 import static javax.swing.JOptionPane.showMessageDialog;
 import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
 import static javax.swing.SwingUtilities.getWindowAncestor;
-import static pulse.input.InterpolationDataset.StandardType.DENSITY;
-import static pulse.input.InterpolationDataset.StandardType.HEAT_CAPACITY;
+import static pulse.input.InterpolationDataset.StandartType.DENSITY;
+import static pulse.input.InterpolationDataset.StandartType.HEAT_CAPACITY;
 import static pulse.problem.statements.Problem.isSingleStatement;
 import static pulse.problem.statements.ProblemComplexity.HIGH;
 import static pulse.tasks.Status.INCOMPLETE;
@@ -211,7 +211,7 @@ public class ProblemStatementFrame extends JInternalFrame {
 					super.setSelectionInterval(index0, index0);
 					problemList.ensureIndexIsVisible(index0);
 
-					if (!problem.allDetailsPresent()) {
+					if (!problem.isReady()) {
 						var bred = new Color(1.0f, 0.0f, 0.0f, 0.35f);
 						btnLoadDensity.setBorder(createLineBorder(bred, 3));
 						btnLoadCv.setBorder(createLineBorder(bred, 3));

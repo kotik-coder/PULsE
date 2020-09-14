@@ -1,6 +1,7 @@
 package pulse.problem.schemes.rte.dom;
 
 import pulse.problem.statements.ParticipatingMedium;
+import pulse.problem.statements.ThermoOpticalProperties;
 import pulse.util.Reflexive;
 
 public abstract class PhaseFunction implements Reflexive {
@@ -55,8 +56,9 @@ public abstract class PhaseFunction implements Reflexive {
 	}
 
 	public void init(ParticipatingMedium problem) {
-		this.anisotropy = (double) problem.getScatteringAnisostropy().getValue();
-		this.halfAlbedo = 0.5 * (double) problem.getScatteringAlbedo().getValue();
+		var properties = (ThermoOpticalProperties)problem.getProperties();
+		this.anisotropy = (double) properties.getScatteringAnisostropy().getValue();
+		this.halfAlbedo = 0.5 * (double) properties.getScatteringAlbedo().getValue();
 	}
 
 	@Override

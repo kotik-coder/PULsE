@@ -8,6 +8,7 @@ import java.util.List;
 
 import pulse.problem.schemes.rte.BlackbodySpectrum;
 import pulse.problem.statements.ParticipatingMedium;
+import pulse.problem.statements.ThermoOpticalProperties;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
@@ -39,9 +40,10 @@ public class Discretisation extends PropertyHolder {
 
 	public Discretisation(ParticipatingMedium problem) {
 		ordinates = OrdinateSet.defaultSet();
-		setGrid( new StretchedGrid((double) problem.getOpticalThickness().getValue()) );
+		var properties = (ThermoOpticalProperties)problem.getProperties();
+		setGrid( new StretchedGrid((double) properties.getOpticalThickness().getValue()) );
 		quantities = new DiscreteQuantities(grid.getDensity(), ordinates.getTotalNodes());
-		setEmissivity(problem.getEmissivity());
+		setEmissivity((double)problem.getProperties().getEmissivity().getValue());
 	}
 		
 	/**

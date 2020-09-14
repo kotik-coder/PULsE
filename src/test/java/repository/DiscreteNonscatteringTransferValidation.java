@@ -17,6 +17,7 @@ import pulse.problem.schemes.rte.dom.DiscreteOrdinatesMethod;
 import pulse.problem.schemes.rte.exact.NewtonCotesQuadrature;
 import pulse.problem.schemes.rte.exact.NonscatteringDiscreteDerivatives;
 import pulse.problem.schemes.rte.exact.NonscatteringRadiativeTransfer;
+import pulse.problem.statements.ThermoOpticalProperties;
 
 class DiscreteNonscatteringTransferValidation {
 
@@ -45,13 +46,15 @@ class DiscreteNonscatteringTransferValidation {
 
 	@Test
 	void testFluxesLowThickness() {
-		testCase.getTestProblem().setOpticalThickness(derive(OPTICAL_THICKNESS, 0.1));
+		var properties = (ThermoOpticalProperties)testCase.getTestProblem().getProperties();
+		properties.setOpticalThickness(derive(OPTICAL_THICKNESS, 0.1));
 		assertTrue(testCase.testFluxesAndDerivatives(testProfile, newton, dom, 1e-2, 3e-1));
 	}
 
 	@Test
 	void testFluxesMediumThickness() {
-		testCase.getTestProblem().setOpticalThickness(derive(OPTICAL_THICKNESS, 1.5));
+		var properties = (ThermoOpticalProperties)testCase.getTestProblem().getProperties();
+		properties.setOpticalThickness(derive(OPTICAL_THICKNESS, 1.5));
 		assertTrue(testCase.testFluxesAndDerivatives(testProfile, newton, dom, 1e-2, 3e-1));
 	}
 

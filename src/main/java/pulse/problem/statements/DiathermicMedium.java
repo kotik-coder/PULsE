@@ -1,15 +1,18 @@
 package pulse.problem.statements;
 
+import static java.lang.Math.tanh;
+import static pulse.math.MathUtils.atanh;
 import static pulse.properties.NumericProperty.def;
 import static pulse.properties.NumericProperty.derive;
 import static pulse.properties.NumericPropertyKeyword.DIATHERMIC_COEFFICIENT;
 import static pulse.properties.NumericPropertyKeyword.NUMPOINTS;
 
 import java.util.List;
-import static java.lang.Math.*;
 
 import pulse.math.IndexedVector;
-import static pulse.math.MathUtils.*;
+import pulse.problem.schemes.DifferenceScheme;
+import pulse.problem.schemes.solvers.ImplicitDiathermicSolver;
+import pulse.problem.schemes.solvers.ImplicitLinearisedSolver;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
@@ -32,7 +35,7 @@ import pulse.ui.Messages;
  *
  */
 
-public class DiathermicMedium extends LinearisedProblem {
+public class DiathermicMedium extends ClassicalProblem {
 
 	private double diathermicCoefficient;
 	private final static int DEFAULT_CURVE_POINTS = 300;
@@ -87,15 +90,17 @@ public class DiathermicMedium extends LinearisedProblem {
 	@Override
 	public void assign(IndexedVector params) {
 		super.assign(params);
-
+		var properties = this.getProperties();
+		
 		for (int i = 0, size = params.dimension(); i < size; i++) {
 			switch (params.getIndex(i)) {
 			case DIATHERMIC_COEFFICIENT:
 				diathermicCoefficient = 0.5 * (tanh(params.get(i)) + 1.0);
 				break;
 			case HEAT_LOSS:
-				if (areThermalPropertiesLoaded()) {
-					final double emissivity = emissivity();
+				if (properties.areThermalPropertiesLoaded()) {
+					properties.emissivity();
+					final double emissivity = (double)properties.getEmissivity().getValue();
 					diathermicCoefficient = emissivity / (2.0 - emissivity);
 				}
 				break;
@@ -115,6 +120,11 @@ public class DiathermicMedium extends LinearisedProblem {
 	@Override
 	public String toString() {
 		return Messages.getString("DiathermicProblem.Descriptor");
+	}
+	
+	@Override
+	public Class<? extends DifferenceScheme> defaultScheme() {
+		return ImplicitDiathermicSolver.class;
 	}
 
 }

@@ -42,7 +42,7 @@ public class ImplicitTranslucentSolver extends ImplicitScheme implements Solver<
 		final double tau = grid.getTimeStep();
 		N = (int) grid.getGridDensity().getValue();
 
-		final double Bi1H = (double) problem.getHeatLoss().getValue() * grid.getXStep();
+		final double Bi1H = (double) problem.getProperties().getHeatLoss().getValue() * grid.getXStep();
 		final double hx = grid.getXStep();
 		HH = hx * hx;
 		_2Bi1HTAU = 2.0 * Bi1H * tau;

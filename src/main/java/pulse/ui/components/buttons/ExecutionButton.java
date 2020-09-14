@@ -6,9 +6,7 @@ import static javax.swing.SwingUtilities.getWindowAncestor;
 import static pulse.tasks.Status.INCOMPLETE;
 import static pulse.tasks.TaskManager.addTaskRepositoryListener;
 import static pulse.tasks.TaskManager.cancelAllTasks;
-import static pulse.tasks.TaskManager.execute;
 import static pulse.tasks.TaskManager.executeAll;
-import static pulse.tasks.TaskManager.getSelectedTask;
 import static pulse.tasks.TaskManager.getTaskList;
 import static pulse.tasks.TaskManager.isTaskQueueEmpty;
 import static pulse.ui.Messages.getString;
@@ -59,11 +57,7 @@ public class ExecutionButton extends JButton {
 				showMessageDialog(getWindowAncestor((Component) e.getSource()), t + " is " + t.getStatus().getMessage(),
 						"Problems found", ERROR_MESSAGE);
 			} else {
-				if (getTaskList().stream().anyMatch(t -> !t.getProblem().isBatchProcessingEnabled())) {
-					execute(getSelectedTask());
-				} else
-					executeAll();
-
+				executeAll();
 			}
 		});
 

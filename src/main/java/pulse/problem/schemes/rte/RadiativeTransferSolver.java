@@ -1,5 +1,7 @@
 package pulse.problem.schemes.rte;
 
+import static pulse.math.MathUtils.linearExtrapolation;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
@@ -7,9 +9,9 @@ import java.util.stream.IntStream;
 import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
 
-import static pulse.math.MathUtils.*;
 import pulse.problem.schemes.Grid;
 import pulse.problem.statements.ParticipatingMedium;
+import pulse.problem.statements.ThermoOpticalProperties;
 import pulse.util.Descriptive;
 import pulse.util.PropertyHolder;
 import pulse.util.Reflexive;
@@ -57,7 +59,8 @@ public abstract class RadiativeTransferSolver extends PropertyHolder implements 
 	public void init(ParticipatingMedium p, Grid grid) {
 		if (fluxes != null) {
 			fluxes.setDensity(grid.getGridDensity());
-			fluxes.setOpticalThickness(p.getOpticalThickness());
+			var properties = (ThermoOpticalProperties)p.getProperties();
+			fluxes.setOpticalThickness(properties.getOpticalThickness());
 		}
 	}
 

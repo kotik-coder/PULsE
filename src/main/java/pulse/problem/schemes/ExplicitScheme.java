@@ -13,7 +13,7 @@ import pulse.properties.NumericProperty;
  * finite-difference scheme (also called the forward-time centred space scheme)
  * for solving the one-dimensional heat conduction problem.
  * 
- * @see pulse.problem.statements.LinearisedProblem
+ * @see pulse.problem.statements.ClassicalProblem
  * @see pulse.problem.statements.NonlinearProblem
  *
  */

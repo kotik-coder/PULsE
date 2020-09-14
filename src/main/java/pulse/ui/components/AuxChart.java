@@ -99,7 +99,7 @@ public class AuxChart {
 		double dx = timeLimit / (NUM_PULSE_POINTS - 1);
 		double x = startTime;
 
-		final double timeFactor = problem.timeFactor() * TO_MILLIS;
+		final double timeFactor = problem.getProperties().timeFactor() * TO_MILLIS;
 
 		series.add((startTime - dx / 10.) * timeFactor, 0.0);
 		series.add((timeLimit + dx / 10.) * timeFactor, 0.0);

@@ -12,6 +12,7 @@ import pulse.problem.schemes.rte.Fluxes;
 import pulse.problem.schemes.rte.RTECalculationStatus;
 import pulse.problem.schemes.rte.RadiativeTransferSolver;
 import pulse.problem.statements.ParticipatingMedium;
+import pulse.problem.statements.ThermoOpticalProperties;
 import pulse.properties.NumericProperty;
 
 public class ImplicitCoupledSolver extends CoupledImplicitScheme implements Solver<ParticipatingMedium> {
@@ -52,9 +53,10 @@ public class ImplicitCoupledSolver extends CoupledImplicitScheme implements Solv
 		final double HH = hx * hx;
 		final double tau = grid.getTimeStep();
 
-		final double Bi1 = (double) problem.getHeatLoss().getValue();
-		final double Np = (double) problem.getPlanckNumber().getValue();
-		final double tau0 = (double) problem.getOpticalThickness().getValue();
+		var p = (ThermoOpticalProperties)problem.getProperties();
+		final double Bi1 = (double) p.getHeatLoss().getValue();
+		final double Np = (double) p.getPlanckNumber().getValue();
+		final double tau0 = (double) p.getOpticalThickness().getValue();
 
 		final double TAU0_NP = tau0 / Np;
 		HX2_2TAU = HH / (2.0 * tau);

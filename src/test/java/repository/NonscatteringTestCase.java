@@ -15,6 +15,8 @@ import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.rte.RadiativeTransferSolver;
 import pulse.problem.schemes.solvers.ImplicitCoupledSolver;
 import pulse.problem.statements.ParticipatingMedium;
+import pulse.problem.statements.Pulse2D;
+import pulse.problem.statements.ThermoOpticalProperties;
 
 public class NonscatteringTestCase {
 
@@ -23,22 +25,23 @@ public class NonscatteringTestCase {
 	
 	public NonscatteringTestCase(final int testProfileSize, final double maxHeating) {
 		testProblem = new ParticipatingMedium();
-		testProblem.setSpecificHeat(derive(SPECIFIC_HEAT, 300.0));
-		testProblem.setDensity(derive(DENSITY, 10000.0));
+		var properties = (ThermoOpticalProperties)testProblem.getProperties();
+		properties.setSpecificHeat(derive(SPECIFIC_HEAT, 300.0));
+		properties.setDensity(derive(DENSITY, 10000.0));
 		testProblem.getPulse().setLaserEnergy(derive(LASER_ENERGY, 1.0));
 
-		final double factor = maxHeating / testProblem.maximumHeating();
+		final double factor = maxHeating / properties.maximumHeating((Pulse2D)testProblem.getPulse());
 		testProblem.getPulse().setLaserEnergy(derive(LASER_ENERGY, factor));
 
-		testProblem.setTestTemperature(derive(TEST_TEMPERATURE, 800.0));
-		testProblem.setScatteringAlbedo(derive(SCATTERING_ALBEDO, 0.0));
+		properties.setTestTemperature(derive(TEST_TEMPERATURE, 800.0));
+		properties.setScatteringAlbedo(derive(SCATTERING_ALBEDO, 0.0));
 
 		testScheme = new ImplicitCoupledSolver();
 		var grid = testScheme.getGrid();
 		grid.setGridDensity(derive(GRID_DENSITY, testProfileSize - 1));
 
 		System.out.printf("Testing at: maximum heating: %3.4f and a test temperature of %5.2f %n",
-				testProblem.maximumHeating(), testProblem.getTestTemperature().getValue());
+				properties.maximumHeating((Pulse2D)testProblem.getPulse()), properties.getTestTemperature().getValue());
 	}
 
 	public ParticipatingMedium getTestProblem() {
@@ -68,7 +71,7 @@ public class NonscatteringTestCase {
 		compute(testProfile, solver1, solver2);
 
 		System.out.printf("%nTest at tau0 = %4.2f with the following margins: %1.0e and %1.0e %n",
-				testProblem.getOpticalThickness().getValue(), margin1, margin2);
+				( (ThermoOpticalProperties)testProblem.getProperties() ).getOpticalThickness().getValue(), margin1, margin2);
 
 		var fluxes1 = solver1.getFluxes();
 		var fluxes2 = solver2.getFluxes();
