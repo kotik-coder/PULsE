@@ -5,7 +5,6 @@ import static java.util.stream.Collectors.toList;
 import java.util.ArrayList;
 import java.util.List;
 
-import pulse.properties.EnumProperty;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
@@ -139,18 +138,6 @@ public abstract class PropertyHolder extends Accessible {
 		return numericProperties().stream()
 				.filter(p -> (isListedNumericType(p) && (areDetailsHidden() ? !p.isAutoAdjustable() : true)))
 				.collect(toList());
-	}
-
-	/**
-	 * Lists all instances of {@code EnumProperty} contained in this
-	 * {@code PropertyHolder}. The data objects must be explicitly listed.
-	 * 
-	 * @return a list of {@code Property} data.
-	 * @see isListedGenericType(Property)
-	 */
-
-	public List<EnumProperty> enumData() {
-		return data().stream().filter(p -> p instanceof EnumProperty).map(eP -> (EnumProperty) eP).collect(toList());
 	}
 
 	/**
