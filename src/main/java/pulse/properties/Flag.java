@@ -1,26 +1,8 @@
 package pulse.properties;
 
-import static pulse.properties.NumericProperty.def;
-import static pulse.properties.NumericPropertyKeyword.BASELINE_AMPLITUDE;
-import static pulse.properties.NumericPropertyKeyword.BASELINE_FREQUENCY;
-import static pulse.properties.NumericPropertyKeyword.BASELINE_INTERCEPT;
-import static pulse.properties.NumericPropertyKeyword.BASELINE_PHASE_SHIFT;
-import static pulse.properties.NumericPropertyKeyword.BASELINE_SLOPE;
-import static pulse.properties.NumericPropertyKeyword.DIATHERMIC_COEFFICIENT;
-import static pulse.properties.NumericPropertyKeyword.DIFFUSIVITY;
-import static pulse.properties.NumericPropertyKeyword.FOV_INNER;
-import static pulse.properties.NumericPropertyKeyword.FOV_OUTER;
-import static pulse.properties.NumericPropertyKeyword.HEAT_LOSS;
-import static pulse.properties.NumericPropertyKeyword.HEAT_LOSS_SIDE;
-import static pulse.properties.NumericPropertyKeyword.LASER_ABSORPTIVITY;
+import static pulse.properties.NumericProperty.defaultList;
+import static pulse.properties.NumericProperty.theDefault;
 import static pulse.properties.NumericPropertyKeyword.LOWER_BOUND;
-import static pulse.properties.NumericPropertyKeyword.MAXTEMP;
-import static pulse.properties.NumericPropertyKeyword.OPTICAL_THICKNESS;
-import static pulse.properties.NumericPropertyKeyword.PLANCK_NUMBER;
-import static pulse.properties.NumericPropertyKeyword.SCATTERING_ALBEDO;
-import static pulse.properties.NumericPropertyKeyword.SCATTERING_ANISOTROPY;
-import static pulse.properties.NumericPropertyKeyword.SPOT_DIAMETER;
-import static pulse.properties.NumericPropertyKeyword.THERMAL_ABSORPTIVITY;
 import static pulse.properties.NumericPropertyKeyword.TIME_SHIFT;
 import static pulse.properties.NumericPropertyKeyword.UPPER_BOUND;
 
@@ -65,9 +47,9 @@ public class Flag implements Property {
 	 * @param value        the {@code boolean} value of this {@code flag}
 	 */
 
-	public Flag(NumericPropertyKeyword type, String abbreviation, boolean value) {
-		this.index = type;
-		this.descriptor = abbreviation;
+	public Flag(NumericProperty property, boolean value) {
+		this.index = property.getType();
+		this.descriptor = property.getDescriptor(true);
 		this.value = value;
 	}
 
@@ -82,8 +64,8 @@ public class Flag implements Property {
 	 */
 
 	public static List<NumericPropertyKeyword> convert(List<Flag> flags) {
-		List<Flag> filtered = flags.stream().filter(flag -> (boolean) flag.getValue()).collect(Collectors.toList());
-		return filtered.stream().map(flag -> flag.getType()).collect(Collectors.toList());
+		var filtered = flags.stream().filter(flag -> (boolean) flag.getValue());
+		return filtered.map(flag -> flag.getType()).collect(Collectors.toList());
 	}
 
 	/**
@@ -95,34 +77,15 @@ public class Flag implements Property {
 	 */
 
 	public static List<Flag> allProblemDependentFlags() {
-		List<Flag> flags = new ArrayList<>();
-		flags.add(new Flag(DIFFUSIVITY, def(DIFFUSIVITY).getDescriptor(true), true));
-		flags.add(new Flag(HEAT_LOSS, def(HEAT_LOSS).getDescriptor(true), true));
-		flags.add(new Flag(HEAT_LOSS_SIDE, def(HEAT_LOSS_SIDE).getDescriptor(true), true));
-		flags.add(new Flag(MAXTEMP, def(MAXTEMP).getDescriptor(true), true));
-		flags.add(new Flag(FOV_OUTER, def(FOV_OUTER).getDescriptor(true), true));
-		flags.add(new Flag(FOV_INNER, def(FOV_INNER).getDescriptor(true), true));
-		flags.add(new Flag(SPOT_DIAMETER, def(SPOT_DIAMETER).getDescriptor(true), true));
-		flags.add(new Flag(DIATHERMIC_COEFFICIENT, def(DIATHERMIC_COEFFICIENT).getDescriptor(true), true));
-		flags.add(new Flag(LASER_ABSORPTIVITY, def(LASER_ABSORPTIVITY).getDescriptor(true), true));
-		flags.add(new Flag(THERMAL_ABSORPTIVITY, def(THERMAL_ABSORPTIVITY).getDescriptor(true), false));
-		flags.add(new Flag(OPTICAL_THICKNESS, def(OPTICAL_THICKNESS).getDescriptor(true), true));
-		flags.add(new Flag(PLANCK_NUMBER, def(PLANCK_NUMBER).getDescriptor(true), true));
-		flags.add(new Flag(SCATTERING_ALBEDO, def(SCATTERING_ALBEDO).getDescriptor(true), true));
-		flags.add(new Flag(SCATTERING_ANISOTROPY, def(SCATTERING_ANISOTROPY).getDescriptor(true), true));
-		flags.add(new Flag(BASELINE_INTERCEPT, def(BASELINE_INTERCEPT).getDescriptor(true), false));
-		flags.add(new Flag(BASELINE_SLOPE, def(BASELINE_SLOPE).getDescriptor(true), false));
-		flags.add(new Flag(BASELINE_FREQUENCY, def(BASELINE_FREQUENCY).getDescriptor(true), false));
-		flags.add(new Flag(BASELINE_AMPLITUDE, def(BASELINE_AMPLITUDE).getDescriptor(true), false));
-		flags.add(new Flag(BASELINE_PHASE_SHIFT, def(BASELINE_PHASE_SHIFT).getDescriptor(true), false));
-		return flags;
+		return defaultList().stream().filter(p -> p.isAutoAdjustable()).map(p -> new Flag(p, true))
+				.collect(Collectors.toList());
 	}
 
 	public static List<Flag> allProblemIndependentFlags() {
 		List<Flag> flags = new ArrayList<>();
-		flags.add(new Flag(TIME_SHIFT, def(TIME_SHIFT).getDescriptor(true), false));
-		flags.add(new Flag(LOWER_BOUND, def(LOWER_BOUND).getDescriptor(true), false));
-		flags.add(new Flag(UPPER_BOUND, def(UPPER_BOUND).getDescriptor(true), false));
+		flags.add(new Flag(theDefault(TIME_SHIFT), false));
+		flags.add(new Flag(theDefault(LOWER_BOUND), false));
+		flags.add(new Flag(theDefault(UPPER_BOUND), false));
 		return flags;
 	}
 
@@ -148,7 +111,7 @@ public class Flag implements Property {
 	 */
 
 	public Flag derive(boolean value) {
-		return new Flag(this.index, this.descriptor, value);
+		return new Flag(theDefault(index), value);
 	}
 
 	/**
@@ -169,17 +132,7 @@ public class Flag implements Property {
 		return value;
 	}
 
-	/**
-	 * Attempts to set the value of this {@code flag} to {@code value}.
-	 * 
-	 * @param value a {@code boolean}
-	 * @throws IllegalArgumentException If the {@code value} is not a
-	 *                                  {@code boolean}
-	 */
-
-	public void setValue(Object value) throws IllegalArgumentException {
-		if (!(value instanceof Boolean))
-			throw new IllegalArgumentException("Illegal argument: " + value);
+	public void setValue(boolean value) {
 		this.value = (boolean) value;
 	}
 
@@ -194,6 +147,29 @@ public class Flag implements Property {
 
 	public void setAbbreviation(String abbreviation) {
 		this.descriptor = abbreviation;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (o == this)
+			return true;
+
+		if (o == null)
+			return false;
+
+		if (!(o instanceof Flag))
+			return false;
+
+		Flag f = (Flag) o;
+
+		if (f.getType() == this.getType()) {
+			if (f.getValue().equals(this.getValue())) {
+				return true;
+			}
+		}
+
+		return false;
+
 	}
 
 	@Override

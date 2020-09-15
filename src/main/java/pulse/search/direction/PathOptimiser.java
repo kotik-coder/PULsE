@@ -47,8 +47,8 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 	private static double gradientResolution;
 
 	private static LinearOptimiser linearSolver;
-	private static List<Flag> problemDependentFlags = Flag.allProblemDependentFlags();
 	private static List<Flag> problemIndependentFlags = Flag.allProblemIndependentFlags();
+	private static List<Flag> problemDependentFlags = Flag.allProblemDependentFlags();
 
 	private static PathOptimiser selectedPathOptimiser;
 
@@ -407,7 +407,7 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 		if (!optional.isPresent())
 			return;
 
-		optional.get().setValue(flag.getValue());
+		optional.get().setValue((boolean) flag.getValue());
 	}
 
 	/**

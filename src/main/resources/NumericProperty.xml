@@ -65,7 +65,7 @@
 	</NumericProperty>
 	<NumericProperty
 		abbreviation="&lt;i&gt;N&lt;/i&gt;&lt;sub&gt;int&lt;/sub&gt;"
-		auto-adjustable="true"
+		auto-adjustable="false"
 		descriptor="Internal grid density, &lt;i&gt;N&lt;/i&gt;&lt;sub&gt;int&lt;/sub&gt;"
 		dimensionfactor="1" discreet="false" keyword="DOM_GRID_DENSITY"
 		maximum="4096" minimum="8" primitive-type="int" value="8">
@@ -128,25 +128,25 @@
 		maximum="1" minimum="0" primitive-type="double" value="0.2">
 	</NumericProperty>
 	<NumericProperty abbreviation="&lt;i&gt;m&lt;/i&gt;"
-		auto-adjustable="true"
+		auto-adjustable="false"
 		descriptor="Quadrature points, &lt;i&gt;m&lt;/i&gt;"
 		dimensionfactor="1" discreet="false" keyword="QUADRATURE_POINTS"
 		maximum="32" minimum="2" value="2" primitive-type="int">
 	</NumericProperty>
-	<NumericProperty abbreviation="&amp;sigma;" auto-adjustable="true"
+	<NumericProperty abbreviation="&amp;sigma;" auto-adjustable="false"
 		descriptor="Weight, &amp;sigma;" dimensionfactor="1" discreet="true"
 		keyword="SCHEME_WEIGHT" maximum="1" minimum="0" value="0"
 		primitive-type="double">
 	</NumericProperty>
 	<NumericProperty abbreviation="&amp;tau;&lt;sub&gt;cut&lt;/sub&gt;"
-		auto-adjustable="true"
+		auto-adjustable="false"
 		descriptor="Integration cutoff, &lt;i&gt;x&lt;/i&gt;&lt;sub&gt;cut&lt;/sub&gt;"
 		dimensionfactor="1" discreet="false" keyword="INTEGRATION_CUTOFF"
 		maximum="100" minimum="2" primitive-type="double" value="3.5">
 	</NumericProperty>
 	<NumericProperty
 		abbreviation="&lt;i&gt;n&lt;/i&gt;&lt;sub&gt;int&lt;/sub&gt;"
-		auto-adjustable="true"
+		auto-adjustable="false"
 		descriptor="Integration segments, &lt;i&gt;n&lt;/i&gt;&lt;sub&gt;int&lt;/sub&gt;"
 		dimensionfactor="1" discreet="false" keyword="INTEGRATION_SEGMENTS"
 		maximum="1024" minimum="8" primitive-type="int" value="64">
@@ -177,7 +177,7 @@
 		keyword="INCIDENT_INTENSITY" maximum="1E10" minimum="1E-5"
 		primitive-type="double" value="1">
 	</NumericProperty>
-	<NumericProperty abbreviation="Probability" auto-adjustable="true"
+	<NumericProperty abbreviation="Probability" auto-adjustable="false"
 		descriptor="Probability, &lt;i&gt;p&lt;/i&gt;" dimensionfactor="1"
 		discreet="false" keyword="PROBABILITY" maximum="1" minimum="0"
 		primitive-type="double" value="0">
@@ -189,7 +189,7 @@
 	</NumericProperty>
 	<NumericProperty
 		abbreviation="&lt;i&gt;t&lt;/i&gt;&lt;sub&gt;0&lt;/sub&gt;"
-		auto-adjustable="true"
+		auto-adjustable="false"
 		descriptor="Time sequence shift, &lt;i&gt;t&lt;/i&gt;&lt;sub&gt;0&lt;/sub&gt;"
 		dimensionfactor="1" keyword="TIME_SHIFT" maximum="10" minimum="-10"
 		primitive-type="double" value="0" discreet="false">
@@ -207,7 +207,7 @@
 	</NumericProperty>
 	<NumericProperty
 		abbreviation=" &amp;gamma;&lt;sub&gt;1&lt;/sub&gt;"
-		auto-adjustable="false"
+		auto-adjustable="true"
 		descriptor="Thermal absorptivity, &amp;gamma;&lt;sub&gt;1&lt;/sub&gt;"
 		dimensionfactor="1.0" discreet="false" keyword="THERMAL_ABSORPTIVITY"
 		maximum="1E8" minimum="1E-3" primitive-type="double" value="10">
@@ -215,7 +215,7 @@
 	<NumericProperty
 		abbreviation=" &amp;gamma;&lt;sub&gt;0&lt;/sub&gt;"
 		descriptor="Laser absorptivity, &amp;gamma;&lt;sub&gt;0&lt;/sub&gt;"
-		keyword="LASER_ABSORPTIVITY" auto-adjustable="false" maximum="1E8"
+		keyword="LASER_ABSORPTIVITY" auto-adjustable="true" maximum="1E8"
 		dimensionfactor="1" minimum="1E-3" primitive-type="double" value="10"
 		discreet="false">
 	</NumericProperty>
@@ -293,7 +293,7 @@
 </NumericProperty>
 	<NumericProperty
 		abbreviation="&lt;i&gt;d&lt;/i&gt;&lt;sub&gt;las&lt;/sub&gt; (mm)"
-		auto-adjustable="false"
+		auto-adjustable="true"
 		descriptor="Laser spot diameter, &lt;i&gt;d&lt;/i&gt;&lt;sub&gt;las&lt;/sub&gt; (mm)"
 		dimensionfactor="1000.0" keyword="SPOT_DIAMETER" maximum="0.05"
 		minimum="1.0E-4" value="0.01" primitive-type="double" discreet="true" ></NumericProperty>
@@ -305,25 +305,25 @@
 		minimum="1.0E-6" value="1.0" primitive-type="double" discreet="true" />
 	<NumericProperty
 		abbreviation="&lt;i&gt;C&lt;/i&gt;&lt;sub&gt;p&lt;/sub&gt; (J&amp;times;kg&lt;sup&gt;-1&lt;/sup&gt;&amp;times;K&lt;sup&gt;-1&lt;/sup&gt;)"
-		auto-adjustable="true"
+		auto-adjustable="false"
 		descriptor="Specific heat, &lt;i&gt;C&lt;/i&gt;&lt;sub&gt;p&lt;/sub&gt; (J&amp;times;kg&lt;sup&gt;-1&lt;/sup&gt;&amp;times;K&lt;sup&gt;-1&lt;/sup&gt;)"
 		dimensionfactor="1.0" keyword="SPECIFIC_HEAT" maximum="10000.0"
 		minimum="1.0" value="0.0" primitive-type="double" discreet="false">
 	</NumericProperty>
 	<NumericProperty
 		abbreviation="&lt;i&gt;&amp;#955;&lt;/i&gt; (W&amp;times;m&lt;sup&gt;-1&lt;/sup&gt;K&lt;sup&gt;-1&lt;/sup&gt;)"
-		auto-adjustable="true"
+		auto-adjustable="false"
 		descriptor="Thermal conductivity, &lt;i&gt;&amp;#955;&lt;/i&gt; (W&amp;times;m&lt;sup&gt;-1&lt;/sup&gt;K&lt;sup&gt;-1&lt;/sup&gt;)"
 		dimensionfactor="1.0" keyword="CONDUCTIVITY" maximum="10000.0"
 		minimum="1.0" value="0.0" primitive-type="double" discreet="false" />
 	<NumericProperty
-		abbreviation="&lt;i&gt;&amp;#949;&lt;/i&gt;" auto-adjustable="false"
+		abbreviation="&lt;i&gt;&amp;#949;&lt;/i&gt;" auto-adjustable="true"
 		descriptor="Integral emissivity, &lt;i&gt;&amp;#949;&lt;/i&gt;"
 		dimensionfactor="1.0" keyword="EMISSIVITY" maximum="1" minimum="0.001"
 		value="0.8" primitive-type="double" discreet="false" />
 	<NumericProperty
 		abbreviation="&amp;rho; (kg/m&lt;sup&gt;3&lt;/sup&gt;)"
-		auto-adjustable="true"
+		auto-adjustable="false"
 		descriptor="Density, &amp;rho; (kg/m&lt;sup&gt;3&lt;/sup&gt;)"
 		dimensionfactor="1.0" keyword="DENSITY" maximum="30000.0"
 		minimum="10.0" value="0.0" primitive-type="double" discreet="false" />
@@ -335,7 +335,7 @@
 		minimum="0.01" value="5.0" primitive-type="double" discreet="false" />
 	<NumericProperty
 		abbreviation="&lt;i&gt;T&lt;/i&gt;&lt;sub&gt;0&lt;/sub&gt; (K)"
-		auto-adjustable="true"
+		auto-adjustable="false"
 		descriptor="Test temperature, &lt;i&gt;T&lt;/i&gt;&lt;sub&gt;0&lt;/sub&gt; (K)"
 		dimensionfactor="1.0" keyword="TEST_TEMPERATURE" maximum="10000.0"
 		minimum="0.0" value="298.0" primitive-type="double" discreet="false" />
@@ -360,14 +360,14 @@
 		discreet="false" />
 	<NumericProperty
 		abbreviation="FOV&lt;sub&gt;inner&lt;/sub&gt; (mm)"
-		auto-adjustable="false"
+		auto-adjustable="true"
 		descriptor="Field of view (inner), FOV&lt;sub&gt;inner&lt;/sub&gt; (mm)"
 		dimensionfactor="1000.0" discreet="true" keyword="FOV_INNER"
 		maximum="0.1" minimum="0.0" primitive-type="double" value="0.0">
 	</NumericProperty>
 	<NumericProperty
 		abbreviation="FOV&lt;sub&gt;outer&lt;/sub&gt; (mm)"
-		auto-adjustable="false"
+		auto-adjustable="true"
 		descriptor="Field of view (outer), FOV&lt;sub&gt;outer&lt;/sub&gt; (mm)"
 		dimensionfactor="1000.0" keyword="FOV_OUTER" maximum="0.1"
 		minimum="1.0E-6" value="0.01" primitive-type="double" discreet="true" />
@@ -404,30 +404,30 @@
 	</NumericProperty>
 	<NumericProperty
 		abbreviation="&lt;i&gt;N&lt;/i&gt;&lt;sub&gt;S&lt;/sub&gt;"
-		auto-adjustable="true"
+		auto-adjustable="false"
 		descriptor="Shell grid density, &lt;i&gt;N&lt;/i&gt;&lt;sub&gt;S&lt;/sub&gt;"
 		dimensionfactor="1" discreet="false" keyword="SHELL_GRID_DENSITY"
 		maximum="200" minimum="1" primitive-type="int" value="10">
 	</NumericProperty>
 	<NumericProperty abbreviation="&lt;i&gt;N&lt;/i&gt;"
-		auto-adjustable="true" descriptor="Grid density, &lt;i&gt;N&lt;/i&gt;"
+		auto-adjustable="false" descriptor="Grid density, &lt;i&gt;N&lt;/i&gt;"
 		dimensionfactor="1" keyword="GRID_DENSITY" primitive-type="int"
 		value="30" minimum="8" maximum="1000" discreet="false">
 	</NumericProperty>
 	<NumericProperty keyword="TAU_FACTOR"
 		abbreviation="&lt;i&gt;&amp;tau&lt;/i&gt; / h&lt;sup&gt;2&lt;/sup&gt;"
-		auto-adjustable="true"
+		auto-adjustable="false"
 		descriptor="Time factor, &lt;i&gt;&amp;tau&lt;/i&gt; / h&lt;sup&gt;2&lt;/sup&gt;"
 		dimensionfactor="1" primitive-type="double" maximum="10"
 		minimum="1E-4" value="0.25" discreet="false">
 	</NumericProperty>
-	<NumericProperty abbreviation="Test-stat" auto-adjustable="true"
+	<NumericProperty abbreviation="Test-stat" auto-adjustable="false"
 		descriptor="Normality test statistic" dimensionfactor="1"
 		discreet="false" keyword="TEST_STATISTIC" maximum="1E10"
 		minimum="-1e10" primitive-type="double" value="Infinity">
 	</NumericProperty>
 	<NumericProperty abbreviation="Search-stat"
-		descriptor="Optimiser statistic" auto-adjustable="true"
+		descriptor="Optimiser statistic" auto-adjustable="false"
 		dimensionfactor="1" discreet="false" keyword="OPTIMISER_STATISTIC"
 		maximum="1E10" minimum="-1e10" primitive-type="double" value="Infinity">
 	</NumericProperty>

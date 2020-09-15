@@ -461,6 +461,10 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
 	public static NumericProperty theDefault(NumericPropertyKeyword keyword) {
 		return DEFAULT.stream().filter(p -> p.getType() == keyword).findFirst().get();
 	}
+	
+	public static List<NumericProperty> defaultList() {
+		return DEFAULT;
+	}
 
 	public boolean isDiscreet() {
 		return discreet;
