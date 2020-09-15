@@ -169,6 +169,7 @@ public class HeatingCurve extends PropertyHolder {
 	public void setNumPoints(NumericProperty c) {
 		requireType(c, NUMPOINTS);
 		this.count = (int) c.getValue();
+		firePropertyChanged(this, c);
 	}
 
 	/**

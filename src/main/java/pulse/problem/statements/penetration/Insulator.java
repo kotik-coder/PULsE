@@ -1,5 +1,9 @@
 package pulse.problem.statements.penetration;
 
+import static pulse.properties.NumericProperty.def;
+import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericPropertyKeyword.REFLECTANCE;
+
 import java.util.List;
 
 import pulse.properties.NumericProperty;
@@ -11,7 +15,7 @@ public class Insulator extends AbsorptionModel {
 	protected double R;
 
 	public Insulator() {
-		R = (double) NumericProperty.def(NumericPropertyKeyword.REFLECTANCE).getValue();
+		R = (double) def(REFLECTANCE).getValue();
 	}
 
 	@Override
@@ -21,7 +25,7 @@ public class Insulator extends AbsorptionModel {
 	}
 
 	public NumericProperty getReflectance() {
-		return NumericProperty.derive(NumericPropertyKeyword.REFLECTANCE, R);
+		return derive(REFLECTANCE, R);
 	}
 
 	public void setReflectance(NumericProperty a) {
@@ -32,23 +36,14 @@ public class Insulator extends AbsorptionModel {
 	@Override
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
 		super.set(type, property);
-
-		NumericPropertyKeyword prop = type;
-		double newVal = ((Number) property.getValue()).doubleValue();
-
-		switch (prop) {
-		case REFLECTANCE:
-			R = newVal;
-			return;
-		default:
-			break;
-		}
+		if (type == REFLECTANCE)
+			R = ((Number) property.getValue()).doubleValue();
 	}
 
 	@Override
 	public List<Property> listedTypes() {
 		List<Property> list = super.listedTypes();
-		list.add(NumericProperty.def(NumericPropertyKeyword.REFLECTANCE));
+		list.add(def(REFLECTANCE));
 		return list;
 	}
 

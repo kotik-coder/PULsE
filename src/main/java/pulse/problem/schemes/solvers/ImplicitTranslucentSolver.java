@@ -1,7 +1,7 @@
 package pulse.problem.schemes.solvers;
 
 import static pulse.problem.schemes.DistributedDetection.evaluateSignal;
-import static pulse.problem.statements.penetration.AbsorptionModel.SpectralRange.LASER;
+import static pulse.problem.statements.penetration.SpectralRange.LASER;
 import static pulse.ui.Messages.getString;
 
 import pulse.problem.schemes.DifferenceScheme;

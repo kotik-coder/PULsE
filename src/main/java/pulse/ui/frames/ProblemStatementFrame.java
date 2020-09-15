@@ -240,9 +240,9 @@ public class ProblemStatementFrame extends JInternalFrame {
 		 * listeners
 		 */
 
-		addSelectionListener((TaskSelectionEvent e) -> {
-			update(e.getSelection());
-		});
+		addSelectionListener((TaskSelectionEvent e) -> 
+			update(e.getSelection())
+		);
 		// TODO
 
 		getInstance().addHierarchyListener(event -> {

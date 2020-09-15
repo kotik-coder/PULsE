@@ -1,5 +1,6 @@
 package pulse.problem.statements;
 
+import static pulse.properties.NumericProperty.requireType;
 import static pulse.properties.NumericPropertyKeyword.LASER_ENERGY;
 import static pulse.properties.NumericPropertyKeyword.PULSE_WIDTH;
 
@@ -71,6 +72,7 @@ public class Pulse extends PropertyHolder {
 	}
 
 	public void setPulseWidth(NumericProperty pulseWidth) {
+		requireType(pulseWidth, PULSE_WIDTH);
 		this.pulseWidth = (double) pulseWidth.getValue();
 		firePropertyChanged(this, pulseWidth);
 	}
@@ -80,6 +82,7 @@ public class Pulse extends PropertyHolder {
 	}
 
 	public void setLaserEnergy(NumericProperty laserEnergy) {
+		requireType(laserEnergy, LASER_ENERGY);
 		this.laserEnergy = (double) laserEnergy.getValue();
 		firePropertyChanged(this, laserEnergy);
 	}

@@ -2,6 +2,7 @@ package pulse.problem.statements;
 
 import static pulse.properties.NumericProperty.def;
 import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericProperty.requireType;
 import static pulse.properties.NumericPropertyKeyword.SPOT_DIAMETER;
 
 import java.util.List;
@@ -41,6 +42,7 @@ public class Pulse2D extends Pulse {
 	}
 
 	public void setSpotDiameter(NumericProperty spotDiameter) {
+		requireType(spotDiameter, SPOT_DIAMETER);
 		this.spotDiameter = (double) spotDiameter.getValue();
 		firePropertyChanged(this, spotDiameter);
 	}

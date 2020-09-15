@@ -115,6 +115,7 @@ public class LinearBaseline extends FlatBaseline {
 	public void setSlope(NumericProperty slope) {
 		requireType(slope, BASELINE_SLOPE);
 		this.slope = (double) slope.getValue();
+		firePropertyChanged(this, slope);
 	}
 
 	@Override

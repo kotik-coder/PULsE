@@ -79,9 +79,15 @@ public class ClassicalProblem2D extends Problem {
 			switch (output[0].getIndex(i)) {
 			case FOV_OUTER:
 				value = (double)properties.getFOVOuter().getValue();
+				output[0].set(i, value / d);
+				output[1].set(i, 0.25);
+				break;
 			case FOV_INNER:
 				value = (double)properties.getFOVInner().getValue();
-			case SPOT_DIAMETER:
+				output[0].set(i, value / d);
+				output[1].set(i, 0.25);
+				break;
+			case SPOT_DIAMETER :
 				value = (double) ((Pulse2D) getPulse()).getSpotDiameter().getValue();
 				output[0].set(i, value / d);
 				output[1].set(i, 0.25);

@@ -3,7 +3,7 @@ package pulse.problem.schemes;
 import java.util.stream.IntStream;
 
 import pulse.problem.statements.penetration.AbsorptionModel;
-import pulse.problem.statements.penetration.AbsorptionModel.SpectralRange;
+import pulse.problem.statements.penetration.SpectralRange;
 
 /**
  * An interface providing the ability to calculate the integral signal

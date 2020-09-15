@@ -41,8 +41,6 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 
 	private static boolean hideDetailedAdjustment = true;
 
-	private double maxVal;
-
 	private final static double EPS = 1e-7; // a small value ensuring numeric stability
 
 	/**
@@ -140,14 +138,12 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 		var curve = problem.getHeatingCurve();
 
 		final double tau = grid.getTimeStep();
-		adjustedNumPoints = (int)curve.getNumPoints().getValue() - ( curve.actualDataPoints() - 1 );
+		adjustedNumPoints = (int) curve.getNumPoints().getValue() - (curve.actualDataPoints() - 1);
 		timeInterval = initTimeInterval(problem, adjustedNumPoints, endTime - offset);
 		final double wFactor = timeInterval * tau * problem.getProperties().timeFactor();
-			
-		maxVal = 0;
-		
-		//First point (index = 0) is always (0.0, 0.0)
-		
+
+		// First point (index = 0) is always (0.0, 0.0)
+
 		/*
 		 * The outer cycle iterates over the number of points of the HeatingCurve
 		 */
@@ -172,22 +168,25 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 		timeSegment((adjustedNumPoints - 2) * timeInterval, (int) (endTime * timeInterval / wFactor));
 		addPoint(curve, endTime);
 
-		// scale curve
+		finaliseSequence(problem, endTime);
+
+	}
+
+	private void finaliseSequence(Problem problem, final double endTime) {
+		var curve = problem.getHeatingCurve();
 
 		final double SAFETY_MARGIN = 1.05;
-		if(endTime*SAFETY_MARGIN > timeLimit) {
-		
+		if (endTime * SAFETY_MARGIN > timeLimit) {
+
 			final double maxTemp = (double) problem.getProperties().getMaximumTemperature().getValue();
 			curve.setNumPoints(derive(NUMPOINTS, curve.actualDataPoints()));
-			curve.scale(maxTemp / maxVal);
-		
-		}
+			curve.scale(maxTemp / curve.apparentMaximum() );
 
+		}
 	}
 
 	private void addPoint(HeatingCurve curve, final double time) {
 		double signal = signal();
-		maxVal = Math.max(maxVal, signal);
 		curve.addPoint(time, signal);
 	}
 

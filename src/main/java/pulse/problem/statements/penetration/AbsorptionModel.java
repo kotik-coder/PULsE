@@ -1,5 +1,12 @@
 package pulse.problem.statements.penetration;
 
+import static pulse.problem.statements.penetration.SpectralRange.LASER;
+import static pulse.problem.statements.penetration.SpectralRange.THERMAL;
+import static pulse.properties.NumericProperty.def;
+import static pulse.properties.NumericProperty.theDefault;
+import static pulse.properties.NumericPropertyKeyword.LASER_ABSORPTIVITY;
+import static pulse.properties.NumericPropertyKeyword.THERMAL_ABSORPTIVITY;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,19 +24,18 @@ public abstract class AbsorptionModel extends PropertyHolder implements Reflexiv
 	protected AbsorptionModel() {
 		setPrefix("Absorption model");
 		absorptionMap = new HashMap<>();
-		absorptionMap.put(SpectralRange.LASER, NumericProperty.theDefault(NumericPropertyKeyword.LASER_ABSORPTIVITY));
-		absorptionMap.put(SpectralRange.THERMAL,
-				NumericProperty.theDefault(NumericPropertyKeyword.THERMAL_ABSORPTIVITY));
+		absorptionMap.put(LASER, theDefault(LASER_ABSORPTIVITY));
+		absorptionMap.put(THERMAL, theDefault(THERMAL_ABSORPTIVITY));
 	}
 
 	public abstract double absorption(SpectralRange range, double x);
 
 	public NumericProperty getLaserAbsorptivity() {
-		return absorptionMap.get(SpectralRange.LASER);
+		return absorptionMap.get(LASER);
 	}
 
 	public NumericProperty getThermalAbsorptivity() {
-		return absorptionMap.get(SpectralRange.THERMAL);
+		return absorptionMap.get(THERMAL);
 	}
 
 	public NumericProperty getAbsorptivity(SpectralRange spectrum) {
@@ -41,11 +47,11 @@ public abstract class AbsorptionModel extends PropertyHolder implements Reflexiv
 	}
 
 	public void setLaserAbsorptivity(NumericProperty a) {
-		absorptionMap.put(SpectralRange.LASER, a);
+		absorptionMap.put(LASER, a);
 	}
 
 	public void setThermalAbsorptivity(NumericProperty a) {
-		absorptionMap.put(SpectralRange.THERMAL, a);
+		absorptionMap.put(THERMAL, a);
 	}
 
 	@Override
@@ -53,11 +59,11 @@ public abstract class AbsorptionModel extends PropertyHolder implements Reflexiv
 
 		switch (type) {
 		case LASER_ABSORPTIVITY:
-			absorptionMap.put(SpectralRange.LASER, property);
-			return;
+			absorptionMap.put(LASER, property);
+			break;
 		case THERMAL_ABSORPTIVITY:
-			absorptionMap.put(SpectralRange.THERMAL, property);
-			return;
+			absorptionMap.put(THERMAL, property);
+			break;
 		default:
 			break;
 		}
@@ -66,37 +72,15 @@ public abstract class AbsorptionModel extends PropertyHolder implements Reflexiv
 
 	@Override
 	public String toString() {
-		return getClass().getSimpleName() + " : " + absorptionMap.get(SpectralRange.LASER) + " ; "
-				+ absorptionMap.get(SpectralRange.THERMAL);
+		return getClass().getSimpleName() + " : " + absorptionMap.get(LASER) + " ; " + absorptionMap.get(THERMAL);
 	}
 
 	@Override
 	public List<Property> listedTypes() {
 		List<Property> list = super.listedTypes();
-		list.add(NumericProperty.def(NumericPropertyKeyword.LASER_ABSORPTIVITY));
-		list.add(NumericProperty.def(NumericPropertyKeyword.THERMAL_ABSORPTIVITY));
+		list.add(def(LASER_ABSORPTIVITY));
+		list.add(def(THERMAL_ABSORPTIVITY));
 		return list;
-	}
-
-	public enum SpectralRange {
-		LASER("Laser Absorption"), THERMAL("Thermal Radiation Absorption");
-
-		String name;
-
-		SpectralRange(String name) {
-			this.name = name;
-		}
-
-		@Override
-		public String toString() {
-			return name;
-		}
-
-		public NumericPropertyKeyword typeOfAbsorption() {
-			return this == SpectralRange.LASER ? NumericPropertyKeyword.LASER_ABSORPTIVITY
-					: NumericPropertyKeyword.THERMAL_ABSORPTIVITY;
-		}
-
 	}
 
 }

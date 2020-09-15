@@ -82,10 +82,8 @@ public class SinusoidalBaseline extends FlatBaseline {
 			setAmplitude(property);
 			break;
 		default:
-			return;
+			break;
 		}
-
-		this.firePropertyChanged(this, property);
 
 	}
 
@@ -104,16 +102,19 @@ public class SinusoidalBaseline extends FlatBaseline {
 	public void setFrequency(NumericProperty frequency) {
 		requireType(frequency, BASELINE_FREQUENCY);
 		this.frequency = (double) frequency.getValue();
+		firePropertyChanged(this, frequency);
 	}
 
 	public void setAmplitude(NumericProperty amplitude) {
 		requireType(amplitude, BASELINE_AMPLITUDE);
 		this.amplitude = (double) amplitude.getValue();
+		firePropertyChanged(this, amplitude);
 	}
 
 	public void setPhaseShift(NumericProperty phaseShift) {
 		requireType(phaseShift, BASELINE_PHASE_SHIFT);
 		this.phaseShift = (double) phaseShift.getValue();
+		firePropertyChanged(this, phaseShift);
 	}
 
 	@Override

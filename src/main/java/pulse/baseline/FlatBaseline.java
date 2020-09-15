@@ -93,6 +93,7 @@ public class FlatBaseline extends Baseline {
 	public void setIntercept(NumericProperty intercept) {
 		requireType(intercept, BASELINE_INTERCEPT);
 		this.intercept = (double) intercept.getValue();
+		firePropertyChanged(this, intercept);
 	}
 
 	/**
