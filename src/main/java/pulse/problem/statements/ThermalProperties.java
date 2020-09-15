@@ -173,7 +173,7 @@ public class ThermalProperties extends PropertyHolder {
 	}
 
 	public NumericProperty getDensity() {
-		return derive(NumericPropertyKeyword.DENSITY, rho);
+		return derive(DENSITY, rho);
 	}
 
 	public void setDensity(NumericProperty p) {

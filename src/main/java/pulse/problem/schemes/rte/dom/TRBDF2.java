@@ -3,6 +3,7 @@ package pulse.problem.schemes.rte.dom;
 import pulse.math.linear.Matrices;
 import pulse.math.linear.SquareMatrix;
 import pulse.math.linear.Vector;
+import pulse.problem.schemes.rte.RTECalculationStatus;
 
 /**
  * TRBDF2 (Trapezoidal Backward Differencing Second Order) Scheme for the solution of one-dimensional radiative transfer problems.
@@ -68,6 +69,10 @@ public class TRBDF2 extends AdaptiveIntegrator {
 
 	public TRBDF2(Discretisation intensities) {
 		super(intensities);
+	}
+	
+	@Override
+	public RTECalculationStatus integrate() {
 		final int nH = getDiscretisation().getOrdinates().getHalfLength();
 
 		bVector = new double[nH];
@@ -76,6 +81,7 @@ public class TRBDF2 extends AdaptiveIntegrator {
 		inward = new double[nH];
 
 		k = new double[3][nH];
+		return super.integrate();
 	}
 	
 	/**

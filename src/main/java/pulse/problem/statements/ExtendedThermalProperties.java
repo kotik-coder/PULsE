@@ -25,18 +25,19 @@ public class ExtendedThermalProperties extends ThermalProperties {
 
 	public ExtendedThermalProperties() {
 		super();
-		//setPulse(new Pulse2D() );
-		//setComplexity(ProblemComplexity.MODERATE);
 		Bi3 = (double) def(HEAT_LOSS_SIDE).getValue();
 		d = (double) def(DIAMETER).getValue();
 		fovOuter = (double) def(FOV_OUTER).getValue();
 		fovInner = (double) def(FOV_INNER).getValue();
+		defaultValues();
 	}
 
 	public ExtendedThermalProperties(ThermalProperties sdd) {
 		super(sdd);
-		//setPulse(new Pulse2D(sdd.getPulse()) );
-		//setComplexity(ProblemComplexity.MODERATE);
+		defaultValues();
+	}
+	
+	private void defaultValues() { 
 		Bi3 = (double) def(HEAT_LOSS_SIDE).getValue();
 		d = (double) def(DIAMETER).getValue();
 		fovOuter = (double) def(FOV_OUTER).getValue();
@@ -45,8 +46,6 @@ public class ExtendedThermalProperties extends ThermalProperties {
 
 	public ExtendedThermalProperties(ExtendedThermalProperties sdd) {
 		super(sdd);
-		//setPulse(new Pulse2D(sdd.getPulse()) );
-		//setComplexity(ProblemComplexity.MODERATE);
 		this.d = sdd.d;
 		this.Bi3 = sdd.Bi3;
 		this.fovOuter = sdd.fovOuter;

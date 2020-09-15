@@ -1,6 +1,5 @@
 package pulse.problem.schemes.solvers;
 
-import static java.lang.Math.rint;
 import static pulse.properties.NumericProperty.def;
 import static pulse.properties.NumericProperty.derive;
 import static pulse.properties.NumericProperty.requireType;
@@ -151,28 +150,9 @@ public class MixedCoupledSolver extends CoupledImplicitScheme implements Solver<
 		this.prepare(problem);
 		initConst(problem);
 
-		final double wFactor = getTimeInterval() * tau * problem.getProperties().timeFactor();
-		final int pulseEnd = (int) rint(getDiscretePulse().getDiscreteWidth() / wFactor) + 1;
-
 		setCalculationStatus(rte.compute(getPreviousSolution()));
-
-		this.runTimeSequence(problem, 1, pulseEnd);
-
-		final double timeLeft = (double) getTimeLimit().getValue() - pulseEnd * wFactor;
-
-		var grid = getGrid();
-		grid.setTimeFactor(derive(TAU_FACTOR, 0.25)); // adjust timestep to make calculations faster
-		tau = grid.getTimeStep();
-
-		initConst(problem);
-
-		final int counts = (int) problem.getHeatingCurve().getNumPoints().getValue();
-		double numPoints = counts - pulseEnd;
-		double dt = timeLeft / (problem.getProperties().timeFactor() * (numPoints - 1));
-
-		setTimeInterval((int) (dt / tau) + 1);
-		this.runTimeSequence(problem, pulseEnd, counts);
-
+		this.runTimeSequence(problem);
+		
 		var status = getCalculationStatus();
 		if (status != RTECalculationStatus.NORMAL)
 			throw new SolverException(status.toString());

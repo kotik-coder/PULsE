@@ -87,6 +87,9 @@ public abstract class PropertyHolder extends Accessible {
 		if (p == null)
 			return false;
 
+		if(parameters.contains(null))
+			parameters = listedTypes();
+		
 		return parameters.stream().anyMatch(param -> param.getClass().equals(p.getClass()));
 
 	}
@@ -180,7 +183,6 @@ public abstract class PropertyHolder extends Accessible {
 
 		super.update(updatedProperty);
 
-		firePropertyChanged(sourceComponent, updatedProperty);
 		return true;
 	}
 

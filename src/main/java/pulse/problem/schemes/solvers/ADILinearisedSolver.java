@@ -5,9 +5,9 @@ import pulse.problem.schemes.ADIScheme;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.Grid2D;
 import pulse.problem.schemes.TridiagonalMatrixAlgorithm;
+import pulse.problem.statements.ClassicalProblem2D;
 import pulse.problem.statements.ExtendedThermalProperties;
 import pulse.problem.statements.Problem;
-import pulse.problem.statements.ClassicalProblem2D;
 import pulse.properties.NumericProperty;
 
 /**

@@ -184,5 +184,5 @@ public class ExplicitRungeKutta extends AdaptiveIntegrator {
 	public String toString() {
 		return super.toString() + " ; " + tableau;
 	}
-
+	
 }

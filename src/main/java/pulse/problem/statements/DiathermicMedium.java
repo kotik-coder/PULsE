@@ -4,6 +4,7 @@ import static java.lang.Math.tanh;
 import static pulse.math.MathUtils.atanh;
 import static pulse.properties.NumericProperty.def;
 import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericProperty.requireType;
 import static pulse.properties.NumericPropertyKeyword.DIATHERMIC_COEFFICIENT;
 import static pulse.properties.NumericPropertyKeyword.NUMPOINTS;
 
@@ -12,7 +13,6 @@ import java.util.List;
 import pulse.math.IndexedVector;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.solvers.ImplicitDiathermicSolver;
-import pulse.problem.schemes.solvers.ImplicitLinearisedSolver;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
@@ -62,6 +62,7 @@ public class DiathermicMedium extends ClassicalProblem {
 	}
 
 	public void setDiathermicCoefficient(NumericProperty diathermicCoefficient) {
+		requireType(diathermicCoefficient, DIATHERMIC_COEFFICIENT);
 		this.diathermicCoefficient = (double) diathermicCoefficient.getValue();
 	}
 

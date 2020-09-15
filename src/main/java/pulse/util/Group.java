@@ -37,7 +37,7 @@ public class Group extends UpwardsNavigable {
 			try {
 				a = (Group) m.invoke(this);
 			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-				System.err.println("Failed to invoke " + m);
+				System.err.println("Failed to invoke " + m + " Details: ");
 				e.printStackTrace();
 			}
 

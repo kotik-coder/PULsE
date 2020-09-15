@@ -39,6 +39,7 @@ public class Pulse extends PropertyHolder {
 	 */
 
 	public Pulse() {
+		super();
 		pulseWidth = (double) NumericProperty.def(PULSE_WIDTH).getValue();
 		laserEnergy = (double) NumericProperty.def(LASER_ENERGY).getValue();
 		instanceDescriptor.setSelectedDescriptor(RectangularPulse.class.getSimpleName());
@@ -53,6 +54,7 @@ public class Pulse extends PropertyHolder {
 	 */
 
 	public Pulse(Pulse p) {
+		super();
 		this.pulseShape = p.getPulseShape();
 		this.pulseWidth = p.pulseWidth;
 		this.laserEnergy = p.laserEnergy;
@@ -131,6 +133,7 @@ public class Pulse extends PropertyHolder {
 
 	public void setPulseShape(PulseTemporalShape pulseShape) {
 		this.pulseShape = pulseShape;
+		pulseShape.setParent(this);
 	}
 
 }

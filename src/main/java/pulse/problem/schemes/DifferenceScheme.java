@@ -3,11 +3,13 @@ package pulse.problem.schemes;
 import static pulse.properties.NumericProperty.def;
 import static pulse.properties.NumericProperty.derive;
 import static pulse.properties.NumericProperty.requireType;
+import static pulse.properties.NumericPropertyKeyword.NUMPOINTS;
 import static pulse.properties.NumericPropertyKeyword.TIME_LIMIT;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import pulse.HeatingCurve;
 import pulse.problem.laser.DiscretePulse;
 import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
@@ -35,8 +37,11 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 
 	private double timeLimit;
 	private int timeInterval;
+	private int adjustedNumPoints;
 
 	private static boolean hideDetailedAdjustment = true;
+
+	private double maxVal;
 
 	private final static double EPS = 1e-7; // a small value ensuring numeric stability
 
@@ -108,34 +113,46 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 		grid.adjustTo(discretePulse);
 
 		var hc = problem.getHeatingCurve();
-
-		final var numPoints = (int) hc.getNumPoints().getValue();
-		final var dt = timeLimit / (problem.getProperties().timeFactor() * (numPoints - 1));
-		setTimeInterval((int) (dt / grid.getTimeStep()) + 1);
-
 		hc.reinit();
 	}
 
-	public void runTimeSequence(Problem problem) {
-		runTimeSequence(problem, 1, (int) problem.getHeatingCurve().getNumPoints().getValue());
+	public int initTimeInterval(Problem problem, final int numPoints, final double timeSegment) {
+		final double dt = timeSegment / (problem.getProperties().timeFactor() * (numPoints - 1));
+
+		int result = 0;
+
+		if (dt < grid.getTimeStep()) {
+			adjustedNumPoints = (int) (numPoints * (dt / grid.getTimeStep()));
+			result = initTimeInterval(problem, adjustedNumPoints, timeSegment);
+		} else
+			result = (int) (dt / grid.getTimeStep());
+
+		return result;
 	}
 
-	public void runTimeSequence(Problem problem, final int startOnTimeStep, final int endOnTimeStep) {
+	public void runTimeSequence(Problem problem) {
+		runTimeSequence(problem, 0, timeLimit);
+	}
+
+	public void runTimeSequence(Problem problem, final double offset, final double endTime) {
 		final var grid = getGrid();
 
 		var curve = problem.getHeatingCurve();
 
-		final int timeInterval = getTimeInterval();
 		final double tau = grid.getTimeStep();
-		final double wFactor = getTimeInterval() * tau * problem.getProperties().timeFactor();
-
-		double maxVal = 0;
-
+		adjustedNumPoints = (int)curve.getNumPoints().getValue() - ( curve.actualDataPoints() - 1 );
+		timeInterval = initTimeInterval(problem, adjustedNumPoints, endTime - offset);
+		final double wFactor = timeInterval * tau * problem.getProperties().timeFactor();
+			
+		maxVal = 0;
+		
+		//First point (index = 0) is always (0.0, 0.0)
+		
 		/*
 		 * The outer cycle iterates over the number of points of the HeatingCurve
 		 */
 
-		for (int w = startOnTimeStep; w < endOnTimeStep; w++) {
+		for (int w = 1; w < adjustedNumPoints - 1; w++) {
 
 			/*
 			 * Two adjacent points of the heating curves are separated by timeInterval on
@@ -143,32 +160,42 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 			 * timeInterval/tau time steps have to be made first.
 			 */
 
-			for (int m = (w - 1) * timeInterval + 1; m < w * timeInterval + 1 && normalOperation(); m++) {
-
-				timeStep(m);
-				finaliseStep();
-
-			}
-
-			double signal = signal();
-			maxVal = Math.max(maxVal, signal);
-			curve.addPoint(w * wFactor, signal);
-
-			/*
-			 * UNCOMMENT TO DEBUG
-			 */
-
-			// debug(problem, V, w);
+			timeSegment((w - 1) * timeInterval + 1, w * timeInterval + 1);
+			addPoint(curve, offset + w * wFactor);
 
 		}
+
+		/*
+		 * Finalise precisely at timeLimit
+		 */
+
+		timeSegment((adjustedNumPoints - 2) * timeInterval, (int) (endTime * timeInterval / wFactor));
+		addPoint(curve, endTime);
 
 		// scale curve
 
-		if (endOnTimeStep >= (int) curve.getNumPoints().getValue()) {
+		final double SAFETY_MARGIN = 1.05;
+		if(endTime*SAFETY_MARGIN > timeLimit) {
+		
 			final double maxTemp = (double) problem.getProperties().getMaximumTemperature().getValue();
+			curve.setNumPoints(derive(NUMPOINTS, curve.actualDataPoints()));
 			curve.scale(maxTemp / maxVal);
+		
 		}
 
+	}
+
+	private void addPoint(HeatingCurve curve, final double time) {
+		double signal = signal();
+		maxVal = Math.max(maxVal, signal);
+		curve.addPoint(time, signal);
+	}
+
+	private void timeSegment(final int m1, final int m2) {
+		for (int m = m1; m < m2 && normalOperation(); m++) {
+			timeStep(m);
+			finaliseStep();
+		}
 	}
 
 	public double pulse(final int m) {

@@ -44,7 +44,7 @@ public abstract class AdaptiveIntegrator extends ODEIntegrator {
 		timeThreshold = (double) theDefault(RTE_INTEGRATION_TIMEOUT).getValue();
 		hermite = new HermiteInterpolator();
 	}
-
+	
 	@Override
 	public RTECalculationStatus integrate() {
 		Vector[] v;
