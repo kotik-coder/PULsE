@@ -1,5 +1,7 @@
 package pulse.input;
 
+import static pulse.properties.NumericProperties.derive;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -8,6 +10,8 @@ import java.util.Map;
 import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
 
+import pulse.problem.statements.ThermalProperties;
+import pulse.properties.NumericPropertyKeyword;
 import pulse.util.ImmutableDataEntry;
 
 /**
@@ -100,6 +104,35 @@ public class InterpolationDataset {
 
 	public static void setDataset(InterpolationDataset dataset, StandartType type) {
 		standartDatasets.put(type, dataset);
+	}
+	
+	/**
+	 * Calculates some or all of the following properties:
+	 * <math><i>C</i><sub>p</sub>, <i>&rho;</i>, <i>&labmda;</i>,
+	 * <i>&epsilon;</i></math>.
+	 * <p>
+	 * These properties will be calculated only if the necessary
+	 * {@code InterpolationDataset}s were previously loaded by the
+	 * {@code TaskManager}.
+	 * </p>
+	 */
+
+	public static void fill(ThermalProperties properties) {
+		final double testTemperature = (double)properties.getTestTemperature().getValue();
+		var cpCurve = getDataset(StandartType.HEAT_CAPACITY);
+
+		if (cpCurve != null) {
+			final double cp = cpCurve.interpolateAt(testTemperature);
+			properties.set(NumericPropertyKeyword.SPECIFIC_HEAT, derive(NumericPropertyKeyword.SPECIFIC_HEAT, cp));
+		}
+
+		var rhoCurve = getDataset(StandartType.DENSITY);
+
+		if (rhoCurve != null) {
+			final double rho = rhoCurve.interpolateAt(testTemperature);
+			properties.set(NumericPropertyKeyword.DENSITY, derive(NumericPropertyKeyword.DENSITY, rho));
+		}
+
 	}
 
 	public enum StandartType {

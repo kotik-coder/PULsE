@@ -12,11 +12,11 @@ public class RangePenalisedSSR extends SumOfSquares {
 	public void evaluate(SearchTask t) {
 		super.evaluate(t);
 
-		double n = getResiduals().size();
-		double n0 = t.getExperimentalCurve().adjustedSize();
+		final double n = getResiduals().size();
+		final double n0 = t.getExperimentalCurve().adjustedSize();
 
-		this.statistic += (n0 - n) / n0 * (new StandardDeviation().evaluate(transformResiduals(t)))
-				* PENALISATION_FACTOR;
+		incrementStatistic(
+				(n0 - n) / n0 * (new StandardDeviation().evaluate(transformResiduals(t))) * PENALISATION_FACTOR);
 	}
 
 	@Override

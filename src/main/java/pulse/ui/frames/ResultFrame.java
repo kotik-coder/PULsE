@@ -8,7 +8,7 @@ import static javax.swing.SwingUtilities.getWindowAncestor;
 import static pulse.io.export.ExportManager.askToExport;
 import static pulse.properties.NumericProperties.def;
 import static pulse.properties.NumericPropertyKeyword.WINDOW;
-import static pulse.tasks.ResultFormat.getInstance;
+import static pulse.tasks.processing.ResultFormat.getInstance;
 import static pulse.ui.Messages.getString;
 
 import java.util.ArrayList;

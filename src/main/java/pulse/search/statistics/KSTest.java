@@ -1,5 +1,9 @@
 package pulse.search.statistics;
 
+import static pulse.properties.NumericProperties.derive;
+import static pulse.properties.NumericPropertyKeyword.PROBABILITY;
+import static pulse.properties.NumericPropertyKeyword.TEST_STATISTIC;
+
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 import org.apache.commons.math3.stat.inference.TestUtils;
@@ -14,9 +18,8 @@ public class KSTest extends NormalityTest {
 	@Override
 	public boolean test(SearchTask task) {
 		evaluate(task);
-		probability = TestUtils.kolmogorovSmirnovTest(nd, residuals);
-		return probability > significance;
-
+		setProbability(derive(PROBABILITY, TestUtils.kolmogorovSmirnovTest(nd, residuals)));
+		return significanceTest();
 	}
 
 	@Override
@@ -24,10 +27,11 @@ public class KSTest extends NormalityTest {
 		calculateResiduals(t);
 		residuals = transformResiduals(t);
 
-		double sd = (new StandardDeviation()).evaluate(residuals);
+		final double sd = (new StandardDeviation()).evaluate(residuals);
 		nd = new NormalDistribution(0.0, sd); // null hypothesis: normal distribution with zero mean and empirical
 												// standard dev
-		statistic = TestUtils.kolmogorovSmirnovStatistic(nd, residuals);
+		final double statistic = TestUtils.kolmogorovSmirnovStatistic(nd, residuals);
+		this.setStatistic(derive(TEST_STATISTIC, statistic));
 	}
 
 	@Override

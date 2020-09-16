@@ -5,8 +5,8 @@ import static javax.swing.JOptionPane.WARNING_MESSAGE;
 import static javax.swing.JOptionPane.YES_NO_OPTION;
 import static javax.swing.JOptionPane.YES_OPTION;
 import static javax.swing.JOptionPane.showOptionDialog;
-import static pulse.tasks.ResultFormat.addResultFormatListener;
 import static pulse.tasks.TaskManager.addSelectionListener;
+import static pulse.tasks.processing.ResultFormat.addResultFormatListener;
 import static pulse.ui.Launcher.loadIcon;
 import static pulse.ui.Messages.getString;
 

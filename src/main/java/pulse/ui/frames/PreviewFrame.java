@@ -39,7 +39,7 @@ import org.jfree.data.xy.XYIntervalSeriesCollection;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
-import pulse.tasks.ResultFormat;
+import pulse.tasks.processing.ResultFormat;
 
 @SuppressWarnings("serial")
 public class PreviewFrame extends JInternalFrame {

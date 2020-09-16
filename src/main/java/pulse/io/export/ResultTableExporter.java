@@ -6,8 +6,8 @@ import java.util.List;
 
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
-import pulse.tasks.AbstractResult;
-import pulse.tasks.AverageResult;
+import pulse.tasks.processing.AbstractResult;
+import pulse.tasks.processing.AverageResult;
 import pulse.ui.Messages;
 import pulse.ui.components.ResultTable;
 import pulse.ui.components.models.ResultTableModel;

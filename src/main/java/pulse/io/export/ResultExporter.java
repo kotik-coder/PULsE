@@ -6,7 +6,7 @@ import static pulse.io.export.Extension.HTML;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 
-import pulse.tasks.Result;
+import pulse.tasks.processing.Result;
 import pulse.ui.Messages;
 
 /**

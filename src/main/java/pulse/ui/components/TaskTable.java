@@ -36,12 +36,12 @@ import javax.swing.table.TableRowSorter;
 
 import pulse.properties.NumericProperty;
 import pulse.tasks.Identifier;
-import pulse.tasks.LogEntry;
 import pulse.tasks.SearchTask;
-import pulse.tasks.StateEntry;
-import pulse.tasks.Status;
 import pulse.tasks.listeners.TaskRepositoryEvent;
 import pulse.tasks.listeners.TaskSelectionEvent;
+import pulse.tasks.logs.LogEntry;
+import pulse.tasks.logs.StateEntry;
+import pulse.tasks.logs.Status;
 import pulse.ui.components.controllers.TaskTableRenderer;
 
 @SuppressWarnings("serial")
@@ -200,8 +200,13 @@ public class TaskTable extends JTable {
 		}
 
 		public void addTask(SearchTask t) {
-			var data = new Object[] { t.getIdentifier(), t.getTestTemperature(),
-					t.getResidualStatistic().getStatistic(), t.getNormalityTest().getStatistic(), t.getStatus() };
+			var temperature = t.getExperimentalCurve().getMetadata().numericProperty(TEST_TEMPERATURE);
+			var data = new Object[] { 
+					t.getIdentifier(), 
+					temperature ,
+					t.getResidualStatistic().getStatistic(), 
+					t.getNormalityTest().getStatistic(), 
+					t.getStatus() };
 
 			invokeLater(() -> super.addRow(data));
 

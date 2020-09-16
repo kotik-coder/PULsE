@@ -29,13 +29,13 @@ import javax.swing.table.TableRowSorter;
 
 import pulse.properties.NumericProperty;
 import pulse.properties.Property;
-import pulse.tasks.AbstractResult;
-import pulse.tasks.AverageResult;
-import pulse.tasks.Result;
-import pulse.tasks.ResultFormat;
 import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.TaskRepositoryEvent;
 import pulse.tasks.listeners.TaskSelectionEvent;
+import pulse.tasks.processing.AbstractResult;
+import pulse.tasks.processing.AverageResult;
+import pulse.tasks.processing.Result;
+import pulse.tasks.processing.ResultFormat;
 import pulse.ui.components.controllers.NumericPropertyRenderer;
 import pulse.ui.components.models.ResultTableModel;
 import pulse.util.Descriptive;

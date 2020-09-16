@@ -1,9 +1,11 @@
-package pulse.tasks;
+package pulse.tasks.logs;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Objects;
 
+import pulse.tasks.Identifier;
+import pulse.tasks.SearchTask;
 import pulse.ui.Messages;
 
 /**

@@ -1,10 +1,13 @@
-package pulse.tasks;
+package pulse.tasks.logs;
 
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import pulse.tasks.listeners.DataCollectionListener;
+import pulse.tasks.Identifier;
+import pulse.tasks.SearchTask;
+import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.LogEntryListener;
 import pulse.tasks.listeners.StatusChangeListener;
 import pulse.ui.Messages;
@@ -19,7 +22,8 @@ import pulse.util.Group;
 public class Log extends Group {
 
 	private List<LogEntry> logEntries;
-	private LocalTime start, end;
+	private LocalTime start;
+	private LocalTime end;
 	private Identifier id;
 	private List<LogEntryListener> listeners;
 	private static boolean verbose = false;
@@ -34,8 +38,7 @@ public class Log extends Group {
 	 */
 
 	public Log(SearchTask task) {
-		if (task == null)
-			throw new IllegalArgumentException(Messages.getString("Log.NullTaskError"));
+		Objects.requireNonNull(task, Messages.getString("Log.NullTaskError"));
 
 		setParent(task);
 		id = task.getIdentifier();
@@ -43,22 +46,15 @@ public class Log extends Group {
 		this.logEntries = new CopyOnWriteArrayList<>();
 		listeners = new CopyOnWriteArrayList<>();
 
-		task.addTaskListener(new DataCollectionListener() {
+		task.addTaskListener(le -> {
 
 			/**
 			 * Do these actions each time data has been collected for this task.
 			 */
 
-			@Override
-			public void onDataCollected(LogEntry le) {
-				if (task.getStatus() == Status.INCOMPLETE)
-					return;
-
-				if (verbose) {
-					logEntries.add(le);
-					notifyListeners(le);
-				}
-
+			if (task.getStatus() != Status.INCOMPLETE && verbose) {
+				logEntries.add(le);
+				notifyListeners(le);
 			}
 
 		});
@@ -73,22 +69,20 @@ public class Log extends Group {
 			public void onStatusChange(StateEntry e) {
 				logEntries.add(e);
 
-				if (e.getStatus() != Status.DONE) {
-
-					if (e.getState() == Status.IN_PROGRESS) {
-						start = e.getTime();
-						end = null;
-					}
-
-					notifyListeners(e);
-
+				if (e.getStatus() == Status.IN_PROGRESS) {
+					start = e.getTime();
+					end = null;
 				}
 
 				else {
 					end = e.getTime();
-					notifyListeners(e);
-					logFinished();
 				}
+
+				notifyListeners(e);
+
+				if (e.getState() == Status.DONE)
+					logFinished();
+
 			}
 
 		});

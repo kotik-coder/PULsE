@@ -4,41 +4,40 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static pulse.input.IndexRange.closestLeft;
 import static pulse.input.IndexRange.closestRight;
+import static pulse.properties.NumericProperties.derive;
+import static pulse.properties.NumericProperty.requireType;
+import static pulse.properties.NumericPropertyKeyword.OPTIMISER_STATISTIC;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
-import pulse.HeatingCurve;
-import pulse.input.ExperimentalData;
-import pulse.input.IndexRange;
+import pulse.properties.NumericProperty;
+import pulse.properties.NumericPropertyKeyword;
 import pulse.tasks.SearchTask;
 
 public abstract class ResidualStatistic extends Statistic {
 
+	private double statistic;
 	private List<double[]> residuals;
 	private static String selectedOptimiserDescriptor;
 
 	public ResidualStatistic() {
 		super();
-		residuals = new LinkedList<>();
+		residuals = new ArrayList<>();
 		setPrefix("Residuals");
 	}
 
 	public double[] transformResiduals(SearchTask task) {
-		var residuals = task.getResidualStatistic().getResiduals().stream().map(doubleArray -> doubleArray[1])
+		return task.getResidualStatistic().getResiduals().stream().map(doubleArray -> doubleArray[1])
 				.mapToDouble(Double::doubleValue).toArray();
-		return residuals;
 	}
 
 	public void calculateResiduals(SearchTask task) {
-		HeatingCurve estimate = task.getProblem().getHeatingCurve();
-		ExperimentalData reference = task.getExperimentalCurve();
-
-		double interpolated, diff;
+		var estimate = task.getProblem().getHeatingCurve();
+		var reference = task.getExperimentalCurve();
 
 		residuals = new ArrayList<>();
-		IndexRange indexRange = reference.getIndexRange();
+		var indexRange = reference.getIndexRange();
 		var time = reference.getTimeSequence();
 
 		var s = estimate.getSplineInterpolation();
@@ -46,6 +45,8 @@ public abstract class ResidualStatistic extends Statistic {
 		int startIndex = max(closestLeft(estimate.timeAt(0), time), indexRange.getLowerBound());
 		int endIndex = min(closestRight(estimate.timeLimit(), time), indexRange.getUpperBound());
 
+		double interpolated;
+		
 		for (int i = startIndex; i <= endIndex; i++) {
 			/*
 			 * find the point on the calculated heating curve which has the closest time
@@ -53,9 +54,9 @@ public abstract class ResidualStatistic extends Statistic {
 			 */
 
 			interpolated = s.value(reference.timeAt(i));
-			diff = reference.signalAt(i) - interpolated; // y_exp - y*
 
-			residuals.add(new double[] { reference.timeAt(i), diff });
+			residuals.add(new double[] { reference.timeAt(i), 
+					reference.signalAt(i) - interpolated }); // y_exp - y*
 
 		}
 
@@ -79,6 +80,25 @@ public abstract class ResidualStatistic extends Statistic {
 
 	public static String getSelectedOptimiserDescriptor() {
 		return selectedOptimiserDescriptor;
+	}
+
+	public NumericProperty getStatistic() {
+		return derive(OPTIMISER_STATISTIC, statistic);
+	}
+
+	public void setStatistic(NumericProperty statistic) {
+		requireType(statistic, OPTIMISER_STATISTIC);
+		this.statistic = (double) statistic.getValue();
+	}
+
+	public void incrementStatistic(final double increment) {
+		this.statistic += increment;
+	}
+
+	@Override
+	public void set(NumericPropertyKeyword type, NumericProperty property) {
+		if (type == OPTIMISER_STATISTIC)
+			statistic = (double) property.getValue();
 	}
 
 }

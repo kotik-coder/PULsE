@@ -183,7 +183,7 @@ public class LFRReader implements CurveReader {
 	public ExperimentalData readSingleCurve(File file, Metadata metadata) throws IOException {
 		Objects.requireNonNull(file, Messages.getString("LFRReader.9"));
 
-		ExperimentalData curve = new ExperimentalData();
+		var curve = new ExperimentalData();
 		curve.setMetadata(metadata);
 		curve.clear();
 

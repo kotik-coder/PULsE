@@ -1,5 +1,8 @@
 package pulse.search.statistics;
 
+import static pulse.properties.NumericProperties.derive;
+import static pulse.properties.NumericPropertyKeyword.OPTIMISER_STATISTIC;
+
 import pulse.tasks.SearchTask;
 
 /**
@@ -18,7 +21,8 @@ public class AICStatistic extends SumOfSquares {
 		kq = t.alteredParameters().size();
 		super.evaluate(t);
 		double n = getResiduals().size();
-		this.statistic = n * Math.log(statistic) + 2.0 * (kq + 1) + n * PENALISATION_FACTOR;
+		final double stat = n * Math.log((double)getStatistic().getValue()) + 2.0 * (kq + 1) + n * PENALISATION_FACTOR;
+		this.setStatistic(derive(OPTIMISER_STATISTIC, stat));
 	}
 
 	@Override

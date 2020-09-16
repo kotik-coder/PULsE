@@ -3,7 +3,7 @@ package pulse.io.readers;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Scanner;
@@ -159,7 +159,7 @@ public class ReaderManager {
 
 	public static <T> T read(List<? extends AbstractReader<T>> readers, File file) {
 		Objects.requireNonNull(readers);
-
+		
 		var optional = readers.stream()
 				.filter(reader -> AbstractHandler.extensionsMatch(file, reader.getSupportedExtension())).findFirst();
 
@@ -196,8 +196,12 @@ public class ReaderManager {
 		if (!directory.isDirectory())
 			throw new IllegalArgumentException("Not a directory: " + directory);
 
-		return Arrays.stream(directory.listFiles()).map(f -> read(readers, f)).collect(Collectors.toSet());
-
+		var list = new HashSet<T>();
+		
+		for(File f : directory.listFiles()) 
+			list.add( read(readers, f) );
+					
+		return list;
 	}
 
 	/**

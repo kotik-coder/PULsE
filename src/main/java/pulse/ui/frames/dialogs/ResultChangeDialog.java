@@ -4,7 +4,7 @@ import static java.awt.GridBagConstraints.BOTH;
 import static javax.swing.BorderFactory.createTitledBorder;
 import static javax.swing.SwingConstants.BOTTOM;
 import static javax.swing.SwingConstants.VERTICAL;
-import static pulse.tasks.ResultFormat.generateFormat;
+import static pulse.tasks.processing.ResultFormat.generateFormat;
 
 import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;

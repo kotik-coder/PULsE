@@ -1,7 +1,7 @@
 package pulse.ui.components.models;
 
-import static pulse.tasks.ResultFormat.getInstance;
-import static pulse.tasks.ResultFormat.getMinimalArray;
+import static pulse.tasks.processing.ResultFormat.getInstance;
+import static pulse.tasks.processing.ResultFormat.getMinimalArray;
 
 import java.util.ArrayList;
 import java.util.List;

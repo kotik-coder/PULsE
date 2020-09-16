@@ -1,5 +1,6 @@
-package pulse.tasks;
+package pulse.tasks.processing;
 
+import pulse.tasks.SearchTask;
 import pulse.ui.Messages;
 
 /**

@@ -2,6 +2,7 @@ package pulse.search.statistics;
 
 import static pulse.properties.NumericProperties.def;
 import static pulse.properties.NumericProperties.derive;
+import static pulse.properties.NumericProperty.requireType;
 import static pulse.properties.NumericPropertyKeyword.CORRELATION_THRESHOLD;
 
 import pulse.properties.NumericProperty;
@@ -11,10 +12,11 @@ import pulse.util.Reflexive;
 
 public abstract class CorrelationTest extends PropertyHolder implements Reflexive {
 
-	protected static double threshold = (double) def(CORRELATION_THRESHOLD).getValue();
+	private static double threshold = (double) def(CORRELATION_THRESHOLD).getValue();
 	private static String selectedTestDescriptor;
 
 	public CorrelationTest() {
+		//intentionall blank
 	}
 
 	public abstract double evaluate(double[] x, double[] y);
@@ -28,11 +30,8 @@ public abstract class CorrelationTest extends PropertyHolder implements Reflexiv
 	}
 
 	public static void setThreshold(NumericProperty p) {
-		if (p.getType() != NumericPropertyKeyword.CORRELATION_THRESHOLD)
-			throw new IllegalArgumentException("Illegal type: " + p.getType());
-
+		requireType(p, CORRELATION_THRESHOLD);
 		threshold = (double) p.getValue();
-
 	}
 
 	@Override

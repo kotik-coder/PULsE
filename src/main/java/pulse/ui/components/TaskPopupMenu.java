@@ -10,11 +10,6 @@ import static javax.swing.JOptionPane.YES_NO_OPTION;
 import static javax.swing.JOptionPane.showConfirmDialog;
 import static javax.swing.JOptionPane.showMessageDialog;
 import static javax.swing.SwingUtilities.getWindowAncestor;
-import static pulse.tasks.ResultFormat.getInstance;
-import static pulse.tasks.Status.DONE;
-import static pulse.tasks.Status.READY;
-import static pulse.tasks.Status.Details.MISSING_HEATING_CURVE;
-import static pulse.tasks.Status.Details.NONE;
 import static pulse.tasks.TaskManager.addSelectionListener;
 import static pulse.tasks.TaskManager.execute;
 import static pulse.tasks.TaskManager.getSelectedTask;
@@ -22,6 +17,11 @@ import static pulse.tasks.TaskManager.notifyListeners;
 import static pulse.tasks.TaskManager.removeResult;
 import static pulse.tasks.TaskManager.useResult;
 import static pulse.tasks.listeners.TaskRepositoryEvent.State.TASK_FINISHED;
+import static pulse.tasks.logs.Details.MISSING_HEATING_CURVE;
+import static pulse.tasks.logs.Details.NONE;
+import static pulse.tasks.logs.Status.DONE;
+import static pulse.tasks.logs.Status.READY;
+import static pulse.tasks.processing.ResultFormat.getInstance;
 import static pulse.ui.Launcher.loadIcon;
 import static pulse.ui.Messages.getString;
 import static pulse.ui.frames.MainGraphFrame.getChart;
@@ -37,8 +37,8 @@ import javax.swing.JSeparator;
 
 import pulse.problem.schemes.solvers.Solver;
 import pulse.problem.schemes.solvers.SolverException;
-import pulse.tasks.Result;
 import pulse.tasks.listeners.TaskRepositoryEvent;
+import pulse.tasks.processing.Result;
 
 @SuppressWarnings("serial")
 public class TaskPopupMenu extends JPopupMenu {

@@ -1,7 +1,7 @@
 package pulse.tasks.listeners;
 
-import pulse.tasks.Log;
-import pulse.tasks.LogEntry;
+import pulse.tasks.logs.Log;
+import pulse.tasks.logs.LogEntry;
 
 public interface LogEntryListener {
 

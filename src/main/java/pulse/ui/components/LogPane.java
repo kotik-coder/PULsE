@@ -8,8 +8,8 @@ import static java.time.temporal.ChronoUnit.MILLIS;
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static javax.swing.text.DefaultCaret.ALWAYS_UPDATE;
-import static pulse.tasks.Status.DONE;
 import static pulse.tasks.TaskManager.getSelectedTask;
+import static pulse.tasks.logs.Status.DONE;
 import static pulse.ui.Messages.getString;
 
 import java.io.IOException;
@@ -23,8 +23,8 @@ import javax.swing.text.DefaultCaret;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
 
-import pulse.tasks.Log;
-import pulse.tasks.LogEntry;
+import pulse.tasks.logs.Log;
+import pulse.tasks.logs.LogEntry;
 import pulse.util.Descriptive;
 
 @SuppressWarnings("serial")

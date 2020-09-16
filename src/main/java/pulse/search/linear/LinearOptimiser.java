@@ -1,10 +1,13 @@
 package pulse.search.linear;
 
+import static java.lang.Math.abs;
+import static java.lang.Math.min;
 import static pulse.properties.NumericProperties.def;
 import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.LINEAR_RESOLUTION;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import pulse.math.IndexedVector;
@@ -75,11 +78,13 @@ public abstract class LinearOptimiser extends PropertyHolder implements Reflexiv
 
 		for (int i = 0; i < x.dimension(); i++) {
 
-			if (p.get(i) < EPS)
-				if (p.get(i) > -EPS)
+			final double component = p.get(i);
+
+			if (component < EPS)
+				if (component > -EPS)
 					continue;
 
-			alpha = Math.min(alpha, Math.abs(bounds.get(i) / p.get(i)));
+			alpha = min(alpha, abs(bounds.get(i) / component));
 
 		}
 
@@ -122,20 +127,13 @@ public abstract class LinearOptimiser extends PropertyHolder implements Reflexiv
 
 	@Override
 	public List<Property> listedTypes() {
-		List<Property> list = new ArrayList<>();
-		list.add(def(LINEAR_RESOLUTION));
-		return list;
+		return new ArrayList<>(Arrays.asList(def(LINEAR_RESOLUTION)));
 	}
 
 	@Override
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
-		switch (type) {
-		case LINEAR_RESOLUTION:
+		if (type == LINEAR_RESOLUTION)
 			setLinearResolution(property);
-			break;
-		default:
-			break;
-		}
 	}
 
 }

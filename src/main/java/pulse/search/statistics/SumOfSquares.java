@@ -1,5 +1,8 @@
 package pulse.search.statistics;
 
+import static pulse.properties.NumericProperties.derive;
+import static pulse.properties.NumericPropertyKeyword.OPTIMISER_STATISTIC;
+
 import pulse.tasks.SearchTask;
 
 public class SumOfSquares extends ResidualStatistic {
@@ -32,7 +35,8 @@ public class SumOfSquares extends ResidualStatistic {
 	@Override
 	public void evaluate(SearchTask t) {
 		calculateResiduals(t);
-		statistic = getResiduals().stream().map(r -> r[1] * r[1]).reduce(Double::sum).get() / getResiduals().size();
+		final double statistic = getResiduals().stream().map(r -> r[1] * r[1]).reduce(Double::sum).get() / getResiduals().size();
+		setStatistic(derive(OPTIMISER_STATISTIC, statistic));
 	}
 
 	@Override

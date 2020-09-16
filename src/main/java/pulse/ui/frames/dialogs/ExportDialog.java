@@ -43,9 +43,9 @@ import pulse.io.export.MetadataExporter;
 import pulse.io.export.RawDataExporter;
 import pulse.io.export.ResidualStatisticExporter;
 import pulse.io.export.ResultExporter;
-import pulse.tasks.Log;
-import pulse.tasks.Result;
 import pulse.tasks.TaskManager;
+import pulse.tasks.logs.Log;
+import pulse.tasks.processing.Result;
 
 @SuppressWarnings("serial")
 public class ExportDialog extends JDialog {

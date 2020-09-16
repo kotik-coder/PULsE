@@ -1,4 +1,4 @@
-package pulse.tasks;
+package pulse.tasks.processing;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -12,6 +12,7 @@ import pulse.math.IndexedVector;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.search.statistics.CorrelationTest;
 import pulse.search.statistics.EmptyCorrelationTest;
+import pulse.tasks.SearchTask;
 import pulse.util.ImmutableDataEntry;
 import pulse.util.ImmutablePair;
 
@@ -25,6 +26,7 @@ public class CorrelationBuffer {
 		excludePairList = new HashSet<>();
 		excludeSingleList = new HashSet<>();
 		excludeSingle(NumericPropertyKeyword.DIFFUSIVITY);
+		excludePair(NumericPropertyKeyword.HEAT_LOSS_SIDE, NumericPropertyKeyword.MAXTEMP);
 		excludePair(NumericPropertyKeyword.HEAT_LOSS, NumericPropertyKeyword.MAXTEMP);
 		excludePair(NumericPropertyKeyword.MAXTEMP, NumericPropertyKeyword.BASELINE_INTERCEPT);
 		excludePair(NumericPropertyKeyword.MAXTEMP, NumericPropertyKeyword.BASELINE_SLOPE);
@@ -43,7 +45,7 @@ public class CorrelationBuffer {
 	}
 
 	public Map<ImmutablePair<NumericPropertyKeyword>, Double> evaluate(CorrelationTest t) {
-		if (params.size() < 1)
+		if(params.isEmpty())
 			throw new IllegalStateException("Zero number of entries in parameter list");
 
 		if (t instanceof EmptyCorrelationTest)

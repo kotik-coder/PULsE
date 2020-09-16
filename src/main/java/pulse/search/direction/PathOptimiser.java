@@ -21,8 +21,8 @@ import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 import pulse.search.linear.LinearOptimiser;
 import pulse.tasks.SearchTask;
-import pulse.tasks.Status;
 import pulse.tasks.TaskManager;
+import pulse.tasks.logs.Status;
 import pulse.util.PropertyHolder;
 import pulse.util.Reflexive;
 

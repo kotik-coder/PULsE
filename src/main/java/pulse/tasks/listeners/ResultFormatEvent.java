@@ -1,6 +1,6 @@
 package pulse.tasks.listeners;
 
-import pulse.tasks.ResultFormat;
+import pulse.tasks.processing.ResultFormat;
 
 public class ResultFormatEvent {
 

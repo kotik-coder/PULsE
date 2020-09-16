@@ -22,9 +22,9 @@ import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.JScrollPane;
 
-import pulse.tasks.Log;
-import pulse.tasks.LogEntry;
 import pulse.tasks.listeners.LogEntryListener;
+import pulse.tasks.logs.Log;
+import pulse.tasks.logs.LogEntry;
 import pulse.ui.components.LogPane;
 import pulse.ui.components.panels.LogToolbar;
 import pulse.ui.components.panels.SystemPanel;

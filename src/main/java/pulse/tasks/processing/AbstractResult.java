@@ -1,4 +1,4 @@
-package pulse.tasks;
+package pulse.tasks.processing;
 
 import static pulse.properties.NumericProperties.def;
 
@@ -47,10 +47,10 @@ public abstract class AbstractResult extends UpwardsNavigable {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		for (NumericProperty p : properties) {
-			if (p == null)
-				continue;
-			sb.append(p.toString());
-			sb.append(System.lineSeparator());
+			if (p != null) {
+				sb.append(p.toString());
+				sb.append(System.lineSeparator());
+			}
 		}
 		return sb.toString();
 	}

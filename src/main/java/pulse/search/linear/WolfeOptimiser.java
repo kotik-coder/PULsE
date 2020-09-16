@@ -75,24 +75,22 @@ public class WolfeOptimiser extends LinearOptimiser {
 		final double G1P = g1.dot(direction);
 		final double G1P_ABS = abs(G1P);
 
-		IndexedVector[] params = task.searchVector();
+		var params = task.searchVector();
 		Segment segment = domain(params[0], params[1], direction);
 
 		double ss1 = task.solveProblemAndCalculateDeviation();
-		double ss2;
 
 		double randomConfinedValue = 0;
-		Vector g2, newParams;
 		double g2p;
 
 		for (double initialLength = segment.length(); segment.length() / initialLength > searchResolution;) {
 
 			randomConfinedValue = segment.randomValue();
 
-			newParams = params[0].sum(direction.multiply(randomConfinedValue));
+			final var newParams = params[0].sum(direction.multiply(randomConfinedValue));
 			task.assign(new IndexedVector(newParams, params[0].getIndices()));
 
-			ss2 = task.solveProblemAndCalculateDeviation();
+			final double ss2 = task.solveProblemAndCalculateDeviation();
 
 			/**
 			 * Checks if the first Armijo inequality is not satisfied. In this case, it will
@@ -104,7 +102,7 @@ public class WolfeOptimiser extends LinearOptimiser {
 				continue;
 			}
 
-			g2 = PathOptimiser.gradient(task);
+			final var g2 = PathOptimiser.gradient(task);
 			g2p = g2.dot(direction);
 
 			/**

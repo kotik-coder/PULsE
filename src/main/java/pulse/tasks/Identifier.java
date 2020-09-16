@@ -3,8 +3,6 @@ package pulse.tasks;
 import static pulse.properties.NumericProperties.def;
 import static pulse.properties.NumericPropertyKeyword.IDENTIFIER;
 
-import java.util.Optional;
-
 import pulse.properties.NumericProperty;
 import pulse.ui.Messages;
 
@@ -47,19 +45,13 @@ public class Identifier extends NumericProperty {
 	 */
 
 	public static Identifier parse(String string) {
-		Optional<Identifier> i = TaskManager.getTaskList().stream().map(t -> t.getIdentifier())
+		var i = TaskManager.getTaskList().stream().map(t -> t.getIdentifier())
 				.filter(id -> id.toString().equals(string)).findFirst();
-		if (i.isPresent())
-			return i.get();
-		else
-			return null;
+		return i.isPresent() ? i.get() : null;
 	}
 
 	public static Identifier externalIdentifier(int id) {
-		if (id > -1)
-			return new Identifier(id, false);
-		else
-			return null;
+		return id > -1 ? new Identifier(id, false) : null;
 	}
 
 	@Override

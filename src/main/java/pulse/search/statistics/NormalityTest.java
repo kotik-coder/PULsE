@@ -2,6 +2,7 @@ package pulse.search.statistics;
 
 import static pulse.properties.NumericProperties.def;
 import static pulse.properties.NumericProperties.derive;
+import static pulse.properties.NumericProperty.requireType;
 import static pulse.properties.NumericPropertyKeyword.PROBABILITY;
 import static pulse.properties.NumericPropertyKeyword.SIGNIFICANCE;
 import static pulse.properties.NumericPropertyKeyword.TEST_STATISTIC;
@@ -12,8 +13,9 @@ import pulse.tasks.SearchTask;
 
 public abstract class NormalityTest extends ResidualStatistic {
 
-	protected double probability;
-	protected static double significance = (double) def(SIGNIFICANCE).getValue();
+	private double statistic;
+	private double probability;
+	private static double significance = (double) def(SIGNIFICANCE).getValue();
 
 	private static String selectedTestDescriptor;
 
@@ -21,14 +23,17 @@ public abstract class NormalityTest extends ResidualStatistic {
 		probability = (double) def(PROBABILITY).getValue();
 		statistic = (double) def(TEST_STATISTIC).getValue();
 	}
+	
+	public boolean significanceTest() {
+		return probability > significance;
+	}
 
 	public static NumericProperty getStatisticalSignifiance() {
 		return derive(SIGNIFICANCE, significance);
 	}
 
 	public static void setStatisticalSignificance(NumericProperty alpha) {
-		if (alpha.getType() != SIGNIFICANCE)
-			throw new IllegalArgumentException("Illegal argument type: " + alpha.getType());
+		requireType(alpha, SIGNIFICANCE);
 		NormalityTest.significance = (double) alpha.getValue();
 	}
 
@@ -45,9 +50,13 @@ public abstract class NormalityTest extends ResidualStatistic {
 
 	@Override
 	public void setStatistic(NumericProperty statistic) {
-		if (statistic.getType() != TEST_STATISTIC)
-			throw new IllegalArgumentException("Illegal type: " + statistic.getType());
+		requireType(statistic, TEST_STATISTIC);
 		this.statistic = (double) statistic.getValue();
+	}
+	
+	public void setProbability(NumericProperty probability) {
+		requireType(probability, PROBABILITY);
+		this.probability = (double) probability.getValue();
 	}
 
 	@Override

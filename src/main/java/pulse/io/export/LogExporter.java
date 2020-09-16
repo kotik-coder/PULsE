@@ -6,7 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 
-import pulse.tasks.Log;
+import pulse.tasks.logs.Log;
 
 /**
  * A singleton {@code LogExporter} works on {@code Log} objects to write html

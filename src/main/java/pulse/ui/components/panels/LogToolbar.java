@@ -1,8 +1,8 @@
 package pulse.ui.components.panels;
 
 import static javax.swing.SwingConstants.CENTER;
-import static pulse.tasks.Log.isVerbose;
-import static pulse.tasks.Log.setVerbose;
+import static pulse.tasks.logs.Log.isVerbose;
+import static pulse.tasks.logs.Log.setVerbose;
 import static pulse.ui.Launcher.loadIcon;
 import static pulse.ui.Messages.getString;
 

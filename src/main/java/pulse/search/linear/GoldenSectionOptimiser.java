@@ -1,7 +1,6 @@
 package pulse.search.linear;
 
 import pulse.math.IndexedVector;
-import pulse.math.Segment;
 import pulse.math.linear.Vector;
 import pulse.problem.schemes.solvers.SolverException;
 import pulse.tasks.SearchTask;
@@ -51,31 +50,26 @@ public class GoldenSectionOptimiser extends LinearOptimiser {
 
 		final double EPS = 1e-14;
 
-		final IndexedVector[] params = task.searchVector();
+		final var params = task.searchVector();
 		final Vector direction = task.getPath().getDirection();
 
-		Segment segment = domain(params[0], params[1], direction);
+		var segment = domain(params[0], params[1], direction);
 
-		final double squaredError = Math.pow(searchResolution * PHI * segment.length(), 2);
-		double ss2 = 0;
-		double ss1 = 0;
-		Vector newParams;
+		final double absError = searchResolution * PHI * segment.length();
 
-		double alpha, one_minus_alpha;
+		for (double t = PHI * segment.length(); Math.abs(t) > absError; t = PHI * segment.length()) {
+			final double alpha = segment.getMinimum() + t;
+			final double one_minus_alpha = segment.getMaximum() - t;
 
-		for (double t = PHI * segment.length(); t * t > squaredError; t = PHI * segment.length()) {
-			alpha = segment.getMinimum() + t;
-			one_minus_alpha = segment.getMaximum() - t;
+			final var newParams1 = params[0].sum(direction.multiply(alpha)); // alpha
+			task.assign(new IndexedVector(newParams1, params[0].getIndices()));
+			final double ss2 = task.solveProblemAndCalculateDeviation(); // f(alpha)
 
-			newParams = params[0].sum(direction.multiply(alpha)); // alpha
-			task.assign(new IndexedVector(newParams, params[0].getIndices()));
-			ss2 = task.solveProblemAndCalculateDeviation(); // f(alpha)
+			final var newParams2 = params[0].sum(direction.multiply(one_minus_alpha)); // 1 - alpha
+			task.assign(new IndexedVector(newParams2, params[0].getIndices()));
+			final double ss1 = task.solveProblemAndCalculateDeviation(); // f(1-alpha)
 
-			newParams = params[0].sum(direction.multiply(one_minus_alpha)); // 1 - alpha
-			task.assign(new IndexedVector(newParams, params[0].getIndices()));
-			ss1 = task.solveProblemAndCalculateDeviation(); // f(1-alpha)
-
-			task.assign(new IndexedVector(newParams, params[0].getIndices())); // return to old position
+			task.assign(new IndexedVector(newParams2, params[0].getIndices())); // return to old position
 
 			if (ss2 - ss1 > EPS)
 				segment.setMaximum(alpha);

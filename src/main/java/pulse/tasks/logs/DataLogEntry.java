@@ -1,10 +1,12 @@
-package pulse.tasks;
+package pulse.tasks.logs;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.List;
 
 import pulse.properties.NumericProperty;
+import pulse.tasks.SearchTask;
+import pulse.tasks.TaskManager;
 import pulse.ui.Messages;
 
 /**
@@ -51,7 +53,7 @@ public class DataLogEntry extends LogEntry {
 	 */
 
 	private void fill() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-		SearchTask task = TaskManager.getTask(getIdentifier());
+		var task = TaskManager.getTask(getIdentifier());
 
 		entry = task.alteredParameters();
 		Collections.sort(entry, (p1, p2) -> p1.getDescriptor(false).compareTo(p2.getDescriptor(false)));
@@ -86,25 +88,18 @@ public class DataLogEntry extends LogEntry {
 		sb.append("<table>");
 
 		for (NumericProperty p : entry) {
-			sb.append("<tr>");
-			sb.append("<td>");
+			sb.append("<tr><td>");
 			sb.append(p.getAbbreviation(false));
-			sb.append("</td>");
-			sb.append("<td>");
+			sb.append("</td><<td>");
 			sb.append(Messages.getString("DataLogEntry.FontTagNumber")); //$NON-NLS-1$
 			sb.append("<b>");
 			sb.append(p.formattedOutput());
 			sb.append("</b>");
 			sb.append(Messages.getString("DataLogEntry.FontTagClose")); //$NON-NLS-1$
-			sb.append("</td>");
-			sb.append("<br>");
-			sb.append("</tr>");
+			sb.append("</td><br></tr>");
 		}
 
-		sb.append("</table>");
-
-		sb.append("<br>");
-		sb.append("<hr>");
+		sb.append("</table><br><hr>");
 
 		return sb.toString();
 

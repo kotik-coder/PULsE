@@ -1,7 +1,10 @@
-package pulse.tasks;
+package pulse.tasks.logs;
 
 import static java.lang.Integer.toHexString;
-import static pulse.tasks.Status.Details.NONE;
+import static pulse.tasks.logs.Details.NONE;
+
+import pulse.tasks.SearchTask;
+import pulse.tasks.TaskManager;
 
 public class StateEntry extends LogEntry {
 

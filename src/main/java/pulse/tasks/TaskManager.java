@@ -7,16 +7,16 @@ import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static pulse.io.readers.ReaderManager.curveReaders;
 import static pulse.io.readers.ReaderManager.read;
-import static pulse.tasks.Status.DONE;
-import static pulse.tasks.Status.IN_PROGRESS;
-import static pulse.tasks.Status.QUEUED;
-import static pulse.tasks.Status.READY;
 import static pulse.tasks.listeners.TaskRepositoryEvent.State.SHUTDOWN;
 import static pulse.tasks.listeners.TaskRepositoryEvent.State.TASK_ADDED;
 import static pulse.tasks.listeners.TaskRepositoryEvent.State.TASK_FINISHED;
 import static pulse.tasks.listeners.TaskRepositoryEvent.State.TASK_REMOVED;
 import static pulse.tasks.listeners.TaskRepositoryEvent.State.TASK_RESET;
 import static pulse.tasks.listeners.TaskRepositoryEvent.State.TASK_SUBMITTED;
+import static pulse.tasks.logs.Status.DONE;
+import static pulse.tasks.logs.Status.IN_PROGRESS;
+import static pulse.tasks.logs.Status.QUEUED;
+import static pulse.tasks.logs.Status.READY;
 import static pulse.ui.Launcher.threadsAvailable;
 import static pulse.util.Group.contents;
 
@@ -33,12 +33,15 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
 
 import pulse.input.ExperimentalData;
+import pulse.input.InterpolationDataset;
 import pulse.properties.SampleName;
 import pulse.search.direction.PathOptimiser;
 import pulse.tasks.listeners.TaskRepositoryEvent;
 import pulse.tasks.listeners.TaskRepositoryListener;
 import pulse.tasks.listeners.TaskSelectionEvent;
 import pulse.tasks.listeners.TaskSelectionListener;
+import pulse.tasks.processing.Result;
+import pulse.tasks.processing.ResultFormat;
 import pulse.util.Group;
 import pulse.util.UpwardsNavigable;
 
@@ -326,7 +329,7 @@ public class TaskManager extends UpwardsNavigable {
 	public static void generateTask(File file) {
 		List<ExperimentalData> curves = null;
 		curves = read(curveReaders(), file);
-		curves.stream().forEach(curve -> addTask(new SearchTask(curve)));
+		curves.stream().forEach(curve -> addTask(new SearchTask(curve)) );
 		selectFirstTask();
 	}
 
@@ -523,7 +526,7 @@ public class TaskManager extends UpwardsNavigable {
 	}
 
 	public static void evaluate() {
-		tasks.stream().forEach(t -> t.calculateThermalProperties());
+		tasks.stream().forEach(t -> InterpolationDataset.fill(t.getProblem().getProperties()));
 	}
 
 	public static Set<Group> allGrouppedContents() {

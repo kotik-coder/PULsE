@@ -1,4 +1,4 @@
-package pulse.tasks;
+package pulse.tasks.processing;
 
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;

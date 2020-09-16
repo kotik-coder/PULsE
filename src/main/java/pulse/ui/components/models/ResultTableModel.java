@@ -1,18 +1,18 @@
 package pulse.ui.components.models;
 
 import static java.util.stream.Collectors.toList;
-import static pulse.tasks.AbstractResult.filterProperties;
+import static pulse.tasks.processing.AbstractResult.filterProperties;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.table.DefaultTableModel;
 
-import pulse.tasks.AbstractResult;
 import pulse.tasks.Identifier;
-import pulse.tasks.Result;
-import pulse.tasks.ResultFormat;
 import pulse.tasks.listeners.ResultFormatEvent;
+import pulse.tasks.processing.AbstractResult;
+import pulse.tasks.processing.Result;
+import pulse.tasks.processing.ResultFormat;
 import pulse.ui.components.listeners.ResultListener;
 
 @SuppressWarnings("serial")

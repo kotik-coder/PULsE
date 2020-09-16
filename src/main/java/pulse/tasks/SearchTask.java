@@ -1,9 +1,7 @@
 package pulse.tasks;
 
-import static pulse.input.InterpolationDataset.getDataset;
 import static pulse.input.listeners.DataEventType.CHANGE_OF_ORIGIN;
 import static pulse.properties.NumericProperties.derive;
-import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
 import static pulse.properties.NumericPropertyKeyword.TIME_LIMIT;
 import static pulse.search.direction.ActiveFlags.activeParameters;
 import static pulse.search.direction.ActiveFlags.getAllFlags;
@@ -11,26 +9,25 @@ import static pulse.search.direction.PathOptimiser.getErrorTolerance;
 import static pulse.search.direction.PathOptimiser.getInstance;
 import static pulse.search.direction.PathOptimiser.getLinearSolver;
 import static pulse.search.statistics.ResidualStatistic.getSelectedOptimiserDescriptor;
-import static pulse.tasks.Buffer.getSize;
-import static pulse.tasks.Status.AMBIGUOUS;
-import static pulse.tasks.Status.DONE;
-import static pulse.tasks.Status.FAILED;
-import static pulse.tasks.Status.INCOMPLETE;
-import static pulse.tasks.Status.IN_PROGRESS;
-import static pulse.tasks.Status.READY;
-import static pulse.tasks.Status.TERMINATED;
-import static pulse.tasks.Status.Details.ABNORMAL_DISTRIBUTION_OF_RESIDUALS;
-import static pulse.tasks.Status.Details.INSUFFICIENT_DATA_IN_PROBLEM_STATEMENT;
-import static pulse.tasks.Status.Details.MISSING_BUFFER;
-import static pulse.tasks.Status.Details.MISSING_DIFFERENCE_SCHEME;
-import static pulse.tasks.Status.Details.MISSING_HEATING_CURVE;
-import static pulse.tasks.Status.Details.MISSING_LINEAR_SOLVER;
-import static pulse.tasks.Status.Details.MISSING_PATH_SOLVER;
-import static pulse.tasks.Status.Details.MISSING_PROBLEM_STATEMENT;
-import static pulse.tasks.Status.Details.NONE;
-import static pulse.tasks.Status.Details.PARAMETER_VALUES_NOT_SENSIBLE;
-import static pulse.tasks.Status.Details.SIGNIFICANT_CORRELATION_BETWEEN_PARAMETERS;
 import static pulse.tasks.TaskManager.getSampleName;
+import static pulse.tasks.logs.Details.ABNORMAL_DISTRIBUTION_OF_RESIDUALS;
+import static pulse.tasks.logs.Details.INSUFFICIENT_DATA_IN_PROBLEM_STATEMENT;
+import static pulse.tasks.logs.Details.MISSING_BUFFER;
+import static pulse.tasks.logs.Details.MISSING_DIFFERENCE_SCHEME;
+import static pulse.tasks.logs.Details.MISSING_HEATING_CURVE;
+import static pulse.tasks.logs.Details.MISSING_LINEAR_SOLVER;
+import static pulse.tasks.logs.Details.MISSING_PATH_SOLVER;
+import static pulse.tasks.logs.Details.MISSING_PROBLEM_STATEMENT;
+import static pulse.tasks.logs.Details.PARAMETER_VALUES_NOT_SENSIBLE;
+import static pulse.tasks.logs.Details.SIGNIFICANT_CORRELATION_BETWEEN_PARAMETERS;
+import static pulse.tasks.logs.Status.AMBIGUOUS;
+import static pulse.tasks.logs.Status.DONE;
+import static pulse.tasks.logs.Status.FAILED;
+import static pulse.tasks.logs.Status.INCOMPLETE;
+import static pulse.tasks.logs.Status.IN_PROGRESS;
+import static pulse.tasks.logs.Status.READY;
+import static pulse.tasks.logs.Status.TERMINATED;
+import static pulse.tasks.processing.Buffer.getSize;
 import static pulse.util.Reflexive.instantiate;
 
 import java.util.ArrayList;
@@ -42,7 +39,6 @@ import java.util.stream.Collectors;
 
 import pulse.input.ExperimentalData;
 import pulse.input.InterpolationDataset;
-import pulse.input.InterpolationDataset.StandartType;
 import pulse.input.Metadata;
 import pulse.math.IndexedVector;
 import pulse.problem.schemes.DifferenceScheme;
@@ -59,6 +55,15 @@ import pulse.search.statistics.ResidualStatistic;
 import pulse.search.statistics.SumOfSquares;
 import pulse.tasks.listeners.DataCollectionListener;
 import pulse.tasks.listeners.StatusChangeListener;
+import pulse.tasks.logs.CorrelationLogEntry;
+import pulse.tasks.logs.DataLogEntry;
+import pulse.tasks.logs.Details;
+import pulse.tasks.logs.Log;
+import pulse.tasks.logs.LogEntry;
+import pulse.tasks.logs.StateEntry;
+import pulse.tasks.logs.Status;
+import pulse.tasks.processing.Buffer;
+import pulse.tasks.processing.CorrelationBuffer;
 import pulse.ui.components.PropertyHolderTable;
 import pulse.util.Accessible;
 import pulse.util.PropertyEvent;
@@ -89,9 +94,6 @@ public class SearchTask extends Accessible implements Runnable {
 
 	private Identifier identifier;
 	private Status status = INCOMPLETE;
-
-	private double testTemperature;
-	private double cp, rho;
 
 	private NormalityTest normalityTest;
 
@@ -142,11 +144,7 @@ public class SearchTask extends Accessible implements Runnable {
 		initOptimiser();
 		initCorrelationTest();
 		initNormalityTest();
-
-		testTemperature = (double) curve.getMetadata().numericProperty(TEST_TEMPERATURE).getValue();
-
-		calculateThermalProperties();
-
+	
 		this.path = null;
 		this.problem = null;
 		this.scheme = null;
@@ -203,38 +201,6 @@ public class SearchTask extends Accessible implements Runnable {
 	public void assign(IndexedVector searchParameters) {
 		problem.assign(searchParameters);
 		curve.getRange().assign(searchParameters);
-	}
-
-	/**
-	 * Calculates some or all of the following properties:
-	 * <math><i>C</i><sub>p</sub>, <i>&rho;</i>, <i>&labmda;</i>,
-	 * <i>&epsilon;</i></math>.
-	 * <p>
-	 * These properties will be calculated only if the necessary
-	 * {@code InterpolationDataset}s were previously loaded by the
-	 * {@code TaskManager}.
-	 * </p>
-	 */
-
-	public void calculateThermalProperties() {
-
-		if (problem == null)
-			return;
-
-		var cpCurve = getDataset(StandartType.HEAT_CAPACITY);
-
-		if (cpCurve != null) {
-			cp = cpCurve.interpolateAt(testTemperature);
-			problem.set(NumericPropertyKeyword.SPECIFIC_HEAT, derive(NumericPropertyKeyword.SPECIFIC_HEAT, cp));
-		}
-
-		var rhoCurve = getDataset(StandartType.DENSITY);
-
-		if (rhoCurve != null) {
-			rho = rhoCurve.interpolateAt(testTemperature);
-			problem.set(NumericPropertyKeyword.DENSITY, derive(NumericPropertyKeyword.DENSITY, rho));
-		}
-
 	}
 
 	/**
@@ -409,10 +375,6 @@ public class SearchTask extends Accessible implements Runnable {
 		return curve;
 	}
 
-	public NumericProperty getTestTemperature() {
-		return derive(TEST_TEMPERATURE, testTemperature);
-	}
-
 	public Path getPath() {
 		return path;
 	}
@@ -433,9 +395,6 @@ public class SearchTask extends Accessible implements Runnable {
 	 */
 
 	public void setProblem(Problem problem) {
-		if (curve == null || problem == null)
-			return;
-
 		this.problem = problem;
 		problem.setParent(this);
 		problem.removeHeatingCurveListeners();
@@ -481,7 +440,8 @@ public class SearchTask extends Accessible implements Runnable {
 
 	public void setScheme(DifferenceScheme scheme) {
 		this.scheme = scheme;
-		if (scheme != null && problem != null) {
+		
+		if (problem != null) {
 			scheme.setParent(this);
 
 			var upperLimit = RELATIVE_TIME_MARGIN * curve.timeLimit()
@@ -490,6 +450,7 @@ public class SearchTask extends Accessible implements Runnable {
 			scheme.setTimeLimit(derive(TIME_LIMIT, upperLimit));
 
 		}
+		
 	}
 
 	/**
@@ -505,30 +466,17 @@ public class SearchTask extends Accessible implements Runnable {
 			curve.setParent(this);
 
 	}
-
-	/**
-	 * Sets the test temperature and modifies, if needed, any of the thermal
-	 * properties that depend on this parameter.
-	 * 
-	 * @param testTemperature the test temperature
-	 */
-
-	public void setTestTemperature(NumericProperty testTemperature) {
-		this.testTemperature = (double) testTemperature.getValue();
-		calculateThermalProperties();
-	}
-
+	
 	public Status getStatus() {
 		return status;
 	}
 
-	public void setStatus(Status status, Status.Details details) {
-		if (this.status == status)
-			return;
-
-		this.status = status;
-		status.setDetails(details);
-		notifyStatusListeners(new StateEntry(this, status));
+	public void setStatus(Status status, Details details) {
+		if (this.status != status) {
+			this.status = status;
+			status.setDetails(details);
+			notifyStatusListeners(new StateEntry(this, status));
+		}
 	}
 
 	/**
@@ -539,12 +487,7 @@ public class SearchTask extends Accessible implements Runnable {
 	 */
 
 	public void setStatus(Status status) {
-		if (this.status == status)
-			return;
-
-		this.status = status;
-		status.setDetails(NONE);
-		notifyStatusListeners(new StateEntry(this, status));
+		setStatus(status, Details.NONE);
 	}
 
 	public Status checkProblems() {

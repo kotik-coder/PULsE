@@ -1,6 +1,12 @@
 package pulse.search.statistics;
 
+import static java.lang.Math.pow;
+import static pulse.properties.NumericProperties.derive;
+import static pulse.properties.NumericPropertyKeyword.SIGNIFICANCE;
+import static pulse.properties.NumericPropertyKeyword.TEST_STATISTIC;
+
 import pulse.input.ExperimentalData;
+import pulse.properties.NumericProperty;
 import pulse.tasks.SearchTask;
 
 /**
@@ -12,8 +18,8 @@ import pulse.tasks.SearchTask;
 public class RSquaredTest extends NormalityTest {
 
 	private SumOfSquares sos;
-	public final static double SUCCESS_CUTOFF = 0.2;
-
+	private static NumericProperty signifiance = derive(SIGNIFICANCE, 0.2);
+	
 	public RSquaredTest() {
 		super();
 	}
@@ -26,7 +32,7 @@ public class RSquaredTest extends NormalityTest {
 	@Override
 	public boolean test(SearchTask task) {
 		evaluate(task);
-		return statistic > SUCCESS_CUTOFF;
+		return getStatistic().compareTo(signifiance) > 0;
 	}
 
 	/**
@@ -48,29 +54,32 @@ public class RSquaredTest extends NormalityTest {
 
 	@Override
 	public void evaluate(SearchTask t) {
+		var reference = t.getExperimentalCurve();
 
-		ExperimentalData reference = t.getExperimentalCurve();
+		final int start = reference.getIndexRange().getLowerBound();
+		final int end = reference.getIndexRange().getUpperBound();
 
-		double mean = 0;
-
-		int start = reference.getIndexRange().getLowerBound();
-		int end = reference.getIndexRange().getUpperBound();
-
-		for (int i = start; i < end; i++) {
-			mean += reference.signalAt(i);
-		}
-
-		mean /= (end - start);
-
+		final double mean = mean(reference, start, end);
 		double TSS = 0;
 
 		for (int i = start; i < end; i++) {
-			TSS += Math.pow(reference.signalAt(i) - mean, 2);
+			TSS += pow(reference.signalAt(i) - mean, 2);
 		}
 
 		TSS /= (end - start);
 
-		this.statistic = (1. - sos.statistic / TSS);
+		setStatistic(derive(TEST_STATISTIC, (1. - (double)sos.getStatistic().getValue() / TSS)));
+	}
+	
+	private double mean(ExperimentalData data, final int start, final int end) {
+		double mean = 0;
+		
+		for (int i = start; i < end; i++) {
+			mean += data.signalAt(i);
+		}
+
+		mean /= (end - start);
+		return mean;
 	}
 
 	public SumOfSquares getSumOfSquares() {

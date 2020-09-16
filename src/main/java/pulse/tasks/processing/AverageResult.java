@@ -1,4 +1,4 @@
-package pulse.tasks;
+package pulse.tasks.processing;
 
 import static pulse.properties.NumericProperties.derive;
 
@@ -45,50 +45,25 @@ public class AverageResult extends AbstractResult {
 		super(resultFormat);
 
 		results = new ArrayList<>();
+		results.addAll(res);
 
-		for (AbstractResult r : res) {
-			results.add(r);
-		}
-
-		average();
-
+		calculate();
 	}
 
-	private void average() {
+	private void calculate() {
+
+		ResultOperations.process(results);
 
 		/*
-		 * Calculate average
+		 * Calculate average and standard error for each column
 		 */
 
-		double[] av = new double[getFormat().abbreviations().size()];
-
-		int size = results.size();
-
-		for (int i = 0; i < av.length; i++) {
-			for (AbstractResult r : results) {
-				av[i] += ((Number) r.getProperty(i).getValue()).doubleValue();
-			}
-			av[i] /= size;
-		}
-
-		/*
-		 * Calculate standard error std[j] for each column
-		 */
-
-		double[] std = new double[av.length];
-
-		for (int j = 0; j < av.length; j++) {
-			for (AbstractResult r : results) {
-				std[j] += Math.pow(((Number) r.getProperty(j).getValue()).doubleValue() - av[j], 2);
-			}
-			std[j] /= size;
-		}
+		double[] av = ResultOperations.getAverages();
+		double[] std = ResultOperations.getDeviations();
 
 		/*
 		 * Round up
 		 */
-
-		BigDecimal resultAv, resultStd, stdBig, avBig;
 
 		NumericProperty p;
 		NumericPropertyKeyword key;
@@ -99,16 +74,13 @@ public class AverageResult extends AbstractResult {
 			if (!Double.isFinite(std[j]))
 				p = derive(key, av[j]); // ignore error as the value is not finite
 			else {
-				stdBig = (new BigDecimal(std[j])).sqrt(MathContext.DECIMAL64);
-				avBig = new BigDecimal(av[j]);
+				var stdBig = (new BigDecimal(std[j])).sqrt(MathContext.DECIMAL64);
+				var avBig = new BigDecimal(av[j]);
 
-				resultStd = stdBig.setScale(SIGNIFICANT_FIGURES - stdBig.precision() + stdBig.scale(),
+				var resultStd = stdBig.setScale(SIGNIFICANT_FIGURES - stdBig.precision() + stdBig.scale(),
 						RoundingMode.HALF_UP);
 
-				if (stdBig.precision() > 1)
-					resultAv = avBig.setScale(resultStd.scale(), RoundingMode.CEILING);
-				else
-					resultAv = avBig;
+				var resultAv = stdBig.precision() > 1 ? avBig.setScale(resultStd.scale(), RoundingMode.CEILING) : avBig;
 
 				p = derive(key, resultAv.doubleValue());
 				p.setError(resultStd.doubleValue());
@@ -135,10 +107,10 @@ public class AverageResult extends AbstractResult {
 
 	public List<AbstractResult> getIndividualResults() {
 		List<AbstractResult> indResults = new ArrayList<>();
-
+		
 		for (AbstractResult r : results) {
 			if (r instanceof AverageResult) {
-				AverageResult ar = (AverageResult) r;
+				var ar = (AverageResult) r;
 				indResults.addAll(ar.getIndividualResults());
 			} else
 				indResults.add(r);

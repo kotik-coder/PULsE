@@ -1,16 +1,19 @@
-package pulse.tasks;
+package pulse.tasks.processing;
 
 import static pulse.properties.NumericProperties.def;
 import static pulse.properties.NumericProperties.derive;
+import static pulse.properties.NumericProperty.requireType;
 import static pulse.properties.NumericPropertyKeyword.BUFFER_SIZE;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import pulse.math.IndexedVector;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
+import pulse.tasks.SearchTask;
 import pulse.util.PropertyHolder;
 
 /**
@@ -74,20 +77,18 @@ public class Buffer extends PropertyHolder {
 
 	public boolean isErrorTooHigh(double errorTolerance) {
 		double[] e = new double[data[0].dimension()];
-		NumericPropertyKeyword index;
 
-		final double eSq = errorTolerance * errorTolerance;
+		boolean result = false;
+		
+		for (int i = 0; i < e.length && (!result); i++) {
+			var index = data[0].getIndex(i);
+			final double av = average(index);
+			e[i] = variance(index) / (av*av);
 
-		for (int i = 0; i < e.length; i++) {
-			index = data[0].getIndex(i);
-			e[i] = variance(index) / Math.pow(average(index), 2);
-
-			if (e[i] > eSq)
-				return true;
-
+			result = e[i] > errorTolerance;
 		}
 
-		return false;
+		return result;
 
 	}
 
@@ -146,7 +147,8 @@ public class Buffer extends PropertyHolder {
 		double av = average(index);
 
 		for (IndexedVector v : data) {
-			sd += Math.pow(v.get(index) - av, 2);
+			final double s = v.get(index) - av;
+			sd += s*s;
 		}
 
 		return sd / data.length;
@@ -180,8 +182,7 @@ public class Buffer extends PropertyHolder {
 	 */
 
 	public static void setSize(NumericProperty newSize) {
-		if (newSize.getType() != BUFFER_SIZE)
-			throw new IllegalArgumentException("Illegal argument type: " + newSize.getType());
+		requireType(newSize, BUFFER_SIZE);
 		Buffer.size = ((Number) newSize.getValue()).intValue();
 	}
 
@@ -199,9 +200,7 @@ public class Buffer extends PropertyHolder {
 
 	@Override
 	public List<Property> listedTypes() {
-		List<Property> list = new ArrayList<>();
-		list.add(def(BUFFER_SIZE));
-		return list;
+		return new ArrayList<Property>(Arrays.asList(def(BUFFER_SIZE)));
 	}
 
 }
