@@ -21,6 +21,10 @@ public class NumericProperties {
 
 	private final static List<NumericProperty> DEFAULT = XMLConverter.readDefaultXML();
 
+	private NumericProperties() {
+		//empty constructor
+	}
+	
 	/**
 	 * Checks whether the {@code val} that is going to be passed to the
 	 * {@code property} (a) has the same type as the {@code property.getValue()}

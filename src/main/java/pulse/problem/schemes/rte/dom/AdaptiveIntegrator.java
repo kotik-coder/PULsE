@@ -4,6 +4,7 @@ import static pulse.properties.NumericProperties.def;
 import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericProperties.isValueSensible;
 import static pulse.properties.NumericPropertyKeyword.ATOL;
+import static pulse.properties.NumericPropertyKeyword.DOM_GRID_DENSITY;
 import static pulse.properties.NumericPropertyKeyword.GRID_SCALING_FACTOR;
 import static pulse.properties.NumericPropertyKeyword.RTE_INTEGRATION_TIMEOUT;
 import static pulse.properties.NumericPropertyKeyword.RTOL;
@@ -133,7 +134,7 @@ public abstract class AdaptiveIntegrator extends ODEIntegrator {
 	}
 
 	private RTECalculationStatus sanityCheck() {
-		if (!isValueSensible(def(NumericPropertyKeyword.DOM_GRID_DENSITY),
+		if (!isValueSensible(def(DOM_GRID_DENSITY),
 				getDiscretisation().getGrid().getDensity()))
 			return RTECalculationStatus.GRID_TOO_LARGE;
 		else if (Duration.between(Instant.now(), start).toSeconds() > timeThreshold)
@@ -170,31 +171,31 @@ public abstract class AdaptiveIntegrator extends ODEIntegrator {
 	}
 
 	public NumericProperty getRelativeTolerance() {
-		return derive(NumericPropertyKeyword.RTOL, rtol);
+		return derive(RTOL, rtol);
 	}
 
 	public NumericProperty getAbsoluteTolerance() {
-		return derive(NumericPropertyKeyword.ATOL, atol);
+		return derive(ATOL, atol);
 	}
 
 	public NumericProperty getGridScalingFactor() {
-		return derive(NumericPropertyKeyword.GRID_SCALING_FACTOR, scalingFactor);
+		return derive(GRID_SCALING_FACTOR, scalingFactor);
 	}
 
 	public void setRelativeTolerance(NumericProperty p) {
-		if (p.getType() != NumericPropertyKeyword.RTOL)
+		if (p.getType() != RTOL)
 			throw new IllegalArgumentException("Illegal type: " + p.getType());
 		this.rtol = (double) p.getValue();
 	}
 
 	public void setAbsoluteTolerance(NumericProperty p) {
-		if (p.getType() != NumericPropertyKeyword.ATOL)
+		if (p.getType() != ATOL)
 			throw new IllegalArgumentException("Illegal type: " + p.getType());
 		this.atol = (double) p.getValue();
 	}
 
 	public void setGridScalingFactor(NumericProperty p) {
-		if (p.getType() != NumericPropertyKeyword.GRID_SCALING_FACTOR)
+		if (p.getType() != GRID_SCALING_FACTOR)
 			throw new IllegalArgumentException("Illegal type: " + p.getType());
 		this.scalingFactor = (double) p.getValue();
 	}

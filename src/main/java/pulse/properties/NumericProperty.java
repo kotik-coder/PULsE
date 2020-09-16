@@ -78,18 +78,14 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
 	 * @see pulse.io.export.XMLConverter
 	 */
 
-	public NumericProperty(NumericPropertyKeyword type, String descriptor, String abbreviation, Number value,
-			Number minimum, Number maximum, Number dimensionFactor, boolean autoAdjustable, boolean discreet,
-			boolean defaultSearchVariable) {
+	public NumericProperty(NumericPropertyKeyword type, Number... params) {
+		if(params.length != 4)
+			throw new IllegalArgumentException("Input array must be of length 4. Received: " + params.length);
+		
 		this.type = type;
-		this.descriptor = descriptor;
-		this.abbreviation = abbreviation;
-		this.value = value;
-		this.dimensionFactor = dimensionFactor;
-		this.autoAdjustable = autoAdjustable;
-		this.discreet = discreet;
-		this.defaultSearchVariable = defaultSearchVariable;
-		setDomain(minimum, maximum);
+		this.value = params[0];
+		this.dimensionFactor = params[3];
+		setDomain(params[1], params[2]);
 	}
 
 	/**
@@ -311,6 +307,10 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
 
 	public boolean isDefaultSearchVariable() {
 		return defaultSearchVariable;
+	}
+	
+	public void setDefaultSearchVariable(boolean defaultSearchVariable) {
+		this.defaultSearchVariable = defaultSearchVariable;
 	}
 
 }

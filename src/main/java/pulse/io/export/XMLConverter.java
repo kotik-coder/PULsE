@@ -76,11 +76,11 @@ public class XMLConverter {
 		Attr autoAdj = doc.createAttribute("auto-adjustable");
 		autoAdj.setValue(np.isAutoAdjustable() + "");
 		property.setAttributeNode(autoAdj);
-		
+
 		Attr primitiveType = doc.createAttribute("primitive-type");
 		primitiveType.setValue(np.getValue() instanceof Double ? "double" : "int");
 		property.setAttributeNode(primitiveType);
-		
+
 		Attr defSearch = doc.createAttribute("default-search-variable");
 		primitiveType.setValue(np.isDefaultSearchVariable() + "");
 		property.setAttributeNode(defSearch);
@@ -196,8 +196,13 @@ public class XMLConverter {
 					dimensionFactor = Integer.valueOf(eElement.getAttribute("dimensionfactor"));
 				}
 
-				properties.add(new NumericProperty(keyword, descriptor, abbreviation, value, minimum, maximum,
-						dimensionFactor, autoAdjustable, discreet, defSearch));
+				var np = new NumericProperty(keyword, value, minimum, maximum, dimensionFactor);
+				np.setDescriptor(descriptor);
+				np.setAbbreviation(abbreviation);
+				np.setAutoAdjustable(autoAdjustable);
+				np.setDiscreet(discreet);
+				np.setDefaultSearchVariable(defSearch);
+				properties.add(np);
 			}
 		}
 
