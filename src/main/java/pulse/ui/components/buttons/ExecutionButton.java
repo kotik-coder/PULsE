@@ -28,7 +28,7 @@ public class ExecutionButton extends JButton {
 		setIcon(state.getIcon());
 		setToolTipText(state.getMessage());
 		
-		var instance = TaskManager.getInstance();
+		var instance = TaskManager.getManagerInstance();
 
 		this.addActionListener((ActionEvent e) -> {
 			/*

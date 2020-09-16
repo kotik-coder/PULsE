@@ -70,7 +70,7 @@ public class TaskPopupMenu extends JPopupMenu {
 
 		itemExtendedChart.setFont(f);
 
-		var instance = TaskManager.getInstance();
+		var instance = TaskManager.getManagerInstance();
 		
 		itemShowMeta = new JMenuItem("Show metadata", ICON_METADATA);
 		itemShowMeta.addActionListener((ActionEvent e) -> {
@@ -182,7 +182,7 @@ public class TaskPopupMenu extends JPopupMenu {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void plot(boolean extended) {
-		var t = TaskManager.getInstance().getSelectedTask();
+		var t = TaskManager.getManagerInstance().getSelectedTask();
 
 		if (t == null) {
 			showMessageDialog(getWindowAncestor(this), getString("TaskTablePopupMenu.EmptySelection2"), //$NON-NLS-1$

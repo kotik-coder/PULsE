@@ -15,7 +15,7 @@ public class CorrelationLogEntry extends LogEntry {
 
 	@Override
 	public String toString() {
-		var t = TaskManager.getInstance().getTask(getIdentifier());
+		var t = TaskManager.getManagerInstance().getTask(getIdentifier());
 		var buffer = t.getCorrelationBuffer();
 		var test = t.getCorrelationTest();
 		var map = buffer.evaluate(test);

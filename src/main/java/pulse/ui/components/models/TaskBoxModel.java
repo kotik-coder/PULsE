@@ -25,7 +25,7 @@ public class TaskBoxModel extends AbstractListModel<SearchTask> implements Combo
 	protected SearchTask selectedTask;
 
 	public TaskBoxModel() {
-		var instance = TaskManager.getInstance();
+		var instance = TaskManager.getManagerInstance();
 		selectedTask = instance.getSelectedTask();
 
 		instance.addTaskRepositoryListener((TaskRepositoryEvent e) -> {
@@ -41,12 +41,12 @@ public class TaskBoxModel extends AbstractListModel<SearchTask> implements Combo
 
 	@Override
 	public int getSize() {
-		return TaskManager.getInstance().numberOfTasks();
+		return TaskManager.getManagerInstance().numberOfTasks();
 	}
 
 	@Override
 	public SearchTask getElementAt(int index) {
-		return TaskManager.getInstance().getTaskList().get(index);
+		return TaskManager.getManagerInstance().getTaskList().get(index);
 	}
 
 	@Override
@@ -63,7 +63,7 @@ public class TaskBoxModel extends AbstractListModel<SearchTask> implements Combo
 			return;
 
 		// Simply return if object is not in the list.
-		if (selectedTask != null && !TaskManager.getInstance().getTaskList().contains(anItem))
+		if (selectedTask != null && !TaskManager.getManagerInstance().getTaskList().contains(anItem))
 			return;
 
 		// Here we know that object is either an item in the list or null.
@@ -76,7 +76,7 @@ public class TaskBoxModel extends AbstractListModel<SearchTask> implements Combo
 	}
 
 	public int getSelectedIndex() {
-		return TaskManager.getInstance().getTaskList().indexOf(selectedTask);
+		return TaskManager.getManagerInstance().getTaskList().indexOf(selectedTask);
 	}
 
 	@Override

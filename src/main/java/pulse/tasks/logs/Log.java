@@ -131,7 +131,7 @@ public class Log extends Group {
 		StringBuilder sb = new StringBuilder();
 		String newLine = System.lineSeparator();
 
-		sb.append(TaskManager.getInstance().getTask(id));
+		sb.append(TaskManager.getManagerInstance().getTask(id));
 		sb.append(newLine);
 		sb.append(newLine);
 

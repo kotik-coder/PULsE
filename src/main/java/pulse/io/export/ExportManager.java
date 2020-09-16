@@ -138,7 +138,7 @@ public class ExportManager {
 	 */
 
 	public static void exportAllTasks(File directory, Extension extension) {
-		TaskManager.getInstance().getTaskList().stream().forEach(t -> exportGroup(t, directory, extension));
+		TaskManager.getManagerInstance().getTaskList().stream().forEach(t -> exportGroup(t, directory, extension));
 	}
 
 	/**
@@ -151,7 +151,7 @@ public class ExportManager {
 	 */
 
 	public static void exportCurrentTask(File directory, Extension extension) {
-		exportGroup(TaskManager.getInstance().getSelectedTask(), directory, extension);
+		exportGroup(TaskManager.getManagerInstance().getSelectedTask(), directory, extension);
 	}
 
 	/**
@@ -178,7 +178,7 @@ public class ExportManager {
 
 	public static void exportAllResults(File directory, Extension extension) {
 
-		var instance = TaskManager.getInstance();
+		var instance = TaskManager.getManagerInstance();
 		instance.getTaskList().stream().map(t -> instance.getResult(t)).filter(Objects::nonNull)
 				.forEach(r -> export(r, directory, extension));
 

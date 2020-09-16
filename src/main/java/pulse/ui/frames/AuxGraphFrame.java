@@ -31,7 +31,7 @@ public class AuxGraphFrame extends JInternalFrame {
 	}
 
 	public void plot() {
-		var task = TaskManager.getInstance().getSelectedTask();
+		var task = TaskManager.getManagerInstance().getSelectedTask();
 		if (task != null)
 			chart.plot(task.getProblem());
 	}

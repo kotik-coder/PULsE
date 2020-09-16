@@ -38,7 +38,7 @@ public class TaskManagerFrame extends JInternalFrame {
 
 			@Override
 			public void onClearRequest() {
-				TaskManager.getInstance().clear();
+				TaskManager.getManagerInstance().clear();
 			}
 
 			@Override

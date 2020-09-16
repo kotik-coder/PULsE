@@ -100,7 +100,7 @@ public class ChartToolbar extends JPanel {
 
 		};
 		
-		var instance = TaskManager.getInstance();
+		var instance = TaskManager.getManagerInstance();
 
 		instance.addSelectionListener(event -> {
 			var t = instance.getSelectedTask();
@@ -197,7 +197,7 @@ public class ChartToolbar extends JPanel {
 	}
 
 	private void validateRange(double a, double b) {
-		var task = TaskManager.getInstance().getSelectedTask();
+		var task = TaskManager.getManagerInstance().getSelectedTask();
 
 		if (task == null)
 			return;

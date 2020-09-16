@@ -77,7 +77,7 @@ public class ResultTable extends JTable implements Descriptive {
 		 * changes
 		 */
 
-		var instance = TaskManager.getInstance();
+		var instance = TaskManager.getManagerInstance();
 		
 		instance.addSelectionListener((TaskSelectionEvent e) -> {
 			var id = instance.getSelectedTask().getIdentifier();
@@ -103,7 +103,7 @@ public class ResultTable extends JTable implements Descriptive {
 		 * results if corresponding task is removed
 		 */
 
-		TaskManager.getInstance().addTaskRepositoryListener((TaskRepositoryEvent e) -> {
+		TaskManager.getManagerInstance().addTaskRepositoryListener((TaskRepositoryEvent e) -> {
 			switch (e.getState()) {
 			case TASK_FINISHED:
 				var t = instance.getTask(e.getId());
@@ -287,7 +287,7 @@ public class ResultTable extends JTable implements Descriptive {
 			dtm.remove(dtm.getResults().get(convertRowIndexToModel(i)));
 		}
 
-		var instance = TaskManager.getInstance();
+		var instance = TaskManager.getManagerInstance();
 		instance.getTaskList().stream().map(t -> instance.getResult(t)).forEach(r -> dtm.addRow(r));
 	}
 

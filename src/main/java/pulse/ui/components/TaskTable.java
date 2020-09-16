@@ -100,7 +100,7 @@ public class TaskTable extends JTable {
 
 	public void initListeners() {
 
-		var instance = TaskManager.getInstance();
+		var instance = TaskManager.getManagerInstance();
 		
 		/*
 		 * task removed/added listener
@@ -247,7 +247,7 @@ public class TaskTable extends JTable {
 		var rows = getSelectedRows();
 		Identifier id;
 
-		var instance = TaskManager.getInstance();
+		var instance = TaskManager.getManagerInstance();
 		
 		for (var i = rows.length - 1; i >= 0; i--) {
 			id = (Identifier) getValueAt(rows[i], 0);

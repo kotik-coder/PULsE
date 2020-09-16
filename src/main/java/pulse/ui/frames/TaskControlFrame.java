@@ -64,7 +64,7 @@ public class TaskControlFrame extends JFrame {
 		setExtendedState(getExtendedState() | MAXIMIZED_BOTH);
 		initComponents();
 		initListeners();
-		TaskManager.getInstance().addSelectionListener(e -> graphFrame.plot());
+		TaskManager.getManagerInstance().addSelectionListener(e -> graphFrame.plot());
 		setIconImage(loadIcon("logo.png", 32).getImage());
 		addListeners();
 		setDefaultCloseOperation(EXIT_ON_CLOSE);

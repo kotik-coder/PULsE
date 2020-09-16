@@ -16,7 +16,7 @@ public class StateEntry extends LogEntry {
 	}
 
 	public SearchTask getTask() {
-		return TaskManager.getInstance().getTask(getIdentifier());
+		return TaskManager.getManagerInstance().getTask(getIdentifier());
 	}
 
 	public Status getStatus() {

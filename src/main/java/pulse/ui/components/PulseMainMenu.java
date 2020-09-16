@@ -16,7 +16,7 @@ import static pulse.properties.NumericPropertyKeyword.SIGNIFICANCE;
 import static pulse.search.statistics.CorrelationTest.setThreshold;
 import static pulse.search.statistics.NormalityTest.setStatisticalSignificance;
 import static pulse.search.statistics.ResidualStatistic.setSelectedOptimiserDescriptor;
-import static pulse.tasks.TaskManager.getInstance;
+import static pulse.tasks.TaskManager.getManagerInstance;
 import static pulse.tasks.listeners.TaskRepositoryEvent.State.TASK_ADDED;
 import static pulse.ui.Launcher.loadIcon;
 import static pulse.ui.components.DataLoader.loadDataDialog;
@@ -40,7 +40,6 @@ import javax.swing.JSeparator;
 import pulse.search.statistics.CorrelationTest;
 import pulse.search.statistics.NormalityTest;
 import pulse.search.statistics.ResidualStatistic;
-import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.TaskRepositoryEvent;
 import pulse.tasks.processing.Buffer;
 import pulse.ui.components.listeners.ExitRequestListener;
@@ -87,7 +86,7 @@ public class PulseMainMenu extends JMenuBar {
 	}
 
 	private void addListeners() {
-		TaskManager.getInstance().addTaskRepositoryListener(event -> {
+		getManagerInstance().addTaskRepositoryListener(event -> {
 			if (event.getState() == TASK_ADDED) {
 				exportCurrentItem.setEnabled(true);
 				exportAllItem.setEnabled(true);
@@ -97,7 +96,7 @@ public class PulseMainMenu extends JMenuBar {
 
 	private void initListeners() {
 		exportCurrentItem.addActionListener(e -> {
-			var selectedTask = TaskManager.getInstance().getSelectedTask();
+			var selectedTask = getManagerInstance().getSelectedTask();
 
 			if (selectedTask == null) {
 				showMessageDialog(getWindowAncestor(this), "No data to export!", "No Data to Export", WARNING_MESSAGE);
@@ -111,7 +110,7 @@ public class PulseMainMenu extends JMenuBar {
 			var returnVal = fileChooser.showSaveDialog(this);
 
 			if (returnVal == APPROVE_OPTION) {
-				dir = new File(fileChooser.getSelectedFile() + separator + getInstance().describe());
+				dir = new File(fileChooser.getSelectedFile() + separator + getManagerInstance().describe());
 				dir.mkdirs();
 				exportCurrentTask(dir);
 			}
@@ -201,7 +200,7 @@ public class PulseMainMenu extends JMenuBar {
 					var text = ((AbstractButton) e.getItem()).getText();
 					NormalityTest.setSelectedTestDescriptor(text);
 
-					TaskManager.getInstance().getTaskList().stream().forEach(t -> t.initNormalityTest());
+					getManagerInstance().getTaskList().stream().forEach(t -> t.initNormalityTest());
 
 				}
 
@@ -240,7 +239,7 @@ public class PulseMainMenu extends JMenuBar {
 				if (((AbstractButton) e.getItem()).isSelected()) {
 					var text = ((AbstractButton) e.getItem()).getText();
 					setSelectedOptimiserDescriptor(text);
-					TaskManager.getInstance().getTaskList().stream().forEach(t -> t.initOptimiser());
+					getManagerInstance().getTaskList().stream().forEach(t -> t.initOptimiser());
 				}
 
 			});
@@ -267,7 +266,7 @@ public class PulseMainMenu extends JMenuBar {
 				if (((AbstractButton) e.getItem()).isSelected()) {
 					var text = ((AbstractButton) e.getItem()).getText();
 					CorrelationTest.setSelectedTestDescriptor(text);
-					TaskManager.getInstance().getTaskList().stream().forEach(t -> t.initCorrelationTest());
+					getManagerInstance().getTaskList().stream().forEach(t -> t.initCorrelationTest());
 				}
 
 			});
@@ -307,8 +306,8 @@ public class PulseMainMenu extends JMenuBar {
 			changeDialog.setVisible(true);
 		});
 
-		TaskManager.getInstance().addTaskRepositoryListener((TaskRepositoryEvent e) -> {
-			if (TaskManager.getInstance().getTaskList().size() > 0) {
+		getManagerInstance().addTaskRepositoryListener((TaskRepositoryEvent e) -> {
+			if (getManagerInstance().getTaskList().size() > 0) {
 				loadMetadataItem.setEnabled(true);
 				modelSettingsItem.setEnabled(true);
 				searchSettingsItem.setEnabled(true);

@@ -562,7 +562,7 @@ public class SearchTask extends Accessible implements Runnable {
 	public String describe() {
 
 		var sb = new StringBuilder();
-		sb.append(TaskManager.getInstance().getSampleName());
+		sb.append(TaskManager.getManagerInstance().getSampleName());
 		sb.append("_Task_");
 		var extId = curve.getMetadata().getExternalID();
 		if (extId < 0)

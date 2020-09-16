@@ -356,7 +356,7 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 
 	public static void setInstance(PathOptimiser selectedPathOptimiser) {
 		PathOptimiser.instance = selectedPathOptimiser;
-		selectedPathOptimiser.setParent(TaskManager.getInstance());
+		selectedPathOptimiser.setParent(TaskManager.getManagerInstance());
 	}
 
 }

@@ -17,7 +17,7 @@ import static pulse.input.InterpolationDataset.StandartType.DENSITY;
 import static pulse.input.InterpolationDataset.StandartType.HEAT_CAPACITY;
 import static pulse.problem.statements.Problem.isSingleStatement;
 import static pulse.problem.statements.ProblemComplexity.HIGH;
-import static pulse.tasks.TaskManager.getInstance;
+import static pulse.tasks.TaskManager.getManagerInstance;
 import static pulse.tasks.logs.Details.INSUFFICIENT_DATA_IN_PROBLEM_STATEMENT;
 import static pulse.tasks.logs.Details.MISSING_DIFFERENCE_SCHEME;
 import static pulse.tasks.logs.Details.MISSING_PROBLEM_STATEMENT;
@@ -51,7 +51,6 @@ import pulse.problem.schemes.solvers.Solver;
 import pulse.problem.schemes.solvers.SolverException;
 import pulse.problem.statements.Problem;
 import pulse.tasks.SearchTask;
-import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.TaskSelectionEvent;
 import pulse.ui.components.PropertyHolderTable;
 import pulse.ui.components.buttons.LoaderButton;
@@ -155,7 +154,7 @@ public class ProblemStatementFrame extends JInternalFrame {
 		var btnSimulate = new JButton(getString("ProblemStatementFrame.SimulateButton")); //$NON-NLS-1$
 		btnSimulate.setFont(btnSimulate.getFont().deriveFont(BOLD, 14f));
 
-		var instance = TaskManager.getInstance();
+		var instance = getManagerInstance();
 		
 		// simulate btn listener
 
@@ -244,7 +243,7 @@ public class ProblemStatementFrame extends JInternalFrame {
 		);
 		// TODO
 
-		getInstance().addHierarchyListener(event -> {
+		getManagerInstance().addHierarchyListener(event -> {
 			if (!(event.getSource() instanceof PropertyHolderTable))
 				return;
 
@@ -264,7 +263,7 @@ public class ProblemStatementFrame extends JInternalFrame {
 	}
 
 	public void update() {
-		update(TaskManager.getInstance().getSelectedTask());
+		update(getManagerInstance().getSelectedTask());
 	}
 
 	private void update(SearchTask selectedTask) {
@@ -418,7 +417,7 @@ public class ProblemStatementFrame extends JInternalFrame {
 			setModel(listModel);
 			setSelectionMode(SINGLE_SELECTION);
 
-			var instance = TaskManager.getInstance();
+			var instance = getManagerInstance();
 			
 			addListSelectionListener((ListSelectionEvent arg0) -> {
 				if (arg0.getValueIsAdjusting())
@@ -501,7 +500,7 @@ public class ProblemStatementFrame extends JInternalFrame {
 					((DefaultTableModel) schemeTable.getModel()).setRowCount(0);
 					return;
 				}
-				var instance = TaskManager.getInstance();
+				var instance = getManagerInstance();
 				var selectedTask = instance.getSelectedTask();
 				var newScheme = getSelectedValue();
 				if (newScheme == null)

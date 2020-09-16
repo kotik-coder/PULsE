@@ -82,7 +82,7 @@ public class TaskManager extends UpwardsNavigable {
 	 * @return the single (static) instance of this class
 	 */
 
-	public static TaskManager getInstance() {
+	public static TaskManager getManagerInstance() {
 		return instance;
 	}
 
@@ -228,7 +228,7 @@ public class TaskManager extends UpwardsNavigable {
 			var task = tasks.get(0);
 			if (task != null && selectedTask != task) {
 				selectedTask = task;
-				fireTaskSelected(getInstance());
+				fireTaskSelected(getManagerInstance());
 			}
 		}
 	}
@@ -373,7 +373,7 @@ public class TaskManager extends UpwardsNavigable {
 		tasks.add(t);
 
 		var e = new TaskRepositoryEvent(TASK_ADDED, t.getIdentifier());
-		t.setParent(getInstance());
+		t.setParent(getManagerInstance());
 		notifyListeners(e);
 
 		return t;

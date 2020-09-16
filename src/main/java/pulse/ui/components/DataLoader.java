@@ -38,7 +38,7 @@ public class DataLoader {
 	private static ProgressDialog progressFrame = new ProgressDialog();
 
 	static {
-		TaskManager.getInstance().addTaskRepositoryListener(e -> {
+		TaskManager.getManagerInstance().addTaskRepositoryListener(e -> {
 			if (e.getState() == TaskRepositoryEvent.State.TASK_ADDED)
 				progressFrame.incrementProgress();
 		});
@@ -63,7 +63,7 @@ public class DataLoader {
 
 		if (files != null) {
 			progressFrame.trackProgress(files.size());
-			TaskManager.getInstance().generateTasks(files);
+			TaskManager.getManagerInstance().generateTasks(files);
 		}
 
 	}
@@ -86,7 +86,7 @@ public class DataLoader {
 		var file = userInputSingle(Messages.getString("TaskControlFrame.ExtensionDescriptor"),
 				handler.getSupportedExtension());
 
-		var instance = TaskManager.getInstance();
+		var instance = TaskManager.getManagerInstance();
 		
 		if (instance.numberOfTasks() < 1 || file == null)
 			return; // invalid input received, do nothing
@@ -138,7 +138,7 @@ public class DataLoader {
 	public static void load(StandartType type, File f) throws IOException {
 		Objects.requireNonNull(f);
 		InterpolationDataset.setDataset(read(datasetReaders(), f), type);
-		TaskManager.getInstance().evaluate();
+		TaskManager.getManagerInstance().evaluate();
 	}
 
 	private static void truncateDataDialog(Window frame) {
@@ -148,7 +148,7 @@ public class DataLoader {
 				"Potential Problem with Data", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options,
 				options[0]);
 		if (answer == 0)
-			TaskManager.getInstance().truncateData();
+			TaskManager.getManagerInstance().truncateData();
 	}
 
 	private static List<File> userInput(String descriptor, List<String> extensions) {

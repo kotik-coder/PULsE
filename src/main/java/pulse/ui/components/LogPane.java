@@ -112,7 +112,7 @@ public class LogPane extends JEditorPane implements Descriptive {
 	public void printAll() {
 		clear();
 
-		var task = TaskManager.getInstance().getSelectedTask();
+		var task = TaskManager.getManagerInstance().getSelectedTask();
 
 		if (task != null) {
 
@@ -132,7 +132,7 @@ public class LogPane extends JEditorPane implements Descriptive {
 	}
 
 	private synchronized void update() {
-		var task = TaskManager.getInstance().getSelectedTask();
+		var task = TaskManager.getManagerInstance().getSelectedTask();
 
 		if (task == null)
 			return;
@@ -165,7 +165,7 @@ public class LogPane extends JEditorPane implements Descriptive {
 
 	@Override
 	public String describe() {
-		return "Log_" + TaskManager.getInstance().getSelectedTask().getIdentifier().getValue();
+		return "Log_" + TaskManager.getManagerInstance().getSelectedTask().getIdentifier().getValue();
 	}
 
 }

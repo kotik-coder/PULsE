@@ -42,7 +42,7 @@ public class MainGraphFrame extends JInternalFrame {
 	}
 
 	public void plot() {
-		var task = TaskManager.getInstance().getSelectedTask();
+		var task = TaskManager.getManagerInstance().getSelectedTask();
 		if (task != null)
 			chart.plot(task, false);
 	}

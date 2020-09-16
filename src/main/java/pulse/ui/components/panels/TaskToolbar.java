@@ -88,7 +88,7 @@ public class TaskToolbar extends JPanel {
 		removeBtn.addActionListener(e -> notifyRemove());
 		clearBtn.addActionListener(e -> notifyClear());
 		resetBtn.addActionListener(e -> {
-			TaskManager.getInstance().reset();
+			TaskManager.getManagerInstance().reset();
 			notifyReset();
 		});
 		graphBtn.addActionListener(e -> notifyGraph());

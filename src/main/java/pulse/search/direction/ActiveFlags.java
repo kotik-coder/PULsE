@@ -40,7 +40,7 @@ public class ActiveFlags {
 	public static void listAvailableProperties(List<Property> list) {
 		list.addAll(problemIndependentFlags);
 
-		var t = TaskManager.getInstance().getSelectedTask();
+		var t = TaskManager.getManagerInstance().getSelectedTask();
 
 		if (t != null) {
 			var p = t.getProblem();

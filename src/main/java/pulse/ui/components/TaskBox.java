@@ -27,7 +27,7 @@ public class TaskBox extends JComboBox<SearchTask> {
 
 		var reference = this;
 
-		var instance = TaskManager.getInstance();
+		var instance = TaskManager.getManagerInstance();
 		
 		addItemListener((ItemEvent event) -> {
 			if (event.getStateChange() == SELECTED) {

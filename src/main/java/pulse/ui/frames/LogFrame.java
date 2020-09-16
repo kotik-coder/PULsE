@@ -63,7 +63,7 @@ public class LogFrame extends JInternalFrame {
 	}
 
 	private void scheduleLogEvents() {
-		var instance = TaskManager.getInstance();
+		var instance = TaskManager.getManagerInstance();
 		instance.addSelectionListener(e -> logTextPane.printAll());
 
 		instance.addTaskRepositoryListener(event -> {

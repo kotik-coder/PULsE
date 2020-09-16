@@ -93,7 +93,7 @@ public class ExportDialog extends JDialog {
 	}
 
 	private void export(Extension extension) {
-		var instance = TaskManager.getInstance();
+		var instance = TaskManager.getManagerInstance();
 		
 		if (instance.numberOfTasks() < 1)
 			return; // nothing to export
@@ -158,7 +158,7 @@ public class ExportDialog extends JDialog {
 		layout.setAutoCreateGaps(true);
 		layout.setAutoCreateContainerGaps(true);
 
-		final var defaultProjectName = TaskManager.getInstance().describe();
+		final var defaultProjectName = TaskManager.getManagerInstance().describe();
 		projectName = defaultProjectName;
 
 		var directoryLabel = new JLabel("Export to:");
@@ -195,7 +195,7 @@ public class ExportDialog extends JDialog {
 			@Override
 			public void removeUpdate(DocumentEvent e) {
 				if (projectText.getText().trim().isEmpty()) {
-					projectName = TaskManager.getInstance().describe();
+					projectName = TaskManager.getManagerInstance().describe();
 					directoryField.setText(dir.getPath() + separator + projectName + separator);
 				} else {
 					projectName = projectText.getText();
