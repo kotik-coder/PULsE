@@ -1,5 +1,7 @@
 package pulse.problem.statements;
 
+import static pulse.properties.NumericProperties.def;
+import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericProperty.requireType;
 import static pulse.properties.NumericPropertyKeyword.LASER_ENERGY;
 import static pulse.properties.NumericPropertyKeyword.PULSE_WIDTH;
@@ -41,8 +43,8 @@ public class Pulse extends PropertyHolder {
 
 	public Pulse() {
 		super();
-		pulseWidth = (double) NumericProperty.def(PULSE_WIDTH).getValue();
-		laserEnergy = (double) NumericProperty.def(LASER_ENERGY).getValue();
+		pulseWidth = (double) def(PULSE_WIDTH).getValue();
+		laserEnergy = (double) def(LASER_ENERGY).getValue();
 		instanceDescriptor.setSelectedDescriptor(RectangularPulse.class.getSimpleName());
 		initShape();
 		instanceDescriptor.addListener(() -> initShape());
@@ -68,7 +70,7 @@ public class Pulse extends PropertyHolder {
 	}
 
 	public NumericProperty getPulseWidth() {
-		return NumericProperty.derive(PULSE_WIDTH, pulseWidth);
+		return derive(PULSE_WIDTH, pulseWidth);
 	}
 
 	public void setPulseWidth(NumericProperty pulseWidth) {
@@ -78,7 +80,7 @@ public class Pulse extends PropertyHolder {
 	}
 
 	public NumericProperty getLaserEnergy() {
-		return NumericProperty.derive(LASER_ENERGY, laserEnergy);
+		return derive(LASER_ENERGY, laserEnergy);
 	}
 
 	public void setLaserEnergy(NumericProperty laserEnergy) {
@@ -106,8 +108,8 @@ public class Pulse extends PropertyHolder {
 	@Override
 	public List<Property> listedTypes() {
 		List<Property> list = new ArrayList<>();
-		list.add(NumericProperty.def(PULSE_WIDTH));
-		list.add(NumericProperty.def(LASER_ENERGY));
+		list.add(def(PULSE_WIDTH));
+		list.add(def(LASER_ENERGY));
 		list.add(instanceDescriptor);
 		return list;
 	}

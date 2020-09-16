@@ -1,7 +1,7 @@
 package pulse.problem.statements.penetration;
 
-import static pulse.properties.NumericProperty.def;
-import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericProperties.def;
+import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.REFLECTANCE;
 
 import java.util.List;

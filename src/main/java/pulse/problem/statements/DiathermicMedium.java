@@ -2,8 +2,8 @@ package pulse.problem.statements;
 
 import static java.lang.Math.tanh;
 import static pulse.math.MathUtils.atanh;
-import static pulse.properties.NumericProperty.def;
-import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericProperties.def;
+import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericProperty.requireType;
 import static pulse.properties.NumericPropertyKeyword.DIATHERMIC_COEFFICIENT;
 import static pulse.properties.NumericPropertyKeyword.NUMPOINTS;

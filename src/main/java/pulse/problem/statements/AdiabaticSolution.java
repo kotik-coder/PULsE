@@ -3,7 +3,7 @@ package pulse.problem.statements;
 import static java.lang.Math.PI;
 import static java.lang.Math.exp;
 import static java.lang.Math.pow;
-import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.NUMPOINTS;
 
 import pulse.HeatingCurve;

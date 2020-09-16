@@ -1,7 +1,7 @@
 package pulse.input;
 
 import static java.lang.System.lineSeparator;
-import static pulse.properties.NumericProperty.def;
+import static pulse.properties.NumericProperties.def;
 import static pulse.properties.NumericPropertyKeyword.DETECTOR_GAIN;
 import static pulse.properties.NumericPropertyKeyword.DETECTOR_IRIS;
 import static pulse.properties.NumericPropertyKeyword.DIAMETER;

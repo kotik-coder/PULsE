@@ -1,5 +1,7 @@
 package pulse.search.linear;
 
+import static pulse.properties.NumericProperties.def;
+import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.LINEAR_RESOLUTION;
 
 import java.util.ArrayList;
@@ -26,7 +28,7 @@ import pulse.util.Reflexive;
 
 public abstract class LinearOptimiser extends PropertyHolder implements Reflexive {
 
-	protected static double searchResolution = (double) NumericProperty.def(LINEAR_RESOLUTION).getValue();
+	protected static double searchResolution = (double) def(LINEAR_RESOLUTION).getValue();
 
 	protected LinearOptimiser() {
 		super();
@@ -100,7 +102,7 @@ public abstract class LinearOptimiser extends PropertyHolder implements Reflexiv
 	 */
 
 	public static NumericProperty getLinearResolution() {
-		return NumericProperty.derive(LINEAR_RESOLUTION, searchResolution);
+		return derive(LINEAR_RESOLUTION, searchResolution);
 	}
 
 	public static void setLinearResolution(NumericProperty searchError) {
@@ -121,7 +123,7 @@ public abstract class LinearOptimiser extends PropertyHolder implements Reflexiv
 	@Override
 	public List<Property> listedTypes() {
 		List<Property> list = new ArrayList<>();
-		list.add(NumericProperty.def(LINEAR_RESOLUTION));
+		list.add(def(LINEAR_RESOLUTION));
 		return list;
 	}
 

@@ -66,7 +66,9 @@ public enum NumericPropertyKeyword {
 	 * Grid (space partitioning) density.
 	 */
 
-	GRID_DENSITY, SHELL_GRID_DENSITY,
+	GRID_DENSITY, 
+	
+	SHELL_GRID_DENSITY,
 
 	AXIAL_COATING_THICKNESS,
 

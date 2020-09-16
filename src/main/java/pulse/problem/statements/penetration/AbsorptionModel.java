@@ -2,8 +2,7 @@ package pulse.problem.statements.penetration;
 
 import static pulse.problem.statements.penetration.SpectralRange.LASER;
 import static pulse.problem.statements.penetration.SpectralRange.THERMAL;
-import static pulse.properties.NumericProperty.def;
-import static pulse.properties.NumericProperty.theDefault;
+import static pulse.properties.NumericProperties.def;
 import static pulse.properties.NumericPropertyKeyword.LASER_ABSORPTIVITY;
 import static pulse.properties.NumericPropertyKeyword.THERMAL_ABSORPTIVITY;
 
@@ -24,8 +23,8 @@ public abstract class AbsorptionModel extends PropertyHolder implements Reflexiv
 	protected AbsorptionModel() {
 		setPrefix("Absorption model");
 		absorptionMap = new HashMap<>();
-		absorptionMap.put(LASER, theDefault(LASER_ABSORPTIVITY));
-		absorptionMap.put(THERMAL, theDefault(THERMAL_ABSORPTIVITY));
+		absorptionMap.put(LASER, def(LASER_ABSORPTIVITY));
+		absorptionMap.put(THERMAL, def(THERMAL_ABSORPTIVITY));
 	}
 
 	public abstract double absorption(SpectralRange range, double x);

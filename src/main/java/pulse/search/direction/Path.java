@@ -1,8 +1,10 @@
 package pulse.search.direction;
 
+import static pulse.properties.NumericProperties.derive;
+import static pulse.properties.NumericPropertyKeyword.ITERATION;
+
 import pulse.math.linear.Vector;
 import pulse.properties.NumericProperty;
-import pulse.properties.NumericPropertyKeyword;
 import pulse.tasks.SearchTask;
 
 /**
@@ -75,7 +77,7 @@ public class Path {
 	}
 
 	public NumericProperty getIteration() {
-		return NumericProperty.derive(NumericPropertyKeyword.ITERATION, iteration);
+		return derive(ITERATION, iteration);
 	}
 
 	public void incrementStep() {

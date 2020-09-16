@@ -1,10 +1,9 @@
 package pulse.problem.statements;
 
 import static pulse.math.MathUtils.fastPowLoop;
-import static pulse.properties.NumericProperty.def;
-import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericProperties.def;
+import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericProperty.requireType;
-import static pulse.properties.NumericProperty.theDefault;
 import static pulse.properties.NumericPropertyKeyword.OPTICAL_THICKNESS;
 import static pulse.properties.NumericPropertyKeyword.PLANCK_NUMBER;
 import static pulse.properties.NumericPropertyKeyword.SCATTERING_ALBEDO;
@@ -28,16 +27,16 @@ public class ThermoOpticalProperties extends ThermalProperties {
 		super();
 		this.opticalThickness = (double) def(OPTICAL_THICKNESS).getValue();
 		this.planckNumber = (double) def(PLANCK_NUMBER).getValue();
-		scatteringAnisotropy = (double) theDefault(SCATTERING_ANISOTROPY).getValue();
-		scatteringAlbedo = (double) theDefault(SCATTERING_ALBEDO).getValue();
+		scatteringAnisotropy = (double) def(SCATTERING_ANISOTROPY).getValue();
+		scatteringAlbedo = (double) def(SCATTERING_ALBEDO).getValue();
 	}
 
 	public ThermoOpticalProperties(ThermalProperties p) {
 		super(p);
-		this.opticalThickness = (double) theDefault(OPTICAL_THICKNESS).getValue();
-		this.planckNumber = (double) theDefault(PLANCK_NUMBER).getValue();
-		scatteringAlbedo = (double) theDefault(SCATTERING_ALBEDO).getValue();
-		scatteringAnisotropy = (double) theDefault(SCATTERING_ANISOTROPY).getValue();
+		this.opticalThickness = (double) def(OPTICAL_THICKNESS).getValue();
+		this.planckNumber = (double) def(PLANCK_NUMBER).getValue();
+		scatteringAlbedo = (double) def(SCATTERING_ALBEDO).getValue();
+		scatteringAnisotropy = (double) def(SCATTERING_ANISOTROPY).getValue();
 	}
 
 	public ThermoOpticalProperties(ThermoOpticalProperties p) {

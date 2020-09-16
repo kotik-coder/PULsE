@@ -8,6 +8,7 @@ import static javax.swing.JOptionPane.ERROR_MESSAGE;
 import static javax.swing.JOptionPane.YES_NO_OPTION;
 import static javax.swing.JOptionPane.showOptionDialog;
 import static javax.swing.SwingUtilities.getWindowAncestor;
+import static pulse.properties.NumericProperties.numberFormat;
 import static pulse.ui.Messages.getString;
 
 import java.awt.BorderLayout;
@@ -99,7 +100,7 @@ public class FormattedInputDialog extends JDialog {
 		var inputTextField = new JFormattedTextField(p.getValue());
 		// Set up the editor for the integer cells.
 
-		var numberFormat = p.numberFormat(true);
+		var numberFormat = numberFormat(p, true);
 		numFormatter = new NumberFormatter(numberFormat);
 
 		numFormatter.setMinimum(p.getMinimum().doubleValue());

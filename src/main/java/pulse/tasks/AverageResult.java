@@ -1,5 +1,7 @@
 package pulse.tasks;
 
+import static pulse.properties.NumericProperties.derive;
+
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
@@ -95,7 +97,7 @@ public class AverageResult extends AbstractResult {
 			key = getFormat().getKeywords().get(j);
 
 			if (!Double.isFinite(std[j]))
-				p = NumericProperty.derive(key, av[j]); // ignore error as the value is not finite
+				p = derive(key, av[j]); // ignore error as the value is not finite
 			else {
 				stdBig = (new BigDecimal(std[j])).sqrt(MathContext.DECIMAL64);
 				avBig = new BigDecimal(av[j]);
@@ -108,7 +110,7 @@ public class AverageResult extends AbstractResult {
 				else
 					resultAv = avBig;
 
-				p = NumericProperty.derive(key, resultAv.doubleValue());
+				p = derive(key, resultAv.doubleValue());
 				p.setError(resultStd.doubleValue());
 
 			}

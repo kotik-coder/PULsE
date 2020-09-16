@@ -1,5 +1,9 @@
 package pulse.tasks;
 
+import static pulse.properties.NumericProperties.def;
+import static pulse.properties.NumericProperties.derive;
+import static pulse.properties.NumericPropertyKeyword.BUFFER_SIZE;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,7 +25,7 @@ public class Buffer extends PropertyHolder {
 
 	private IndexedVector[] data;
 	private double[] statistic;
-	private static int size = (int) NumericProperty.theDefault(NumericPropertyKeyword.BUFFER_SIZE).getValue();
+	private static int size = (int) def(BUFFER_SIZE).getValue();
 
 	/**
 	 * Creates a {@code Buffer} with a default size.
@@ -157,7 +161,7 @@ public class Buffer extends PropertyHolder {
 	 */
 
 	public static NumericProperty getSize() {
-		return NumericProperty.derive(NumericPropertyKeyword.BUFFER_SIZE, size);
+		return derive(BUFFER_SIZE, size);
 	}
 
 	/**
@@ -176,14 +180,14 @@ public class Buffer extends PropertyHolder {
 	 */
 
 	public static void setSize(NumericProperty newSize) {
-		if (newSize.getType() != NumericPropertyKeyword.BUFFER_SIZE)
+		if (newSize.getType() != BUFFER_SIZE)
 			throw new IllegalArgumentException("Illegal argument type: " + newSize.getType());
 		Buffer.size = ((Number) newSize.getValue()).intValue();
 	}
 
 	@Override
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
-		if (type == NumericPropertyKeyword.BUFFER_SIZE)
+		if (type == BUFFER_SIZE)
 			setSize(property);
 	}
 
@@ -196,7 +200,7 @@ public class Buffer extends PropertyHolder {
 	@Override
 	public List<Property> listedTypes() {
 		List<Property> list = new ArrayList<>();
-		list.add(NumericProperty.def(NumericPropertyKeyword.BUFFER_SIZE));
+		list.add(def(BUFFER_SIZE));
 		return list;
 	}
 

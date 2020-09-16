@@ -1,7 +1,7 @@
 package pulse.problem.statements;
 
-import static pulse.properties.NumericProperty.def;
-import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericProperties.def;
+import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericProperty.requireType;
 import static pulse.properties.NumericPropertyKeyword.DIAMETER;
 import static pulse.properties.NumericPropertyKeyword.FOV_INNER;

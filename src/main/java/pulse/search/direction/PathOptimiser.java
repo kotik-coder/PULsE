@@ -1,5 +1,9 @@
 package pulse.search.direction;
 
+import static pulse.properties.NumericProperties.compare;
+import static pulse.properties.NumericProperties.def;
+import static pulse.properties.NumericProperties.derive;
+import static pulse.properties.NumericProperties.isDiscrete;
 import static pulse.properties.NumericPropertyKeyword.ERROR_TOLERANCE;
 import static pulse.properties.NumericPropertyKeyword.GRADIENT_RESOLUTION;
 import static pulse.properties.NumericPropertyKeyword.ITERATION_LIMIT;
@@ -76,9 +80,9 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 	 */
 
 	public static void reset() {
-		maxIterations = (int) NumericProperty.theDefault(ITERATION_LIMIT).getValue();
-		errorTolerance = (double) NumericProperty.theDefault(ERROR_TOLERANCE).getValue();
-		gradientResolution = (double) NumericProperty.theDefault(GRADIENT_RESOLUTION).getValue();
+		maxIterations = (int) def(ITERATION_LIMIT).getValue();
+		errorTolerance = (double) def(ERROR_TOLERANCE).getValue();
+		gradientResolution = (double) def(GRADIENT_RESOLUTION).getValue();
 		problemDependentFlags = Flag.allProblemDependentFlags();
 		problemIndependentFlags = Flag.allProblemIndependentFlags();
 	}
@@ -111,7 +115,7 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 		 * Checks whether an iteration limit has been already reached
 		 */
 
-		if (p.getIteration().compareValues(PathOptimiser.getMaxIterations()) > 0)
+		if (compare(p.getIteration(), PathOptimiser.getMaxIterations()) > 0)
 			task.setStatus(Status.TIMEOUT);
 
 		IndexedVector parameters = task.searchVector()[0]; // get current search vector
@@ -186,7 +190,7 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 		Vector newParams, shift;
 		double ss1, ss2, dx;
 
-		boolean discreteGradient = params.getIndices().stream().anyMatch(index -> NumericProperty.isDiscreet(index));
+		boolean discreteGradient = params.getIndices().stream().anyMatch(index -> isDiscrete(index));
 		dx = discreteGradient ? 2.0 * task.getScheme().getGrid().getXStep() : 2.0 * gradientResolution;
 
 		for (int i = 0; i < params.dimension(); i++) {
@@ -229,7 +233,7 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 	}
 
 	public static NumericProperty getErrorTolerance() {
-		return NumericProperty.derive(ERROR_TOLERANCE, errorTolerance);
+		return derive(ERROR_TOLERANCE, errorTolerance);
 	}
 
 	public static void setErrorTolerance(NumericProperty errorTolerance) {
@@ -241,11 +245,11 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 	}
 
 	public static NumericProperty getGradientResolution() {
-		return NumericProperty.derive(GRADIENT_RESOLUTION, gradientResolution);
+		return derive(GRADIENT_RESOLUTION, gradientResolution);
 	}
 
 	public static NumericProperty getMaxIterations() {
-		return NumericProperty.derive(ITERATION_LIMIT, maxIterations);
+		return derive(ITERATION_LIMIT, maxIterations);
 	}
 
 	public static void setMaxIterations(NumericProperty maxIterations) {
@@ -300,9 +304,9 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 	@Override
 	public List<Property> listedTypes() {
 		List<Property> list = new ArrayList<Property>();
-		list.add(NumericProperty.def(GRADIENT_RESOLUTION));
-		list.add(NumericProperty.def(ERROR_TOLERANCE));
-		list.add(NumericProperty.def(ITERATION_LIMIT));
+		list.add(def(GRADIENT_RESOLUTION));
+		list.add(def(ERROR_TOLERANCE));
+		list.add(def(ITERATION_LIMIT));
 
 		listAvailableProperties(list);
 

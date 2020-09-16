@@ -1,5 +1,6 @@
 package pulse.tasks;
 
+import static pulse.properties.NumericProperties.def;
 import static pulse.properties.NumericPropertyKeyword.IDENTIFIER;
 
 import java.util.Optional;
@@ -19,7 +20,7 @@ public class Identifier extends NumericProperty {
 	private static int lastId = -1;
 
 	private Identifier(int value, boolean addToList) {
-		super(NumericProperty.theDefault(IDENTIFIER));
+		super(def(IDENTIFIER));
 		setValue(value);
 		if (addToList)
 			setLastId(value);

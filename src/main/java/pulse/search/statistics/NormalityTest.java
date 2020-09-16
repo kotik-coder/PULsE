@@ -1,5 +1,7 @@
 package pulse.search.statistics;
 
+import static pulse.properties.NumericProperties.def;
+import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.PROBABILITY;
 import static pulse.properties.NumericPropertyKeyword.SIGNIFICANCE;
 import static pulse.properties.NumericPropertyKeyword.TEST_STATISTIC;
@@ -11,17 +13,17 @@ import pulse.tasks.SearchTask;
 public abstract class NormalityTest extends ResidualStatistic {
 
 	protected double probability;
-	protected static double significance = (double) NumericProperty.theDefault(SIGNIFICANCE).getValue();
+	protected static double significance = (double) def(SIGNIFICANCE).getValue();
 
 	private static String selectedTestDescriptor;
 
 	protected NormalityTest() {
-		probability = (double) NumericProperty.theDefault(PROBABILITY).getValue();
-		statistic = (double) NumericProperty.theDefault(TEST_STATISTIC).getValue();
+		probability = (double) def(PROBABILITY).getValue();
+		statistic = (double) def(TEST_STATISTIC).getValue();
 	}
 
 	public static NumericProperty getStatisticalSignifiance() {
-		return NumericProperty.derive(SIGNIFICANCE, significance);
+		return derive(SIGNIFICANCE, significance);
 	}
 
 	public static void setStatisticalSignificance(NumericProperty alpha) {
@@ -31,14 +33,14 @@ public abstract class NormalityTest extends ResidualStatistic {
 	}
 
 	public NumericProperty getProbability() {
-		return NumericProperty.derive(PROBABILITY, probability);
+		return derive(PROBABILITY, probability);
 	}
 
 	public abstract boolean test(SearchTask task);
 
 	@Override
 	public NumericProperty getStatistic() {
-		return NumericProperty.derive(TEST_STATISTIC, statistic);
+		return derive(TEST_STATISTIC, statistic);
 	}
 
 	@Override

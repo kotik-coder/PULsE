@@ -2,7 +2,7 @@ package pulse.tasks;
 
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
-import static pulse.properties.NumericProperty.theDefault;
+import static pulse.properties.NumericProperties.def;
 import static pulse.properties.NumericPropertyKeyword.DIFFUSIVITY;
 import static pulse.properties.NumericPropertyKeyword.IDENTIFIER;
 import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
@@ -103,7 +103,7 @@ public class ResultFormat {
 	 */
 
 	public List<String> abbreviations() {
-		return nameMap.stream().map(keyword -> theDefault(keyword).getAbbreviation(true)).collect(toList());
+		return nameMap.stream().map(keyword -> def(keyword).getAbbreviation(true)).collect(toList());
 	}
 
 	/**
@@ -115,7 +115,7 @@ public class ResultFormat {
 	 */
 
 	public List<String> descriptors() {
-		return nameMap.stream().map(keyword -> theDefault(keyword).getDescriptor(false)).collect(toList());
+		return nameMap.stream().map(keyword -> def(keyword).getDescriptor(false)).collect(toList());
 	}
 
 	/**
@@ -128,7 +128,7 @@ public class ResultFormat {
 	 */
 
 	public NumericPropertyKeyword fromAbbreviation(String descriptor) {
-		return nameMap.stream().filter(keyword -> theDefault(keyword).getAbbreviation(true).equals(descriptor))
+		return nameMap.stream().filter(keyword -> def(keyword).getAbbreviation(true).equals(descriptor))
 				.findFirst().get();
 	}
 

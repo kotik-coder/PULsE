@@ -1,7 +1,7 @@
 package pulse.problem.schemes.rte.dom;
 
-import static pulse.properties.NumericProperty.derive;
-import static pulse.properties.NumericProperty.theDefault;
+import static pulse.properties.NumericProperties.def;
+import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.DOM_GRID_DENSITY;
 import static pulse.properties.NumericPropertyKeyword.GRID_STRETCHING_FACTOR;
 
@@ -27,7 +27,7 @@ public class StretchedGrid extends PropertyHolder {
 	 */
 	
 	public StretchedGrid(double dimension) {
-		this(theDefault(DOM_GRID_DENSITY), dimension, theDefault(GRID_STRETCHING_FACTOR), true);
+		this(def(DOM_GRID_DENSITY), dimension, def(GRID_STRETCHING_FACTOR), true);
 	}
 	
 	/**
@@ -38,7 +38,7 @@ public class StretchedGrid extends PropertyHolder {
 	 */
 
 	public StretchedGrid(NumericProperty gridDensity, double dimension) {
-		this(gridDensity, dimension, theDefault(GRID_STRETCHING_FACTOR), false);
+		this(gridDensity, dimension, def(GRID_STRETCHING_FACTOR), false);
 	}
 
 	protected StretchedGrid(NumericProperty gridDensity, double dimension, NumericProperty stretchingFactor, boolean uniform) {
@@ -63,7 +63,7 @@ public class StretchedGrid extends PropertyHolder {
 	}
 
 	public void generateUniform(boolean scaled) {
-		int n1 = (int) theDefault(DOM_GRID_DENSITY).getValue();
+		int n1 = (int) def(DOM_GRID_DENSITY).getValue();
 		generateUniformBase(n1, scaled);
 	}
 
@@ -133,8 +133,8 @@ public class StretchedGrid extends PropertyHolder {
 	@Override
 	public List<Property> listedTypes() {
 		List<Property> list = new ArrayList<>();
-		list.add(theDefault(GRID_STRETCHING_FACTOR));
-		list.add(theDefault(DOM_GRID_DENSITY));
+		list.add(def(GRID_STRETCHING_FACTOR));
+		list.add(def(DOM_GRID_DENSITY));
 		return list;
 	}
 

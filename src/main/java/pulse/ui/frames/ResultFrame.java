@@ -6,7 +6,7 @@ import static javax.swing.JOptionPane.ERROR_MESSAGE;
 import static javax.swing.JOptionPane.showMessageDialog;
 import static javax.swing.SwingUtilities.getWindowAncestor;
 import static pulse.io.export.ExportManager.askToExport;
-import static pulse.properties.NumericProperty.theDefault;
+import static pulse.properties.NumericProperties.def;
 import static pulse.properties.NumericPropertyKeyword.WINDOW;
 import static pulse.tasks.ResultFormat.getInstance;
 import static pulse.ui.Messages.getString;
@@ -52,7 +52,7 @@ public class ResultFrame extends JInternalFrame {
 		resultToolbar = new ResultToolbar();
 		getContentPane().add(resultToolbar, EAST);
 
-		averageWindowDialog = new FormattedInputDialog(theDefault(WINDOW));
+		averageWindowDialog = new FormattedInputDialog(def(WINDOW));
 	}
 
 	private void addListeners() {

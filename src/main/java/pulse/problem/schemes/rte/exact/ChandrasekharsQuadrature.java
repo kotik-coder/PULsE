@@ -6,10 +6,9 @@ import static java.lang.Math.cos;
 import static java.lang.Math.exp;
 import static java.lang.Math.sqrt;
 import static pulse.math.MathUtils.fastPowLoop;
-import static pulse.properties.NumericProperty.def;
-import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericProperties.def;
+import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericProperty.requireType;
-import static pulse.properties.NumericProperty.theDefault;
 import static pulse.properties.NumericPropertyKeyword.QUADRATURE_POINTS;
 
 import java.util.ArrayList;
@@ -53,7 +52,7 @@ public class ChandrasekharsQuadrature extends CompositionProduct {
 
 	public ChandrasekharsQuadrature() {
 		super(new Segment(0, 1));
-		m = (int) theDefault(QUADRATURE_POINTS).getValue();
+		m = (int) def(QUADRATURE_POINTS).getValue();
 		solver = new LaguerreSolver();
 	}
 

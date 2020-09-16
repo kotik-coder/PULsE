@@ -1,7 +1,7 @@
 package pulse.problem.schemes;
 
 import static pulse.math.MathUtils.fastPowLoop;
-import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.GRID_DENSITY;
 import static pulse.properties.NumericPropertyKeyword.TAU_FACTOR;
 import static pulse.ui.Messages.getString;

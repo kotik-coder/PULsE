@@ -1,8 +1,9 @@
 package pulse.tasks;
 
+import static pulse.properties.NumericProperties.def;
+
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import pulse.properties.NumericProperty;
@@ -88,12 +89,8 @@ public abstract class AbstractResult extends UpwardsNavigable {
 
 	public static List<NumericProperty> filterProperties(AbstractResult result, ResultFormat format) {
 		return format.getKeywords().stream().map(keyword -> {
-			Optional<NumericProperty> p = result.properties.stream()
-					.filter(property -> property.getType().equals(keyword)).findFirst();
-			if (p.isPresent())
-				return p.get();
-			else
-				return NumericProperty.theDefault(keyword);
+			var p = result.properties.stream().filter(property -> property.getType().equals(keyword)).findFirst();
+			return p.isPresent() ? p.get() : def(keyword);
 		}).collect(Collectors.toList());
 	}
 

@@ -2,7 +2,7 @@ package pulse.math;
 
 import static pulse.math.MathUtils.fastPowInt;
 import static pulse.math.MathUtils.fastPowLoop;
-import static pulse.properties.NumericProperty.theDefault;
+import static pulse.properties.NumericProperties.def;
 import static pulse.properties.NumericPropertyKeyword.LAGUERRE_SOLVER_ERROR;
 
 import org.apache.commons.math3.analysis.solvers.LaguerreSolver;
@@ -38,7 +38,7 @@ public class LegendrePoly {
 	public LegendrePoly(final int n) {
 		this.n = n;
 		c = new double[n + 1];
-		var solverError = (double) theDefault(LAGUERRE_SOLVER_ERROR).getValue();
+		var solverError = (double) def(LAGUERRE_SOLVER_ERROR).getValue();
 		solver = new LaguerreSolver(solverError);
 		coefficients();
 	}

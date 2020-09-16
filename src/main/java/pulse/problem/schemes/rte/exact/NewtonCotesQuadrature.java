@@ -2,8 +2,8 @@ package pulse.problem.schemes.rte.exact;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static pulse.properties.NumericProperty.def;
-import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericProperties.def;
+import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericProperty.requireType;
 import static pulse.properties.NumericPropertyKeyword.INTEGRATION_CUTOFF;
 import static pulse.properties.NumericPropertyKeyword.INTEGRATION_SEGMENTS;

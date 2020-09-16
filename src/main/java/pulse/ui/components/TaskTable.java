@@ -4,7 +4,7 @@ import static javax.swing.ListSelectionModel.SINGLE_INTERVAL_SELECTION;
 import static javax.swing.SortOrder.ASCENDING;
 import static javax.swing.SwingUtilities.invokeLater;
 import static javax.swing.SwingUtilities.isRightMouseButton;
-import static pulse.properties.NumericProperty.theDefault;
+import static pulse.properties.NumericProperties.def;
 import static pulse.properties.NumericPropertyKeyword.IDENTIFIER;
 import static pulse.properties.NumericPropertyKeyword.OPTIMISER_STATISTIC;
 import static pulse.properties.NumericPropertyKeyword.TEST_STATISTIC;
@@ -71,9 +71,9 @@ public class TaskTable extends JTable {
 		var model = new TaskTableModel();
 		setModel(model);
 
-		var th = new TableHeader(getColumnModel(), new String[] { theDefault(IDENTIFIER).getDescriptor(true),
-				theDefault(TEST_TEMPERATURE).getDescriptor(true), theDefault(OPTIMISER_STATISTIC).getDescriptor(true),
-				theDefault(TEST_STATISTIC).getDescriptor(true), ("Task status") });
+		var th = new TableHeader(getColumnModel(), new String[] { def(IDENTIFIER).getDescriptor(true),
+				def(TEST_TEMPERATURE).getDescriptor(true), def(OPTIMISER_STATISTIC).getDescriptor(true),
+				def(TEST_STATISTIC).getDescriptor(true), ("Task status") });
 
 		setTableHeader(th);
 
@@ -192,10 +192,10 @@ public class TaskTable extends JTable {
 		public TaskTableModel() {
 
 			super(new Object[][] {},
-					new String[] { theDefault(IDENTIFIER).getAbbreviation(true),
-							theDefault(TEST_TEMPERATURE).getAbbreviation(true),
-							theDefault(OPTIMISER_STATISTIC).getAbbreviation(true),
-							theDefault(TEST_STATISTIC).getAbbreviation(true), getString("TaskTable.Status") });
+					new String[] { def(IDENTIFIER).getAbbreviation(true),
+							def(TEST_TEMPERATURE).getAbbreviation(true),
+							def(OPTIMISER_STATISTIC).getAbbreviation(true),
+							def(TEST_STATISTIC).getAbbreviation(true), getString("TaskTable.Status") });
 
 		}
 

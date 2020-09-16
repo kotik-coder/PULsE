@@ -1,9 +1,8 @@
 package pulse.math;
 
-import static pulse.properties.NumericProperty.def;
-import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericProperties.def;
+import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericProperty.requireType;
-import static pulse.properties.NumericProperty.theDefault;
 import static pulse.properties.NumericPropertyKeyword.INTEGRATION_SEGMENTS;
 
 import java.util.ArrayList;
@@ -35,7 +34,7 @@ public abstract class FixedIntervalIntegrator extends AbstractIntegrator {
 	 */
 
 	public FixedIntervalIntegrator(Segment bounds) {
-		this(bounds, theDefault(INTEGRATION_SEGMENTS));
+		this(bounds, def(INTEGRATION_SEGMENTS));
 	}
 
 	/**

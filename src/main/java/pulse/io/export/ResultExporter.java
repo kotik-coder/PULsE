@@ -53,7 +53,7 @@ public class ResultExporter implements Exporter<Result> {
 
 				stream.print(p.getDescriptor(true));
 				stream.print("</td><td>");
-				stream.print(p.formattedValueAndError(true));
+				stream.print(p.formattedOutput());
 
 				stream.print("</td>");
 				stream.println("</tr>");
@@ -78,7 +78,7 @@ public class ResultExporter implements Exporter<Result> {
 
 			for (var p : result.getProperties()) {
 				stream.printf("%n%-24.12s", p.getType());
-				stream.printf("\t%-24.12s", p.formattedValueAndError(true));
+				stream.printf("\t%-24.12s", p.formattedOutput());
 			}
 		}
 	}

@@ -1,7 +1,8 @@
 package pulse.problem.schemes.rte.dom;
 
-import static pulse.properties.NumericProperty.def;
-import static pulse.properties.NumericProperty.theDefault;
+import static pulse.properties.NumericProperties.def;
+import static pulse.properties.NumericProperties.derive;
+import static pulse.properties.NumericProperties.isValueSensible;
 import static pulse.properties.NumericPropertyKeyword.ATOL;
 import static pulse.properties.NumericPropertyKeyword.GRID_SCALING_FACTOR;
 import static pulse.properties.NumericPropertyKeyword.RTE_INTEGRATION_TIMEOUT;
@@ -38,10 +39,10 @@ public abstract class AdaptiveIntegrator extends ODEIntegrator {
 
 	public AdaptiveIntegrator(Discretisation intensities) {
 		super(intensities);
-		atol = (double) theDefault(ATOL).getValue();
-		rtol = (double) theDefault(RTOL).getValue();
-		scalingFactor = (double) theDefault(GRID_SCALING_FACTOR).getValue();
-		timeThreshold = (double) theDefault(RTE_INTEGRATION_TIMEOUT).getValue();
+		atol = (double) def(ATOL).getValue();
+		rtol = (double) def(RTOL).getValue();
+		scalingFactor = (double) def(GRID_SCALING_FACTOR).getValue();
+		timeThreshold = (double) def(RTE_INTEGRATION_TIMEOUT).getValue();
 		hermite = new HermiteInterpolator();
 	}
 	
@@ -132,7 +133,7 @@ public abstract class AdaptiveIntegrator extends ODEIntegrator {
 	}
 
 	private RTECalculationStatus sanityCheck() {
-		if (!NumericProperty.isValueSensible(NumericProperty.theDefault(NumericPropertyKeyword.DOM_GRID_DENSITY),
+		if (!isValueSensible(def(NumericPropertyKeyword.DOM_GRID_DENSITY),
 				getDiscretisation().getGrid().getDensity()))
 			return RTECalculationStatus.GRID_TOO_LARGE;
 		else if (Duration.between(Instant.now(), start).toSeconds() > timeThreshold)
@@ -169,15 +170,15 @@ public abstract class AdaptiveIntegrator extends ODEIntegrator {
 	}
 
 	public NumericProperty getRelativeTolerance() {
-		return NumericProperty.derive(NumericPropertyKeyword.RTOL, rtol);
+		return derive(NumericPropertyKeyword.RTOL, rtol);
 	}
 
 	public NumericProperty getAbsoluteTolerance() {
-		return NumericProperty.derive(NumericPropertyKeyword.ATOL, atol);
+		return derive(NumericPropertyKeyword.ATOL, atol);
 	}
 
 	public NumericProperty getGridScalingFactor() {
-		return NumericProperty.derive(NumericPropertyKeyword.GRID_SCALING_FACTOR, scalingFactor);
+		return derive(NumericPropertyKeyword.GRID_SCALING_FACTOR, scalingFactor);
 	}
 
 	public void setRelativeTolerance(NumericProperty p) {
@@ -238,7 +239,7 @@ public abstract class AdaptiveIntegrator extends ODEIntegrator {
 	}
 
 	public NumericProperty getTimeThreshold() {
-		return NumericProperty.derive(RTE_INTEGRATION_TIMEOUT, (double) timeThreshold);
+		return derive(RTE_INTEGRATION_TIMEOUT, (double) timeThreshold);
 	}
 
 	public void setTimeThreshold(NumericProperty timeThreshold) {

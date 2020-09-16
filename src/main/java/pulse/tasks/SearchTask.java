@@ -2,7 +2,7 @@ package pulse.tasks;
 
 import static pulse.input.InterpolationDataset.getDataset;
 import static pulse.input.listeners.DataEventType.CHANGE_OF_ORIGIN;
-import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
 import static pulse.properties.NumericPropertyKeyword.TIME_LIMIT;
 import static pulse.search.direction.PathOptimiser.activeParameters;

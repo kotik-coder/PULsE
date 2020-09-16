@@ -1,9 +1,8 @@
 package pulse.problem.schemes.rte.dom;
 
 import static pulse.problem.schemes.rte.RTECalculationStatus.ITERATION_LIMIT_REACHED;
-import static pulse.properties.NumericProperty.def;
-import static pulse.properties.NumericProperty.derive;
-import static pulse.properties.NumericProperty.theDefault;
+import static pulse.properties.NumericProperties.def;
+import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.DOM_ITERATION_ERROR;
 import static pulse.properties.NumericPropertyKeyword.RTE_MAX_ITERATIONS;
 
@@ -38,8 +37,8 @@ public abstract class IterativeSolver extends PropertyHolder implements Reflexiv
 	 */
 	
 	public IterativeSolver() {
-		iterationError = (double) theDefault(DOM_ITERATION_ERROR).getValue();
-		maxIterations = (int) theDefault(RTE_MAX_ITERATIONS).getValue();
+		iterationError = (double) def(DOM_ITERATION_ERROR).getValue();
+		maxIterations = (int) def(RTE_MAX_ITERATIONS).getValue();
 	}
 	
 	/**

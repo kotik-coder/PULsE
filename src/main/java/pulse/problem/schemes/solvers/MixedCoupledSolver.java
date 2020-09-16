@@ -1,9 +1,8 @@
 package pulse.problem.schemes.solvers;
 
-import static pulse.properties.NumericProperty.def;
-import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericProperties.def;
+import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericProperty.requireType;
-import static pulse.properties.NumericProperty.theDefault;
 import static pulse.properties.NumericPropertyKeyword.GRID_DENSITY;
 import static pulse.properties.NumericPropertyKeyword.SCHEME_WEIGHT;
 import static pulse.properties.NumericPropertyKeyword.TAU_FACTOR;
@@ -55,12 +54,12 @@ public class MixedCoupledSolver extends CoupledImplicitScheme implements Solver<
 
 	public MixedCoupledSolver() {
 		super(derive(GRID_DENSITY, 16), derive(TAU_FACTOR, 0.25));
-		sigma = (double) theDefault(SCHEME_WEIGHT).getValue();
+		sigma = (double) def(SCHEME_WEIGHT).getValue();
 	}
 
 	public MixedCoupledSolver(NumericProperty N, NumericProperty timeFactor, NumericProperty timeLimit) {
 		super(N, timeFactor, timeLimit);
-		sigma = (double) theDefault(SCHEME_WEIGHT).getValue();
+		sigma = (double) def(SCHEME_WEIGHT).getValue();
 	}
 
 	private void prepare(ParticipatingMedium problem) {

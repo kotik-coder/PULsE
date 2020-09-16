@@ -1,10 +1,9 @@
 package pulse.baseline;
 
 import static java.lang.Math.sin;
-import static pulse.properties.NumericProperty.def;
-import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericProperties.def;
+import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericProperty.requireType;
-import static pulse.properties.NumericProperty.theDefault;
 import static pulse.properties.NumericPropertyKeyword.BASELINE_AMPLITUDE;
 import static pulse.properties.NumericPropertyKeyword.BASELINE_FREQUENCY;
 import static pulse.properties.NumericPropertyKeyword.BASELINE_PHASE_SHIFT;
@@ -43,9 +42,9 @@ public class SinusoidalBaseline extends FlatBaseline {
 	 */
 
 	public SinusoidalBaseline() {
-		setFrequency(theDefault(BASELINE_FREQUENCY));
-		setAmplitude(theDefault(BASELINE_AMPLITUDE));
-		setPhaseShift(theDefault(BASELINE_PHASE_SHIFT));
+		setFrequency(def(BASELINE_FREQUENCY));
+		setAmplitude(def(BASELINE_AMPLITUDE));
+		setPhaseShift(def(BASELINE_PHASE_SHIFT));
 	}
 
 	@Override

@@ -2,7 +2,7 @@ package pulse.problem.statements;
 
 import static java.lang.Math.exp;
 import static java.lang.Math.log;
-import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.LASER_ABSORPTIVITY;
 import static pulse.properties.NumericPropertyKeyword.NUMPOINTS;
 import static pulse.properties.NumericPropertyKeyword.THERMAL_ABSORPTIVITY;

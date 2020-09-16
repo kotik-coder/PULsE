@@ -1,5 +1,9 @@
 package pulse.search.statistics;
 
+import static pulse.properties.NumericProperties.def;
+import static pulse.properties.NumericProperties.derive;
+import static pulse.properties.NumericPropertyKeyword.CORRELATION_THRESHOLD;
+
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.util.PropertyHolder;
@@ -7,8 +11,7 @@ import pulse.util.Reflexive;
 
 public abstract class CorrelationTest extends PropertyHolder implements Reflexive {
 
-	protected static double threshold = (double) NumericProperty
-			.theDefault(NumericPropertyKeyword.CORRELATION_THRESHOLD).getValue();
+	protected static double threshold = (double) def(CORRELATION_THRESHOLD).getValue();
 	private static String selectedTestDescriptor;
 
 	public CorrelationTest() {
@@ -21,7 +24,7 @@ public abstract class CorrelationTest extends PropertyHolder implements Reflexiv
 	}
 
 	public static NumericProperty getThreshold() {
-		return NumericProperty.derive(NumericPropertyKeyword.CORRELATION_THRESHOLD, threshold);
+		return derive(CORRELATION_THRESHOLD, threshold);
 	}
 
 	public static void setThreshold(NumericProperty p) {

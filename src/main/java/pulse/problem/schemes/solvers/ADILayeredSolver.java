@@ -1,5 +1,8 @@
 package pulse.problem.schemes.solvers;
 
+import static pulse.properties.NumericProperties.def;
+import static pulse.properties.NumericPropertyKeyword.SHELL_GRID_DENSITY;
+
 import java.util.HashMap;
 
 import pulse.problem.schemes.ADIScheme;
@@ -10,16 +13,12 @@ import pulse.problem.schemes.Partition.Location;
 import pulse.problem.statements.CoreShellProblem;
 import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
-import pulse.properties.NumericPropertyKeyword;
 
 public class ADILayeredSolver extends ADIScheme implements Solver<CoreShellProblem> {
 
-	private final static NumericProperty SHELL_GRID_DENSITY = NumericProperty
-			.derive(NumericPropertyKeyword.SHELL_GRID_DENSITY, 10);
-
 	public ADILayeredSolver() {
 		super();
-		initGrid(getGrid().getGridDensity(), SHELL_GRID_DENSITY, getGrid().getTimeFactor());
+		initGrid(getGrid().getGridDensity(), def(SHELL_GRID_DENSITY), getGrid().getTimeFactor());
 	}
 
 	public ADILayeredSolver(NumericProperty nCore, NumericProperty nShell, NumericProperty timeFactor) {

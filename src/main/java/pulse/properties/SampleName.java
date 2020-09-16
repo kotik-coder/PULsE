@@ -43,6 +43,9 @@ public class SampleName implements Property {
 	public boolean equals(Object o) {
 		if (o == this)
 			return true;
+		
+		if (o == null)
+			return false;
 
 		boolean result = false;
 

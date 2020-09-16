@@ -1,6 +1,9 @@
 package pulse.problem.schemes.rte.dom;
 
 import static java.lang.Math.abs;
+import static pulse.properties.NumericProperties.def;
+import static pulse.properties.NumericProperties.derive;
+import static pulse.properties.NumericPropertyKeyword.RELAXATION_PARAMETER;
 
 import java.util.List;
 
@@ -15,7 +18,7 @@ public class SuccessiveOverrelaxation extends IterativeSolver {
 
 	public SuccessiveOverrelaxation() {
 		super();
-		this.W = (double) NumericProperty.theDefault(NumericPropertyKeyword.RELAXATION_PARAMETER).getValue();
+		this.W = (double) def(RELAXATION_PARAMETER).getValue();
 	}
 
 	private void successiveOverrelaxation(AdaptiveIntegrator integrator) {
@@ -83,11 +86,11 @@ public class SuccessiveOverrelaxation extends IterativeSolver {
 	}
 
 	public NumericProperty getRelaxationParameter() {
-		return NumericProperty.derive(NumericPropertyKeyword.RELAXATION_PARAMETER, W);
+		return derive(RELAXATION_PARAMETER, W);
 	}
 
 	public void setRelaxationParameter(NumericProperty p) {
-		if (p.getType() != NumericPropertyKeyword.RELAXATION_PARAMETER)
+		if (p.getType() != RELAXATION_PARAMETER)
 			throw new IllegalArgumentException("Unknown type: " + p.getType());
 		W = (double) p.getValue();
 	}
@@ -97,7 +100,7 @@ public class SuccessiveOverrelaxation extends IterativeSolver {
 
 		super.set(type, property);
 
-		if (type == NumericPropertyKeyword.RELAXATION_PARAMETER)
+		if (type == RELAXATION_PARAMETER)
 			setRelaxationParameter(property);
 		else
 			throw new IllegalArgumentException("Unknown type: " + type);
@@ -107,7 +110,7 @@ public class SuccessiveOverrelaxation extends IterativeSolver {
 	@Override
 	public List<Property> listedTypes() {
 		List<Property> list = super.listedTypes();
-		list.add(NumericProperty.theDefault(NumericPropertyKeyword.RELAXATION_PARAMETER));
+		list.add(def(RELAXATION_PARAMETER));
 		return list;
 	}
 

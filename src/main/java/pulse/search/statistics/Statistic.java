@@ -1,5 +1,8 @@
 package pulse.search.statistics;
 
+import static pulse.properties.NumericProperties.derive;
+import static pulse.properties.NumericPropertyKeyword.OPTIMISER_STATISTIC;
+
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.tasks.SearchTask;
@@ -11,11 +14,11 @@ public abstract class Statistic extends PropertyHolder implements Reflexive {
 	protected double statistic;
 
 	public NumericProperty getStatistic() {
-		return NumericProperty.derive(NumericPropertyKeyword.OPTIMISER_STATISTIC, statistic);
+		return derive(OPTIMISER_STATISTIC, statistic);
 	}
 
 	public void setStatistic(NumericProperty statistic) {
-		if (statistic.getType() != NumericPropertyKeyword.OPTIMISER_STATISTIC)
+		if (statistic.getType() != OPTIMISER_STATISTIC)
 			throw new IllegalArgumentException("Illegal type: " + statistic.getType());
 		this.statistic = (double) statistic.getValue();
 	}
@@ -24,7 +27,7 @@ public abstract class Statistic extends PropertyHolder implements Reflexive {
 
 	@Override
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
-		if (type == NumericPropertyKeyword.OPTIMISER_STATISTIC)
+		if (type == OPTIMISER_STATISTIC)
 			statistic = (double) property.getValue();
 	}
 

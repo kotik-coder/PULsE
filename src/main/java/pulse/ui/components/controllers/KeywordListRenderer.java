@@ -2,7 +2,7 @@ package pulse.ui.components.controllers;
 
 import static java.awt.Color.black;
 import static java.awt.Font.BOLD;
-import static pulse.properties.NumericProperty.def;
+import static pulse.properties.NumericProperties.def;
 
 import java.awt.Component;
 

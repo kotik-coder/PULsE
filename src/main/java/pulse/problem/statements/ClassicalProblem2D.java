@@ -4,7 +4,7 @@ import static java.lang.Math.exp;
 import static java.lang.Math.log;
 import static java.lang.Math.tanh;
 import static pulse.math.MathUtils.atanh;
-import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.HEAT_LOSS_SIDE;
 import static pulse.properties.NumericPropertyKeyword.SPOT_DIAMETER;
 

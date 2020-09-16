@@ -1,9 +1,8 @@
 package pulse.problem.statements;
 
 import static java.lang.Math.pow;
-import static pulse.properties.NumericProperty.def;
-import static pulse.properties.NumericProperty.derive;
-import static pulse.properties.NumericProperty.theDefault;
+import static pulse.properties.NumericProperties.def;
+import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.AXIAL_COATING_THICKNESS;
 import static pulse.properties.NumericPropertyKeyword.COATING_DIFFUSIVITY;
 import static pulse.properties.NumericPropertyKeyword.RADIAL_COATING_THICKNESS;
@@ -27,17 +26,17 @@ public class CoreShellProblem extends ClassicalProblem2D {
 
 	public CoreShellProblem() {
 		super();
-		tA = (double) theDefault(AXIAL_COATING_THICKNESS).getValue();
-		tR = (double) theDefault(RADIAL_COATING_THICKNESS).getValue();
-		coatingDiffusivity = (double) theDefault(COATING_DIFFUSIVITY).getValue();
+		tA = (double) def(AXIAL_COATING_THICKNESS).getValue();
+		tR = (double) def(RADIAL_COATING_THICKNESS).getValue();
+		coatingDiffusivity = (double) def(COATING_DIFFUSIVITY).getValue();
 		setComplexity(ProblemComplexity.HIGH);
 	}
 
 	public CoreShellProblem(Problem sdd) {
 		super(sdd);
-		tA = (double) theDefault(AXIAL_COATING_THICKNESS).getValue();
-		tR = (double) theDefault(RADIAL_COATING_THICKNESS).getValue();
-		coatingDiffusivity = (double) theDefault(COATING_DIFFUSIVITY).getValue();
+		tA = (double) def(AXIAL_COATING_THICKNESS).getValue();
+		tR = (double) def(RADIAL_COATING_THICKNESS).getValue();
+		coatingDiffusivity = (double) def(COATING_DIFFUSIVITY).getValue();
 		setComplexity(ProblemComplexity.HIGH);
 	}
 

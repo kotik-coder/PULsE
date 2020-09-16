@@ -1,7 +1,7 @@
 package pulse.properties;
 
-import static pulse.properties.NumericProperty.defaultList;
-import static pulse.properties.NumericProperty.theDefault;
+import static pulse.properties.NumericProperties.def;
+import static pulse.properties.NumericProperties.defaultList;
 import static pulse.properties.NumericPropertyKeyword.LOWER_BOUND;
 import static pulse.properties.NumericPropertyKeyword.TIME_SHIFT;
 import static pulse.properties.NumericPropertyKeyword.UPPER_BOUND;
@@ -77,15 +77,15 @@ public class Flag implements Property {
 	 */
 
 	public static List<Flag> allProblemDependentFlags() {
-		return defaultList().stream().filter(p -> p.isAutoAdjustable()).map(p -> new Flag(p, true))
+		return defaultList().stream().filter(p -> p.isAutoAdjustable()).map(p -> new Flag(p, p.isDefaultSearchVariable()))
 				.collect(Collectors.toList());
 	}
 
 	public static List<Flag> allProblemIndependentFlags() {
 		List<Flag> flags = new ArrayList<>();
-		flags.add(new Flag(theDefault(TIME_SHIFT), false));
-		flags.add(new Flag(theDefault(LOWER_BOUND), false));
-		flags.add(new Flag(theDefault(UPPER_BOUND), false));
+		flags.add(new Flag(def(TIME_SHIFT), false));
+		flags.add(new Flag(def(LOWER_BOUND), false));
+		flags.add(new Flag(def(UPPER_BOUND), false));
 		return flags;
 	}
 
@@ -111,7 +111,7 @@ public class Flag implements Property {
 	 */
 
 	public Flag derive(boolean value) {
-		return new Flag(theDefault(index), value);
+		return new Flag(def(index), value);
 	}
 
 	/**

@@ -1,7 +1,7 @@
 package repository;
 
 import static java.lang.Math.abs;
-import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.DENSITY;
 import static pulse.properties.NumericPropertyKeyword.GRID_DENSITY;
 import static pulse.properties.NumericPropertyKeyword.LASER_ENERGY;

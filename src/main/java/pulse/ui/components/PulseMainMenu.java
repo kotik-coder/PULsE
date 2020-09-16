@@ -8,8 +8,8 @@ import static javax.swing.JOptionPane.WARNING_MESSAGE;
 import static javax.swing.JOptionPane.showMessageDialog;
 import static javax.swing.SwingUtilities.getWindowAncestor;
 import static pulse.io.export.ExportManager.exportCurrentTask;
-import static pulse.properties.NumericProperty.derive;
-import static pulse.properties.NumericProperty.theDefault;
+import static pulse.properties.NumericProperties.def;
+import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.BUFFER_SIZE;
 import static pulse.properties.NumericPropertyKeyword.CORRELATION_THRESHOLD;
 import static pulse.properties.NumericPropertyKeyword.SIGNIFICANCE;
@@ -69,7 +69,7 @@ public class PulseMainMenu extends JMenuBar {
 	private static JMenuItem modelSettingsItem;
 
 	private static ExportDialog exportDialog = new ExportDialog();
-	private static FormattedInputDialog bufferDialog = new FormattedInputDialog(theDefault(BUFFER_SIZE));
+	private static FormattedInputDialog bufferDialog = new FormattedInputDialog(def(BUFFER_SIZE));
 
 	private static File dir;
 
@@ -210,7 +210,7 @@ public class PulseMainMenu extends JMenuBar {
 			});
 		}
 
-		var significanceDialog = new FormattedInputDialog(theDefault(SIGNIFICANCE));
+		var significanceDialog = new FormattedInputDialog(def(SIGNIFICANCE));
 
 		significanceDialog
 				.setConfirmAction(() -> setStatisticalSignificance(derive(SIGNIFICANCE, significanceDialog.value())));
@@ -275,7 +275,7 @@ public class PulseMainMenu extends JMenuBar {
 			});
 		}
 
-		var thresholdDialog = new FormattedInputDialog(theDefault(CORRELATION_THRESHOLD));
+		var thresholdDialog = new FormattedInputDialog(def(CORRELATION_THRESHOLD));
 
 		thresholdDialog.setConfirmAction(() -> setThreshold(derive(CORRELATION_THRESHOLD, thresholdDialog.value())));
 

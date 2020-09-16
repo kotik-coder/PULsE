@@ -1,7 +1,7 @@
 package pulse.baseline;
 
 import static java.lang.String.format;
-import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericProperty.requireType;
 import static pulse.properties.NumericPropertyKeyword.BASELINE_INTERCEPT;
 

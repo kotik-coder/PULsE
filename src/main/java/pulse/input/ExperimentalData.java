@@ -3,7 +3,7 @@ package pulse.input;
 import static java.lang.Double.valueOf;
 import static java.util.Collections.max;
 import static pulse.input.listeners.DataEventType.TRUNCATED;
-import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.NUMPOINTS;
 import static pulse.properties.NumericPropertyKeyword.PULSE_WIDTH;
 import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
@@ -95,7 +95,7 @@ public class ExperimentalData extends HeatingCurve {
 		sb.append("Experimental data ");
 		if (metadata.getSampleName() != null)
 			sb.append("for " + metadata.getSampleName() + " ");
-		sb.append("(" + metadata.numericProperty(TEST_TEMPERATURE).formattedValueAndError(false) + ")");
+		sb.append("(" + metadata.numericProperty(TEST_TEMPERATURE).formattedOutput() + ")");
 		return sb.toString();
 	}
 

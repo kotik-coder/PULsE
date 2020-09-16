@@ -2,7 +2,7 @@ package pulse.problem.schemes.rte.exact;
 
 import static java.lang.Math.exp;
 import static pulse.math.MathUtils.fastPowLoop;
-import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.INTEGRATION_SEGMENTS;
 
 import pulse.math.MidpointIntegrator;

@@ -1,7 +1,7 @@
 package pulse.io.readers;
 
-import static pulse.properties.NumericProperty.def;
-import static pulse.properties.NumericProperty.isValueSensible;
+import static pulse.properties.NumericProperties.def;
+import static pulse.properties.NumericProperties.isValueSensible;
 import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
 import static pulse.properties.NumericPropertyKeyword.findAny;
 

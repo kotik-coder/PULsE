@@ -1,6 +1,7 @@
 package pulse.tasks;
 
-import pulse.properties.NumericProperty;
+import static pulse.properties.NumericProperties.def;
+
 import pulse.properties.NumericPropertyKeyword;
 import pulse.util.ImmutablePair;
 
@@ -31,11 +32,11 @@ public class CorrelationLogEntry extends LogEntry {
 		for (ImmutablePair<NumericPropertyKeyword> key : map.keySet()) {
 			sb.append("<tr>");
 			sb.append("<td>");
-			sb.append(NumericProperty.theDefault(key.getFirst()).getAbbreviation(false));
+			sb.append(def(key.getFirst()).getAbbreviation(false));
 			sb.append("</td>");
 			//
 			sb.append("<td>");
-			sb.append(NumericProperty.theDefault(key.getSecond()).getAbbreviation(false));
+			sb.append(def(key.getSecond()).getAbbreviation(false));
 			sb.append("</td>");
 			//
 			sb.append("<td>");

@@ -1,5 +1,8 @@
 package pulse.io.readers;
 
+import static pulse.properties.NumericProperties.derive;
+import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -13,8 +16,6 @@ import java.util.StringTokenizer;
 import pulse.input.ExperimentalData;
 import pulse.input.Metadata;
 import pulse.input.Range;
-import pulse.properties.NumericProperty;
-import pulse.properties.NumericPropertyKeyword;
 import pulse.ui.Messages;
 
 /**
@@ -73,7 +74,7 @@ public class DATReader implements CurveReader {
 
 		try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
 			double T = Double.parseDouble(reader.readLine()) + CONVERSION_TO_KELVIN;
-			Metadata met = new Metadata(NumericProperty.derive(NumericPropertyKeyword.TEST_TEMPERATURE, T), -1);
+			Metadata met = new Metadata(derive(TEST_TEMPERATURE, T), -1);
 			curve.setMetadata(met);
 			double time, temp;
 			String delims = Messages.getString("DATReader.2"); //$NON-NLS-1$

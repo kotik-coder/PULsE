@@ -2,7 +2,7 @@ package repository;
 
 import static java.lang.Math.pow;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.INTEGRATION_SEGMENTS;
 import static pulse.properties.NumericPropertyKeyword.QUADRATURE_POINTS;
 import static repository.NonscatteringTestCase.approximatelyEquals;

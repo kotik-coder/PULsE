@@ -1,7 +1,7 @@
 package repository;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.OPTICAL_THICKNESS;
 import static pulse.properties.NumericPropertyKeyword.QUADRATURE_POINTS;
 import static repository.TestProfileLoader.loadTestProfileDense;

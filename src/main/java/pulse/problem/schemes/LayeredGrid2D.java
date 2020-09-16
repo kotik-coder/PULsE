@@ -6,8 +6,8 @@ import static pulse.problem.schemes.Partition.Location.FRONT_Y;
 import static pulse.problem.schemes.Partition.Location.REAR_Y;
 import static pulse.problem.schemes.Partition.Location.SIDE_X;
 import static pulse.problem.schemes.Partition.Location.SIDE_Y;
-import static pulse.properties.NumericProperty.def;
-import static pulse.properties.NumericProperty.derive;
+import static pulse.properties.NumericProperties.def;
+import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.SHELL_GRID_DENSITY;
 
 import java.util.ArrayList;

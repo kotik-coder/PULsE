@@ -1,7 +1,8 @@
 package pulse.problem.schemes.solvers;
 
 import static pulse.math.MathUtils.fastPowLoop;
-import static pulse.properties.NumericProperty.def;
+import static pulse.properties.NumericProperties.def;
+import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.NONLINEAR_PRECISION;
 
 import java.util.List;
@@ -104,7 +105,7 @@ public class ImplicitNonlinearSolver extends ImplicitScheme implements Solver<No
 	}
 
 	public NumericProperty getNonlinearPrecision() {
-		return NumericProperty.derive(NONLINEAR_PRECISION, nonlinearPrecision);
+		return derive(NONLINEAR_PRECISION, nonlinearPrecision);
 	}
 
 	public void setNonlinearPrecision(NumericProperty nonlinearPrecision) {
@@ -114,7 +115,7 @@ public class ImplicitNonlinearSolver extends ImplicitScheme implements Solver<No
 	@Override
 	public List<Property> listedTypes() {
 		List<Property> list = super.listedTypes();
-		list.add(NumericProperty.def(NumericPropertyKeyword.NONLINEAR_PRECISION));
+		list.add(def(NONLINEAR_PRECISION));
 		return list;
 	}
 
