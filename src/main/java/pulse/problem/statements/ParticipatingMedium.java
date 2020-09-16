@@ -4,14 +4,8 @@ import static java.lang.Math.exp;
 import static java.lang.Math.log;
 import static java.lang.Math.tanh;
 import static pulse.math.MathUtils.atanh;
-import static pulse.properties.NumericProperties.def;
 import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.NUMPOINTS;
-import static pulse.properties.NumericPropertyKeyword.OPTICAL_THICKNESS;
-import static pulse.properties.NumericPropertyKeyword.PLANCK_NUMBER;
-import static pulse.properties.NumericPropertyKeyword.SCATTERING_ALBEDO;
-import static pulse.properties.NumericPropertyKeyword.SCATTERING_ANISOTROPY;
-
 import java.util.List;
 
 import pulse.math.IndexedVector;
@@ -19,7 +13,6 @@ import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.solvers.MixedCoupledSolver;
 import pulse.properties.Flag;
 import pulse.properties.NumericPropertyKeyword;
-import pulse.properties.Property;
 import pulse.ui.Messages;
 
 public class ParticipatingMedium extends NonlinearProblem {
@@ -40,16 +33,6 @@ public class ParticipatingMedium extends NonlinearProblem {
 	@Override
 	public String toString() {
 		return Messages.getString("ParticipatingMedium.Descriptor");
-	}
-
-	@Override
-	public List<Property> listedTypes() {
-		List<Property> list = super.listedTypes();
-		list.add(def(PLANCK_NUMBER));
-		list.add(def(OPTICAL_THICKNESS));
-		list.add(def(SCATTERING_ALBEDO));
-		list.add(def(SCATTERING_ANISOTROPY));
-		return list;
 	}
 
 	@Override
