@@ -65,7 +65,7 @@ public class ApproximatedHessianOptimiser extends PathOptimiser {
 
 	@Override
 	public void endOfStep(SearchTask task) throws SolverException {
-		ComplexPath p = (ComplexPath) task.getPath();
+		var p = (ComplexPath) task.getPath();
 		Vector dir = p.getDirection();
 
 		final double minimumPoint = p.getMinimumPoint();

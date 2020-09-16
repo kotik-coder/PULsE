@@ -10,13 +10,11 @@ import static pulse.properties.NumericPropertyKeyword.ITERATION_LIMIT;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import pulse.math.IndexedVector;
 import pulse.math.linear.Vector;
 import pulse.problem.schemes.solvers.SolverException;
-import pulse.problem.statements.Problem;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
@@ -51,10 +49,8 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 	private static double gradientResolution;
 
 	private static LinearOptimiser linearSolver;
-	private static List<Flag> problemIndependentFlags = Flag.allProblemIndependentFlags();
-	private static List<Flag> problemDependentFlags = Flag.allProblemDependentFlags();
 
-	private static PathOptimiser selectedPathOptimiser;
+	private static PathOptimiser instance;
 
 	/**
 	 * Abstract constructor that sets up the default
@@ -83,8 +79,7 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 		maxIterations = (int) def(ITERATION_LIMIT).getValue();
 		errorTolerance = (double) def(ERROR_TOLERANCE).getValue();
 		gradientResolution = (double) def(GRADIENT_RESOLUTION).getValue();
-		problemDependentFlags = Flag.allProblemDependentFlags();
-		problemIndependentFlags = Flag.allProblemIndependentFlags();
+		ActiveFlags.reset();
 	}
 
 	/**
@@ -109,23 +104,23 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 	 */
 
 	public double iteration(SearchTask task) throws SolverException {
-		Path p = task.getPath(); // the previous path of the task
+		var p = task.getPath(); // the previous path of the task
 
 		/*
 		 * Checks whether an iteration limit has been already reached
 		 */
 
-		if (compare(p.getIteration(), PathOptimiser.getMaxIterations()) > 0)
+		if (compare(p.getIteration(), getMaxIterations()) > 0)
 			task.setStatus(Status.TIMEOUT);
 
-		IndexedVector parameters = task.searchVector()[0]; // get current search vector
+		var parameters = task.searchVector()[0]; // get current search vector
 
-		Vector dir = direction(p); // find the direction to the global minimum
+		var dir = direction(p); // find the direction to the global minimum
 
 		double step = linearSolver.linearStep(task); // find how big the step needs to be to reach the minimum
 		p.setLinearStep(step);
 
-		Vector newParams = parameters.sum(dir.multiply(step)); // this set of parameters supposedly corresponds to the
+		var newParams = parameters.sum(dir.multiply(step)); // this set of parameters supposedly corresponds to the
 																// minimum
 		task.assign(new IndexedVector(newParams, parameters.getIndices())); // assign new parameters to this task
 
@@ -184,26 +179,21 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 
 	public static Vector gradient(SearchTask task) {
 
-		final IndexedVector params = task.searchVector()[0];
-		Vector grad = new Vector(params.dimension());
-
-		Vector newParams, shift;
-		double ss1, ss2, dx;
+		final var params = task.searchVector()[0];
+		var grad = new Vector(params.dimension());
 
 		boolean discreteGradient = params.getIndices().stream().anyMatch(index -> isDiscrete(index));
-		dx = discreteGradient ? 2.0 * task.getScheme().getGrid().getXStep() : 2.0 * gradientResolution;
+		final double dx = discreteGradient ? 2.0 * task.getScheme().getGrid().getXStep() : 2.0 * gradientResolution;
 
 		for (int i = 0; i < params.dimension(); i++) {
-			shift = new Vector(params.dimension());
+			final var shift = new Vector(params.dimension());
 			shift.set(i, 0.5 * dx);
 
-			newParams = params.sum(shift);
-			task.assign(new IndexedVector(newParams, params.getIndices()));
-			ss2 = task.solveProblemAndCalculateDeviation();
+			task.assign(new IndexedVector( params.sum(shift) , params.getIndices()));
+			final double ss2 = task.solveProblemAndCalculateDeviation();
 
-			newParams = params.subtract(shift);
-			task.assign(new IndexedVector(newParams, params.getIndices()));
-			ss1 = task.solveProblemAndCalculateDeviation();
+			task.assign(new IndexedVector( params.subtract(shift), params.getIndices()));
+			final double ss1 = task.solveProblemAndCalculateDeviation();
 
 			grad.set(i, (ss2 - ss1) / dx);
 
@@ -261,22 +251,6 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 		return this.getClass().getSimpleName();
 	}
 
-	public static List<NumericPropertyKeyword> selectActiveAndListed(List<Flag> flags, Problem listed) {
-		return selectActiveTypes(flags).stream().filter(type -> listed.isListedNumericType(type))
-				.collect(Collectors.toList());
-	}
-
-	public static List<NumericPropertyKeyword> selectActiveTypes(List<Flag> flags) {
-		return Flag.selectActive(flags).stream().map(flag -> flag.getType()).collect(Collectors.toList());
-	}
-
-	public static List<Flag> getAllFlags() {
-		var newList = new ArrayList<Flag>();
-		newList.addAll(problemDependentFlags);
-		newList.addAll(problemIndependentFlags);
-		return newList;
-	}
-
 	/**
 	 * This method has been overriden to account for each individual flag in the
 	 * {@code List<Flag>} set out by this class.
@@ -284,9 +258,9 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 
 	@Override
 	public List<Property> genericProperties() {
-		List<Property> original = super.genericProperties();
-		original.addAll(problemDependentFlags);
-		original.addAll(problemIndependentFlags);
+		var original = super.genericProperties();
+		original.addAll(ActiveFlags.getProblemDependentFlags());
+		original.addAll(ActiveFlags.getProblemIndependentFlags());
 		return original;
 	}
 
@@ -308,7 +282,7 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 		list.add(def(ERROR_TOLERANCE));
 		list.add(def(ITERATION_LIMIT));
 
-		listAvailableProperties(list);
+		ActiveFlags.listAvailableProperties(list);
 
 		return list;
 	}
@@ -317,36 +291,6 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 	public List<Property> data() {
 		var list = listedTypes();
 		return super.data().stream().filter(p -> list.contains(p)).collect(Collectors.toList());
-	}
-
-	public static void listAvailableProperties(List<Property> list) {
-		list.addAll(problemIndependentFlags);
-
-		var t = TaskManager.getSelectedTask();
-
-		if (t != null) {
-			var p = t.getProblem();
-
-			if (p != null) {
-
-				var params = p.listedTypes().stream().filter(pp -> pp instanceof NumericProperty)
-						.map(pMap -> ((NumericProperty) pMap).getType()).collect(Collectors.toList());
-
-				NumericPropertyKeyword key;
-
-				for (Flag property : problemDependentFlags) {
-					key = property.getType();
-					if (params.contains(key))
-						list.add(property);
-
-				}
-
-			}
-		} else {
-			for (Flag property : problemDependentFlags) {
-				list.add(property);
-			}
-		}
 	}
 
 	/**
@@ -380,21 +324,6 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 		return true;
 	}
 
-	/**
-	 * Finds what properties are being altered in the search
-	 * 
-	 * @return a {@code List} of property types represented by
-	 *         {@code NumericPropertyKeyword}s
-	 */
-
-	public static List<NumericPropertyKeyword> activeParameters(SearchTask t) {
-		Problem p = t.getProblem();
-
-		var list = new ArrayList<NumericPropertyKeyword>();
-		list.addAll(selectActiveAndListed(problemDependentFlags, p));
-		list.addAll(selectActiveTypes(problemIndependentFlags));
-		return list;
-	}
 
 	/**
 	 * Finds a {@code Flag} equivalent to {@code flag} in the {@code originalList}
@@ -406,12 +335,10 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 	 */
 
 	public static void setSearchFlag(List<Flag> originalList, Flag flag) {
-		Optional<Flag> optional = originalList.stream().filter(f -> f.getType() == flag.getType()).findFirst();
+		var optional = originalList.stream().filter(f -> f.getType() == flag.getType()).findFirst();
 
-		if (!optional.isPresent())
-			return;
-
-		optional.get().setValue((boolean) flag.getValue());
+		if (optional.isPresent())
+			optional.get().setValue((boolean) flag.getValue());
 	}
 
 	/**
@@ -423,12 +350,12 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 
 	public abstract Path createPath(SearchTask t);
 
-	public static PathOptimiser getSelectedPathOptimiser() {
-		return selectedPathOptimiser;
+	public static PathOptimiser getInstance() {
+		return instance;
 	}
 
-	public static void setSelectedPathOptimiser(PathOptimiser selectedPathOptimiser) {
-		PathOptimiser.selectedPathOptimiser = selectedPathOptimiser;
+	public static void setInstance(PathOptimiser selectedPathOptimiser) {
+		PathOptimiser.instance = selectedPathOptimiser;
 		selectedPathOptimiser.setParent(TaskManager.getInstance());
 	}
 

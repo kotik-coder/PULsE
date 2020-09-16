@@ -6,6 +6,7 @@ import static java.lang.Math.tanh;
 import static pulse.math.MathUtils.atanh;
 import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.NUMPOINTS;
+
 import java.util.List;
 
 import pulse.math.IndexedVector;

@@ -3,7 +3,7 @@ package pulse.ui.components.models;
 import static pulse.properties.NumericPropertyKeyword.IDENTIFIER;
 import static pulse.properties.NumericPropertyKeyword.OPTIMISER_STATISTIC;
 import static pulse.properties.NumericPropertyKeyword.TEST_STATISTIC;
-import static pulse.search.direction.PathOptimiser.listAvailableProperties;
+import static pulse.search.direction.ActiveFlags.listAvailableProperties;
 
 import java.util.ArrayList;
 import java.util.List;

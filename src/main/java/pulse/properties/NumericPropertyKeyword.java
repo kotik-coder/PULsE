@@ -3,6 +3,11 @@ package pulse.properties;
 import java.util.Arrays;
 import java.util.Optional;
 
+/**
+ * Contains a list of NumericProperty types recognised by the constituent modules of PULsE.
+ *
+ */
+
 public enum NumericPropertyKeyword {
 
 	/**
@@ -10,6 +15,10 @@ public enum NumericPropertyKeyword {
 	 */
 
 	DIFFUSIVITY,
+	
+	/**
+	 * Not implemented yet.
+	 */
 
 	COATING_DIFFUSIVITY,
 
@@ -68,10 +77,24 @@ public enum NumericPropertyKeyword {
 
 	GRID_DENSITY, 
 	
+	/**
+	 * Not implemented yet.
+	 */
+
+	
 	SHELL_GRID_DENSITY,
 
+	/**
+	 * Not implemented yet.
+	 */
+
+	
 	AXIAL_COATING_THICKNESS,
 
+	/**
+	 * Not implemented yet.
+	 */
+	
 	RADIAL_COATING_THICKNESS,
 
 	/**
@@ -232,6 +255,10 @@ public enum NumericPropertyKeyword {
 
 	LASER_ABSORPTIVITY,
 
+	/**
+	 * Dimensionless coefficient of thermal radiation absorption.
+	 */	
+	
 	THERMAL_ABSORPTIVITY,
 
 	/**
@@ -247,73 +274,209 @@ public enum NumericPropertyKeyword {
 	 */
 
 	DIATHERMIC_COEFFICIENT,
+	
+	/**
+	 * The Planck number.
+	 */
 
 	PLANCK_NUMBER,
+	
+	/**
+	 * The optical thickness of a material, equal to a product of its geometric thickness and the absorptivity.
+	 */
 
 	OPTICAL_THICKNESS,
+	
+	/**
+	 * Time shift (pulse sync)
+	 */
 
 	TIME_SHIFT,
+	
+	/**
+	 * Statistical significance.
+	 */
 
 	SIGNIFICANCE,
+	
+	/**
+	 * Statistical probability.
+	 */
 
 	PROBABILITY,
+	
+	/**
+	 * Optimiser statistic (usually, RSS).
+	 */
 
 	OPTIMISER_STATISTIC,
+	
+	/**
+	 * Test statistic (e.g. normality test criterion).
+	 */
 
 	TEST_STATISTIC,
+	
+	/**
+	 * Lower calculation bound for optimiser.
+	 */
 
 	LOWER_BOUND,
+	
+	/**
+	 * Upper calculation bound for optimiser.
+	 */
 
 	UPPER_BOUND,
 
+	/**
+	 * Averaging window.
+	 */
+	
 	WINDOW,
+	
+	/**
+	 * Intensity of incident radiation.
+	 */
 
 	INCIDENT_INTENSITY,
+	
+	/**
+	 * Threshold above which properties are thought to be strongly correlated.
+	 */
 
 	CORRELATION_THRESHOLD,
+	
+	/**
+	 * Number of subdivisions for numeric integration.
+	 */
 
 	INTEGRATION_SEGMENTS,
+	
+	/**
+	 * Cutoff for numeric integration.
+	 */
 
 	INTEGRATION_CUTOFF,
+	
+	/**
+	 * Weight of the semi-implicit finite-difference scheme.
+	 */
 
 	SCHEME_WEIGHT,
+	
+	/**
+	 * Number of quadrature points (RTE).
+	 */
 
 	QUADRATURE_POINTS,
+	
+	/**
+	 * Albedo of single scattering.
+	 */
 
 	SCATTERING_ALBEDO,
+	
+	/**
+	 * Anisotropy coefficient for the phase function of scattering.
+	 */
 
 	SCATTERING_ANISOTROPY,
+	
+	/**
+	 * Iteration error tolerance in DOM calculations.
+	 */
 
 	DOM_ITERATION_ERROR,
+	
+	/**
+	 * Number of independent directions (DOM).
+	 */
 
 	DOM_DIRECTIONS,
+	
+	/**
+	 * Error tolerance for the Laguerre solver (RTE).
+	 */
 
 	LAGUERRE_SOLVER_ERROR,
+	
+	/**
+	 * Absolute tolerance (atol) for RK calculations (RTE).
+	 */
 
 	ATOL,
 
+	/**
+	 * Relative tolerance (atol) for RK calculations (RTE).
+	 */
+	
 	RTOL,
+	
+	/**
+	 * Grid scaling factor.
+	 */
 
 	GRID_SCALING_FACTOR,
+	
+	/**
+	 * Internal DOM grid density (RTE).
+	 */
 
 	DOM_GRID_DENSITY,
 
+	/**
+	 * Grid stretching factor (RTE).
+	 */
+	
 	GRID_STRETCHING_FACTOR,
+	
+	/**
+	 * Relaxation parameter of iterative solver (RTE).
+	 */
 
 	RELAXATION_PARAMETER,
+	
+	/**
+	 * Iteration threshold for RTE calculations.
+	 */
 
 	RTE_MAX_ITERATIONS,
+	
+	/**
+	 * Maximum allowed time spent on integration (RTE).
+	 */
 
 	RTE_INTEGRATION_TIMEOUT,
 
+	/**
+	 * Percentage of initial (rise) segment of the pulse trapezoid.
+	 */
+	
 	TRAPEZOIDAL_RISE_PERCENTAGE,
+	
+	/**
+	 * Percentage of final (fall) segment of the pulse trapezoid.
+	 */
 
 	TRAPEZOIDAL_FALL_PERCENTAGE,
 
+	/**
+	 * $mu; parameter for skewed normal distribution.
+	 */
+	
 	SKEW_MU,
 
+	/**
+	 * $sigma; parameter for skewed normal distribution.
+	 */
+	
 	SKEW_SIGMA,
 
+	/**
+	 * $lambda; parameter for skewed normal distribution.
+	 */
+	
 	SKEW_LAMBDA;
 
 	public static Optional<NumericPropertyKeyword> findAny(String key) {

@@ -4,9 +4,9 @@ import static java.awt.Font.ITALIC;
 import static java.awt.GridBagConstraints.BOTH;
 import static javax.swing.BorderFactory.createTitledBorder;
 import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
+import static pulse.search.direction.PathOptimiser.getInstance;
 import static pulse.search.direction.PathOptimiser.getLinearSolver;
-import static pulse.search.direction.PathOptimiser.getSelectedPathOptimiser;
-import static pulse.search.direction.PathOptimiser.setSelectedPathOptimiser;
+import static pulse.search.direction.PathOptimiser.setInstance;
 import static pulse.tasks.TaskManager.getTaskList;
 import static pulse.ui.Messages.getString;
 import static pulse.util.Reflexive.instancesOf;
@@ -96,7 +96,7 @@ public class SearchOptionsFrame extends JInternalFrame {
 	}
 
 	public void update() {
-		var selected = getSelectedPathOptimiser();
+		var selected = getInstance();
 		if (selected != null) {
 			pathList.setSelectedIndex(pathSolvers.indexOf(selected));
 			linearList.setSelectedIndex(linearSolvers.indexOf(getLinearSolver()));
@@ -150,7 +150,7 @@ public class SearchOptionsFrame extends JInternalFrame {
 				var searchScheme = getSelectedValue();
 				if (searchScheme == null)
 					return;
-				setSelectedPathOptimiser(searchScheme);
+				setInstance(searchScheme);
 				linearList.setEnabled(true);
 				for (var t : getTaskList()) {
 					t.checkProblems();
@@ -200,7 +200,7 @@ public class SearchOptionsFrame extends JInternalFrame {
 					return;
 				}
 				var linearSolver = getSelectedValue();
-				var pathSolver = getSelectedPathOptimiser();
+				var pathSolver = getInstance();
 				pathSolver.setLinearSolver(linearSolver);
 				pathTable.setPropertyHolder(pathSolver);
 				pathTable.setEnabled(true);

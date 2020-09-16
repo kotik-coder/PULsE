@@ -1,8 +1,7 @@
 package pulse.search.direction;
 
 import static pulse.math.linear.Matrices.createIdentityMatrix;
-import static pulse.search.direction.PathOptimiser.activeParameters;
-import static pulse.search.direction.PathOptimiser.getSelectedPathOptimiser;
+import static pulse.search.direction.PathOptimiser.getInstance;
 import static pulse.search.direction.PathOptimiser.gradient;
 
 import pulse.math.linear.SquareMatrix;
@@ -36,8 +35,8 @@ public class ComplexPath extends Path {
 	@Override
 	public void reset(SearchTask task) {
 		setGradient(gradient(task));
-		hessian = createIdentityMatrix(activeParameters(task).size());
-		setDirection(getSelectedPathOptimiser().direction(this));
+		hessian = createIdentityMatrix(ActiveFlags.activeParameters(task).size());
+		setDirection(getInstance().direction(this));
 	}
 
 	public SquareMatrix getHessian() {

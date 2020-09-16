@@ -5,11 +5,11 @@ import static pulse.input.listeners.DataEventType.CHANGE_OF_ORIGIN;
 import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
 import static pulse.properties.NumericPropertyKeyword.TIME_LIMIT;
-import static pulse.search.direction.PathOptimiser.activeParameters;
-import static pulse.search.direction.PathOptimiser.getAllFlags;
+import static pulse.search.direction.ActiveFlags.activeParameters;
+import static pulse.search.direction.ActiveFlags.getAllFlags;
 import static pulse.search.direction.PathOptimiser.getErrorTolerance;
+import static pulse.search.direction.PathOptimiser.getInstance;
 import static pulse.search.direction.PathOptimiser.getLinearSolver;
-import static pulse.search.direction.PathOptimiser.getSelectedPathOptimiser;
 import static pulse.search.statistics.ResidualStatistic.getSelectedOptimiserDescriptor;
 import static pulse.tasks.Buffer.getSize;
 import static pulse.tasks.Status.AMBIGUOUS;
@@ -292,7 +292,7 @@ public class SearchTask extends Accessible implements Runnable {
 		getProblem().parameterListChanged(); // get updated list of parameters
 		solveProblemAndCalculateDeviation();
 
-		var pathSolver = getSelectedPathOptimiser();
+		var pathSolver = getInstance();
 
 		path = pathSolver.createPath(this);
 
@@ -570,7 +570,7 @@ public class SearchTask extends Accessible implements Runnable {
 		if (status == DONE)
 			return status;
 
-		var pathSolver = getSelectedPathOptimiser();
+		var pathSolver = getInstance();
 		var s = INCOMPLETE;
 
 		if (problem == null)
