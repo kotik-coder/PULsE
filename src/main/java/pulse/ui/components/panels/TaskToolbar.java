@@ -1,6 +1,5 @@
 package pulse.ui.components.panels;
 
-import static pulse.tasks.TaskManager.reset;
 import static pulse.ui.Launcher.loadIcon;
 
 import java.awt.GridLayout;
@@ -10,6 +9,7 @@ import java.util.List;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 
+import pulse.tasks.TaskManager;
 import pulse.ui.components.buttons.ExecutionButton;
 import pulse.ui.components.listeners.TaskActionListener;
 
@@ -88,7 +88,7 @@ public class TaskToolbar extends JPanel {
 		removeBtn.addActionListener(e -> notifyRemove());
 		clearBtn.addActionListener(e -> notifyClear());
 		resetBtn.addActionListener(e -> {
-			reset();
+			TaskManager.getInstance().reset();
 			notifyReset();
 		});
 		graphBtn.addActionListener(e -> notifyGraph());

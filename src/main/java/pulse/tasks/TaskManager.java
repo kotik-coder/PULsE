@@ -59,17 +59,17 @@ public class TaskManager extends UpwardsNavigable {
 
 	private static TaskManager instance = new TaskManager();
 
-	private static List<SearchTask> tasks = new LinkedList<SearchTask>();
-	private static SearchTask selectedTask;
-	private static Map<SearchTask, Result> results = new HashMap<SearchTask, Result>();
+	private List<SearchTask> tasks = new LinkedList<SearchTask>();
+	private SearchTask selectedTask;
+	private Map<SearchTask, Result> results = new HashMap<SearchTask, Result>();
 
-	private static final int THREADS_AVAILABLE = threadsAvailable();
-	private static ForkJoinPool taskPool = new ForkJoinPool(THREADS_AVAILABLE - 1);
+	private final int THREADS_AVAILABLE = threadsAvailable();
+	private ForkJoinPool taskPool = new ForkJoinPool(THREADS_AVAILABLE - 1);
 
-	private static List<TaskSelectionListener> selectionListeners = new CopyOnWriteArrayList<TaskSelectionListener>();
-	private static List<TaskRepositoryListener> taskRepositoryListeners = new CopyOnWriteArrayList<TaskRepositoryListener>();
+	private List<TaskSelectionListener> selectionListeners = new CopyOnWriteArrayList<TaskSelectionListener>();
+	private List<TaskRepositoryListener> taskRepositoryListeners = new CopyOnWriteArrayList<TaskRepositoryListener>();
 
-	private static final String DEFAULT_NAME = "Project 1 - " + now().format(ISO_WEEK_DATE);
+	private final static String DEFAULT_NAME = "Project 1 - " + now().format(ISO_WEEK_DATE);
 
 	private TaskManager() {
 		// intentionally left blank
@@ -94,7 +94,7 @@ public class TaskManager extends UpwardsNavigable {
 	 * @param t a {@code SearchTask} that will be executed
 	 */
 
-	public static void execute(SearchTask t) {
+	public void execute(SearchTask t) {
 		removeResult(t); // remove old result
 		t.setStatus(QUEUED); // notify listeners computation is about to start
 
@@ -119,7 +119,7 @@ public class TaskManager extends UpwardsNavigable {
 	 * @param e an event
 	 */
 
-	public static void notifyListeners(TaskRepositoryEvent e) {
+	public void notifyListeners(TaskRepositoryEvent e) {
 		taskRepositoryListeners.stream().forEach(l -> l.onTaskListChanged(e));
 	}
 
@@ -132,7 +132,7 @@ public class TaskManager extends UpwardsNavigable {
 	 * 7</math>, etc.
 	 */
 
-	public static void executeAll() {
+	public void executeAll() {
 
 		var queue = tasks.stream().filter(t -> {
 			switch (t.getStatus()) {
@@ -164,7 +164,7 @@ public class TaskManager extends UpwardsNavigable {
 	 *         above; {@code false} otherwise.
 	 */
 
-	public static boolean isTaskQueueEmpty() {
+	public boolean isTaskQueueEmpty() {
 		return !tasks.stream().anyMatch(t -> t.getStatus() == QUEUED || t.getStatus() == IN_PROGRESS);
 	}
 
@@ -175,7 +175,7 @@ public class TaskManager extends UpwardsNavigable {
 	 * @see pulse.tasks.Task.terminate()
 	 */
 
-	public static void cancelAllTasks() {
+	public void cancelAllTasks() {
 
 		tasks.stream().forEach(t -> t.terminate());
 
@@ -195,7 +195,7 @@ public class TaskManager extends UpwardsNavigable {
 	 * @see pulse.input.ExperimentalData.isAcquisitionTimeSensible()
 	 */
 
-	public static boolean dataNeedsTruncation() {
+	public boolean dataNeedsTruncation() {
 
 		return tasks.stream().anyMatch(t ->
 
@@ -212,7 +212,7 @@ public class TaskManager extends UpwardsNavigable {
 	 * @see pulse.input.ExperimentalData.truncate()
 	 */
 
-	public static void truncateData() {
+	public void truncateData() {
 		tasks.stream().forEach(t -> t.getExperimentalCurve().truncate());
 	}
 
@@ -223,7 +223,7 @@ public class TaskManager extends UpwardsNavigable {
 	 * </p>
 	 */
 
-	public static void selectFirstTask() {
+	public void selectFirstTask() {
 		if (tasks.size() > 0) {
 			var task = tasks.get(0);
 			if (task != null && selectedTask != task) {
@@ -233,7 +233,7 @@ public class TaskManager extends UpwardsNavigable {
 		}
 	}
 
-	private static void fireTaskSelected(Object source) {
+	private void fireTaskSelected(Object source) {
 		var e = new TaskSelectionEvent(source);
 		for (var l : selectionListeners) {
 			l.onSelectionChanged(e);
@@ -248,7 +248,7 @@ public class TaskManager extends UpwardsNavigable {
 	 * </p>
 	 */
 
-	public static void clear() {
+	public void clear() {
 		tasks.stream().sorted((t1, t2) -> -t1.getIdentifier().compareTo(t2.getIdentifier())).forEach(task -> {
 			var e = new TaskRepositoryEvent(TASK_REMOVED, task.getIdentifier());
 
@@ -267,7 +267,7 @@ public class TaskManager extends UpwardsNavigable {
 	 *         task can be found.
 	 */
 
-	public static SampleName getSampleName() {
+	public SampleName getSampleName() {
 		if (tasks.size() < 1)
 			return null;
 
@@ -286,7 +286,7 @@ public class TaskManager extends UpwardsNavigable {
 	 * </p>
 	 */
 
-	public static void reset() {
+	public void reset() {
 		if (tasks.size() < 1)
 			return;
 
@@ -309,7 +309,7 @@ public class TaskManager extends UpwardsNavigable {
 	 * @return the {@code SearchTask} associated with this {@code Identifier}.
 	 */
 
-	public static SearchTask getTask(Identifier id) {
+	public SearchTask getTask(Identifier id) {
 		return tasks.stream().filter(t -> t.getIdentifier().equals(id)).findFirst().get();
 	}
 
@@ -326,7 +326,7 @@ public class TaskManager extends UpwardsNavigable {
 	 * @see pulse.io.readers.ReaderManager.extract(File)
 	 */
 
-	public static void generateTask(File file) {
+	public void generateTask(File file) {
 		List<ExperimentalData> curves = null;
 		curves = read(curveReaders(), file);
 		curves.stream().forEach(curve -> addTask(new SearchTask(curve)) );
@@ -340,7 +340,7 @@ public class TaskManager extends UpwardsNavigable {
 	 *              {@code ExperimentalData}.
 	 */
 
-	public static void generateTasks(List<File> files) {
+	public void generateTasks(List<File> files) {
 		requireNonNull(files, "Null list of files passed to generatesTasks(...)");
 
 		if (files.size() == 1)
@@ -365,7 +365,7 @@ public class TaskManager extends UpwardsNavigable {
 	 * @see pulse.tasks.SearchTask.equals(SearchTask)
 	 */
 
-	public static SearchTask addTask(SearchTask t) {
+	public SearchTask addTask(SearchTask t) {
 
 		if (tasks.stream().filter(task -> task.equals(t)).count() > 0)
 			return null;
@@ -388,7 +388,7 @@ public class TaskManager extends UpwardsNavigable {
 	 * @return {@code true} if the operation is successful, {@code false} otherwise.
 	 */
 
-	public static boolean removeTask(SearchTask t) {
+	public boolean removeTask(SearchTask t) {
 		if (tasks.stream().filter(task -> task.equals(t)).count() < 1)
 			return false;
 
@@ -408,7 +408,7 @@ public class TaskManager extends UpwardsNavigable {
 	 * @return the number of available tasks.
 	 */
 
-	public static int numberOfTasks() {
+	public int numberOfTasks() {
 		return tasks.size();
 	}
 
@@ -423,7 +423,7 @@ public class TaskManager extends UpwardsNavigable {
 	 * @param src the source of the selection.
 	 */
 
-	public static void selectTask(Identifier id, Object src) {
+	public void selectTask(Identifier id, Object src) {
 		tasks.stream().filter(t -> t.getIdentifier().equals(id)).filter(t -> t != selectedTask).findAny()
 				.ifPresent(t -> {
 					selectedTask = t;
@@ -432,39 +432,39 @@ public class TaskManager extends UpwardsNavigable {
 
 	}
 
-	public static void addSelectionListener(TaskSelectionListener listener) {
+	public void addSelectionListener(TaskSelectionListener listener) {
 		selectionListeners.add(listener);
 	}
 
-	public static void addTaskRepositoryListener(TaskRepositoryListener listener) {
+	public void addTaskRepositoryListener(TaskRepositoryListener listener) {
 		taskRepositoryListeners.add(listener);
 	}
 
-	public static TaskSelectionListener[] getSelectionListeners() {
+	public TaskSelectionListener[] getSelectionListeners() {
 		return (TaskSelectionListener[]) selectionListeners.toArray();
 	}
 
-	public static void removeSelectionListeners() {
+	public void removeSelectionListeners() {
 		selectionListeners.clear();
 	}
 
-	public static void removeTaskRepositoryListener(TaskRepositoryListener trl) {
+	public void removeTaskRepositoryListener(TaskRepositoryListener trl) {
 		taskRepositoryListeners.remove(trl);
 	}
 
-	public static int indexOfTask(SearchTask t) {
+	public int indexOfTask(SearchTask t) {
 		return tasks.indexOf(t);
 	}
 
-	public static List<SearchTask> getTaskList() {
+	public List<SearchTask> getTaskList() {
 		return tasks;
 	}
 
-	public static SearchTask getSelectedTask() {
+	public SearchTask getSelectedTask() {
 		return selectedTask;
 	}
 
-	public static List<TaskRepositoryListener> getTaskRepositoryListeners() {
+	public List<TaskRepositoryListener> getTaskRepositoryListeners() {
 		return taskRepositoryListeners;
 	}
 
@@ -478,7 +478,7 @@ public class TaskManager extends UpwardsNavigable {
 		return tasks.size() > 0 ? getSampleName().toString() : DEFAULT_NAME;
 	}
 
-	public static Result getResult(SearchTask t) {
+	public Result getResult(SearchTask t) {
 		return results.get(t);
 	}
 
@@ -489,7 +489,7 @@ public class TaskManager extends UpwardsNavigable {
 	 * @param r the {@code SearchTask}.
 	 */
 
-	public static void useResult(SearchTask t, Result r) {
+	public void useResult(SearchTask t, Result r) {
 		results.put(t, r);
 	}
 
@@ -502,7 +502,7 @@ public class TaskManager extends UpwardsNavigable {
 	 *         returns the found {@code Result}.
 	 */
 
-	public static Result getResult(Identifier id) {
+	public Result getResult(Identifier id) {
 		var optional = tasks.stream().filter(t -> t.getIdentifier().equals(id)).findFirst();
 
 		if (!optional.isPresent())
@@ -518,18 +518,18 @@ public class TaskManager extends UpwardsNavigable {
 	 * @param t a {@code SearchTask} contained in the repository
 	 */
 
-	public static void removeResult(SearchTask t) {
+	public void removeResult(SearchTask t) {
 		if (!results.containsKey(t))
 			return;
 		results.remove(t);
 		t.setStatus(READY);
 	}
 
-	public static void evaluate() {
+	public void evaluate() {
 		tasks.stream().forEach(t -> InterpolationDataset.fill(t.getProblem().getProperties()));
 	}
 
-	public static Set<Group> allGrouppedContents() {
+	public Set<Group> allGrouppedContents() {
 
 		return getTaskList().stream().map(t -> contents(t)).reduce((a, b) -> {
 			a.addAll(b);

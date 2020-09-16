@@ -8,10 +8,6 @@ import static java.lang.System.err;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static javax.swing.SwingUtilities.getWindowAncestor;
 import static pulse.io.export.ExportManager.askToExport;
-import static pulse.tasks.TaskManager.addSelectionListener;
-import static pulse.tasks.TaskManager.addTaskRepositoryListener;
-import static pulse.tasks.TaskManager.getSelectedTask;
-import static pulse.tasks.TaskManager.getTask;
 import static pulse.tasks.listeners.TaskRepositoryEvent.State.TASK_ADDED;
 import static pulse.ui.Messages.getString;
 
@@ -22,6 +18,7 @@ import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.JScrollPane;
 
+import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.LogEntryListener;
 import pulse.tasks.logs.Log;
 import pulse.tasks.logs.LogEntry;
@@ -66,19 +63,20 @@ public class LogFrame extends JInternalFrame {
 	}
 
 	private void scheduleLogEvents() {
-		addSelectionListener(e -> logTextPane.printAll());
+		var instance = TaskManager.getInstance();
+		instance.addSelectionListener(e -> logTextPane.printAll());
 
-		addTaskRepositoryListener(event -> {
+		instance.addTaskRepositoryListener(event -> {
 			if (event.getState() != TASK_ADDED)
 				return;
 
-			var task = getTask(event.getId());
+			var task = instance.getTask(event.getId());
 
 			task.getLog().addListener(new LogEntryListener() {
 
 				@Override
 				public void onLogFinished(Log log) {
-					if (getSelectedTask() == task) {
+					if (instance.getSelectedTask() == task) {
 
 						try {
 							logTextPane.getUpdateExecutor().awaitTermination(10, MILLISECONDS);
@@ -94,7 +92,7 @@ public class LogFrame extends JInternalFrame {
 
 				@Override
 				public void onNewEntry(LogEntry e) {
-					if (getSelectedTask() == task)
+					if (instance.getSelectedTask() == task)
 						logTextPane.callUpdate();
 				}
 

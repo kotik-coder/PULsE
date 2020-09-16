@@ -5,7 +5,6 @@ import static javax.swing.JOptionPane.WARNING_MESSAGE;
 import static javax.swing.JOptionPane.YES_NO_OPTION;
 import static javax.swing.JOptionPane.YES_OPTION;
 import static javax.swing.JOptionPane.showOptionDialog;
-import static pulse.tasks.TaskManager.addSelectionListener;
 import static pulse.tasks.processing.ResultFormat.addResultFormatListener;
 import static pulse.ui.Launcher.loadIcon;
 import static pulse.ui.Messages.getString;
@@ -24,6 +23,7 @@ import javax.swing.JInternalFrame;
 import javax.swing.event.InternalFrameAdapter;
 import javax.swing.event.InternalFrameEvent;
 
+import pulse.tasks.TaskManager;
 import pulse.ui.components.PulseMainMenu;
 import pulse.ui.components.listeners.FrameVisibilityRequestListener;
 import pulse.ui.components.listeners.TaskActionListener;
@@ -64,7 +64,7 @@ public class TaskControlFrame extends JFrame {
 		setExtendedState(getExtendedState() | MAXIMIZED_BOTH);
 		initComponents();
 		initListeners();
-		addSelectionListener(e -> graphFrame.plot());
+		TaskManager.getInstance().addSelectionListener(e -> graphFrame.plot());
 		setIconImage(loadIcon("logo.png", 32).getImage());
 		addListeners();
 		setDefaultCloseOperation(EXIT_ON_CLOSE);

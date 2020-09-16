@@ -80,9 +80,9 @@ public abstract class LinearOptimiser extends PropertyHolder implements Reflexiv
 
 			final double component = p.get(i);
 
-			if (component < EPS)
-				if (component > -EPS)
-					continue;
+			//check if zero
+			if (component < EPS && component > -EPS)
+				continue;
 
 			alpha = min(alpha, abs(bounds.get(i) / component));
 

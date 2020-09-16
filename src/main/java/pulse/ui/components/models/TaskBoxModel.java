@@ -1,9 +1,5 @@
 package pulse.ui.components.models;
 
-import static pulse.tasks.TaskManager.addTaskRepositoryListener;
-import static pulse.tasks.TaskManager.getSelectedTask;
-import static pulse.tasks.TaskManager.getTaskList;
-import static pulse.tasks.TaskManager.numberOfTasks;
 import static pulse.tasks.listeners.TaskRepositoryEvent.State.TASK_ADDED;
 import static pulse.tasks.listeners.TaskRepositoryEvent.State.TASK_REMOVED;
 import static pulse.ui.Messages.getString;
@@ -13,6 +9,7 @@ import javax.swing.ComboBoxModel;
 
 import pulse.tasks.Identifier;
 import pulse.tasks.SearchTask;
+import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.TaskRepositoryEvent;
 
 /*
@@ -28,9 +25,10 @@ public class TaskBoxModel extends AbstractListModel<SearchTask> implements Combo
 	protected SearchTask selectedTask;
 
 	public TaskBoxModel() {
-		selectedTask = getSelectedTask();
+		var instance = TaskManager.getInstance();
+		selectedTask = instance.getSelectedTask();
 
-		addTaskRepositoryListener((TaskRepositoryEvent e) -> {
+		instance.addTaskRepositoryListener((TaskRepositoryEvent e) -> {
 			if (e.getState() == TASK_ADDED) {
 				notifyTaskAdded(e.getId());
 			}
@@ -43,12 +41,12 @@ public class TaskBoxModel extends AbstractListModel<SearchTask> implements Combo
 
 	@Override
 	public int getSize() {
-		return numberOfTasks();
+		return TaskManager.getInstance().numberOfTasks();
 	}
 
 	@Override
 	public SearchTask getElementAt(int index) {
-		return getTaskList().get(index);
+		return TaskManager.getInstance().getTaskList().get(index);
 	}
 
 	@Override
@@ -65,7 +63,7 @@ public class TaskBoxModel extends AbstractListModel<SearchTask> implements Combo
 			return;
 
 		// Simply return if object is not in the list.
-		if (selectedTask != null && !getTaskList().contains(anItem))
+		if (selectedTask != null && !TaskManager.getInstance().getTaskList().contains(anItem))
 			return;
 
 		// Here we know that object is either an item in the list or null.
@@ -78,7 +76,7 @@ public class TaskBoxModel extends AbstractListModel<SearchTask> implements Combo
 	}
 
 	public int getSelectedIndex() {
-		return getTaskList().indexOf(selectedTask);
+		return TaskManager.getInstance().getTaskList().indexOf(selectedTask);
 	}
 
 	@Override

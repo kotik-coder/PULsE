@@ -8,7 +8,6 @@ import static java.time.temporal.ChronoUnit.MILLIS;
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static javax.swing.text.DefaultCaret.ALWAYS_UPDATE;
-import static pulse.tasks.TaskManager.getSelectedTask;
 import static pulse.tasks.logs.Status.DONE;
 import static pulse.ui.Messages.getString;
 
@@ -23,6 +22,7 @@ import javax.swing.text.DefaultCaret;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
 
+import pulse.tasks.TaskManager;
 import pulse.tasks.logs.Log;
 import pulse.tasks.logs.LogEntry;
 import pulse.util.Descriptive;
@@ -112,7 +112,7 @@ public class LogPane extends JEditorPane implements Descriptive {
 	public void printAll() {
 		clear();
 
-		var task = getSelectedTask();
+		var task = TaskManager.getInstance().getSelectedTask();
 
 		if (task != null) {
 
@@ -132,7 +132,7 @@ public class LogPane extends JEditorPane implements Descriptive {
 	}
 
 	private synchronized void update() {
-		var task = getSelectedTask();
+		var task = TaskManager.getInstance().getSelectedTask();
 
 		if (task == null)
 			return;
@@ -165,7 +165,7 @@ public class LogPane extends JEditorPane implements Descriptive {
 
 	@Override
 	public String describe() {
-		return "Log_" + getSelectedTask().getIdentifier().getValue();
+		return "Log_" + TaskManager.getInstance().getSelectedTask().getIdentifier().getValue();
 	}
 
 }

@@ -3,11 +3,6 @@ package pulse.ui.components.buttons;
 import static javax.swing.JOptionPane.ERROR_MESSAGE;
 import static javax.swing.JOptionPane.showMessageDialog;
 import static javax.swing.SwingUtilities.getWindowAncestor;
-import static pulse.tasks.TaskManager.addTaskRepositoryListener;
-import static pulse.tasks.TaskManager.cancelAllTasks;
-import static pulse.tasks.TaskManager.executeAll;
-import static pulse.tasks.TaskManager.getTaskList;
-import static pulse.tasks.TaskManager.isTaskQueueEmpty;
 import static pulse.tasks.logs.Status.INCOMPLETE;
 import static pulse.ui.Messages.getString;
 import static pulse.ui.components.buttons.ExecutionButton.ExecutionState.EXECUTE;
@@ -19,6 +14,7 @@ import java.awt.event.ActionEvent;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 
+import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.TaskRepositoryEvent;
 import pulse.ui.Launcher;
 
@@ -31,43 +27,45 @@ public class ExecutionButton extends JButton {
 		super();
 		setIcon(state.getIcon());
 		setToolTipText(state.getMessage());
+		
+		var instance = TaskManager.getInstance();
 
 		this.addActionListener((ActionEvent e) -> {
 			/*
 			 * STOP PRESSED?
 			 */
 			if (state == STOP) {
-				cancelAllTasks();
+				instance.cancelAllTasks();
 				return;
 			}
 			/*
 			 * EXECUTE PRESSED?
 			 */
-			if (getTaskList().isEmpty()) {
+			if (instance.getTaskList().isEmpty()) {
 				showMessageDialog(getWindowAncestor((Component) e.getSource()),
 						getString("TaskControlFrame.PleaseLoadData"), //$NON-NLS-1$
 						"No Tasks", //$NON-NLS-1$
 						ERROR_MESSAGE);
 				return;
 			}
-			java.util.Optional<pulse.tasks.SearchTask> problematicTask = getTaskList().stream()
+			var problematicTask = instance.getTaskList().stream()
 					.filter((t) -> t.checkProblems() == INCOMPLETE).findFirst();
 			if (problematicTask.isPresent()) {
 				var t = problematicTask.get();
 				showMessageDialog(getWindowAncestor((Component) e.getSource()), t + " is " + t.getStatus().getMessage(),
 						"Problems found", ERROR_MESSAGE);
 			} else {
-				executeAll();
+				instance.executeAll();
 			}
 		});
 
-		addTaskRepositoryListener((TaskRepositoryEvent e) -> {
+		instance.addTaskRepositoryListener((TaskRepositoryEvent e) -> {
 			switch (e.getState()) {
 			case TASK_SUBMITTED:
 				setExecutionState(STOP);
 				break;
 			case TASK_FINISHED:
-				if (isTaskQueueEmpty()) {
+				if (instance.isTaskQueueEmpty()) {
 					setExecutionState(EXECUTE);
 				} else {
 					setExecutionState(STOP);

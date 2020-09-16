@@ -10,12 +10,6 @@ import static javax.swing.JOptionPane.YES_NO_OPTION;
 import static javax.swing.JOptionPane.showConfirmDialog;
 import static javax.swing.JOptionPane.showMessageDialog;
 import static javax.swing.SwingUtilities.getWindowAncestor;
-import static pulse.tasks.TaskManager.addSelectionListener;
-import static pulse.tasks.TaskManager.execute;
-import static pulse.tasks.TaskManager.getSelectedTask;
-import static pulse.tasks.TaskManager.notifyListeners;
-import static pulse.tasks.TaskManager.removeResult;
-import static pulse.tasks.TaskManager.useResult;
 import static pulse.tasks.listeners.TaskRepositoryEvent.State.TASK_FINISHED;
 import static pulse.tasks.logs.Details.MISSING_HEATING_CURVE;
 import static pulse.tasks.logs.Details.NONE;
@@ -37,6 +31,7 @@ import javax.swing.JSeparator;
 
 import pulse.problem.schemes.solvers.Solver;
 import pulse.problem.schemes.solvers.SolverException;
+import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.TaskRepositoryEvent;
 import pulse.tasks.processing.Result;
 
@@ -75,9 +70,11 @@ public class TaskPopupMenu extends JPopupMenu {
 
 		itemExtendedChart.setFont(f);
 
+		var instance = TaskManager.getInstance();
+		
 		itemShowMeta = new JMenuItem("Show metadata", ICON_METADATA);
 		itemShowMeta.addActionListener((ActionEvent e) -> {
-			var t = getSelectedTask();
+			var t = instance.getSelectedTask();
 			if (t == null) {
 				showMessageDialog(getWindowAncestor((Component) e.getSource()),
 						getString("TaskTablePopupMenu.EmptySelection2"), //$NON-NLS-1$
@@ -93,8 +90,8 @@ public class TaskPopupMenu extends JPopupMenu {
 
 		itemShowStatus = new JMenuItem("What is missing?", ICON_MISSING);
 
-		addSelectionListener(event -> {
-			var details = getSelectedTask().checkProblems(false).getDetails();
+		instance.addSelectionListener(event -> {
+			var details = instance.getSelectedTask().checkProblems(false).getDetails();
 			if ((details == null) || (details == NONE))
 				itemShowStatus.setEnabled(false);
 			else
@@ -102,7 +99,7 @@ public class TaskPopupMenu extends JPopupMenu {
 		});
 
 		itemShowStatus.addActionListener((ActionEvent e) -> {
-			var t = getSelectedTask();
+			var t = instance.getSelectedTask();
 			if (t != null) {
 				var d = t.getStatus().getDetails();
 				showMessageDialog(getWindowAncestor((Component) e.getSource()),
@@ -114,7 +111,7 @@ public class TaskPopupMenu extends JPopupMenu {
 
 		itemExecute = new JMenuItem(getString("TaskTablePopupMenu.Execute"), ICON_RUN); //$NON-NLS-1$
 		itemExecute.addActionListener((ActionEvent e) -> {
-			var t = getSelectedTask();
+			var t = instance.getSelectedTask();
 			if (t == null) {
 				showMessageDialog(getWindowAncestor((Component) e.getSource()),
 						getString("TaskTablePopupMenu.EmptySelection"), //$NON-NLS-1$
@@ -131,7 +128,7 @@ public class TaskPopupMenu extends JPopupMenu {
 				if (dialogResult == 1) {
 					return;
 				} else {
-					removeResult(t);
+					instance.removeResult(t);
 					// t.storeCurrentSolution();
 				}
 			}
@@ -142,7 +139,7 @@ public class TaskPopupMenu extends JPopupMenu {
 						ERROR_MESSAGE);
 				return;
 			}
-			execute(getSelectedTask());
+			instance.execute(instance.getSelectedTask());
 		});
 
 		itemExecute.setFont(f);
@@ -151,7 +148,7 @@ public class TaskPopupMenu extends JPopupMenu {
 		itemReset.setFont(f);
 
 		itemReset.addActionListener((ActionEvent arg0) -> {
-			getSelectedTask().clear();
+			instance.getSelectedTask().clear();
 		});
 
 		itemGenerateResult = new JMenuItem(getString("TaskTablePopupMenu.GenerateResult"), ICON_RESULT);
@@ -159,15 +156,15 @@ public class TaskPopupMenu extends JPopupMenu {
 
 		itemGenerateResult.addActionListener((ActionEvent arg0) -> {
 			Result r = null;
-			var t = getSelectedTask();
+			var t = instance.getSelectedTask();
 			if (t == null)
 				return;
 			if (t.getProblem() == null)
 				return;
-			r = new Result(getSelectedTask(), getInstance());
-			useResult(t, r);
-			var e = new TaskRepositoryEvent(TASK_FINISHED, getSelectedTask().getIdentifier());
-			notifyListeners(e);
+			r = new Result(t, getInstance());
+			instance.useResult(t, r);
+			var e = new TaskRepositoryEvent(TASK_FINISHED, t.getIdentifier());
+			instance.notifyListeners(e);
 		});
 
 		add(itemShowMeta);
@@ -185,7 +182,7 @@ public class TaskPopupMenu extends JPopupMenu {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void plot(boolean extended) {
-		var t = getSelectedTask();
+		var t = TaskManager.getInstance().getSelectedTask();
 
 		if (t == null) {
 			showMessageDialog(getWindowAncestor(this), getString("TaskTablePopupMenu.EmptySelection2"), //$NON-NLS-1$

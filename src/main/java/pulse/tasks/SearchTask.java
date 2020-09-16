@@ -9,7 +9,6 @@ import static pulse.search.direction.PathOptimiser.getErrorTolerance;
 import static pulse.search.direction.PathOptimiser.getInstance;
 import static pulse.search.direction.PathOptimiser.getLinearSolver;
 import static pulse.search.statistics.ResidualStatistic.getSelectedOptimiserDescriptor;
-import static pulse.tasks.TaskManager.getSampleName;
 import static pulse.tasks.logs.Details.ABNORMAL_DISTRIBUTION_OF_RESIDUALS;
 import static pulse.tasks.logs.Details.INSUFFICIENT_DATA_IN_PROBLEM_STATEMENT;
 import static pulse.tasks.logs.Details.MISSING_BUFFER;
@@ -563,7 +562,7 @@ public class SearchTask extends Accessible implements Runnable {
 	public String describe() {
 
 		var sb = new StringBuilder();
-		sb.append(getSampleName());
+		sb.append(TaskManager.getInstance().getSampleName());
 		sb.append("_Task_");
 		var extId = curve.getMetadata().getExternalID();
 		if (extId < 0)

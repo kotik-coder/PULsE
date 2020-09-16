@@ -45,7 +45,7 @@ public class Identifier extends NumericProperty {
 	 */
 
 	public static Identifier parse(String string) {
-		var i = TaskManager.getTaskList().stream().map(t -> t.getIdentifier())
+		var i = TaskManager.getInstance().getTaskList().stream().map(t -> t.getIdentifier())
 				.filter(id -> id.toString().equals(string)).findFirst();
 		return i.isPresent() ? i.get() : null;
 	}

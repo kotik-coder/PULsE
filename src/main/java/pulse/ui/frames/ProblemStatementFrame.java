@@ -17,11 +17,7 @@ import static pulse.input.InterpolationDataset.StandartType.DENSITY;
 import static pulse.input.InterpolationDataset.StandartType.HEAT_CAPACITY;
 import static pulse.problem.statements.Problem.isSingleStatement;
 import static pulse.problem.statements.ProblemComplexity.HIGH;
-import static pulse.tasks.TaskManager.addSelectionListener;
 import static pulse.tasks.TaskManager.getInstance;
-import static pulse.tasks.TaskManager.getSelectedTask;
-import static pulse.tasks.TaskManager.getTaskList;
-import static pulse.tasks.TaskManager.selectFirstTask;
 import static pulse.tasks.logs.Details.INSUFFICIENT_DATA_IN_PROBLEM_STATEMENT;
 import static pulse.tasks.logs.Details.MISSING_DIFFERENCE_SCHEME;
 import static pulse.tasks.logs.Details.MISSING_PROBLEM_STATEMENT;
@@ -55,6 +51,7 @@ import pulse.problem.schemes.solvers.Solver;
 import pulse.problem.schemes.solvers.SolverException;
 import pulse.problem.statements.Problem;
 import pulse.tasks.SearchTask;
+import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.TaskSelectionEvent;
 import pulse.ui.components.PropertyHolderTable;
 import pulse.ui.components.buttons.LoaderButton;
@@ -158,10 +155,12 @@ public class ProblemStatementFrame extends JInternalFrame {
 		var btnSimulate = new JButton(getString("ProblemStatementFrame.SimulateButton")); //$NON-NLS-1$
 		btnSimulate.setFont(btnSimulate.getFont().deriveFont(BOLD, 14f));
 
+		var instance = TaskManager.getInstance();
+		
 		// simulate btn listener
 
 		btnSimulate.addActionListener((ActionEvent arg0) -> {
-			var t = getSelectedTask();
+			var t = instance.getSelectedTask();
 			if (t == null)
 				return;
 			if (t.checkProblems() == INCOMPLETE) {
@@ -240,8 +239,8 @@ public class ProblemStatementFrame extends JInternalFrame {
 		 * listeners
 		 */
 
-		addSelectionListener((TaskSelectionEvent e) -> 
-			update(e.getSelection())
+		instance.addSelectionListener((TaskSelectionEvent e) -> 
+			update(instance.getSelectedTask())
 		);
 		// TODO
 
@@ -254,7 +253,7 @@ public class ProblemStatementFrame extends JInternalFrame {
 
 			Problem p;
 
-			for (var task : getTaskList()) {
+			for (var task : instance.getTaskList()) {
 				p = task.getProblem();
 				if (p != null)
 					p.updateProperty(event, event.getProperty());
@@ -265,7 +264,7 @@ public class ProblemStatementFrame extends JInternalFrame {
 	}
 
 	public void update() {
-		update(getSelectedTask());
+		update(TaskManager.getInstance().getSelectedTask());
 	}
 
 	private void update(SearchTask selectedTask) {
@@ -419,6 +418,8 @@ public class ProblemStatementFrame extends JInternalFrame {
 			setModel(listModel);
 			setSelectionMode(SINGLE_SELECTION);
 
+			var instance = TaskManager.getInstance();
+			
 			addListSelectionListener((ListSelectionEvent arg0) -> {
 				if (arg0.getValueIsAdjusting())
 					return;
@@ -427,19 +428,20 @@ public class ProblemStatementFrame extends JInternalFrame {
 					((DefaultTableModel) problemTable.getModel()).setRowCount(0);
 					return;
 				}
-				if (getSelectedTask() == null) {
-					selectFirstTask();
+								
+				if (instance.getSelectedTask() == null) {
+					instance.selectFirstTask();
 				}
-				var selectedTask = getSelectedTask();
+				var selectedTask = instance.getSelectedTask();
 				if (isSingleStatement()) {
-					for (var t : getTaskList()) {
+					for (var t : instance.getTaskList()) {
 						changeProblem(t, newlySelectedProblem);
 					}
 				} else {
 					changeProblem(selectedTask, newlySelectedProblem);
 				}
 				listModel.set(listModel.indexOf(newlySelectedProblem), selectedTask.getProblem());
-				problemTable.setPropertyHolder(getSelectedTask().getProblem());
+				problemTable.setPropertyHolder(instance.getSelectedTask().getProblem());
 				// after problem is selected for this task, show available difference schemes
 				var defaultModel = (DefaultListModel<DifferenceScheme>) (schemeSelectionList.getModel());
 				defaultModel.clear();
@@ -449,21 +451,21 @@ public class ProblemStatementFrame extends JInternalFrame {
 				schemeSelectionList.setToolTipText(null);
 			});
 
-			addSelectionListener((TaskSelectionEvent e) -> {
+			instance.addSelectionListener((TaskSelectionEvent e) -> {
 				// select appropriate problem type from list
-				if (e.getSelection().getProblem() != null) {
+				if (instance.getSelectedTask().getProblem() != null) {
 					for (var i = 0; i < getModel().getSize(); i++) {
 						var p = getModel().getElementAt(i);
-						if (e.getSelection().getProblem().getClass().equals(p.getClass())) {
+						if (instance.getSelectedTask().getProblem().getClass().equals(p.getClass())) {
 							setSelectedIndex(i);
 							break;
 						}
 					}
 				}
 				// then, select appropriate scheme type
-				if (e.getSelection().getScheme() != null) {
+				if (instance.getSelectedTask().getScheme() != null) {
 					for (var i = 0; i < schemeSelectionList.getModel().getSize(); i++) {
-						if (e.getSelection().getScheme().getClass()
+						if (instance.getSelectedTask().getScheme().getClass()
 								.equals(schemeSelectionList.getModel().getElementAt(i).getClass())) {
 							schemeSelectionList.setSelectedIndex(i);
 							break;
@@ -499,12 +501,13 @@ public class ProblemStatementFrame extends JInternalFrame {
 					((DefaultTableModel) schemeTable.getModel()).setRowCount(0);
 					return;
 				}
-				var selectedTask = getSelectedTask();
+				var instance = TaskManager.getInstance();
+				var selectedTask = instance.getSelectedTask();
 				var newScheme = getSelectedValue();
 				if (newScheme == null)
 					return;
 				if (isSingleStatement()) {
-					for (var t : getTaskList()) {
+					for (var t : instance.getTaskList()) {
 						changeScheme(t, newScheme);
 					}
 				} else {

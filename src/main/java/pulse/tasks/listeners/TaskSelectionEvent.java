@@ -1,10 +1,6 @@
 package pulse.tasks.listeners;
 
-import static pulse.tasks.TaskManager.getSelectedTask;
-
 import java.util.EventObject;
-
-import pulse.tasks.SearchTask;
 
 public class TaskSelectionEvent extends EventObject {
 
@@ -20,10 +16,6 @@ public class TaskSelectionEvent extends EventObject {
 
 	public void setSource(Object source) {
 		this.source = source;
-	}
-
-	public SearchTask getSelection() {
-		return getSelectedTask();
 	}
 
 }

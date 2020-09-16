@@ -1,10 +1,10 @@
 package pulse.ui.frames;
 
 import static java.awt.BorderLayout.CENTER;
-import static pulse.tasks.TaskManager.getSelectedTask;
 
 import javax.swing.JInternalFrame;
 
+import pulse.tasks.TaskManager;
 import pulse.ui.components.AuxChart;
 
 @SuppressWarnings("serial")
@@ -31,7 +31,7 @@ public class AuxGraphFrame extends JInternalFrame {
 	}
 
 	public void plot() {
-		var task = getSelectedTask();
+		var task = TaskManager.getInstance().getSelectedTask();
 		if (task != null)
 			chart.plot(task.getProblem());
 	}

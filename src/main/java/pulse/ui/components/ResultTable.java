@@ -8,10 +8,6 @@ import static javax.swing.SortOrder.ASCENDING;
 import static javax.swing.SwingConstants.TOP;
 import static javax.swing.SwingUtilities.invokeLater;
 import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
-import static pulse.tasks.TaskManager.addSelectionListener;
-import static pulse.tasks.TaskManager.addTaskRepositoryListener;
-import static pulse.tasks.TaskManager.getResult;
-import static pulse.tasks.TaskManager.getTaskList;
 import static pulse.ui.Messages.getString;
 
 import java.awt.Font;
@@ -81,8 +77,10 @@ public class ResultTable extends JTable implements Descriptive {
 		 * changes
 		 */
 
-		addSelectionListener((TaskSelectionEvent e) -> {
-			var id = e.getSelection().getIdentifier();
+		var instance = TaskManager.getInstance();
+		
+		instance.addSelectionListener((TaskSelectionEvent e) -> {
+			var id = instance.getSelectedTask().getIdentifier();
 			getSelectionModel().clearSelection();
 			var results = ((ResultTableModel) getModel()).getResults();
 			var jj = 0;
@@ -105,11 +103,11 @@ public class ResultTable extends JTable implements Descriptive {
 		 * results if corresponding task is removed
 		 */
 
-		addTaskRepositoryListener((TaskRepositoryEvent e) -> {
+		TaskManager.getInstance().addTaskRepositoryListener((TaskRepositoryEvent e) -> {
 			switch (e.getState()) {
 			case TASK_FINISHED:
-				var t = TaskManager.getTask(e.getId());
-				var r = getResult(t);
+				var t = instance.getTask(e.getId());
+				var r = instance.getResult(t);
 				invokeLater(() -> ((ResultTableModel) getModel()).addRow(r));
 				break;
 			case TASK_REMOVED:
@@ -289,7 +287,8 @@ public class ResultTable extends JTable implements Descriptive {
 			dtm.remove(dtm.getResults().get(convertRowIndexToModel(i)));
 		}
 
-		getTaskList().stream().map(t -> getResult(t)).forEach(r -> dtm.addRow(r));
+		var instance = TaskManager.getInstance();
+		instance.getTaskList().stream().map(t -> instance.getResult(t)).forEach(r -> dtm.addRow(r));
 	}
 
 }

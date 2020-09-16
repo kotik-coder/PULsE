@@ -3,9 +3,6 @@ package pulse.io.export;
 import static java.io.File.separator;
 import static java.util.Arrays.asList;
 import static pulse.io.export.Exporter.getDefaultExportExtension;
-import static pulse.tasks.TaskManager.getResult;
-import static pulse.tasks.TaskManager.getSelectedTask;
-import static pulse.tasks.TaskManager.getTaskList;
 import static pulse.util.Group.contents;
 import static pulse.util.Reflexive.instancesOf;
 
@@ -14,6 +11,7 @@ import java.util.Objects;
 
 import javax.swing.JFrame;
 
+import pulse.tasks.TaskManager;
 import pulse.util.Descriptive;
 import pulse.util.Group;
 
@@ -140,7 +138,7 @@ public class ExportManager {
 	 */
 
 	public static void exportAllTasks(File directory, Extension extension) {
-		getTaskList().stream().forEach(t -> exportGroup(t, directory, extension));
+		TaskManager.getInstance().getTaskList().stream().forEach(t -> exportGroup(t, directory, extension));
 	}
 
 	/**
@@ -153,7 +151,7 @@ public class ExportManager {
 	 */
 
 	public static void exportCurrentTask(File directory, Extension extension) {
-		exportGroup(getSelectedTask(), directory, extension);
+		exportGroup(TaskManager.getInstance().getSelectedTask(), directory, extension);
 	}
 
 	/**
@@ -180,7 +178,8 @@ public class ExportManager {
 
 	public static void exportAllResults(File directory, Extension extension) {
 
-		getTaskList().stream().map(t -> getResult(t)).filter(Objects::nonNull)
+		var instance = TaskManager.getInstance();
+		instance.getTaskList().stream().map(t -> instance.getResult(t)).filter(Objects::nonNull)
 				.forEach(r -> export(r, directory, extension));
 
 	}

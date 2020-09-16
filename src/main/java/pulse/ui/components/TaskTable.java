@@ -9,11 +9,6 @@ import static pulse.properties.NumericPropertyKeyword.IDENTIFIER;
 import static pulse.properties.NumericPropertyKeyword.OPTIMISER_STATISTIC;
 import static pulse.properties.NumericPropertyKeyword.TEST_STATISTIC;
 import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
-import static pulse.tasks.TaskManager.addSelectionListener;
-import static pulse.tasks.TaskManager.addTaskRepositoryListener;
-import static pulse.tasks.TaskManager.getTask;
-import static pulse.tasks.TaskManager.removeTask;
-import static pulse.tasks.TaskManager.selectTask;
 import static pulse.tasks.listeners.TaskRepositoryEvent.State.TASK_ADDED;
 import static pulse.tasks.listeners.TaskRepositoryEvent.State.TASK_REMOVED;
 import static pulse.ui.Messages.getString;
@@ -37,6 +32,7 @@ import javax.swing.table.TableRowSorter;
 import pulse.properties.NumericProperty;
 import pulse.tasks.Identifier;
 import pulse.tasks.SearchTask;
+import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.TaskRepositoryEvent;
 import pulse.tasks.listeners.TaskSelectionEvent;
 import pulse.tasks.logs.LogEntry;
@@ -104,15 +100,17 @@ public class TaskTable extends JTable {
 
 	public void initListeners() {
 
+		var instance = TaskManager.getInstance();
+		
 		/*
 		 * task removed/added listener
 		 */
 
-		addTaskRepositoryListener((TaskRepositoryEvent e) -> {
+		instance.addTaskRepositoryListener((TaskRepositoryEvent e) -> {
 			if (e.getState() == TASK_REMOVED) {
 				((TaskTableModel) getModel()).removeTask(e.getId());
 			} else if (e.getState() == TASK_ADDED) {
-				((TaskTableModel) getModel()).addTask(getTask(e.getId()));
+				((TaskTableModel) getModel()).addTask(instance.getTask(e.getId()));
 			}
 		});
 
@@ -151,14 +149,14 @@ public class TaskTable extends JTable {
 			if (lsm.isSelectionEmpty())
 				return;
 			var id = (Identifier) getValueAt(lsm.getMinSelectionIndex(), 0);
-			selectTask(id, reference);
+			instance.selectTask(id, reference);
 		});
 
-		addSelectionListener((TaskSelectionEvent e) -> {
+		instance.addSelectionListener((TaskSelectionEvent e) -> {
 			// simply ignore call if event is triggered by taskTable
 			if (e.getSource() instanceof TaskTable)
 				return;
-			var id = e.getSelection().getIdentifier();
+			var id = instance.getSelectedTask().getIdentifier();
 			Identifier idFromTable = null;
 			for (var i = 0; i < getRowCount(); i++) {
 				idFromTable = (Identifier) getValueAt(i, 0);
@@ -249,9 +247,11 @@ public class TaskTable extends JTable {
 		var rows = getSelectedRows();
 		Identifier id;
 
+		var instance = TaskManager.getInstance();
+		
 		for (var i = rows.length - 1; i >= 0; i--) {
 			id = (Identifier) getValueAt(rows[i], 0);
-			removeTask(getTask(id));
+			instance.removeTask(instance.getTask(id));
 		}
 
 		clearSelection();

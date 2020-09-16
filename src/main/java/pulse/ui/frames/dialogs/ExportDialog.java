@@ -11,9 +11,6 @@ import static javax.swing.SwingConstants.HORIZONTAL;
 import static pulse.io.export.ExportManager.exportAllResults;
 import static pulse.io.export.ExportManager.exportGroup;
 import static pulse.io.export.Extension.valueOf;
-import static pulse.tasks.TaskManager.allGrouppedContents;
-import static pulse.tasks.TaskManager.getTaskList;
-import static pulse.tasks.TaskManager.numberOfTasks;
 import static pulse.ui.Launcher.threadsAvailable;
 
 import java.awt.Dimension;
@@ -96,11 +93,13 @@ public class ExportDialog extends JDialog {
 	}
 
 	private void export(Extension extension) {
-		if (numberOfTasks() < 1)
+		var instance = TaskManager.getInstance();
+		
+		if (instance.numberOfTasks() < 1)
 			return; // nothing to export
 
 		var destination = new File(dir + separator + projectName);
-		var subdirs = getTaskList();
+		var subdirs = instance.getTaskList();
 
 		if (subdirs.size() > 0 && !destination.exists())
 			destination.mkdirs();
@@ -117,7 +116,7 @@ public class ExportDialog extends JDialog {
 				});
 			});
 		} else {
-			var groupped = allGrouppedContents();
+			var groupped = instance.allGrouppedContents();
 			var pool = newFixedThreadPool(threads - 1);
 			progressFrame.trackProgress(groupped.size());
 

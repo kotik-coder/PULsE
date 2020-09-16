@@ -38,7 +38,7 @@ public class DataLoader {
 	private static ProgressDialog progressFrame = new ProgressDialog();
 
 	static {
-		TaskManager.addTaskRepositoryListener(e -> {
+		TaskManager.getInstance().addTaskRepositoryListener(e -> {
 			if (e.getState() == TaskRepositoryEvent.State.TASK_ADDED)
 				progressFrame.incrementProgress();
 		});
@@ -63,7 +63,7 @@ public class DataLoader {
 
 		if (files != null) {
 			progressFrame.trackProgress(files.size());
-			TaskManager.generateTasks(files);
+			TaskManager.getInstance().generateTasks(files);
 		}
 
 	}
@@ -86,14 +86,16 @@ public class DataLoader {
 		var file = userInputSingle(Messages.getString("TaskControlFrame.ExtensionDescriptor"),
 				handler.getSupportedExtension());
 
-		if (TaskManager.numberOfTasks() < 1 || file == null)
+		var instance = TaskManager.getInstance();
+		
+		if (instance.numberOfTasks() < 1 || file == null)
 			return; // invalid input received, do nothing
 
-		progressFrame.trackProgress(TaskManager.numberOfTasks() + 1);
+		progressFrame.trackProgress(instance.numberOfTasks() + 1);
 
 		// attempt to fill metadata and problem
 
-		for (SearchTask task : TaskManager.getTaskList()) {
+		for (SearchTask task : instance.getTaskList()) {
 			var data = task.getExperimentalCurve();
 
 			try {
@@ -112,13 +114,13 @@ public class DataLoader {
 		}
 
 		// check if the data loaded needs truncation
-		if (TaskManager.dataNeedsTruncation())
+		if (instance.dataNeedsTruncation())
 			truncateDataDialog(progressFrame);
 
 		progressFrame.incrementProgress();
 
 		// select first of the generated task
-		TaskManager.selectFirstTask();
+		instance.selectFirstTask();
 
 	}
 
@@ -136,7 +138,7 @@ public class DataLoader {
 	public static void load(StandartType type, File f) throws IOException {
 		Objects.requireNonNull(f);
 		InterpolationDataset.setDataset(read(datasetReaders(), f), type);
-		TaskManager.evaluate();
+		TaskManager.getInstance().evaluate();
 	}
 
 	private static void truncateDataDialog(Window frame) {
@@ -146,7 +148,7 @@ public class DataLoader {
 				"Potential Problem with Data", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options,
 				options[0]);
 		if (answer == 0)
-			TaskManager.truncateData();
+			TaskManager.getInstance().truncateData();
 	}
 
 	private static List<File> userInput(String descriptor, List<String> extensions) {

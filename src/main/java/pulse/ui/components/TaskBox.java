@@ -2,10 +2,6 @@ package pulse.ui.components;
 
 import static java.awt.Color.WHITE;
 import static java.awt.event.ItemEvent.SELECTED;
-import static pulse.tasks.TaskManager.addSelectionListener;
-import static pulse.tasks.TaskManager.getSelectedTask;
-import static pulse.tasks.TaskManager.getTask;
-import static pulse.tasks.TaskManager.selectTask;
 import static pulse.ui.Messages.getString;
 
 import java.awt.Dimension;
@@ -14,6 +10,7 @@ import java.awt.event.ItemEvent;
 import javax.swing.JComboBox;
 
 import pulse.tasks.SearchTask;
+import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.TaskSelectionEvent;
 import pulse.ui.components.models.TaskBoxModel;
 
@@ -30,25 +27,27 @@ public class TaskBox extends JComboBox<SearchTask> {
 
 		var reference = this;
 
+		var instance = TaskManager.getInstance();
+		
 		addItemListener((ItemEvent event) -> {
 			if (event.getStateChange() == SELECTED) {
 				var id = ((SearchTask) reference.getModel().getSelectedItem()).getIdentifier();
 				/*
 				 * if task already selected, just ignore this event and return
 				 */
-				if (getSelectedTask() == getTask(id)) {
-					return;
+				if (instance.getSelectedTask() != instance.getTask(id)) {
+					instance.selectTask(id, reference);
 				}
-				selectTask(id, reference);
+				
 			}
 		});
 
-		addSelectionListener((TaskSelectionEvent e) -> {
+		instance.addSelectionListener((TaskSelectionEvent e) -> {
 			// simply ignore if source of event is taskBox
 			if (e.getSource() == reference)
 				return;
 
-			getModel().setSelectedItem(e.getSelection());
+			getModel().setSelectedItem(instance.getSelectedTask());
 		});
 	}
 

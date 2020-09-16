@@ -12,9 +12,6 @@ import static javax.swing.JOptionPane.YES_OPTION;
 import static javax.swing.JOptionPane.showConfirmDialog;
 import static javax.swing.JOptionPane.showOptionDialog;
 import static javax.swing.SwingUtilities.getWindowAncestor;
-import static pulse.tasks.TaskManager.addSelectionListener;
-import static pulse.tasks.TaskManager.addTaskRepositoryListener;
-import static pulse.tasks.TaskManager.getSelectedTask;
 import static pulse.tasks.listeners.TaskRepositoryEvent.State.TASK_FINISHED;
 import static pulse.ui.Launcher.loadIcon;
 import static pulse.ui.Messages.getString;
@@ -35,6 +32,7 @@ import javax.swing.JToggleButton;
 import javax.swing.text.NumberFormatter;
 
 import pulse.input.Range;
+import pulse.tasks.TaskManager;
 import pulse.ui.components.listeners.PlotRequestListener;
 
 @SuppressWarnings("serial")
@@ -101,9 +99,11 @@ public class ChartToolbar extends JPanel {
 			}
 
 		};
+		
+		var instance = TaskManager.getInstance();
 
-		addSelectionListener(event -> {
-			var t = event.getSelection();
+		instance.addSelectionListener(event -> {
+			var t = instance.getSelectedTask();
 			var expCurve = t.getExperimentalCurve();
 
 			lowerLimitField.setValue(expCurve.getRange().getSegment().getMinimum());
@@ -111,11 +111,11 @@ public class ChartToolbar extends JPanel {
 
 		});
 
-		addTaskRepositoryListener(e -> {
+		instance.addTaskRepositoryListener(e -> {
 
 			if (e.getState() == TASK_FINISHED) {
 
-				var t = getSelectedTask();
+				var t = instance.getSelectedTask();
 
 				if (e.getId().equals(t.getIdentifier())) {
 					lowerLimitField.setValue(t.getExperimentalCurve().getRange().getSegment().getMinimum());
@@ -197,7 +197,7 @@ public class ChartToolbar extends JPanel {
 	}
 
 	private void validateRange(double a, double b) {
-		var task = getSelectedTask();
+		var task = TaskManager.getInstance().getSelectedTask();
 
 		if (task == null)
 			return;

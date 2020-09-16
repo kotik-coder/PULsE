@@ -53,7 +53,7 @@ public class DataLogEntry extends LogEntry {
 	 */
 
 	private void fill() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-		var task = TaskManager.getTask(getIdentifier());
+		var task = TaskManager.getInstance().getTask(getIdentifier());
 
 		entry = task.alteredParameters();
 		Collections.sort(entry, (p1, p2) -> p1.getDescriptor(false).compareTo(p2.getDescriptor(false)));

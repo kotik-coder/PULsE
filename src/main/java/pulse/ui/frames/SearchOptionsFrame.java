@@ -7,7 +7,6 @@ import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
 import static pulse.search.direction.PathOptimiser.getInstance;
 import static pulse.search.direction.PathOptimiser.getLinearSolver;
 import static pulse.search.direction.PathOptimiser.setInstance;
-import static pulse.tasks.TaskManager.getTaskList;
 import static pulse.ui.Messages.getString;
 import static pulse.util.Reflexive.instancesOf;
 
@@ -27,6 +26,7 @@ import javax.swing.table.DefaultTableModel;
 
 import pulse.search.direction.PathOptimiser;
 import pulse.search.linear.LinearOptimiser;
+import pulse.tasks.TaskManager;
 import pulse.ui.components.PropertyHolderTable;
 import pulse.ui.components.controllers.SearchListRenderer;
 
@@ -152,7 +152,7 @@ public class SearchOptionsFrame extends JInternalFrame {
 					return;
 				setInstance(searchScheme);
 				linearList.setEnabled(true);
-				for (var t : getTaskList()) {
+				for (var t : TaskManager.getInstance().getTaskList()) {
 					t.checkProblems();
 				}
 			});
@@ -204,7 +204,7 @@ public class SearchOptionsFrame extends JInternalFrame {
 				pathSolver.setLinearSolver(linearSolver);
 				pathTable.setPropertyHolder(pathSolver);
 				pathTable.setEnabled(true);
-				for (var t : getTaskList()) {
+				for (var t : TaskManager.getInstance().getTaskList()) {
 					t.checkProblems();
 				}
 			});

@@ -2,13 +2,13 @@ package pulse.ui.frames;
 
 import static java.awt.BorderLayout.CENTER;
 import static java.awt.BorderLayout.PAGE_START;
-import static pulse.tasks.TaskManager.clear;
 
 import javax.swing.JInternalFrame;
 import javax.swing.JScrollPane;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.TableModelEvent;
 
+import pulse.tasks.TaskManager;
 import pulse.ui.components.TaskTable;
 import pulse.ui.components.TaskTable.TaskTableModel;
 import pulse.ui.components.listeners.TaskActionListener;
@@ -38,7 +38,7 @@ public class TaskManagerFrame extends JInternalFrame {
 
 			@Override
 			public void onClearRequest() {
-				clear();
+				TaskManager.getInstance().clear();
 			}
 
 			@Override
