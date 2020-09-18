@@ -155,7 +155,7 @@ public class Metadata extends PropertyHolder implements Reflexive {
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
 
 		if (type != property.getType() || !isListedParameter(property))
-			throw new IllegalArgumentException("Illegal type: " + type);
+			return; //ingore unrecognised properties
 
 		var optional = numericProperty(type);
 

@@ -20,6 +20,6 @@ public interface Descriptive {
 
 		return getClass().getSimpleName();
 
-	};
+	}
 
 }

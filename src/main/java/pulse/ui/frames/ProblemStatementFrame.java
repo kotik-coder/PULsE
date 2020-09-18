@@ -15,7 +15,6 @@ import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
 import static javax.swing.SwingUtilities.getWindowAncestor;
 import static pulse.input.InterpolationDataset.StandartType.DENSITY;
 import static pulse.input.InterpolationDataset.StandartType.HEAT_CAPACITY;
-import static pulse.problem.statements.Problem.isSingleStatement;
 import static pulse.problem.statements.ProblemComplexity.HIGH;
 import static pulse.tasks.TaskManager.getManagerInstance;
 import static pulse.tasks.logs.Details.INSUFFICIENT_DATA_IN_PROBLEM_STATEMENT;
@@ -51,6 +50,7 @@ import pulse.problem.schemes.solvers.Solver;
 import pulse.problem.schemes.solvers.SolverException;
 import pulse.problem.statements.Problem;
 import pulse.tasks.SearchTask;
+import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.TaskSelectionEvent;
 import pulse.ui.components.PropertyHolderTable;
 import pulse.ui.components.buttons.LoaderButton;
@@ -247,7 +247,7 @@ public class ProblemStatementFrame extends JInternalFrame {
 			if (!(event.getSource() instanceof PropertyHolderTable))
 				return;
 
-			if (!isSingleStatement())
+			if (TaskManager.getManagerInstance().isSingleStatement())
 				return;
 
 			Problem p;
@@ -432,10 +432,8 @@ public class ProblemStatementFrame extends JInternalFrame {
 					instance.selectFirstTask();
 				}
 				var selectedTask = instance.getSelectedTask();
-				if (isSingleStatement()) {
-					for (var t : instance.getTaskList()) {
-						changeProblem(t, newlySelectedProblem);
-					}
+				if (TaskManager.getManagerInstance().isSingleStatement()) {
+					instance.getTaskList().stream().forEach(t -> changeProblem(t, newlySelectedProblem));
 				} else {
 					changeProblem(selectedTask, newlySelectedProblem);
 				}
@@ -505,10 +503,8 @@ public class ProblemStatementFrame extends JInternalFrame {
 				var newScheme = getSelectedValue();
 				if (newScheme == null)
 					return;
-				if (isSingleStatement()) {
-					for (var t : instance.getTaskList()) {
-						changeScheme(t, newScheme);
-					}
+				if (TaskManager.getManagerInstance().isSingleStatement()) {
+					instance.getTaskList().stream().forEach(t -> changeScheme(t, newScheme));
 				} else {
 					changeScheme(selectedTask, newScheme);
 				}

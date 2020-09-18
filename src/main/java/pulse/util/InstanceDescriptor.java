@@ -4,7 +4,9 @@ import static pulse.util.Reflexive.allSubclassesNames;
 import static pulse.util.Reflexive.instancesOf;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import pulse.properties.Property;
@@ -14,13 +16,20 @@ public class InstanceDescriptor<T extends Reflexive> implements Property {
 	private String selectedDescriptor = "";
 	private Set<String> allDescriptors;
 	private String generalDescriptor;
+	private int hashCode;
 
-	private List<DescriptorChangeListener> listeners = new ArrayList<DescriptorChangeListener>();
+	private List<DescriptorChangeListener> listeners;
+
+	private static Map<Class<? extends Reflexive>, Set<String>> nameMap = new HashMap<>();
 
 	public InstanceDescriptor(String generalDescriptor, Class<T> c, Object... arguments) {
-		allDescriptors = allSubclassesNames(c);
+		if (nameMap.get(c) == null)
+			nameMap.put(c, allSubclassesNames(c));
+		this.hashCode = c.hashCode();
+		allDescriptors = nameMap.get(c);
 		selectedDescriptor = allDescriptors.iterator().next();
 		this.generalDescriptor = generalDescriptor;
+		listeners = new ArrayList<DescriptorChangeListener>();
 	}
 
 	public InstanceDescriptor(Class<T> c, Object... arguments) {
@@ -28,19 +37,8 @@ public class InstanceDescriptor<T extends Reflexive> implements Property {
 	}
 
 	public <K extends Reflexive> K newInstance(Class<K> c, Object... arguments) {
-		var instances = instancesOf(c, arguments);
-
-		for (var r : instances) {
-			if (getValue().equals(r.getClass().getSimpleName()))
-				return r;
-		}
-
-		return null; // this should never happen
-	}
-
-	public void setSelectedDescriptor(String selectedDescriptor) {
-		this.selectedDescriptor = selectedDescriptor;
-		listeners.stream().forEach(l -> l.onDescriptorChanged());
+		return instancesOf(c, arguments).stream().filter(r -> getValue().equals(r.getClass().getSimpleName())).findAny()
+				.get();
 	}
 
 	@Override
@@ -59,8 +57,18 @@ public class InstanceDescriptor<T extends Reflexive> implements Property {
 		if (!allDescriptors.contains(object))
 			return false;
 
-		setSelectedDescriptor((String) object);
+		this.selectedDescriptor = (String) object;
+		listeners.stream().forEach(l -> l.onDescriptorChanged());
 		return true;
+	}
+
+	public void setSelectedDescriptor(String selectedDescriptor) {
+		attemptUpdate(selectedDescriptor);
+	}
+
+	@Override
+	public Object identifier() {
+		return hashCode;
 	}
 
 	@Override
@@ -105,5 +113,5 @@ public class InstanceDescriptor<T extends Reflexive> implements Property {
 		return selectedDescriptor.equals(descriptor.selectedDescriptor);
 
 	}
-
+	
 }

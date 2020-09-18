@@ -148,6 +148,11 @@ public class Flag implements Property {
 	public void setAbbreviation(String abbreviation) {
 		this.descriptor = abbreviation;
 	}
+	
+	@Override
+	public Object identifier() {
+		return index;
+	}
 
 	@Override
 	public boolean equals(Object o) {

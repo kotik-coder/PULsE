@@ -52,7 +52,6 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
 	private Baseline baseline;
 	private Pulse pulse;
 
-	private static boolean singleStatement = true;
 	private static boolean hideDetailedAdjustment = true;
 	private ProblemComplexity complexity = ProblemComplexity.LOW;
 
@@ -77,7 +76,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
 		curve = new HeatingCurve();
 		curve.setParent(this);
 
-		instanceDescriptor.setSelectedDescriptor(FlatBaseline.class.getSimpleName());
+		instanceDescriptor.attemptUpdate(FlatBaseline.class.getSimpleName());
 		addListeners();
 		initBaseline();
 	}
@@ -97,13 +96,16 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
 		this.curve.setParent(this);
 		this.curve.setNumPoints(p.getHeatingCurve().getNumPoints());
 
-		instanceDescriptor.setSelectedDescriptor(p.getBaseline().getClass().getSimpleName());
+		instanceDescriptor.attemptUpdate(p.getBaseline().getClass().getSimpleName());
 		addListeners();
 		initBaseline();
 	}
 	
 	private void addListeners() {
-		instanceDescriptor.addListener(() -> initBaseline());
+		instanceDescriptor.addListener(() -> {
+			initBaseline();
+			this.firePropertyChanged(instanceDescriptor, instanceDescriptor);
+		});
 		curve.addHeatingCurveListener(() -> {
 			if (!curve.isIncomplete())
 				curve.apply(getBaseline());
@@ -282,31 +284,6 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
 			}
 		}
 
-	}
-	
-	/**
-	 * Checks whether changes in this {@code Problem} should automatically be
-	 * accounted for by other instances of this class.
-	 * 
-	 * @return {@code true} if the user has specified so (set by default),
-	 *         {@code false} otherwise
-	 */
-
-	public static boolean isSingleStatement() {
-		return singleStatement;
-	}
-
-	/**
-	 * Sets the flag to isolate or inter-connects changes in all instances of
-	 * {@code Problem}
-	 * 
-	 * @param singleStatement {@code false} if other {@code Problem}s should
-	 *                        disregard changes, which happened to this instances.
-	 *                        {@code true} otherwise.
-	 */
-
-	public static void setSingleStatement(boolean singleStatement) {
-		Problem.singleStatement = singleStatement;
 	}
 
 	/**

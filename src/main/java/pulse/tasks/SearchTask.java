@@ -143,7 +143,7 @@ public class SearchTask extends Accessible implements Runnable {
 		initOptimiser();
 		initCorrelationTest();
 		initNormalityTest();
-	
+
 		this.path = null;
 		this.problem = null;
 		this.scheme = null;
@@ -439,8 +439,8 @@ public class SearchTask extends Accessible implements Runnable {
 
 	public void setScheme(DifferenceScheme scheme) {
 		this.scheme = scheme;
-		
-		if (problem != null) {
+
+		if (problem != null && scheme != null) {
 			scheme.setParent(this);
 
 			var upperLimit = RELATIVE_TIME_MARGIN * curve.timeLimit()
@@ -449,7 +449,7 @@ public class SearchTask extends Accessible implements Runnable {
 			scheme.setTimeLimit(derive(TIME_LIMIT, upperLimit));
 
 		}
-		
+
 	}
 
 	/**
@@ -465,7 +465,7 @@ public class SearchTask extends Accessible implements Runnable {
 			curve.setParent(this);
 
 	}
-	
+
 	public Status getStatus() {
 		return status;
 	}

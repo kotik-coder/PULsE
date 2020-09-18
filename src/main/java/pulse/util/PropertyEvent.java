@@ -11,6 +11,7 @@ import pulse.properties.Property;
 public class PropertyEvent {
 
 	private Object source;
+	private PropertyHolder propertyHolder;
 	private Property property;
 
 	/**
@@ -21,9 +22,10 @@ public class PropertyEvent {
 	 * @param property the object of the event
 	 */
 
-	public PropertyEvent(Object source, Property property) {
+	public PropertyEvent(Object source, PropertyHolder propertyHolder, Property property) {
 		this.source = source;
 		this.property = property;
+		this.propertyHolder = propertyHolder;
 	}
 
 	/**
@@ -44,6 +46,16 @@ public class PropertyEvent {
 
 	public Property getProperty() {
 		return property;
+	}
+
+	public PropertyHolder getPropertyHolder() {
+		return propertyHolder;
+	}
+
+	@Override
+	public String toString() {
+		return "Source: " + source.getClass().getSimpleName() + " ; Holder: "
+				+ propertyHolder.getClass().getSimpleName() + " ; Property: " + property;
 	}
 
 }

@@ -3,8 +3,6 @@ package pulse.ui.components.panels;
 import static java.awt.Font.PLAIN;
 import static java.awt.GridBagConstraints.BOTH;
 import static javax.swing.Box.createHorizontalStrut;
-import static pulse.problem.statements.Problem.isSingleStatement;
-import static pulse.problem.statements.Problem.setSingleStatement;
 import static pulse.ui.Messages.getString;
 
 import java.awt.Font;
@@ -17,6 +15,7 @@ import javax.swing.event.ChangeEvent;
 
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.statements.Problem;
+import pulse.tasks.TaskManager;
 import pulse.ui.components.PropertyHolderTable;
 import pulse.ui.components.TaskBox;
 
@@ -35,7 +34,7 @@ public class SettingsToolBar extends JToolBar {
 		var taskBox = new TaskBox();
 
 		cbSingleStatement = new JCheckBox(getString("TaskSelectionToolBar.ApplyToAll")); //$NON-NLS-1$
-		cbSingleStatement.setSelected(isSingleStatement());
+		cbSingleStatement.setSelected(TaskManager.getManagerInstance().isSingleStatement());
 		cbSingleStatement.setFont(f);
 
 		cbHideDetails = new JCheckBox(getString("TaskSelectionToolBar.Hide")); //$NON-NLS-1$
@@ -61,9 +60,7 @@ public class SettingsToolBar extends JToolBar {
 
 		add(cbSingleStatement, gbc);
 
-		cbSingleStatement.addChangeListener((ChangeEvent e) -> {
-			setSingleStatement(cbSingleStatement.isSelected());
-		});
+		cbSingleStatement.addChangeListener(e -> TaskManager.getManagerInstance().setSingleStatement(cbSingleStatement.isSelected()));
 
 		gbc.gridx = 3;
 

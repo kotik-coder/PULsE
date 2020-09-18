@@ -25,6 +25,10 @@ public abstract class UpwardsNavigable implements Descriptive {
 	public void removeHierarchyListeners() {
 		this.listeners.clear();
 	}
+	
+	public void removeHierarchyListener(HierarchyListener l) {
+		this.listeners.remove(l);
+	}
 
 	public void addHierarchyListener(HierarchyListener l) {
 		this.listeners.add(l);
@@ -43,11 +47,10 @@ public abstract class UpwardsNavigable implements Descriptive {
 	 */
 
 	public void tellParent(PropertyEvent e) {
-		if (parent == null)
-			return;
-
-		parent.listeners.forEach(l -> l.onChildPropertyChanged(e));
-		parent.tellParent(e);
+		if (parent != null) {
+			parent.listeners.forEach(l -> l.onChildPropertyChanged(e));
+			parent.tellParent(e);
+		}
 	}
 
 	/**
@@ -72,14 +75,13 @@ public abstract class UpwardsNavigable implements Descriptive {
 	 */
 
 	public UpwardsNavigable specificAncestor(Class<? extends UpwardsNavigable> aClass) {
-		UpwardsNavigable aParent = null;
-		for (var navigable = this; navigable != null; navigable = navigable.getParent()) {
-			aParent = navigable.getParent();
-			if (aParent != null)
-				if (aParent.getClass().equals(aClass))
-					return aParent;
-		}
-		return null;
+		if(aClass.equals(this.getClass()))
+			return this;
+		var parent = this.getParent();
+		UpwardsNavigable result = null;
+		if(parent != null)
+			result = parent.getClass().equals(aClass) ? parent : parent.specificAncestor(aClass); 
+		return result;
 	}
 
 	/**
@@ -91,22 +93,26 @@ public abstract class UpwardsNavigable implements Descriptive {
 	public void setParent(UpwardsNavigable parent) {
 		this.parent = parent;
 	}
-
+	
+	/**
+	 * Retrieves the Identifier of the SearchTaks this UpwardsNavigable belongs to.
+	 * @return the identifier of the SearchTask
+	 */
+	
 	public Identifier identify() {
 		var un = specificAncestor(SearchTask.class);
-		if (un != null)
-			return ((SearchTask) un).getIdentifier();
-		return null;
+		return un == null ? null : ((SearchTask) un).getIdentifier();
 	}
 
+	/**
+	 * Uses the SearchTask id (if present) to describe this UpwardsNavigable.
+	 */
+	
 	@Override
 	public String describe() {
 		var id = identify();
 		String name = getClass().getSimpleName();
-		if (id == null)
-			return name;
-
-		return name + "_" + id.getValue();
+		return id == null ? name : name + "_" + id.getValue();
 	}
 
 }

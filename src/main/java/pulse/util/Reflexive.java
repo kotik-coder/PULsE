@@ -1,8 +1,6 @@
 package pulse.util;
 
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -37,18 +35,8 @@ public interface Reflexive {
 
 	@SuppressWarnings("unchecked")
 	public static <T extends Reflexive> List<T> instancesOf(Class<T> reflexiveType, String pckgname, Object... params) {
-		List<Reflexive> ref = new LinkedList<>();
-		List<T> p = new ArrayList<>();
-
-		ref.addAll(ReflexiveFinder.simpleInstances(pckgname, params));
-
-		for (var r : ref) {
-			if (reflexiveType.isAssignableFrom(r.getClass()))
-				p.add((T) r);
-		}
-
-		return p;
-
+		return (List<T>) ReflexiveFinder.simpleInstances(pckgname, params).stream()
+				.filter(r -> reflexiveType.isAssignableFrom(r.getClass())).collect(Collectors.toList());
 	}
 
 	/**
@@ -68,10 +56,7 @@ public interface Reflexive {
 
 	public static <T extends PropertyHolder & Reflexive> T instantiate(Class<T> c, String descriptor) {
 		var opt = Reflexive.instancesOf(c).stream().filter(test -> test.getDescriptor().equals(descriptor)).findFirst();
-		if (opt.isPresent())
-			return opt.get();
-		else
-			return null;
+		return opt.get();
 	}
 
 	public static <T extends PropertyHolder & Reflexive> Set<String> allDescriptors(Class<T> c) {

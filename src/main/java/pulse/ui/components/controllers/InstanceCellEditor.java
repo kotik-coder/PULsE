@@ -29,7 +29,7 @@ public class InstanceCellEditor extends DefaultCellEditor {
 		combobox.setSelectedItem(descriptor.getValue());
 
 		combobox.addItemListener(e -> {
-			if (e.getStateChange() == SELECTED)
+			if (e.getStateChange() == SELECTED) 
 				this.fireEditingStopped();
 		});
 

@@ -5,10 +5,10 @@ import static java.util.stream.Collectors.toList;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
@@ -78,14 +78,14 @@ public abstract class Accessible extends Group {
 				}
 
 		}
+
 		/*
 		 * Get access to the numeric properties of accessibles contained in this
 		 * accessible
 		 */
-
-		for (var a : accessibleChildren()) {
-			fields.addAll(a.numericProperties());
-		}
+		/*
+		 * for (var a : accessibleChildren()) { fields.addAll(a.numericProperties()); }
+		 */
 
 		return fields;
 
@@ -123,9 +123,9 @@ public abstract class Accessible extends Group {
 		 * Get access to the properties of accessibles contained in this accessible
 		 */
 
-		for (var a : accessibleChildren()) {
-			fields.addAll(a.genericProperties());
-		}
+//		for (var a : accessibleChildren()) {
+//			fields.addAll(a.genericProperties());
+//		}
 
 		return fields;
 
@@ -180,20 +180,24 @@ public abstract class Accessible extends Group {
 
 	public Property genericProperty(Property sameClass) {
 
-		var match = genericProperties().stream().filter(p -> p.getClass().equals(sameClass.getClass())).findFirst();
+		var match = genericProperties().stream().filter(p -> p.identifier().equals(sameClass.identifier()))
+				.collect(Collectors.toList());
 
-		if (match.isPresent())
-			return match.get();
+		Property result = null;
 
-		Property p = null;
-
-		for (var accessible : accessibleChildren()) {
-			p = accessible.genericProperty(sameClass);
-			if (p != null)
-				break;
+		switch (match.size()) {
+		case 0:
+			break;
+		// just one matching element found
+		case 1:
+			result = match.get(0);
+			break;
+		// several possible matches found; use other criteria
+		default:
+			System.err.println("Too many matches found: " + sameClass);
 		}
 
-		return p;
+		return result;
 
 	}
 
@@ -217,138 +221,42 @@ public abstract class Accessible extends Group {
 	/**
 	 * Runs recursive search for a property in this {@code Accessible} object with
 	 * the same identifier as {@code property} and sets its value to the value of
-	 * the {@code property} parameter.
-	 * <p>
-	 * If {@code property} is a {@code NumericProperty}, uses its
-	 * {@code NumericPropertyKeyword} for identification. If the property is part of
-	 * an {@code Iterable}, such as {@code List}, will search for a setter-type
-	 * method that accepts both an {@code Iterable} argument, the generic type of
-	 * which is the same as that for {@code property}, and a similar
-	 * {@code property}. For generic properties, will simply search for a setter
-	 * method that accepts an instance of {@code Property} as its parameter. If
-	 * nothing is found, will recursively search for the property that belongs to
-	 * the children, the children of their children, etc.
-	 * </p>
-	 * .
+	 * the {@code property} parameter.If {@code property} is a
+	 * {@code NumericProperty}, uses its {@code NumericPropertyKeyword} for
+	 * identification. For generic properties, calls {@code attemptUpdate}.
 	 * 
 	 * @param property the {@code Property}, which will update a similar property of
 	 *                 this {@code Accessible}.
+	 * @see Property.attemptUpdate(Property)
 	 */
 
-	@SuppressWarnings("unchecked")
 	public void update(Property property) {
 
-		var children = accessibleChildren();
-
-		if (property instanceof NumericProperty) {
-			var p = (NumericProperty) property;
-			this.set(p.getType(), p);
-			for (var a : children) {
-				a.set(p.getType(), p);
-			}
-			return;
+		if (property instanceof NumericProperty)
+			update((NumericProperty) property);
+		else {
+			var p = genericProperty(property);
+			if (p == null)
+				accessibleChildren().stream().forEach(c -> c.update(property));
+			else
+				p.attemptUpdate(property.getValue());
 		}
 
-		var methods = this.getClass().getMethods();
+	}
 
-		outer: for (var m : methods) {
+	/**
+	 * Set a NumericProperty contained in this Accessible or any of its accessible
+	 * childern, using the NumericPropertyKeyword of the argument as identifier and
+	 * its value.
+	 * 
+	 * @param p a NumericProperty
+	 * @see Accessible.accessibleChildren()
+	 */
 
-			if (m.getParameterCount() == 2) {
-
-				/*
-				 * if there is a 'setter' method where first parameter is an Iterable containing
-				 * Property objects and second parameter is the property contained in that
-				 * Iterable, use that method
-				 */
-
-				if (Iterable.class.isAssignableFrom(m.getParameterTypes()[0])
-						&& property.getClass().equals(m.getParameterTypes()[1])) {
-
-					for (var met : methods) {
-						if (met.getReturnType().equals(m.getParameterTypes()[0]) && (met.getParameterCount() == 0)) {
-							Iterable<Property> returnType = null;
-							try {
-								returnType = (Iterable<Property>) met.invoke(this);
-							} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-								err.println("Cannot invoke method: " + met);
-								e.printStackTrace();
-							}
-							Iterator<?> iterator = returnType.iterator();
-
-							if (!iterator.hasNext())
-								continue;
-
-							if (!iterator.next().getClass().equals(m.getParameterTypes()[1]))
-								continue;
-
-							try {
-								m.invoke(this, met.invoke(this), property);
-							} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-								err.println("Cannot invoked method " + m);
-								e.printStackTrace();
-							}
-						}
-					}
-
-				}
-
-			}
-
-			/*
-			 * For generic Properties: check first if the setter method in this class
-			 * actually corresponds to the same Property we are setting by comparing the
-			 * descriptor of the latter and the results of the 'get' method
-			 */
-
-			else if (m.getParameterCount() == 1 && m.getParameterTypes()[0].equals(property.getClass())) {
-
-				// the suspect method has been identified. does it deal with the same property
-				// we have?
-
-				Property correspondingProperty = null;
-
-				for (var mm : methods) {
-					if (mm.getParameterCount() == 0)
-						if (mm.getReturnType().equals(property.getClass())) {
-							try {
-								correspondingProperty = (Property) mm.invoke(this);
-
-								if (correspondingProperty != null) {
-									if (!correspondingProperty.getDescriptor(true)
-											.equalsIgnoreCase(property.getDescriptor(true)))
-										// false suspect found!
-										continue outer;
-								}
-
-							} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-								err.println("Unable to verify if the property " + property + " is defined in "
-										+ getClass());
-								e.printStackTrace();
-							}
-						}
-				}
-
-				// otherwise proceed to changing the property
-
-				try {
-					m.invoke(this, property);
-				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-					err.println("Cannot invoked method " + m);
-					e.printStackTrace();
-				}
-
-			}
-
-		}
-
-		/*
-		 * if above doesn't work: refer to children
-		 */
-
-		for (var a : children) {
-			a.update(property);
-		}
-
+	public void update(NumericProperty p) {
+		this.set(p.getType(), p);
+		for (var a : accessibleChildren())
+			a.update(p);
 	}
 
 	/**

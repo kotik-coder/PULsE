@@ -21,8 +21,8 @@ import static pulse.ui.Launcher.threadsAvailable;
 import static pulse.util.Group.contents;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -31,8 +31,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 
-import pulse.input.ExperimentalData;
 import pulse.input.InterpolationDataset;
 import pulse.properties.SampleName;
 import pulse.search.direction.PathOptimiser;
@@ -43,6 +43,8 @@ import pulse.tasks.listeners.TaskSelectionListener;
 import pulse.tasks.processing.Result;
 import pulse.tasks.processing.ResultFormat;
 import pulse.util.Group;
+import pulse.util.HierarchyListener;
+import pulse.util.PropertyHolder;
 import pulse.util.UpwardsNavigable;
 
 /**
@@ -59,20 +61,42 @@ public class TaskManager extends UpwardsNavigable {
 
 	private static TaskManager instance = new TaskManager();
 
-	private List<SearchTask> tasks = new LinkedList<SearchTask>();
+	private List<SearchTask> tasks;
 	private SearchTask selectedTask;
-	private Map<SearchTask, Result> results = new HashMap<SearchTask, Result>();
+	private Map<SearchTask, Result> results;
+
+	private boolean singleStatement = true;
 
 	private final int THREADS_AVAILABLE = threadsAvailable();
-	private ForkJoinPool taskPool = new ForkJoinPool(THREADS_AVAILABLE - 1);
+	private ForkJoinPool taskPool;
 
-	private List<TaskSelectionListener> selectionListeners = new CopyOnWriteArrayList<TaskSelectionListener>();
-	private List<TaskRepositoryListener> taskRepositoryListeners = new CopyOnWriteArrayList<TaskRepositoryListener>();
+	private List<TaskSelectionListener> selectionListeners;
+	private List<TaskRepositoryListener> taskRepositoryListeners;
 
 	private final static String DEFAULT_NAME = "Project 1 - " + now().format(ISO_WEEK_DATE);
 
+	private HierarchyListener statementListener = e -> {
+
+		if (!(e.getSource() instanceof PropertyHolder)) {
+
+			var task = (SearchTask) e.getPropertyHolder().specificAncestor(SearchTask.class);
+			for (SearchTask t : tasks) {
+				if (t == task)
+					continue;
+				t.update(e.getProperty());
+			}
+
+		}
+
+	};
+	
 	private TaskManager() {
-		// intentionally left blank
+		tasks = new ArrayList<SearchTask>();
+		results = new HashMap<SearchTask, Result>();
+		taskPool = new ForkJoinPool(THREADS_AVAILABLE - 1);
+		selectionListeners = new CopyOnWriteArrayList<TaskSelectionListener>();
+		taskRepositoryListeners = new CopyOnWriteArrayList<TaskRepositoryListener>();
+		this.addHierarchyListener(statementListener);
 	}
 
 	/**
@@ -216,23 +240,6 @@ public class TaskManager extends UpwardsNavigable {
 		tasks.stream().forEach(t -> t.getExperimentalCurve().truncate());
 	}
 
-	/**
-	 * <p>
-	 * Selects the first non-{@code null} task that is within the reach of this
-	 * {@code TaskManager}. If all tasks are null, will do nothing.
-	 * </p>
-	 */
-
-	public void selectFirstTask() {
-		if (tasks.size() > 0) {
-			var task = tasks.get(0);
-			if (task != null && selectedTask != task) {
-				selectedTask = task;
-				fireTaskSelected(getManagerInstance());
-			}
-		}
-	}
-
 	private void fireTaskSelected(Object source) {
 		var e = new TaskSelectionEvent(source);
 		for (var l : selectionListeners) {
@@ -251,7 +258,6 @@ public class TaskManager extends UpwardsNavigable {
 	public void clear() {
 		tasks.stream().sorted((t1, t2) -> -t1.getIdentifier().compareTo(t2.getIdentifier())).forEach(task -> {
 			var e = new TaskRepositoryEvent(TASK_REMOVED, task.getIdentifier());
-
 			notifyListeners(e);
 		});
 
@@ -287,18 +293,19 @@ public class TaskManager extends UpwardsNavigable {
 	 */
 
 	public void reset() {
-		if (tasks.size() < 1)
-			return;
+		if (tasks.isEmpty()) {
 
-		for (var task : tasks) {
-			var e = new TaskRepositoryEvent(TASK_RESET, task.getIdentifier());
+			for (var task : tasks) {
+				var e = new TaskRepositoryEvent(TASK_RESET, task.getIdentifier());
 
-			task.clear();
+				task.clear();
 
-			notifyListeners(e);
+				notifyListeners(e);
+			}
+
+			PathOptimiser.reset();
+
 		}
-
-		PathOptimiser.reset();
 
 	}
 
@@ -327,10 +334,7 @@ public class TaskManager extends UpwardsNavigable {
 	 */
 
 	public void generateTask(File file) {
-		List<ExperimentalData> curves = null;
-		curves = read(curveReaders(), file);
-		curves.stream().forEach(curve -> addTask(new SearchTask(curve)) );
-		selectFirstTask();
+		read(curveReaders(), file).stream().forEach(curve -> addTask(new SearchTask(curve)));
 	}
 
 	/**
@@ -343,12 +347,22 @@ public class TaskManager extends UpwardsNavigable {
 	public void generateTasks(List<File> files) {
 		requireNonNull(files, "Null list of files passed to generatesTasks(...)");
 
-		if (files.size() == 1)
+		if (files.size() == 1) {
 			generateTask(files.get(0));
-		else {
+			selectTask(tasks.get(tasks.size() - 1).getIdentifier(), this);
+		} else {
 			var pool = Executors.newSingleThreadExecutor();
 			files.stream().forEach(f -> pool.submit(() -> generateTask(f)));
+			pool.shutdown();
+			try {
+				pool.awaitTermination(2, TimeUnit.MINUTES);
+			} catch (InterruptedException e) {
+				System.err.println("Failed to load all tasks within 2 minutes. Details:");
+				e.printStackTrace();
+			}
+			selectFirstTask();
 		}
+
 	}
 
 	/**
@@ -429,7 +443,11 @@ public class TaskManager extends UpwardsNavigable {
 					selectedTask = t;
 					fireTaskSelected(src);
 				});
+	}
 
+	public void selectFirstTask() {
+		if (!tasks.isEmpty())
+			selectTask(tasks.get(0).getIdentifier(), this);
 	}
 
 	public void addSelectionListener(TaskSelectionListener listener) {
@@ -504,11 +522,7 @@ public class TaskManager extends UpwardsNavigable {
 
 	public Result getResult(Identifier id) {
 		var optional = tasks.stream().filter(t -> t.getIdentifier().equals(id)).findFirst();
-
-		if (!optional.isPresent())
-			return null;
-
-		return results.get(optional.get());
+		return optional.isPresent() ? results.get(optional.get()) : null;
 	}
 
 	/**
@@ -536,6 +550,35 @@ public class TaskManager extends UpwardsNavigable {
 			return a;
 		}).get();
 
+	}
+
+	/**
+	 * Checks whether changes in this {@code PropertyHolder} should automatically be
+	 * accounted for by other instances of this class.
+	 * 
+	 * @return {@code true} if the user has specified so (set by default),
+	 *         {@code false} otherwise
+	 */
+
+	public boolean isSingleStatement() {
+		return singleStatement;
+	}
+
+	/**
+	 * Sets the flag to isolate or inter-connects changes in all instances of
+	 * {@code PropertyHolder}
+	 * 
+	 * @param singleStatement {@code false} if other {@code PropertyHoder}s should
+	 *                        disregard changes, which happened to this instances.
+	 *                        {@code true} otherwise.
+	 */
+
+	public void setSingleStatement(boolean singleStatement) {
+		this.singleStatement = singleStatement;
+		if(!singleStatement)
+			this.removeHierarchyListener(statementListener);
+		else
+			this.addHierarchyListener(statementListener);
 	}
 
 }

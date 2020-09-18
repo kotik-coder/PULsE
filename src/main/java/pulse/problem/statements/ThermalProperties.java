@@ -169,7 +169,6 @@ public class ThermalProperties extends PropertyHolder {
 	public void setSpecificHeat(NumericProperty cP) {
 		requireType(cP, SPECIFIC_HEAT);
 		this.cP = (double) cP.getValue();
-		this.firePropertyChanged(getDataset(HEAT_CAPACITY), cP);
 	}
 
 	public NumericProperty getDensity() {
@@ -179,7 +178,6 @@ public class ThermalProperties extends PropertyHolder {
 	public void setDensity(NumericProperty p) {
 		requireType(p, DENSITY);
 		this.rho = (double) (p.getValue());
-		this.firePropertyChanged(getDataset(StandartType.DENSITY), p);
 	}
 
 	public NumericProperty getTestTemperature() {
@@ -215,6 +213,8 @@ public class ThermalProperties extends PropertyHolder {
 		list.add(def(DIFFUSIVITY));
 		list.add(def(THICKNESS));
 		list.add(def(HEAT_LOSS));
+		list.add(def(DENSITY));
+		list.add(def(SPECIFIC_HEAT));
 		return list;
 	}
 

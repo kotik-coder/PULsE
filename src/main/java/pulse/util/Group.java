@@ -4,9 +4,9 @@ import static java.util.stream.Collectors.toList;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class Group extends UpwardsNavigable {
 
@@ -41,11 +41,8 @@ public class Group extends UpwardsNavigable {
 				e.printStackTrace();
 			}
 
-			if (a == null)
-				continue;
-
-			/* Ignore factor/instance methods returning same accessibles */
-			if (a.getDescriptor().equals(getDescriptor()))
+			/* Ignore null, factor/instance methods returning same accessibles */
+			if (a == null || a.getDescriptor().equals(getDescriptor()))
 				continue;
 
 			fields.add(a);
@@ -70,10 +67,8 @@ public class Group extends UpwardsNavigable {
 	 */
 
 	public static Set<Group> contents(Group root) {
-		var contents = new HashSet<Group>();
-
-		root.subgroups().stream().filter(ph -> root.getParent() != ph).forEach(phh -> contents.add(phh));
-
+		var contents = root.subgroups().stream().filter(ph -> root.getParent() != ph).collect(Collectors.toSet());
+		
 		for (var it = contents.iterator(); it.hasNext();)
 			contents(it.next()).stream().forEach(a -> contents.add(a));
 
@@ -89,14 +84,7 @@ public class Group extends UpwardsNavigable {
 	 */
 
 	public Group access(String simpleName) {
-
-		var match = subgroups().stream().filter(a -> a.getSimpleName().equals(simpleName)).findFirst();
-
-		if (match.isPresent())
-			return match.get();
-
-		return null;
-
+		return subgroups().stream().filter(a -> a.getSimpleName().equals(simpleName)).findFirst().get();
 	}
 
 	/**

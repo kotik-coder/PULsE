@@ -340,10 +340,10 @@ public class HeatingCurve extends PropertyHolder {
 
 	public void apply(Baseline baseline) {
 		adjustedSignal.clear();
-		for (int i = 0, size = time.size(); i < size; i++) 
+		for (int i = 0, size = time.size(); i < size; i++)
 			adjustedSignal.add(signal.get(i) + baseline.valueAt(time.get(i) + startTime));
-		
-		if ( ! time.contains(0.0) ) {
+
+		if (!time.contains(0.0)) {
 			time.add(0, 0.0);
 			adjustedSignal.add(0, baseline.valueAt(0.0));
 		}
@@ -402,7 +402,7 @@ public class HeatingCurve extends PropertyHolder {
 		return newCurve;
 
 	}
-	
+
 	/**
 	 * Provides general setter accessibility for the number of points of this
 	 * {@code HeatingCurve}.
@@ -414,19 +414,10 @@ public class HeatingCurve extends PropertyHolder {
 
 	@Override
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
-		switch (type) {
-		case NUMPOINTS:
+		if (type == NUMPOINTS)
 			setNumPoints(property);
-			break;
-		case TIME_SHIFT:
+		else if (type == TIME_SHIFT)
 			setTimeShift(property);
-			break;
-		default:
-			return;
-		}
-
-		firePropertyChanged(type, property);
-
 	}
 
 	@Override
@@ -455,11 +446,11 @@ public class HeatingCurve extends PropertyHolder {
 	}
 
 	public void setTimeShift(NumericProperty startTime) {
-		if (startTime.getType() != TIME_SHIFT)
-			throw new IllegalArgumentException("Illegal type: " + startTime.getType());
+		requireType(startTime, TIME_SHIFT);
 		this.startTime = (double) startTime.getValue();
 		var dataEvent = new DataEvent(CHANGE_OF_ORIGIN, this);
 		fireDataChanged(dataEvent);
+		firePropertyChanged(this, startTime);
 	}
 
 	@Override

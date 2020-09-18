@@ -5,7 +5,6 @@ import static java.io.File.separatorChar;
 import static java.lang.Class.forName;
 import static java.lang.reflect.Modifier.isAbstract;
 import static java.lang.reflect.Modifier.isPublic;
-import static pulse.ui.Messages.getString;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -14,8 +13,9 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.LinkedList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.zip.ZipInputStream;
 
 /**
@@ -25,8 +25,11 @@ import java.util.zip.ZipInputStream;
  */
 
 public class ReflexiveFinder {
+	
+	private static Map<String, List<Class<?>>> classMap = new HashMap<>();
 
 	private ReflexiveFinder() {
+		// intentionall blank
 	}
 
 	private static List<File> listf(File directory) {
@@ -53,6 +56,77 @@ public class ReflexiveFinder {
 
 	}
 
+	private static String adjustClassName(String name) {
+		var result = "";
+		if (!name.startsWith(separator))
+			result = separatorChar + name;
+		return result.replace('.', separatorChar);
+	}
+
+	private static String initialiseLocationPath() {
+		String result = null;
+		try {
+			result = ReflexiveFinder.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath();
+		} catch (URISyntaxException e) {
+			System.err.println("Failed to initialise the general path to ReflxeiveFinder");
+			e.printStackTrace();
+		}
+		return result;
+	}
+
+	private static List<Class<?>> listClassesInDirectory(File root, String pckgname) {
+		List<Class<?>> classes = new ArrayList<>();
+		var files = listf(root);
+
+		files.stream().map(f -> {
+
+			var pathName = f.getName();
+
+			for (var parent = f.getParentFile(); !parent.equals(root); parent = parent.getParentFile()) {
+				pathName = parent.getName() + "." + pathName;
+			}
+
+			return pathName;
+
+		}).forEach(path -> {
+			if (path.endsWith(".class"))
+				try {
+					classes.add(forName(pckgname + "." + path.substring(0, path.length() - 6)));
+				} catch (ClassNotFoundException e) {
+					System.err.println("Failed to find the .class file");
+					e.printStackTrace();
+				}
+		});
+
+		return classes;
+	}
+
+	private static List<Class<?>> listClassesInJar(String locationPath, String pckgname) {
+		ZipInputStream zip = null;
+		List<Class<?>> classes = new ArrayList<>();
+		try {
+			zip = new ZipInputStream(new FileInputStream(locationPath));
+		} catch (FileNotFoundException e1) {
+			System.err.println("Cannt find the main jar file at " + locationPath);
+			e1.printStackTrace();
+		}
+
+		try {
+			for (var entry = zip.getNextEntry(); entry != null; entry = zip.getNextEntry()) {
+				if (!entry.isDirectory() && entry.getName().endsWith(".class")) {
+					// This ZipEntry represents a class. Now, what class does it represent?
+					var className = entry.getName().replace('/', '.'); // including ".class"
+					if (!className.contains(pckgname))
+						continue;
+					classes.add(forName(className.substring(0, className.length() - ".class".length())));
+				}
+			}
+		} catch (IOException | ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		return classes;
+	}
+
 	/**
 	 * Uses Java Reflection API to find all classes within the package named
 	 * {@code pckgname}. Works well with .jar files.
@@ -62,77 +136,69 @@ public class ReflexiveFinder {
 	 */
 
 	public static List<Class<?>> classesIn(String pckgname) {
-		var name = "" + pckgname;
-		if (!name.startsWith(separator))
-			name = separatorChar + name;
-		name = name.replace('.', separatorChar);
-
-		List<Class<?>> classes = new ArrayList<>();
-
-		String locationPath = null;
-
-		try {
-			locationPath = new Object() {
-			}.getClass().getProtectionDomain().getCodeSource().getLocation().toURI().getPath();
-		} catch (URISyntaxException e) {
-			System.err.println("Failed to initialise the path to the package " + pckgname);
-			e.printStackTrace();
-		}
+		var name = adjustClassName(pckgname);
+		String locationPath = initialiseLocationPath();
 
 		var root = new File(locationPath + name);
-		if (root.isDirectory()) {
-			var files = listf(root);
 
-			files.stream().map(f -> {
+		return root.isDirectory() ? listClassesInDirectory(root, pckgname) : listClassesInJar(locationPath, pckgname);
+	}
 
-				var pathName = f.getName();
+	@SuppressWarnings("unchecked")
+	private static <V extends Reflexive> V instanceMethod(Class<?> aClass) {
+		// if the class has a getInstance() method
+		var methods = aClass.getMethods();
 
-				for (var parent = f.getParentFile(); !parent.equals(root); parent = parent.getParentFile()) {
-					pathName = parent.getName() + "." + pathName;
+		for (var method : methods) {
+			if (method.getName().equals("getInstance")) {
+				Object o = null;
+				try {
+					o = method.invoke(null, new Object[0]);
+				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+					e.printStackTrace();
 				}
+				if (o instanceof Reflexive)
+					return (V) o;
+			}
+		}
+		return null;
+	}
 
-				return pathName;
+	@SuppressWarnings("unchecked")
+	private static <V extends Reflexive> V instanceConstructor(Class<?> aClass, Object... params) {
+		var ctrs = aClass.getDeclaredConstructors();
 
-			}).forEach(path -> {
-				if (path.endsWith(".class"))
+		outer: for (var ctr : ctrs) {
+
+			if (isPublic(ctr.getModifiers())) {
+
+				var types = ctr.getParameterTypes();
+
+				if (Integer.compare(types.length, params.length) == 0) {
+
+					for (int i = 0; i < types.length; i++) {
+						if (!types[i].equals(params[i].getClass()))
+							if (!types[i].isAssignableFrom(params[i].getClass()))
+								continue outer;
+					}
+
 					try {
-						classes.add(forName(pckgname + "." + path.substring(0, path.length() - 6)));
-					} catch (ClassNotFoundException e) {
-						System.err.println("Failed to find the .class file");
+						var o = ctr.newInstance(params);
+						if (o instanceof Reflexive)
+							return (V) o;
+					} catch (InstantiationException | IllegalAccessException | IllegalArgumentException
+							| InvocationTargetException e) {
 						e.printStackTrace();
 					}
-			});
 
-		}
-
-		else {
-
-			ZipInputStream zip = null;
-			try {
-				zip = new ZipInputStream(new FileInputStream(locationPath));
-			} catch (FileNotFoundException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-
-			try {
-				for (var entry = zip.getNextEntry(); entry != null; entry = zip.getNextEntry()) {
-					if (!entry.isDirectory() && entry.getName().endsWith(".class")) {
-						// This ZipEntry represents a class. Now, what class does it represent?
-						var className = entry.getName().replace('/', '.'); // including ".class"
-						if (!className.contains(pckgname))
-							continue;
-						classes.add(forName(className.substring(0, className.length() - ".class".length())));
-					}
 				}
-			} catch (IOException | ClassNotFoundException e) {
-				e.printStackTrace();
+
 			}
-			// TODO Auto-generated catch block
 
 		}
 
-		return classes;
+		return null;
+
 	}
 
 	/**
@@ -148,81 +214,27 @@ public class ReflexiveFinder {
 	 *         {@code pckgname}.
 	 */
 
-	@SuppressWarnings("unchecked")
 	public static <V extends Reflexive> List<V> simpleInstances(String pckgname, Object... params) {
-		List<V> instances = new LinkedList<>();
+		List<V> instances = new ArrayList<>();
 
-		for (var aClass : classesIn(pckgname)) {
+		//generate a class list only once
+		if(classMap.get(pckgname) == null)
+			classMap.put( pckgname, classesIn(pckgname) );
+		
+		for (var aClass : classMap.get(pckgname)) {
 
 			if (isAbstract(aClass.getModifiers()))
 				continue;
 
-			try {
-				// Try to create an instance of the object
-
-				var ctrs = aClass.getDeclaredConstructors();
-				V instance = null;
-
-				outer: for (var ctr : ctrs) {
-
-					if (!isPublic(ctr.getModifiers()))
-						continue outer;
-
-					var types = ctr.getParameterTypes();
-
-					if (types.length != params.length)
-						continue outer;
-
-					for (int i = 0; i < types.length; i++) {
-						if (!types[i].equals(params[i].getClass()))
-							if (!types[i].isAssignableFrom(params[i].getClass()))
-								continue outer;
-					}
-
-					try {
-						var o = ctr.newInstance(params);
-						if (o instanceof Reflexive)
-							instance = (V) o;
-					} catch (InstantiationException e) {
-						System.err.println(getString("ReflexiveFinder.ConstructorAccessError") + ctr);
-						e.printStackTrace();
-					}
-
-					break;
-
-				}
-
-				if (instance != null) {
-					instances.add(instance);
-					continue;
-				}
-
+			// Try to create an instance of the object
+			V instance = instanceConstructor(aClass, params);
+			if (instance != null)
+				instances.add(instance);
+			else {
 				// if the class has a getInstance() method
-
-				var methods = aClass.getMethods();
-				instance = null;
-
-				for (var method : methods) {
-					if (method.getName().equals("getInstance")) {
-						var o = method.invoke(null, new Object[0]);
-						if (o instanceof Reflexive)
-							instance = (V) o;
-						break;
-					}
-				}
-
+				instance = instanceMethod(aClass);
 				if (instance != null)
 					instances.add(instance);
-
-			} catch (IllegalAccessException | SecurityException iaex) {
-				System.err.println("Cannot access: " + aClass);
-				iaex.printStackTrace();
-			} catch (IllegalArgumentException e) {
-				System.err.println(getString("ReflexiveFinder.getInstanceArgumentError") + aClass);
-				e.printStackTrace();
-			} catch (InvocationTargetException e) {
-				System.err.println(getString("ReflexiveFinder.getInstanceError") + aClass);
-				e.printStackTrace();
 			}
 
 		}

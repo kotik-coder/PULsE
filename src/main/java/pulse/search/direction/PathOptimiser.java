@@ -334,13 +334,19 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 	 * @param flag         the flag which will be set
 	 */
 
-	public static void setSearchFlag(List<Flag> originalList, Flag flag) {
-		var optional = originalList.stream().filter(f -> f.getType() == flag.getType()).findFirst();
+	public void update(Property property) {
+		if(! (property instanceof Flag) )
+			super.update(property);
+		else {
+			var flag = (Flag) property;
+			var optional = ActiveFlags.getAllFlags().stream().filter(f -> f.getType() == flag.getType()).findFirst();
 
-		if (optional.isPresent())
-			optional.get().setValue((boolean) flag.getValue());
+			if (optional.isPresent())
+				optional.get().setValue((boolean) flag.getValue());
+			
+		}
 	}
-
+	
 	/**
 	 * Creates a new {@code Path} suitable for this {@code PathSolver}
 	 * 

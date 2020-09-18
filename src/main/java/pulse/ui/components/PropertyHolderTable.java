@@ -90,8 +90,8 @@ public class PropertyHolderTable extends JTable {
 
 		model.addTableModelListener((TableModelEvent e) -> {
 
-			int row = e.getFirstRow();
-			int column = e.getColumn();
+			final int row = e.getFirstRow();
+			final int column = e.getColumn();
 
 			if ((row < 0) || (column < 0))
 				return;
