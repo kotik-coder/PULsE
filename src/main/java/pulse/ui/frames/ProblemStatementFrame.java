@@ -247,7 +247,7 @@ public class ProblemStatementFrame extends JInternalFrame {
 			if (!(event.getSource() instanceof PropertyHolderTable))
 				return;
 
-			if (TaskManager.getManagerInstance().isSingleStatement())
+			if (instance.isSingleStatement())
 				return;
 
 			Problem p;
@@ -503,7 +503,7 @@ public class ProblemStatementFrame extends JInternalFrame {
 				var newScheme = getSelectedValue();
 				if (newScheme == null)
 					return;
-				if (TaskManager.getManagerInstance().isSingleStatement()) {
+				if (instance.isSingleStatement()) {
 					instance.getTaskList().stream().forEach(t -> changeScheme(t, newScheme));
 				} else {
 					changeScheme(selectedTask, newScheme);
