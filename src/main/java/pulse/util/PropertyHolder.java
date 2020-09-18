@@ -68,7 +68,8 @@ public abstract class PropertyHolder extends Accessible {
 		if (p == null)
 			return false;
 
-		return parameters.stream().filter(pr -> pr instanceof NumericProperty).anyMatch(param -> ((NumericProperty)param).getType() == p);
+		return parameters.stream().filter(pr -> pr instanceof NumericProperty)
+				.anyMatch(param -> ((NumericProperty) param).getType() == p);
 
 	}
 
@@ -85,9 +86,9 @@ public abstract class PropertyHolder extends Accessible {
 		if (p == null)
 			return false;
 
-		if(parameters.contains(null))
+		if (parameters.contains(null))
 			parameters = listedTypes();
-		
+
 		return parameters.stream().anyMatch(param -> param.getClass().equals(p.getClass()));
 
 	}
@@ -160,19 +161,22 @@ public abstract class PropertyHolder extends Accessible {
 
 	public boolean updateProperty(Object sourceComponent, Property updatedProperty) {
 		var existing = property(updatedProperty);
-
-		if (existing == null)
-			return false;
 		
+		if (existing == null) {
+
+			return accessibleChildren().stream().filter(a -> a instanceof PropertyHolder)
+					.anyMatch(c -> ((PropertyHolder) c).updateProperty(sourceComponent, updatedProperty));
+		}
+
 		if (existing.equals(updatedProperty))
 			return false;
-		
+
 		update(updatedProperty);
 		firePropertyChanged(sourceComponent, updatedProperty);
 
 		return true;
 	}
-	
+
 	public void firePropertyChanged(Object source, Property property) {
 		var event = new PropertyEvent(source, this, property);
 		listeners.forEach(l -> l.onPropertyChanged(event));
@@ -182,7 +186,7 @@ public abstract class PropertyHolder extends Accessible {
 		 * PropertyHolderTable), inform parents about this
 		 */
 
-		if (source != getParent()) 
+		if (source != getParent())
 			tellParent(event);
 
 	}
@@ -262,7 +266,7 @@ public abstract class PropertyHolder extends Accessible {
 	public String getPrefix() {
 		return prefix;
 	}
-	
+
 	/**
 	 * If not null, will return the prefix, otherwise calls the superclass method.
 	 * 
@@ -276,5 +280,5 @@ public abstract class PropertyHolder extends Accessible {
 	public void setPrefix(String prefix) {
 		this.prefix = prefix;
 	}
-	
+
 }

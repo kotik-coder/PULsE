@@ -21,6 +21,7 @@ public class RadiativeTransferCoupling extends PropertyHolder {
 
 	public RadiativeTransferCoupling() {
 		instanceDescriptor.setSelectedDescriptor(DiscreteOrdinatesMethod.class.getSimpleName());
+		instanceDescriptor.addListener(() -> firePropertyChanged(this, instanceDescriptor));
 		super.parameterListChanged();
 	}
 	

@@ -47,7 +47,10 @@ public class Pulse extends PropertyHolder {
 		laserEnergy = (double) def(LASER_ENERGY).getValue();
 		instanceDescriptor.setSelectedDescriptor(RectangularPulse.class.getSimpleName());
 		initShape();
-		instanceDescriptor.addListener(() -> initShape());
+		instanceDescriptor.addListener(() -> {
+			initShape();
+			this.firePropertyChanged(instanceDescriptor, instanceDescriptor);
+		});
 	}
 
 	/**
@@ -61,7 +64,10 @@ public class Pulse extends PropertyHolder {
 		this.pulseShape = p.getPulseShape();
 		this.pulseWidth = p.pulseWidth;
 		this.laserEnergy = p.laserEnergy;
-		instanceDescriptor.addListener(() -> initShape());
+		instanceDescriptor.addListener(() -> {
+			initShape();
+			this.firePropertyChanged(instanceDescriptor, instanceDescriptor);
+		});
 	}
 
 	private void initShape() {

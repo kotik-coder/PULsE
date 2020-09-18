@@ -183,10 +183,22 @@ public abstract class Accessible extends Group {
 		var match = genericProperties().stream().filter(p -> p.identifier().equals(sameClass.identifier()))
 				.collect(Collectors.toList());
 
-		if(match.size() == 1)
-			return match.get(0);
-		else
-			throw new IllegalArgumentException("Too many matches found: " + sameClass);
+		Property result = null;
+		
+		switch (match.size()) {
+		case 0:
+			
+			break;
+		// just one matching element found
+		case 1:
+			result = match.get(0);
+			break;
+		// several possible matches found; use other criteria
+		default:
+			throw new IllegalArgumentException("Too many matches found: " + sameClass + " : " + match.size());
+		}
+
+		return result;
 
 	}
 
@@ -225,7 +237,8 @@ public abstract class Accessible extends Group {
 			update((NumericProperty) property);
 		else {
 			var p = genericProperty(property);
-			if (p == null)
+
+			if (p == null) 
 				accessibleChildren().stream().forEach(c -> c.update(property));
 			else
 				p.attemptUpdate(property.getValue());

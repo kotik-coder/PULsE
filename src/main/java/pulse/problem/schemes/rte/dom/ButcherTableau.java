@@ -143,14 +143,14 @@ public class ButcherTableau implements Property {
 
 	@Override
 	public Object getValue() {
-		return this;
+		return name;
 	}
 
 	@Override
 	public boolean attemptUpdate(Object value) {
 		if (!(value instanceof String))
 			return false;
-		find((String) value);
+		name = find((String) value).getName();
 		return true;
 	}
 
