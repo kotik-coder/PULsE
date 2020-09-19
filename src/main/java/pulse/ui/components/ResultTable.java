@@ -42,9 +42,9 @@ public class ResultTable extends JTable implements Descriptive {
 	private final static Font font = new Font(getString("ResultTable.FontName"), PLAIN, 12);
 
 	private final static int ROW_HEIGHT = 25;
+	private final static int RESULTS_HEADER_HEIGHT = 30;
 
 	private NumericPropertyRenderer renderer;
-	private final static int RESULTS_HEADER_HEIGHT = 30;
 
 	public ResultTable(ResultFormat fmt) {
 		super();
@@ -78,7 +78,7 @@ public class ResultTable extends JTable implements Descriptive {
 		 */
 
 		var instance = TaskManager.getManagerInstance();
-		
+
 		instance.addSelectionListener((TaskSelectionEvent e) -> {
 			var id = instance.getSelectedTask().getIdentifier();
 			getSelectionModel().clearSelection();
@@ -91,10 +91,12 @@ public class ResultTable extends JTable implements Descriptive {
 				if (!rid.equals(id))
 					continue;
 				jj = convertRowIndexToView(results.indexOf(r));
-				if (jj < -1)
-					continue;
-				getSelectionModel().addSelectionInterval(jj, jj);
-				scrollToSelection(jj);
+
+				if (jj > -1) {
+					getSelectionModel().addSelectionInterval(jj, jj);
+					scrollToSelection(jj);
+				}
+
 			}
 		});
 
@@ -151,10 +153,8 @@ public class ResultTable extends JTable implements Descriptive {
 				property = (NumericProperty) getValueAt(j, i);
 				data[i][0][j] = ((Number) property.getValue()).doubleValue()
 						* property.getDimensionFactor().doubleValue();
-				if (property.getError() != null)
-					data[i][1][j] = property.getError().doubleValue() * property.getDimensionFactor().doubleValue();
-				else
-					data[i][1][j] = 0;
+				data[i][1][j] = property.getError() == null ? 0
+						: property.getError().doubleValue() * property.getDimensionFactor().doubleValue();
 			}
 		}
 		return data;
@@ -186,10 +186,6 @@ public class ResultTable extends JTable implements Descriptive {
 		if (temperatureIndex < 0)
 			return;
 
-		Number val;
-
-		List<Integer> indices;
-
 		List<AbstractResult> newRows = new LinkedList<>();
 		List<Integer> skipList = new ArrayList<>();
 
@@ -197,9 +193,9 @@ public class ResultTable extends JTable implements Descriptive {
 			if (skipList.contains(convertRowIndexToModel(i)))
 				continue; // check if value is independent (does not belong to a group)
 
-			val = ((Number) ((Property) this.getValueAt(i, temperatureIndex)).getValue());
+			var val = ((Number) ((Property) this.getValueAt(i, temperatureIndex)).getValue());
 
-			indices = group(val.doubleValue(), temperatureIndex, temperatureDelta); // get indices of results in table
+			var indices = group(val.doubleValue(), temperatureIndex, temperatureDelta); // get indices of results in table
 			skipList.addAll(indices); // skip those indices if they refer to the same group
 
 			if (indices.size() < 2)
@@ -213,11 +209,7 @@ public class ResultTable extends JTable implements Descriptive {
 		invokeLater(() -> {
 			model.setRowCount(0);
 			model.getResults().clear();
-
-			for (var row : newRows) {
-				model.addRow(row);
-			}
-
+			newRows.stream().forEach(r -> model.addRow(r));
 		});
 
 	}
@@ -225,11 +217,10 @@ public class ResultTable extends JTable implements Descriptive {
 	public List<Integer> group(double val, int index, double precision) {
 
 		List<Integer> selection = new ArrayList<>();
-		Number valNumber;
 
 		for (var i = 0; i < getRowCount(); i++) {
 
-			valNumber = (Number) ((Property) getValueAt(i, index)).getValue();
+			var valNumber = (Number) ((Property) getValueAt(i, index)).getValue();
 
 			if (abs(valNumber.doubleValue() - val) < precision)
 				selection.add(convertRowIndexToModel(i));

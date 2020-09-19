@@ -25,18 +25,16 @@ public class TaskBox extends JComboBox<SearchTask> {
 		init();
 		this.setModel(new TaskBoxModel());
 
-		var reference = this;
-
 		var instance = TaskManager.getManagerInstance();
 		
 		addItemListener((ItemEvent event) -> {
 			if (event.getStateChange() == SELECTED) {
-				var id = ((SearchTask) reference.getModel().getSelectedItem()).getIdentifier();
+				var id = ((SearchTask) this.getModel().getSelectedItem()).getIdentifier();
 				/*
 				 * if task already selected, just ignore this event and return
 				 */
 				if (instance.getSelectedTask() != instance.getTask(id)) {
-					instance.selectTask(id, reference);
+					instance.selectTask(id, this);
 				}
 				
 			}
@@ -44,10 +42,8 @@ public class TaskBox extends JComboBox<SearchTask> {
 
 		instance.addSelectionListener((TaskSelectionEvent e) -> {
 			// simply ignore if source of event is taskBox
-			if (e.getSource() == reference)
-				return;
-
-			getModel().setSelectedItem(instance.getSelectedTask());
+			if (e.getSource() != this)
+				getModel().setSelectedItem(instance.getSelectedTask());
 		});
 	}
 

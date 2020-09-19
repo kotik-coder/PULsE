@@ -25,7 +25,7 @@ public class DataFrame extends JFrame {
 	private Component ancestorFrame;
 	private PropertyHolder dataObject;
 	private final static Font TABLE_FONT = new Font(getString("DataFrame.FontName"), PLAIN, 16);
-	private final static int ROW_HEIGHT = 50;
+	private final static int ROW_HEIGHT = 70;
 
 	@Override
 	public void dispose() {
@@ -42,6 +42,7 @@ public class DataFrame extends JFrame {
 	 */
 	public DataFrame(PropertyHolder dataObject, Component ancestor) {
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+		setLocationRelativeTo(ancestor);
 		this.ancestorFrame = ancestor.getParent();
 		this.dataObject = dataObject;
 		if (ancestor != null) {
@@ -53,7 +54,6 @@ public class DataFrame extends JFrame {
 		setResizable(false);
 		setAlwaysOnTop(true);
 		setTitle(dataObject.getClass().getSimpleName() + " properties");
-		setBounds(100, 100, 450, 300);
 
 		contentPane = new JPanel();
 		contentPane.setForeground(BLACK);
@@ -66,6 +66,8 @@ public class DataFrame extends JFrame {
 		dataTable = new PropertyHolderTable(dataObject);
 		dataTable.setFont(TABLE_FONT);
 		dataTable.setRowHeight(ROW_HEIGHT);
+		
+		setBounds(100, 100, 600, 450);
 
 		scrollPane.setViewportView(dataTable);
 	}

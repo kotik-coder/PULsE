@@ -10,8 +10,8 @@ import javax.swing.event.TableModelEvent;
 
 import pulse.tasks.TaskManager;
 import pulse.ui.components.TaskTable;
-import pulse.ui.components.TaskTable.TaskTableModel;
 import pulse.ui.components.listeners.TaskActionListener;
+import pulse.ui.components.models.TaskTableModel;
 import pulse.ui.components.panels.TaskToolbar;
 
 @SuppressWarnings("serial")

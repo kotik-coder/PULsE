@@ -89,7 +89,7 @@ public class TaskManager extends UpwardsNavigable {
 		}
 
 	};
-	
+
 	private TaskManager() {
 		tasks = new ArrayList<SearchTask>();
 		results = new HashMap<SearchTask, Result>();
@@ -293,19 +293,18 @@ public class TaskManager extends UpwardsNavigable {
 	 */
 
 	public void reset() {
-		if (tasks.isEmpty()) {
+		if (tasks.isEmpty())
+			return;
 
-			for (var task : tasks) {
-				var e = new TaskRepositoryEvent(TASK_RESET, task.getIdentifier());
+		for (var task : tasks) {
+			var e = new TaskRepositoryEvent(TASK_RESET, task.getIdentifier());
 
-				task.clear();
+			task.clear();
 
-				notifyListeners(e);
-			}
-
-			PathOptimiser.reset();
-
+			notifyListeners(e);
 		}
+
+		PathOptimiser.reset();
 
 	}
 
@@ -575,7 +574,7 @@ public class TaskManager extends UpwardsNavigable {
 
 	public void setSingleStatement(boolean singleStatement) {
 		this.singleStatement = singleStatement;
-		if(!singleStatement)
+		if (!singleStatement)
 			this.removeHierarchyListener(statementListener);
 		else
 			this.addHierarchyListener(statementListener);

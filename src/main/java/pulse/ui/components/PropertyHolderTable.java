@@ -3,24 +3,17 @@ package pulse.ui.components;
 import static java.awt.Font.BOLD;
 import static java.lang.Boolean.TRUE;
 import static javax.swing.SortOrder.ASCENDING;
-import static javax.swing.SwingConstants.CENTER;
 import static pulse.ui.Messages.getString;
 
-import java.awt.Component;
 import java.awt.Font;
-import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.swing.AbstractButton;
-import javax.swing.AbstractCellEditor;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JComboBox;
-import javax.swing.JFrame;
 import javax.swing.JTable;
 import javax.swing.RowSorter.SortKey;
 import javax.swing.event.CellEditorListener;
@@ -34,13 +27,12 @@ import javax.swing.table.TableRowSorter;
 
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
-import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 import pulse.ui.components.buttons.IconCheckBox;
 import pulse.ui.components.controllers.AccessibleTableRenderer;
+import pulse.ui.components.controllers.ButtonEditor;
 import pulse.ui.components.controllers.InstanceCellEditor;
 import pulse.ui.components.controllers.NumberEditor;
-import pulse.ui.frames.DataFrame;
 import pulse.util.DiscreteSelector;
 import pulse.util.InstanceDescriptor;
 import pulse.util.PropertyHolder;
@@ -82,13 +74,19 @@ public class PropertyHolderTable extends JTable {
 
 		setRowSorter(sorter);
 
+		addListeners();
+
+	}
+
+	private void addListeners() {
+		if (propertyHolder == null)
+			return;
+
 		/*
 		 * Update properties of the PropertyHolder when table is changed by the user
 		 */
 
-		final var reference = this;
-
-		model.addTableModelListener((TableModelEvent e) -> {
+		getModel().addTableModelListener((TableModelEvent e) -> {
 
 			final int row = e.getFirstRow();
 			final int column = e.getColumn();
@@ -100,18 +98,10 @@ public class PropertyHolderTable extends JTable {
 
 			if (changedObject instanceof Property) {
 				var changedProperty = (Property) changedObject;
-				propertyHolder.updateProperty(reference, changedProperty);
+				propertyHolder.updateProperty(this, changedProperty);
 			}
 
 		});
-
-		addListeners();
-
-	}
-
-	private void addListeners() {
-		if (propertyHolder == null)
-			return;
 
 		propertyHolder.addListener(event -> {
 			if (!(event.getSource() instanceof PropertyHolderTable))
@@ -146,13 +136,9 @@ public class PropertyHolderTable extends JTable {
 		this.propertyHolder = propertyHolder;
 		if (propertyHolder != null)
 			updateTable();
-		addListeners();
 	}
 
 	public void updateTable() {
-		if (propertyHolder == null)
-			return;
-
 		this.editCellAt(-1, -1);
 		this.clearSelection();
 
@@ -160,7 +146,6 @@ public class PropertyHolderTable extends JTable {
 		model.setDataVector(dataArray(propertyHolder), new String[] { model.getColumnName(0), model.getColumnName(1) });
 
 		sorter.sort();
-
 	}
 
 	@Override
@@ -168,136 +153,73 @@ public class PropertyHolderTable extends JTable {
 
 		var value = super.getValueAt(row, column);
 
-		if (value != null) {
+		if (value == null)
+			super.getCellEditor(row, column);
 
-			// do not edit labels
+		// do not edit labels
 
-			if (value instanceof String)
-				return null;
+		if (value instanceof String)
+			return null;
 
-			if (value instanceof NumericProperty)
-				return new NumberEditor((NumericProperty) value);
+		if (value instanceof NumericProperty)
+			return new NumberEditor((NumericProperty) value);
 
-			if (value instanceof JComboBox)
-				return new DefaultCellEditor((JComboBox<?>) value);
+		if (value instanceof JComboBox)
+			return new DefaultCellEditor((JComboBox<?>) value);
 
-			if (value instanceof Enum)
-				return new DefaultCellEditor(
-						new JComboBox<Object>(((Enum<?>) value).getDeclaringClass().getEnumConstants()));
+		if (value instanceof Enum)
+			return new DefaultCellEditor(
+					new JComboBox<Object>(((Enum<?>) value).getDeclaringClass().getEnumConstants()));
 
-			if (value instanceof InstanceDescriptor) {
-				var inst = new InstanceCellEditor((InstanceDescriptor<?>) value);
+		if (value instanceof InstanceDescriptor) {
+			var inst = new InstanceCellEditor((InstanceDescriptor<?>) value);
 
-				inst.addCellEditorListener(new CellEditorListener() {
+			inst.addCellEditorListener(new CellEditorListener() {
 
-					@Override
-					public void editingCanceled(ChangeEvent arg0) {
-						// TODO Auto-generated method stub
-					}
+				@Override
+				public void editingCanceled(ChangeEvent arg0) {
+					// TODO Auto-generated method stub
+				}
 
-					@Override
-					public void editingStopped(ChangeEvent arg0) {
-						updateTable();
-					}
+				@Override
+				public void editingStopped(ChangeEvent arg0) {
+					updateTable();
+				}
 
-				});
+			});
 
-				return inst;
-			}
-
-			if (value instanceof DiscreteSelector) {
-				var selector = (DiscreteSelector<?>)value;
-				var combo = new JComboBox<>( selector.getAllOptions().toArray());
-				combo.setSelectedItem(selector.getValue());
-				combo.addItemListener(e -> {
-					if(e.getStateChange() == ItemEvent.SELECTED) {
-						selector.attemptUpdate(e.getItem());
-						updateTable();
-					}
-				});
-				return new DefaultCellEditor(combo);
-			}
-
-			if ((value instanceof PropertyHolder))
-				return new ButtonEditor((AbstractButton) getCellRenderer(row, column)
-						.getTableCellRendererComponent(this, value, false, false, row, column), (PropertyHolder) value);
-
-			if (value instanceof Flag)
-				return new ButtonEditor((IconCheckBox) getCellRenderer(row, column).getTableCellRendererComponent(this,
-						value, false, false, row, column), ((Flag) value).getType());
-
-			return getDefaultEditor(value.getClass());
-
+			return inst;
 		}
 
-		return super.getCellEditor(row, column);
+		if (value instanceof DiscreteSelector) {
+			var selector = (DiscreteSelector<?>) value;
+			var combo = new JComboBox<>(selector.getAllOptions().toArray());
+			combo.setSelectedItem(selector.getValue());
+			combo.addItemListener(e -> {
+				if (e.getStateChange() == ItemEvent.SELECTED) {
+					selector.attemptUpdate(e.getItem());
+					updateTable();
+				}
+			});
+			return new DefaultCellEditor(combo);
+		}
+
+		if ((value instanceof PropertyHolder))
+			return new ButtonEditor((AbstractButton) getCellRenderer(row, column).getTableCellRendererComponent(this,
+					value, false, false, row, column), (PropertyHolder) value);
+
+		if (value instanceof Flag)
+			return new ButtonEditor((IconCheckBox) getCellRenderer(row, column).getTableCellRendererComponent(this,
+					value, false, false, row, column), ((Flag) value).getType());
+
+		return getDefaultEditor(value.getClass());
 
 	}
 
 	@Override
 	public TableCellRenderer getCellRenderer(int row, int column) {
-
 		var value = super.getValueAt(row, column);
-
 		return value != null ? new AccessibleTableRenderer() : super.getCellRenderer(row, column);
-
-	}
-
-	protected class ButtonEditor extends AbstractCellEditor implements TableCellEditor {
-
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 1L;
-		AbstractButton btn;
-		PropertyHolder dat;
-		NumericPropertyKeyword type;
-
-		public ButtonEditor(AbstractButton btn, PropertyHolder dat) {
-			this.btn = btn;
-			this.dat = dat;
-
-			btn.addActionListener((ActionEvent e) -> {
-				JFrame dataFrame = new DataFrame(dat, btn);
-				dataFrame.setVisible(true);
-				btn.setEnabled(false);
-				dataFrame.addWindowListener(new WindowAdapter() {
-					@Override
-					public void windowClosed(WindowEvent we) {
-						btn.setText(((DataFrame) dataFrame).getDataObject().toString());
-						btn.setEnabled(true);
-					}
-				});
-			});
-
-		}
-
-		public ButtonEditor(IconCheckBox btn, NumericPropertyKeyword index) {
-			this.btn = btn;
-			this.type = index;
-
-			btn.addActionListener((ActionEvent e) -> {
-				var source = (IconCheckBox) e.getSource();
-				source.setHorizontalAlignment(CENTER);
-				((JTable) (source.getParent())).getCellEditor().stopCellEditing();
-			});
-
-		}
-
-		@Override
-		public Object getCellEditorValue() {
-			if (dat != null)
-				return dat;
-			var f = new Flag(type);
-			f.setValue(btn.isSelected());
-			return f;
-		}
-
-		@Override
-		public Component getTableCellEditorComponent(JTable arg0, Object value, boolean arg2, int arg3, int arg4) {
-			return btn;
-		}
-
 	}
 
 	public PropertyHolder getPropertyHolder() {

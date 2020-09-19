@@ -55,7 +55,7 @@ public class PulseMainMenu extends JMenuBar {
 	private final static int ICON_SIZE = 24;
 
 	private static JMenuItem aboutItem;
-	private static JMenu dataControlsMenu;
+	private static JMenu fileMenu;
 	private static JMenuItem exitItem;
 	private static JMenuItem exportAllItem;
 	private static JMenuItem exportCurrentItem;
@@ -122,7 +122,7 @@ public class PulseMainMenu extends JMenuBar {
 	}
 
 	private void initComponents() {
-		dataControlsMenu = new JMenu("File");
+		fileMenu = new JMenu("File");
 		loadDataItem = new JMenuItem("Load Heating Curve(s)...", loadIcon("load.png", ICON_SIZE));
 		loadMetadataItem = new JMenuItem("Load Metadata...", loadIcon("metadata.png", ICON_SIZE));
 		exportCurrentItem = new JMenuItem("Export Current", loadIcon("save.png", ICON_SIZE));
@@ -139,14 +139,14 @@ public class PulseMainMenu extends JMenuBar {
 		var selectBuffer = new JMenuItem("Buffer size...", loadIcon("buffer.png", ICON_SIZE));
 		selectBuffer.addActionListener(e -> bufferDialog.setVisible(true));
 
-		dataControlsMenu.setMnemonic('f');
+		fileMenu.setMnemonic('f');
 		loadDataItem.setMnemonic('h');
 		loadMetadataItem.setMnemonic('m');
-		loadMetadataItem.setMnemonic('m');
 		exportCurrentItem.setMnemonic('c');
-		exportAllItem.setMnemonic('a');
+		exportAllItem.setMnemonic('e');
 		exitItem.setMnemonic('x');
-		settingsMenu.setMnemonic('e');
+		aboutItem.setMnemonic('a');
+		settingsMenu.setMnemonic('s');
 
 		loadMetadataItem.setEnabled(false);
 		exportCurrentItem.setEnabled(false);
@@ -155,18 +155,18 @@ public class PulseMainMenu extends JMenuBar {
 		searchSettingsItem.setEnabled(false);
 
 		var menuFont = new Font("Arial", PLAIN, 18);
-		dataControlsMenu.setFont(menuFont);
+		fileMenu.setFont(menuFont);
 		settingsMenu.setFont(menuFont);
 		infoMenu.setFont(menuFont);
 
-		dataControlsMenu.add(loadDataItem);
-		dataControlsMenu.add(loadMetadataItem);
-		dataControlsMenu.add(new JSeparator());
-		dataControlsMenu.add(exportCurrentItem);
-		dataControlsMenu.add(exportAllItem);
-		dataControlsMenu.add(new JSeparator());
-		dataControlsMenu.add(exitItem);
-		add(dataControlsMenu);
+		fileMenu.add(loadDataItem);
+		fileMenu.add(loadMetadataItem);
+		fileMenu.add(new JSeparator());
+		fileMenu.add(exportCurrentItem);
+		fileMenu.add(exportAllItem);
+		fileMenu.add(new JSeparator());
+		fileMenu.add(exitItem);
+		add(fileMenu);
 
 		settingsMenu.add(modelSettingsItem);
 		settingsMenu.add(searchSettingsItem);
