@@ -104,7 +104,7 @@ public class AuxChart {
 		series.add(TO_MILLIS*(startTime + timeLimit + dx / 10.), 0.0);
 		
 		for (var i = 0; i < NUM_PULSE_POINTS; i++) {
-			series.add(x*TO_MILLIS, pulse.evaluateAt(x/timeFactor));
+			series.add(x*TO_MILLIS, pulse.evaluateAt((x-startTime)/timeFactor));
 			x += dx;
 		}
 
