@@ -328,12 +328,9 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 	/**
 	 * Finds a {@code Flag} equivalent to {@code flag} in the {@code originalList}
 	 * and substitutes its value with {@code flag.getValue}.
-	 * 
-	 * @param originalList the list where a flag with a type {@code flag.getType()}
-	 *                     can be found
-	 * @param flag         the flag which will be set
 	 */
 
+	@Override
 	public void update(Property property) {
 		if(! (property instanceof Flag) )
 			super.update(property);

@@ -66,11 +66,8 @@ public abstract class ExplicitScheme extends OneDimensionalScheme {
 	}
 	
 	/**
-	 * Uses the heat equation explicitly to calculate the grid-function everywhere
-	 * except for the boundaries
-	 * @param grid the grid 
-	 * @param V the output temperature profile 
-	 * @param U the input temperature profile
+	 * Uses the explicit finite-difference representation of the heat equation to calculate the grid-function everywhere
+	 * except for the boundaries. This will update the current solution using the solution from previous time step.
 	 */
 	
 	public void explicitSolution() {

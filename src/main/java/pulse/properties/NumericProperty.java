@@ -61,20 +61,7 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
 	 * 
 	 * @param type            the type of this {@code NumericProperty}, set by one
 	 *                        of the {@code NumericPropertyKeyword} constants
-	 * @param descriptor      a {@code String} with full description of the property
-	 *                        (may use html-formatting, but without the 'html'
-	 *                        tags!)
-	 * @param abbreviation    a {@code String} with a symbolic representation of the
-	 *                        property (may use html-formatting, but without the
-	 *                        'html' tags!)
-	 * @param value           a numeric value, which can be either a {@code Double}
-	 *                        or an {@code Integer} (or primitive types)
-	 * @param minimum         the minimum allowed value for this {@code type}
-	 * @param maximum         the maximum allowed value for this {@code type}
-	 * @param dimensionFactor a multiplier that will be used when converting the
-	 *                        value to SI
-	 * @param autoAdjustable  a boolean flag indicating if the property requires
-	 *                        user input
+	 * @param params	the numeric parameters in the following order: value, minimum, maximum, dimension factor.
 	 * @see pulse.io.export.XMLConverter
 	 */
 
@@ -124,7 +111,7 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
 	 * {@code NumericProperty}. Checks whether
 	 * 
 	 * @param value the value to be set to {@code this property}
-	 * @see isValueSensible(NumericProperty,Number)
+	 * @see NumericProperties.isValueSensible(NumericProperty,Number)
 	 */
 
 	public void setValue(Number value) {
@@ -181,7 +168,7 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
 	/**
 	 * Calls {@code formattedValue(true)}.
 	 * 
-	 * @see formattedValueAndError(boolean)
+	 * @see NumericProperties.formattedValueAndError(boolean)
 	 */
 
 	@Override

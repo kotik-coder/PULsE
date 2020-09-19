@@ -30,8 +30,6 @@ public class TridiagonalMatrixAlgorithm {
 	 * is the grid density value. The coefficients {@code alpha} and {@code beta} 
 	 * should have been precalculated
 	 * @param V the array containing the {@code N}th value previously calculated from the respective boundary condition 
-	 * @param alpha an array of coefficients for the tridiagonal algorithm
-	 * @param beta an array of coefficients for the tridiagonal algorithm
 	 */
 	
 	public void sweep(double[] V) {
@@ -41,12 +39,6 @@ public class TridiagonalMatrixAlgorithm {
 	
 	/**
 	 * Calculates the {@code alpha} coefficients as part of the tridiagonal matrix algorithm.
-	 * @param grid the grid 
-	 * @param alpha0 the first value &alpha;<sub>1</sub> used to calculate the array
-	 * @param a the heat equation coefficient corresponding to &theta;<sub>i+1</sub>
-	 * @param b the heat equation coefficient corresponding to &theta;<sub>i</sub>
-	 * @param c the heat equation coefficient corresponding to &theta;<sub>i-1</sub>
-	 * @return
 	 */
 	
 	public void evaluateAlpha() {
@@ -61,11 +53,6 @@ public class TridiagonalMatrixAlgorithm {
 
 	/**
 	 * Calculates the {@code beta} coefficients as part of the tridiagonal matrix algorithm.
-	 * @param beta1 the first &beta;<sub>1</sub> coefficient
-	 * @param U the input temperature profile
-	 * @param a the heat equation coefficient corresponding to &theta;<sub>i+1</sub>
-	 * @param b the heat equation coefficient corresponding to &theta;<sub>i</sub>
-	 * @return
 	 */
 	
 	public void evaluateBeta(final double[] U, final int start, final int endExclusive) {

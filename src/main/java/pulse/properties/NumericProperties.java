@@ -29,8 +29,7 @@ public class NumericProperties {
 	 * Checks whether the {@code val} that is going to be passed to the
 	 * {@code property} (a) has the same type as the {@code property.getValue()}
 	 * object; (b) is confined within the definition domain:
-	 * {@code minimum <= value <= maximum}. Called within {@code setValue(Number)}
-	 * method.
+	 * {@code minimum <= value <= maximum}. 
 	 * 
 	 * @param property the {@code property} containing the definition domain
 	 * @param val      a numeric value, the conformity of which to the definition
@@ -38,7 +37,6 @@ public class NumericProperties {
 	 * @return {@code true} if {@code minimum <= val <= maximum} and if both
 	 *         {@code val} and {@code value} are instances of the same
 	 *         {@code class}; {@code false} otherwise
-	 * @see setValue(Number)
 	 */
 
 	public static boolean isValueSensible(NumericProperty property, Number val) {
@@ -108,7 +106,8 @@ public class NumericProperties {
 	/**
 	 * Compares the numeric values of this {@code NumericProperty} and {@code arg0}
 	 * 
-	 * @param arg0 another {@code NumericProperty}.
+	 * @param a a {@code NumericProperty}
+	 * @param b another {@code NumericProperty}
 	 * @return {@code true} if the values are equals
 	 */
 

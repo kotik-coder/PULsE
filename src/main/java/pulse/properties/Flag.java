@@ -40,10 +40,7 @@ public class Flag implements Property {
 	 * Creates a {@code Flag} with the following pre-specified parameters: type
 	 * {@code type}, short description {@code abbreviations}, and {@code value}.
 	 * 
-	 * @param type         the {@code NumericPropertyKeyword} associated with this
-	 *                     {@code Flag}
-	 * @param abbreviation an abbreviation (short description, usually symbolic
-	 *                     only) associated with this {@code type}
+	 * @param property the {@code NumericProperty} parameter containing the {@code NumericPropertyKeyword} identifier
 	 * @param value        the {@code boolean} value of this {@code flag}
 	 */
 

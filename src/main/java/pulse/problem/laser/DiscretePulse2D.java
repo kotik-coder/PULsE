@@ -27,12 +27,10 @@ public class DiscretePulse2D extends DiscretePulse {
 	 * <p>
 	 * Calls the constructor of the superclass, after which calculates the
 	 * {@code discretePulseSpot} using the {@code gridRadialDistance} method of this
-	 * class. The dimension factor is defined as the sample diameter declared in
-	 * {@code T}.
+	 * class. The dimension factor is defined as the sample diameter.
 	 * </p>
 	 * 
 	 * @param problem a two-dimensional problem
-	 * @param pulse   the continuous {@code Pulse} function
 	 * @param grid    the two-dimensional grid
 	 */
 

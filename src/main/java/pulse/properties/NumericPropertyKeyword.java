@@ -462,19 +462,19 @@ public enum NumericPropertyKeyword {
 	TRAPEZOIDAL_FALL_PERCENTAGE,
 
 	/**
-	 * $mu; parameter for skewed normal distribution.
+	 * &mu; parameter for skewed normal distribution.
 	 */
 	
 	SKEW_MU,
 
 	/**
-	 * $sigma; parameter for skewed normal distribution.
+	 * &sigma; parameter for skewed normal distribution.
 	 */
 	
 	SKEW_SIGMA,
 
 	/**
-	 * $lambda; parameter for skewed normal distribution.
+	 * &lambda; parameter for skewed normal distribution.
 	 */
 	
 	SKEW_LAMBDA;
