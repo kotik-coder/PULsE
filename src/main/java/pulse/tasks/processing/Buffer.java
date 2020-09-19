@@ -167,15 +167,6 @@ public class Buffer extends PropertyHolder {
 	}
 
 	/**
-	 * Clears the data arrays.
-	 */
-
-	public void clear() {
-		data = new IndexedVector[data.length];
-		statistic = new double[statistic.length];
-	}
-
-	/**
 	 * Sets a new size for this {@code Buffer}.
 	 * 
 	 * @param newSize a {@code NumericProperty} of the type {@code BUFFER_SIZE}.

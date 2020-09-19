@@ -262,7 +262,7 @@ public class SearchTask extends Accessible implements Runnable {
 
 		var errorTolerance = (double) getErrorTolerance().getValue();
 		int bufferSize = (Integer) getSize().getValue();
-		buffer.clear();
+		buffer.init();
 		correlationBuffer.clear();
 
 		/* search cycle */
