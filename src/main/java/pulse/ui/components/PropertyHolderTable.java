@@ -9,6 +9,7 @@ import static pulse.ui.Messages.getString;
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
+import java.awt.event.ItemEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
@@ -31,8 +32,6 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 
-import pulse.problem.schemes.rte.dom.ButcherTableau;
-import pulse.problem.schemes.rte.dom.OrdinateSet;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
@@ -42,6 +41,7 @@ import pulse.ui.components.controllers.AccessibleTableRenderer;
 import pulse.ui.components.controllers.InstanceCellEditor;
 import pulse.ui.components.controllers.NumberEditor;
 import pulse.ui.frames.DataFrame;
+import pulse.util.DiscreteSelector;
 import pulse.util.InstanceDescriptor;
 import pulse.util.PropertyHolder;
 
@@ -205,12 +205,17 @@ public class PropertyHolderTable extends JTable {
 				return inst;
 			}
 
-			if (value instanceof ButcherTableau) {
-				return new DefaultCellEditor(new JComboBox<>(ButcherTableau.getAllOptions().toArray()));
-			}
-
-			if (value instanceof OrdinateSet) {
-				return new DefaultCellEditor(new JComboBox<>(OrdinateSet.getAllOptions().toArray()));
+			if (value instanceof DiscreteSelector) {
+				var selector = (DiscreteSelector<?>)value;
+				var combo = new JComboBox<>( selector.getAllOptions().toArray());
+				combo.setSelectedItem(selector.getValue());
+				combo.addItemListener(e -> {
+					if(e.getStateChange() == ItemEvent.SELECTED) {
+						selector.attemptUpdate(e.getItem());
+						updateTable();
+					}
+				});
+				return new DefaultCellEditor(combo);
 			}
 
 			if ((value instanceof PropertyHolder))

@@ -3,11 +3,8 @@ package pulse.problem.schemes.rte.dom;
 import static pulse.math.MathUtils.approximatelyEquals;
 
 import java.util.Arrays;
-import java.util.Set;
 
-import pulse.io.readers.QuadratureReader;
-import pulse.io.readers.ReaderManager;
-import pulse.properties.Property;
+import pulse.util.Descriptive;
 
 /**
  * A fixed set of discrete cosine nodes and weights for the angular discretisation of a radiative
@@ -15,7 +12,7 @@ import pulse.properties.Property;
  *
  */
 
-public class OrdinateSet implements Property {
+public class OrdinateSet implements Descriptive {
 
 	private double[] mu;
 	private double[] w;
@@ -24,10 +21,7 @@ public class OrdinateSet implements Property {
 	private int firstNegativeNode;
 	private int totalNodes;
 
-	private static Set<OrdinateSet> allOptions = ReaderManager.load(QuadratureReader.getInstance(), "/quadratures/",
-			"Quadratures.list");
-	private final static String DEFAULT_SET = "G8M";
-
+	public final static String DEFAULT_SET = "G8M";
 	private String name;
 
 	public OrdinateSet(String name, double[] mu, double[] w) {
@@ -86,37 +80,8 @@ public class OrdinateSet implements Property {
 	}
 
 	@Override
-	public String getDescriptor(boolean addHtmlTags) {
+	public String describe() {
 		return "Ordinate set";
-	}
-
-	@Override
-	public Object getValue() {
-		return name;
-	}
-
-	@Override
-	public boolean attemptUpdate(Object value) {
-		if (!(value instanceof String))
-			return false;
-		name = find((String) value).getName();
-		return true;
-	}
-
-	public static OrdinateSet find(String name) {
-		var optional = allOptions.stream().filter(t -> t.getName().equalsIgnoreCase(name)).findFirst();
-		if (optional.isEmpty())
-			throw new IllegalArgumentException("Ordinate set not found: " + name);
-
-		return optional.get();
-	}
-
-	public static OrdinateSet defaultSet() {
-		return find(DEFAULT_SET);
-	}
-
-	public static Set<OrdinateSet> getAllOptions() {
-		return allOptions;
 	}
 
 	public int getNumberOfNodes() {
@@ -144,5 +109,5 @@ public class OrdinateSet implements Property {
 		if (!approximatelyEquals(sum, 2.0))
 			throw new IllegalStateException("Summed quadrature weights != 2.0");
 	}
-
+	
 }

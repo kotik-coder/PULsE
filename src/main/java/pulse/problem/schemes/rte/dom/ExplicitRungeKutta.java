@@ -2,8 +2,10 @@ package pulse.problem.schemes.rte.dom;
 
 import java.util.List;
 
+import pulse.io.readers.ButcherTableauReader;
 import pulse.math.linear.Vector;
 import pulse.properties.Property;
+import pulse.util.DiscreteSelector;
 
 /**
  * Explicit Runge-Kutta integrator with Hermite interpolation for the solution of one-dimensional radiative transfer problems.
@@ -15,10 +17,16 @@ import pulse.properties.Property;
 public class ExplicitRungeKutta extends AdaptiveIntegrator {
 
 	private ButcherTableau tableau;
+	private DiscreteSelector<ButcherTableau> tableauSelector;
 
 	public ExplicitRungeKutta(Discretisation intensities) {
 		super(intensities);
-		tableau = ButcherTableau.getDefaultInstance();
+		
+		tableauSelector = new DiscreteSelector<>(ButcherTableauReader.getInstance(), "/solvers/",
+				"Solvers.list");
+		tableauSelector.setDefaultSelection(ButcherTableau.DEFAULT_TABLEAU);
+		tableau = tableauSelector.getDefaultSelection();
+		tableauSelector.addListener(() -> tableau = (ButcherTableau)tableauSelector.getValue());
 	}
 
 	@Override
@@ -176,13 +184,17 @@ public class ExplicitRungeKutta extends AdaptiveIntegrator {
 	@Override
 	public List<Property> listedTypes() {
 		List<Property> list = super.listedTypes();
-		list.add(ButcherTableau.getDefaultInstance());
+		list.add(tableauSelector);
 		return list;
 	}
 
 	@Override
 	public String toString() {
 		return super.toString() + " ; " + tableau;
+	}
+
+	public DiscreteSelector<ButcherTableau> getTableauSelector() {
+		return tableauSelector;
 	}
 	
 }
