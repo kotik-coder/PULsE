@@ -16,14 +16,11 @@ import javax.swing.DefaultCellEditor;
 import javax.swing.JComboBox;
 import javax.swing.JTable;
 import javax.swing.RowSorter.SortKey;
-import javax.swing.event.CellEditorListener;
-import javax.swing.event.ChangeEvent;
 import javax.swing.event.TableModelEvent;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
-import javax.swing.table.TableRowSorter;
 
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
@@ -45,13 +42,9 @@ public class PropertyHolderTable extends JTable {
 	private final static Font font = new Font(getString("PropertyHolderTable.FontName"), BOLD, 12);
 	private final static int ROW_HEIGHT = 40;
 
-	private TableRowSorter<DefaultTableModel> sorter;
-
 	public PropertyHolderTable(PropertyHolder p) {
 		super();
 		putClientProperty("terminateEditOnFocusLost", TRUE);
-
-		this.propertyHolder = p;
 
 		var model = new DefaultTableModel(dataArray(p), new String[] { getString("PropertyHolderTable.ParameterColumn"), //$NON-NLS-1$
 				getString("PropertyHolderTable.ValueColumn") } //$NON-NLS-1$
@@ -65,23 +58,16 @@ public class PropertyHolderTable extends JTable {
 		setFont(font);
 		setRowHeight(ROW_HEIGHT);
 
-		sorter = new TableRowSorter<>();
-		sorter.setModel(model);
 		var list = new ArrayList<SortKey>();
 		list.add(new SortKey(0, ASCENDING));
-		sorter.setSortKeys(list);
-		sorter.sort();
 
-		setRowSorter(sorter);
+		setPropertyHolder(p);
 
 		addListeners();
 
 	}
 
 	private void addListeners() {
-		if (propertyHolder == null)
-			return;
-
 		/*
 		 * Update properties of the PropertyHolder when table is changed by the user
 		 */
@@ -90,22 +76,17 @@ public class PropertyHolderTable extends JTable {
 
 			final int row = e.getFirstRow();
 			final int column = e.getColumn();
-
+			
 			if ((row < 0) || (column < 0))
 				return;
 
 			var changedObject = ((TableModel) e.getSource()).getValueAt(row, column);
-
+			
 			if (changedObject instanceof Property) {
 				var changedProperty = (Property) changedObject;
 				propertyHolder.updateProperty(this, changedProperty);
 			}
 
-		});
-
-		propertyHolder.addListener(event -> {
-			if (!(event.getSource() instanceof PropertyHolderTable))
-				updateTable();
 		});
 
 	}
@@ -134,8 +115,13 @@ public class PropertyHolderTable extends JTable {
 
 	public void setPropertyHolder(PropertyHolder propertyHolder) {
 		this.propertyHolder = propertyHolder;
-		if (propertyHolder != null)
+		if (propertyHolder != null) {
 			updateTable();
+			propertyHolder.addListener(event -> {
+				if (!(event.getSource() instanceof PropertyHolderTable))
+					updateTable();
+			});
+		}
 	}
 
 	public void updateTable() {
@@ -144,8 +130,6 @@ public class PropertyHolderTable extends JTable {
 
 		var model = ((DefaultTableModel) getModel());
 		model.setDataVector(dataArray(propertyHolder), new String[] { model.getColumnName(0), model.getColumnName(1) });
-
-		sorter.sort();
 	}
 
 	@Override
@@ -173,21 +157,6 @@ public class PropertyHolderTable extends JTable {
 
 		if (value instanceof InstanceDescriptor) {
 			var inst = new InstanceCellEditor((InstanceDescriptor<?>) value);
-
-			inst.addCellEditorListener(new CellEditorListener() {
-
-				@Override
-				public void editingCanceled(ChangeEvent arg0) {
-					// TODO Auto-generated method stub
-				}
-
-				@Override
-				public void editingStopped(ChangeEvent arg0) {
-					updateTable();
-				}
-
-			});
-
 			return inst;
 		}
 
@@ -208,7 +177,7 @@ public class PropertyHolderTable extends JTable {
 			return new ButtonEditor((AbstractButton) getCellRenderer(row, column).getTableCellRendererComponent(this,
 					value, false, false, row, column), (PropertyHolder) value);
 
-		if (value instanceof Flag)
+		if (value instanceof Flag) 
 			return new ButtonEditor((IconCheckBox) getCellRenderer(row, column).getTableCellRendererComponent(this,
 					value, false, false, row, column), ((Flag) value).getType());
 

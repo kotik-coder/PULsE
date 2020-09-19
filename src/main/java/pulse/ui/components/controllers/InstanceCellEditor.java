@@ -1,8 +1,7 @@
 package pulse.ui.components.controllers;
 
-import static java.awt.event.ItemEvent.SELECTED;
-
 import java.awt.Component;
+import java.awt.event.ItemEvent;
 
 import javax.swing.DefaultCellEditor;
 import javax.swing.JComboBox;
@@ -29,8 +28,8 @@ public class InstanceCellEditor extends DefaultCellEditor {
 		combobox.setSelectedItem(descriptor.getValue());
 
 		combobox.addItemListener(e -> {
-			if (e.getStateChange() == SELECTED) 
-				this.fireEditingStopped();
+			if (e.getStateChange() == ItemEvent.SELECTED) 
+				descriptor.attemptUpdate(e.getItem());
 		});
 
 		combobox.addPopupMenuListener(new PopupMenuListener() {

@@ -346,21 +346,17 @@ public class TaskManager extends UpwardsNavigable {
 	public void generateTasks(List<File> files) {
 		requireNonNull(files, "Null list of files passed to generatesTasks(...)");
 
-		if (files.size() == 1) {
-			generateTask(files.get(0));
-			selectTask(tasks.get(tasks.size() - 1).getIdentifier(), this);
-		} else {
-			var pool = Executors.newSingleThreadExecutor();
-			files.stream().forEach(f -> pool.submit(() -> generateTask(f)));
-			pool.shutdown();
-			try {
-				pool.awaitTermination(2, TimeUnit.MINUTES);
-			} catch (InterruptedException e) {
-				System.err.println("Failed to load all tasks within 2 minutes. Details:");
-				e.printStackTrace();
-			}
-			selectFirstTask();
+		var pool = Executors.newSingleThreadExecutor();
+		files.stream().forEach(f -> pool.submit(() -> generateTask(f)));
+		pool.shutdown();
+		try {
+			pool.awaitTermination(2, TimeUnit.MINUTES);
+		} catch (InterruptedException e) {
+			System.err.println("Failed to load all tasks within 2 minutes. Details:");
+			e.printStackTrace();
 		}
+
+		selectFirstTask();
 
 	}
 

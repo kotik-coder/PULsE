@@ -35,7 +35,6 @@ import java.util.List;
 
 import javax.swing.DefaultListModel;
 import javax.swing.DefaultListSelectionModel;
-import javax.swing.DefaultRowSorter;
 import javax.swing.JButton;
 import javax.swing.JInternalFrame;
 import javax.swing.JList;
@@ -117,21 +116,7 @@ public class ProblemStatementFrame extends JInternalFrame {
 		 * Problem details scroller
 		 */
 
-		problemTable = new PropertyHolderTable(null) {
-
-			/**
-			 * 
-			 */
-			private static final long serialVersionUID = -6578898159810827328L;
-
-			@Override
-			public void updateTable() {
-				super.updateTable();
-				((DefaultRowSorter<?, Integer>) getRowSorter()).sort();
-			}
-
-		};
-
+		problemTable = new PropertyHolderTable(null);
 		var problemDetailsScroller = new JScrollPane(problemTable);
 		contentPane.add(problemDetailsScroller);
 
@@ -139,7 +124,7 @@ public class ProblemStatementFrame extends JInternalFrame {
 		 * Scheme details table and scroller
 		 */
 
-		schemeTable = new PropertyHolderTable(null); // TODO
+		schemeTable = new PropertyHolderTable(null); 
 		var schemeDetailsScroller = new JScrollPane(schemeTable);
 		contentPane.add(schemeDetailsScroller);
 

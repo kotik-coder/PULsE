@@ -340,7 +340,7 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 		else {
 			var flag = (Flag) property;
 			var optional = ActiveFlags.getAllFlags().stream().filter(f -> f.getType() == flag.getType()).findFirst();
-
+			
 			if (optional.isPresent())
 				optional.get().setValue((boolean) flag.getValue());
 			

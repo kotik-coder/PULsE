@@ -39,7 +39,7 @@ public class DataLoader {
 
 	static {
 		TaskManager.getManagerInstance().addTaskRepositoryListener(e -> {
-			if (e.getState() == TaskRepositoryEvent.State.TASK_ADDED)
+			if (e.getState() == TaskRepositoryEvent.State.TASK_ADDED) 
 				progressFrame.incrementProgress();
 		});
 		progressFrame.setLocationRelativeTo(null);
@@ -49,7 +49,7 @@ public class DataLoader {
 	private DataLoader() {
 		// intentionally blank
 	}
-
+	
 	/**
 	 * Initiates a user dialog to load experimental time-temperature profiles.
 	 * Multiple selection is possible. When the user finalises selection, the

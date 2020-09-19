@@ -52,7 +52,7 @@ public class ButtonEditor extends AbstractCellEditor implements TableCellEditor 
 		btn.addActionListener((ActionEvent e) -> {
 			var source = (IconCheckBox) e.getSource();
 			source.setHorizontalAlignment(CENTER);
-			((JTable) (source.getParent())).getCellEditor().stopCellEditing();
+			stopCellEditing();
 		});
 
 	}
