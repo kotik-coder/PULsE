@@ -37,7 +37,6 @@ import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import pulse.input.ExperimentalData;
-import pulse.input.InterpolationDataset;
 import pulse.input.Metadata;
 import pulse.math.IndexedVector;
 import pulse.problem.schemes.DifferenceScheme;
@@ -400,22 +399,13 @@ public class SearchTask extends Accessible implements Runnable {
 		problem.retrieveData(curve);
 
 		problem.addListener((PropertyEvent event) -> {
-			if (event.getSource() instanceof Metadata) {
+			var source = event.getSource();
+			if (source instanceof Metadata || source instanceof PropertyHolderTable) {
 				problem.estimateSignalRange(curve);
-				problem.getProperties().useTheoreticalEstimates(curve);
-			} else if (event.getSource() instanceof PropertyHolderTable) {
-				problem.estimateSignalRange(curve);
-			}
-		});
-
-		problem.getProperties().addListener((PropertyEvent event) -> {
-			if (event.getSource() instanceof PropertyHolderTable) {
-				problem.estimateSignalRange(curve);
-			} else if (event.getSource() instanceof InterpolationDataset) {
 				problem.getProperties().useTheoreticalEstimates(curve);
 			}
 		});
-
+		
 		problem.getHeatingCurve().addDataListener(dataEvent -> {
 
 			var event = dataEvent.getType();

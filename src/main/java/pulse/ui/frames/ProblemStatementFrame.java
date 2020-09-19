@@ -306,7 +306,7 @@ public class ProblemStatementFrame extends JInternalFrame {
 		}
 
 		task.setProblem(np); // copies information from old problem to new problem type
-
+		
 		oldProblem = null;
 		problemCopyConstructor = null;
 		problemClass = null;

@@ -535,7 +535,11 @@ public class TaskManager extends UpwardsNavigable {
 	}
 
 	public void evaluate() {
-		tasks.stream().forEach(t -> InterpolationDataset.fill(t.getProblem().getProperties()));
+		tasks.stream().forEach(t -> {
+			var properties = t.getProblem().getProperties();
+			InterpolationDataset.fill(properties);
+			properties.useTheoreticalEstimates(t.getExperimentalCurve());
+		});
 	}
 
 	public Set<Group> allGrouppedContents() {

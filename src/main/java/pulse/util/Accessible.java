@@ -79,14 +79,6 @@ public abstract class Accessible extends Group {
 
 		}
 
-		/*
-		 * Get access to the numeric properties of accessibles contained in this
-		 * accessible
-		 */
-		/*
-		 * for (var a : accessibleChildren()) { fields.addAll(a.numericProperties()); }
-		 */
-
 		return fields;
 
 	}
