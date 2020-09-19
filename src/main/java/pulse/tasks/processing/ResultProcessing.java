@@ -6,9 +6,9 @@ import pulse.properties.NumericProperty;
 
 interface ResultProcessing {
 	
-	public default double[] process(List<AbstractResult> results) {		
+	public default double[] process(List<AbstractResult> results, final int properties) {		
 		final int size = results.size();
-		double[] av = new double[size];
+		double[] av = new double[properties];
 
 		for (int i = 0; i < av.length; i++) {
 			for (AbstractResult r : results) {

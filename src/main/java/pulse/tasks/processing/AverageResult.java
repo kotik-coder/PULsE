@@ -52,7 +52,7 @@ public class AverageResult extends AbstractResult {
 
 	private void calculate() {
 
-		ResultOperations.process(results);
+		ResultOperations.process(results, ResultFormat.getInstance().size());
 
 		/*
 		 * Calculate average and standard error for each column

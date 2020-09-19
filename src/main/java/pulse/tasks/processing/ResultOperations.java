@@ -18,9 +18,9 @@ class ResultOperations {
 		//intentionaly blank
 	}
 	
-	public static void process(List<AbstractResult> results) {
-		av = average.process(results);
-		dev = stdev.process(results);
+	public static void process(List<AbstractResult> results, final int properties) {
+		av = average.process(results, properties);
+		dev = stdev.process(results, properties);
 	}
 
 	public static double[] getAverages() {
