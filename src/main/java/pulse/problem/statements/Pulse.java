@@ -69,6 +69,10 @@ public class Pulse extends PropertyHolder {
 			this.firePropertyChanged(instanceDescriptor, instanceDescriptor);
 		});
 	}
+	
+	public double evaluateAt(final double time) {
+		return pulseShape.evaluateAt(time);
+	}
 
 	private void initShape() {
 		setPulseShape(instanceDescriptor.newInstance(PulseTemporalShape.class));

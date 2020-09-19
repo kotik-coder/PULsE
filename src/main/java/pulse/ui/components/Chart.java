@@ -236,7 +236,7 @@ public class Chart {
 
 		var realCount = curve.adjustedSize();
 		var startTime = (double) curve.getTimeShift().getValue();
-		int iStart = IndexRange.closestLeft(startTime, curve.getTimeSequence());
+		int iStart = IndexRange.closestLeft(startTime > 0 ? 0 : startTime, curve.getTimeSequence());
 
 		for (var i = 0; i < iStart && extendedCurve; i++)
 			series.add(factor * curve.timeAt(i), curve.signalAt(i));

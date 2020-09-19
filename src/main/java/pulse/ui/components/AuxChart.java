@@ -91,21 +91,20 @@ public class AuxChart {
 
 	private static XYSeries series(Problem problem, double startTime) {
 		var pulse = problem.getPulse();
-		var shape = pulse.getPulseShape();
 
 		var series = new XYSeries(pulse.getPulseShape().toString());
 
-		double timeLimit = shape.getPulseWidth();
+		double timeLimit = (double)pulse.getPulseWidth().getValue();
+		final double timeFactor = problem.getProperties().timeFactor();
+
 		double dx = timeLimit / (NUM_PULSE_POINTS - 1);
 		double x = startTime;
-
-		final double timeFactor = problem.getProperties().timeFactor() * TO_MILLIS;
-
-		series.add((startTime - dx / 10.) * timeFactor, 0.0);
-		series.add((timeLimit + dx / 10.) * timeFactor, 0.0);
-
+		
+		series.add(TO_MILLIS*(startTime - dx / 10.), 0.0);
+		series.add(TO_MILLIS*(startTime + timeLimit + dx / 10.), 0.0);
+		
 		for (var i = 0; i < NUM_PULSE_POINTS; i++) {
-			series.add(x * timeFactor, shape.evaluateAt(x));
+			series.add(x*TO_MILLIS, pulse.evaluateAt(x/timeFactor));
 			x += dx;
 		}
 

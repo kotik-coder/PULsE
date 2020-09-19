@@ -148,7 +148,9 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 		 * The outer cycle iterates over the number of points of the HeatingCurve
 		 */
 
-		for (int w = 1; w < adjustedNumPoints - 1; w++) {
+		double nextTime = offset + wFactor;
+		
+		for (int w = 1; nextTime < endTime; nextTime = offset + (++w)*wFactor) {
 
 			/*
 			 * Two adjacent points of the heating curves are separated by timeInterval on
@@ -157,7 +159,7 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 			 */
 
 			timeSegment((w - 1) * timeInterval + 1, w * timeInterval + 1);
-			addPoint(curve, offset + w * wFactor);
+			addPoint(curve, nextTime);
 
 		}
 
@@ -165,8 +167,8 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 		 * Finalise precisely at timeLimit
 		 */
 
-		timeSegment((adjustedNumPoints - 2) * timeInterval, (int) (endTime * timeInterval / wFactor));
-		addPoint(curve, endTime);
+//		timeSegment((adjustedNumPoints - 2) * timeInterval, (int) (endTime * timeInterval / wFactor));
+//		addPoint(curve, endTime);
 
 		finaliseSequence(problem, endTime);
 

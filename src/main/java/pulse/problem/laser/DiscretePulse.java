@@ -55,7 +55,7 @@ public class DiscretePulse {
 	 */
 
 	public double laserPowerAt(double time) {
-		return pulse.getPulseShape().evaluateAt(time);
+		return pulse.evaluateAt(time);
 	}
 
 	/**
