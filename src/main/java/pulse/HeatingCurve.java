@@ -11,7 +11,6 @@ import static pulse.properties.NumericPropertyKeyword.NUMPOINTS;
 import static pulse.properties.NumericPropertyKeyword.TIME_SHIFT;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.math3.analysis.UnivariateFunction;
@@ -344,7 +343,7 @@ public class HeatingCurve extends PropertyHolder {
 		for (int i = 0, size = time.size(); i < size; i++)
 			adjustedSignal.add(signal.get(i) + baseline.valueAt(time.get(i) + startTime));
 
-		if (Collections.min(time) > -startTime) {
+		if (time.get(0) > -startTime) {
 			time.add(0, -startTime);
 			adjustedSignal.add(0, baseline.valueAt(-startTime));
 		}

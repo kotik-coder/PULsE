@@ -241,7 +241,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
 				break;
 			case TIME_SHIFT:
 				output[0].set(i, (double) curve.getTimeShift().getValue());
-				output[1].set(i, curve.timeLimit() * 0.25);
+				output[1].set(i, 0.1*properties.timeFactor());
 				break;
 			default:
 				continue;

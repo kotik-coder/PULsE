@@ -3,10 +3,12 @@ package pulse.input;
 import static java.lang.Double.valueOf;
 import static java.util.Collections.max;
 import static pulse.input.listeners.DataEventType.TRUNCATED;
+import static pulse.properties.NumericProperties.def;
 import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.NUMPOINTS;
 import static pulse.properties.NumericPropertyKeyword.PULSE_WIDTH;
 import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
+import static pulse.properties.NumericPropertyKeyword.TIME_SHIFT;
 import static pulse.properties.NumericPropertyKeyword.UPPER_BOUND;
 
 import java.awt.geom.Point2D;
@@ -19,6 +21,7 @@ import pulse.HeatingCurve;
 import pulse.baseline.FlatBaseline;
 import pulse.input.listeners.DataEvent;
 import pulse.properties.NumericProperty;
+import pulse.properties.Property;
 import pulse.ui.Messages;
 import pulse.util.PropertyHolderListener;
 
@@ -226,6 +229,13 @@ public class ExperimentalData extends HeatingCurve {
 
 		return degraded.get(index).getX();
 
+	}
+	
+	@Override
+	public List<Property> listedTypes() {
+		var list = super.listedTypes();
+		list.remove(def(TIME_SHIFT));
+		return list;
 	}
 
 	/**

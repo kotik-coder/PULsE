@@ -134,7 +134,6 @@ public class TaskManager extends UpwardsNavigable {
 			var e = new TaskRepositoryEvent(TASK_FINISHED, t.getIdentifier());
 			notifyListeners(e);
 		});
-
 	}
 
 	/**
