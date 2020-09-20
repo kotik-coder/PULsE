@@ -16,6 +16,17 @@ import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 import pulse.util.PropertyHolder;
 
+/**
+ * A named collection of time and temperature values, with user-adjustable number of entries. 
+ * <p>
+ * The notion of temperature is loosely used here, and this can represent just
+ * the detector signal in mV. Unless explicitly specified otherwise, the unit of
+ * the temperature can be arbitrary, and only the shape of the heating curve
+ * matters when calculating the reverse solution of the heat problem.
+ * </p>
+ *
+ */
+
 public abstract class AbstractData extends PropertyHolder {
 
 	private int count;
@@ -56,7 +67,12 @@ public abstract class AbstractData extends PropertyHolder {
 		signal = new ArrayList<>(this.count);		
 	}
 	
-	public int actualDataPoints() {
+	/**
+	 * The actual number of points, explicitly calculated as the size of the internal lists.
+	 * @return an integer size equal to the real number of elements (pairs)
+	 */
+	
+	public int actualNumPoints() {
 		return signal.size();
 	}
 	

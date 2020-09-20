@@ -124,7 +124,7 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 
 		var curve = problem.getHeatingCurve();
 
-		int adjustedNumPoints = (int) curve.getNumPoints().getValue() - (curve.actualDataPoints() - 1);
+		int adjustedNumPoints = (int) curve.getNumPoints().getValue() - (curve.actualNumPoints() - 1);
 		
 		final double timeSegment = (endTime - offset) / problem.getProperties().timeFactor();
 		

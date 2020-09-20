@@ -181,7 +181,7 @@ public class Chart {
 
 			if (solution != null && task.getScheme() != null) {
 
-				if (solution.actualDataPoints() > 0) {
+				if (solution.actualNumPoints() > 0) {
 
 					var solutionDataset = new XYSeriesCollection();
 					var displayedCurve = extendedCurve ? solution.extendedTo(rawData, problem.getBaseline()) : solution;
@@ -235,7 +235,7 @@ public class Chart {
 	public XYSeries series(AbstractData curve, String title, boolean extendedCurve) {
 		var series = new XYSeries(title);
 
-		var realCount = curve.actualDataPoints();
+		var realCount = curve.actualNumPoints();
 		double startTime = 0;
 		if(curve instanceof HeatingCurve)
 			startTime = (double) ((HeatingCurve)curve).getTimeShift().getValue();

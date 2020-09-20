@@ -28,7 +28,7 @@ public class CurveExporter implements Exporter<AbstractData> {
 
 	@Override
 	public void printToStream(AbstractData hc, FileOutputStream fos, Extension extension) {
-		if (hc.actualDataPoints() < 1)
+		if (hc.actualNumPoints() < 1)
 			return;
 
 		switch (extension) {
@@ -69,7 +69,7 @@ public class CurveExporter implements Exporter<AbstractData> {
 			double t;
 			double T;
 
-			int size = hc.actualDataPoints();
+			int size = hc.actualNumPoints();
 			int nominalSize = (int) hc.getNumPoints().getValue();
 			int finalSize = size < nominalSize ? size : nominalSize;
 
@@ -100,7 +100,7 @@ public class CurveExporter implements Exporter<AbstractData> {
 			double t;
 			double T;
 
-			int size = hc.actualDataPoints();
+			int size = hc.actualNumPoints();
 			int nominalSize = (int) hc.getNumPoints().getValue();
 			int finalSize = size < nominalSize ? size : nominalSize;
 

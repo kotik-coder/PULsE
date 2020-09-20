@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import pulse.AbstractData;
-import pulse.HeatingCurve;
 import pulse.baseline.FlatBaseline;
 import pulse.input.listeners.DataEvent;
 import pulse.input.listeners.DataListener;
@@ -26,7 +25,7 @@ import pulse.util.PropertyHolderListener;
 
 /**
  * <p>
- * An {@code ExperimentalData} object is essentially a {@code HeatingCurve} with
+ * An {@code ExperimentalData} object is essentially a {@code AbstractData} with
  * adjustable range and linked {@code Metadata}. It is used to store
  * experimental data points loaded with one of the available
  * {@code CurveReader}s. Any manipulation (e.g. truncation) of the data triggers
@@ -69,7 +68,6 @@ public class ExperimentalData extends AbstractData {
 	 * constructor and rejecting the responsibility for the {@code baseline}, making
 	 * its parent {@code null}. The number of points is set to zero by default.
 	 * 
-	 * @see HeatingCurve
 	 */
 
 	public ExperimentalData() {
@@ -154,7 +152,7 @@ public class ExperimentalData extends AbstractData {
 	 * @return a {@code List<Point2D>}, representing the degraded
 	 *         {@code ExperimentalData}.
 	 * @see halfRiseTime()
-	 * @see pulse.HeatingCurve.maxTemperature()
+	 * @see pulse.AbstractData.maxTemperature()
 	 */
 
 	public List<Point2D> runningAverage(int reductionFactor) {

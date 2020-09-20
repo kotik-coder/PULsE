@@ -24,16 +24,8 @@ import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
 
 /**
- * The {@code HeatingCurve} represents a time-temperature profile either
- * resulting from a finite-difference calculation or measured directly in the
- * experiment (and then it is an instance of the {@code ExperimentalData}
- * subclass).
- * <p>
- * The notion of temperature is loosely used here, and this can represent just
- * the detector signal in mV. Unless explicitly specified otherwise, the unit of
- * the temperature can be arbitrary, and only the shape of the heating curve
- * matters when calculating the reverse solution of the heat problem.
- * </p>
+ * The {@code HeatingCurve} represents a time-temperature profile (a {@code AbstractData} instance) 
+ * generated using a finite-difference calculation algorithm.
  *
  */
 
@@ -144,7 +136,7 @@ public class HeatingCurve extends AbstractData {
 
 	public void scale(double scale) {
 		var signal = getSignalData();
-		final int count = actualDataPoints();
+		final int count = actualNumPoints();
 		for (int i = 0; i < count; i++)
 			signal.set(i, signal.get(i) * scale);
 		var dataEvent = new CurveEvent(RESCALED, this);
