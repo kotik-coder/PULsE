@@ -50,7 +50,7 @@ public abstract class AbstractData extends PropertyHolder {
 	 *              {@code NumericPropertyKeyword.NUMPOINTS}.
 	 */
 
-	public AbstractData(NumericProperty count) {;
+	public AbstractData(NumericProperty count) {
 		setNumPoints(count);
 		time = new ArrayList<>(this.count);
 		signal = new ArrayList<>(this.count);		
@@ -253,10 +253,7 @@ public abstract class AbstractData extends PropertyHolder {
 		if (time.hashCode() != other.time.hashCode())
 			return false;
 
-		if ((!time.containsAll(other.time)) || (!signal.containsAll(other.signal)))
-			return false;
-		
-		return true;
+		return time.containsAll(other.time) && signal.containsAll(other.signal);
 
 	}
 	
