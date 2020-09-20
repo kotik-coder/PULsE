@@ -1,13 +1,12 @@
 package pulse;
 
-import static java.lang.Math.abs;
 import static java.util.Collections.max;
 import static java.util.stream.Collectors.toList;
-import static pulse.input.listeners.DataEventType.CHANGE_OF_ORIGIN;
+import static pulse.input.listeners.CurveEventType.RESCALED;
+import static pulse.input.listeners.CurveEventType.TIME_ORIGIN_CHANGED;
 import static pulse.properties.NumericProperties.def;
 import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericProperty.requireType;
-import static pulse.properties.NumericPropertyKeyword.NUMPOINTS;
 import static pulse.properties.NumericPropertyKeyword.TIME_SHIFT;
 
 import java.util.ArrayList;
@@ -19,12 +18,10 @@ import org.apache.commons.math3.analysis.interpolation.UnivariateInterpolator;
 
 import pulse.baseline.Baseline;
 import pulse.input.ExperimentalData;
-import pulse.input.listeners.DataEvent;
-import pulse.input.listeners.DataListener;
+import pulse.input.listeners.CurveEvent;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
-import pulse.util.PropertyHolder;
 
 /**
  * The {@code HeatingCurve} represents a time-temperature profile either
@@ -40,31 +37,26 @@ import pulse.util.PropertyHolder;
  *
  */
 
-public class HeatingCurve extends PropertyHolder {
+public class HeatingCurve extends AbstractData {
 
-	private int count;
-
-	private List<Double> time;
-	private List<Double> signal;
 	private List<Double> adjustedSignal;
-
 	private double startTime;
-	private String name;
 
-	private List<DataListener> dataListeners;
+	private List<HeatingCurveListener> listeners = new ArrayList<HeatingCurveListener>();
 
 	private UnivariateInterpolator splineInterpolator;
 	private UnivariateFunction splineInterpolation;
 
-	private List<HeatingCurveListener> listeners = new ArrayList<HeatingCurveListener>();
-
-	/**
-	 * Creates a {@code HeatingCurve} with the default number of points (set in the
-	 * corresponding XML file).
-	 */
-
+	protected HeatingCurve(List<Double> time, List<Double> signal, final double startTime, String name) {
+		super(time, name);
+		this.adjustedSignal = signal;
+		this.startTime = startTime;
+	}
+	
 	public HeatingCurve() {
-		this(def(NUMPOINTS));
+		super();
+		adjustedSignal = new ArrayList<Double>((int)this.getNumPoints().getValue());
+		splineInterpolator = new SplineInterpolator();
 	}
 
 	/**
@@ -80,45 +72,20 @@ public class HeatingCurve extends PropertyHolder {
 	 */
 
 	public HeatingCurve(NumericProperty count) {
+		super(count);
 		setPrefix("Solution");
-		setNumPoints(count);
 
-		time = new ArrayList<>(this.count);
-		signal = new ArrayList<>(this.count);
-		adjustedSignal = new ArrayList<>(this.count);
+		adjustedSignal = new ArrayList<>((int)count.getValue());
 
 		startTime = (double) def(TIME_SHIFT).getValue();
-
-		dataListeners = new ArrayList<>();
 
 		reinit();
 		splineInterpolator = new SplineInterpolator();
 	}
 
-	public int actualDataPoints() {
-		return signal.size();
-	}
-
-	public void addDataListener(DataListener listener) {
-		dataListeners.add(listener);
-	}
-
-	public void clearDataListener() {
-		dataListeners.clear();
-	}
-
-	public void fireDataChanged(DataEvent dataEvent) {
-		dataListeners.stream().forEach(l -> l.onDataChanged(dataEvent));
-	}
-
-	/**
-	 * Clears all elements from the three {@code List} objects, thus releasing
-	 * memory.
-	 */
-
+	@Override
 	public void clear() {
-		this.time.clear();
-		this.signal.clear();
+		super.clear();
 		this.adjustedSignal.clear();
 	}
 
@@ -133,54 +100,15 @@ public class HeatingCurve extends PropertyHolder {
 		clear();
 		addPoint(0.0, 0.0);
 	}
-
+	
 	/**
-	 * Returns the size of the {@code List} object containing baseline-adjusted
-	 * temperature values, used later in calculations and optimisation procedures.
+	 * Retrieves the time from the stored list of values, adding the value of {@code startTime} to the result
 	 * 
-	 * @return the size of the {@code baselineAdjustTemperature}
 	 */
 
-	public int adjustedSize() {
-		return adjustedSignal.size();
-	}
-
-	/**
-	 * Getter method providing accessibility to the {@code count NumericProperty}.
-	 * 
-	 * @return a {@code NumericProperty} derived from
-	 *         {@code NumericPropertyKeyword.NUMPOINTS} with the value of
-	 *         {@code count}
-	 */
-
-	public NumericProperty getNumPoints() {
-		return derive(NUMPOINTS, count);
-	}
-
-	/**
-	 * Sets the number of points for this baseline.
-	 * <p>
-	 * The {@code List} data objects, containing time, temperature, and
-	 * baseline-subtracted temperature are filled with zeroes.
-	 * 
-	 * @param c
-	 */
-
-	public void setNumPoints(NumericProperty c) {
-		requireType(c, NUMPOINTS);
-		this.count = (int) c.getValue();
-		firePropertyChanged(this, c);
-	}
-
-	/**
-	 * Retrieves an element from the {@code time List} specified by {@code index}
-	 * 
-	 * @param index the index of the element to be returned
-	 * @return a time value corresponding to {@code index}
-	 */
-
+	@Override
 	public double timeAt(int index) {
-		return time.get(index) + startTime;
+		return super.timeAt(index) + startTime;
 	}
 
 	/**
@@ -194,39 +122,6 @@ public class HeatingCurve extends PropertyHolder {
 
 	public double signalAt(int index) {
 		return adjustedSignal.get(index);
-	}
-
-	public void addPoint(double time, double temperature) {
-		this.time.add(time);
-		this.signal.add(temperature);
-	}
-
-	protected void incrementCount() {
-		count++;
-	}
-
-	/**
-	 * Sets the time {@code t} at the position {@code index} of the
-	 * {@code time List}.
-	 * 
-	 * @param index the index
-	 * @param t     the new time value at this index
-	 */
-
-	public void setTimeAt(int index, double t) {
-		time.set(index, t);
-	}
-
-	/**
-	 * Sets the temperature {@code t} at the position {@code index} of the
-	 * {@code temperature List}.
-	 * 
-	 * @param index the index
-	 * @param t     the new temperature value at this index
-	 */
-
-	public void setSignalAt(int index, double t) {
-		signal.set(index, t);
 	}
 
 	/**
@@ -248,9 +143,12 @@ public class HeatingCurve extends PropertyHolder {
 	 */
 
 	public void scale(double scale) {
+		var signal = getSignalData();
+		final int count = actualDataPoints();
 		for (int i = 0; i < count; i++)
 			signal.set(i, signal.get(i) * scale);
-		fireCurveRescaled();
+		var dataEvent = new CurveEvent(RESCALED, this);
+		fireCurveEvent(dataEvent);
 	}
 
 	private void refreshInterpolation() {
@@ -259,6 +157,7 @@ public class HeatingCurve extends PropertyHolder {
 		 * Prepare extended time array
 		 */
 
+		var time = this.getTimeSequence();
 		var timeExtended = new double[time.size() + 1];
 
 		for (int i = 1; i < timeExtended.length; i++)
@@ -298,32 +197,6 @@ public class HeatingCurve extends PropertyHolder {
 		return max(adjustedSignal);
 	}
 
-	public double apparentMaximum() {
-		return max(signal);
-	}
-
-	public boolean isIncomplete() {
-		return time.size() < count;
-	}
-
-	/**
-	 * Retrieves the last element of the {@code time List}. This is used e.g. by the
-	 * {@code DifferenceScheme} to set the calculation limit for the
-	 * finite-difference scheme.
-	 * 
-	 * @see pulse.problem.schemes.DifferenceScheme
-	 * @return a double, equal to the last element of the {@code time List}.
-	 */
-
-	public double timeLimit() {
-		return time.get(time.size() - 1);
-	}
-
-	@Override
-	public String toString() {
-		return name != null ? name : getClass().getSimpleName() + " (" + getNumPoints() + ")";
-	}
-
 	/**
 	 * Subtracts the baseline values from each element of the {@code temperature}
 	 * list.
@@ -339,8 +212,10 @@ public class HeatingCurve extends PropertyHolder {
 	 */
 
 	public void apply(Baseline baseline) {
+		var time = this.getTimeSequence();
+		var signal = this.getSignalData();
 		adjustedSignal.clear();
-		for (int i = 0, size = time.size(); i < size; i++)
+		for (int i = 0, size = time.size(); i < size; i++) 
 			adjustedSignal.add(signal.get(i) + baseline.valueAt(time.get(i) + startTime));
 
 		if (time.get(0) > -startTime) {
@@ -349,14 +224,6 @@ public class HeatingCurve extends PropertyHolder {
 		}
 
 		refreshInterpolation();
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
 	}
 
 	/**
@@ -388,19 +255,12 @@ public class HeatingCurve extends PropertyHolder {
 		var baselineTime = data.getTimeSequence().stream().filter(t -> t < 0).collect(toList());
 		var baselineSignal = baselineTime.stream().map(bTime -> baseline.valueAt(bTime)).collect(toList());
 
+		var time = this.getTimeSequence();
+		
 		baselineTime.addAll(time);
 		baselineSignal.addAll(adjustedSignal);
 
-		var newCurve = new HeatingCurve();
-
-		newCurve.time = baselineTime;
-		newCurve.adjustedSignal = baselineSignal;
-		newCurve.count = newCurve.adjustedSignal.size();
-		newCurve.name = name;
-		newCurve.startTime = startTime;
-
-		return newCurve;
-
+		return new HeatingCurve(baselineTime, baselineSignal, startTime, getName());
 	}
 
 	/**
@@ -414,16 +274,14 @@ public class HeatingCurve extends PropertyHolder {
 
 	@Override
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
-		if (type == NUMPOINTS)
-			setNumPoints(property);
-		else if (type == TIME_SHIFT)
+		super.set(type, property);
+		if (type == TIME_SHIFT)
 			setTimeShift(property);
 	}
 
 	@Override
 	public List<Property> listedTypes() {
-		List<Property> list = new ArrayList<>();
-		list.add(getNumPoints());
+		List<Property> list = super.listedTypes();
 		list.add(def(TIME_SHIFT));
 		return list;
 	}
@@ -436,8 +294,7 @@ public class HeatingCurve extends PropertyHolder {
 	 */
 
 	public void remove(int i) {
-		this.time.remove(i);
-		this.signal.remove(i);
+		super.remove(i);
 		this.adjustedSignal.remove(i);
 	}
 
@@ -448,26 +305,13 @@ public class HeatingCurve extends PropertyHolder {
 	public void setTimeShift(NumericProperty startTime) {
 		requireType(startTime, TIME_SHIFT);
 		this.startTime = (double) startTime.getValue();
-		var dataEvent = new DataEvent(CHANGE_OF_ORIGIN, this);
-		fireDataChanged(dataEvent);
+		var dataEvent = new CurveEvent(TIME_ORIGIN_CHANGED, this);
+		fireCurveEvent(dataEvent);
 		firePropertyChanged(this, startTime);
-	}
-
-	@Override
-	public boolean ignoreSiblings() {
-		return true;
 	}
 
 	public UnivariateFunction getSplineInterpolation() {
 		return splineInterpolation;
-	}
-
-	public List<Double> getTimeSequence() {
-		return time;
-	}
-
-	public List<Double> getSignalData() {
-		return signal;
 	}
 
 	public List<Double> getAlteredSignalData() {
@@ -482,40 +326,17 @@ public class HeatingCurve extends PropertyHolder {
 		listeners.clear();
 	}
 
-	private void fireCurveRescaled() {
+	private void fireCurveEvent(CurveEvent event) {
 		for (HeatingCurveListener l : listeners)
-			l.onCurveRescaled();
+			l.onCurveEvent(event);
 	}
 
 	@Override
 	public boolean equals(Object o) {
-		if (o == this)
-			return true;
-
-		if (!(o instanceof HeatingCurve))
+		if(! (o instanceof HeatingCurve ))
 			return false;
-
-		var other = (HeatingCurve) o;
-
-		final double EPS = 1e-8;
-
-		if (abs(count - (Integer) other.getNumPoints().getValue()) > EPS)
-			return false;
-
-		if (!getTimeShift().equals(other.getTimeShift()))
-			return false;
-
-		if (signal.hashCode() != other.signal.hashCode())
-			return false;
-
-		if (time.hashCode() != other.time.hashCode())
-			return false;
-
-		if ((!time.containsAll(other.time)) || (!signal.containsAll(other.signal)))
-			return false;
-
-		return adjustedSignal.containsAll(other.adjustedSignal);
-
+		
+		return super.equals(o) && adjustedSignal.containsAll( ((HeatingCurve)o).adjustedSignal);
 	}
 
 }

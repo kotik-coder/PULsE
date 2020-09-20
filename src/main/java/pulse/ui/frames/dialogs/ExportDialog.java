@@ -29,12 +29,12 @@ import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import pulse.HeatingCurve;
+import pulse.AbstractData;
 import pulse.input.ExperimentalData;
 import pulse.input.Metadata;
+import pulse.io.export.CurveExporter;
 import pulse.io.export.ExportManager;
 import pulse.io.export.Extension;
-import pulse.io.export.HeatingCurveExporter;
 import pulse.io.export.LogExporter;
 import pulse.io.export.MetadataExporter;
 import pulse.io.export.RawDataExporter;
@@ -60,7 +60,7 @@ public class ExportDialog extends JDialog {
 
 	static {
 		exportSettings.put(MetadataExporter.getInstance().target(), false);
-		exportSettings.put(HeatingCurveExporter.getInstance().target(), true);
+		exportSettings.put(CurveExporter.getInstance().target(), true);
 		exportSettings.put(ResidualStatisticExporter.getInstance().target(), true);
 		exportSettings.put(RawDataExporter.getInstance().target(), true);
 		exportSettings.put(ResultExporter.getInstance().target(), true);
@@ -205,9 +205,9 @@ public class ExportDialog extends JDialog {
 		});
 
 		var solutionCheckbox = new JCheckBox("Export Solution(s)");
-		solutionCheckbox.setSelected(exportSettings.get(HeatingCurve.class));
+		solutionCheckbox.setSelected(exportSettings.get(AbstractData.class));
 		solutionCheckbox.addActionListener(e -> {
-			exportSettings.put(HeatingCurve.class, solutionCheckbox.isSelected());
+			exportSettings.put(AbstractData.class, solutionCheckbox.isSelected());
 			exportSettings.put(ResidualStatisticExporter.class, solutionCheckbox.isSelected());
 		});
 

@@ -17,7 +17,7 @@ import pulse.input.ExperimentalData;
 public class RawDataExporter implements Exporter<ExperimentalData> {
 
 	private static RawDataExporter instance = new RawDataExporter();
-	private static HeatingCurveExporter hcExporter = HeatingCurveExporter.getInstance();
+	private static CurveExporter hcExporter = CurveExporter.getInstance();
 
 	private RawDataExporter() {
 		// intentionally left blank

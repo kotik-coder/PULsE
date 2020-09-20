@@ -34,6 +34,7 @@ import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
+import pulse.AbstractData;
 import pulse.HeatingCurve;
 import pulse.input.IndexRange;
 import pulse.tasks.SearchTask;
@@ -180,7 +181,7 @@ public class Chart {
 
 			if (solution != null && task.getScheme() != null) {
 
-				if (solution.adjustedSize() > 0) {
+				if (solution.actualDataPoints() > 0) {
 
 					var solutionDataset = new XYSeriesCollection();
 					var displayedCurve = extendedCurve ? solution.extendedTo(rawData, problem.getBaseline()) : solution;
@@ -218,7 +219,7 @@ public class Chart {
 
 	}
 
-	public void plotSingle(HeatingCurve curve) {
+	public void plotSingle(AbstractData curve) {
 		requireNonNull(curve);
 
 		var plot = chart.getXYPlot();
@@ -231,12 +232,14 @@ public class Chart {
 		plot.getRenderer(4).setSeriesPaint(0, black);
 	}
 
-	public XYSeries series(HeatingCurve curve, String title, boolean extendedCurve) {
+	public XYSeries series(AbstractData curve, String title, boolean extendedCurve) {
 		var series = new XYSeries(title);
 
-		var realCount = curve.adjustedSize();
-		var startTime = (double) curve.getTimeShift().getValue();
-		int iStart = IndexRange.closestLeft(startTime > 0 ? 0 : startTime, curve.getTimeSequence());
+		var realCount = curve.actualDataPoints();
+		double startTime = 0;
+		if(curve instanceof HeatingCurve)
+			startTime = (double) ((HeatingCurve)curve).getTimeShift().getValue();
+		int iStart = IndexRange.closestLeft(startTime < 0 ? startTime : 0, curve.getTimeSequence());
 
 		for (var i = 0; i < iStart && extendedCurve; i++)
 			series.add(factor * curve.timeAt(i), curve.signalAt(i));

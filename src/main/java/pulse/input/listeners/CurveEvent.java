@@ -2,26 +2,20 @@ package pulse.input.listeners;
 
 import pulse.AbstractData;
 
-/**
- * A {@code DataEvent} is used to track changes happening with a
- * {@code HeatingCurve}.
- *
- */
+public class CurveEvent {
 
-public class DataEvent {
-
-	private DataEventType type;
+	private CurveEventType type;
 	private AbstractData data;
 
 	/**
-	 * Constructs a {@code DataEvent} object, combining the {@code type} and
+	 * Constructs a {@code CurveEvent} object, combining the {@code type} and
 	 * associated {@code data}
 	 * 
 	 * @param type the type of this event
 	 * @param data the source of the event
 	 */
 
-	public DataEvent(DataEventType type, AbstractData data) {
+	public CurveEvent(CurveEventType type, AbstractData data) {
 		this.type = type;
 		this.data = data;
 	}
@@ -32,7 +26,7 @@ public class DataEvent {
 	 * @return the type of this event
 	 */
 
-	public DataEventType getType() {
+	public CurveEventType getType() {
 		return type;
 	}
 
@@ -46,5 +40,5 @@ public class DataEvent {
 	public AbstractData getData() {
 		return data;
 	}
-
+	
 }

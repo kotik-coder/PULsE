@@ -3,12 +3,10 @@ package pulse.input;
 import static java.lang.Double.valueOf;
 import static java.util.Collections.max;
 import static pulse.input.listeners.DataEventType.TRUNCATED;
-import static pulse.properties.NumericProperties.def;
 import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.NUMPOINTS;
 import static pulse.properties.NumericPropertyKeyword.PULSE_WIDTH;
 import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
-import static pulse.properties.NumericPropertyKeyword.TIME_SHIFT;
 import static pulse.properties.NumericPropertyKeyword.UPPER_BOUND;
 
 import java.awt.geom.Point2D;
@@ -17,11 +15,12 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import pulse.AbstractData;
 import pulse.HeatingCurve;
 import pulse.baseline.FlatBaseline;
 import pulse.input.listeners.DataEvent;
+import pulse.input.listeners.DataListener;
 import pulse.properties.NumericProperty;
-import pulse.properties.Property;
 import pulse.ui.Messages;
 import pulse.util.PropertyHolderListener;
 
@@ -34,11 +33,12 @@ import pulse.util.PropertyHolderListener;
  * an event associated with this {@code ExperimentalData}.
  */
 
-public class ExperimentalData extends HeatingCurve {
+public class ExperimentalData extends AbstractData {
 
 	private Metadata metadata;
 	private IndexRange indexRange;
 	private Range range;
+	private List<DataListener> dataListeners;
 
 	/**
 	 * This is the cutoff factor which is used as a criterion for data truncation.
@@ -74,9 +74,22 @@ public class ExperimentalData extends HeatingCurve {
 
 	public ExperimentalData() {
 		super();
+		dataListeners = new ArrayList<>();
 		setPrefix("RawData");
 		setNumPoints(derive(NUMPOINTS, 0));
 		indexRange = new IndexRange();
+	}
+	
+	public void addDataListener(DataListener listener) {
+		dataListeners.add(listener);
+	}
+
+	public void clearDataListener() {
+		dataListeners.clear();
+	}
+
+	public void fireDataChanged(DataEvent dataEvent) {
+		dataListeners.stream().forEach(l -> l.onDataChanged(dataEvent));
 	}
 
 	/**
@@ -117,7 +130,6 @@ public class ExperimentalData extends HeatingCurve {
 	@Override
 	public void addPoint(double time, double signal) {
 		super.addPoint(time, signal);
-		getAlteredSignalData().add(signal);
 		incrementCount();
 	}
 
@@ -187,7 +199,6 @@ public class ExperimentalData extends HeatingCurve {
 	 * @see pulse.problem.statements.Problem.estimateSignalRange(ExperimentalData)
 	 */
 
-	@Override
 	public double maxAdjustedSignal() {
 		var degraded = runningAverage(REDUCTION_FACTOR);
 		return (max(degraded, pointComparator)).getY();
@@ -231,13 +242,6 @@ public class ExperimentalData extends HeatingCurve {
 
 	}
 	
-	@Override
-	public List<Property> listedTypes() {
-		var list = super.listedTypes();
-		list.remove(def(TIME_SHIFT));
-		return list;
-	}
-
 	/**
 	 * Retrieves the {@code Metadata} object for this {@code ExperimentalData}.
 	 * 
@@ -250,16 +254,14 @@ public class ExperimentalData extends HeatingCurve {
 
 	@Override
 	public boolean equals(Object o) {
+		if(!super.equals(o))
+			return false;
+		
 		if (!(o instanceof ExperimentalData))
 			return false;
-
+		
 		var other = (ExperimentalData) o;
-
-		if (!this.metadata.equals(other.getMetadata()))
-			return false;
-
-		return super.equals(o);
-
+		return this.metadata.equals(other.getMetadata());
 	}
 
 	/**
@@ -276,9 +278,9 @@ public class ExperimentalData extends HeatingCurve {
 	 */
 
 	public boolean isAcquisitionTimeSensible() {
-		double halfMaximum = halfRiseTime();
-		double cutoff = CUTOFF_FACTOR * halfMaximum;
-		int count = (int) getNumPoints().getValue();
+		final double halfMaximum = halfRiseTime();
+		final double cutoff = CUTOFF_FACTOR * halfMaximum;
+		final int count = (int) getNumPoints().getValue();
 		return getTimeSequence().get(count - 1) < cutoff;
 	}
 
@@ -299,8 +301,8 @@ public class ExperimentalData extends HeatingCurve {
 	 */
 
 	public void truncate() {
-		double halfMaximum = halfRiseTime();
-		double cutoff = CUTOFF_FACTOR * halfMaximum;
+		final double halfMaximum = halfRiseTime();
+		final double cutoff = CUTOFF_FACTOR * halfMaximum;
 
 		this.range.setUpperBound(derive(UPPER_BOUND, cutoff));
 		this.indexRange.set(getTimeSequence(), range);

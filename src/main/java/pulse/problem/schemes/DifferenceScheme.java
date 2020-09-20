@@ -9,7 +9,6 @@ import static pulse.properties.NumericPropertyKeyword.TIME_LIMIT;
 import java.util.ArrayList;
 import java.util.List;
 
-import pulse.HeatingCurve;
 import pulse.problem.laser.DiscretePulse;
 import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
@@ -37,7 +36,6 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 
 	private double timeLimit;
 	private int timeInterval;
-	private int adjustedNumPoints;
 
 	private static boolean hideDetailedAdjustment = true;
 
@@ -114,22 +112,11 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 		hc.reinit();
 	}
 
-	public int initTimeInterval(Problem problem, final int numPoints, final double timeSegment) {
-		final double dt = timeSegment / (problem.getProperties().timeFactor() * (numPoints - 1));
-
-		int result = 0;
-
-		if (dt < grid.getTimeStep()) {
-			adjustedNumPoints = (int) (numPoints * (dt / grid.getTimeStep()));
-			result = initTimeInterval(problem, adjustedNumPoints, timeSegment);
-		} else
-			result = (int) (dt / grid.getTimeStep());
-
-		return result;
-	}
-
 	public void runTimeSequence(Problem problem) {
 		runTimeSequence(problem, 0, timeLimit);
+		var curve = problem.getHeatingCurve();
+		final double maxTemp = (double) problem.getProperties().getMaximumTemperature().getValue();
+		curve.scale(maxTemp / curve.apparentMaximum() );
 	}
 
 	public void runTimeSequence(Problem problem, final double offset, final double endTime) {
@@ -137,9 +124,18 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 
 		var curve = problem.getHeatingCurve();
 
+		int adjustedNumPoints = (int) curve.getNumPoints().getValue() - (curve.actualDataPoints() - 1);
+		
+		final double timeSegment = (endTime - offset) / problem.getProperties().timeFactor();
+		
+		for (double dt = 0, factor = 1.0; dt < grid.getTimeStep(); adjustedNumPoints *= factor) {
+			dt = timeSegment / (adjustedNumPoints - 2);
+			factor = dt / grid.getTimeStep();
+			timeInterval = (int) factor;
+			curve.setNumPoints(derive(NUMPOINTS, adjustedNumPoints));
+		}
+
 		final double tau = grid.getTimeStep();
-		adjustedNumPoints = (int) curve.getNumPoints().getValue() - (curve.actualDataPoints() - 1);
-		timeInterval = initTimeInterval(problem, adjustedNumPoints, endTime - offset);
 		final double wFactor = timeInterval * tau * problem.getProperties().timeFactor();
 
 		// First point (index = 0) is always (0.0, 0.0)
@@ -159,37 +155,10 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 			 */
 
 			timeSegment((w - 1) * timeInterval + 1, w * timeInterval + 1);
-			addPoint(curve, nextTime);
-
+			curve.addPoint(nextTime, signal()); 
+	
 		}
 
-		/*
-		 * Finalise precisely at timeLimit
-		 */
-
-//		timeSegment((adjustedNumPoints - 2) * timeInterval, (int) (endTime * timeInterval / wFactor));
-//		addPoint(curve, endTime);
-
-		finaliseSequence(problem, endTime);
-
-	}
-
-	private void finaliseSequence(Problem problem, final double endTime) {
-		var curve = problem.getHeatingCurve();
-
-		final double SAFETY_MARGIN = 1.05;
-		if (endTime * SAFETY_MARGIN > timeLimit) {
-
-			final double maxTemp = (double) problem.getProperties().getMaximumTemperature().getValue();
-			curve.setNumPoints(derive(NUMPOINTS, curve.actualDataPoints()));
-			curve.scale(maxTemp / curve.apparentMaximum() );
-
-		}
-	}
-
-	private void addPoint(HeatingCurve curve, final double time) {
-		double signal = signal();
-		curve.addPoint(time, signal);
 	}
 
 	private void timeSegment(final int m1, final int m2) {

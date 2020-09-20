@@ -7,7 +7,7 @@ import static pulse.ui.Messages.getString;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 
-import pulse.HeatingCurve;
+import pulse.AbstractData;
 
 /**
  * A singleton exporter allows writing the data contained in a heating curve in
@@ -18,17 +18,17 @@ import pulse.HeatingCurve;
  *
  */
 
-public class HeatingCurveExporter implements Exporter<HeatingCurve> {
+public class CurveExporter implements Exporter<AbstractData> {
 
-	private static HeatingCurveExporter instance = new HeatingCurveExporter();
+	private static CurveExporter instance = new CurveExporter();
 
-	private HeatingCurveExporter() {
+	private CurveExporter() {
 		// Intentionally blank
 	}
 
 	@Override
-	public void printToStream(HeatingCurve hc, FileOutputStream fos, Extension extension) {
-		if (hc.adjustedSize() < 1)
+	public void printToStream(AbstractData hc, FileOutputStream fos, Extension extension) {
+		if (hc.actualDataPoints() < 1)
 			return;
 
 		switch (extension) {
@@ -52,7 +52,7 @@ public class HeatingCurveExporter implements Exporter<HeatingCurve> {
 		return new Extension[] { HTML, CSV };
 	}
 
-	private void printHTML(HeatingCurve hc, FileOutputStream fos) {
+	private void printHTML(AbstractData hc, FileOutputStream fos) {
 		try (var stream = new PrintStream(fos)) {
 			stream.print(getString("ResultTableExporter.style"));
 			stream.print("<caption>Time-temperature profile</caption>");
@@ -91,7 +91,7 @@ public class HeatingCurveExporter implements Exporter<HeatingCurve> {
 
 	}
 
-	private void printCSV(HeatingCurve hc, FileOutputStream fos) {
+	private void printCSV(AbstractData hc, FileOutputStream fos) {
 		try (var stream = new PrintStream(fos)) {
 			final String TIME_LABEL = getString("HeatingCurve.6");
 			final String TEMPERATURE_LABEL = hc.getPrefix();
@@ -120,7 +120,7 @@ public class HeatingCurveExporter implements Exporter<HeatingCurve> {
 	 * @return an instance of {@code HeatingCurveExporter}.
 	 */
 
-	public static HeatingCurveExporter getInstance() {
+	public static CurveExporter getInstance() {
 		return instance;
 	}
 
@@ -129,8 +129,8 @@ public class HeatingCurveExporter implements Exporter<HeatingCurve> {
 	 */
 
 	@Override
-	public Class<HeatingCurve> target() {
-		return HeatingCurve.class;
+	public Class<AbstractData> target() {
+		return AbstractData.class;
 	}
 
 }

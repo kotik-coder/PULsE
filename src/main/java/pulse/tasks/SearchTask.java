@@ -1,6 +1,6 @@
 package pulse.tasks;
 
-import static pulse.input.listeners.DataEventType.CHANGE_OF_ORIGIN;
+import static pulse.input.listeners.CurveEventType.TIME_ORIGIN_CHANGED;
 import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.TIME_LIMIT;
 import static pulse.search.direction.ActiveFlags.activeParameters;
@@ -406,11 +406,11 @@ public class SearchTask extends Accessible implements Runnable {
 			}
 		});
 		
-		problem.getHeatingCurve().addDataListener(dataEvent -> {
+		problem.getHeatingCurve().addHeatingCurveListener(dataEvent -> {
 
 			var event = dataEvent.getType();
 
-			if (event == CHANGE_OF_ORIGIN) {
+			if (event == TIME_ORIGIN_CHANGED) {
 				var upperLimitUpdated = RELATIVE_TIME_MARGIN * curve.timeLimit()
 						- (double) problem.getHeatingCurve().getTimeShift().getValue();
 				scheme.setTimeLimit(derive(TIME_LIMIT, upperLimitUpdated));
