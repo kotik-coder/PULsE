@@ -68,10 +68,8 @@ public class HeatingCurve extends AbstractData {
 		setPrefix("Solution");
 
 		adjustedSignal = new ArrayList<>((int)count.getValue());
-
 		startTime = (double) def(TIME_SHIFT).getValue();
 
-		reinit();
 		splineInterpolator = new SplineInterpolator();
 	}
 
@@ -81,18 +79,6 @@ public class HeatingCurve extends AbstractData {
 		this.adjustedSignal.clear();
 	}
 
-	/**
-	 * Calls {@code clear()}, and add the first element (0.0, 0.0).
-	 * 
-	 * @see getNumPoints()
-	 * @see clear()
-	 */
-
-	public void reinit() {
-		clear();
-		addPoint(0.0, 0.0);
-	}
-	
 	/**
 	 * Retrieves the time from the stored list of values, adding the value of {@code startTime} to the result
 	 * 
@@ -136,7 +122,7 @@ public class HeatingCurve extends AbstractData {
 
 	public void scale(double scale) {
 		var signal = getSignalData();
-		final int count = actualNumPoints();
+		final int count = this.actualNumPoints();
 		for (int i = 0; i < count; i++)
 			signal.set(i, signal.get(i) * scale);
 		var dataEvent = new CurveEvent(RESCALED, this);

@@ -1,6 +1,7 @@
 package pulse.baseline;
 
 import static java.lang.Math.sin;
+import static java.lang.Math.sqrt;
 import static pulse.properties.NumericProperties.def;
 import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericProperty.requireType;
@@ -132,7 +133,7 @@ public class SinusoidalBaseline extends FlatBaseline {
 				output[1].set(i, 1.0);
 				break;
 			case BASELINE_AMPLITUDE:
-				output[0].set(i, amplitude);
+				output[0].set(i, sqrt(amplitude));
 				output[1].set(i, 1.0);
 				break;
 			default:
@@ -157,7 +158,8 @@ public class SinusoidalBaseline extends FlatBaseline {
 				setPhaseShift(derive(BASELINE_PHASE_SHIFT, params.get(i)));
 				break;
 			case BASELINE_AMPLITUDE:
-				setAmplitude(derive(BASELINE_AMPLITUDE, params.get(i)));
+				var p = params.get(i);
+				setAmplitude(derive(BASELINE_AMPLITUDE, p*p));
 				break;
 			default:
 				break;

@@ -3,7 +3,6 @@ package pulse.problem.schemes;
 import static pulse.properties.NumericProperties.def;
 import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericProperty.requireType;
-import static pulse.properties.NumericPropertyKeyword.NUMPOINTS;
 import static pulse.properties.NumericPropertyKeyword.TIME_LIMIT;
 
 import java.util.ArrayList;
@@ -109,7 +108,7 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 		grid.adjustTo(discretePulse);
 
 		var hc = problem.getHeatingCurve();
-		hc.reinit();
+		hc.clear();
 	}
 
 	public void runTimeSequence(Problem problem) {
@@ -124,18 +123,18 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 
 		var curve = problem.getHeatingCurve();
 
-		int adjustedNumPoints = (int) curve.getNumPoints().getValue() - (curve.actualNumPoints() - 1);
+		int adjustedNumPoints = (int)curve.getNumPoints().getValue();
 		
-		final double timeSegment = (endTime - offset) / problem.getProperties().timeFactor();
+		final double startTime = (double)curve.getTimeShift().getValue();
+		final double timeSegment = (endTime - startTime - offset) / problem.getProperties().timeFactor();
+		final double tau = grid.getTimeStep();
 		
-		for (double dt = 0, factor = 1.0; dt < grid.getTimeStep(); adjustedNumPoints *= factor) {
-			dt = timeSegment / (adjustedNumPoints - 2);
-			factor = dt / grid.getTimeStep();
+		for (double dt = 0, factor = 1.0; dt < tau; adjustedNumPoints *= factor) {
+			dt = timeSegment / (adjustedNumPoints - 1);
+			factor = dt / tau;
 			timeInterval = (int) factor;
-			curve.setNumPoints(derive(NUMPOINTS, adjustedNumPoints));
 		}
 
-		final double tau = grid.getTimeStep();
 		final double wFactor = timeInterval * tau * problem.getProperties().timeFactor();
 
 		// First point (index = 0) is always (0.0, 0.0)
@@ -144,9 +143,10 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 		 * The outer cycle iterates over the number of points of the HeatingCurve
 		 */
 
-		double nextTime = offset + wFactor;
-		
-		for (int w = 1; nextTime < endTime; nextTime = offset + (++w)*wFactor) {
+		double nextTime = offset + wFactor + startTime;
+		curve.addPoint(startTime, 0.0); 
+				
+		for (int w = 1; nextTime < 1.01*endTime; nextTime = offset + startTime + (++w)*wFactor) {
 
 			/*
 			 * Two adjacent points of the heating curves are separated by timeInterval on
@@ -158,7 +158,7 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 			curve.addPoint(nextTime, signal()); 
 	
 		}
-
+		
 	}
 
 	private void timeSegment(final int m1, final int m2) {
