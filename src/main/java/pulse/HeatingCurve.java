@@ -54,13 +54,10 @@ public class HeatingCurve extends AbstractData {
 	/**
 	 * Creates a {@code HeatingCurve}, where the number of elements in the
 	 * {@code time} and {@code temperature} collections are set to
-	 * {@code count.getValue()}, and then calls {@code reinit()}.
-	 * <p>
-	 * Creates a new default {@code Baseline} and sets its parent to {@code this}.
+	 * {@code count.getValue()}.
 	 * 
 	 * @param count The {@code NumericProperty} that is derived from the
 	 *              {@code NumericPropertyKeyword.NUMPOINTS}.
-	 * @see reinit
 	 */
 
 	public HeatingCurve(NumericProperty count) {
