@@ -73,19 +73,13 @@ public class ResidualStatisticExporter implements Exporter<ResidualStatistic> {
 			stream.print("<th>" + TIME_LABEL + "\t</th>");
 			stream.print("<th>" + RESIDUAL_LABEL + "\t</th>");
 			stream.print("</tr></thead>");
-			double tr, Tr;
+			
 			for (int i = 0; i < residualsLength; i++) {
-				stream.print("<tr>");
-
-				stream.print("<td>");
-				tr = residuals.get(i)[0];
-				stream.printf("%.6f %n", tr);
-				stream.print("\t</td><td>");
-				Tr = residuals.get(i)[1];
-				stream.printf("%.6f %n</td>", Tr);
-
-				stream.println("</tr>");
+				double tr = residuals.get(i)[0];
+				double Tr = residuals.get(i)[1];
+				stream.printf("%n<tr><td>%.6f</td><td>%.6f</td></tr>", tr, Tr);
 			}
+			
 			stream.print("</table>");
 		}
 

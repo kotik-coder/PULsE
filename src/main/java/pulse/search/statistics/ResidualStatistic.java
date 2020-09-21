@@ -36,7 +36,7 @@ public abstract class ResidualStatistic extends Statistic {
 		var estimate = task.getProblem().getHeatingCurve();
 		var reference = task.getExperimentalCurve();
 
-		residuals = new ArrayList<>();
+		residuals.clear();
 		var indexRange = reference.getIndexRange();
 		var time = reference.getTimeSequence();
 
