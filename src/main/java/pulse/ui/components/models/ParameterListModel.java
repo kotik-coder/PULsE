@@ -1,10 +1,7 @@
 package pulse.ui.components.models;
 
-import static pulse.properties.NumericPropertyKeyword.CONDUCTIVITY;
-import static pulse.properties.NumericPropertyKeyword.DENSITY;
 import static pulse.properties.NumericPropertyKeyword.IDENTIFIER;
 import static pulse.properties.NumericPropertyKeyword.OPTIMISER_STATISTIC;
-import static pulse.properties.NumericPropertyKeyword.SPECIFIC_HEAT;
 import static pulse.properties.NumericPropertyKeyword.TEST_STATISTIC;
 import static pulse.search.direction.ActiveFlags.listAvailableProperties;
 
@@ -13,6 +10,7 @@ import java.util.List;
 
 import javax.swing.AbstractListModel;
 
+import pulse.input.InterpolationDataset;
 import pulse.properties.Flag;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
@@ -38,9 +36,7 @@ public class ParameterListModel extends AbstractListModel<NumericPropertyKeyword
 		elements.add(OPTIMISER_STATISTIC);
 		elements.add(TEST_STATISTIC);
 		elements.add(IDENTIFIER);
-		elements.add(CONDUCTIVITY);
-		elements.add(SPECIFIC_HEAT);
-		elements.add(DENSITY);
+		elements.addAll(InterpolationDataset.derivableProperties());
 	}
 
 	@Override

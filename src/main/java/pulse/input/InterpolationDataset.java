@@ -1,6 +1,9 @@
 package pulse.input;
 
 import static pulse.properties.NumericProperties.derive;
+import static pulse.properties.NumericPropertyKeyword.CONDUCTIVITY;
+import static pulse.properties.NumericPropertyKeyword.DENSITY;
+import static pulse.properties.NumericPropertyKeyword.SPECIFIC_HEAT;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -133,6 +136,17 @@ public class InterpolationDataset {
 			properties.set(NumericPropertyKeyword.DENSITY, derive(NumericPropertyKeyword.DENSITY, rho));
 		}
 
+	}
+
+	public static List<NumericPropertyKeyword> derivableProperties() {
+		var list = new ArrayList<NumericPropertyKeyword>();
+		if(standartDatasets.containsKey(StandartType.HEAT_CAPACITY))
+			list.add(SPECIFIC_HEAT);
+		if(standartDatasets.containsKey(StandartType.HEAT_CAPACITY))
+			list.add(DENSITY);
+		if(list.contains(SPECIFIC_HEAT) && list.contains(DENSITY))
+			list.add(CONDUCTIVITY);
+		return list;
 	}
 
 	public enum StandartType {
