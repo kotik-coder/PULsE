@@ -142,7 +142,7 @@ public class InterpolationDataset {
 		var list = new ArrayList<NumericPropertyKeyword>();
 		if(standartDatasets.containsKey(StandartType.HEAT_CAPACITY))
 			list.add(SPECIFIC_HEAT);
-		if(standartDatasets.containsKey(StandartType.HEAT_CAPACITY))
+		if(standartDatasets.containsKey(StandartType.DENSITY))
 			list.add(DENSITY);
 		if(list.contains(SPECIFIC_HEAT) && list.contains(DENSITY))
 			list.add(CONDUCTIVITY);
