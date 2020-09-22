@@ -6,6 +6,7 @@ import static pulse.input.InterpolationDataset.StandartType.HEAT_CAPACITY;
 import static pulse.properties.NumericProperties.def;
 import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericProperty.requireType;
+import static pulse.properties.NumericPropertyKeyword.CONDUCTIVITY;
 import static pulse.properties.NumericPropertyKeyword.DENSITY;
 import static pulse.properties.NumericPropertyKeyword.DIFFUSIVITY;
 import static pulse.properties.NumericPropertyKeyword.EMISSIVITY;
@@ -220,6 +221,10 @@ public class ThermalProperties extends PropertyHolder {
 
 	public final double thermalConductivity() {
 		return a * cP * rho;
+	}
+	
+	public NumericProperty getThermalConductivity() {
+		return derive(CONDUCTIVITY, thermalConductivity());
 	}
 
 	public void emissivity() {
