@@ -155,7 +155,7 @@ public class SearchTask extends Accessible implements Runnable {
 				scheme.setTimeLimit(derive(TIME_LIMIT, RELATIVE_TIME_MARGIN * curve.timeLimit() - startTime));
 			}
 		});
-
+		
 	}
 
 	public List<NumericProperty> alteredParameters() {
@@ -398,9 +398,15 @@ public class SearchTask extends Accessible implements Runnable {
 		problem.removeHeatingCurveListeners();
 		problem.retrieveData(curve);
 
-		problem.addListener((PropertyEvent event) -> {
+		problem.getProperties().addListener((PropertyEvent event) -> {
 			var source = event.getSource();
-			if (source instanceof Metadata || source instanceof PropertyHolderTable) {
+			
+			if (source instanceof Metadata || source instanceof PropertyHolderTable ) {
+				
+				var property = event.getProperty();
+				if(property instanceof NumericProperty && ((NumericProperty)property).isAutoAdjustable() )
+					return;
+				
 				problem.estimateSignalRange(curve);
 				problem.getProperties().useTheoreticalEstimates(curve);
 			}
