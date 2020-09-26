@@ -69,11 +69,9 @@ public class CurveExporter implements Exporter<AbstractData> {
 			double t;
 			double T;
 
-			int size = hc.actualNumPoints();
-			int nominalSize = (int) hc.getNumPoints().getValue();
-			int finalSize = size < nominalSize ? size : nominalSize;
+			final int size = hc.actualNumPoints();
 
-			for (int i = 0; i < finalSize; i++) {
+			for (int i = 0; i < size; i++) {
 				stream.print("<tr>");
 
 				stream.print("<td>");
@@ -100,11 +98,9 @@ public class CurveExporter implements Exporter<AbstractData> {
 			double t;
 			double T;
 
-			int size = hc.actualNumPoints();
-			int nominalSize = (int) hc.getNumPoints().getValue();
-			int finalSize = size < nominalSize ? size : nominalSize;
-
-			for (int i = 0; i < finalSize; i++) {
+			final int size = hc.actualNumPoints();
+			
+			for (int i = 0; i < size; i++) {
 				t = hc.timeAt(i);
 				stream.printf("%n%3.4f", t);
 				T = hc.signalAt(i);

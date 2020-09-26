@@ -134,7 +134,7 @@ public abstract class AbstractData extends PropertyHolder {
 	 */
 
 	public double timeLimit() {
-		return time.get(time.size() - 1);
+		return timeAt(time.size() - 1);
 	}
 
 	/**

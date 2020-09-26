@@ -191,7 +191,7 @@ public class HeatingCurve extends AbstractData {
 		var signal = this.getSignalData();
 		adjustedSignal.clear();
 		for (int i = 0, size = time.size(); i < size; i++) 
-			adjustedSignal.add(signal.get(i) + baseline.valueAt(time.get(i) + startTime));
+			adjustedSignal.add(signal.get(i) + baseline.valueAt(timeAt(i)));
 
 		if (time.get(0) > -startTime) {
 			time.add(0, -startTime);

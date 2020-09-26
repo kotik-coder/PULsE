@@ -143,10 +143,10 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 		 * The outer cycle iterates over the number of points of the HeatingCurve
 		 */
 
-		double nextTime = offset + wFactor + startTime;
-		curve.addPoint(startTime, 0.0); 
+		double nextTime = offset + wFactor;
+		curve.addPoint(0.0, 0.0); 
 				
-		for (int w = 1; nextTime < 1.01*endTime; nextTime = offset + startTime + (++w)*wFactor) {
+		for (int w = 1; nextTime < 1.01*endTime; nextTime = offset + (++w)*wFactor) {
 
 			/*
 			 * Two adjacent points of the heating curves are separated by timeInterval on
