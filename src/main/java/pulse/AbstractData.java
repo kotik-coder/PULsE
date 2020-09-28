@@ -73,7 +73,7 @@ public abstract class AbstractData extends PropertyHolder {
 	 */
 	
 	public int actualNumPoints() {
-		return signal.size();
+		return time.size();
 	}
 	
 	/**

@@ -179,29 +179,25 @@ public class Chart {
 
 			var solution = problem.getHeatingCurve();
 
-			if (solution != null && task.getScheme() != null) {
+			if (solution != null && task.getScheme() != null && solution.actualNumPoints() > 0) {
 
-				if (solution.actualNumPoints() > 0) {
+				var solutionDataset = new XYSeriesCollection();
+				var displayedCurve = extendedCurve ? solution.extendedTo(rawData, problem.getBaseline()) : solution;
 
-					var solutionDataset = new XYSeriesCollection();
-					var displayedCurve = extendedCurve ? solution.extendedTo(rawData, problem.getBaseline()) : solution;
+				solutionDataset.addSeries(
+						series(displayedCurve, "Solution with " + task.getScheme().getSimpleName(), extendedCurve));
+				plot.setDataset(1, solutionDataset);
 
-					solutionDataset.addSeries(
-							series(displayedCurve, "Solution with " + task.getScheme().getSimpleName(), extendedCurve));
-					plot.setDataset(1, solutionDataset);
+				/*
+				 * plot residuals
+				 */
 
-					/*
-					 * plot residuals
-					 */
-
-					if (residualsShown)
-						if (task.getResidualStatistic().getResiduals() != null) {
-							var residualsDataset = new XYSeriesCollection();
-							residualsDataset.addSeries(residuals(task));
-							plot.setDataset(3, residualsDataset);
-						}
-
-				}
+				if (residualsShown)
+					if (task.getResidualStatistic().getResiduals() != null) {
+						var residualsDataset = new XYSeriesCollection();
+						residualsDataset.addSeries(residuals(task));
+						plot.setDataset(3, residualsDataset);
+					}
 
 			}
 
@@ -235,12 +231,12 @@ public class Chart {
 	public XYSeries series(AbstractData curve, String title, boolean extendedCurve) {
 		var series = new XYSeries(title);
 
-		var realCount = curve.actualNumPoints();
+		final int realCount = curve.actualNumPoints();
 		double startTime = 0;
-		if(curve instanceof HeatingCurve)
-			startTime = (double) ((HeatingCurve)curve).getTimeShift().getValue();
+		if (curve instanceof HeatingCurve)
+			startTime = (double) ((HeatingCurve) curve).getTimeShift().getValue();
 		int iStart = IndexRange.closestLeft(startTime < 0 ? startTime : 0, curve.getTimeSequence());
-
+		
 		for (var i = 0; i < iStart && extendedCurve; i++)
 			series.add(factor * curve.timeAt(i), curve.signalAt(i));
 
