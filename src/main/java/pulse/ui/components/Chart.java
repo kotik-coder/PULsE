@@ -36,6 +36,7 @@ import org.jfree.data.xy.XYSeriesCollection;
 
 import pulse.AbstractData;
 import pulse.HeatingCurve;
+import pulse.input.ExperimentalData;
 import pulse.input.IndexRange;
 import pulse.tasks.SearchTask;
 
@@ -215,7 +216,7 @@ public class Chart {
 
 	}
 
-	public void plotSingle(AbstractData curve) {
+	public void plotSingle(HeatingCurve curve) {
 		requireNonNull(curve);
 
 		var plot = chart.getXYPlot();
@@ -228,13 +229,19 @@ public class Chart {
 		plot.getRenderer(4).setSeriesPaint(0, black);
 	}
 
-	public XYSeries series(AbstractData curve, String title, boolean extendedCurve) {
+	public XYSeries series(HeatingCurve curve, String title, boolean extendedCurve) {
+		final int realCount = curve.getAlteredSignalData().size();
+		final double startTime = (double) ((HeatingCurve) curve).getTimeShift().getValue();
+		return series(curve, title, startTime, realCount, extendedCurve);
+	}
+	
+	public XYSeries series(ExperimentalData curve, String title, boolean extendedCurve) {
+		return series(curve, title, 0, curve.actualNumPoints(), extendedCurve);
+	}
+	
+	private XYSeries series(AbstractData curve, String title, final double startTime, final int realCount, boolean extendedCurve) {
 		var series = new XYSeries(title);
-
-		final int realCount = curve.actualNumPoints();
-		double startTime = 0;
-		if (curve instanceof HeatingCurve)
-			startTime = (double) ((HeatingCurve) curve).getTimeShift().getValue();
+		
 		int iStart = IndexRange.closestLeft(startTime < 0 ? startTime : 0, curve.getTimeSequence());
 		
 		for (var i = 0; i < iStart && extendedCurve; i++)
@@ -242,7 +249,7 @@ public class Chart {
 
 		for (var i = iStart; i < realCount; i++)
 			series.add(factor * curve.timeAt(i), curve.signalAt(i));
-
+		
 		return series;
 	}
 
