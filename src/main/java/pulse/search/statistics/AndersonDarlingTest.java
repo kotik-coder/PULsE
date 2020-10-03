@@ -16,7 +16,7 @@ public class AndersonDarlingTest extends NormalityTest {
 	public boolean test(SearchTask task) {
 		calculateResiduals(task);
 		
-		double[] residuals = super.transformResiduals(task);
+		double[] residuals = super.transformResiduals();
 		var nd = new NormalDist(0.0, (new StandardDeviation()).evaluate(residuals));
 		var testResult = GofStat.andersonDarling(residuals, nd);
 		

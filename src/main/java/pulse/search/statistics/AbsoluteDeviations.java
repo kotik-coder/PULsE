@@ -1,13 +1,24 @@
 package pulse.search.statistics;
 
-import static java.lang.Math.*;
+import static java.lang.Math.abs;
 import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.OPTIMISER_STATISTIC;
 
 import pulse.tasks.SearchTask;
 
-public class AbsoluteDeviations extends ResidualStatistic {
+/**
+ * A statistical optimality criterion relying on absolute deviations or the L1 norm condition. Similar to the least squares technique, 
+ * it attempts to find a function which closely approximates a set of data. However, unlike the L2 norm, it is much more robust to 
+ * data outliers.
+ *
+ */
 
+public class AbsoluteDeviations extends ResidualStatistic {
+	
+	/**
+	 * Calculates the L1 norm statistic, which simply sums up the absolute values of residuals.
+	 */
+	
 	@Override
 	public void evaluate(SearchTask t) {
 		calculateResiduals(t);

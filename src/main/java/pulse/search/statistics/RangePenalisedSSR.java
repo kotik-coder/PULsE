@@ -16,7 +16,7 @@ public class RangePenalisedSSR extends SumOfSquares {
 		final double n0 = t.getExperimentalCurve().actualNumPoints();
 
 		incrementStatistic(
-				(n0 - n) / n0 * (new StandardDeviation().evaluate(transformResiduals(t))) * PENALISATION_FACTOR);
+				(n0 - n) / n0 * (new StandardDeviation().evaluate(transformResiduals())) * PENALISATION_FACTOR);
 	}
 
 	@Override

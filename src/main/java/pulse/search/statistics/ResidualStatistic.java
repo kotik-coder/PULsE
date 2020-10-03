@@ -27,8 +27,8 @@ public abstract class ResidualStatistic extends Statistic {
 		setPrefix("Residuals");
 	}
 
-	public double[] transformResiduals(SearchTask task) {
-		return task.getResidualStatistic().getResiduals().stream().map(doubleArray -> doubleArray[1])
+	public double[] transformResiduals() {
+		return getResiduals().stream().map(doubleArray -> doubleArray[1])
 				.mapToDouble(Double::doubleValue).toArray();
 	}
 

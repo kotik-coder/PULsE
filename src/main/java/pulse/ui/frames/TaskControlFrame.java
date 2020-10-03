@@ -45,7 +45,6 @@ public class TaskControlFrame extends JFrame {
 	private static PreviewFrame previewFrame;
 	private static ResultFrame resultsFrame;
 	private static MainGraphFrame graphFrame;
-	private static AuxGraphFrame auxGraphFrame;
 	private static LogFrame logFrame;
 
 	private static PulseMainMenu mainMenu;
@@ -171,7 +170,6 @@ public class TaskControlFrame extends JFrame {
 		previewFrame = new PreviewFrame();
 		taskManagerFrame = new TaskManagerFrame();
 		graphFrame = MainGraphFrame.getInstance();
-		auxGraphFrame = AuxGraphFrame.getInstance();
 
 		problemStatementFrame = new ProblemStatementFrame();
 
@@ -183,7 +181,7 @@ public class TaskControlFrame extends JFrame {
 
 		resizeQuadrants();
 		desktopPane.add(taskManagerFrame);
-		desktopPane.add(auxGraphFrame);
+		desktopPane.add(problemStatementFrame.getPulseFrame());
 		desktopPane.add(graphFrame);
 		desktopPane.add(previewFrame);
 		desktopPane.add(logFrame);
@@ -247,7 +245,7 @@ public class TaskControlFrame extends JFrame {
 			resizeQuadrants();
 			break;
 		case PROBLEM:
-			resizeTriplet(problemStatementFrame, auxGraphFrame, graphFrame);
+			resizeTriplet(problemStatementFrame, problemStatementFrame.getPulseFrame(), graphFrame);
 			break;
 		case SEARCH:
 			resizeFull(searchOptionsFrame);

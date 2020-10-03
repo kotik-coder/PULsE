@@ -5,6 +5,11 @@ import static pulse.properties.NumericPropertyKeyword.OPTIMISER_STATISTIC;
 
 import pulse.tasks.SearchTask;
 
+/**
+ * The standard optimality criterion of the L2 norm condition, or simply ordinary least squares.
+ *
+ */
+
 public class SumOfSquares extends ResidualStatistic {
 
 	/**
@@ -25,9 +30,7 @@ public class SumOfSquares extends ResidualStatistic {
 	 * <b>baseline-subtracted</b> temperature list. The value is interpolated using
 	 * the experimental time <math><i>t</i><sub>i</sub></math> and the nearest
 	 * solution points to that time. The accuracy of this interpolation depends on
-	 * the number of points. The boundaries of the summation are set by the
-	 * {@code curve.getFittingStartIndex()} and {@code curve.getFittingEndIndex()}
-	 * methods.
+	 * the number of points. 
 	 * 
 	 * @param t The task containing the reference and calculated curves
 	 */

@@ -48,23 +48,26 @@ import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.solvers.Solver;
 import pulse.problem.schemes.solvers.SolverException;
 import pulse.problem.statements.Problem;
+import pulse.problem.statements.Pulse;
 import pulse.tasks.SearchTask;
 import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.TaskSelectionEvent;
 import pulse.ui.components.PropertyHolderTable;
+import pulse.ui.components.PulseChart;
 import pulse.ui.components.buttons.LoaderButton;
 import pulse.ui.components.controllers.ProblemListCellRenderer;
 import pulse.ui.components.panels.SettingsToolBar;
 
 @SuppressWarnings("serial")
 public class ProblemStatementFrame extends JInternalFrame {
-
+	
+	private InternalGraphFrame<Pulse> pulseFrame;
+	
 	private PropertyHolderTable problemTable, schemeTable;
 	private SchemeSelectionList schemeSelectionList;
 	private ProblemList problemList;
-
+	
 	private final static int LIST_FONT_SIZE = 12;
-
 	private final static List<Problem> knownProblems = instancesOf(Problem.class);
 
 	/**
@@ -141,6 +144,8 @@ public class ProblemStatementFrame extends JInternalFrame {
 
 		var instance = getManagerInstance();
 		
+		pulseFrame = new InternalGraphFrame<Pulse>("Pulse Shape", new PulseChart("Time (ms)", "Laser Power (a. u.)"));
+		
 		// simulate btn listener
 
 		btnSimulate.addActionListener((ActionEvent arg0) -> {
@@ -165,7 +170,7 @@ public class ProblemStatementFrame extends JInternalFrame {
 				e.printStackTrace();
 			}
 			MainGraphFrame.getInstance().plot();
-			AuxGraphFrame.getInstance().plot();
+			pulseFrame.plot( instance.getSelectedTask().getProblem().getPulse() );
 			problemTable.updateTable();
 			schemeTable.updateTable();
 		});
@@ -505,6 +510,11 @@ public class ProblemStatementFrame extends JInternalFrame {
 
 		}
 
+	}
+
+
+	public InternalGraphFrame<Pulse> getPulseFrame() {
+		return pulseFrame;
 	}
 
 }

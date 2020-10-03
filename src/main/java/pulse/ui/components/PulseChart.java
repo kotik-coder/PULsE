@@ -2,7 +2,6 @@ package pulse.ui.components;
 
 import static java.awt.Color.RED;
 import static java.awt.Color.black;
-import static java.awt.Color.white;
 import static java.awt.Font.PLAIN;
 import static java.util.Objects.requireNonNull;
 import static org.jfree.chart.plot.PlotOrientation.VERTICAL;
@@ -12,11 +11,8 @@ import java.awt.Color;
 import java.awt.Font;
 
 import org.jfree.chart.ChartFactory;
-import org.jfree.chart.ChartPanel;
-import org.jfree.chart.JFreeChart;
 import org.jfree.chart.annotations.XYTitleAnnotation;
 import org.jfree.chart.block.BlockBorder;
-import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYDifferenceRenderer;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.ui.RectangleAnchor;
@@ -25,48 +21,33 @@ import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
 import pulse.problem.statements.Problem;
+import pulse.problem.statements.Pulse;
 
-public class AuxChart {
+public class PulseChart extends AuxPlotter<Pulse> {
 
-	private ChartPanel chartPanel;
-	private JFreeChart chart;
-	private XYPlot plot;
-
-	private final static int NUM_PULSE_POINTS = 100;
-
+	private final static int NUM_PULSE_POINTS = 200;
 	private final static double TO_MILLIS = 1E3;
 
-	public AuxChart() {
-		chart = ChartFactory.createScatterPlot("", "Time (ms)", "Laser Power (a. u.)", null, VERTICAL, true, true,
-				false);
-
-		plot = chart.getXYPlot();
-		plot.setBackgroundPaint(white);
-		setFonts();
+	public PulseChart(String xLabel, String yLabel) {
+		super(xLabel,yLabel);
 		setRenderer();
 		setLegendTitle();
-
-		chart.removeLegend();
-		chartPanel = new ChartPanel(chart);
 	}
 
 	private void setRenderer() {
 		var rendererPulse = new XYDifferenceRenderer(new Color(0.0f, 0.2f, 0.8f, 0.1f), Color.red, false);
 		rendererPulse.setSeriesPaint(0, RED);
 		rendererPulse.setSeriesStroke(0, new BasicStroke(3.0f));
-		plot.setRenderer(rendererPulse);
+		getPlot().setRenderer(rendererPulse);
 	}
-
-	private void setFonts() {
-		var fontLabel = new Font("Arial", Font.PLAIN, 20);
-		var fontTicks = new Font("Arial", Font.PLAIN, 16);
-		plot.getDomainAxis().setLabelFont(fontLabel);
-		plot.getDomainAxis().setTickLabelFont(fontTicks);
-		plot.getRangeAxis().setLabelFont(fontLabel);
-		plot.getRangeAxis().setTickLabelFont(fontTicks);
+	
+	@Override
+	public void createChart(String xLabel, String yLabel) {
+		setChart(ChartFactory.createScatterPlot("", xLabel, yLabel, null, VERTICAL, true, true, false));
 	}
 
 	private void setLegendTitle() {
+		var plot = getPlot();
 		var lt = new LegendTitle(plot);
 		lt.setItemFont(new Font("Dialog", PLAIN, 16));
 		lt.setBackgroundPaint(new Color(200, 200, 255, 100));
@@ -77,16 +58,17 @@ public class AuxChart {
 		plot.addAnnotation(ta);
 	}
 
-	public void plot(Problem problem) {
-		requireNonNull(problem);
-
+	@Override
+	public void plot(Pulse pulse) {
+		requireNonNull(pulse);
+		
+		var problem = (Problem) pulse.getParent();
 		double startTime = (double) problem.getHeatingCurve().getTimeShift().getValue();
 
 		var pulseDataset = new XYSeriesCollection();
-
 		pulseDataset.addSeries(series(problem, startTime));
 
-		plot.setDataset(0, pulseDataset);
+		getPlot().setDataset(0, pulseDataset);
 	}
 
 	private static XYSeries series(Problem problem, double startTime) {
@@ -109,10 +91,6 @@ public class AuxChart {
 		}
 
 		return series;
-	}
-
-	public ChartPanel getChartPanel() {
-		return chartPanel;
 	}
 
 }

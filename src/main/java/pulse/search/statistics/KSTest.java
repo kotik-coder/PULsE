@@ -25,7 +25,7 @@ public class KSTest extends NormalityTest {
 	@Override
 	public void evaluate(SearchTask t) {
 		calculateResiduals(t);
-		residuals = transformResiduals(t);
+		residuals = transformResiduals();
 
 		final double sd = (new StandardDeviation()).evaluate(residuals);
 		nd = new NormalDistribution(0.0, sd); // null hypothesis: normal distribution with zero mean and empirical

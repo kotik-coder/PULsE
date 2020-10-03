@@ -33,7 +33,9 @@ import javax.swing.text.NumberFormatter;
 
 import pulse.input.Range;
 import pulse.tasks.TaskManager;
+import pulse.ui.components.ResidualsChart;
 import pulse.ui.components.listeners.PlotRequestListener;
+import pulse.ui.frames.HistogramFrame;
 
 @SuppressWarnings("serial")
 public class ChartToolbar extends JPanel {
@@ -54,9 +56,30 @@ public class ChartToolbar extends JPanel {
 		var upperLimitField = new JFormattedTextField(new NumberFormatter());
 
 		var limitRangeBtn = new JButton();
-		var adiabaticSolutionBtn = new JToggleButton();
-		var residualsBtn = new JToggleButton();
+		var adiabaticSolutionBtn = new JToggleButton(loadIcon("parker.png", ICON_SIZE));
+		var residualsBtn = new JToggleButton(loadIcon("residuals.png", ICON_SIZE));
+		var pdfBtn = new JButton(loadIcon("pdf.png", ICON_SIZE));
+		pdfBtn.setToolTipText("Residuals Histogram");
 
+		var instance = TaskManager.getManagerInstance();
+
+		var residualsChart = new ResidualsChart("Residual value", "Frequency");
+		var chFrame = new HistogramFrame(residualsChart, 450, 450);
+		
+		pdfBtn.addActionListener(e -> {
+		
+			var task = instance.getSelectedTask();
+			
+			if(task != null && task.getResidualStatistic() != null) {
+				
+				chFrame.setLocationRelativeTo(null);
+				chFrame.setVisible(true);
+				chFrame.plot(task.getResidualStatistic());
+				
+			}
+			
+		} );
+		
 		var gbc = new GridBagConstraints();
 		gbc.fill = BOTH;
 		gbc.weightx = 0.25;
@@ -100,8 +123,6 @@ public class ChartToolbar extends JPanel {
 
 		};
 		
-		var instance = TaskManager.getManagerInstance();
-
 		instance.addSelectionListener(event -> {
 			var t = instance.getSelectedTask();
 			var expCurve = t.getExperimentalCurve();
@@ -149,18 +170,16 @@ public class ChartToolbar extends JPanel {
 		add(limitRangeBtn, gbc);
 
 		adiabaticSolutionBtn.setToolTipText("Sanity check (original adiabatic solution)");
-		adiabaticSolutionBtn.setIcon(loadIcon("parker.png", ICON_SIZE));
 
 		adiabaticSolutionBtn.addActionListener(e -> {
 			getChart().setZeroApproximationShown(adiabaticSolutionBtn.isSelected());
 			notifyPlot();
 		});
 
-		gbc.weightx = 0.125;
+		gbc.weightx = 0.08;
 		add(adiabaticSolutionBtn, gbc);
 
 		residualsBtn.setToolTipText("Plot residuals");
-		residualsBtn.setIcon(loadIcon("residuals.png", ICON_SIZE));
 		residualsBtn.setSelected(true);
 
 		residualsBtn.addActionListener(e -> {
@@ -168,8 +187,8 @@ public class ChartToolbar extends JPanel {
 			notifyPlot();
 		});
 
-		gbc.weightx = 0.125;
 		add(residualsBtn, gbc);
+		add(pdfBtn, gbc);
 	}
 
 	public void addPlotRequestListener(PlotRequestListener plotRequestListener) {
