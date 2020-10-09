@@ -9,7 +9,7 @@ import java.util.List;
 import pulse.io.readers.QuadratureReader;
 import pulse.problem.schemes.rte.BlackbodySpectrum;
 import pulse.problem.statements.ParticipatingMedium;
-import pulse.problem.statements.ThermoOpticalProperties;
+import pulse.problem.statements.model.ThermoOpticalProperties;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;

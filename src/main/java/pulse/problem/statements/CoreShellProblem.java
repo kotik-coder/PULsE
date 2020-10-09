@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import pulse.math.IndexedVector;
+import pulse.problem.statements.model.ExtendedThermalProperties;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
@@ -29,22 +30,6 @@ public class CoreShellProblem extends ClassicalProblem2D {
 		tA = (double) def(AXIAL_COATING_THICKNESS).getValue();
 		tR = (double) def(RADIAL_COATING_THICKNESS).getValue();
 		coatingDiffusivity = (double) def(COATING_DIFFUSIVITY).getValue();
-		setComplexity(ProblemComplexity.HIGH);
-	}
-
-	public CoreShellProblem(Problem sdd) {
-		super(sdd);
-		tA = (double) def(AXIAL_COATING_THICKNESS).getValue();
-		tR = (double) def(RADIAL_COATING_THICKNESS).getValue();
-		coatingDiffusivity = (double) def(COATING_DIFFUSIVITY).getValue();
-		setComplexity(ProblemComplexity.HIGH);
-	}
-
-	public CoreShellProblem(CoreShellProblem csp) {
-		super(csp);
-		tA = (double) csp.getCoatingAxialThickness().getValue();
-		tR = (double) csp.getCoatingRadialThickness().getValue();
-		coatingDiffusivity = (double) csp.getProperties().getDiffusivity().getValue();
 		setComplexity(ProblemComplexity.HIGH);
 	}
 

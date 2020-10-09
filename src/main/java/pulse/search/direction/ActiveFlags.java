@@ -43,7 +43,7 @@ public class ActiveFlags {
 		var t = TaskManager.getManagerInstance().getSelectedTask();
 
 		if (t != null) {
-			var p = t.getProblem();
+			var p = t.getCurrentCalculation().getProblem();
 
 			if (p != null) {
 
@@ -75,7 +75,7 @@ public class ActiveFlags {
 	 */
 
 	public static List<NumericPropertyKeyword> activeParameters(SearchTask t) {
-		Problem p = t.getProblem();
+		Problem p = t.getCurrentCalculation().getProblem();
 
 		var list = new ArrayList<NumericPropertyKeyword>();
 		list.addAll(selectActiveAndListed(problemDependentFlags, p));

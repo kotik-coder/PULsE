@@ -13,7 +13,15 @@ import pulse.tasks.SearchTask;
  *
  */
 
-public class AbsoluteDeviations extends ResidualStatistic {
+public class AbsoluteDeviations extends OptimiserStatistic {
+	
+	public AbsoluteDeviations() {
+		super();
+	}
+	
+	public AbsoluteDeviations(AbsoluteDeviations another) {
+		super(another);
+	}
 	
 	/**
 	 * Calculates the L1 norm statistic, which simply sums up the absolute values of residuals.
@@ -25,10 +33,21 @@ public class AbsoluteDeviations extends ResidualStatistic {
 		final double statistic = getResiduals().stream().map(r -> abs(r[1]) ).reduce(Double::sum).get() / getResiduals().size();
 		setStatistic(derive(OPTIMISER_STATISTIC, statistic));
 	}
+	
+	@Override
+	public double variance() {
+		final double stat = (double)this.getStatistic().getValue();
+		return stat*stat;
+	}
 
 	@Override
 	public String getDescriptor() {
 		return "Absolute Deviations";
+	}
+
+	@Override
+	public OptimiserStatistic copy() {
+		return new AbsoluteDeviations(this);
 	}
 
 }

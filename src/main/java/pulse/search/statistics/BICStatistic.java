@@ -9,6 +9,23 @@ import static java.lang.Math.log;
 
 public class BICStatistic extends ModelSelectionCriterion {
 
+	public BICStatistic(BICStatistic another) {
+		super(another);
+	}
+	
+	public BICStatistic(OptimiserStatistic os) {
+		super(os);
+	}
+	
+	public BICStatistic() {
+		super(new SumOfSquares());
+	}
+	
+	@Override 
+	public ModelSelectionCriterion copy() {
+		return new BICStatistic(this);
+	}
+	
 	@Override 
 	public double penalisingTerm(final int kq, final int n) {
 		return (kq + 1)*log(n);

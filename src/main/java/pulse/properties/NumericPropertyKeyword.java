@@ -312,6 +312,12 @@ public enum NumericPropertyKeyword {
 	OPTIMISER_STATISTIC,
 	
 	/**
+	 * Model selection criterion (AIC, BIC, etc.)
+	 */
+	
+	MODEL_CRITERION,
+	
+	/**
 	 * Test statistic (e.g. normality test criterion).
 	 */
 
@@ -477,7 +483,13 @@ public enum NumericPropertyKeyword {
 	 * &lambda; parameter for skewed normal distribution.
 	 */
 	
-	SKEW_LAMBDA;
+	SKEW_LAMBDA,
+	
+	/**
+	 * A weight indicating how good a calculation model is.
+	 */
+	
+	MODEL_WEIGHT;
 
 	public static Optional<NumericPropertyKeyword> findAny(String key) {
 		return Arrays.asList(values()).stream().filter(keys -> keys.toString().equalsIgnoreCase(key)).findAny();

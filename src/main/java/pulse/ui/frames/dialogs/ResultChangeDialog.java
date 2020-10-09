@@ -146,7 +146,6 @@ public class ResultChangeDialog extends JDialog {
 		MainToolbar.setRollover(true);
 		MainToolbar.add(filler1);
 
-		cancelBtn.setFont(new java.awt.Font("Dialog", 1, 16)); // NOI18N
 		cancelBtn.setText("Cancel");
 		cancelBtn.setFocusable(false);
 		cancelBtn.setHorizontalTextPosition(SwingConstants.CENTER);
@@ -154,7 +153,6 @@ public class ResultChangeDialog extends JDialog {
 		MainToolbar.add(cancelBtn);
 		MainToolbar.add(filler3);
 
-		commitBtn.setFont(new java.awt.Font("Dialog", 1, 16)); // NOI18N
 		commitBtn.setText("Commit");
 		commitBtn.setFocusable(false);
 		commitBtn.setHorizontalTextPosition(SwingConstants.CENTER);

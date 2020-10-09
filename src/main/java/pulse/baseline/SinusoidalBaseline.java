@@ -43,6 +43,7 @@ public class SinusoidalBaseline extends FlatBaseline {
 	 */
 
 	public SinusoidalBaseline() {
+		super();
 		setFrequency(def(BASELINE_FREQUENCY));
 		setAmplitude(def(BASELINE_AMPLITUDE));
 		setPhaseShift(def(BASELINE_PHASE_SHIFT));
@@ -82,7 +83,7 @@ public class SinusoidalBaseline extends FlatBaseline {
 			setAmplitude(property);
 			break;
 		default:
-			break;
+			super.set(type, property);
 		}
 
 	}
@@ -168,5 +169,16 @@ public class SinusoidalBaseline extends FlatBaseline {
 		}
 
 	}
+	
+	@Override
+	public Baseline copy() {
+		var baseline = new SinusoidalBaseline();
+		baseline.setIntercept(this.getIntercept());
+		baseline.amplitude = this.amplitude;
+		baseline.frequency = this.frequency;
+		baseline.phaseShift = this.phaseShift;
+		return baseline;
+	}
+
 
 }

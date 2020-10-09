@@ -10,8 +10,16 @@ import pulse.tasks.SearchTask;
  *
  */
 
-public class SumOfSquares extends ResidualStatistic {
-
+public class SumOfSquares extends OptimiserStatistic {
+	
+	public SumOfSquares() {
+		super();
+	}
+	
+	public SumOfSquares(SumOfSquares sos) {
+		super(sos);
+	}
+	
 	/**
 	 * Calculates the sum of squared deviations using {@code curve} as reference.
 	 * <p>
@@ -34,7 +42,7 @@ public class SumOfSquares extends ResidualStatistic {
 	 * 
 	 * @param t The task containing the reference and calculated curves
 	 */
-
+	
 	@Override
 	public void evaluate(SearchTask t) {
 		calculateResiduals(t);
@@ -45,6 +53,16 @@ public class SumOfSquares extends ResidualStatistic {
 	@Override
 	public String getDescriptor() {
 		return "Ordinary least squares";
+	}
+
+	@Override
+	public double variance() {
+		return (double)getStatistic().getValue();
+	}
+
+	@Override
+	public OptimiserStatistic copy() {
+		return new SumOfSquares(this);
 	}
 
 }

@@ -183,7 +183,8 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 		var grad = new Vector(params.dimension());
 
 		boolean discreteGradient = params.getIndices().stream().anyMatch(index -> isDiscrete(index));
-		final double dx = discreteGradient ? 2.0 * task.getScheme().getGrid().getXStep() : 2.0 * gradientResolution;
+		final double dxGrid = task.getCurrentCalculation().getScheme().getGrid().getXStep();
+		final double dx = discreteGradient ? 2.0 * dxGrid : 2.0 * gradientResolution;
 
 		for (int i = 0; i < params.dimension(); i++) {
 			final var shift = new Vector(params.dimension());

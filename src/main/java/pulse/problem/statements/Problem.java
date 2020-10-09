@@ -25,6 +25,7 @@ import pulse.problem.laser.DiscretePulse;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.Grid;
 import pulse.problem.schemes.solvers.Solver;
+import pulse.problem.statements.model.ThermalProperties;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
@@ -71,11 +72,9 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
 	 */
 
 	protected Problem() {
-		super();
 		initProperties();
 
-		curve = new HeatingCurve();
-		curve.setParent(this);
+		setHeatingCurve( new HeatingCurve() );
 
 		instanceDescriptor.attemptUpdate(FlatBaseline.class.getSimpleName());
 		addListeners();
@@ -90,18 +89,23 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
 	 */
 
 	public Problem(Problem p) {
-		super();
 		initProperties(p.getProperties().copy());
 
-		this.curve = new HeatingCurve();
-		this.curve.setParent(this);
-		this.curve.setNumPoints(p.getHeatingCurve().getNumPoints());
+		setHeatingCurve( new HeatingCurve(p.getHeatingCurve()) );
+		curve.setNumPoints(p.getHeatingCurve().getNumPoints());
 
 		instanceDescriptor.attemptUpdate(p.getBaseline().getClass().getSimpleName());
 		addListeners();
-		initBaseline();
+		this.baseline = p.getBaseline().copy();
 	}
+	
+	public abstract Problem copy();
 
+	public void setHeatingCurve(HeatingCurve curve) {
+		this.curve = curve;
+		curve.setParent(this);
+	}
+	
 	private void addListeners() {
 		instanceDescriptor.addListener(() -> {
 			initBaseline();
@@ -411,7 +415,6 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
 	}
 
 	private void initBaseline() {
-		// TODO
 		var baseline = instanceDescriptor.newInstance(Baseline.class);
 		setBaseline(baseline);
 		parameterListChanged();

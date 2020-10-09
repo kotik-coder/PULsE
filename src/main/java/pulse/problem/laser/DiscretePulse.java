@@ -18,7 +18,7 @@ public class DiscretePulse {
 	private Pulse pulse;
 	private double discretePulseWidth;
 	private double timeFactor;
-
+	
 	/**
 	 * This creates a one-dimensional discrete pulse on a {@code grid}.
 	 * <p>

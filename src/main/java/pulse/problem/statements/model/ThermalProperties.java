@@ -1,4 +1,4 @@
-package pulse.problem.statements;
+package pulse.problem.statements.model;
 
 import static java.lang.Math.PI;
 import static pulse.input.InterpolationDataset.getDataset;
@@ -21,6 +21,7 @@ import java.util.List;
 
 import pulse.input.ExperimentalData;
 import pulse.input.InterpolationDataset.StandartType;
+import pulse.problem.statements.Pulse2D;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
@@ -231,12 +232,12 @@ public class ThermalProperties extends PropertyHolder {
 		setEmissivity(derive(EMISSIVITY, Bi * thermalConductivity() / (4. * Math.pow(T, 3) * l * STEFAN_BOTLZMAN)));
 	}
 
-	protected double maxBiot() {
+	public double maxBiot() {
 		double lambda = thermalConductivity();
 		return 4.0 * STEFAN_BOTLZMAN * Math.pow(T, 3) * l / lambda;
 	}
 
-	protected double biot() {
+	public double biot() {
 		double lambda = thermalConductivity();
 		return 4.0 * emissivity * STEFAN_BOTLZMAN * Math.pow(T, 3) * l / lambda;
 	}

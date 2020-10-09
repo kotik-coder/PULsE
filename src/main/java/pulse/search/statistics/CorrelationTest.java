@@ -16,7 +16,7 @@ public abstract class CorrelationTest extends PropertyHolder implements Reflexiv
 	private static String selectedTestDescriptor;
 
 	public CorrelationTest() {
-		//intentionall blank
+		//intentionally blank
 	}
 
 	public abstract double evaluate(double[] x, double[] y);

@@ -70,11 +70,11 @@ public class ChartToolbar extends JPanel {
 		
 			var task = instance.getSelectedTask();
 			
-			if(task != null && task.getResidualStatistic() != null) {
+			if(task != null && task.getCurrentCalculation().getModelSelectionCriterion() != null) {
 				
 				chFrame.setLocationRelativeTo(null);
 				chFrame.setVisible(true);
-				chFrame.plot(task.getResidualStatistic());
+				chFrame.plot(task.getCurrentCalculation().getOptimiserStatistic());
 				
 			}
 			

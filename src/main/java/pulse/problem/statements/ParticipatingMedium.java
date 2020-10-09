@@ -12,6 +12,8 @@ import java.util.List;
 import pulse.math.IndexedVector;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.solvers.MixedCoupledSolver;
+import pulse.problem.statements.model.ThermalProperties;
+import pulse.problem.statements.model.ThermoOpticalProperties;
 import pulse.properties.Flag;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.ui.Messages;
@@ -25,12 +27,12 @@ public class ParticipatingMedium extends NonlinearProblem {
 		getHeatingCurve().setNumPoints(derive(NUMPOINTS, DEFAULT_CURVE_POINTS));
 		setComplexity(ProblemComplexity.HIGH);
 	}
-
-	public ParticipatingMedium(Problem p) {
+	
+	public ParticipatingMedium(ParticipatingMedium p) {
 		super(p);
 		setComplexity(ProblemComplexity.HIGH);
 	}
-
+	
 	@Override
 	public String toString() {
 		return Messages.getString("ParticipatingMedium.Descriptor");
@@ -122,6 +124,11 @@ public class ParticipatingMedium extends NonlinearProblem {
 	@Override
 	public void initProperties() {
 		setProperties( new ThermoOpticalProperties() );
+	}
+	
+	@Override
+	public Problem copy() {
+		return new ParticipatingMedium(this);
 	}
 
 }

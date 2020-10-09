@@ -1,11 +1,9 @@
 package pulse.ui.components.panels;
 
-import static java.awt.Font.PLAIN;
 import static java.awt.GridBagConstraints.BOTH;
 import static javax.swing.Box.createHorizontalStrut;
 import static pulse.ui.Messages.getString;
 
-import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 
@@ -25,8 +23,6 @@ public class SettingsToolBar extends JToolBar {
 
 	private JCheckBox cbSingleStatement, cbHideDetails;
 
-	private Font f = new Font(getString("TaskSelectionToolBar.FontName"), PLAIN, 14); //$NON-NLS-1$
-
 	public SettingsToolBar(PropertyHolderTable... tables) {
 		super();
 		setFloatable(false);
@@ -35,11 +31,9 @@ public class SettingsToolBar extends JToolBar {
 
 		cbSingleStatement = new JCheckBox(getString("TaskSelectionToolBar.ApplyToAll")); //$NON-NLS-1$
 		cbSingleStatement.setSelected(TaskManager.getManagerInstance().isSingleStatement());
-		cbSingleStatement.setFont(f);
 
 		cbHideDetails = new JCheckBox(getString("TaskSelectionToolBar.Hide")); //$NON-NLS-1$
 		cbHideDetails.setSelected(true);
-		cbHideDetails.setFont(f);
 
 		setLayout(new GridBagLayout());
 

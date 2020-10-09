@@ -1,15 +1,11 @@
 package pulse.ui.components.controllers;
 
-import static java.awt.Color.white;
-import static java.awt.Font.PLAIN;
-import static pulse.ui.Messages.getString;
-
-import java.awt.Color;
 import java.awt.Component;
-import java.awt.Font;
 
 import javax.swing.JFormattedTextField;
+import javax.swing.JLabel;
 import javax.swing.JTable;
+import javax.swing.UIManager;
 import javax.swing.table.DefaultTableCellRenderer;
 
 import pulse.properties.NumericProperty;
@@ -17,9 +13,6 @@ import pulse.properties.Property;
 
 @SuppressWarnings("serial")
 public class NumericPropertyRenderer extends DefaultTableCellRenderer {
-
-	protected static final Color LIGHT_BLUE = new Color(175, 238, 238);
-	private final static Font font = new Font(getString("PropertyHolderTable.FontName"), PLAIN, 14);
 
 	public NumericPropertyRenderer() {
 		super();
@@ -30,26 +23,36 @@ public class NumericPropertyRenderer extends DefaultTableCellRenderer {
 	public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
 			int row, int column) {
 
-		if (value instanceof NumericProperty)
-			return initTextField(((Property) value).formattedOutput(), table.isRowSelected(row));
+		Component result = null;
 
-		return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+		if (value instanceof NumericProperty) {
+			var output = ((Property) value).formattedOutput();
+			result = table.getEditorComponent() != null ? 
+					initTextField(output, table.isRowSelected(row))
+					: initLabel(output, table.isRowSelected(row));
+		} else if(value instanceof Number) {
+			result = initLabel(value.toString(), table.isRowSelected(row));
+		} else
+			result = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+
+		return result;
 
 	}
 
 	protected static JFormattedTextField initTextField(String text, boolean rowSelected) {
 		var jtf = new JFormattedTextField(text);
-		jtf.setOpaque(true);
-		jtf.setBorder(null);
 		jtf.setHorizontalAlignment(CENTER);
-		jtf.setFont(font);
-
-		if (rowSelected)
-			jtf.setBackground(LIGHT_BLUE);
-		else
-			jtf.setBackground(white);
-
+		jtf.setBackground(
+				rowSelected ? UIManager.getColor("Table.selectionBackground") : UIManager.getColor("Table.background"));
 		return jtf;
+	}
+
+	protected static JLabel initLabel(String text, boolean rowSelected) {
+		var lab = new JLabel(text);
+		lab.setHorizontalAlignment(CENTER);
+		lab.setBackground(
+				rowSelected ? UIManager.getColor("Table.selectionBackground") : UIManager.getColor("Table.background"));
+		return lab;
 	}
 
 }

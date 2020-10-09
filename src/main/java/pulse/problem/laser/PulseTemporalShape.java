@@ -28,6 +28,8 @@ public abstract class PulseTemporalShape extends PropertyHolder implements Refle
 	public void init(DiscretePulse pulse) {
 		width = pulse.getDiscreteWidth();
 	}
+	
+	public abstract PulseTemporalShape copy();
 
 	@Override
 	public String getPrefix() {

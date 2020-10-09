@@ -8,11 +8,7 @@ import static java.lang.Runtime.getRuntime;
 import static java.lang.System.err;
 import static java.lang.management.ManagementFactory.getPlatformMBeanServer;
 import static java.util.Objects.requireNonNull;
-import static java.util.logging.Level.SEVERE;
-import static java.util.logging.Logger.getLogger;
 import static javax.management.ObjectName.getInstance;
-import static javax.swing.UIManager.getInstalledLookAndFeels;
-import static javax.swing.UIManager.setLookAndFeel;
 import static pulse.ui.frames.TaskControlFrame.getInstance;
 
 import javax.management.Attribute;
@@ -22,6 +18,10 @@ import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import javax.management.ReflectionException;
 import javax.swing.ImageIcon;
+import javax.swing.UIManager;
+
+import com.alee.laf.WebLookAndFeel;
+import com.alee.skin.dark.WebDarkSkin;
 
 /**
  * <p>
@@ -46,25 +46,13 @@ public class Launcher {
 	public static void main(String[] args) {
 		splashScreen();
 
-		/* Set the Nimbus Look and feel setting code.
-		/*
-		 * If Nimbus (introduced in Java SE 6) is not available, stay with the default
-		 * look and feel. For details see
-		 * http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html
-		 */
+		WebLookAndFeel.install( WebDarkSkin.class);
 		try {
-			for (var info : getInstalledLookAndFeels()) {
-				if ("Nimbus".equals(info.getName())) {
-					setLookAndFeel(info.getClassName());
-					break;
-				}
-			}
-		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException
-				| javax.swing.UnsupportedLookAndFeelException ex) {
-			getLogger(Launcher.class.getName()).log(SEVERE, null, ex);
+		    UIManager.setLookAndFeel( new WebLookAndFeel() );
+		} catch( Exception ex ) {
+		    System.err.println( "Failed to initialize LaF" );
 		}
-		// </editor-fold>
-
+		
 		/* Create and display the form */
 		invokeLater(() -> {
 			getInstance().setLocationRelativeTo(null);

@@ -17,7 +17,7 @@ import pulse.problem.schemes.rte.dom.DiscreteOrdinatesMethod;
 import pulse.problem.schemes.rte.exact.NewtonCotesQuadrature;
 import pulse.problem.schemes.rte.exact.NonscatteringDiscreteDerivatives;
 import pulse.problem.schemes.rte.exact.NonscatteringRadiativeTransfer;
-import pulse.problem.statements.ThermoOpticalProperties;
+import pulse.problem.statements.model.ThermoOpticalProperties;
 
 class DiscreteNonscatteringTransferValidation {
 

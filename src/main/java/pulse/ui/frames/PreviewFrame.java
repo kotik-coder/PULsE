@@ -7,7 +7,6 @@ import static java.awt.BorderLayout.SOUTH;
 import static java.awt.Color.BLUE;
 import static java.awt.Color.GRAY;
 import static java.awt.Color.RED;
-import static java.awt.Color.white;
 import static org.jfree.chart.ChartFactory.createScatterPlot;
 import static org.jfree.chart.plot.PlotOrientation.VERTICAL;
 import static pulse.properties.NumericPropertyKeyword.DIFFUSIVITY;
@@ -29,6 +28,7 @@ import javax.swing.JLabel;
 import javax.swing.JSeparator;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
+import javax.swing.UIManager;
 
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -201,7 +201,6 @@ public class PreviewFrame extends JInternalFrame {
 
 		plot.setRenderer(0, renderer);
 		plot.setRenderer(1, rendererSpline);
-		plot.setBackgroundPaint(white);
 
 		plot.setRangeGridlinesVisible(true);
 		plot.setRangeGridlinePaint(GRAY);
@@ -220,6 +219,8 @@ public class PreviewFrame extends JInternalFrame {
 		cp.setMaximumDrawWidth(2000);
 		cp.setMinimumDrawWidth(10);
 		cp.setMinimumDrawHeight(10);
+		
+		chart.setBackgroundPaint(UIManager.getColor("Panel.background"));
 
 		return cp;
 	}

@@ -1,11 +1,9 @@
 package pulse.ui.components;
 
-import static java.awt.Font.BOLD;
 import static java.lang.Boolean.TRUE;
 import static javax.swing.SortOrder.ASCENDING;
 import static pulse.ui.Messages.getString;
 
-import java.awt.Font;
 import java.awt.event.ItemEvent;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +37,6 @@ public class PropertyHolderTable extends JTable {
 
 	private PropertyHolder propertyHolder;
 
-	private final static Font font = new Font(getString("PropertyHolderTable.FontName"), BOLD, 12);
 	private final static int ROW_HEIGHT = 40;
 
 	public PropertyHolderTable(PropertyHolder p) {
@@ -55,7 +52,6 @@ public class PropertyHolderTable extends JTable {
 		setAutoResizeMode(AUTO_RESIZE_ALL_COLUMNS);
 
 		setShowGrid(false);
-		setFont(font);
 		setRowHeight(ROW_HEIGHT);
 
 		var list = new ArrayList<SortKey>();

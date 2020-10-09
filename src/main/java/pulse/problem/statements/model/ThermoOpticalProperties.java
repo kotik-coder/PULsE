@@ -1,4 +1,4 @@
-package pulse.problem.statements;
+package pulse.problem.statements.model;
 
 import static pulse.math.MathUtils.fastPowLoop;
 import static pulse.properties.NumericProperties.def;

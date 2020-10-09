@@ -19,21 +19,25 @@ public abstract class ResidualStatistic extends Statistic {
 
 	private double statistic;
 	private List<double[]> residuals;
-	private static String selectedOptimiserDescriptor;
 
 	public ResidualStatistic() {
 		super();
 		residuals = new ArrayList<>();
 		setPrefix("Residuals");
 	}
-
+	
+	public ResidualStatistic(ResidualStatistic another) {
+		this.statistic = another.statistic;
+		this.residuals = new ArrayList<>(another.residuals);
+	}
+	
 	public double[] transformResiduals() {
 		return getResiduals().stream().map(doubleArray -> doubleArray[1])
 				.mapToDouble(Double::doubleValue).toArray();
 	}
 
 	public void calculateResiduals(SearchTask task) {
-		var estimate = task.getProblem().getHeatingCurve();
+		var estimate = task.getCurrentCalculation().getProblem().getHeatingCurve();
 		var reference = task.getExperimentalCurve();
 
 		residuals.clear();
@@ -72,14 +76,6 @@ public abstract class ResidualStatistic extends Statistic {
 
 	public double residualLowerBound() {
 		return residuals.stream().map(array -> array[1]).reduce((a, b) -> a < b ? a : b).get();
-	}
-
-	public static void setSelectedOptimiserDescriptor(String selectedTestDescriptor) {
-		ResidualStatistic.selectedOptimiserDescriptor = selectedTestDescriptor;
-	}
-
-	public static String getSelectedOptimiserDescriptor() {
-		return selectedOptimiserDescriptor;
 	}
 
 	public NumericProperty getStatistic() {

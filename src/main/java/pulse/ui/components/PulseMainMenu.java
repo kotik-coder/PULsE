@@ -1,6 +1,5 @@
 package pulse.ui.components;
 
-import static java.awt.Font.PLAIN;
 import static java.io.File.separator;
 import static javax.swing.JFileChooser.APPROVE_OPTION;
 import static javax.swing.JFileChooser.DIRECTORIES_ONLY;
@@ -15,7 +14,7 @@ import static pulse.properties.NumericPropertyKeyword.CORRELATION_THRESHOLD;
 import static pulse.properties.NumericPropertyKeyword.SIGNIFICANCE;
 import static pulse.search.statistics.CorrelationTest.setThreshold;
 import static pulse.search.statistics.NormalityTest.setStatisticalSignificance;
-import static pulse.search.statistics.ResidualStatistic.setSelectedOptimiserDescriptor;
+import static pulse.search.statistics.OptimiserStatistic.setSelectedOptimiserDescriptor;
 import static pulse.tasks.TaskManager.getManagerInstance;
 import static pulse.tasks.listeners.TaskRepositoryEvent.State.TASK_ADDED;
 import static pulse.ui.Launcher.loadIcon;
@@ -23,7 +22,6 @@ import static pulse.ui.components.DataLoader.loadDataDialog;
 import static pulse.ui.components.DataLoader.loadMetadataDialog;
 import static pulse.util.Reflexive.allDescriptors;
 
-import java.awt.Font;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +37,7 @@ import javax.swing.JSeparator;
 
 import pulse.search.statistics.CorrelationTest;
 import pulse.search.statistics.NormalityTest;
-import pulse.search.statistics.ResidualStatistic;
+import pulse.search.statistics.OptimiserStatistic;
 import pulse.tasks.listeners.TaskRepositoryEvent;
 import pulse.tasks.processing.Buffer;
 import pulse.ui.components.listeners.ExitRequestListener;
@@ -154,11 +152,6 @@ public class PulseMainMenu extends JMenuBar {
 		modelSettingsItem.setEnabled(false);
 		searchSettingsItem.setEnabled(false);
 
-		var menuFont = new Font("Arial", PLAIN, 18);
-		fileMenu.setFont(menuFont);
-		settingsMenu.setFont(menuFont);
-		infoMenu.setFont(menuFont);
-
 		fileMenu.add(loadDataItem);
 		fileMenu.add(loadMetadataItem);
 		fileMenu.add(new JSeparator());
@@ -227,8 +220,7 @@ public class PulseMainMenu extends JMenuBar {
 
 		item = null;
 
-		var set = allDescriptors(ResidualStatistic.class);
-		set.removeAll(allDescriptors(NormalityTest.class));
+		var set = allDescriptors(OptimiserStatistic.class);
 
 		for (var statisticName : set) {
 			item = new JRadioButtonMenuItem(statisticName);
@@ -239,7 +231,7 @@ public class PulseMainMenu extends JMenuBar {
 				if (((AbstractButton) e.getItem()).isSelected()) {
 					var text = ((AbstractButton) e.getItem()).getText();
 					setSelectedOptimiserDescriptor(text);
-					getManagerInstance().getTaskList().stream().forEach(t -> t.initOptimiser());
+					getManagerInstance().getTaskList().stream().forEach(t -> t.getCurrentCalculation().initOptimiser());
 				}
 
 			});

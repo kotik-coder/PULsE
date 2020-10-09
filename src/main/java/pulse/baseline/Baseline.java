@@ -27,6 +27,8 @@ import pulse.util.Reflexive;
 
 public abstract class Baseline extends PropertyHolder implements Reflexive, Optimisable {
 
+	public abstract Baseline copy();
+	
 	/**
 	 * Calculates the baseline at the given position.
 	 * 

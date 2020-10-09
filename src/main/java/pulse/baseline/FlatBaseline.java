@@ -145,4 +145,9 @@ public class FlatBaseline extends Baseline {
 
 	}
 
+	@Override
+	public Baseline copy() {
+		return new FlatBaseline(this.intercept);
+	}
+
 }

@@ -50,6 +50,13 @@ public class HeatingCurve extends AbstractData {
 		adjustedSignal = new ArrayList<Double>((int)this.getNumPoints().getValue());
 		splineInterpolator = new SplineInterpolator();
 	}
+	
+	public HeatingCurve(HeatingCurve c) {
+		super(c);
+		this.adjustedSignal = new ArrayList<>(c.adjustedSignal);
+		this.startTime = c.startTime;
+		splineInterpolator = new SplineInterpolator();
+	}
 
 	/**
 	 * Creates a {@code HeatingCurve}, where the number of elements in the

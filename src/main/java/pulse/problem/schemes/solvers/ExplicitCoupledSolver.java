@@ -16,7 +16,7 @@ import pulse.problem.schemes.rte.RTECalculationStatus;
 import pulse.problem.schemes.rte.RadiativeTransferSolver;
 import pulse.problem.statements.ParticipatingMedium;
 import pulse.problem.statements.Problem;
-import pulse.problem.statements.ThermoOpticalProperties;
+import pulse.problem.statements.model.ThermoOpticalProperties;
 import pulse.properties.NumericProperty;
 
 public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<ParticipatingMedium>, FixedPointIterations {

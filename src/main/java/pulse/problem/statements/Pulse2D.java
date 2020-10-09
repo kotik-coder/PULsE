@@ -36,6 +36,18 @@ public class Pulse2D extends Pulse {
 		super(p);
 		this.spotDiameter = p instanceof Pulse2D ? ((Pulse2D) p).spotDiameter : (double) def(SPOT_DIAMETER).getValue();
 	}
+	
+	@Override
+	public void initFrom(Pulse pulse) {
+		super.initFrom(pulse);
+		if(pulse instanceof Pulse2D)
+			this.spotDiameter = ((Pulse2D) pulse).spotDiameter;
+	}
+	
+	@Override
+	public Pulse copy() {
+		return new Pulse2D(this);
+	}
 
 	public NumericProperty getSpotDiameter() {
 		return derive(SPOT_DIAMETER, spotDiameter);

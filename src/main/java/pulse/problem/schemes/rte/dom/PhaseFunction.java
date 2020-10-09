@@ -1,7 +1,7 @@
 package pulse.problem.schemes.rte.dom;
 
 import pulse.problem.statements.ParticipatingMedium;
-import pulse.problem.statements.ThermoOpticalProperties;
+import pulse.problem.statements.model.ThermoOpticalProperties;
 import pulse.util.Reflexive;
 
 public abstract class PhaseFunction implements Reflexive {

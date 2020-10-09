@@ -37,6 +37,12 @@ public class TrapezoidalPulse extends PulseTemporalShape {
 		fall = (int) def(TRAPEZOIDAL_FALL_PERCENTAGE).getValue() / 100.0;
 		h = height();
 	}
+	
+	public TrapezoidalPulse(TrapezoidalPulse another) {
+		this.rise = another.rise;
+		this.fall = another.fall;
+		this.h = another.h;
+	}
 
 	@Override
 	public void init(DiscretePulse pulse) {
@@ -122,6 +128,11 @@ public class TrapezoidalPulse extends PulseTemporalShape {
 			break;
 		}
 		firePropertyChanged(this, property);
+	}
+
+	@Override
+	public PulseTemporalShape copy() {
+		return new TrapezoidalPulse(this);
 	}
 
 }

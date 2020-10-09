@@ -57,6 +57,14 @@ public class ExponentiallyModifiedGaussian extends PulseTemporalShape {
 
 		};
 	}
+	
+	public ExponentiallyModifiedGaussian(ExponentiallyModifiedGaussian another) {
+		this.mu = another.mu;
+		this.sigma = another.sigma;
+		this.lambda = another.lambda;
+		this.norm = another.norm;
+		this.integrator = another.integrator;
+	}
 
 	/**
 	 * This calls the superclass {@code init method} and sets the normalisation
@@ -185,6 +193,12 @@ public class ExponentiallyModifiedGaussian extends PulseTemporalShape {
 			break;
 		}
 		firePropertyChanged(this, property);
+	}
+
+	@Override
+	public PulseTemporalShape copy() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

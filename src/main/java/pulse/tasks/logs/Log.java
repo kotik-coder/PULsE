@@ -52,7 +52,7 @@ public class Log extends Group {
 			 * Do these actions each time data has been collected for this task.
 			 */
 
-			if (task.getStatus() != Status.INCOMPLETE && verbose) {
+			if (task.getCurrentCalculation().getStatus() != Status.INCOMPLETE && verbose) {
 				logEntries.add(le);
 				notifyListeners(le);
 			}

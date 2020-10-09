@@ -130,14 +130,13 @@ public class Range extends PropertyHolder implements Optimisable {
 	 */
 
 	protected void updateMinimum(NumericProperty p) {
-		if (p != null) {
+		if (p == null) 
+			return;
 
-			requireType(p, PULSE_WIDTH);
+		requireType(p, PULSE_WIDTH);
+		double pulseWidth = (double) p.getValue();
+		segment.setMinimum(max(segment.getMinimum(), pulseWidth));
 
-			double pulseWidth = (double) p.getValue();
-			segment.setMinimum(max(segment.getMinimum(), pulseWidth));
-
-		}
 	}
 
 	@Override
@@ -177,11 +176,11 @@ public class Range extends PropertyHolder implements Optimisable {
 			switch (output[0].getIndex(i)) {
 			case UPPER_BOUND:
 				output[0].set(i, segment.getMaximum());
-				output[1].set(i, 0.25 * segment.getMaximum());
+				output[1].set(i, 0.75 * segment.length());
 				break;
 			case LOWER_BOUND:
 				output[0].set(i, segment.getMinimum());
-				output[1].set(i, 0.25 * segment.getMaximum());
+				output[1].set(i, 0.75 * segment.length());
 				break;
 			default:
 				continue;

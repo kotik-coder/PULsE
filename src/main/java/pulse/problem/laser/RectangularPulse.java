@@ -30,4 +30,9 @@ public class RectangularPulse extends PulseTemporalShape {
 		// intentionally blak
 	}
 
+	@Override
+	public PulseTemporalShape copy() {
+		return new RectangularPulse();
+	}
+
 }

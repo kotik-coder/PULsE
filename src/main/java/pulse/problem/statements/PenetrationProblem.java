@@ -12,8 +12,8 @@ import java.util.List;
 import pulse.math.IndexedVector;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.solvers.ImplicitTranslucentSolver;
-import pulse.problem.statements.penetration.AbsorptionModel;
-import pulse.problem.statements.penetration.BeerLambertAbsorption;
+import pulse.problem.statements.model.AbsorptionModel;
+import pulse.problem.statements.model.BeerLambertAbsorption;
 import pulse.properties.Flag;
 import pulse.properties.Property;
 import pulse.ui.Messages;
@@ -37,24 +37,10 @@ public class PenetrationProblem extends ClassicalProblem {
 		instanceDescriptor.addListener(() -> initAbsorption());
 		absorption.setParent(this);
 	}
-
-	public PenetrationProblem(Problem sdd) {
-		super(sdd);
-		getHeatingCurve().setNumPoints(derive(NUMPOINTS, DEFAULT_CURVE_POINTS));
-		if (sdd instanceof PenetrationProblem) {
-			PenetrationProblem tp = (PenetrationProblem) sdd;
-			setAbsorptionModel(tp.absorption);
-		} else {
-			initAbsorption();
-			instanceDescriptor.addListener(() -> initAbsorption());
-		}
-		absorption.setParent(this);
-	}
-
-	public PenetrationProblem(PenetrationProblem tp) {
-		super(tp);
-		getHeatingCurve().setNumPoints(derive(NUMPOINTS, DEFAULT_CURVE_POINTS));
-		setAbsorptionModel(tp.absorption);
+	
+	public PenetrationProblem(PenetrationProblem p) {
+		super(p);
+		initAbsorption();
 	}
 
 	private void initAbsorption() {
@@ -129,6 +115,11 @@ public class PenetrationProblem extends ClassicalProblem {
 	@Override
 	public String toString() {
 		return Messages.getString("DistributedProblem.Descriptor");
+	}
+	
+	@Override
+	public Problem copy() {
+		return new PenetrationProblem(this);
 	}
 
 }

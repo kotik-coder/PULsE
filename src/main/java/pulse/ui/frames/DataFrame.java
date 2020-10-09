@@ -2,13 +2,10 @@ package pulse.ui.frames;
 
 import static java.awt.BorderLayout.CENTER;
 import static java.awt.Color.BLACK;
-import static java.awt.Font.PLAIN;
 import static java.awt.Window.Type.UTILITY;
-import static pulse.ui.Messages.getString;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.Font;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -24,7 +21,6 @@ public class DataFrame extends JFrame {
 	private PropertyHolderTable dataTable;
 	private Component ancestorFrame;
 	private PropertyHolder dataObject;
-	private final static Font TABLE_FONT = new Font(getString("DataFrame.FontName"), PLAIN, 16);
 	private final static int ROW_HEIGHT = 70;
 
 	@Override
@@ -64,7 +60,6 @@ public class DataFrame extends JFrame {
 		contentPane.add(scrollPane, CENTER);
 
 		dataTable = new PropertyHolderTable(dataObject);
-		dataTable.setFont(TABLE_FONT);
 		dataTable.setRowHeight(ROW_HEIGHT);
 		
 		setBounds(100, 100, 600, 450);

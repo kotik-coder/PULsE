@@ -106,7 +106,7 @@ public class DataLoader {
 				e.printStackTrace();
 			}
 
-			var p = task.getProblem();
+			var p = task.getCurrentCalculation().getProblem();
 			if (p != null)
 				p.retrieveData(data);
 			progressFrame.incrementProgress();

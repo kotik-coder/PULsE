@@ -1,4 +1,4 @@
-package pulse.problem.statements;
+package pulse.problem.statements.model;
 
 import static pulse.properties.NumericProperties.def;
 import static pulse.properties.NumericProperties.derive;

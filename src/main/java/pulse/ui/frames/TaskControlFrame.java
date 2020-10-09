@@ -5,6 +5,7 @@ import static javax.swing.JOptionPane.WARNING_MESSAGE;
 import static javax.swing.JOptionPane.YES_NO_OPTION;
 import static javax.swing.JOptionPane.YES_OPTION;
 import static javax.swing.JOptionPane.showOptionDialog;
+import static pulse.tasks.listeners.TaskRepositoryEvent.State.TASK_BROWSING_REQUEST;
 import static pulse.tasks.processing.ResultFormat.addResultFormatListener;
 import static pulse.ui.Launcher.loadIcon;
 import static pulse.ui.Messages.getString;
@@ -24,6 +25,7 @@ import javax.swing.event.InternalFrameAdapter;
 import javax.swing.event.InternalFrameEvent;
 
 import pulse.tasks.TaskManager;
+import pulse.ui.Launcher;
 import pulse.ui.components.PulseMainMenu;
 import pulse.ui.components.listeners.FrameVisibilityRequestListener;
 import pulse.ui.components.listeners.TaskActionListener;
@@ -32,22 +34,22 @@ import pulse.ui.components.models.ResultTableModel;
 @SuppressWarnings("serial")
 public class TaskControlFrame extends JFrame {
 
-	private static Mode mode = Mode.TASK;
-
 	private final static int HEIGHT = 730;
 	private final static int WIDTH = 1035;
 
 	private static TaskControlFrame instance = new TaskControlFrame();
 
-	private static ProblemStatementFrame problemStatementFrame;
-	private static SearchOptionsFrame searchOptionsFrame;
-	private static TaskManagerFrame taskManagerFrame;
-	private static PreviewFrame previewFrame;
-	private static ResultFrame resultsFrame;
-	private static MainGraphFrame graphFrame;
-	private static LogFrame logFrame;
+	private Mode mode = Mode.TASK;
+	private ProblemStatementFrame problemStatementFrame;
+	private SearchOptionsFrame searchOptionsFrame;
+	private TaskManagerFrame taskManagerFrame;
+	private ModelSelectionFrame modelFrame;
+	private PreviewFrame previewFrame;
+	private ResultFrame resultsFrame;
+	private MainGraphFrame graphFrame;
+	private LogFrame logFrame;
 
-	private static PulseMainMenu mainMenu;
+	private PulseMainMenu mainMenu;
 
 	public static TaskControlFrame getInstance() {
 		return instance;
@@ -121,6 +123,14 @@ public class TaskControlFrame extends JFrame {
 				exit(0);
 		});
 
+		var manager = TaskManager.getManagerInstance();
+		manager.addTaskRepositoryListener(e ->
+			{
+				if(e.getState() == TASK_BROWSING_REQUEST) 
+					setModelSelectionFrameVisible(true);
+			}
+		);
+
 		addResultFormatListener(rfe -> ((ResultTableModel) resultsFrame.getResultTable().getModel())
 				.changeFormat(rfe.getResultFormat()));
 
@@ -151,6 +161,7 @@ public class TaskControlFrame extends JFrame {
 			}
 
 		});
+
 	}
 
 	/**
@@ -166,14 +177,23 @@ public class TaskControlFrame extends JFrame {
 		setJMenuBar(mainMenu);
 
 		logFrame = new LogFrame();
+		logFrame.setFrameIcon(Launcher.loadIcon("log.png", 20));
 		resultsFrame = new ResultFrame();
+		resultsFrame.setFrameIcon(Launcher.loadIcon("result.png", 20));
 		previewFrame = new PreviewFrame();
+		previewFrame.setFrameIcon(Launcher.loadIcon("preview.png", 20));
 		taskManagerFrame = new TaskManagerFrame();
+		taskManagerFrame.setFrameIcon(Launcher.loadIcon("task_manager.png", 20));
 		graphFrame = MainGraphFrame.getInstance();
+		graphFrame.setFrameIcon(Launcher.loadIcon("curves.png", 20));
 
 		problemStatementFrame = new ProblemStatementFrame();
+		problemStatementFrame.setFrameIcon(Launcher.loadIcon("heat_problem.png", 20));
+		modelFrame = new ModelSelectionFrame();
+		modelFrame.setFrameIcon(Launcher.loadIcon("stored.png", 20));
 
 		searchOptionsFrame = new SearchOptionsFrame();
+		searchOptionsFrame.setFrameIcon(Launcher.loadIcon("optimiser.png", 20));
 
 		/*
 		 * CONSTRAINT ADJUSTMENT
@@ -188,6 +208,7 @@ public class TaskControlFrame extends JFrame {
 		desktopPane.add(resultsFrame);
 		desktopPane.add(problemStatementFrame);
 		desktopPane.add(searchOptionsFrame);
+		desktopPane.add(modelFrame);
 
 		setDefaultResizeBehaviour();
 
@@ -237,6 +258,15 @@ public class TaskControlFrame extends JFrame {
 
 		});
 
+		modelFrame.addInternalFrameListener(new InternalFrameAdapter() {
+
+			@Override
+			public void internalFrameClosing(InternalFrameEvent e) {
+				setModelSelectionFrameVisible(false);
+			}
+
+		});
+
 	}
 
 	private void doResize() {
@@ -252,6 +282,11 @@ public class TaskControlFrame extends JFrame {
 			break;
 		case PREVIEW:
 			resizeHalves(previewFrame, resultsFrame);
+			break;
+		case MODEL_COMPARISON:
+			resizeTriplet(graphFrame, resultsFrame, modelFrame);
+			break;
+		default:
 			break;
 		}
 	}
@@ -356,6 +391,7 @@ public class TaskControlFrame extends JFrame {
 
 	private void setProblemStatementFrameVisible(boolean show) {
 		problemStatementFrame.setVisible(show);
+		problemStatementFrame.getPulseFrame().setVisible(show);
 		graphFrame.setVisible(true);
 
 		previewFrame.setVisible(false);
@@ -383,9 +419,23 @@ public class TaskControlFrame extends JFrame {
 		doResize();
 	}
 
+	private void setModelSelectionFrameVisible(boolean show) {
+		modelFrame.setVisible(show);
+		resultsFrame.setVisible(true);
+		graphFrame.setVisible(true);
+
+		problemStatementFrame.setVisible(false);
+		previewFrame.setVisible(false);
+		taskManagerFrame.setVisible(!show);
+		logFrame.setVisible(!show);
+
+		mode = show ? Mode.MODEL_COMPARISON : Mode.TASK;
+		doResize();
+	}
+
 	private enum Mode {
 
-		TASK, PROBLEM, PREVIEW, SEARCH;
+		TASK, PROBLEM, PREVIEW, SEARCH, MODEL_COMPARISON;
 
 	}
 

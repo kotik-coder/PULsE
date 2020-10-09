@@ -1,6 +1,5 @@
 package pulse.ui.components;
 
-import static java.awt.Font.PLAIN;
 import static java.lang.System.err;
 import static java.lang.System.lineSeparator;
 import static javax.swing.JOptionPane.ERROR_MESSAGE;
@@ -10,6 +9,7 @@ import static javax.swing.JOptionPane.YES_NO_OPTION;
 import static javax.swing.JOptionPane.showConfirmDialog;
 import static javax.swing.JOptionPane.showMessageDialog;
 import static javax.swing.SwingUtilities.getWindowAncestor;
+import static pulse.tasks.listeners.TaskRepositoryEvent.State.TASK_BROWSING_REQUEST;
 import static pulse.tasks.listeners.TaskRepositoryEvent.State.TASK_FINISHED;
 import static pulse.tasks.logs.Details.MISSING_HEATING_CURVE;
 import static pulse.tasks.logs.Details.NONE;
@@ -21,7 +21,6 @@ import static pulse.ui.Messages.getString;
 import static pulse.ui.frames.MainGraphFrame.getChart;
 
 import java.awt.Component;
-import java.awt.Font;
 import java.awt.event.ActionEvent;
 
 import javax.swing.ImageIcon;
@@ -33,12 +32,13 @@ import pulse.problem.schemes.solvers.Solver;
 import pulse.problem.schemes.solvers.SolverException;
 import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.TaskRepositoryEvent;
+import pulse.tasks.logs.Status;
 import pulse.tasks.processing.Result;
 
 @SuppressWarnings("serial")
 public class TaskPopupMenu extends JPopupMenu {
-
-	private final static Font f = new Font(getString("TaskTable.FontName"), PLAIN, 16); //$NON-NLS-1$
+	
+	private JMenuItem itemViewStored;
 
 	private final static int ICON_SIZE = 24;
 
@@ -48,18 +48,17 @@ public class TaskPopupMenu extends JPopupMenu {
 	private static ImageIcon ICON_RUN = loadIcon("execute_single.png", ICON_SIZE);
 	private static ImageIcon ICON_RESET = loadIcon("reset.png", ICON_SIZE);
 	private static ImageIcon ICON_RESULT = loadIcon("result.png", ICON_SIZE);
+	private static ImageIcon ICON_STORED = loadIcon("stored.png", ICON_SIZE);
 
 	public TaskPopupMenu() {
 		var referenceWindow = getWindowAncestor(this);
 
 		var itemChart = new JMenuItem(getString("TaskTablePopupMenu.ShowHeatingCurve"), ICON_GRAPH); //$NON-NLS-1$
 		itemChart.addActionListener(e -> plot(false));
-		itemChart.setFont(f);
 
 		var itemExtendedChart = new JMenuItem(getString("TaskTablePopupMenu.ShowExtendedHeatingCurve"), //$NON-NLS-1$
 				ICON_GRAPH);
 		itemExtendedChart.addActionListener(e -> plot(true));
-		itemExtendedChart.setFont(f);
 
 		var instance = TaskManager.getManagerInstance();
 
@@ -75,8 +74,6 @@ public class TaskPopupMenu extends JPopupMenu {
 						t.getExperimentalCurve().getMetadata().toString(), "Metadata", PLAIN_MESSAGE);
 		});
 
-		itemShowMeta.setFont(f);
-
 		var itemShowStatus = new JMenuItem("What is missing?", ICON_MISSING);
 
 		instance.addSelectionListener(event -> {
@@ -90,13 +87,11 @@ public class TaskPopupMenu extends JPopupMenu {
 		itemShowStatus.addActionListener((ActionEvent e) -> {
 			var t = instance.getSelectedTask();
 			if (t != null) {
-				var d = t.getStatus().getDetails();
+				var d = t.getCurrentCalculation().getStatus().getDetails();
 				showMessageDialog(getWindowAncestor((Component) e.getSource()),
 						"<html>This is due to " + d.toString() + "</html>", "Problems with " + t, INFORMATION_MESSAGE);
 			}
 		});
-
-		itemShowStatus.setFont(f);
 
 		var itemExecute = new JMenuItem(getString("TaskTablePopupMenu.Execute"), ICON_RUN); //$NON-NLS-1$
 		itemExecute.addActionListener((ActionEvent e) -> {
@@ -112,40 +107,44 @@ public class TaskPopupMenu extends JPopupMenu {
 								+ getString("TaskTablePopupMenu.AskToDelete"),
 						getString("TaskTablePopupMenu.DeleteTitle"), dialogButton);
 				if (dialogResult == 0) {
-					instance.removeResult(t);
-					// t.storeCurrentSolution();
+					// instance.removeResult(t);
+					instance.getSelectedTask().setStatus(Status.READY);
 					instance.execute(instance.getSelectedTask());
 				}
 			} else if (t.checkProblems() != READY) {
 				showMessageDialog(getWindowAncestor((Component) e.getSource()),
-						t.toString() + " is " + t.getStatus().getMessage(), //$NON-NLS-1$
+						t.toString() + " is " + t.getCurrentCalculation().getStatus().getMessage(), //$NON-NLS-1$
 						getString("TaskTablePopupMenu.TaskNotReady"), //$NON-NLS-1$
 						ERROR_MESSAGE);
 			} else
 				instance.execute(instance.getSelectedTask());
 		});
 
-		itemExecute.setFont(f);
 
 		var itemReset = new JMenuItem(getString("TaskTablePopupMenu.Reset"), ICON_RESET);
-		itemReset.setFont(f);
 
 		itemReset.addActionListener((ActionEvent arg0) -> instance.getSelectedTask().clear());
 
 		var itemGenerateResult = new JMenuItem(getString("TaskTablePopupMenu.GenerateResult"), ICON_RESULT);
-		itemGenerateResult.setFont(f);
 
 		itemGenerateResult.addActionListener((ActionEvent arg0) -> {
 			var t = instance.getSelectedTask();
 			if (t == null)
 				return;
-			if (t.getProblem() != null) {
+			if (t.getCurrentCalculation().getProblem() != null) {
 				var r = new Result(t, getInstance());
 				instance.useResult(t, r);
 				var e = new TaskRepositoryEvent(TASK_FINISHED, t.getIdentifier());
 				instance.notifyListeners(e);
 			}
 		});
+
+		itemViewStored = new JMenuItem(getString("TaskTablePopupMenu.ViewStored"), ICON_STORED);
+	
+		itemViewStored.setEnabled(false);
+
+		itemViewStored.addActionListener(arg0 -> instance.notifyListeners(
+				new TaskRepositoryEvent(TASK_BROWSING_REQUEST, instance.getSelectedTask().getIdentifier())));
 
 		add(itemShowMeta);
 		add(itemShowStatus);
@@ -155,6 +154,7 @@ public class TaskPopupMenu extends JPopupMenu {
 		add(new JSeparator());
 		add(itemReset);
 		add(itemGenerateResult);
+		add(itemViewStored);
 		add(new JSeparator());
 		add(itemExecute);
 
@@ -169,7 +169,8 @@ public class TaskPopupMenu extends JPopupMenu {
 					getString("TaskTablePopupMenu.11"), ERROR_MESSAGE); //$NON-NLS-1$
 		} else {
 
-			var statusDetails = t.getStatus().getDetails();
+			var calc = t.getCurrentCalculation();
+			var statusDetails = calc.getStatus().getDetails();
 
 			if (statusDetails == MISSING_HEATING_CURVE) {
 
@@ -179,10 +180,10 @@ public class TaskPopupMenu extends JPopupMenu {
 
 			} else {
 
-				var scheme = (Solver) t.getScheme();
+				var scheme = (Solver) calc.getScheme();
 				if (scheme != null) {
 					try {
-						scheme.solve(t.getProblem());
+						scheme.solve(calc.getProblem());
 					} catch (SolverException e) {
 						err.println("Solver error for " + t + "Details: ");
 						e.printStackTrace();
@@ -195,6 +196,10 @@ public class TaskPopupMenu extends JPopupMenu {
 
 		}
 
+	}
+
+	public JMenuItem getItemViewStored() {
+		return itemViewStored;
 	}
 
 }

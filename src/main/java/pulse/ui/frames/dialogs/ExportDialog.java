@@ -48,8 +48,8 @@ import pulse.tasks.processing.Result;
 public class ExportDialog extends JDialog {
 
 	private static Map<Class<?>, Boolean> exportSettings = new HashMap<Class<?>, Boolean>();
-	private final static int HEIGHT = 160;
-	private final static int WIDTH = 650;
+	private final static int HEIGHT = 180;
+	private final static int WIDTH = 750;
 
 	private static ProgressDialog progressFrame = new ProgressDialog();
 

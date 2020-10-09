@@ -22,16 +22,13 @@ public class RSquaredTest extends NormalityTest {
 	
 	public RSquaredTest() {
 		super();
-	}
-
-	public RSquaredTest(SumOfSquares sos) {
-		this();
-		this.sos = sos;
+		sos = new SumOfSquares();
 	}
 
 	@Override
 	public boolean test(SearchTask task) {
 		evaluate(task);
+		sos = new SumOfSquares();
 		return getStatistic().compareTo(signifiance) > 0;
 	}
 

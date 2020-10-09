@@ -1,5 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <NumericProperties>
+	<NumericProperty abbreviation="Model criterion"
+		auto-adjustable="true" default-search-variable="false"
+		descriptor="Model selection criterion" dimensionfactor="1"
+		discreet="false" keyword="MODEL_CRITERION" maximum="10000"
+		minimum="-1e10" primitive-type="double" value="0.0">
+	</NumericProperty>
+	<NumericProperty abbreviation="&amp;omega;" auto-adjustable="true"
+		default-search-variable="false" descriptor="Model weight, &amp;omega;"
+		dimensionfactor="1" discreet="false" keyword="MODEL_WEIGHT"
+		maximum="1" minimum="0" primitive-type="double" value="0">
+	</NumericProperty>
 	<NumericProperty abbreviation="&lt;i&gt;A&lt;/i&gt;"
 		auto-adjustable="true" descriptor="Baseline amplitude, &lt;i&gt;A&lt;/i&gt;"
 		dimensionfactor="1" discreet="false" keyword="BASELINE_AMPLITUDE"

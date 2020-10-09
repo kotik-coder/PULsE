@@ -4,7 +4,7 @@ import pulse.problem.schemes.Grid;
 import pulse.problem.schemes.rte.FluxesAndImplicitDerivatives;
 import pulse.problem.schemes.rte.RTECalculationStatus;
 import pulse.problem.statements.ParticipatingMedium;
-import pulse.problem.statements.ThermoOpticalProperties;
+import pulse.problem.statements.model.ThermoOpticalProperties;
 
 /**
  * A solver of the radiative transfer equation for an absorbing-emitting medium

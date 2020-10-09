@@ -16,7 +16,7 @@ import pulse.problem.schemes.rte.RadiativeTransferSolver;
 import pulse.problem.schemes.solvers.ImplicitCoupledSolver;
 import pulse.problem.statements.ParticipatingMedium;
 import pulse.problem.statements.Pulse2D;
-import pulse.problem.statements.ThermoOpticalProperties;
+import pulse.problem.statements.model.ThermoOpticalProperties;
 
 public class NonscatteringTestCase {
 

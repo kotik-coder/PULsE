@@ -57,6 +57,12 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 	protected DifferenceScheme(NumericProperty timeLimit) {
 		setTimeLimit(timeLimit);
 	}
+	
+	public void initFrom(DifferenceScheme another) {
+		this.grid = grid.copy();
+		this.timeLimit = another.timeLimit;
+		this.timeInterval = another.timeInterval;
+	}
 
 	/**
 	 * Used to get a class of problems on which this difference scheme is

@@ -51,6 +51,18 @@ public class TaskRepositoryEvent {
 		 */
 
 		TASK_RESET,
+		
+		/**
+		 * An external request has been received to browse previous calculations.
+		 */
+		
+		TASK_BROWSING_REQUEST,
+		
+		/**
+		 * The task has switched to a new model.
+		 */
+		
+		TASK_MDOEL_SWITCH,
 
 		/**
 		 * The repository has been shut down/

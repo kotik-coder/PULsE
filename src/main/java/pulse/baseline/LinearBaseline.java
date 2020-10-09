@@ -182,5 +182,11 @@ public class LinearBaseline extends FlatBaseline {
 		list.add(getSlope());
 		return list;
 	}
+	
+	@Override
+	public Baseline copy() {
+		return new LinearBaseline((double)this.getIntercept().getValue(), this.slope);
+	}
+
 
 }

@@ -1,6 +1,5 @@
 package pulse.tasks;
 
-import static pulse.input.listeners.CurveEventType.TIME_ORIGIN_CHANGED;
 import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.TIME_LIMIT;
 import static pulse.search.direction.ActiveFlags.activeParameters;
@@ -8,7 +7,6 @@ import static pulse.search.direction.ActiveFlags.getAllFlags;
 import static pulse.search.direction.PathOptimiser.getErrorTolerance;
 import static pulse.search.direction.PathOptimiser.getInstance;
 import static pulse.search.direction.PathOptimiser.getLinearSolver;
-import static pulse.search.statistics.ResidualStatistic.getSelectedOptimiserDescriptor;
 import static pulse.tasks.logs.Details.ABNORMAL_DISTRIBUTION_OF_RESIDUALS;
 import static pulse.tasks.logs.Details.INSUFFICIENT_DATA_IN_PROBLEM_STATEMENT;
 import static pulse.tasks.logs.Details.MISSING_BUFFER;
@@ -37,22 +35,16 @@ import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import pulse.input.ExperimentalData;
-import pulse.input.Metadata;
 import pulse.math.IndexedVector;
-import pulse.problem.schemes.DifferenceScheme;
-import pulse.problem.schemes.solvers.Solver;
 import pulse.problem.schemes.solvers.SolverException;
-import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.search.direction.Path;
 import pulse.search.statistics.CorrelationTest;
 import pulse.search.statistics.NormalityTest;
-import pulse.search.statistics.RSquaredTest;
-import pulse.search.statistics.ResidualStatistic;
-import pulse.search.statistics.SumOfSquares;
 import pulse.tasks.listeners.DataCollectionListener;
 import pulse.tasks.listeners.StatusChangeListener;
+import pulse.tasks.listeners.TaskRepositoryEvent;
 import pulse.tasks.logs.CorrelationLogEntry;
 import pulse.tasks.logs.DataLogEntry;
 import pulse.tasks.logs.Details;
@@ -62,9 +54,7 @@ import pulse.tasks.logs.StateEntry;
 import pulse.tasks.logs.Status;
 import pulse.tasks.processing.Buffer;
 import pulse.tasks.processing.CorrelationBuffer;
-import pulse.ui.components.PropertyHolderTable;
 import pulse.util.Accessible;
-import pulse.util.PropertyEvent;
 
 /**
  * A {@code SearchTask} is the most important class in {@code PULsE}. It
@@ -79,32 +69,28 @@ import pulse.util.PropertyEvent;
 
 public class SearchTask extends Accessible implements Runnable {
 
-	private Problem problem;
-	private DifferenceScheme scheme;
+	private Calculation current;
+	private List<Calculation> stored;
 	private ExperimentalData curve;
-	private ResidualStatistic rs;
 
 	private Path path;
 	private Buffer buffer;
-	private CorrelationBuffer correlationBuffer;
 	private Log log;
+
+	private CorrelationBuffer correlationBuffer;
 	private CorrelationTest correlationTest;
-
-	private Identifier identifier;
-	private Status status = INCOMPLETE;
-
 	private NormalityTest normalityTest;
-
-	private final static double RELATIVE_TIME_MARGIN = 1.01;
+	
+	private Identifier identifier;
 
 	/**
 	 * If {@code SearchTask} finishes, and its <i>R<sup>2</sup></i> value is lower
 	 * than this constant, the result will be considered {@code AMBIGUOUS}.
 	 */
 
-	private List<DataCollectionListener> listeners = new CopyOnWriteArrayList<DataCollectionListener>();
-	private List<StatusChangeListener> statusChangeListeners = new CopyOnWriteArrayList<StatusChangeListener>();
-
+	private List<DataCollectionListener> listeners = new CopyOnWriteArrayList<>();
+	private List<StatusChangeListener> statusChangeListeners = new CopyOnWriteArrayList<>();
+	
 	/**
 	 * <p>
 	 * Creates a new {@code SearchTask} from {@code curve}. Generates a new
@@ -117,6 +103,8 @@ public class SearchTask extends Accessible implements Runnable {
 	 */
 
 	public SearchTask(ExperimentalData curve) {
+		current = new Calculation();
+		current.setParent(this);
 		this.identifier = new Identifier();
 		this.curve = curve;
 		curve.setParent(this);
@@ -128,34 +116,59 @@ public class SearchTask extends Accessible implements Runnable {
 	 * <p>
 	 * Resets everything to default values (for a list of default values please see
 	 * the {@code .xml} document. Sets the status of this task to
-	 * {@code INCOMPLETE}.
+	 * {@code INCOMPLETE}.		curve.addDataListener(dataEvent -> {
+			var scheme = current.getScheme();
+			if (scheme != null) {
+				var curve = current.getProblem().getHeatingCurve();
+				var startTime = (double) curve.getTimeShift().getValue();
+				scheme.setTimeLimit(derive(TIME_LIMIT, RELATIVE_TIME_MARGIN * curve.timeLimit() - startTime));
+			}
+		});
 	 * </p>
 	 */
 
 	public void clear() {
+		stored = new ArrayList<Calculation>();
 		curve.resetRanges();
 		buffer = new Buffer();
 		correlationBuffer.clear();
 		buffer.setParent(this);
 		log = new Log(this);
 
-		initOptimiser();
 		initCorrelationTest();
 		initNormalityTest();
 
 		this.path = null;
-		this.problem = null;
-		this.scheme = null;
-
+		current.clear();
+		
 		setStatus(INCOMPLETE);
 
 		curve.addDataListener(dataEvent -> {
+			var scheme = current.getScheme();
 			if (scheme != null) {
-				var startTime = (double) problem.getHeatingCurve().getTimeShift().getValue();
-				scheme.setTimeLimit(derive(TIME_LIMIT, RELATIVE_TIME_MARGIN * curve.timeLimit() - startTime));
+				var hcurve = current.getProblem().getHeatingCurve();
+				var startTime = (double) hcurve.getTimeShift().getValue();
+				scheme.setTimeLimit(derive(TIME_LIMIT, Calculation.RELATIVE_TIME_MARGIN * curve.timeLimit() - startTime));
 			}
 		});
 		
+	}
+	
+	/**
+	 * This will use the current {@code DifferenceScheme} to solve the
+	 * {@code Problem} for this {@code SearchTask} and calculate the SSR value
+	 * showing how well (or bad) the calculated solution describes the
+	 * {@code ExperimentalData}.
+	 * 
+	 * @return the value of SSR (sum of squared residuals).
+	 * @throws SolverException
+	 */
+
+	public double solveProblemAndCalculateDeviation() {
+		current.process();
+		var rs = current.getOptimiserStatistic();
+		rs.evaluate(this);
+		return (double) rs.getStatistic().getValue();
 	}
 
 	public List<NumericProperty> alteredParameters() {
@@ -180,7 +193,7 @@ public class SearchTask extends Accessible implements Runnable {
 
 		var array = new IndexedVector[] { optimisationVector, upperBound };
 
-		problem.optimisationVector(array, flags);
+		current.getProblem().optimisationVector(array, flags);
 		curve.getRange().optimisationVector(array, flags);
 
 		return array;
@@ -197,31 +210,8 @@ public class SearchTask extends Accessible implements Runnable {
 	 */
 
 	public void assign(IndexedVector searchParameters) {
-		problem.assign(searchParameters);
+		current.getProblem().assign(searchParameters);
 		curve.getRange().assign(searchParameters);
-	}
-
-	/**
-	 * This will use the current {@code DifferenceScheme} to solve the
-	 * {@code Problem} for this {@code SearchTask} and calculate the SSR value
-	 * showing how well (or bad) the calculated solution describes the
-	 * {@code ExperimentalData}.
-	 * 
-	 * @return the value of SSR (sum of squared residuals).
-	 * @throws SolverException
-	 */
-
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public double solveProblemAndCalculateDeviation() {
-		try {
-			((Solver) scheme).solve(problem);
-		} catch (SolverException e) {
-			status = FAILED;
-			System.err.println("Solver of " + this + " has encountered an error. Details: ");
-			e.printStackTrace();
-		}
-		rs.evaluate(this);
-		return (double) rs.getStatistic().getValue();
 	}
 
 	/**
@@ -242,7 +232,7 @@ public class SearchTask extends Accessible implements Runnable {
 
 		/* check of status */
 
-		switch (status) {
+		switch (current.getStatus()) {
 		case READY:
 		case QUEUED:
 			setStatus(IN_PROGRESS);
@@ -250,11 +240,11 @@ public class SearchTask extends Accessible implements Runnable {
 		default:
 			return;
 		}
-
+		
 		/* preparatory steps */
 
-		getProblem().parameterListChanged(); // get updated list of parameters
-		solveProblemAndCalculateDeviation();
+		current.getProblem().parameterListChanged(); // get updated list of parameters
+		current.process();
 
 		var pathSolver = getInstance();
 
@@ -278,13 +268,13 @@ public class SearchTask extends Accessible implements Runnable {
 
 			for (var i = 0; i < bufferSize; i++) {
 
-				if (status != IN_PROGRESS)
+				if (current.getStatus() != IN_PROGRESS)
 					break outer;
 
 				try {
 					pathSolver.iteration(this);
 				} catch (SolverException e) {
-					status = FAILED;
+					setStatus(FAILED);
 					System.err.println(this + " failed during execution. Details: ");
 					e.printStackTrace();
 				}
@@ -305,7 +295,7 @@ public class SearchTask extends Accessible implements Runnable {
 
 		singleThreadExecutor.shutdown();
 
-		if (status == IN_PROGRESS)
+		if (current.getStatus() == IN_PROGRESS)
 			runChecks();
 
 	}
@@ -331,9 +321,13 @@ public class SearchTask extends Accessible implements Runnable {
 
 				if (properties.stream().anyMatch(np -> !np.validate()))
 					setStatus(FAILED, PARAMETER_VALUES_NOT_SENSIBLE);
-				else
+				else {
 					setStatus(DONE);
-
+					current.getModelSelectionCriterion().evaluate(this);
+					storeCurrentCalculation();
+					switchTo(current.copy());
+				}
+			
 			}
 
 		}
@@ -361,91 +355,12 @@ public class SearchTask extends Accessible implements Runnable {
 		return getIdentifier().toString();
 	}
 
-	public Problem getProblem() {
-		return problem;
-	}
-
-	public DifferenceScheme getScheme() {
-		return scheme;
-	}
-
 	public ExperimentalData getExperimentalCurve() {
 		return curve;
 	}
 
 	public Path getPath() {
 		return path;
-	}
-
-	/**
-	 * <p>
-	 * After setting and adopting the {@code problem} by this {@code SearchTask},
-	 * this will attempt to change the parameters of that {@code problem} in
-	 * accordance with the loaded {@code ExperimentalData} for this
-	 * {@code SearchTask} (if not null). Later, if any changes to the properties of
-	 * that {@code Problem} occur and if the source of that event is either the
-	 * {@code Metadata} or the {@code PropertyHolderTable}, they will be accounted
-	 * for by altering the parameters of the {@code problem} accordingly --
-	 * immediately after the former take place.
-	 * </p>
-	 * 
-	 * @param problem a {@code Problem}
-	 */
-
-	public void setProblem(Problem problem) {
-		this.problem = problem;
-		problem.setParent(this);
-		problem.removeHeatingCurveListeners();
-		problem.retrieveData(curve);
-
-		problem.getProperties().addListener((PropertyEvent event) -> {
-			var source = event.getSource();
-			
-			if (source instanceof Metadata || source instanceof PropertyHolderTable ) {
-				
-				var property = event.getProperty();
-				if(property instanceof NumericProperty && ((NumericProperty)property).isAutoAdjustable() )
-					return;
-				
-				problem.estimateSignalRange(curve);
-				problem.getProperties().useTheoreticalEstimates(curve);
-			}
-		});
-		
-		problem.getHeatingCurve().addHeatingCurveListener(dataEvent -> {
-
-			var event = dataEvent.getType();
-
-			if (event == TIME_ORIGIN_CHANGED) {
-				var upperLimitUpdated = RELATIVE_TIME_MARGIN * curve.timeLimit()
-						- (double) problem.getHeatingCurve().getTimeShift().getValue();
-				scheme.setTimeLimit(derive(TIME_LIMIT, upperLimitUpdated));
-			}
-
-		});
-
-	}
-
-	/**
-	 * Adopts the {@code scheme} by this {@code SearchTask} and updates the time
-	 * limit of {@scheme} to match {@code ExperimentalData}.
-	 * 
-	 * @param scheme the {@code DiffenceScheme}.
-	 */
-
-	public void setScheme(DifferenceScheme scheme) {
-		this.scheme = scheme;
-
-		if (problem != null && scheme != null) {
-			scheme.setParent(this);
-
-			var upperLimit = RELATIVE_TIME_MARGIN * curve.timeLimit()
-					- (double) problem.getHeatingCurve().getTimeShift().getValue();
-
-			scheme.setTimeLimit(derive(TIME_LIMIT, upperLimit));
-
-		}
-
 	}
 
 	/**
@@ -461,19 +376,12 @@ public class SearchTask extends Accessible implements Runnable {
 			curve.setParent(this);
 
 	}
-
-	public Status getStatus() {
-		return status;
-	}
-
+	
 	public void setStatus(Status status, Details details) {
-		if (this.status != status) {
-			this.status = status;
-			status.setDetails(details);
+		if(current.setStatus(status, details)) 
 			notifyStatusListeners(new StateEntry(this, status));
-		}
 	}
-
+	
 	/**
 	 * Sets a new {@code status} to this {@code SearchTask} and informs the
 	 * listeners.
@@ -505,17 +413,18 @@ public class SearchTask extends Accessible implements Runnable {
 	 */
 
 	public Status checkProblems(boolean updateStatus) {
+		var status = current.getStatus();
 		if (status == DONE)
 			return status;
 
 		var pathSolver = getInstance();
 		var s = INCOMPLETE;
 
-		if (problem == null)
+		if (current.getProblem() == null)
 			s.setDetails(MISSING_PROBLEM_STATEMENT);
-		else if (!problem.isReady())
+		else if (!current.getProblem().isReady())
 			s.setDetails(INSUFFICIENT_DATA_IN_PROBLEM_STATEMENT);
-		else if (scheme == null)
+		else if (current.getScheme() == null)
 			s.setDetails(MISSING_DIFFERENCE_SCHEME);
 		else if (curve == null)
 			s.setDetails(MISSING_HEATING_CURVE);
@@ -578,7 +487,7 @@ public class SearchTask extends Accessible implements Runnable {
 	 */
 
 	public void terminate() {
-		switch (status) {
+		switch (current.getStatus()) {
 		case IN_PROGRESS:
 		case QUEUED:
 		case READY:
@@ -615,27 +524,9 @@ public class SearchTask extends Accessible implements Runnable {
 		return normalityTest;
 	}
 
-	public ResidualStatistic getResidualStatistic() {
-		return rs;
-	}
-
-	public void setResidualStatistic(ResidualStatistic rs) {
-		this.rs = rs;
-		rs.setParent(this);
-	}
-
 	public void initNormalityTest() {
 		normalityTest = instantiate(NormalityTest.class, NormalityTest.getSelectedTestDescriptor());
-
-		if (normalityTest instanceof RSquaredTest && rs instanceof SumOfSquares)
-			((RSquaredTest) normalityTest).setSumOfSquares((SumOfSquares) rs);
-
 		normalityTest.setParent(this);
-	}
-
-	public void initOptimiser() {
-		rs = instantiate(ResidualStatistic.class, getSelectedOptimiserDescriptor());
-		rs.setParent(this);
 	}
 
 	public void initCorrelationTest() {
@@ -649,6 +540,37 @@ public class SearchTask extends Accessible implements Runnable {
 
 	public CorrelationTest getCorrelationTest() {
 		return correlationTest;
+	}
+
+	public Calculation getCurrentCalculation() {
+		return current;
+	}
+	
+	public void storeCurrentCalculation() {
+		stored.add(current.copy());
+	}
+	
+	public List<Calculation> getStoredCalculations() {
+		return this.stored;
+	}
+	
+	public void switchTo(Calculation calc) {
+		current = null;
+		this.current = calc.copy();
+		current.setParent(this);
+		this.fireModelSelected();
+	}
+	
+	public void switchToBestModel() {
+		var best = stored.stream().reduce((c1, c2) -> c1.compareTo(c2) > 0 ? c2 : c1);
+		this.switchTo(best.get());
+	}
+	
+	private void fireModelSelected() {
+		var instance = TaskManager.getManagerInstance();
+		var e = new TaskRepositoryEvent(TaskRepositoryEvent.State.TASK_MDOEL_SWITCH, this.getIdentifier());
+		for(var l : instance.getTaskRepositoryListeners())
+			l.onTaskListChanged(e);
 	}
 
 }

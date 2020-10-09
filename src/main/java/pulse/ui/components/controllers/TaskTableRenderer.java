@@ -10,6 +10,7 @@ import pulse.properties.NumericProperty;
 import pulse.properties.Property;
 import pulse.tasks.Identifier;
 import pulse.tasks.logs.Status;
+import pulse.util.PropertyHolder;
 
 @SuppressWarnings("serial")
 public class TaskTableRenderer extends NumericPropertyRenderer {
@@ -27,16 +28,20 @@ public class TaskTableRenderer extends NumericPropertyRenderer {
 			return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 
 		else if (value instanceof Identifier)
-			return initTextField("" + ((Property) value).getValue(), table.isRowSelected(row));
+			return initLabel("" + ((Property) value).getValue(), table.isRowSelected(row));
 
 		else if (value instanceof Status) {
 
-			var jtf = initTextField(value.toString(), table.isRowSelected(row));
-			jtf.setForeground(((Status) value).getColor());
-			jtf.setFont(jtf.getFont().deriveFont(BOLD));
+			var lab = initLabel(value.toString(), table.isRowSelected(row));
+			lab.setForeground(((Status) value).getColor());
+			lab.setFont(lab.getFont().deriveFont(BOLD));
 
-			return jtf;
+			return lab;
 
+		}
+		
+		else if(value instanceof PropertyHolder) {
+			return initLabel("" + ((PropertyHolder)value).describe(), table.isRowSelected(row));
 		}
 
 		return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);

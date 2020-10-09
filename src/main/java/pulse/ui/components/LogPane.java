@@ -32,7 +32,7 @@ public class LogPane extends JEditorPane implements Descriptive {
 
 	private ExecutorService updateExecutor = newSingleThreadExecutor();
 
-	private final static boolean DEBUG = false;
+	private final static boolean DEBUG = true;
 
 	private PrintStream outStream, errStream;
 
@@ -122,7 +122,7 @@ public class LogPane extends JEditorPane implements Descriptive {
 
 				log.getLogEntries().stream().forEach(entry -> post(entry));
 
-				if (task.getStatus() == DONE)
+				if (task.getCurrentCalculation().getStatus() == DONE)
 					printTimeTaken(log);
 
 			}

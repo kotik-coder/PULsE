@@ -1,6 +1,5 @@
 package pulse.ui.components.buttons;
 
-import static java.awt.Font.BOLD;
 import static java.awt.Toolkit.getDefaultToolkit;
 import static javax.swing.JFileChooser.APPROVE_OPTION;
 import static javax.swing.JOptionPane.ERROR_MESSAGE;
@@ -43,7 +42,7 @@ public class LoaderButton extends JButton {
 
 	public void init() {
 
-		setFont(getFont().deriveFont(BOLD, 14f));
+		//setFont(getFont().deriveFont(BOLD, 14f));
 
 		addActionListener((ActionEvent arg0) -> {
 			var fileChooser = new JFileChooser();

@@ -29,7 +29,7 @@ public class HistogramFrame extends ExternalGraphFrame<ResidualStatistic> {
 		getContentPane().add(panel, SOUTH);
 		slider.addChangeListener(e -> {
 			((ResidualsChart)chart).setBinCount(slider.getValue());
-			plot(TaskManager.getManagerInstance().getSelectedTask().getResidualStatistic() );
+			plot(TaskManager.getManagerInstance().getSelectedTask().getCurrentCalculation().getOptimiserStatistic() );
 			info.setText("Number of bins: " + slider.getValue());
 		});
 	}

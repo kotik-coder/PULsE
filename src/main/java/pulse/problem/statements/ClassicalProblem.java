@@ -2,6 +2,7 @@ package pulse.problem.statements;
 
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.solvers.ImplicitLinearisedSolver;
+import pulse.problem.statements.model.ThermalProperties;
 import pulse.ui.Messages;
 
 /**
@@ -16,10 +17,10 @@ public class ClassicalProblem extends Problem {
 		super();
 		setPulse(new Pulse());
 	}
-
-	public ClassicalProblem(Problem lp) {
-		super(lp);
-		setPulse(new Pulse(lp.getPulse()));
+	
+	public ClassicalProblem(Problem p) {
+		super(p);
+		setPulse(new Pulse(p.getPulse()));
 	}
 
 	@Override
@@ -45,6 +46,11 @@ public class ClassicalProblem extends Problem {
 	@Override
 	public boolean isReady() {
 		return true;
+	}
+
+	@Override
+	public Problem copy() {
+		return new ClassicalProblem(this);
 	}
 
 }

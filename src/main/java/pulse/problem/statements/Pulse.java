@@ -70,6 +70,16 @@ public class Pulse extends PropertyHolder {
 		});
 	}
 	
+	public Pulse copy() {
+		return new Pulse(this);
+	}
+	
+	public void initFrom(Pulse pulse) {
+		this.pulseWidth = pulse.pulseWidth;
+		this.laserEnergy = pulse.laserEnergy;
+		this.pulseShape = pulse.pulseShape;
+	}
+	
 	public double evaluateAt(final double time) {
 		return pulseShape.evaluateAt(time);
 	}

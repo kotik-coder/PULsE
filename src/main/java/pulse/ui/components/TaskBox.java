@@ -17,8 +17,6 @@ import pulse.ui.components.models.TaskBoxModel;
 @SuppressWarnings("serial")
 public class TaskBox extends JComboBox<SearchTask> {
 
-	private final static int FONT_SIZE = 12;
-
 	public TaskBox() {
 		super();
 
@@ -49,7 +47,6 @@ public class TaskBox extends JComboBox<SearchTask> {
 
 	public void init() {
 		setMaximumSize(new Dimension(32767, 24));
-		setFont(getFont().deriveFont(FONT_SIZE));
 		setMinimumSize(new Dimension(250, 20));
 		setToolTipText(getString("TaskBox.DefaultText")); //$NON-NLS-1$
 		setBackground(WHITE);

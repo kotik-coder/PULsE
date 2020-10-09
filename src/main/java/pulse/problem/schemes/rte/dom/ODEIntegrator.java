@@ -3,7 +3,7 @@ package pulse.problem.schemes.rte.dom;
 import pulse.problem.schemes.rte.BlackbodySpectrum;
 import pulse.problem.schemes.rte.RTECalculationStatus;
 import pulse.problem.statements.ParticipatingMedium;
-import pulse.problem.statements.ThermoOpticalProperties;
+import pulse.problem.statements.model.ThermoOpticalProperties;
 import pulse.util.PropertyHolder;
 import pulse.util.Reflexive;
 

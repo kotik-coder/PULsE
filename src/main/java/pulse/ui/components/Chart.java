@@ -7,7 +7,6 @@ import static java.awt.Color.BLUE;
 import static java.awt.Color.GRAY;
 import static java.awt.Color.GREEN;
 import static java.awt.Color.black;
-import static java.awt.Color.white;
 import static java.awt.Font.PLAIN;
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
@@ -20,6 +19,8 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Stroke;
+
+import javax.swing.UIManager;
 
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -38,6 +39,7 @@ import pulse.AbstractData;
 import pulse.HeatingCurve;
 import pulse.input.ExperimentalData;
 import pulse.input.IndexRange;
+import pulse.tasks.Calculation;
 import pulse.tasks.SearchTask;
 
 public class Chart {
@@ -65,6 +67,7 @@ public class Chart {
 		setFonts();
 
 		chart.removeLegend();
+		chart.setBackgroundPaint(UIManager.getColor("Panel.background"));
 		chartPanel = new ChartPanel(chart);
 	}
 
@@ -78,7 +81,7 @@ public class Chart {
 	}
 
 	private void setBackgroundAndGrid() {
-		plot.setBackgroundPaint(white);
+		//plot.setBackgroundPaint(UIManager.getColor("Panel.background"));
 		plot.setRangeGridlinesVisible(true);
 		plot.setRangeGridlinePaint(GRAY);
 
@@ -121,11 +124,11 @@ public class Chart {
 		rendererOld.setSeriesStroke(0, new BasicStroke(2.0f, CAP_BUTT, JOIN_MITER, 2.0f, new float[] { 10f }, 0));
 		rendererOld.setSeriesShapesVisible(0, false);
 
-		plot.setRenderer(0, renderer);
-		plot.setRenderer(1, rendererLines);
-		plot.setRenderer(2, rendererOld);
-		plot.setRenderer(3, rendererResiduals);
-		plot.setRenderer(4, rendererClassic);
+		plot.setRenderer(0, rendererLines);
+		plot.setRenderer(1, rendererResiduals);
+		plot.setRenderer(2, rendererClassic);
+		plot.setRenderer(3, renderer);
+		
 	}
 
 	private void adjustAxisLabel(double maximum) {
@@ -140,7 +143,7 @@ public class Chart {
 
 	public void plot(SearchTask task, boolean extendedCurve) {
 		requireNonNull(task);
-
+		
 		var plot = chart.getXYPlot();
 
 		for (int i = 0; i < 6; i++)
@@ -156,7 +159,8 @@ public class Chart {
 		var rawDataset = new XYSeriesCollection();
 
 		rawDataset.addSeries(series(rawData, "Raw data (" + task.getIdentifier() + ")", extendedCurve));
-		plot.setDataset(0, rawDataset);
+		plot.setDataset(3, rawDataset);
+		plot.getRenderer(3).setSeriesPaint(0, new Color(1.0f, 0.0f, 0.0f, opacity));
 
 		plot.clearDomainMarkers();
 
@@ -174,41 +178,43 @@ public class Chart {
 		plot.addDomainMarker(upperMarker);
 		plot.addDomainMarker(lowerMarker);
 
-		var problem = task.getProblem();
+		var calc = task.getCurrentCalculation();
+		var problem = calc.getProblem();
 
 		if (problem != null) {
 
 			var solution = problem.getHeatingCurve();
-
-			if (solution != null && task.getScheme() != null && solution.actualNumPoints() > 0) {
+			var scheme = calc.getScheme();
+			
+			if (solution != null && scheme != null && solution.actualNumPoints() > 0) {
 
 				var solutionDataset = new XYSeriesCollection();
 				var displayedCurve = extendedCurve ? solution.extendedTo(rawData, problem.getBaseline()) : solution;
 
 				solutionDataset.addSeries(
-						series(displayedCurve, "Solution with " + task.getScheme().getSimpleName(), extendedCurve));
-				plot.setDataset(1, solutionDataset);
+						series(displayedCurve, "Solution with " + scheme.getSimpleName(), extendedCurve));
+				plot.setDataset(0, solutionDataset);
 
 				/*
 				 * plot residuals
 				 */
 
-				if (residualsShown)
-					if (task.getResidualStatistic().getResiduals() != null) {
-						var residualsDataset = new XYSeriesCollection();
-						residualsDataset.addSeries(residuals(task));
-						plot.setDataset(3, residualsDataset);
+				if (residualsShown) {
+					var residuals = calc.getOptimiserStatistic().getResiduals();
+					if (residuals != null && residuals.size() > 0) {
+						var residualsDataset = new XYSeriesCollection();	
+						residualsDataset.addSeries(residuals(calc));
+						plot.setDataset(1, residualsDataset);
 					}
+				}
 
 			}
-
-			plot.getRenderer().setSeriesPaint(0, new Color(1.0f, 0.0f, 0.0f, opacity));
 
 		}
 
 		if (zeroApproximationShown) {
-			var p = task.getProblem();
-			var s = task.getScheme();
+			var p = calc.getProblem();
+			var s = calc.getScheme();
 
 			if (p != null && s != null)
 				plotSingle(classicSolution(p, (double) (s.getTimeLimit().getValue())));
@@ -225,8 +231,8 @@ public class Chart {
 
 		classicDataset.addSeries(series(curve, curve.getName(), false));
 
-		plot.setDataset(4, classicDataset);
-		plot.getRenderer(4).setSeriesPaint(0, black);
+		plot.setDataset(2, classicDataset);
+		plot.getRenderer(2).setSeriesPaint(0, black);
 	}
 
 	public XYSeries series(HeatingCurve curve, String title, boolean extendedCurve) {
@@ -253,17 +259,18 @@ public class Chart {
 		return series;
 	}
 
-	public XYSeries residuals(SearchTask task) {
-		var problem = task.getProblem();
+	public XYSeries residuals(Calculation calc) {
+		var problem = calc.getProblem();
 		var baseline = problem.getBaseline();
+
+		var residuals = calc.getOptimiserStatistic().getResiduals();
+		var size = residuals.size();
+
 		final var span = problem.getHeatingCurve().maxAdjustedSignal() - baseline.valueAt(0);
 		final var offset = baseline.valueAt(0) - span / 2.0;
 
 		var series = new XYSeries(format("Residuals (offset %3.2f)", offset));
-
-		var residuals = task.getResidualStatistic().getResiduals();
-		var size = residuals.size();
-
+		
 		for (var i = 0; i < size; i++) {
 			series.add(factor * residuals.get(i)[0], (Number) (residuals.get(i)[1] + offset));
 		}

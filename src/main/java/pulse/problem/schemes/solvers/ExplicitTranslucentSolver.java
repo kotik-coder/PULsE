@@ -1,14 +1,14 @@
 package pulse.problem.schemes.solvers;
 
 import static pulse.problem.schemes.DistributedDetection.evaluateSignal;
-import static pulse.problem.statements.penetration.SpectralRange.LASER;
+import static pulse.problem.statements.model.SpectralRange.LASER;
 import static pulse.ui.Messages.getString;
 
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.ExplicitScheme;
 import pulse.problem.statements.PenetrationProblem;
 import pulse.problem.statements.Problem;
-import pulse.problem.statements.penetration.AbsorptionModel;
+import pulse.problem.statements.model.AbsorptionModel;
 import pulse.properties.NumericProperty;
 
 public class ExplicitTranslucentSolver extends ExplicitScheme implements Solver<PenetrationProblem> {

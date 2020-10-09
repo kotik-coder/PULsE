@@ -17,6 +17,8 @@ import pulse.problem.schemes.ADIScheme;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.Grid;
 import pulse.problem.schemes.Grid2D;
+import pulse.problem.statements.model.ExtendedThermalProperties;
+import pulse.problem.statements.model.ThermalProperties;
 import pulse.properties.Flag;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.ui.Messages;
@@ -35,13 +37,13 @@ public class ClassicalProblem2D extends Problem {
 		setPulse( new Pulse2D() );
 		setComplexity(ProblemComplexity.MODERATE);
 	}
-
-	public ClassicalProblem2D(Problem lp2) {
-		super(lp2);
-		setPulse( new Pulse2D(lp2.getPulse()) );
+	
+	public ClassicalProblem2D(Problem p) {
+		super(p);
+		setPulse( new Pulse2D(p.getPulse()) );
 		setComplexity(ProblemComplexity.MODERATE);
 	}
-	
+
 	@Override
 	public void initProperties() {
 		setProperties( new ExtendedThermalProperties() );
@@ -138,6 +140,11 @@ public class ClassicalProblem2D extends Problem {
 	@Override
 	public boolean isReady() {
 		return true;
+	}
+
+	@Override
+	public Problem copy() {
+		return new ClassicalProblem2D(this);
 	}
 
 }

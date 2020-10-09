@@ -7,6 +7,7 @@ import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.NUMPOINTS;
 
 import pulse.HeatingCurve;
+import pulse.problem.statements.model.ThermalProperties;
 
 public class AdiabaticSolution {
 

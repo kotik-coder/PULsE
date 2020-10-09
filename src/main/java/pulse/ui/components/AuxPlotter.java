@@ -1,8 +1,8 @@
 package pulse.ui.components;
 
-import static java.awt.Color.white;
-
 import java.awt.Font;
+
+import javax.swing.UIManager;
 
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -16,9 +16,9 @@ public abstract class AuxPlotter<T> {
 	
 	public AuxPlotter(String xLabel, String yLabel) {
 		createChart(xLabel, yLabel);
-
+		chart.setBackgroundPaint(UIManager.getColor("Panel.background"));
+		
 		plot = chart.getXYPlot();
-		plot.setBackgroundPaint(white);
 		setFonts();
 
 		chart.removeLegend();

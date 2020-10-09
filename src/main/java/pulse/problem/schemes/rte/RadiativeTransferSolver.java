@@ -11,7 +11,7 @@ import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
 
 import pulse.problem.schemes.Grid;
 import pulse.problem.statements.ParticipatingMedium;
-import pulse.problem.statements.ThermoOpticalProperties;
+import pulse.problem.statements.model.ThermoOpticalProperties;
 import pulse.util.Descriptive;
 import pulse.util.PropertyHolder;
 import pulse.util.Reflexive;

@@ -42,6 +42,13 @@ public abstract class AbstractData extends PropertyHolder {
 		this.name = name;
 	}
 	
+	public AbstractData(AbstractData d) {
+		this.time = new ArrayList<>(d.time);
+		this.signal = new ArrayList<>(d.signal);
+		this.count = d.count;
+		this.name = d.name;
+	}
+	
 	/**
 	 * Creates an {@code AbstractData} with the default number of points (set in the
 	 * corresponding XML file).

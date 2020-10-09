@@ -50,8 +50,8 @@ public class TaskTableModel extends DefaultTableModel {
 
 	public void addTask(SearchTask t) {
 		var temperature = t.getExperimentalCurve().getMetadata().numericProperty(TEST_TEMPERATURE);
-		var data = new Object[] { t.getIdentifier(), temperature, t.getResidualStatistic().getStatistic(),
-				t.getNormalityTest().getStatistic(), t.getStatus() };
+		var data = new Object[] { t.getIdentifier(), temperature, t.getCurrentCalculation().getModelSelectionCriterion().getStatistic(),
+				t.getNormalityTest().getStatistic(), t.getCurrentCalculation().getStatus() };
 
 		invokeLater(() -> super.addRow(data));
 
@@ -62,7 +62,7 @@ public class TaskTableModel extends DefaultTableModel {
 		});
 
 		t.addTaskListener((LogEntry e) -> {
-			setValueAt(t.getResidualStatistic().getStatistic(), searchRow(t.getIdentifier()), SEARCH_STATISTIC_COLUMN);
+			setValueAt(t.getCurrentCalculation().getOptimiserStatistic().getStatistic(), searchRow(t.getIdentifier()), SEARCH_STATISTIC_COLUMN);
 		});
 
 	}

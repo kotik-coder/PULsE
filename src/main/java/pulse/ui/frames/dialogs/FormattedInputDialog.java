@@ -36,7 +36,6 @@ import pulse.ui.components.controllers.ConfirmAction;
 @SuppressWarnings("serial")
 public class FormattedInputDialog extends JDialog {
 
-	private final static int FONT_SIZE = 14;
 	private final static int WIDTH = 550;
 	private final static int HEIGHT = 130;
 	private JFormattedTextField ftf;
@@ -133,7 +132,6 @@ public class FormattedInputDialog extends JDialog {
 			}
 		});
 
-		inputTextField.setFont(inputTextField.getFont().deriveFont(FONT_SIZE));
 		inputTextField.setColumns(10);
 		return inputTextField;
 	}

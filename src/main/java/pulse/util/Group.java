@@ -26,10 +26,8 @@ public class Group extends UpwardsNavigable {
 
 		var methods = this.getClass().getMethods();
 		for (var m : methods) {
-			if (m.getParameterCount() > 0)
-				continue;
-
-			if (!Group.class.isAssignableFrom(m.getReturnType()))
+			if (m.getParameterCount() > 0 || !Group.class.isAssignableFrom(m.getReturnType())
+					|| m.getReturnType().isAssignableFrom(getClass()))
 				continue;
 
 			Group a = null;
@@ -68,7 +66,7 @@ public class Group extends UpwardsNavigable {
 
 	public static Set<Group> contents(Group root) {
 		var contents = root.subgroups().stream().filter(ph -> root.getParent() != ph).collect(Collectors.toSet());
-		
+
 		for (var it = contents.iterator(); it.hasNext();)
 			contents(it.next()).stream().forEach(a -> contents.add(a));
 

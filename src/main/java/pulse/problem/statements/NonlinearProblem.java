@@ -29,11 +29,10 @@ public class NonlinearProblem extends ClassicalProblem {
 		setPulse( new Pulse2D() );
 		setComplexity(ProblemComplexity.MODERATE);
 	}
-
-	public NonlinearProblem(Problem p) {
+	
+	public NonlinearProblem(NonlinearProblem p) {
 		super(p);
-		setPulse( new Pulse2D(p.getPulse()));
-		setComplexity(ProblemComplexity.MODERATE);
+		setPulse( new Pulse2D((Pulse2D)p.getPulse()) );
 	}
 	
 	@Override
@@ -113,6 +112,11 @@ public class NonlinearProblem extends ClassicalProblem {
 	@Override
 	public Class<? extends DifferenceScheme> defaultScheme() {
 		return ImplicitScheme.class;
+	}
+	
+	@Override
+	public Problem copy() {
+		return new NonlinearProblem(this);
 	}
 
 }

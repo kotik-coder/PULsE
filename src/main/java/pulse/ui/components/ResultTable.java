@@ -1,6 +1,5 @@
 package pulse.ui.components;
 
-import static java.awt.Font.PLAIN;
 import static java.lang.Math.abs;
 import static java.util.stream.Collectors.toList;
 import static javax.swing.ListSelectionModel.SINGLE_INTERVAL_SELECTION;
@@ -8,9 +7,7 @@ import static javax.swing.SortOrder.ASCENDING;
 import static javax.swing.SwingConstants.TOP;
 import static javax.swing.SwingUtilities.invokeLater;
 import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
-import static pulse.ui.Messages.getString;
 
-import java.awt.Font;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -39,8 +36,6 @@ import pulse.util.Descriptive;
 @SuppressWarnings("serial")
 public class ResultTable extends JTable implements Descriptive {
 
-	private final static Font font = new Font(getString("ResultTable.FontName"), PLAIN, 12);
-
 	private final static int ROW_HEIGHT = 25;
 	private final static int RESULTS_HEADER_HEIGHT = 30;
 
@@ -61,8 +56,6 @@ public class ResultTable extends JTable implements Descriptive {
 		this.setRowHeight(ROW_HEIGHT);
 		setShowHorizontalLines(false);
 		setFillsViewportHeight(true);
-
-		getTableHeader().setFont(font);
 
 		setSelectionMode(SINGLE_INTERVAL_SELECTION);
 		setRowSelectionAllowed(false);

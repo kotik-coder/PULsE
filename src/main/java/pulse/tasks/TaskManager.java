@@ -128,7 +128,7 @@ public class TaskManager extends UpwardsNavigable {
 		// run task t -- after task completed, write result and trigger listeners
 
 		CompletableFuture.runAsync(t).thenRun(() -> {
-			if (t.getStatus() == DONE) {
+			if (t.getCurrentCalculation().getStatus() == DONE) {
 				results.put(t, new Result(t, ResultFormat.getInstance()));
 			}
 			var e = new TaskRepositoryEvent(TASK_FINISHED, t.getIdentifier());
@@ -158,7 +158,7 @@ public class TaskManager extends UpwardsNavigable {
 	public void executeAll() {
 
 		var queue = tasks.stream().filter(t -> {
-			switch (t.getStatus()) {
+			switch (t.getCurrentCalculation().getStatus()) {
 			case DONE:
 			case IN_PROGRESS:
 			case EXECUTION_ERROR:
@@ -188,7 +188,10 @@ public class TaskManager extends UpwardsNavigable {
 	 */
 
 	public boolean isTaskQueueEmpty() {
-		return !tasks.stream().anyMatch(t -> t.getStatus() == QUEUED || t.getStatus() == IN_PROGRESS);
+		return !tasks.stream().anyMatch(t -> {
+			var status = t.getCurrentCalculation().getStatus();
+			return status == QUEUED || status == IN_PROGRESS;
+		});
 	}
 
 	/**
@@ -535,7 +538,7 @@ public class TaskManager extends UpwardsNavigable {
 
 	public void evaluate() {
 		tasks.stream().forEach(t -> {
-			var properties = t.getProblem().getProperties();
+			var properties = t.getCurrentCalculation().getProblem().getProperties();
 			InterpolationDataset.fill(properties);
 			properties.useTheoreticalEstimates(t.getExperimentalCurve());
 		});

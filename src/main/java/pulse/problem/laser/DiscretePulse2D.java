@@ -4,8 +4,8 @@ import static java.lang.Math.signum;
 
 import pulse.problem.schemes.Grid2D;
 import pulse.problem.statements.ClassicalProblem2D;
-import pulse.problem.statements.ExtendedThermalProperties;
 import pulse.problem.statements.Pulse2D;
+import pulse.problem.statements.model.ExtendedThermalProperties;
 
 /**
  * The discrete pulse on a {@code Grid2D}.

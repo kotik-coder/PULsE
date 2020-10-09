@@ -44,8 +44,6 @@ public class TaskTable extends JTable {
 	private Comparator<NumericProperty> numericComparator = (i1, i2) -> i1.compareTo(i2);
 	private Comparator<Status> statusComparator = (s1, s2) -> s1.compareTo(s2);
 
-	private final static int FONT_SIZE = 14;
-
 	public TaskTable() {
 		super();
 		setDefaultEditor(Object.class, null);
@@ -64,8 +62,6 @@ public class TaskTable extends JTable {
 
 		setTableHeader(th);
 
-		var font = getTableHeader().getFont().deriveFont(FONT_SIZE);
-		getTableHeader().setFont(font);
 		getTableHeader().setPreferredSize(new Dimension(50, HEADER_HEIGHT));
 
 		setAutoCreateRowSorter(true);
@@ -92,7 +88,7 @@ public class TaskTable extends JTable {
 	public void initListeners() {
 		
 		var instance = TaskManager.getManagerInstance();
-
+		
 		/*
 		 * mouse listener
 		 */
@@ -102,8 +98,11 @@ public class TaskTable extends JTable {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 
-				if (rowAtPoint(e.getPoint()) >= 0 && rowAtPoint(e.getPoint()) == getSelectedRow() && isRightMouseButton(e))
+				if (rowAtPoint(e.getPoint()) >= 0 && rowAtPoint(e.getPoint()) == getSelectedRow() && isRightMouseButton(e)) {
+					var task = instance.getSelectedTask();
+					menu.getItemViewStored().setEnabled(task.getStoredCalculations().size() > 0);
 					menu.show(e.getComponent(), e.getX(), e.getY());
+				}
 
 			}
 
@@ -115,7 +114,7 @@ public class TaskTable extends JTable {
 
 		var lsm = getSelectionModel();
 		var reference = this;
-
+		
 		lsm.addListSelectionListener((ListSelectionEvent e) -> {
 			if (!lsm.getValueIsAdjusting() && !lsm.isSelectionEmpty()) {
 				var id = (Identifier) getValueAt(lsm.getMinSelectionIndex(), 0);

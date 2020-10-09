@@ -1,7 +1,7 @@
-package pulse.problem.statements.penetration;
+package pulse.problem.statements.model;
 
-import static pulse.problem.statements.penetration.SpectralRange.LASER;
-import static pulse.problem.statements.penetration.SpectralRange.THERMAL;
+import static pulse.problem.statements.model.SpectralRange.LASER;
+import static pulse.problem.statements.model.SpectralRange.THERMAL;
 import static pulse.properties.NumericProperties.def;
 import static pulse.properties.NumericPropertyKeyword.LASER_ABSORPTIVITY;
 import static pulse.properties.NumericPropertyKeyword.THERMAL_ABSORPTIVITY;

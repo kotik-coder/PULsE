@@ -8,6 +8,23 @@ package pulse.search.statistics;
 
 public class AICStatistic extends ModelSelectionCriterion {
 
+	public AICStatistic(OptimiserStatistic os) {
+		super(os);
+	}
+	
+	public AICStatistic(AICStatistic another) {
+		super(another);
+	}
+	
+	public AICStatistic() {
+		super(new SumOfSquares());
+	}
+	
+	@Override 
+	public ModelSelectionCriterion copy() {
+		return new AICStatistic(this);
+	}
+	
 	@Override
 	public double penalisingTerm(final int kq, final int n) {
 		return 2.0 * (kq + 1);

@@ -13,7 +13,7 @@ import java.util.Map;
 import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
 
-import pulse.problem.statements.ThermalProperties;
+import pulse.problem.statements.model.ThermalProperties;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.util.ImmutableDataEntry;
 
