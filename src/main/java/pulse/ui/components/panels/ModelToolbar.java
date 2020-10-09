@@ -1,7 +1,6 @@
 package pulse.ui.components.panels;
 
-import static pulse.ui.Launcher.loadIcon;
-import static pulse.util.Reflexive.allDescriptors;
+import static pulse.util.ImageUtils.loadIcon;
 
 import java.awt.Dimension;
 
@@ -12,8 +11,9 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JToolBar;
 
-import pulse.search.statistics.ModelSelectionCriterion;
+import pulse.tasks.Calculation;
 import pulse.tasks.TaskManager;
+import pulse.tasks.listeners.TaskRepositoryEvent;
 
 @SuppressWarnings("serial")
 public class ModelToolbar extends JToolBar {
@@ -22,15 +22,15 @@ public class ModelToolbar extends JToolBar {
 	
 	public ModelToolbar() {
 		super();
+		setOpaque(false);
 		setFloatable(false);
 		setRollover(true);
-		var set = allDescriptors(ModelSelectionCriterion.class);
+		var set = Calculation.getModelSelectionDescriptor().getAllDescriptors();
 		var criterionSelection = new JComboBox<>(set.toArray(String[]::new));
-		criterionSelection.addActionListener(e -> {
-			ModelSelectionCriterion.setSelectedCriterionDescriptor(criterionSelection.getSelectedItem().toString());
-		}
+		criterionSelection.addActionListener(e -> 
+			Calculation.getModelSelectionDescriptor().setSelectedDescriptor((String)criterionSelection.getSelectedItem())
 		);
-		criterionSelection.setSelectedIndex(0);
+		criterionSelection.setSelectedItem(Calculation.getModelSelectionDescriptor().getValue());
 		
 		this.setBorder(BorderFactory.createEtchedBorder());
 		
@@ -38,6 +38,18 @@ public class ModelToolbar extends JToolBar {
 		add(Box.createRigidArea(new Dimension(5,0)));
 		add(criterionSelection);
 			
+		var doCalc = new JButton(loadIcon("go_estimate.png", ICON_SIZE));
+		doCalc.setToolTipText("Re-calculate model weights");
+		add(Box.createRigidArea(new Dimension(15,0)));
+		add(doCalc);
+		
+		doCalc.addActionListener(e -> {
+			var instance = TaskManager.getManagerInstance();
+			var t = instance.getSelectedTask();
+			t.getStoredCalculations().forEach(c -> c.getModelSelectionCriterion().evaluate(t));
+			instance.notifyListeners(new TaskRepositoryEvent(TaskRepositoryEvent.State.TASK_CRITERION_SWITCH, t.getIdentifier()));
+		});
+		
 		var bestSelection = new JButton(loadIcon("best_model.png", ICON_SIZE));
 		bestSelection.setToolTipText("Select Best Model");
 		add(Box.createRigidArea(new Dimension(15,0)));

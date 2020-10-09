@@ -7,8 +7,8 @@ import static javax.swing.JOptionPane.YES_OPTION;
 import static javax.swing.JOptionPane.showOptionDialog;
 import static pulse.tasks.listeners.TaskRepositoryEvent.State.TASK_BROWSING_REQUEST;
 import static pulse.tasks.processing.ResultFormat.addResultFormatListener;
-import static pulse.ui.Launcher.loadIcon;
 import static pulse.ui.Messages.getString;
+import static pulse.util.ImageUtils.loadIcon;
 
 import java.awt.Component;
 import java.awt.Dimension;
@@ -25,7 +25,6 @@ import javax.swing.event.InternalFrameAdapter;
 import javax.swing.event.InternalFrameEvent;
 
 import pulse.tasks.TaskManager;
-import pulse.ui.Launcher;
 import pulse.ui.components.PulseMainMenu;
 import pulse.ui.components.listeners.FrameVisibilityRequestListener;
 import pulse.ui.components.listeners.TaskActionListener;
@@ -177,23 +176,23 @@ public class TaskControlFrame extends JFrame {
 		setJMenuBar(mainMenu);
 
 		logFrame = new LogFrame();
-		logFrame.setFrameIcon(Launcher.loadIcon("log.png", 20));
+		logFrame.setFrameIcon(loadIcon("log.png", 20));
 		resultsFrame = new ResultFrame();
-		resultsFrame.setFrameIcon(Launcher.loadIcon("result.png", 20));
+		resultsFrame.setFrameIcon(loadIcon("result.png", 20));
 		previewFrame = new PreviewFrame();
-		previewFrame.setFrameIcon(Launcher.loadIcon("preview.png", 20));
+		previewFrame.setFrameIcon(loadIcon("preview.png", 20));
 		taskManagerFrame = new TaskManagerFrame();
-		taskManagerFrame.setFrameIcon(Launcher.loadIcon("task_manager.png", 20));
+		taskManagerFrame.setFrameIcon(loadIcon("task_manager.png", 20));
 		graphFrame = MainGraphFrame.getInstance();
-		graphFrame.setFrameIcon(Launcher.loadIcon("curves.png", 20));
+		graphFrame.setFrameIcon(loadIcon("curves.png", 20));
 
 		problemStatementFrame = new ProblemStatementFrame();
-		problemStatementFrame.setFrameIcon(Launcher.loadIcon("heat_problem.png", 20));
+		problemStatementFrame.setFrameIcon(loadIcon("heat_problem.png", 20));
 		modelFrame = new ModelSelectionFrame();
-		modelFrame.setFrameIcon(Launcher.loadIcon("stored.png", 20));
+		modelFrame.setFrameIcon(loadIcon("stored.png", 20));
 
 		searchOptionsFrame = new SearchOptionsFrame();
-		searchOptionsFrame.setFrameIcon(Launcher.loadIcon("optimiser.png", 20));
+		searchOptionsFrame.setFrameIcon(loadIcon("optimiser.png", 20));
 
 		/*
 		 * CONSTRAINT ADJUSTMENT
@@ -433,10 +432,14 @@ public class TaskControlFrame extends JFrame {
 		doResize();
 	}
 
-	private enum Mode {
+	public enum Mode {
 
 		TASK, PROBLEM, PREVIEW, SEARCH, MODEL_COMPARISON;
 
+	}
+
+	public Mode getMode() {
+		return mode;
 	}
 
 }

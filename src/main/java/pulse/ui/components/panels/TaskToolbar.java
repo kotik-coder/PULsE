@@ -1,6 +1,6 @@
 package pulse.ui.components.panels;
 
-import static pulse.ui.Launcher.loadIcon;
+import static pulse.util.ImageUtils.loadIcon;
 
 import java.awt.GridLayout;
 import java.util.ArrayList;

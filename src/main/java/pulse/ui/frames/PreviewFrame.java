@@ -11,7 +11,7 @@ import static org.jfree.chart.ChartFactory.createScatterPlot;
 import static org.jfree.chart.plot.PlotOrientation.VERTICAL;
 import static pulse.properties.NumericPropertyKeyword.DIFFUSIVITY;
 import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
-import static pulse.ui.Launcher.loadIcon;
+import static pulse.util.ImageUtils.loadIcon;
 
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;

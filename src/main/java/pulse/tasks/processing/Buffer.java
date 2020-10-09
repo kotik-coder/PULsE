@@ -62,7 +62,7 @@ public class Buffer extends PropertyHolder {
 	 */
 
 	public void fill(SearchTask t, int bufferElement) {
-		statistic[bufferElement] = (double) t.getCurrentCalculation().getModelSelectionCriterion().getStatistic().getValue();
+		statistic[bufferElement] = (double) t.getCurrentCalculation().getOptimiserStatistic().getStatistic().getValue();
 		data[bufferElement] = t.searchVector()[0];
 	}
 

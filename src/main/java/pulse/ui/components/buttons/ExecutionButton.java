@@ -7,6 +7,7 @@ import static pulse.tasks.logs.Status.INCOMPLETE;
 import static pulse.ui.Messages.getString;
 import static pulse.ui.components.buttons.ExecutionButton.ExecutionState.EXECUTE;
 import static pulse.ui.components.buttons.ExecutionButton.ExecutionState.STOP;
+import static pulse.util.ImageUtils.loadIcon;
 
 import java.awt.Component;
 import java.awt.event.ActionEvent;
@@ -16,7 +17,6 @@ import javax.swing.JButton;
 
 import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.TaskRepositoryEvent;
-import pulse.ui.Launcher;
 
 @SuppressWarnings("serial")
 public class ExecutionButton extends JButton {
@@ -92,8 +92,8 @@ public class ExecutionButton extends JButton {
 	}
 
 	public enum ExecutionState {
-		EXECUTE("Execute All Tasks", Launcher.loadIcon("execute.png", 24)),
-		STOP("Terminate All Running Tasks", Launcher.loadIcon("stop.png", 24));
+		EXECUTE("Execute All Tasks", loadIcon("execute.png", 24)),
+		STOP("Terminate All Running Tasks", loadIcon("stop.png", 24));
 
 		private String message;
 		private ImageIcon icon;

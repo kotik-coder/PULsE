@@ -62,7 +62,13 @@ public class TaskRepositoryEvent {
 		 * The task has switched to a new model.
 		 */
 		
-		TASK_MDOEL_SWITCH,
+		TASK_MODEL_SWITCH,
+		
+		/**
+		 * The task changed its selection criterion.
+		 */
+		
+		TASK_CRITERION_SWITCH,
 
 		/**
 		 * The repository has been shut down/

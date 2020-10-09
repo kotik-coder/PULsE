@@ -33,7 +33,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 
-import pulse.input.InterpolationDataset;
 import pulse.properties.SampleName;
 import pulse.search.direction.PathOptimiser;
 import pulse.tasks.listeners.TaskRepositoryEvent;
@@ -539,7 +538,6 @@ public class TaskManager extends UpwardsNavigable {
 	public void evaluate() {
 		tasks.stream().forEach(t -> {
 			var properties = t.getCurrentCalculation().getProblem().getProperties();
-			InterpolationDataset.fill(properties);
 			properties.useTheoreticalEstimates(t.getExperimentalCurve());
 		});
 	}

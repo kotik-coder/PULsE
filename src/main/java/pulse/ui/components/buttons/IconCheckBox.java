@@ -1,6 +1,6 @@
 package pulse.ui.components.buttons;
 
-import static pulse.ui.Launcher.loadIcon;
+import static pulse.util.ImageUtils.loadIcon;
 
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;

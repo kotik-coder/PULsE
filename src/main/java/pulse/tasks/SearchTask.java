@@ -35,6 +35,7 @@ import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import pulse.input.ExperimentalData;
+import pulse.input.InterpolationDataset;
 import pulse.math.IndexedVector;
 import pulse.problem.schemes.solvers.SolverException;
 import pulse.properties.NumericProperty;
@@ -110,6 +111,22 @@ public class SearchTask extends Accessible implements Runnable {
 		curve.setParent(this);
 		correlationBuffer = new CorrelationBuffer();
 		clear();
+		
+		InterpolationDataset.addListener(e -> {
+			var p = current.getProblem().getProperties(); 
+			if(p.areThermalPropertiesLoaded())
+				p.useTheoreticalEstimates(curve);
+		});
+
+		curve.addDataListener(dataEvent -> {
+			var scheme = current.getScheme();
+			if (scheme != null) {
+				var hcurve = current.getProblem().getHeatingCurve();
+				var startTime = (double) hcurve.getTimeShift().getValue();
+				scheme.setTimeLimit(derive(TIME_LIMIT, Calculation.RELATIVE_TIME_MARGIN * curve.timeLimit() - startTime));
+			}
+		});
+
 	}
 
 	/**
@@ -141,17 +158,7 @@ public class SearchTask extends Accessible implements Runnable {
 		this.path = null;
 		current.clear();
 		
-		setStatus(INCOMPLETE);
-
-		curve.addDataListener(dataEvent -> {
-			var scheme = current.getScheme();
-			if (scheme != null) {
-				var hcurve = current.getProblem().getHeatingCurve();
-				var startTime = (double) hcurve.getTimeShift().getValue();
-				scheme.setTimeLimit(derive(TIME_LIMIT, Calculation.RELATIVE_TIME_MARGIN * curve.timeLimit() - startTime));
-			}
-		});
-		
+		setStatus(INCOMPLETE);		
 	}
 	
 	/**
@@ -568,7 +575,7 @@ public class SearchTask extends Accessible implements Runnable {
 	
 	private void fireModelSelected() {
 		var instance = TaskManager.getManagerInstance();
-		var e = new TaskRepositoryEvent(TaskRepositoryEvent.State.TASK_MDOEL_SWITCH, this.getIdentifier());
+		var e = new TaskRepositoryEvent(TaskRepositoryEvent.State.TASK_MODEL_SWITCH, this.getIdentifier());
 		for(var l : instance.getTaskRepositoryListeners())
 			l.onTaskListChanged(e);
 	}

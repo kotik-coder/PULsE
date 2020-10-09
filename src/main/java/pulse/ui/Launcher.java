@@ -1,7 +1,6 @@
 package pulse.ui;
 
 import static java.awt.EventQueue.invokeLater;
-import static java.awt.Image.SCALE_SMOOTH;
 import static java.awt.SplashScreen.getSplashScreen;
 import static java.lang.Integer.valueOf;
 import static java.lang.Runtime.getRuntime;
@@ -17,7 +16,6 @@ import javax.management.InstanceNotFoundException;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import javax.management.ReflectionException;
-import javax.swing.ImageIcon;
 import javax.swing.UIManager;
 
 import com.alee.laf.WebLookAndFeel;
@@ -140,14 +138,6 @@ public class Launcher {
 	public static int threadsAvailable() {
 		var number = getRuntime().availableProcessors();
 		return number > 1 ? (number - 1) : 1;
-	}
-
-	public static ImageIcon loadIcon(String path, int iconSize) {
-		var imageIcon = new ImageIcon(Launcher.class.getResource("/images/" + path)); // load the image to a
-																						// imageIcon
-		var image = imageIcon.getImage(); // transform it
-		var newimg = image.getScaledInstance(iconSize, iconSize, SCALE_SMOOTH); // scale it the smooth way
-		return new ImageIcon(newimg); // transform it back
 	}
 
 }

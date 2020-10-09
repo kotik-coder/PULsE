@@ -1,6 +1,5 @@
 package pulse.input;
 
-import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.CONDUCTIVITY;
 import static pulse.properties.NumericPropertyKeyword.DENSITY;
 import static pulse.properties.NumericPropertyKeyword.SPECIFIC_HEAT;
@@ -13,7 +12,7 @@ import java.util.Map;
 import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
 
-import pulse.problem.statements.model.ThermalProperties;
+import pulse.input.listeners.ExternalDatasetListener;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.util.ImmutableDataEntry;
 
@@ -28,9 +27,10 @@ import pulse.util.ImmutableDataEntry;
 
 public class InterpolationDataset {
 
+	private UnivariateFunction interpolation;
 	private List<ImmutableDataEntry<Double, Double>> dataset;
 	private static Map<StandartType, InterpolationDataset> standartDatasets = new HashMap<StandartType, InterpolationDataset>();
-	private UnivariateFunction interpolation;
+	private static List<ExternalDatasetListener> listeners = new ArrayList<>();;
 
 	/**
 	 * Creates an empty {@code InterpolationDataset}.
@@ -107,35 +107,7 @@ public class InterpolationDataset {
 
 	public static void setDataset(InterpolationDataset dataset, StandartType type) {
 		standartDatasets.put(type, dataset);
-	}
-	
-	/**
-	 * Calculates some or all of the following properties:
-	 * <math><i>C</i><sub>p</sub>, <i>&rho;</i>, <i>&labmda;</i>,
-	 * <i>&epsilon;</i></math>.
-	 * <p>
-	 * These properties will be calculated only if the necessary
-	 * {@code InterpolationDataset}s were previously loaded by the
-	 * {@code TaskManager}.
-	 * </p>
-	 */
-
-	public static void fill(ThermalProperties properties) {
-		final double testTemperature = (double)properties.getTestTemperature().getValue();
-		var cpCurve = getDataset(StandartType.HEAT_CAPACITY);
-
-		if (cpCurve != null) {
-			final double cp = cpCurve.interpolateAt(testTemperature);
-			properties.set(NumericPropertyKeyword.SPECIFIC_HEAT, derive(NumericPropertyKeyword.SPECIFIC_HEAT, cp));
-		}
-
-		var rhoCurve = getDataset(StandartType.DENSITY);
-
-		if (rhoCurve != null) {
-			final double rho = rhoCurve.interpolateAt(testTemperature);
-			properties.set(NumericPropertyKeyword.DENSITY, derive(NumericPropertyKeyword.DENSITY, rho));
-		}
-
+		listeners.stream().forEach(l -> l.onDensityDataLoaded(type));
 	}
 
 	public static List<NumericPropertyKeyword> derivableProperties() {
@@ -147,6 +119,10 @@ public class InterpolationDataset {
 		if(list.contains(SPECIFIC_HEAT) && list.contains(DENSITY))
 			list.add(CONDUCTIVITY);
 		return list;
+	}
+	
+	public static void addListener(ExternalDatasetListener l) {
+		listeners.add(l);
 	}
 
 	public enum StandartType {

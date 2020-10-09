@@ -50,7 +50,7 @@ public class TaskTableModel extends DefaultTableModel {
 
 	public void addTask(SearchTask t) {
 		var temperature = t.getExperimentalCurve().getMetadata().numericProperty(TEST_TEMPERATURE);
-		var data = new Object[] { t.getIdentifier(), temperature, t.getCurrentCalculation().getModelSelectionCriterion().getStatistic(),
+		var data = new Object[] { t.getIdentifier(), temperature, t.getCurrentCalculation().getOptimiserStatistic().getStatistic(),
 				t.getNormalityTest().getStatistic(), t.getCurrentCalculation().getStatus() };
 
 		invokeLater(() -> super.addRow(data));

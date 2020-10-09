@@ -16,9 +16,9 @@ import static pulse.tasks.logs.Details.NONE;
 import static pulse.tasks.logs.Status.DONE;
 import static pulse.tasks.logs.Status.READY;
 import static pulse.tasks.processing.ResultFormat.getInstance;
-import static pulse.ui.Launcher.loadIcon;
 import static pulse.ui.Messages.getString;
 import static pulse.ui.frames.MainGraphFrame.getChart;
+import static pulse.util.ImageUtils.loadIcon;
 
 import java.awt.Component;
 import java.awt.event.ActionEvent;

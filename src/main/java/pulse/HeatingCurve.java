@@ -56,6 +56,8 @@ public class HeatingCurve extends AbstractData {
 		this.adjustedSignal = new ArrayList<>(c.adjustedSignal);
 		this.startTime = c.startTime;
 		splineInterpolator = new SplineInterpolator();
+		if(c.splineInterpolation != null)
+			this.refreshInterpolation();
 	}
 
 	/**

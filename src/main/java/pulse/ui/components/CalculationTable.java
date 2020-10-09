@@ -6,6 +6,7 @@ import static pulse.ui.frames.MainGraphFrame.getChart;
 import java.awt.Dimension;
 
 import javax.swing.JTable;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.table.TableCellRenderer;
 
@@ -36,31 +37,40 @@ public class CalculationTable extends JTable {
 
 		var model = new StoredCalculationTableModel();
 		setModel(model);
-		
+
 		getTableHeader().setPreferredSize(new Dimension(50, HEADER_HEIGHT));
 
 		setAutoCreateRowSorter(false);
 		initListeners();
-		
+
 		var instance = TaskManager.getManagerInstance();
 		instance.addTaskRepositoryListener(e -> {
-			
-			if(e.getState() == TaskRepositoryEvent.State.TASK_MDOEL_SWITCH) {
+
+			if (e.getState() == TaskRepositoryEvent.State.TASK_MODEL_SWITCH) {
 				var t = instance.getTask(e.getId());
 				identifySelection(t);
 			}
 			
+			else if(e.getState() == TaskRepositoryEvent.State.TASK_CRITERION_SWITCH) {
+				update(TaskManager.getManagerInstance().getSelectedTask());
+			}
+
 		});
+		
 	}
-	
+
 	public void update(SearchTask t) {
-		((StoredCalculationTableModel)getModel()).update(t);
-		identifySelection(t);
+		if (t != null)
+			SwingUtilities.invokeLater(() -> {
+				((StoredCalculationTableModel) getModel()).update(t);
+				identifySelection(t);
+			});
 	}
-	
+
 	public void identifySelection(SearchTask t) {
 		int modelIndex = t.getStoredCalculations().indexOf(t.getCurrentCalculation());
-		this.getSelectionModel().setSelectionInterval(modelIndex, modelIndex);
+		if (modelIndex > -1)
+			this.getSelectionModel().setSelectionInterval(modelIndex, modelIndex);
 	}
 
 	public void initListeners() {
@@ -74,9 +84,11 @@ public class CalculationTable extends JTable {
 		lsm.addListSelectionListener((ListSelectionEvent e) -> {
 			var task = TaskManager.getManagerInstance().getSelectedTask();
 			if (!lsm.getValueIsAdjusting() && !lsm.isSelectionEmpty()) {
-				var id = lsm.getMinSelectionIndex();
-				task.switchTo(task.getStoredCalculations().get(id));
-				getChart().plot(task, true);
+				var id = convertRowIndexToModel(this.getSelectedRow());
+				if (id < task.getStoredCalculations().size()) {
+					task.switchTo(task.getStoredCalculations().get(id));
+					getChart().plot(task, true);
+				}
 			}
 		});
 

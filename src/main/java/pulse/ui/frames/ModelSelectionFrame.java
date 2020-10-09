@@ -31,8 +31,4 @@ public class ModelSelectionFrame extends JInternalFrame {
 		this.setDefaultCloseOperation(HIDE_ON_CLOSE);
 	}
 
-	public CalculationTable getTable() {
-		return table;
-	}
-	
 }

@@ -20,11 +20,13 @@ import pulse.problem.schemes.solvers.SolverException;
 import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
+import pulse.search.statistics.AICStatistic;
 import pulse.search.statistics.ModelSelectionCriterion;
 import pulse.search.statistics.OptimiserStatistic;
 import pulse.tasks.logs.Details;
 import pulse.tasks.logs.Status;
 import pulse.ui.components.PropertyHolderTable;
+import pulse.util.InstanceDescriptor;
 import pulse.util.PropertyEvent;
 import pulse.util.PropertyHolder;
 
@@ -38,9 +40,17 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
 	private ModelSelectionCriterion rs;
 	private OptimiserStatistic os;
 	
+	private static InstanceDescriptor<? extends ModelSelectionCriterion> instanceDescriptor = new InstanceDescriptor<>(
+			"Model Selection Criterion", ModelSelectionCriterion.class);
+
+	static {
+		instanceDescriptor.setSelectedDescriptor(AICStatistic.class.getSimpleName());
+	}
+
 	public Calculation() {
 		status = INCOMPLETE;
 		this.initOptimiser();
+		instanceDescriptor.addListener( () -> initModelCriterion());
 	}
 	
 	public Calculation(Problem problem, DifferenceScheme scheme, ModelSelectionCriterion rs) {
@@ -225,8 +235,7 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
 	}
 	
 	public void initModelCriterion() {
-		setModelSelectionCriterion( instantiate(ModelSelectionCriterion.class, ModelSelectionCriterion.getSelectedCriterionDescriptor() ) );
-		rs.setOptimiser(os);
+		setModelSelectionCriterion(instanceDescriptor.newInstance(ModelSelectionCriterion.class, os));
 	}
 
 	public DifferenceScheme getScheme() {
@@ -265,6 +274,10 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
 		
 		return false;
 		
+	}
+
+	public static InstanceDescriptor<? extends ModelSelectionCriterion> getModelSelectionDescriptor() {
+		return instanceDescriptor;
 	}
 
 }

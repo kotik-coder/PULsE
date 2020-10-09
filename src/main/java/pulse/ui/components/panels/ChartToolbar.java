@@ -13,9 +13,9 @@ import static javax.swing.JOptionPane.showConfirmDialog;
 import static javax.swing.JOptionPane.showOptionDialog;
 import static javax.swing.SwingUtilities.getWindowAncestor;
 import static pulse.tasks.listeners.TaskRepositoryEvent.State.TASK_FINISHED;
-import static pulse.ui.Launcher.loadIcon;
 import static pulse.ui.Messages.getString;
 import static pulse.ui.frames.MainGraphFrame.getChart;
+import static pulse.util.ImageUtils.loadIcon;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;

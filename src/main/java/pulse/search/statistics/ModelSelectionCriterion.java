@@ -13,6 +13,7 @@ import java.util.List;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.tasks.SearchTask;
+import pulse.util.PropertyEvent;
 
 /**
  * An abstract superclass for the BIC and AIC statistics.
@@ -21,7 +22,6 @@ import pulse.tasks.SearchTask;
 
 public abstract class ModelSelectionCriterion extends Statistic {
 
-	private static String selectedModelSelectionDescriptor;
 	private OptimiserStatistic os;
 	private int kq;
 	private final static double PENALISATION_FACTOR = 1.0 + log(2 * PI);
@@ -44,6 +44,7 @@ public abstract class ModelSelectionCriterion extends Statistic {
 		os.evaluate(t);
 		final int n = os.getResiduals().size(); //sample size
 		criterion = n * log(os.variance()) + penalisingTerm(kq,n) + n * PENALISATION_FACTOR;
+		this.tellParent(new PropertyEvent(null, this, getStatistic()));
 	}
 	
 	/**
@@ -75,14 +76,6 @@ public abstract class ModelSelectionCriterion extends Statistic {
 
 	public int getNumVariables() {
 		return kq;
-	}
-	
-	public static String getSelectedCriterionDescriptor() {
-		return selectedModelSelectionDescriptor;
-	}
-	
-	public static void setSelectedCriterionDescriptor(String selectedTestDescriptor) {
-		ModelSelectionCriterion.selectedModelSelectionDescriptor = selectedTestDescriptor;
 	}
 
 	public OptimiserStatistic getOptimiser() {

@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import pulse.input.ExperimentalData;
+import pulse.input.InterpolationDataset;
 import pulse.input.InterpolationDataset.StandartType;
 import pulse.problem.statements.Pulse2D;
 import pulse.properties.NumericProperty;
@@ -61,6 +62,7 @@ public class ThermalProperties extends PropertyHolder {
 		signalHeight = (double) def(MAXTEMP).getValue();
 		T = (double) def(TEST_TEMPERATURE).getValue();
 		emissivity = (double) def(EMISSIVITY).getValue();
+		initListeners();
 	}
 
 	public ThermalProperties(ThermalProperties p) {
@@ -70,6 +72,35 @@ public class ThermalProperties extends PropertyHolder {
 		this.Bi = p.Bi;
 		this.T = p.T;
 		this.emissivity = p.emissivity;
+		initListeners();
+	}
+
+	/**
+	 * Calculates some or all of the following properties:
+	 * <math><i>C</i><sub>p</sub>, <i>&rho;</i>, <i>&labmda;</i>,
+	 * <i>&epsilon;</i></math>.
+	 * <p>
+	 * These properties will be calculated only if the necessary
+	 * {@code InterpolationDataset}s were previously loaded by the
+	 * {@code TaskManager}.
+	 * </p>
+	 */
+
+	private void initListeners() {
+
+		InterpolationDataset.addListener(e -> {
+			if(getParent() == null)
+				return;
+			
+			if (e == StandartType.DENSITY) {
+				rho = InterpolationDataset.getDataset(StandartType.DENSITY).interpolateAt(T);
+			}
+			else if (e == StandartType.HEAT_CAPACITY) {
+				cP = InterpolationDataset.getDataset(StandartType.HEAT_CAPACITY).interpolateAt(T);
+			}
+						
+		});
+
 	}
 
 	public ThermalProperties copy() {
@@ -223,7 +254,7 @@ public class ThermalProperties extends PropertyHolder {
 	public final double thermalConductivity() {
 		return a * cP * rho;
 	}
-	
+
 	public NumericProperty getThermalConductivity() {
 		return derive(CONDUCTIVITY, thermalConductivity());
 	}
@@ -290,12 +321,12 @@ public class ThermalProperties extends PropertyHolder {
 		this.emissivity = (double) e.getValue();
 		setHeatLoss(derive(HEAT_LOSS, biot()));
 	}
-	
+
 	@Override
 	public String getDescriptor() {
 		return "Sample Thermo-Physical Properties";
 	}
-	
+
 	@Override
 	public String toString() {
 		return "Show Details...";

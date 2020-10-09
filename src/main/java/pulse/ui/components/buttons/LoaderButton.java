@@ -13,22 +13,29 @@ import static pulse.io.readers.ReaderManager.getDatasetExtensions;
 import static pulse.ui.Messages.getString;
 import static pulse.ui.components.DataLoader.load;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
 
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
+import javax.swing.UIManager;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import pulse.input.InterpolationDataset;
+import pulse.util.ImageUtils;
 
 @SuppressWarnings("serial")
 public class LoaderButton extends JButton {
 
 	private InterpolationDataset.StandartType dataType;
 	private static File dir;
+
+	private final static Color NOT_HIGHLIGHTED = UIManager.getColor("Button.background");
+	private final static Color HIGHLIGHTED = ImageUtils.blend(NOT_HIGHLIGHTED, Color.red, 0.75f);
 
 	public LoaderButton() {
 		super();
@@ -42,7 +49,10 @@ public class LoaderButton extends JButton {
 
 	public void init() {
 
-		//setFont(getFont().deriveFont(BOLD, 14f));
+		InterpolationDataset.addListener(e -> {
+			if (dataType == e)
+				highlight(false);
+		});
 
 		addActionListener((ActionEvent arg0) -> {
 			var fileChooser = new JFileChooser();
@@ -96,6 +106,14 @@ public class LoaderButton extends JButton {
 
 	public void setDataType(InterpolationDataset.StandartType dataType) {
 		this.dataType = dataType;
+	}
+
+	public void highlight(boolean highlighted) {
+		setBorder(highlighted ? BorderFactory.createLineBorder(HIGHLIGHTED) : null );
+	}
+	
+	public void highlightIfNeeded() {
+		highlight(InterpolationDataset.getDataset(dataType) == null); 
 	}
 
 }
