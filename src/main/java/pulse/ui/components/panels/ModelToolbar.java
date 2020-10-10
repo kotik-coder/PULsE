@@ -46,7 +46,7 @@ public class ModelToolbar extends JToolBar {
 		doCalc.addActionListener(e -> {
 			var instance = TaskManager.getManagerInstance();
 			var t = instance.getSelectedTask();
-			t.getStoredCalculations().forEach(c -> c.getModelSelectionCriterion().evaluate(t));
+			t.getStoredCalculations().forEach(c -> c.getModelSelectionCriterion().calcCriterion() );
 			instance.notifyListeners(new TaskRepositoryEvent(TaskRepositoryEvent.State.TASK_CRITERION_SWITCH, t.getIdentifier()));
 		});
 		

@@ -179,7 +179,7 @@ public class ExportManager {
 	public static void exportAllResults(File directory, Extension extension) {
 
 		var instance = TaskManager.getManagerInstance();
-		instance.getTaskList().stream().map(t -> instance.getResult(t)).filter(Objects::nonNull)
+		instance.getTaskList().stream().map(t -> t.getStoredCalculations() ).flatMap(x -> x.stream()).filter(Objects::nonNull)
 				.forEach(r -> export(r, directory, extension));
 
 	}

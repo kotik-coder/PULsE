@@ -41,7 +41,10 @@ public abstract class ModelSelectionCriterion extends Statistic {
 	@Override
 	public void evaluate(SearchTask t) {
 		kq = t.alteredParameters().size(); //number of variables
-		os.evaluate(t);
+		calcCriterion();
+	}
+	
+	public void calcCriterion() {
 		final int n = os.getResiduals().size(); //sample size
 		criterion = n * log(os.variance()) + penalisingTerm(kq,n) + n * PENALISATION_FACTOR;
 		this.tellParent(new PropertyEvent(null, this, getStatistic()));

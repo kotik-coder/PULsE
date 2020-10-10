@@ -25,7 +25,6 @@ public class StoredCalculationTableModel extends DefaultTableModel {
 				new String[] { "Problem Statement", "Baseline", "Parameter count",
 						"Optimiser Statistic", "Model Selection Statistic",
 						def(MODEL_WEIGHT).getAbbreviation(true) });
-		
 	}
 
 	public void update(SearchTask t) {

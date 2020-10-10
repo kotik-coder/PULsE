@@ -69,6 +69,12 @@ public class TaskRepositoryEvent {
 		 */
 		
 		TASK_CRITERION_SWITCH,
+		
+		/**
+		 * Indicates the task has discarded superfluous calculations.
+		 */
+		
+		BEST_MODEL_SELECTED,
 
 		/**
 		 * The repository has been shut down/

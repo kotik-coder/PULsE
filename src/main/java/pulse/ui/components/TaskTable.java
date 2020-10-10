@@ -17,6 +17,7 @@ import java.util.Comparator;
 
 import javax.swing.JTable;
 import javax.swing.RowSorter;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
@@ -126,6 +127,7 @@ public class TaskTable extends JTable {
 			// simply ignore call if event is triggered by taskTable
 			if (e.getSource() instanceof TaskTable)
 				return;
+	
 			var id = instance.getSelectedTask().getIdentifier();
 			Identifier idFromTable = null;
 			int i = 0;
@@ -136,8 +138,8 @@ public class TaskTable extends JTable {
 			if(i < getRowCount())
 				setRowSelectionInterval(i, i);
 			clearSelection();
-		});
-
+			});
+		
 	}
 
 	@Override
@@ -146,6 +148,7 @@ public class TaskTable extends JTable {
 	}
 
 	public void removeSelectedRows() {
+		SwingUtilities.invokeLater(() -> {
 		var rows = getSelectedRows();
 		Identifier id;
 
@@ -157,6 +160,7 @@ public class TaskTable extends JTable {
 		}
 
 		clearSelection();
+		});
 	}
 
 	private class TableHeader extends JTableHeader {

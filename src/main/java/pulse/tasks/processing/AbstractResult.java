@@ -34,6 +34,11 @@ public abstract class AbstractResult extends UpwardsNavigable {
 		this.format = format;
 		properties = new ArrayList<>(format.size());
 	}
+	
+	public AbstractResult(AbstractResult r) {
+		this.properties = new ArrayList<>(r.getProperties());
+		this.format = r.format;
+	}
 
 	public ResultFormat getFormat() {
 		return format;
@@ -105,6 +110,26 @@ public abstract class AbstractResult extends UpwardsNavigable {
 
 	public static List<NumericProperty> filterProperties(AbstractResult result) {
 		return filterProperties(result, result.format);
+	}
+	
+	@Override
+	public boolean equals(Object o) {
+		if(o == this)
+			return true;
+		
+		if(o == null)
+			return false;
+		
+		if(! (o.getClass().equals(o.getClass())))
+			return false;
+		
+		var another = (AbstractResult)o;
+		
+		if(!another.properties.containsAll(this.properties) || !this.properties.containsAll(another.properties))
+			return false;
+		
+		return another.format.equals(this.format);
+		
 	}
 
 }

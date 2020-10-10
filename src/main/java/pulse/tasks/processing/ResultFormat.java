@@ -152,5 +152,22 @@ public class ResultFormat {
 	public static NumericPropertyKeyword[] getMinimalArray() {
 		return minimalArray;
 	}
+	
+	@Override
+	public boolean equals(Object o) {
+		if(o == this)
+			return true;
+		
+		if(o == null)
+			return false;
+		
+		if(! (o.getClass().equals(o.getClass())))
+			return false;
+		
+		var another = (ResultFormat)o;
+		
+		return (another.nameMap.containsAll(this.nameMap)) && (this.nameMap.containsAll(another.nameMap));
+		
+	}
 
 }

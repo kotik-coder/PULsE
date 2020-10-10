@@ -29,10 +29,14 @@ public class Result extends AbstractResult {
 		if (task == null)
 			throw new IllegalArgumentException(Messages.getString("Result.NullTaskError"));
 
-		setParent(task);
+		setParent(task.getCurrentCalculation());
 
 		format.getKeywords().stream().forEach(key -> addProperty(task.numericProperty(key)));
 
+	}
+	
+	public Result(Result r) {
+		super(r);
 	}
 
 }

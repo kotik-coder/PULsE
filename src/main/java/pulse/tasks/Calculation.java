@@ -25,6 +25,7 @@ import pulse.search.statistics.ModelSelectionCriterion;
 import pulse.search.statistics.OptimiserStatistic;
 import pulse.tasks.logs.Details;
 import pulse.tasks.logs.Status;
+import pulse.tasks.processing.Result;
 import pulse.ui.components.PropertyHolderTable;
 import pulse.util.InstanceDescriptor;
 import pulse.util.PropertyEvent;
@@ -39,6 +40,7 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
 	private DifferenceScheme scheme;
 	private ModelSelectionCriterion rs;
 	private OptimiserStatistic os;
+	private Result result;
 	
 	private static InstanceDescriptor<? extends ModelSelectionCriterion> instanceDescriptor = new InstanceDescriptor<>(
 			"Model Selection Criterion", ModelSelectionCriterion.class);
@@ -71,6 +73,8 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
 		var p = nCalc.getProblem();
 		p.getProperties().setMaximumTemperature(problem.getProperties().getMaximumTemperature());
 		nCalc.status = status;
+		if(this.getResult() != null)
+			nCalc.setResult(new Result(this.getResult()));
 		return nCalc;
 	}
 	
@@ -278,6 +282,15 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
 
 	public static InstanceDescriptor<? extends ModelSelectionCriterion> getModelSelectionDescriptor() {
 		return instanceDescriptor;
+	}
+
+	public Result getResult() {
+		return result;
+	}
+
+	public void setResult(Result result) {
+		this.result = result;
+		result.setParent(this);
 	}
 
 }

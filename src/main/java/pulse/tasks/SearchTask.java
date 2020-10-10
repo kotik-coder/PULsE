@@ -329,10 +329,8 @@ public class SearchTask extends Accessible implements Runnable {
 				if (properties.stream().anyMatch(np -> !np.validate()))
 					setStatus(FAILED, PARAMETER_VALUES_NOT_SENSIBLE);
 				else {
-					setStatus(DONE);
 					current.getModelSelectionCriterion().evaluate(this);
-					storeCurrentCalculation();
-					switchTo(current.copy());
+					setStatus(DONE);
 				}
 			
 			}
@@ -553,29 +551,27 @@ public class SearchTask extends Accessible implements Runnable {
 		return current;
 	}
 	
-	public void storeCurrentCalculation() {
-		stored.add(current.copy());
-	}
-	
 	public List<Calculation> getStoredCalculations() {
 		return this.stored;
 	}
 	
 	public void switchTo(Calculation calc) {
-		current = null;
-		this.current = calc.copy();
+		current.setParent(null);
+		current = calc;
 		current.setParent(this);
-		this.fireModelSelected();
+		var e = new TaskRepositoryEvent(TaskRepositoryEvent.State.TASK_MODEL_SWITCH, this.getIdentifier());
+		fireRepositoryEvent(e);
 	}
 	
 	public void switchToBestModel() {
 		var best = stored.stream().reduce((c1, c2) -> c1.compareTo(c2) > 0 ? c2 : c1);
-		this.switchTo(best.get());
+		this.switchTo(best.get());		
+		var e = new TaskRepositoryEvent(TaskRepositoryEvent.State.BEST_MODEL_SELECTED, this.getIdentifier());
+		fireRepositoryEvent(e);
 	}
 	
-	private void fireModelSelected() {
+	private void fireRepositoryEvent(TaskRepositoryEvent e) {
 		var instance = TaskManager.getManagerInstance();
-		var e = new TaskRepositoryEvent(TaskRepositoryEvent.State.TASK_MODEL_SWITCH, this.getIdentifier());
 		for(var l : instance.getTaskRepositoryListeners())
 			l.onTaskListChanged(e);
 	}

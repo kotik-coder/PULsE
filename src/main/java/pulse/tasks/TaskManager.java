@@ -16,15 +16,12 @@ import static pulse.tasks.listeners.TaskRepositoryEvent.State.TASK_SUBMITTED;
 import static pulse.tasks.logs.Status.DONE;
 import static pulse.tasks.logs.Status.IN_PROGRESS;
 import static pulse.tasks.logs.Status.QUEUED;
-import static pulse.tasks.logs.Status.READY;
 import static pulse.ui.Launcher.threadsAvailable;
 import static pulse.util.Group.contents;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -62,7 +59,6 @@ public class TaskManager extends UpwardsNavigable {
 
 	private List<SearchTask> tasks;
 	private SearchTask selectedTask;
-	private Map<SearchTask, Result> results;
 
 	private boolean singleStatement = true;
 
@@ -91,7 +87,6 @@ public class TaskManager extends UpwardsNavigable {
 
 	private TaskManager() {
 		tasks = new ArrayList<SearchTask>();
-		results = new HashMap<SearchTask, Result>();
 		taskPool = new ForkJoinPool(THREADS_AVAILABLE - 1);
 		selectionListeners = new CopyOnWriteArrayList<TaskSelectionListener>();
 		taskRepositoryListeners = new CopyOnWriteArrayList<TaskRepositoryListener>();
@@ -118,7 +113,6 @@ public class TaskManager extends UpwardsNavigable {
 	 */
 
 	public void execute(SearchTask t) {
-		removeResult(t); // remove old result
 		t.setStatus(QUEUED); // notify listeners computation is about to start
 
 		// notify listeners
@@ -127,11 +121,18 @@ public class TaskManager extends UpwardsNavigable {
 		// run task t -- after task completed, write result and trigger listeners
 
 		CompletableFuture.runAsync(t).thenRun(() -> {
-			if (t.getCurrentCalculation().getStatus() == DONE) {
-				results.put(t, new Result(t, ResultFormat.getInstance()));
-			}
+			var current = t.getCurrentCalculation();
 			var e = new TaskRepositoryEvent(TASK_FINISHED, t.getIdentifier());
-			notifyListeners(e);
+			if (current.getStatus() == DONE) {
+				current.setResult(new Result(t, ResultFormat.getInstance()));
+				//notify listeners before the task is re-assigned
+				notifyListeners(e);
+				current.setParent(null);
+				t.getStoredCalculations().add(current.copy());
+				current.setParent(t);
+				current.setResult(null);
+			} else
+				notifyListeners(e);
 		});
 	}
 
@@ -490,49 +491,6 @@ public class TaskManager extends UpwardsNavigable {
 	@Override
 	public String describe() {
 		return tasks.size() > 0 ? getSampleName().toString() : DEFAULT_NAME;
-	}
-
-	public Result getResult(SearchTask t) {
-		return results.get(t);
-	}
-
-	/**
-	 * Assigns {@code r} as the {@code Result} for {@code t}.
-	 * 
-	 * @param t the {@code Result}
-	 * @param r the {@code SearchTask}.
-	 */
-
-	public void useResult(SearchTask t, Result r) {
-		results.put(t, r);
-	}
-
-	/**
-	 * Searches for a {@code Result} for a {@code SearchTask} with a specific
-	 * {@code id}.
-	 * 
-	 * @param id the {@code Identifier} of a {@code SearchTask}
-	 * @return {@code null} if such {@code Result} cannot be found. Otherwise,
-	 *         returns the found {@code Result}.
-	 */
-
-	public Result getResult(Identifier id) {
-		var optional = tasks.stream().filter(t -> t.getIdentifier().equals(id)).findFirst();
-		return optional.isPresent() ? results.get(optional.get()) : null;
-	}
-
-	/**
-	 * Removes the results of the task {@code t} and sets its status to
-	 * {@code READY}.
-	 * 
-	 * @param t a {@code SearchTask} contained in the repository
-	 */
-
-	public void removeResult(SearchTask t) {
-		if (!results.containsKey(t))
-			return;
-		results.remove(t);
-		t.setStatus(READY);
 	}
 
 	public void evaluate() {

@@ -58,8 +58,8 @@ public class ResultTable extends JTable implements Descriptive {
 		setFillsViewportHeight(true);
 
 		setSelectionMode(SINGLE_INTERVAL_SELECTION);
-		setRowSelectionAllowed(false);
-		setColumnSelectionAllowed(true);
+		setRowSelectionAllowed(true);
+		setColumnSelectionAllowed(false);
 
 		var headersSize = getPreferredSize();
 		headersSize.height = RESULTS_HEADER_HEIGHT;
@@ -73,24 +73,9 @@ public class ResultTable extends JTable implements Descriptive {
 		var instance = TaskManager.getManagerInstance();
 
 		instance.addSelectionListener((TaskSelectionEvent e) -> {
-			var id = instance.getSelectedTask().getIdentifier();
+			var t = instance.getSelectedTask();
 			getSelectionModel().clearSelection();
-			var results = ((ResultTableModel) getModel()).getResults();
-			var jj = 0;
-			for (var r : results) {
-				if (!(r instanceof Result))
-					continue;
-				var rid = r.identify();
-				if (!rid.equals(id))
-					continue;
-				jj = convertRowIndexToView(results.indexOf(r));
-
-				if (jj > -1) {
-					getSelectionModel().addSelectionInterval(jj, jj);
-					scrollToSelection(jj);
-				}
-
-			}
+			select( t.getCurrentCalculation().getResult() );
 		});
 
 		/*
@@ -99,16 +84,28 @@ public class ResultTable extends JTable implements Descriptive {
 		 */
 
 		TaskManager.getManagerInstance().addTaskRepositoryListener((TaskRepositoryEvent e) -> {
+			var t = instance.getTask(e.getId());
 			switch (e.getState()) {
 			case TASK_FINISHED:
-				var t = instance.getTask(e.getId());
-				var r = instance.getResult(t);
+				var r = t.getCurrentCalculation().getResult();
 				invokeLater(() -> ((ResultTableModel) getModel()).addRow(r));
 				break;
 			case TASK_REMOVED:
 			case TASK_RESET:
 				((ResultTableModel) getModel()).removeAll(e.getId());
 				getSelectionModel().clearSelection();
+				break;
+			case BEST_MODEL_SELECTED :
+				for(var c : t.getStoredCalculations())
+					if(c.getResult() != null && c != t.getCurrentCalculation())
+						((ResultTableModel) getModel()).remove(c.getResult());
+				this.select(t.getCurrentCalculation().getResult());
+				break;
+			case TASK_MODEL_SWITCH :
+				var c = t.getCurrentCalculation();
+				this.getSelectionModel().clearSelection();
+				if(c != null && c.getResult() != null) 
+					select(c.getResult());
 				break;
 			default:
 				break;
@@ -252,6 +249,7 @@ public class ResultTable extends JTable implements Descriptive {
 
 	public void deleteSelected() {
 
+		invokeLater(() -> {
 		var rtm = (ResultTableModel) getModel();
 		var selection = getSelectedRows();
 
@@ -260,11 +258,27 @@ public class ResultTable extends JTable implements Descriptive {
 
 		for (var i = selection.length - 1; i >= 0; i--) {
 			rtm.remove(rtm.getResults().get(convertRowIndexToModel(selection[i])));
-		}
+		}});
 
+	}
+	
+	public void select(Result r) {  
+		invokeLater(() -> {
+		var results = ((ResultTableModel) getModel()).getResults();
+		if(results.contains(r)) {
+			
+			int jj = convertRowIndexToView(results.indexOf(r));
+
+			if (jj > -1) {
+				getSelectionModel().addSelectionInterval(jj, jj);
+				scrollToSelection(jj);
+			}
+			
+		}});
 	}
 
 	public void undo() {
+		invokeLater(() -> {
 		var dtm = (ResultTableModel) getModel();
 
 		for (var i = dtm.getRowCount() - 1; i >= 0; i--) {
@@ -272,7 +286,9 @@ public class ResultTable extends JTable implements Descriptive {
 		}
 
 		var instance = TaskManager.getManagerInstance();
-		instance.getTaskList().stream().map(t -> instance.getResult(t)).forEach(r -> dtm.addRow(r));
-	}
+		instance.getTaskList().stream().map(t -> t.getCurrentCalculation().getResult()).forEach(r -> dtm.addRow(r));
+	});
 
+	}
+	
 }

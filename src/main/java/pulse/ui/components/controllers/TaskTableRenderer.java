@@ -41,7 +41,7 @@ public class TaskTableRenderer extends NumericPropertyRenderer {
 		}
 		
 		else if(value instanceof PropertyHolder) {
-			return initLabel("" + ((PropertyHolder)value).describe(), table.isRowSelected(row));
+			return initLabel("" + ((PropertyHolder)value).getDescriptor(), table.isRowSelected(row));
 		}
 
 		return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);

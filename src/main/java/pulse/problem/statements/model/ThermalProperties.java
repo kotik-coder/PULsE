@@ -63,6 +63,7 @@ public class ThermalProperties extends PropertyHolder {
 		T = (double) def(TEST_TEMPERATURE).getValue();
 		emissivity = (double) def(EMISSIVITY).getValue();
 		initListeners();
+		fill();
 	}
 
 	public ThermalProperties(ThermalProperties p) {
@@ -73,6 +74,16 @@ public class ThermalProperties extends PropertyHolder {
 		this.T = p.T;
 		this.emissivity = p.emissivity;
 		initListeners();
+		fill();
+	}
+	
+	private void fill() {
+		var rhoCurve = InterpolationDataset.getDataset(StandartType.DENSITY);
+		var cpCurve = InterpolationDataset.getDataset(StandartType.HEAT_CAPACITY); 
+		if(rhoCurve != null)
+			rhoCurve.interpolateAt(T);
+		if(cpCurve != null)
+			cpCurve.interpolateAt(T);
 	}
 
 	/**

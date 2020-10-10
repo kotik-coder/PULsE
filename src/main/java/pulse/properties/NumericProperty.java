@@ -116,10 +116,13 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
 
 	public void setValue(Number value) {
 
-		if (!validate())
-			throw new IllegalArgumentException(printRangeAndNumber(this, value));
-
+		Number oldValue = this.value;
 		this.value = value;
+		
+		if (!validate()) {
+			this.value = oldValue;
+			throw new IllegalArgumentException(printRangeAndNumber(this, value));
+		}
 
 	}
 

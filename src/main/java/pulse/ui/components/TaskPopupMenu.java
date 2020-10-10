@@ -131,9 +131,10 @@ public class TaskPopupMenu extends JPopupMenu {
 			var t = instance.getSelectedTask();
 			if (t == null)
 				return;
-			if (t.getCurrentCalculation().getProblem() != null) {
+			var current = t.getCurrentCalculation();
+			if (current != null) {
 				var r = new Result(t, getInstance());
-				instance.useResult(t, r);
+				current.setResult(r);
 				var e = new TaskRepositoryEvent(TASK_FINISHED, t.getIdentifier());
 				instance.notifyListeners(e);
 			}
