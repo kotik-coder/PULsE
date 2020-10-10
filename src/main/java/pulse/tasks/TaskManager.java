@@ -318,7 +318,8 @@ public class TaskManager extends UpwardsNavigable {
 	 */
 
 	public SearchTask getTask(Identifier id) {
-		return tasks.stream().filter(t -> t.getIdentifier().equals(id)).findFirst().get();
+		var o = tasks.stream().filter(t -> t.getIdentifier().equals(id)).findFirst();
+		return o.isPresent() ? o.get() : null;
 	}
 
 	/**

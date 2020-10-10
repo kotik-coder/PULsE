@@ -383,6 +383,7 @@ public class SearchTask extends Accessible implements Runnable {
 	}
 	
 	public void setStatus(Status status, Details details) {
+		status.setDetails(details);
 		if(current.setStatus(status, details)) 
 			notifyStatusListeners(new StateEntry(this, status));
 	}

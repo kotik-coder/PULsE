@@ -2,7 +2,7 @@ package pulse.ui.components;
 
 import static java.lang.Math.abs;
 import static java.util.stream.Collectors.toList;
-import static javax.swing.ListSelectionModel.SINGLE_INTERVAL_SELECTION;
+import static javax.swing.ListSelectionModel.MULTIPLE_INTERVAL_SELECTION;
 import static javax.swing.SortOrder.ASCENDING;
 import static javax.swing.SwingConstants.TOP;
 import static javax.swing.SwingUtilities.invokeLater;
@@ -22,6 +22,7 @@ import javax.swing.table.TableRowSorter;
 
 import pulse.properties.NumericProperty;
 import pulse.properties.Property;
+import pulse.tasks.SearchTask;
 import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.TaskRepositoryEvent;
 import pulse.tasks.listeners.TaskSelectionEvent;
@@ -57,7 +58,7 @@ public class ResultTable extends JTable implements Descriptive {
 		setShowHorizontalLines(false);
 		setFillsViewportHeight(true);
 
-		setSelectionMode(SINGLE_INTERVAL_SELECTION);
+		setSelectionMode(MULTIPLE_INTERVAL_SELECTION);
 		setRowSelectionAllowed(true);
 		setColumnSelectionAllowed(false);
 
@@ -75,7 +76,7 @@ public class ResultTable extends JTable implements Descriptive {
 		instance.addSelectionListener((TaskSelectionEvent e) -> {
 			var t = instance.getSelectedTask();
 			getSelectionModel().clearSelection();
-			select( t.getCurrentCalculation().getResult() );
+			select(t);
 		});
 
 		/*
@@ -95,16 +96,16 @@ public class ResultTable extends JTable implements Descriptive {
 				((ResultTableModel) getModel()).removeAll(e.getId());
 				getSelectionModel().clearSelection();
 				break;
-			case BEST_MODEL_SELECTED :
-				for(var c : t.getStoredCalculations())
-					if(c.getResult() != null && c != t.getCurrentCalculation())
+			case BEST_MODEL_SELECTED:
+				for (var c : t.getStoredCalculations())
+					if (c.getResult() != null && c != t.getCurrentCalculation())
 						((ResultTableModel) getModel()).remove(c.getResult());
 				this.select(t.getCurrentCalculation().getResult());
 				break;
-			case TASK_MODEL_SWITCH :
+			case TASK_MODEL_SWITCH:
 				var c = t.getCurrentCalculation();
 				this.getSelectionModel().clearSelection();
-				if(c != null && c.getResult() != null) 
+				if (c != null && c.getResult() != null)
 					select(c.getResult());
 				break;
 			default:
@@ -185,7 +186,8 @@ public class ResultTable extends JTable implements Descriptive {
 
 			var val = ((Number) ((Property) this.getValueAt(i, temperatureIndex)).getValue());
 
-			var indices = group(val.doubleValue(), temperatureIndex, temperatureDelta); // get indices of results in table
+			var indices = group(val.doubleValue(), temperatureIndex, temperatureDelta); // get indices of results in
+																						// table
 			skipList.addAll(indices); // skip those indices if they refer to the same group
 
 			if (indices.size() < 2)
@@ -250,45 +252,53 @@ public class ResultTable extends JTable implements Descriptive {
 	public void deleteSelected() {
 
 		invokeLater(() -> {
-		var rtm = (ResultTableModel) getModel();
-		var selection = getSelectedRows();
+			var rtm = (ResultTableModel) getModel();
+			var selection = getSelectedRows();
 
-		if (selection.length < 0)
-			return;
+			if (selection.length < 0)
+				return;
 
-		for (var i = selection.length - 1; i >= 0; i--) {
-			rtm.remove(rtm.getResults().get(convertRowIndexToModel(selection[i])));
-		}});
+			for (var i = selection.length - 1; i >= 0; i--) {
+				rtm.remove(rtm.getResults().get(convertRowIndexToModel(selection[i])));
+			}
+		});
 
 	}
-	
-	public void select(Result r) {  
-		invokeLater(() -> {
+
+	public void select(Result r) {
 		var results = ((ResultTableModel) getModel()).getResults();
-		if(results.contains(r)) {
-			
+		if (results.contains(r)) {
+
 			int jj = convertRowIndexToView(results.indexOf(r));
 
 			if (jj > -1) {
 				getSelectionModel().addSelectionInterval(jj, jj);
 				scrollToSelection(jj);
 			}
-			
-		}});
+
+		}
+		;
+	}
+
+	public void select(SearchTask t) {
+		t.getStoredCalculations().stream().forEach(c -> {
+			if (c.getResult() != null)
+				select(c.getResult());
+		});
 	}
 
 	public void undo() {
 		invokeLater(() -> {
-		var dtm = (ResultTableModel) getModel();
+			var dtm = (ResultTableModel) getModel();
 
-		for (var i = dtm.getRowCount() - 1; i >= 0; i--) {
-			dtm.remove(dtm.getResults().get(convertRowIndexToModel(i)));
-		}
+			for (var i = dtm.getRowCount() - 1; i >= 0; i--) {
+				dtm.remove(dtm.getResults().get(convertRowIndexToModel(i)));
+			}
 
-		var instance = TaskManager.getManagerInstance();
-		instance.getTaskList().stream().map(t -> t.getCurrentCalculation().getResult()).forEach(r -> dtm.addRow(r));
-	});
+			var instance = TaskManager.getManagerInstance();
+			instance.getTaskList().stream().map(t -> t.getCurrentCalculation().getResult()).forEach(r -> dtm.addRow(r));
+		});
 
 	}
-	
+
 }
