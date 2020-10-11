@@ -271,6 +271,8 @@ public class ProblemStatementFrame extends JInternalFrame {
 				.forEach(pp -> pp.updateProperty(event, event.getProperty()));
 
 		});
+		
+		
 
 	}
 

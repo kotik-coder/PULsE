@@ -108,6 +108,7 @@ public class TaskControlFrame extends JFrame {
 
 			@Override
 			public void onProblemStatementShowRequest() {
+				problemStatementFrame.update();
 				setProblemStatementFrameVisible(true);
 			}
 

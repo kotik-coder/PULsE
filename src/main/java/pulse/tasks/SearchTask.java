@@ -160,7 +160,8 @@ public class SearchTask extends Accessible implements Runnable {
 		this.path = null;
 		current.clear();
 		
-		setStatus(INCOMPLETE);		
+		this.checkProblems();
+		this.notifyStatusListeners(new StateEntry(this, current.getStatus()));
 	}
 	
 	/**

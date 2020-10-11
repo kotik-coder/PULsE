@@ -53,6 +53,8 @@ public class RSquaredTest extends NormalityTest {
 	public void evaluate(SearchTask t) {
 		var reference = t.getExperimentalCurve();
 
+		sos.evaluate(t);
+		
 		final int start = reference.getIndexRange().getLowerBound();
 		final int end = reference.getIndexRange().getUpperBound();
 
