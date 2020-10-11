@@ -18,8 +18,8 @@
 	</NumericProperty>
 	<NumericProperty abbreviation="&amp;phi;" auto-adjustable="true"
 		descriptor="Baseline phase shift, &amp;phi;" dimensionfactor="1"
-		discreet="false" keyword="BASELINE_PHASE_SHIFT" maximum="1"
-		minimum="-1" value="0" primitive-type="double"
+		discreet="false" keyword="BASELINE_PHASE_SHIFT" maximum="3.14"
+		minimum="-3.14" value="0" primitive-type="double"
 		default-search-variable="false">
 	</NumericProperty>
 	<NumericProperty abbreviation="&amp;omega;" auto-adjustable="true"

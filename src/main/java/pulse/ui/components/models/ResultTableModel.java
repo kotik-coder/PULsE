@@ -105,7 +105,7 @@ public class ResultTableModel extends DefaultTableModel {
 			if (!(result instanceof Result))
 				continue;
 
-			if (result.identify().equals(id)) {
+			if (id.equals(result.identify())) {
 				results.remove(result);
 				super.removeRow(i);
 			}

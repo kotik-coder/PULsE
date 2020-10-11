@@ -267,8 +267,9 @@ public class ResultTable extends JTable implements Descriptive {
 
 	public void select(Result r) {
 		var results = ((ResultTableModel) getModel()).getResults();
-		int jj = convertRowIndexToView(results.indexOf(r));
-		if (jj > -1) {
+		int modelIndex = results.indexOf(r);
+		if (modelIndex > -1) {
+			int jj = convertRowIndexToView(modelIndex);
 			getSelectionModel().addSelectionInterval(jj, jj);
 			scrollToSelection(jj);
 		}
