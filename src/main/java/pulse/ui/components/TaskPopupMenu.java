@@ -32,7 +32,6 @@ import pulse.problem.schemes.solvers.Solver;
 import pulse.problem.schemes.solvers.SolverException;
 import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.TaskRepositoryEvent;
-import pulse.tasks.logs.Status;
 import pulse.tasks.processing.Result;
 
 @SuppressWarnings("serial")
@@ -108,7 +107,7 @@ public class TaskPopupMenu extends JPopupMenu {
 						getString("TaskTablePopupMenu.DeleteTitle"), dialogButton);
 				if (dialogResult == 0) {
 					// instance.removeResult(t);
-					instance.getSelectedTask().setStatus(Status.READY);
+					instance.getSelectedTask().setStatus(READY);
 					instance.execute(instance.getSelectedTask());
 				}
 			} else if (t.checkProblems() != READY) {

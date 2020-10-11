@@ -113,7 +113,7 @@ public class LoaderButton extends JButton {
 	}
 	
 	public void highlightIfNeeded() {
-		highlight(InterpolationDataset.getDataset(dataType) == null); 
+		highlight(getDataset(dataType) == null); 
 	}
 
 }

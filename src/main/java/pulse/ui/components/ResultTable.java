@@ -277,7 +277,7 @@ public class ResultTable extends JTable implements Descriptive {
 			}
 
 		}
-		;
+		
 	}
 
 	public void select(SearchTask t) {
@@ -288,17 +288,15 @@ public class ResultTable extends JTable implements Descriptive {
 	}
 
 	public void undo() {
-		invokeLater(() -> {
-			var dtm = (ResultTableModel) getModel();
+		var dtm = (ResultTableModel) getModel();
 
-			for (var i = dtm.getRowCount() - 1; i >= 0; i--) {
-				dtm.remove(dtm.getResults().get(convertRowIndexToModel(i)));
-			}
+		for (var i = dtm.getRowCount() - 1; i >= 0; i--) {
+			dtm.remove(dtm.getResults().get(convertRowIndexToModel(i)));
+		}
 
-			var instance = TaskManager.getManagerInstance();
-			instance.getTaskList().stream().map(t -> t.getCurrentCalculation().getResult()).forEach(r -> dtm.addRow(r));
-		});
-
+		var instance = TaskManager.getManagerInstance();
+		instance.getTaskList().stream().map(t -> t.getStoredCalculations()).flatMap(list -> list.stream())
+				.forEach(c -> dtm.addRow(c.getResult()));
 	}
 
 }

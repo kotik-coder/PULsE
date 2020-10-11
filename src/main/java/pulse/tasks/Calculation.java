@@ -35,13 +35,13 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
 
 	private Status status;
 	public final static double RELATIVE_TIME_MARGIN = 1.01;
-	
+
 	private Problem problem;
 	private DifferenceScheme scheme;
 	private ModelSelectionCriterion rs;
 	private OptimiserStatistic os;
 	private Result result;
-	
+
 	private static InstanceDescriptor<? extends ModelSelectionCriterion> instanceDescriptor = new InstanceDescriptor<>(
 			"Model Selection Criterion", ModelSelectionCriterion.class);
 
@@ -52,9 +52,9 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
 	public Calculation() {
 		status = INCOMPLETE;
 		this.initOptimiser();
-		instanceDescriptor.addListener( () -> initModelCriterion());
+		instanceDescriptor.addListener(() -> initModelCriterion());
 	}
-	
+
 	public Calculation(Problem problem, DifferenceScheme scheme, ModelSelectionCriterion rs) {
 		this();
 		this.problem = problem;
@@ -66,24 +66,24 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
 		os.setParent(this);
 		rs.setParent(this);
 	}
-	
+
 	public Calculation copy() {
 		var status = this.status;
 		var nCalc = new Calculation(problem.copy(), scheme.copy(), rs.copy());
 		var p = nCalc.getProblem();
 		p.getProperties().setMaximumTemperature(problem.getProperties().getMaximumTemperature());
 		nCalc.status = status;
-		if(this.getResult() != null)
+		if (this.getResult() != null)
 			nCalc.setResult(new Result(this.getResult()));
 		return nCalc;
 	}
-	
+
 	public void clear() {
-		this.status = Status.INCOMPLETE;
+		this.status = INCOMPLETE;
 		this.problem = null;
 		this.scheme = null;
 	}
-	
+
 	/**
 	 * <p>
 	 * After setting and adopting the {@code problem} by this {@code SearchTask},
@@ -107,18 +107,18 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
 
 		problem.getProperties().addListener((PropertyEvent event) -> {
 			var source = event.getSource();
-			
-			if (source instanceof Metadata || source instanceof PropertyHolderTable ) {
-				
+
+			if (source instanceof Metadata || source instanceof PropertyHolderTable) {
+
 				var property = event.getProperty();
-				if(property instanceof NumericProperty && ((NumericProperty)property).isAutoAdjustable() )
+				if (property instanceof NumericProperty && ((NumericProperty) property).isAutoAdjustable())
 					return;
-				
+
 				problem.estimateSignalRange(curve);
 				problem.getProperties().useTheoreticalEstimates(curve);
 			}
 		});
-		
+
 		problem.getHeatingCurve().addHeatingCurveListener(dataEvent -> {
 
 			var event = dataEvent.getType();
@@ -150,11 +150,11 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
 					- (double) problem.getHeatingCurve().getTimeShift().getValue();
 
 			scheme.setTimeLimit(derive(TIME_LIMIT, upperLimit));
-			
+
 		}
 
 	}
-	
+
 	/**
 	 * This will use the current {@code DifferenceScheme} to solve the
 	 * {@code Problem} for this {@code Calculation}.
@@ -172,72 +172,74 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
 			e.printStackTrace();
 		}
 	}
-	
+
 	public Status getStatus() {
 		return status;
 	}
-	
+
 	public boolean setStatus(Status status, Details details) {
 		boolean done = false;
-		
-		if(this.status != status) {
+
+		if (this.status != status) {
 			this.status = status;
 			done = true;
-		}
-		else if(this.status.getDetails() != status.getDetails()){
+		} else if (this.status.getDetails() != status.getDetails()) {
 			this.status.setDetails(status.getDetails());
 			done = true;
 		}
-		
+
 		return done;
 	}
-	
+
 	public NumericProperty weight(List<Calculation> all) {
 		var result = def(MODEL_WEIGHT);
-		
-		if(rs instanceof ModelSelectionCriterion) {
-			var criterion = (ModelSelectionCriterion)rs;
-			
-			boolean condition = all.stream().allMatch(c -> c.getModelSelectionCriterion().getClass().equals(criterion.getClass()));
-			
-			if(condition) {
-				var list = all.stream().map(a -> (ModelSelectionCriterion)a.getModelSelectionCriterion()).collect(Collectors.toList());
-				result = criterion.weight( list );
+
+		if (rs instanceof ModelSelectionCriterion) {
+			var criterion = (ModelSelectionCriterion) rs;
+
+			boolean condition = all.stream()
+					.allMatch(c -> c.getModelSelectionCriterion().getClass().equals(criterion.getClass()));
+
+			if (condition) {
+				var list = all.stream().map(a -> (ModelSelectionCriterion) a.getModelSelectionCriterion())
+						.collect(Collectors.toList());
+				result = criterion.weight(list);
 			}
-		
-		} 
-		
+
+		}
+
 		return result;
 	}
-	
+
 	public void setModelSelectionCriterion(ModelSelectionCriterion rs) {
 		this.rs = rs;
 		rs.setParent(this);
 	}
-	
+
 	public ModelSelectionCriterion getModelSelectionCriterion() {
 		return rs;
 	}
-	
+
 	public void setOptimiserStatistic(OptimiserStatistic os) {
 		this.os = os;
 		os.setParent(this);
 		initModelCriterion();
 	}
-	
+
 	public OptimiserStatistic getOptimiserStatistic() {
 		return os;
 	}
-	
+
 	public Problem getProblem() {
 		return problem;
 	}
-	
+
 	public void initOptimiser() {
-		this.setOptimiserStatistic( instantiate(OptimiserStatistic.class, OptimiserStatistic.getSelectedOptimiserDescriptor() ) );
+		this.setOptimiserStatistic(
+				instantiate(OptimiserStatistic.class, OptimiserStatistic.getSelectedOptimiserDescriptor()));
 		this.initModelCriterion();
 	}
-	
+
 	public void initModelCriterion() {
 		setModelSelectionCriterion(instanceDescriptor.newInstance(ModelSelectionCriterion.class, os));
 	}
@@ -245,7 +247,7 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
 	public DifferenceScheme getScheme() {
 		return scheme;
 	}
-	
+
 	@Override
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
 		// intentionally left blank
@@ -256,28 +258,23 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
 		var s1 = arg0.getModelSelectionCriterion().getStatistic();
 		return getModelSelectionCriterion().getStatistic().compareTo(s1);
 	}
-	
+
 	@Override
 	public boolean equals(Object o) {
-		if(o == this)
+		if (o == this)
 			return true;
-		
-		if(o == null)
+
+		if (o == null)
 			return false;
-		
-		if(! (o instanceof Calculation))
+
+		if (!(o instanceof Calculation))
 			return false;
-		
-		var c = (Calculation)o;
-		
-		if(os.getStatistic().equals(c.getOptimiserStatistic().getStatistic())) {
-			if(rs.getStatistic().equals(c.getModelSelectionCriterion().getStatistic())) {
-				return true;
-			}
-		}
-		
-		return false;
-		
+
+		var c = (Calculation) o;
+
+		return (os.getStatistic().equals(c.getOptimiserStatistic().getStatistic())
+				&& rs.getStatistic().equals(c.getModelSelectionCriterion().getStatistic()));
+
 	}
 
 	public static InstanceDescriptor<? extends ModelSelectionCriterion> getModelSelectionDescriptor() {

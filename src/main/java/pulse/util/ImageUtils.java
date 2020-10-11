@@ -22,7 +22,7 @@ public class ImageUtils {
 		return new ImageIcon(newimg); // transform it back
 	}
 	
-	public static Color blend( Color c1, Color c2, float ratio ) {
+	public static Color blend( final Color c1, final Color c2, float ratio ) {
 	    if ( ratio > 1f ) ratio = 1f;
 	    else if ( ratio < 0f ) ratio = 0f;
 	    float iRatio = 1.0f - ratio;

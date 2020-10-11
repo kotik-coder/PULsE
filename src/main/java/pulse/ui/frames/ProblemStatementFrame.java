@@ -238,8 +238,8 @@ public class ProblemStatementFrame extends JInternalFrame {
 						}
 					} else {
 						showMessageDialog(null,
-								"This problem statement is not currently supported. Please select another.",
-								"Feature not supported", WARNING_MESSAGE);
+								getString("problem.notsupportedmessage"),
+								getString("problem.notsupportedtitle"), WARNING_MESSAGE);
 						path = null;
 					}
 
@@ -419,11 +419,7 @@ public class ProblemStatementFrame extends JInternalFrame {
 				}
 				schemeTable.setPropertyHolder(selectedTask.getCurrentCalculation().getScheme());
 				if (selectedTask.getCurrentCalculation().getProblem().getComplexity() == HIGH) {
-					showMessageDialog(null, "<html><body><p style='width: 300px;'>" + "You have selected a "
-							+ "high-complexity problem statement. Calculations will take longer than usual. "
-							+ "You may track the progress of your task with the verbose logging option. Watch out for "
-							+ "timeouts as they typically may occur for multi-variate optimisation when the problem is ill-posed."
-							+ "</p></body></html>", "High complexity", INFORMATION_MESSAGE);
+					showMessageDialog(null, getString("complexity.warning"), "High complexity", INFORMATION_MESSAGE);
 				}
 			});
 

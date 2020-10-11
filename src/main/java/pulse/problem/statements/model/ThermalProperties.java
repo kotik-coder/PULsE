@@ -78,8 +78,8 @@ public class ThermalProperties extends PropertyHolder {
 	}
 	
 	private void fill() {
-		var rhoCurve = InterpolationDataset.getDataset(StandartType.DENSITY);
-		var cpCurve = InterpolationDataset.getDataset(StandartType.HEAT_CAPACITY); 
+		var rhoCurve = getDataset(StandartType.DENSITY);
+		var cpCurve = getDataset(StandartType.HEAT_CAPACITY); 
 		if(rhoCurve != null)
 			rhoCurve.interpolateAt(T);
 		if(cpCurve != null)
@@ -104,10 +104,10 @@ public class ThermalProperties extends PropertyHolder {
 				return;
 			
 			if (e == StandartType.DENSITY) {
-				rho = InterpolationDataset.getDataset(StandartType.DENSITY).interpolateAt(T);
+				rho = getDataset(StandartType.DENSITY).interpolateAt(T);
 			}
 			else if (e == StandartType.HEAT_CAPACITY) {
-				cP = InterpolationDataset.getDataset(StandartType.HEAT_CAPACITY).interpolateAt(T);
+				cP = getDataset(StandartType.HEAT_CAPACITY).interpolateAt(T);
 			}
 						
 		});
