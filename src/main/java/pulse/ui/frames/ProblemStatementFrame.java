@@ -24,6 +24,7 @@ import static pulse.util.ImageUtils.loadIcon;
 import static pulse.util.Reflexive.instancesOf;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
@@ -173,7 +174,7 @@ public class ProblemStatementFrame extends JInternalFrame {
 		var btnSimulate = new JButton(getString("ProblemStatementFrame.SimulateButton")); //$NON-NLS-1$
 
 		pulseFrame = new InternalGraphFrame<Pulse>("Pulse Shape", new PulseChart("Time (ms)", "Laser Power (a. u.)"));
-		pulseFrame.setFrameIcon(loadIcon("pulse.png", 20));
+		pulseFrame.setFrameIcon(loadIcon("pulse.png", 20, Color.white));
 		pulseFrame.setVisible(false);
 
 		// simulate btn listener

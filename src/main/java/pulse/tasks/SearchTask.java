@@ -111,7 +111,10 @@ public class SearchTask extends Accessible implements Runnable {
 		curve.setParent(this);
 		correlationBuffer = new CorrelationBuffer();
 		clear();
-		
+		addListeners();
+	}
+	
+	private void addListeners() {
 		InterpolationDataset.addListener(e -> {
 			var p = current.getProblem().getProperties(); 
 			if(p.areThermalPropertiesLoaded())
@@ -126,7 +129,6 @@ public class SearchTask extends Accessible implements Runnable {
 				scheme.setTimeLimit(derive(TIME_LIMIT, Calculation.RELATIVE_TIME_MARGIN * curve.timeLimit() - startTime));
 			}
 		});
-
 	}
 
 	/**
@@ -237,6 +239,8 @@ public class SearchTask extends Accessible implements Runnable {
 	@Override
 	public void run() {
 
+		current.setResult(null);
+		
 		/* check of status */
 
 		switch (current.getStatus()) {

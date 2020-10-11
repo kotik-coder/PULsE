@@ -50,13 +50,13 @@ public class CalculationTable extends JTable {
 				var t = instance.getTask(e.getId());
 				identifySelection(t);
 			}
-			
-			else if(e.getState() == TaskRepositoryEvent.State.TASK_CRITERION_SWITCH) {
+
+			else if (e.getState() == TaskRepositoryEvent.State.TASK_CRITERION_SWITCH) {
 				update(TaskManager.getManagerInstance().getSelectedTask());
 			}
 
 		});
-		
+
 	}
 
 	public void update(SearchTask t) {
@@ -75,21 +75,16 @@ public class CalculationTable extends JTable {
 
 	public void initListeners() {
 
-		/*
-		 * selection listener
-		 */
-
 		var lsm = getSelectionModel();
 
 		lsm.addListSelectionListener((ListSelectionEvent e) -> {
 			var task = TaskManager.getManagerInstance().getSelectedTask();
-			if (!lsm.getValueIsAdjusting() && !lsm.isSelectionEmpty()) {
-				var id = convertRowIndexToModel(this.getSelectedRow());
-				if (id < task.getStoredCalculations().size()) {
-					task.switchTo(task.getStoredCalculations().get(id));
-					getChart().plot(task, true);
-				}
+			var id = convertRowIndexToModel(this.getSelectedRow());
+			if (!lsm.getValueIsAdjusting() && id > -1 && id < task.getStoredCalculations().size()) {
+				task.switchTo(task.getStoredCalculations().get(id));
+				getChart().plot(task, true);
 			}
+
 		});
 
 	}

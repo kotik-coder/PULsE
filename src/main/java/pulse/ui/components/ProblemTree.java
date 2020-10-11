@@ -14,6 +14,7 @@ import javax.swing.tree.TreeSelectionModel;
 
 import pulse.problem.statements.Problem;
 import pulse.problem.statements.ProblemComplexity;
+import pulse.ui.components.controllers.ProblemCellRenderer;
 import pulse.ui.components.listeners.ProblemSelectionEvent;
 import pulse.ui.components.listeners.ProblemSelectionListener;
 
@@ -21,14 +22,15 @@ import pulse.ui.components.listeners.ProblemSelectionListener;
 public class ProblemTree extends JTree {
 
 	private List<ProblemSelectionListener> selectionListeners;
-
+	
 	public ProblemTree(List<Problem> allProblems) {
 		super();
+		this.setCellRenderer(new ProblemCellRenderer());
 		var root = new DefaultMutableTreeNode("Problem Statements");
-
+		
 		for (var c : ProblemComplexity.values()) {
 			var currentComplexity = new DefaultMutableTreeNode(c.toString() + " Complexity");
-
+			
 			allProblems.stream().filter(p -> p.getComplexity() == c).forEach(pFiltered -> {
 				var node = new DefaultMutableTreeNode(pFiltered);
 				currentComplexity.add(node);

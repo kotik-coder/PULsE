@@ -10,6 +10,7 @@ import static pulse.tasks.processing.ResultFormat.addResultFormatListener;
 import static pulse.ui.Messages.getString;
 import static pulse.util.ImageUtils.loadIcon;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Point;
@@ -176,23 +177,23 @@ public class TaskControlFrame extends JFrame {
 		setJMenuBar(mainMenu);
 
 		logFrame = new LogFrame();
-		logFrame.setFrameIcon(loadIcon("log.png", 20));
+		logFrame.setFrameIcon(loadIcon("log.png", 20, Color.white));
 		resultsFrame = new ResultFrame();
-		resultsFrame.setFrameIcon(loadIcon("result.png", 20));
+		resultsFrame.setFrameIcon(loadIcon("result.png", 20, Color.white));
 		previewFrame = new PreviewFrame();
-		previewFrame.setFrameIcon(loadIcon("preview.png", 20));
+		previewFrame.setFrameIcon(loadIcon("preview.png", 20, Color.white));
 		taskManagerFrame = new TaskManagerFrame();
-		taskManagerFrame.setFrameIcon(loadIcon("task_manager.png", 20));
+		taskManagerFrame.setFrameIcon(loadIcon("task_manager.png", 20, Color.white));
 		graphFrame = MainGraphFrame.getInstance();
-		graphFrame.setFrameIcon(loadIcon("curves.png", 20));
+		graphFrame.setFrameIcon(loadIcon("curves.png", 20, Color.white));
 
 		problemStatementFrame = new ProblemStatementFrame();
-		problemStatementFrame.setFrameIcon(loadIcon("heat_problem.png", 20));
+		problemStatementFrame.setFrameIcon(loadIcon("heat_problem.png", 20, Color.white));
 		modelFrame = new ModelSelectionFrame();
-		modelFrame.setFrameIcon(loadIcon("stored.png", 20));
+		modelFrame.setFrameIcon(loadIcon("stored.png", 20, Color.white));
 
 		searchOptionsFrame = new SearchOptionsFrame();
-		searchOptionsFrame.setFrameIcon(loadIcon("optimiser.png", 20));
+		searchOptionsFrame.setFrameIcon(loadIcon("optimiser.png", 20, Color.white));
 
 		/*
 		 * CONSTRAINT ADJUSTMENT

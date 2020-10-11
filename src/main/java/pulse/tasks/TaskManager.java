@@ -130,7 +130,6 @@ public class TaskManager extends UpwardsNavigable {
 				current.setParent(null);
 				t.getStoredCalculations().add(current.copy());
 				current.setParent(t);
-				current.setResult(null);
 			} else
 				notifyListeners(e);
 		});

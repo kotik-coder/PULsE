@@ -267,17 +267,11 @@ public class ResultTable extends JTable implements Descriptive {
 
 	public void select(Result r) {
 		var results = ((ResultTableModel) getModel()).getResults();
-		if (results.contains(r)) {
-
-			int jj = convertRowIndexToView(results.indexOf(r));
-
-			if (jj > -1) {
-				getSelectionModel().addSelectionInterval(jj, jj);
-				scrollToSelection(jj);
-			}
-
+		int jj = convertRowIndexToView(results.indexOf(r));
+		if (jj > -1) {
+			getSelectionModel().addSelectionInterval(jj, jj);
+			scrollToSelection(jj);
 		}
-		
 	}
 
 	public void select(SearchTask t) {

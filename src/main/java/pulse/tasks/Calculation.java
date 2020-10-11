@@ -104,7 +104,10 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
 		problem.setParent(this);
 		problem.removeHeatingCurveListeners();
 		problem.retrieveData(curve);
+		addProblemListeners(problem, curve);
+	}
 
+	private void addProblemListeners(Problem problem, ExperimentalData curve) {
 		problem.getProperties().addListener((PropertyEvent event) -> {
 			var source = event.getSource();
 
@@ -130,7 +133,6 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
 			}
 
 		});
-
 	}
 
 	/**
@@ -194,18 +196,13 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
 	public NumericProperty weight(List<Calculation> all) {
 		var result = def(MODEL_WEIGHT);
 
-		if (rs instanceof ModelSelectionCriterion) {
-			var criterion = (ModelSelectionCriterion) rs;
+		boolean condition = all.stream()
+				.allMatch(c -> c.getModelSelectionCriterion().getClass().equals(rs.getClass()));
 
-			boolean condition = all.stream()
-					.allMatch(c -> c.getModelSelectionCriterion().getClass().equals(criterion.getClass()));
-
-			if (condition) {
-				var list = all.stream().map(a -> (ModelSelectionCriterion) a.getModelSelectionCriterion())
-						.collect(Collectors.toList());
-				result = criterion.weight(list);
-			}
-
+		if (condition) {
+			var list = all.stream().map(a -> (ModelSelectionCriterion) a.getModelSelectionCriterion())
+					.collect(Collectors.toList());
+			result = rs.weight(list);
 		}
 
 		return result;
@@ -287,7 +284,8 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
 
 	public void setResult(Result result) {
 		this.result = result;
-		result.setParent(this);
+		if(result != null)
+			result.setParent(this);
 	}
 
 }
