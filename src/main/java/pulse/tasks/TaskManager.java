@@ -87,7 +87,8 @@ public class TaskManager extends UpwardsNavigable {
 
 	private TaskManager() {
 		tasks = new ArrayList<SearchTask>();
-		taskPool = new ForkJoinPool(THREADS_AVAILABLE - 1);
+		int threads = THREADS_AVAILABLE > 1 ? THREADS_AVAILABLE - 1 : 1;
+		taskPool = new ForkJoinPool(threads);
 		selectionListeners = new CopyOnWriteArrayList<TaskSelectionListener>();
 		taskRepositoryListeners = new CopyOnWriteArrayList<TaskRepositoryListener>();
 		this.addHierarchyListener(statementListener);
