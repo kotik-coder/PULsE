@@ -11,7 +11,6 @@ import static javax.swing.SwingConstants.HORIZONTAL;
 import static pulse.io.export.ExportManager.exportAllResults;
 import static pulse.io.export.ExportManager.exportGroup;
 import static pulse.io.export.Extension.valueOf;
-import static pulse.ui.Launcher.threadsAvailable;
 
 import java.awt.Dimension;
 import java.io.File;
@@ -43,6 +42,7 @@ import pulse.io.export.ResultExporter;
 import pulse.tasks.TaskManager;
 import pulse.tasks.logs.Log;
 import pulse.tasks.processing.Result;
+import pulse.util.ResourceMonitor;
 
 @SuppressWarnings("serial")
 public class ExportDialog extends JDialog {
@@ -104,11 +104,11 @@ public class ExportDialog extends JDialog {
 		if (subdirs.size() > 0 && !destination.exists())
 			destination.mkdirs();
 
-		final var threads = threadsAvailable();
+		var monitor = ResourceMonitor.getInstance();
 
 		if (createSubdirectories) {
 			progressFrame.trackProgress(subdirs.size());
-			var pool = newFixedThreadPool(threads - 1);
+			var pool = newFixedThreadPool( monitor.getThreadsAvailable() );
 			subdirs.stream().forEach(s -> {
 				pool.submit(() -> {
 					exportGroup(s, destination, extension);
@@ -117,7 +117,7 @@ public class ExportDialog extends JDialog {
 			});
 		} else {
 			var groupped = instance.allGrouppedContents();
-			var pool = newFixedThreadPool(threads - 1);
+			var pool = newFixedThreadPool( monitor.getThreadsAvailable() );
 			progressFrame.trackProgress(groupped.size());
 
 			groupped.stream().forEach(individual -> pool.submit(() -> {

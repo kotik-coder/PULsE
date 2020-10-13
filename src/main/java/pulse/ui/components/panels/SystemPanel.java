@@ -7,9 +7,6 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static javax.swing.SwingConstants.CENTER;
 import static javax.swing.SwingConstants.LEFT;
 import static javax.swing.SwingConstants.RIGHT;
-import static pulse.ui.Launcher.cpuUsage;
-import static pulse.ui.Launcher.getMemoryUsage;
-import static pulse.ui.Launcher.threadsAvailable;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -19,6 +16,7 @@ import javax.swing.JPanel;
 import javax.swing.UIManager;
 
 import pulse.util.ImageUtils;
+import pulse.util.ResourceMonitor;
 
 @SuppressWarnings("serial")
 public class SystemPanel extends JPanel {
@@ -60,22 +58,23 @@ public class SystemPanel extends JPanel {
 	}
 
 	private void startSystemMonitors() {
-		var coresAvailable = format("{" + (threadsAvailable() + 1) + " cores}");
+		var monitor = ResourceMonitor.getInstance();
+				
+		var coresAvailable = format("{" + (monitor.getThreadsAvailable() + 1) + " cores}");
 		coresLabel.setText(coresAvailable);
 
 		var executor = newSingleThreadScheduledExecutor();
 		var defColor = UIManager.getColor("Label.foreground");
 		
 		Runnable periodicTask = () -> {
-			var cpuUsage = cpuUsage();
-			var memoryUsage = getMemoryUsage();
-			var cpuString = format("CPU usage: %3.1f%%", cpuUsage);
+			monitor.update();
+			var cpuString = format("CPU usage: %3.1f%%", monitor.getCpuUsage());
 			cpuLabel.setText(cpuString);
-			var memoryString = format("Memory usage: %3.1f%%", memoryUsage);
+			var memoryString = format("Memory usage: %3.1f%%", monitor.getMemoryUsage());
 			memoryLabel.setText(memoryString);
 			
-			cpuLabel.setForeground(ImageUtils.blend(defColor, red, (float)cpuUsage/100));
-			memoryLabel.setForeground(ImageUtils.blend(defColor, red, (float)memoryUsage/100));
+			cpuLabel.setForeground(ImageUtils.blend(defColor, red, (float)monitor.getCpuUsage()/100));
+			memoryLabel.setForeground(ImageUtils.blend(defColor, red, (float)monitor.getMemoryUsage()/100));
 
 		};
 

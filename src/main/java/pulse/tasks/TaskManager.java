@@ -16,7 +16,6 @@ import static pulse.tasks.listeners.TaskRepositoryEvent.State.TASK_SUBMITTED;
 import static pulse.tasks.logs.Status.DONE;
 import static pulse.tasks.logs.Status.IN_PROGRESS;
 import static pulse.tasks.logs.Status.QUEUED;
-import static pulse.ui.Launcher.threadsAvailable;
 import static pulse.util.Group.contents;
 
 import java.io.File;
@@ -41,6 +40,7 @@ import pulse.tasks.processing.ResultFormat;
 import pulse.util.Group;
 import pulse.util.HierarchyListener;
 import pulse.util.PropertyHolder;
+import pulse.util.ResourceMonitor;
 import pulse.util.UpwardsNavigable;
 
 /**
@@ -62,7 +62,6 @@ public class TaskManager extends UpwardsNavigable {
 
 	private boolean singleStatement = true;
 
-	private final int THREADS_AVAILABLE = threadsAvailable();
 	private ForkJoinPool taskPool;
 
 	private List<TaskSelectionListener> selectionListeners;
@@ -87,7 +86,7 @@ public class TaskManager extends UpwardsNavigable {
 
 	private TaskManager() {
 		tasks = new ArrayList<SearchTask>();
-		taskPool = new ForkJoinPool(THREADS_AVAILABLE);
+		taskPool = new ForkJoinPool(ResourceMonitor.getInstance().getThreadsAvailable());
 		selectionListeners = new CopyOnWriteArrayList<TaskSelectionListener>();
 		taskRepositoryListeners = new CopyOnWriteArrayList<TaskRepositoryListener>();
 		this.addHierarchyListener(statementListener);

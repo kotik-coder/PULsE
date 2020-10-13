@@ -2,9 +2,9 @@ package pulse.ui.components.panels;
 
 import static pulse.util.ImageUtils.loadIcon;
 
+import java.awt.Color;
 import java.awt.Dimension;
 
-import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -32,13 +32,11 @@ public class ModelToolbar extends JToolBar {
 		);
 		criterionSelection.setSelectedItem(Calculation.getModelSelectionDescriptor().getValue());
 		
-		this.setBorder(BorderFactory.createEtchedBorder());
-		
 		add(new JLabel("Model Selection Criterion: "));
 		add(Box.createRigidArea(new Dimension(5,0)));
 		add(criterionSelection);
 			
-		var doCalc = new JButton(loadIcon("go_estimate.png", ICON_SIZE));
+		var doCalc = new JButton(loadIcon("go_estimate.png", ICON_SIZE, Color.WHITE));
 		doCalc.setToolTipText("Re-calculate model weights");
 		add(Box.createRigidArea(new Dimension(15,0)));
 		add(doCalc);
@@ -50,7 +48,7 @@ public class ModelToolbar extends JToolBar {
 			instance.notifyListeners(new TaskRepositoryEvent(TaskRepositoryEvent.State.TASK_CRITERION_SWITCH, t.getIdentifier()));
 		});
 		
-		var bestSelection = new JButton(loadIcon("best_model.png", ICON_SIZE));
+		var bestSelection = new JButton(loadIcon("best_model.png", ICON_SIZE, Color.RED));
 		bestSelection.setToolTipText("Select Best Model");
 		add(Box.createRigidArea(new Dimension(15,0)));
 		add(bestSelection);

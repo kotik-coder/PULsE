@@ -1,9 +1,6 @@
 package pulse.ui.components;
 
-import static java.lang.String.valueOf;
 import static java.lang.System.err;
-import static java.lang.System.setErr;
-import static java.lang.System.setOut;
 import static java.time.temporal.ChronoUnit.MILLIS;
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
@@ -12,8 +9,6 @@ import static pulse.tasks.logs.Status.DONE;
 import static pulse.ui.Messages.getString;
 
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintStream;
 import java.util.concurrent.ExecutorService;
 
 import javax.swing.JEditorPane;
@@ -32,52 +27,26 @@ public class LogPane extends JEditorPane implements Descriptive {
 
 	private ExecutorService updateExecutor = newSingleThreadExecutor();
 
-	private final static boolean DEBUG = true;
-
-	private PrintStream outStream, errStream;
-
 	public LogPane() {
 		super();
 		setContentType("text/html");
 		setEditable(false);
 		var c = (DefaultCaret) getCaret();
 		c.setUpdatePolicy(ALWAYS_UPDATE);
-
-		OutputStream out = new OutputStream() {
-			@Override
-			public void write(final int b) throws IOException {
-				postError(valueOf((char) b));
-			}
-
-			@Override
-			public void write(byte[] b, int off, int len) throws IOException {
-				postError(new String(b, off, len));
-			}
-
-			@Override
-			public void write(byte[] b) throws IOException {
-				write(b, 0, b.length);
-			}
-		};
-
-		if (!DEBUG) {
-			setOut(outStream = new PrintStream(out, true));
-			setErr(errStream = new PrintStream(out, true));
-		}
-
 	}
 
 	private void post(LogEntry logEntry) {
 		post(logEntry.toString());
 	}
 
+	/*
 	private void postError(String text) {
 		var sb = new StringBuilder();
 		sb.append(getString("DataLogEntry.FontTagError"));
 		sb.append(text);
 		sb.append(getString("DataLogEntry.FontTagClose"));
 		post(sb.toString());
-	}
+	}*/
 
 	private void post(String text) {
 
@@ -151,12 +120,6 @@ public class LogPane extends JEditorPane implements Descriptive {
 		} catch (BadLocationException e) {
 			e.printStackTrace();
 		}
-	}
-
-	@Override
-	public void finalize() {
-		outStream.close();
-		errStream.close();
 	}
 
 	public ExecutorService getUpdateExecutor() {
