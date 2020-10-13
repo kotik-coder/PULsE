@@ -5,7 +5,6 @@ import static java.awt.SplashScreen.getSplashScreen;
 import static java.lang.System.err;
 import static java.lang.System.setErr;
 import static java.time.LocalDateTime.now;
-import static java.time.format.DateTimeFormatter.ISO_WEEK_DATE;
 import static java.util.Objects.requireNonNull;
 import static pulse.ui.frames.TaskControlFrame.getInstance;
 
@@ -33,6 +32,7 @@ import com.alee.skin.dark.WebDarkSkin;
 public class Launcher {
 	
 	private PrintStream errStream;
+	private File errorLog;
 
 	private Launcher() {
 		arrangeErrorOutput();
@@ -82,11 +82,23 @@ public class Launcher {
 		//
 		try {
 			var dir = new File(decodedPath).getParent();
-			setErr( new PrintStream(new File(dir + File.separator + "ErrorLog_" + now().format(ISO_WEEK_DATE) + ".log")) );
+			errorLog = new File(dir + File.separator + "ErrorLog_" + now() + ".log");
+			setErr( new PrintStream(errorLog) );
 		} catch (FileNotFoundException e) {
 			System.err.println("Unable to set up error stream");
 			e.printStackTrace();
 		}
+		
+		/*
+		 * Delete log file on program exit if empty
+		 */
+		
+		Runnable r = () -> {
+			if(errorLog != null && errorLog.exists() && errorLog.length() < 1)
+				errorLog.delete();
+		};
+		Runtime.getRuntime().addShutdownHook(new Thread(r));
+		
 	}
 	
 	@Override
