@@ -12,7 +12,7 @@ import javax.management.ObjectName;
 import javax.management.ReflectionException;
 
 /**
- * Provides means of storage and methods for access to runtime system information, 
+ * Provides unified means of storage and methods of access to runtime system information, 
  * such as CPU usage, memory usage, an number of available threads.
  *
  */

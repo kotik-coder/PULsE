@@ -12,6 +12,8 @@ import static pulse.ui.frames.TaskControlFrame.getInstance;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 
 import javax.swing.UIManager;
 
@@ -69,8 +71,18 @@ public class Launcher {
 	}
 	
 	private void arrangeErrorOutput() {
+		String path = Launcher.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+		String decodedPath = "";
 		try {
-			setErr( new PrintStream(new File("ErrorLog_" + now().format(ISO_WEEK_DATE) + ".log")) );
+			decodedPath = URLDecoder.decode(path, "UTF-8");
+		} catch (UnsupportedEncodingException e1) {
+			System.err.println("Unsupported UTF-8 encoding. Details below.");
+			e1.printStackTrace();
+		}
+		//
+		try {
+			var dir = new File(decodedPath).getParent();
+			setErr( new PrintStream(new File(dir + File.separator + "ErrorLog_" + now().format(ISO_WEEK_DATE) + ".log")) );
 		} catch (FileNotFoundException e) {
 			System.err.println("Unable to set up error stream");
 			e.printStackTrace();
