@@ -1,8 +1,8 @@
 package pulse.ui.components.panels;
 
 import static java.awt.Color.GRAY;
-import static java.awt.Color.black;
 import static java.awt.Color.gray;
+import static java.awt.Color.white;
 import static java.awt.GridBagConstraints.BOTH;
 import static java.awt.Toolkit.getDefaultToolkit;
 import static java.lang.String.format;
@@ -17,6 +17,7 @@ import static pulse.ui.Messages.getString;
 import static pulse.ui.frames.MainGraphFrame.getChart;
 import static pulse.util.ImageUtils.loadIcon;
 
+import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.FocusEvent;
@@ -26,9 +27,9 @@ import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JFormattedTextField;
-import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JToggleButton;
+import javax.swing.JToolBar;
 import javax.swing.text.NumberFormatter;
 
 import pulse.input.Range;
@@ -38,13 +39,14 @@ import pulse.ui.components.listeners.PlotRequestListener;
 import pulse.ui.frames.HistogramFrame;
 
 @SuppressWarnings("serial")
-public class ChartToolbar extends JPanel {
+public class ChartToolbar extends JToolBar {
 
 	private final static int ICON_SIZE = 16;
 	private List<PlotRequestListener> listeners;
 
 	public ChartToolbar() {
 		super();
+		setFloatable(false);
 		listeners = new ArrayList<>();
 		initComponents();
 	}
@@ -56,9 +58,9 @@ public class ChartToolbar extends JPanel {
 		var upperLimitField = new JFormattedTextField(new NumberFormatter());
 
 		var limitRangeBtn = new JButton();
-		var adiabaticSolutionBtn = new JToggleButton(loadIcon("parker.png", ICON_SIZE));
-		var residualsBtn = new JToggleButton(loadIcon("residuals.png", ICON_SIZE));
-		var pdfBtn = new JButton(loadIcon("pdf.png", ICON_SIZE));
+		var adiabaticSolutionBtn = new JToggleButton(loadIcon("parker.png", ICON_SIZE, Color.white));
+		var residualsBtn = new JToggleButton(loadIcon("residuals.png", ICON_SIZE, Color.white));
+		var pdfBtn = new JButton(loadIcon("pdf.png", ICON_SIZE, Color.white));
 		pdfBtn.setToolTipText("Residuals Histogram");
 
 		var instance = TaskManager.getManagerInstance();
@@ -109,7 +111,7 @@ public class ChartToolbar extends JPanel {
 			public void focusGained(FocusEvent e) {
 				var src = (JTextField) e.getSource();
 				if (src.getText().length() > 0)
-					src.setForeground(black);
+					src.setForeground(white);
 			}
 
 			@Override

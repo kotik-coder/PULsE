@@ -25,7 +25,10 @@ import javax.swing.JInternalFrame;
 import javax.swing.event.InternalFrameAdapter;
 import javax.swing.event.InternalFrameEvent;
 
+import pulse.problem.statements.Pulse;
 import pulse.tasks.TaskManager;
+import pulse.ui.Version;
+import pulse.ui.components.PulseChart;
 import pulse.ui.components.PulseMainMenu;
 import pulse.ui.components.listeners.FrameVisibilityRequestListener;
 import pulse.ui.components.listeners.TaskActionListener;
@@ -48,6 +51,7 @@ public class TaskControlFrame extends JFrame {
 	private ResultFrame resultsFrame;
 	private MainGraphFrame graphFrame;
 	private LogFrame logFrame;
+	private InternalGraphFrame<Pulse> pulseFrame;
 
 	private PulseMainMenu mainMenu;
 
@@ -60,7 +64,7 @@ public class TaskControlFrame extends JFrame {
 	 */
 
 	private TaskControlFrame() {
-		setTitle(getString("TaskControlFrame.SoftwareTitle"));
+		setTitle(Version.getCurrentVersion().toString());
 		setPreferredSize(new Dimension(WIDTH, HEIGHT));
 		setExtendedState(getExtendedState() | MAXIMIZED_BOTH);
 		initComponents();
@@ -196,13 +200,17 @@ public class TaskControlFrame extends JFrame {
 		searchOptionsFrame = new SearchOptionsFrame();
 		searchOptionsFrame.setFrameIcon(loadIcon("optimiser.png", 20, Color.white));
 
+		pulseFrame = new InternalGraphFrame<Pulse>("Pulse Shape", new PulseChart("Time (ms)", "Laser Power (a. u.)"));
+		pulseFrame.setFrameIcon(loadIcon("pulse.png", 20, Color.white));
+		pulseFrame.setVisible(false);
+		
 		/*
 		 * CONSTRAINT ADJUSTMENT
 		 */
 
 		resizeQuadrants();
 		desktopPane.add(taskManagerFrame);
-		desktopPane.add(problemStatementFrame.getPulseFrame());
+		desktopPane.add(pulseFrame);
 		desktopPane.add(graphFrame);
 		desktopPane.add(previewFrame);
 		desktopPane.add(logFrame);
@@ -276,7 +284,7 @@ public class TaskControlFrame extends JFrame {
 			resizeQuadrants();
 			break;
 		case PROBLEM:
-			resizeTriplet(problemStatementFrame, problemStatementFrame.getPulseFrame(), graphFrame);
+			resizeTriplet(problemStatementFrame, pulseFrame, graphFrame);
 			break;
 		case SEARCH:
 			resizeFull(searchOptionsFrame);
@@ -392,7 +400,7 @@ public class TaskControlFrame extends JFrame {
 
 	private void setProblemStatementFrameVisible(boolean show) {
 		problemStatementFrame.setVisible(show);
-		problemStatementFrame.getPulseFrame().setVisible(show);
+		pulseFrame.setVisible(show);
 		graphFrame.setVisible(true);
 
 		previewFrame.setVisible(false);
@@ -442,6 +450,10 @@ public class TaskControlFrame extends JFrame {
 
 	public Mode getMode() {
 		return mode;
+	}
+
+	public InternalGraphFrame<Pulse> getPulseFrame() {
+		return pulseFrame;
 	}
 
 }

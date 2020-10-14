@@ -1,5 +1,8 @@
 package pulse.ui.components.panels;
 
+import static java.awt.Color.black;
+import static java.awt.Color.red;
+import static pulse.util.ImageUtils.blend;
 import static pulse.util.ImageUtils.loadIcon;
 
 import java.awt.GridLayout;
@@ -7,14 +10,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JButton;
-import javax.swing.JPanel;
+import javax.swing.JToolBar;
 
 import pulse.tasks.TaskManager;
 import pulse.ui.components.buttons.ExecutionButton;
 import pulse.ui.components.listeners.TaskActionListener;
 
 @SuppressWarnings("serial")
-public class TaskToolbar extends JPanel {
+public class TaskToolbar extends JToolBar {
 
 	private final static int ICON_SIZE = 16;
 
@@ -27,6 +30,8 @@ public class TaskToolbar extends JPanel {
 	private List<TaskActionListener> listeners;
 
 	public TaskToolbar() {
+		super();
+		setFloatable(false);
 		initComponents();
 		listeners = new ArrayList<>();
 		addButtonListeners();
@@ -35,7 +40,7 @@ public class TaskToolbar extends JPanel {
 	private void initComponents() {
 
 		removeBtn = new JButton(loadIcon("remove.png", ICON_SIZE));
-		clearBtn = new JButton(loadIcon("clear.png", ICON_SIZE));
+		clearBtn = new JButton(loadIcon("clear.png", ICON_SIZE, blend(red, black, 0.5f)));
 		resetBtn = new JButton(loadIcon("reset.png", ICON_SIZE));
 		graphBtn = new JButton(loadIcon("graph.png", ICON_SIZE));
 		execBtn = new ExecutionButton();

@@ -27,7 +27,7 @@ public class ExecutionButton extends JButton {
 		super();
 		setIcon(state.getIcon());
 		setToolTipText(state.getMessage());
-		
+
 		var instance = TaskManager.getManagerInstance();
 
 		this.addActionListener((ActionEvent e) -> {
@@ -48,12 +48,15 @@ public class ExecutionButton extends JButton {
 						ERROR_MESSAGE);
 				return;
 			}
-			var problematicTask = instance.getTaskList().stream()
-					.filter((t) -> t.checkProblems() == INCOMPLETE).findFirst();
+			var problematicTask = instance.getTaskList().stream().filter(t -> {
+				t.checkProblems(true);
+				return t.getCurrentCalculation().getStatus() == INCOMPLETE;
+			}).findFirst();
 			if (problematicTask.isPresent()) {
 				var t = problematicTask.get();
-				showMessageDialog(getWindowAncestor((Component) e.getSource()), t + " is " + t.getCurrentCalculation().getStatus().getMessage(),
-						"Problems found", ERROR_MESSAGE);
+				showMessageDialog(getWindowAncestor((Component) e.getSource()),
+						t + " is " + t.getCurrentCalculation().getStatus().getMessage(), "Problems found",
+						ERROR_MESSAGE);
 			} else {
 				instance.executeAll();
 			}

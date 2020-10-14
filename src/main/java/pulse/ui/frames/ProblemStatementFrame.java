@@ -3,40 +3,24 @@ package pulse.ui.frames;
 import static java.awt.BorderLayout.CENTER;
 import static java.awt.BorderLayout.NORTH;
 import static java.awt.BorderLayout.SOUTH;
-import static java.awt.Toolkit.getDefaultToolkit;
-import static java.lang.System.err;
-import static javax.swing.JOptionPane.ERROR_MESSAGE;
 import static javax.swing.JOptionPane.INFORMATION_MESSAGE;
 import static javax.swing.JOptionPane.WARNING_MESSAGE;
 import static javax.swing.JOptionPane.showMessageDialog;
 import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
-import static javax.swing.SwingUtilities.getWindowAncestor;
-import static pulse.input.InterpolationDataset.StandartType.DENSITY;
-import static pulse.input.InterpolationDataset.StandartType.HEAT_CAPACITY;
 import static pulse.problem.statements.ProblemComplexity.HIGH;
 import static pulse.tasks.TaskManager.getManagerInstance;
-import static pulse.tasks.logs.Details.INSUFFICIENT_DATA_IN_PROBLEM_STATEMENT;
-import static pulse.tasks.logs.Details.MISSING_DIFFERENCE_SCHEME;
-import static pulse.tasks.logs.Details.MISSING_PROBLEM_STATEMENT;
-import static pulse.tasks.logs.Status.INCOMPLETE;
 import static pulse.ui.Messages.getString;
-import static pulse.util.ImageUtils.loadIcon;
 import static pulse.util.Reflexive.instancesOf;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
 import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
 import java.util.List;
 
 import javax.swing.DefaultListModel;
-import javax.swing.JButton;
 import javax.swing.JInternalFrame;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JToolBar;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -44,34 +28,29 @@ import javax.swing.tree.DefaultTreeSelectionModel;
 import javax.swing.tree.TreePath;
 
 import pulse.problem.schemes.DifferenceScheme;
-import pulse.problem.schemes.solvers.Solver;
-import pulse.problem.schemes.solvers.SolverException;
 import pulse.problem.statements.Problem;
-import pulse.problem.statements.Pulse;
 import pulse.tasks.SearchTask;
 import pulse.tasks.listeners.TaskSelectionEvent;
 import pulse.ui.components.ProblemTree;
 import pulse.ui.components.PropertyHolderTable;
-import pulse.ui.components.PulseChart;
-import pulse.ui.components.buttons.LoaderButton;
+import pulse.ui.components.panels.ProblemToolbar;
 import pulse.ui.components.panels.SettingsToolBar;
 import pulse.ui.frames.TaskControlFrame.Mode;
 
 @SuppressWarnings("serial")
 public class ProblemStatementFrame extends JInternalFrame {
 
-	private InternalGraphFrame<Pulse> pulseFrame;
-
-	private PropertyHolderTable problemTable, schemeTable;
-	private SchemeSelectionList schemeSelectionList;
+	private PropertyHolderTable problemTable;
+	private PropertyHolderTable schemeTable;
+	private JList<DifferenceScheme> schemeSelectionList;
 	private ProblemTree problemTree;
+	private ProblemToolbar toolbar;
 
 	private final static List<Problem> knownProblems = instancesOf(Problem.class);
 
 	/**
 	 * Create the frame.
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public ProblemStatementFrame() {
 		setResizable(true);
 		setClosable(true);
@@ -141,7 +120,34 @@ public class ProblemStatementFrame extends JInternalFrame {
 		 * Scheme list and scroller
 		 */
 
-		schemeSelectionList = new SchemeSelectionList();
+		schemeSelectionList = new JList<DifferenceScheme>();
+		schemeSelectionList.setSelectionMode(SINGLE_SELECTION);
+		schemeSelectionList.setModel(new DefaultListModel<DifferenceScheme>());
+
+		schemeSelectionList.addListSelectionListener((ListSelectionEvent arg0) -> {
+			if (TaskControlFrame.getInstance().getMode() != Mode.PROBLEM)
+				return;
+
+			var selectedValue = schemeSelectionList.getSelectedValue();
+
+			if (arg0.getValueIsAdjusting() || !(selectedValue instanceof DifferenceScheme)) {
+				((DefaultTableModel) schemeTable.getModel()).setRowCount(0);
+				return;
+			}
+
+			var selectedTask = instance.getSelectedTask();
+			var newScheme = selectedValue;
+			if (instance.isSingleStatement()) {
+				instance.getTaskList().stream().forEach(t -> changeScheme(t, newScheme));
+			} else {
+				changeScheme(selectedTask, newScheme);
+			}
+			schemeTable.setPropertyHolder(selectedTask.getCurrentCalculation().getScheme());
+			if (selectedTask.getCurrentCalculation().getProblem().getComplexity() == HIGH) {
+				showMessageDialog(null, getString("complexity.warning"), "High complexity", INFORMATION_MESSAGE);
+			}
+		});
+
 		schemeSelectionList.setToolTipText(getString("ProblemStatementFrame.PleaseSelect")); //$NON-NLS-1$
 
 		var schemeScroller = new JScrollPane(schemeSelectionList);
@@ -163,59 +169,7 @@ public class ProblemStatementFrame extends JInternalFrame {
 		var schemeDetailsScroller = new JScrollPane(schemeTable);
 		contentPane.add(schemeDetailsScroller);
 
-		/*
-		 * Toolbar
-		 */
-
-		var toolBar = new JToolBar();
-		toolBar.setFloatable(false);
-		toolBar.setLayout(new GridLayout());
-
-		var btnSimulate = new JButton(getString("ProblemStatementFrame.SimulateButton")); //$NON-NLS-1$
-
-		pulseFrame = new InternalGraphFrame<Pulse>("Pulse Shape", new PulseChart("Time (ms)", "Laser Power (a. u.)"));
-		pulseFrame.setFrameIcon(loadIcon("pulse.png", 20, Color.white));
-		pulseFrame.setVisible(false);
-
-		// simulate btn listener
-
-		btnSimulate.addActionListener((ActionEvent arg0) -> {
-			var t = instance.getSelectedTask();
-			if (t == null)
-				return;
-			var calc = t.getCurrentCalculation();
-			if (t.checkProblems() == INCOMPLETE) {
-				var d = calc.getStatus().getDetails();
-				if (d == MISSING_PROBLEM_STATEMENT || d == MISSING_DIFFERENCE_SCHEME
-						|| d == INSUFFICIENT_DATA_IN_PROBLEM_STATEMENT) {
-					getDefaultToolkit().beep();
-					showMessageDialog(getWindowAncestor((Component) arg0.getSource()), calc.getStatus().getMessage(),
-							getString("ProblemStatementFrame.ErrorTitle"), //$NON-NLS-1$
-							ERROR_MESSAGE);
-					return;
-				}
-			}
-			try {
-				((Solver) calc.getScheme()).solve(calc.getProblem());
-			} catch (SolverException e) {
-				err.println("Solver of " + t + " has encountered an error. Details: ");
-				e.printStackTrace();
-			}
-			MainGraphFrame.getInstance().plot();
-			pulseFrame.plot(calc.getProblem().getPulse());
-			problemTable.updateTable();
-			schemeTable.updateTable();
-		});
-
-		toolBar.add(btnSimulate);
-
-		var btnLoadCv = new LoaderButton(getString("ProblemStatementFrame.LoadSpecificHeatButton")); //$NON-NLS-1$
-		btnLoadCv.setDataType(HEAT_CAPACITY);
-		toolBar.add(btnLoadCv);
-
-		var btnLoadDensity = new LoaderButton(getString("ProblemStatementFrame.LoadDensityButton")); //$NON-NLS-1$
-		btnLoadDensity.setDataType(DENSITY);
-		toolBar.add(btnLoadDensity);
+		toolbar = new ProblemToolbar();
 
 		problemTree.setSelectionModel(new DefaultTreeSelectionModel() {
 
@@ -233,13 +187,9 @@ public class ProblemStatementFrame extends JInternalFrame {
 
 					if (enabledFlag) {
 						super.setSelectionPath(path);
-						if(!problem.isReady()) {
-							btnLoadDensity.highlightIfNeeded();
-							btnLoadCv.highlightIfNeeded();
-						}
+						toolbar.highlightButtons(!problem.isReady());
 					} else {
-						showMessageDialog(null,
-								getString("problem.notsupportedmessage"),
+						showMessageDialog(null, getString("problem.notsupportedmessage"),
 								getString("problem.notsupportedtitle"), WARNING_MESSAGE);
 						path = null;
 					}
@@ -256,7 +206,7 @@ public class ProblemStatementFrame extends JInternalFrame {
 
 		getContentPane().add(new SettingsToolBar(problemTable, schemeTable), NORTH);
 		getContentPane().add(contentPane, CENTER);
-		getContentPane().add(toolBar, SOUTH);
+		getContentPane().add(toolbar, SOUTH);
 
 		/*
 		 * listeners
@@ -268,11 +218,9 @@ public class ProblemStatementFrame extends JInternalFrame {
 		getManagerInstance().addHierarchyListener(event -> {
 			if ((event.getSource() instanceof PropertyHolderTable) && instance.isSingleStatement())
 				instance.getTaskList().stream().map(t -> t.getCurrentCalculation().getProblem()).filter(p -> p != null)
-				.forEach(pp -> pp.updateProperty(event, event.getProperty()));
+						.forEach(pp -> pp.updateProperty(event, event.getProperty()));
 
 		});
-		
-		
 
 	}
 
@@ -317,7 +265,9 @@ public class ProblemStatementFrame extends JInternalFrame {
 
 		calc.setProblem(np, data); // copies information from old problem to new problem type
 
-		task.checkProblems();
+		task.checkProblems(true);
+		toolbar.highlightButtons(!np.isReady());
+		
 	}
 
 	private static void selectDefaultScheme(JList<DifferenceScheme> list, Problem p) {
@@ -359,7 +309,7 @@ public class ProblemStatementFrame extends JInternalFrame {
 
 		}
 
-		task.checkProblems();
+		task.checkProblems(true);
 
 	}
 
@@ -384,54 +334,6 @@ public class ProblemStatementFrame extends JInternalFrame {
 		if (!found)
 			list.clearSelection();
 
-	}
-
-	/*
-	 * ########################### Scheme selection list class
-	 * ###########################
-	 */
-
-	class SchemeSelectionList extends JList<DifferenceScheme> {
-
-		public SchemeSelectionList() {
-
-			super();
-			setSelectionMode(SINGLE_SELECTION);
-			var m = new DefaultListModel<DifferenceScheme>();
-			setModel(m);
-			// scheme list listener
-
-			addListSelectionListener((ListSelectionEvent arg0) -> {
-				if (TaskControlFrame.getInstance().getMode() != Mode.PROBLEM)
-					return;
-
-				if (arg0.getValueIsAdjusting() || !(getSelectedValue() instanceof DifferenceScheme)) {
-					((DefaultTableModel) schemeTable.getModel()).setRowCount(0);
-					return;
-				}
-
-				var instance = getManagerInstance();
-				var selectedTask = instance.getSelectedTask();
-				var newScheme = getSelectedValue();
-				if (newScheme == null)
-					return;
-				if (instance.isSingleStatement()) {
-					instance.getTaskList().stream().forEach(t -> changeScheme(t, newScheme));
-				} else {
-					changeScheme(selectedTask, newScheme);
-				}
-				schemeTable.setPropertyHolder(selectedTask.getCurrentCalculation().getScheme());
-				if (selectedTask.getCurrentCalculation().getProblem().getComplexity() == HIGH) {
-					showMessageDialog(null, getString("complexity.warning"), "High complexity", INFORMATION_MESSAGE);
-				}
-			});
-
-		}
-
-	}
-
-	public InternalGraphFrame<Pulse> getPulseFrame() {
-		return pulseFrame;
 	}
 
 }

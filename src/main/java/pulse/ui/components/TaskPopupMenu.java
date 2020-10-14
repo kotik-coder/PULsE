@@ -36,7 +36,7 @@ import pulse.tasks.processing.Result;
 
 @SuppressWarnings("serial")
 public class TaskPopupMenu extends JPopupMenu {
-	
+
 	private JMenuItem itemViewStored;
 
 	private final static int ICON_SIZE = 24;
@@ -76,11 +76,9 @@ public class TaskPopupMenu extends JPopupMenu {
 		var itemShowStatus = new JMenuItem("What is missing?", ICON_MISSING);
 
 		instance.addSelectionListener(event -> {
-			var details = instance.getSelectedTask().checkProblems(false).getDetails();
-			if ((details == null) || (details == NONE))
-				itemShowStatus.setEnabled(false);
-			else
-				itemShowStatus.setEnabled(true);
+			instance.getSelectedTask().checkProblems(false);
+			var details = instance.getSelectedTask().getCurrentCalculation().getStatus().getDetails();
+			itemShowStatus.setEnabled((details != null) & (details != NONE));
 		});
 
 		itemShowStatus.addActionListener((ActionEvent e) -> {
@@ -99,26 +97,31 @@ public class TaskPopupMenu extends JPopupMenu {
 				showMessageDialog(getWindowAncestor((Component) e.getSource()),
 						getString("TaskTablePopupMenu.EmptySelection"), //$NON-NLS-1$
 						getString("TaskTablePopupMenu.ErrorTitle"), ERROR_MESSAGE); //$NON-NLS-1$
-			} else if (t.checkProblems() == DONE) {
-				var dialogButton = YES_NO_OPTION;
-				var dialogResult = showConfirmDialog(referenceWindow,
-						getString("TaskTablePopupMenu.TaskCompletedWarning") + lineSeparator()
-								+ getString("TaskTablePopupMenu.AskToDelete"),
-						getString("TaskTablePopupMenu.DeleteTitle"), dialogButton);
-				if (dialogResult == 0) {
-					// instance.removeResult(t);
-					instance.getSelectedTask().setStatus(READY);
-					instance.execute(instance.getSelectedTask());
-				}
-			} else if (t.checkProblems() != READY) {
-				showMessageDialog(getWindowAncestor((Component) e.getSource()),
-						t.toString() + " is " + t.getCurrentCalculation().getStatus().getMessage(), //$NON-NLS-1$
-						getString("TaskTablePopupMenu.TaskNotReady"), //$NON-NLS-1$
-						ERROR_MESSAGE);
-			} else
-				instance.execute(instance.getSelectedTask());
-		});
+			} else {
+				t.checkProblems(true);
+				var status = t.getCurrentCalculation().getStatus();
 
+				if (status == DONE) {
+					var dialogButton = YES_NO_OPTION;
+					var dialogResult = showConfirmDialog(referenceWindow,
+							getString("TaskTablePopupMenu.TaskCompletedWarning") + lineSeparator()
+									+ getString("TaskTablePopupMenu.AskToDelete"),
+							getString("TaskTablePopupMenu.DeleteTitle"), dialogButton);
+					if (dialogResult == 0) {
+						// instance.removeResult(t);
+						instance.getSelectedTask().setStatus(READY);
+						instance.execute(instance.getSelectedTask());
+					}
+				} else if (status != READY) {
+					showMessageDialog(getWindowAncestor((Component) e.getSource()),
+							t.toString() + " is " + t.getCurrentCalculation().getStatus().getMessage(), //$NON-NLS-1$
+							getString("TaskTablePopupMenu.TaskNotReady"), //$NON-NLS-1$
+							ERROR_MESSAGE);
+				} else
+					instance.execute(instance.getSelectedTask());
+			}
+
+		});
 
 		var itemReset = new JMenuItem(getString("TaskTablePopupMenu.Reset"), ICON_RESET);
 
@@ -140,7 +143,7 @@ public class TaskPopupMenu extends JPopupMenu {
 		});
 
 		itemViewStored = new JMenuItem(getString("TaskTablePopupMenu.ViewStored"), ICON_STORED);
-	
+
 		itemViewStored.setEnabled(false);
 
 		itemViewStored.addActionListener(arg0 -> instance.notifyListeners(

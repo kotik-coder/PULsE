@@ -22,7 +22,11 @@ import static pulse.ui.components.DataLoader.loadMetadataDialog;
 import static pulse.util.ImageUtils.loadIcon;
 import static pulse.util.Reflexive.allDescriptors;
 
+import java.awt.Desktop;
 import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,7 +46,6 @@ import pulse.tasks.listeners.TaskRepositoryEvent;
 import pulse.tasks.processing.Buffer;
 import pulse.ui.components.listeners.ExitRequestListener;
 import pulse.ui.components.listeners.FrameVisibilityRequestListener;
-import pulse.ui.frames.dialogs.AboutDialog;
 import pulse.ui.frames.dialogs.ExportDialog;
 import pulse.ui.frames.dialogs.FormattedInputDialog;
 import pulse.ui.frames.dialogs.ResultChangeDialog;
@@ -133,7 +136,7 @@ public class PulseMainMenu extends JMenuBar {
 				loadIcon("inverse_problem.png", ICON_SIZE));
 		resultFormatItem = new JMenuItem("Change Result Format...", loadIcon("result_format.png", ICON_SIZE));
 		var infoMenu = new JMenu("Info");
-		aboutItem = new JMenuItem("About...");
+		aboutItem = new JMenuItem("PULsE Web-site");
 		var selectBuffer = new JMenuItem("Buffer size...", loadIcon("buffer.png", ICON_SIZE));
 		selectBuffer.addActionListener(e -> bufferDialog.setVisible(true));
 
@@ -318,10 +321,13 @@ public class PulseMainMenu extends JMenuBar {
 		});
 
 		aboutItem.addActionListener(e -> {
-			var aboutDialog = new AboutDialog();
-			aboutDialog.setLocationRelativeTo(getWindowAncestor(this));
-			aboutDialog.setAlwaysOnTop(true);
-			aboutDialog.setVisible(true);
+			try {
+				Desktop.getDesktop().browse(new URL("https://kotik-coder.github.io/").toURI());
+			} catch (IOException | URISyntaxException e1) {
+				System.err.println("Unable to open URL. Details: ");
+				e1.printStackTrace();
+			}
+
 		});
 
 	}

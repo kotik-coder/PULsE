@@ -23,7 +23,6 @@ import pulse.properties.NumericPropertyKeyword;
 import pulse.search.statistics.AICStatistic;
 import pulse.search.statistics.ModelSelectionCriterion;
 import pulse.search.statistics.OptimiserStatistic;
-import pulse.tasks.logs.Details;
 import pulse.tasks.logs.Status;
 import pulse.tasks.processing.Result;
 import pulse.ui.components.PropertyHolderTable;
@@ -179,17 +178,9 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
 		return status;
 	}
 
-	public boolean setStatus(Status status, Details details) {
-		boolean done = false;
-
-		if (this.status != status) {
-			this.status = status;
-			done = true;
-		} else if (this.status.getDetails() != status.getDetails()) {
-			this.status.setDetails(status.getDetails());
-			done = true;
-		}
-
+	public boolean setStatus(Status status) {
+		boolean done = this.status != status;
+		this.status = status;
 		return done;
 	}
 

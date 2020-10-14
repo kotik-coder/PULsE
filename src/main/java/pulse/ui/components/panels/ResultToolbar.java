@@ -2,17 +2,18 @@ package pulse.ui.components.panels;
 
 import static pulse.util.ImageUtils.loadIcon;
 
+import java.awt.Color;
 import java.awt.GridLayout;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JButton;
-import javax.swing.JPanel;
+import javax.swing.JToolBar;
 
 import pulse.ui.components.listeners.ResultRequestListener;
 
 @SuppressWarnings("serial")
-public class ResultToolbar extends JPanel {
+public class ResultToolbar extends JToolBar {
 
 	private final static int ICON_SIZE = 16;
 
@@ -25,6 +26,8 @@ public class ResultToolbar extends JPanel {
 	private List<ResultRequestListener> listeners;
 
 	public ResultToolbar() {
+		super();
+		this.setFloatable(false);
 		initComponents();
 		listeners = new ArrayList<>();
 	}
@@ -34,7 +37,7 @@ public class ResultToolbar extends JPanel {
 		mergeBtn = new JButton(loadIcon("merge.png", ICON_SIZE));
 		undoBtn = new JButton(loadIcon("reset.png", ICON_SIZE));
 		previewBtn = new JButton(loadIcon("preview.png", ICON_SIZE));
-		saveResultsBtn = new JButton(loadIcon("save.png", ICON_SIZE));
+		saveResultsBtn = new JButton(loadIcon("save.png", ICON_SIZE, Color.white));
 		setLayout(new GridLayout(5, 0));
 
 		deleteEntryBtn.setToolTipText("Delete Entry");

@@ -11,8 +11,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 
 import pulse.ui.Messages;
+import pulse.ui.Version;
 import pulse.util.ReflexiveFinder;
 
 /**
@@ -246,6 +248,25 @@ public class ReaderManager {
 			e.printStackTrace();
 		}
 		return result;
+	}
+	
+	public static Version readVersion() {
+		var versionInfoFile = Version.class.getResource("/Version.txt");
+		String versionLabel = "";
+		long date = 0;
+		try {
+			date = versionInfoFile.openConnection().getLastModified();
+		} catch (IOException e1) {
+			System.err.println("Could not connect to local version file!");
+			e1.printStackTrace();
+		}
+		try {
+			versionLabel = IOUtils.toString(versionInfoFile, "UTF-8");
+		} catch (IOException e) {
+			System.err.println("Could not read current version!");
+			e.printStackTrace();
+		}
+		return new Version(versionLabel, date);
 	}
 
 }

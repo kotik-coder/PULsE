@@ -29,6 +29,7 @@ import static pulse.util.Reflexive.instantiate;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
@@ -48,7 +49,6 @@ import pulse.tasks.listeners.StatusChangeListener;
 import pulse.tasks.listeners.TaskRepositoryEvent;
 import pulse.tasks.logs.CorrelationLogEntry;
 import pulse.tasks.logs.DataLogEntry;
-import pulse.tasks.logs.Details;
 import pulse.tasks.logs.Log;
 import pulse.tasks.logs.LogEntry;
 import pulse.tasks.logs.StateEntry;
@@ -160,8 +160,7 @@ public class SearchTask extends Accessible implements Runnable {
 		this.path = null;
 		current.clear();
 		
-		this.checkProblems();
-		this.notifyStatusListeners(new StateEntry(this, current.getStatus()));
+		this.checkProblems(true);
 	}
 	
 	/**
@@ -314,8 +313,11 @@ public class SearchTask extends Accessible implements Runnable {
 
 	private void runChecks() {
 
-		if (!normalityTest.test(this)) // first, check if the residuals are normally-distributed
-			setStatus(FAILED, ABNORMAL_DISTRIBUTION_OF_RESIDUALS);
+		if (!normalityTest.test(this)) { // first, check if the residuals are normally-distributed
+			var status = FAILED;
+			status.setDetails(ABNORMAL_DISTRIBUTION_OF_RESIDUALS);
+			setStatus(status);
+		}
 
 		else {
 
@@ -323,16 +325,22 @@ public class SearchTask extends Accessible implements Runnable {
 																// correlations
 			notifyDataListeners(new CorrelationLogEntry(this));
 
-			if (test)
-				setStatus(AMBIGUOUS, SIGNIFICANT_CORRELATION_BETWEEN_PARAMETERS);
+			if (test) {
+				var status = AMBIGUOUS;
+				status.setDetails(SIGNIFICANT_CORRELATION_BETWEEN_PARAMETERS);
+				setStatus(status);
+			}
 			else {
 				// lastly, check if the parameter values estimated in this procedure are
 				// reasonable
 
 				var properties = alteredParameters();
 
-				if (properties.stream().anyMatch(np -> !np.validate()))
-					setStatus(FAILED, PARAMETER_VALUES_NOT_SENSIBLE);
+				if (properties.stream().anyMatch(np -> !np.validate())) {
+					var status = FAILED;
+					status.setDetails(PARAMETER_VALUES_NOT_SENSIBLE);
+					setStatus(status);
+				}
 				else {
 					current.getModelSelectionCriterion().evaluate(this);
 					setStatus(DONE);
@@ -387,25 +395,11 @@ public class SearchTask extends Accessible implements Runnable {
 
 	}
 	
-	public void setStatus(Status status, Details details) {
-		status.setDetails(details);
-		if(current.setStatus(status, details)) 
-			notifyStatusListeners(new StateEntry(this, status));
-	}
-	
-	/**
-	 * Sets a new {@code status} to this {@code SearchTask} and informs the
-	 * listeners.
-	 * 
-	 * @param status the new status
-	 */
-
 	public void setStatus(Status status) {
-		setStatus(status, Details.NONE);
-	}
-
-	public Status checkProblems() {
-		return checkProblems(true);
+		Objects.requireNonNull(status);
+		boolean changed = current.setStatus(status);
+		if(changed) 
+			notifyStatusListeners(new StateEntry(this, status));
 	}
 
 	/**
@@ -420,13 +414,13 @@ public class SearchTask extends Accessible implements Runnable {
 	 *         exist. For the latter, additional details will be available using the
 	 *         {@code status.getDetails()} method.
 	 *         </p>
-	 * @return the current status
 	 */
 
-	public Status checkProblems(boolean updateStatus) {
+	public void checkProblems(boolean updateStatus) {
 		var status = current.getStatus();
+		
 		if (status == DONE)
-			return status;
+			return;
 
 		var pathSolver = getInstance();
 		var s = INCOMPLETE;
@@ -447,11 +441,9 @@ public class SearchTask extends Accessible implements Runnable {
 			s.setDetails(MISSING_BUFFER);
 		else
 			s = READY;
-
-		if (updateStatus)
+		
+		if(updateStatus)
 			setStatus(s);
-
-		return status;
 	}
 
 	public Identifier getIdentifier() {

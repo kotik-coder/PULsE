@@ -103,6 +103,22 @@ public enum Status {
 
 		return sb.toString();
 	}
+	
+	public boolean checkProblemStatementSet() {
+		if(details == null)
+			return true;
+		
+		switch(details) {
+		case MISSING_DIFFERENCE_SCHEME :
+		case MISSING_HEATING_CURVE : 
+		case MISSING_PROBLEM_STATEMENT : 
+		case INSUFFICIENT_DATA_IN_PROBLEM_STATEMENT :
+			return false;
+		default :
+			return true;
+		}
+		
+	}
 
 	@Override
 	public String toString() {
