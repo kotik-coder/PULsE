@@ -101,19 +101,26 @@ public interface Exporter<T extends Descriptive> extends Reflexive {
 		var workingDirectory = new File(System.getProperty("user.home"));
 		fileChooser.setCurrentDirectory(workingDirectory);
 		fileChooser.setMultiSelectionEnabled(true);
-		fileChooser.setSelectedFile(new File(target.describe()));
-
+		
+		FileNameExtensionFilter choosable = null;
+		
 		for (var s : getSupportedExtensions()) {
-			fileChooser.addChoosableFileFilter(
-					new FileNameExtensionFilter(fileTypeLabel + " (." + s + ")", s.toString().toLowerCase()));
+			choosable = new FileNameExtensionFilter(fileTypeLabel + " (." + s + ")", s.toString().toLowerCase());
+			fileChooser.addChoosableFileFilter( choosable );
 		}
 
 		fileChooser.setAcceptAllFileFilterUsed(false);
+		fileChooser.setFileFilter( choosable );
+		fileChooser.setSelectedFile(new File(target.describe() + "." + choosable.getExtensions()[0]));
 
 		int returnVal = fileChooser.showSaveDialog(parentWindow);
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
 			var file = fileChooser.getSelectedFile();
 			var path = file.getPath();
+			
+			if(! (fileChooser.getFileFilter() instanceof FileNameExtensionFilter) )
+				return;
+			
 			var currentFilter = (FileNameExtensionFilter) fileChooser.getFileFilter();
 			var ext = currentFilter.getExtensions()[0];
 
