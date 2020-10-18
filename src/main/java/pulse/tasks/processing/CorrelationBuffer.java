@@ -81,11 +81,7 @@ public class CorrelationBuffer {
 		if (map == null)
 			return false;
 
-		for (Double d : map.values()) {
-			if (t.compareToThreshold(d))
-				return true;
-		}
-		return false;
+		return map.values().stream().anyMatch(d -> t.compareToThreshold(d));
 	}
 
 	public static void excludePair(ImmutablePair<NumericPropertyKeyword> pair) {
