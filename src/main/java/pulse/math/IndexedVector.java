@@ -104,5 +104,17 @@ public class IndexedVector extends Vector {
 	private void assign(List<NumericPropertyKeyword> indices) {
 		this.indices.addAll(indices);
 	}
+	
+	@Override
+	public String toString() {
+		var sb  = new StringBuilder();
+		sb.append("Indices: ");
+		for(var key : indices) {
+			sb.append(key + " ; ");
+		}
+		sb.append(System.lineSeparator());
+		sb.append(" Values: " + super.toString());
+		return sb.toString();
+	}
 
 }

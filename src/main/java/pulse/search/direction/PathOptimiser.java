@@ -1,6 +1,5 @@
 package pulse.search.direction;
 
-import static pulse.properties.NumericProperties.compare;
 import static pulse.properties.NumericProperties.def;
 import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericProperties.isDiscrete;
@@ -19,10 +18,9 @@ import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
-import pulse.search.linear.LinearOptimiser;
+import pulse.search.statistics.OptimiserStatistic;
 import pulse.tasks.SearchTask;
 import pulse.tasks.TaskManager;
-import pulse.tasks.logs.Status;
 import pulse.util.PropertyHolder;
 import pulse.util.Reflexive;
 
@@ -44,11 +42,11 @@ import pulse.util.Reflexive;
 
 public abstract class PathOptimiser extends PropertyHolder implements Reflexive {
 
-	private static int maxIterations;
-	private static double errorTolerance;
-	private static double gradientResolution;
-
-	private static LinearOptimiser linearSolver;
+	private DirectionSolver solver;
+	
+	private int maxIterations;
+	private double errorTolerance;
+	private double gradientResolution;
 
 	private static PathOptimiser instance;
 
@@ -75,13 +73,13 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 	 * @see pulse.properties.Flag.defaultList()
 	 */
 
-	public static void reset() {
+	public void reset() {
 		maxIterations = (int) def(ITERATION_LIMIT).getValue();
 		errorTolerance = (double) def(ERROR_TOLERANCE).getValue();
 		gradientResolution = (double) def(GRADIENT_RESOLUTION).getValue();
 		ActiveFlags.reset();
 	}
-
+	
 	/**
 	 * <p>
 	 * This method sets out the basic algorithm for estimating the minimum of the
@@ -102,46 +100,8 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 	 * @see direction(Path)
 	 * @see pulse.search.linear.LinearOptimiser
 	 */
-
-	public double iteration(SearchTask task) throws SolverException {
-		var p = task.getPath(); // the previous path of the task
-
-		/*
-		 * Checks whether an iteration limit has been already reached
-		 */
-
-		if (compare(p.getIteration(), getMaxIterations()) > 0)
-			task.setStatus(Status.TIMEOUT);
-
-		var parameters = task.searchVector()[0]; // get current search vector
-
-		var dir = direction(p); // find the direction to the global minimum
-
-		double step = linearSolver.linearStep(task); // find how big the step needs to be to reach the minimum
-		p.setLinearStep(step);
-
-		var newParams = parameters.sum(dir.multiply(step)); // this set of parameters supposedly corresponds to the
-																// minimum
-		task.assign(new IndexedVector(newParams, parameters.getIndices())); // assign new parameters to this task
-
-		endOfStep(task); // compute gradients, Hessians, etc. with new parameters
-
-		p.incrementStep(); // increment the counter of successful steps
-
-		return task.solveProblemAndCalculateDeviation(); // calculate the sum of squared residuals
-	}
-
-	/**
-	 * Finds the direction of the minimum using the previously calculated values
-	 * stored in {@code p}.
-	 * 
-	 * @param p a {@code Path} object
-	 * @return a {@code Vector} pointing to the minimum direction for this
-	 *         {@code Path}
-	 * @see pulse.problem.statements.Problem.optimisationVector(List<Flag>)
-	 */
-
-	public abstract Vector direction(Path p);
+	
+	public abstract boolean iteration(SearchTask task) throws SolverException;
 
 	/**
 	 * Defines a set of procedures to be run at the end of the search iteration.
@@ -150,7 +110,7 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 	 * @throws SolverException
 	 */
 
-	public abstract void endOfStep(SearchTask task) throws SolverException;
+	public abstract void prepare(SearchTask task) throws SolverException;
 
 	/**
 	 * Calculates the {@code Vector} gradient of the target function (the sum of
@@ -177,24 +137,24 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 	 * @throws SolverException
 	 */
 
-	public static Vector gradient(SearchTask task) {
+	public Vector gradient(SearchTask task) throws SolverException {
 
 		final var params = task.searchVector()[0];
 		var grad = new Vector(params.dimension());
 
 		boolean discreteGradient = params.getIndices().stream().anyMatch(index -> isDiscrete(index));
 		final double dxGrid = task.getCurrentCalculation().getScheme().getGrid().getXStep();
-		final double dx = discreteGradient ? 2.0 * dxGrid : 2.0 * gradientResolution;
+		final double dx = discreteGradient ? dxGrid : gradientResolution;
 
 		for (int i = 0; i < params.dimension(); i++) {
 			final var shift = new Vector(params.dimension());
 			shift.set(i, 0.5 * dx);
 
 			task.assign(new IndexedVector( params.sum(shift) , params.getIndices()));
-			final double ss2 = task.solveProblemAndCalculateDeviation();
+			final double ss2 = task.solveProblemAndCalculateCost();
 
 			task.assign(new IndexedVector( params.subtract(shift), params.getIndices()));
-			final double ss1 = task.solveProblemAndCalculateDeviation();
+			final double ss1 = task.solveProblemAndCalculateCost();
 
 			grad.set(i, (ss2 - ss1) / dx);
 
@@ -206,45 +166,28 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 
 	}
 
-	public static LinearOptimiser getLinearSolver() {
-		return linearSolver;
-	}
-
-	/**
-	 * Assigns a {@code LinearSolver} to this {@code PathSolver} and sets this
-	 * object as its parent.
-	 * 
-	 * @param linearSearch a {@code LinearSolver}
-	 */
-
-	public void setLinearSolver(LinearOptimiser linearSearch) {
-		PathOptimiser.linearSolver = linearSearch;
-		linearSolver.setParent(this);
-		super.parameterListChanged();
-	}
-
-	public static NumericProperty getErrorTolerance() {
+	public NumericProperty getErrorTolerance() {
 		return derive(ERROR_TOLERANCE, errorTolerance);
 	}
 
-	public static void setErrorTolerance(NumericProperty errorTolerance) {
-		PathOptimiser.errorTolerance = (double) errorTolerance.getValue();
+	public void setErrorTolerance(NumericProperty errorTolerance) {
+		this.errorTolerance = (double) errorTolerance.getValue();
 	}
 
-	public static void setGradientResolution(NumericProperty resolution) {
-		PathOptimiser.gradientResolution = (double) resolution.getValue();
+	public void setGradientResolution(NumericProperty resolution) {
+		this.gradientResolution = (double) resolution.getValue();
 	}
 
-	public static NumericProperty getGradientResolution() {
+	public NumericProperty getGradientResolution() {
 		return derive(GRADIENT_RESOLUTION, gradientResolution);
 	}
 
-	public static NumericProperty getMaxIterations() {
+	public NumericProperty getMaxIterations() {
 		return derive(ITERATION_LIMIT, maxIterations);
 	}
 
-	public static void setMaxIterations(NumericProperty maxIterations) {
-		PathOptimiser.maxIterations = (int) maxIterations.getValue();
+	public void setMaxIterations(NumericProperty maxIterations) {
+		this.maxIterations = (int) maxIterations.getValue();
 	}
 
 	@Override
@@ -361,6 +304,24 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 	public static void setInstance(PathOptimiser selectedPathOptimiser) {
 		PathOptimiser.instance = selectedPathOptimiser;
 		selectedPathOptimiser.setParent(TaskManager.getManagerInstance());
+	}
+	
+	protected DirectionSolver getSolver() {
+		return solver;
+	}
+
+	protected void setSolver(DirectionSolver solver) {
+		this.solver = solver;
+	}
+	
+	/**
+	 * Checks if this optimiser is compatible with the statistic passed to the method as its argument.
+	 * By default, this will accept any {@code OptimiserStatistic}.
+	 * @return {@code true}, if not specified otherwise by its subclass implementation.
+	 */
+	
+	public boolean compatibleWith(OptimiserStatistic os) {
+		return true;
 	}
 
 }

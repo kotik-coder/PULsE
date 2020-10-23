@@ -34,7 +34,7 @@ public class ButcherTableau implements Descriptive {
 		this.name = name;
 		this.fsal = fsal;
 
-		this.coefs = Matrices.createMatrix(coefs);
+		this.coefs = Matrices.createSquareMatrix(coefs);
 		this.c = new Vector(c);
 		this.b = new Vector(b);
 		this.bHat = new Vector(bHat);

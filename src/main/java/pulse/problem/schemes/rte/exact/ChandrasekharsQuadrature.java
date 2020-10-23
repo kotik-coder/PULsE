@@ -120,7 +120,7 @@ public class ChandrasekharsQuadrature extends CompositionProduct {
 			}
 		}
 
-		return Matrices.createMatrix(x);
+		return Matrices.createSquareMatrix(x);
 	}
 
 	/**
@@ -221,7 +221,7 @@ public class ChandrasekharsQuadrature extends CompositionProduct {
 
 		moments[2 * m - 1] = moment(2 * m - 1);
 
-		return Matrices.createMatrix(data);
+		return Matrices.createSquareMatrix(data);
 
 	}
 

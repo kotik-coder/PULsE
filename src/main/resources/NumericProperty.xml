@@ -395,7 +395,7 @@
 	<NumericProperty abbreviation="Resolution (gradient)"
 		auto-adjustable="false" descriptor="Resolution (gradient)"
 		dimensionfactor="1.0" keyword="GRADIENT_RESOLUTION" maximum="0.1"
-		minimum="1.0E-7" value="1.0E-4" primitive-type="double"
+		minimum="1.0E-10" value="1.0E-8" primitive-type="double"
 		discreet="false" default-search-variable="false" />
 	<NumericProperty abbreviation="Buffer size" auto-adjustable="false"
 		descriptor="Buffer size" dimensionfactor="1" keyword="BUFFER_SIZE"
@@ -404,7 +404,7 @@
 	<NumericProperty abbreviation="Resolution (total)"
 		auto-adjustable="false" descriptor="Resolution (total)"
 		dimensionfactor="1.0" keyword="ERROR_TOLERANCE" maximum="0.1"
-		minimum="1.0E-5" value="0.001" primitive-type="double"
+		minimum="1.0E-7" value="0.0001" primitive-type="double"
 		discreet="false" default-search-variable="false" />
 	<NumericProperty abbreviation="FOV&lt;sub&gt;inner&lt;/sub&gt; (mm)"
 		auto-adjustable="true"

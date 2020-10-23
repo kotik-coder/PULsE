@@ -29,22 +29,22 @@ public enum Details {
 	MISSING_HEATING_CURVE,
 
 	/**
-	 * No information can be found about the selected path solver.
+	 * There is no information about the selected optimiser.
 	 */
 
-	MISSING_LINEAR_SOLVER,
-
-	/**
-	 * There is no information about the selected path solver.
-	 */
-
-	MISSING_PATH_SOLVER,
+	MISSING_OPTIMISER,
 
 	/**
 	 * The buffer has not been created.
 	 */
 
 	MISSING_BUFFER,
+	
+	/**
+	 * The optimisation statistic is not suported by the selected optimiser.
+	 */
+	
+	INCOMPATIBLE_OPTIMISER,
 
 	/**
 	 * Some data is missing in the problem statement. Probably, the interpolation
@@ -58,6 +58,8 @@ public enum Details {
 
 	PARAMETER_VALUES_NOT_SENSIBLE,
 
+	MAX_ITERATIONS_REACHED,
+	
 	ABNORMAL_DISTRIBUTION_OF_RESIDUALS;
 
 	@Override

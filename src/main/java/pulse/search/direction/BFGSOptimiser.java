@@ -1,5 +1,6 @@
 package pulse.search.direction;
 
+import static pulse.math.linear.SquareMatrix.asSquareMatrix;
 import static pulse.math.linear.SquareMatrix.outerProduct;
 
 import pulse.math.linear.SquareMatrix;
@@ -28,26 +29,15 @@ import pulse.ui.Messages;
  * @see pulse.search.linear.WolfeOptimiser
  */
 
-public class ApproximatedHessianOptimiser extends PathOptimiser {
+public class BFGSOptimiser extends CompositePathOptimiser {
 
-	private static ApproximatedHessianOptimiser instance = new ApproximatedHessianOptimiser();
+	private static BFGSOptimiser instance = new BFGSOptimiser();
 
-	private ApproximatedHessianOptimiser() {
+	private BFGSOptimiser() {
 		super();
-	}
-
-	/**
-	 * Uses an approximation of the Hessian matrix, containing the information on
-	 * second derivatives, calculated with the BFGS formula in combination with the
-	 * local value of the gradient to evaluate the direction of the minimum on
-	 * {@code p}. Invokes {@code p.setDirection()}.
-	 */
-
-	@Override
-	public Vector direction(Path p) {
-		Vector dir = (((ComplexPath) p).getHessian().inverse()).multiply(p.getGradient()).inverted();
-		p.setDirection(dir);
-		return dir;
+		this.setSolver(new HessianDirectionSolver() {
+			//empty statement
+		});
 	}
 
 	/**
@@ -64,19 +54,20 @@ public class ApproximatedHessianOptimiser extends PathOptimiser {
 	 */
 
 	@Override
-	public void endOfStep(SearchTask task) throws SolverException {
+	public void prepare(SearchTask task) throws SolverException {
 		var p = (ComplexPath) task.getPath();
-		Vector dir = p.getDirection();
+		Vector dir = p.getDirection(); //p[k]
 
-		final double minimumPoint = p.getMinimumPoint();
-		final SquareMatrix prevHessian = p.getHessian();
-		final Vector g0 = p.getGradient(); // g0
-		Vector g1 = gradient(task); // g1
+		final double minimumPoint = p.getMinimumPoint(); // alpha[k]
+		final SquareMatrix prevHessian = p.getHessian(); // B[k]
+		
+		final Vector g0 = p.getGradient();	// g[k]
+		final Vector g1 = gradient(task); 	// g[k+1]
 
-		p.setHessian(hessian(g0, g1, dir, prevHessian, minimumPoint)); // g_k, g_k+1, p_k+1, B_k, alpha_k+1
-
+		var hessian = hessian(g0, g1, dir, prevHessian, minimumPoint); //B[k+1]
+				
+		p.setHessian(hessian); // g_k, g_k+1, p_k+1, B_k, alpha_k+1
 		p.setGradient(g1); // set g1 as the new gradient for next step
-
 	}
 
 	/**
@@ -92,8 +83,11 @@ public class ApproximatedHessianOptimiser extends PathOptimiser {
 
 	private SquareMatrix hessian(Vector g1, Vector g2, Vector dir, SquareMatrix prevHessian, double alpha) {
 		Vector y = g2.subtract(g1); // g[k+1] - g[k]
-		return prevHessian.sum((outerProduct(g1, g1)).multiply(1. / g1.dot(dir)))
-				.sum((outerProduct(y, y)).multiply(1. / (alpha * y.dot(dir)))); // BFGS for Ge[k+1]
+		
+		var m = prevHessian.sum((outerProduct(g1, g1)).multiply(1. / g1.dot(dir)))
+				.sum((outerProduct(y, y)).multiply(1. / (alpha * y.dot(dir)))); // BFGS formula
+		
+		return asSquareMatrix(m);
 	}
 
 	@Override
@@ -108,7 +102,7 @@ public class ApproximatedHessianOptimiser extends PathOptimiser {
 	 * @return the single (static) instance of this class
 	 */
 
-	public static ApproximatedHessianOptimiser getInstance() {
+	public static BFGSOptimiser getInstance() {
 		return instance;
 	}
 

@@ -42,6 +42,7 @@ import javax.swing.JSeparator;
 import pulse.search.statistics.CorrelationTest;
 import pulse.search.statistics.NormalityTest;
 import pulse.search.statistics.OptimiserStatistic;
+import pulse.search.statistics.SumOfSquares;
 import pulse.tasks.listeners.TaskRepositoryEvent;
 import pulse.tasks.processing.Buffer;
 import pulse.ui.components.listeners.ExitRequestListener;
@@ -184,10 +185,8 @@ public class PulseMainMenu extends JMenuBar {
 
 		var statisticItems = new ButtonGroup();
 
-		JRadioButtonMenuItem item = null;
-
 		for (var statisticName : allDescriptors(NormalityTest.class)) {
-			item = new JRadioButtonMenuItem(statisticName);
+			var item = new JRadioButtonMenuItem(statisticName);
 			statisticItems.add(item);
 			statisticsSubMenu.add(item);
 			item.addItemListener(e -> {
@@ -221,16 +220,19 @@ public class PulseMainMenu extends JMenuBar {
 
 		var optimisersItems = new ButtonGroup();
 
-		item = null;
-
 		var set = allDescriptors(OptimiserStatistic.class);
+		var defaultOptimiser = new SumOfSquares();
 
 		for (var statisticName : set) {
-			item = new JRadioButtonMenuItem(statisticName);
+			var item = new JRadioButtonMenuItem(statisticName);
 			optimisersItems.add(item);
 			optimisersSubMenu.add(item);
+			
+			if(statisticName.equalsIgnoreCase(defaultOptimiser.getDescriptor()))
+				item.setSelected(true);
+			
 			item.addItemListener(e -> {
-
+				
 				if (((AbstractButton) e.getItem()).isSelected()) {
 					var text = ((AbstractButton) e.getItem()).getText();
 					setSelectedOptimiserDescriptor(text);
@@ -238,9 +240,18 @@ public class PulseMainMenu extends JMenuBar {
 				}
 
 			});
+			
 		}
-
+		
+		//for some reason it does not work without this line!
 		optimisersSubMenu.getItem(0).setSelected(true);
+		
+		for(int i = 0, size = set.size(); i < size; i++) {
+			var item = optimisersSubMenu.getItem(i);
+			if(item.getText().equalsIgnoreCase(defaultOptimiser.getDescriptor()))
+				item.setSelected(true);
+		}
+						
 		analysisSubMenu.add(optimisersSubMenu);
 
 		//

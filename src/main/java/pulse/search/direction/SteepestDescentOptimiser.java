@@ -15,28 +15,20 @@ import pulse.ui.Messages;
  *      page</a>
  */
 
-public class SteepestDescentOptimiser extends PathOptimiser {
+public class SteepestDescentOptimiser extends CompositePathOptimiser {
 
 	private static SteepestDescentOptimiser instance = new SteepestDescentOptimiser();
 
 	private SteepestDescentOptimiser() {
 		super();
-	}
-
-	/**
-	 * <p>
-	 * The direction of the minimum at the iteration <math><i>k</i></math> is
-	 * calculated simply as the the inverted gradient vector:
-	 * <math><b>p</b><sub><i>k</sub> = -<b>g</b><sub><i>k</sub></math>. Invokes
-	 * {@code p.setDirection()}.
-	 * </p>
-	 */
-
-	@Override
-	public Vector direction(Path p) {
-		Vector dir = p.getGradient().inverted(); // p_k = -g
-		p.setDirection(dir);
-		return dir;
+		//init gradient solver
+		this.setSolver( p -> {
+			
+			Vector dir = p.getGradient().inverted(); // p_k = -g
+			p.setDirection(dir);
+			return dir;
+			
+		});
 	}
 
 	/**
@@ -46,7 +38,7 @@ public class SteepestDescentOptimiser extends PathOptimiser {
 	 */
 
 	@Override
-	public void endOfStep(SearchTask task) throws SolverException {
+	public void prepare(SearchTask task) throws SolverException {
 		task.getPath().setGradient(gradient(task));
 	}
 

@@ -207,7 +207,7 @@ public class TRBDF2 extends AdaptiveIntegrator {
 
 		}
 
-		invA = (Matrices.createMatrix(aMatrix)).inverse(); // this matrix is re-used for subsequent stages
+		invA = (Matrices.createSquareMatrix(aMatrix)).inverse(); // this matrix is re-used for subsequent stages
 		i2 = invA.multiply(new Vector(bVector)); // intensity vector at 2nd stage
 
 		/*

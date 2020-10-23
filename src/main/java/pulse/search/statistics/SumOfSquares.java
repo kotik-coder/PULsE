@@ -52,7 +52,7 @@ public class SumOfSquares extends OptimiserStatistic {
 
 	@Override
 	public String getDescriptor() {
-		return "Ordinary least squares";
+		return "Ordinary Least Squares";
 	}
 
 	@Override

@@ -5,7 +5,6 @@ import static pulse.properties.NumericProperties.def;
 import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.MODEL_WEIGHT;
 import static pulse.properties.NumericPropertyKeyword.TIME_LIMIT;
-import static pulse.tasks.logs.Status.FAILED;
 import static pulse.tasks.logs.Status.INCOMPLETE;
 import static pulse.util.Reflexive.instantiate;
 
@@ -164,16 +163,10 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
 	 */
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public void process() {
-		try {
-			((Solver) scheme).solve(problem);
-		} catch (SolverException e) {
-			status = FAILED;
-			System.err.println("Solver of " + this + " has encountered an error. Details: ");
-			e.printStackTrace();
-		}
+	public void process() throws SolverException {
+		((Solver) scheme).solve(problem);
 	}
-
+			
 	public Status getStatus() {
 		return status;
 	}

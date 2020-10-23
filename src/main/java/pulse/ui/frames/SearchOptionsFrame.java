@@ -5,7 +5,6 @@ import static java.awt.GridBagConstraints.BOTH;
 import static javax.swing.BorderFactory.createTitledBorder;
 import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
 import static pulse.search.direction.PathOptimiser.getInstance;
-import static pulse.search.direction.PathOptimiser.getLinearSolver;
 import static pulse.search.direction.PathOptimiser.setInstance;
 import static pulse.ui.Messages.getString;
 import static pulse.util.Reflexive.instancesOf;
@@ -22,10 +21,8 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ListSelectionEvent;
-import javax.swing.table.DefaultTableModel;
 
 import pulse.search.direction.PathOptimiser;
-import pulse.search.linear.LinearOptimiser;
 import pulse.tasks.TaskManager;
 import pulse.ui.components.PropertyHolderTable;
 import pulse.ui.components.controllers.SearchListRenderer;
@@ -34,13 +31,10 @@ import pulse.ui.components.controllers.SearchListRenderer;
 public class SearchOptionsFrame extends JInternalFrame {
 
 	private PropertyHolderTable pathTable;
-	private JList<LinearOptimiser> linearList;
 	private PathSolversList pathList;
 
 	private final static Font font = new Font(getString("PropertyHolderTable.FontName"), ITALIC, 16);
-
 	private final static List<PathOptimiser> pathSolvers = instancesOf(PathOptimiser.class);
-	private final static List<LinearOptimiser> linearSolvers = instancesOf(LinearOptimiser.class);
 
 	/**
 	 * Create the frame.
@@ -61,12 +55,7 @@ public class SearchOptionsFrame extends JInternalFrame {
 
 		pathList = new PathSolversList();
 		var pathListScroller = new JScrollPane(pathList);
-		pathListScroller.setBorder(createTitledBorder("Select a Direction Search Method"));
-
-		linearList = new LinearSearchList();
-		linearList.setEnabled(false);
-		var linearListScroller = new JScrollPane(linearList);
-		linearListScroller.setBorder(createTitledBorder("Select a Line Search Method"));
+		pathListScroller.setBorder(createTitledBorder("Select an Optimiser"));
 
 		pathTable = new PropertyHolderTable(null);
 
@@ -83,10 +72,6 @@ public class SearchOptionsFrame extends JInternalFrame {
 		getContentPane().add(pathListScroller, gbc);
 
 		gbc.gridy = 1;
-
-		getContentPane().add(linearListScroller, gbc);
-
-		gbc.gridy = 2;
 		gbc.weighty = 0.6;
 
 		var tableScroller = new JScrollPane(pathTable);
@@ -99,21 +84,13 @@ public class SearchOptionsFrame extends JInternalFrame {
 		var selected = getInstance();
 		if (selected != null) {
 			pathList.setSelectedIndex(pathSolvers.indexOf(selected));
-			linearList.setSelectedIndex(linearSolvers.indexOf(getLinearSolver()));
 			pathTable.updateTable();
 		} else {
 			pathList.clearSelection();
-			linearList.clearSelection();
-			linearList.setEnabled(false);
 		}
 	}
 
 	class PathSolversList extends JList<PathOptimiser> {
-
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 3662972578473909850L;
 
 		public PathSolversList() {
 
@@ -143,74 +120,18 @@ public class SearchOptionsFrame extends JInternalFrame {
 			addListSelectionListener((ListSelectionEvent arg0) -> {
 				if (arg0.getValueIsAdjusting())
 					return;
-				if (!(getSelectedValue() instanceof PathOptimiser)) {
-					((DefaultTableModel) pathTable.getModel()).setRowCount(0);
-					return;
-				}
-				var searchScheme = getSelectedValue();
-				if (searchScheme == null)
-					return;
-				setInstance(searchScheme);
-				linearList.setEnabled(true);
+				
+				var optimiser = getSelectedValue();
+				
+				setInstance(optimiser);
+				pathTable.setPropertyHolder(optimiser);
+				
 				for (var t : TaskManager.getManagerInstance().getTaskList()) {
 					t.checkProblems(true);
 				}
 			});
 
 		}
-	}
-
-	class LinearSearchList extends JList<LinearOptimiser> {
-
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 5478023007473400159L;
-
-		public LinearSearchList() {
-
-			super();
-
-			setFont(font);
-			setSelectionMode(SINGLE_SELECTION);
-			setModel(new AbstractListModel<LinearOptimiser>() {
-				/**
-				 * 
-				 */
-				private static final long serialVersionUID = -3560305247730025830L;
-
-				@Override
-				public int getSize() {
-					return linearSolvers.size();
-				}
-
-				@Override
-				public LinearOptimiser getElementAt(int index) {
-					return linearSolvers.get(index);
-				}
-			});
-
-			this.setCellRenderer(new SearchListRenderer());
-
-			addListSelectionListener((ListSelectionEvent arg0) -> {
-				if (arg0.getValueIsAdjusting())
-					return;
-				if (!(getSelectedValue() instanceof LinearOptimiser)) {
-					pathTable.setEnabled(false);
-					return;
-				}
-				var linearSolver = getSelectedValue();
-				var pathSolver = getInstance();
-				pathSolver.setLinearSolver(linearSolver);
-				pathTable.setPropertyHolder(pathSolver);
-				pathTable.setEnabled(true);
-				for (var t : TaskManager.getManagerInstance().getTaskList()) {
-					t.checkProblems(true);
-				}
-			});
-
-		}
-
 	}
 
 }

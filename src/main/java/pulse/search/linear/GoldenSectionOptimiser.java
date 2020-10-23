@@ -63,11 +63,11 @@ public class GoldenSectionOptimiser extends LinearOptimiser {
 
 			final var newParams1 = params[0].sum(direction.multiply(alpha)); // alpha
 			task.assign(new IndexedVector(newParams1, params[0].getIndices()));
-			final double ss2 = task.solveProblemAndCalculateDeviation(); // f(alpha)
+			final double ss2 = task.solveProblemAndCalculateCost(); // f(alpha)
 
 			final var newParams2 = params[0].sum(direction.multiply(one_minus_alpha)); // 1 - alpha
 			task.assign(new IndexedVector(newParams2, params[0].getIndices()));
-			final double ss1 = task.solveProblemAndCalculateDeviation(); // f(1-alpha)
+			final double ss1 = task.solveProblemAndCalculateCost(); // f(1-alpha)
 
 			task.assign(new IndexedVector(newParams2, params[0].getIndices())); // return to old position
 

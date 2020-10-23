@@ -18,7 +18,7 @@ import pulse.ui.Messages;
  * {@code ApproximatedHessianSolver}.
  * </p>
  * 
- * @see pulse.search.direction.ApproximatedHessianOptimiser
+ * @see pulse.search.direction.BFGSOptimiser
  * @see <a href="https://en.wikipedia.org/wiki/Wolfe_conditions">Wikipedia
  *      page</a>
  */
@@ -78,10 +78,12 @@ public class WolfeOptimiser extends LinearOptimiser {
 		var params = task.searchVector();
 		Segment segment = domain(params[0], params[1], direction);
 
-		double ss1 = task.solveProblemAndCalculateDeviation();
+		double ss1 = task.solveProblemAndCalculateCost();
 
 		double randomConfinedValue = 0;
 		double g2p;
+		
+		var instance = PathOptimiser.getInstance();
 
 		for (double initialLength = segment.length(); segment.length() / initialLength > searchResolution;) {
 
@@ -90,7 +92,7 @@ public class WolfeOptimiser extends LinearOptimiser {
 			final var newParams = params[0].sum(direction.multiply(randomConfinedValue));
 			task.assign(new IndexedVector(newParams, params[0].getIndices()));
 
-			final double ss2 = task.solveProblemAndCalculateDeviation();
+			final double ss2 = task.solveProblemAndCalculateCost();
 
 			/**
 			 * Checks if the first Armijo inequality is not satisfied. In this case, it will
@@ -102,7 +104,7 @@ public class WolfeOptimiser extends LinearOptimiser {
 				continue;
 			}
 
-			final var g2 = PathOptimiser.gradient(task);
+			final var g2 = instance.gradient(task);
 			g2p = g2.dot(direction);
 
 			/**

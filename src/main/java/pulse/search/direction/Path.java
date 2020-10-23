@@ -4,6 +4,7 @@ import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.ITERATION;
 
 import pulse.math.linear.Vector;
+import pulse.problem.schemes.solvers.SolverException;
 import pulse.properties.NumericProperty;
 import pulse.tasks.SearchTask;
 
@@ -35,7 +36,7 @@ public class Path {
 	private int iteration;
 
 	protected Path(SearchTask t) {
-		reset(t);
+		configure(t);
 	}
 
 	/**
@@ -46,10 +47,15 @@ public class Path {
 	 * @see pulse.search.direction.PathSolver.direction(Path)
 	 */
 
-	public void reset(SearchTask t) {
-		this.gradient = PathOptimiser.gradient(t);
-		this.direction = PathOptimiser.getInstance().direction(this);
+	public void configure(SearchTask t) {
+		try {
+			this.gradient = PathOptimiser.getInstance().gradient(t);
+		} catch (SolverException e) {
+			System.err.println("Failed on gradient calculation while resetting optimiser...");
+			e.printStackTrace();
+		}
 		minimumPoint = 0.0;
+		iteration = 0;
 	}
 
 	public Vector getDirection() {

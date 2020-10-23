@@ -304,7 +304,7 @@ public class TaskManager extends UpwardsNavigable {
 			notifyListeners(e);
 		}
 
-		PathOptimiser.reset();
+		PathOptimiser.getInstance().reset();
 
 	}
 
