@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <NumericProperties>
+	<NumericProperty value="1e-4" abbreviation="Damping ratio"
+		descriptor="L-M damping ratio" auto-adjustable="false"
+		default-search-variable="false" dimensionfactor="1" discreet="false"
+		keyword="DAMPING_RATIO" maximum="1" minimum="0" primitive-type="double">
+	</NumericProperty>
 	<NumericProperty abbreviation="Model criterion"
 		auto-adjustable="true" default-search-variable="false"
 		descriptor="Model selection criterion" dimensionfactor="1"
@@ -395,7 +400,7 @@
 	<NumericProperty abbreviation="Resolution (gradient)"
 		auto-adjustable="false" descriptor="Resolution (gradient)"
 		dimensionfactor="1.0" keyword="GRADIENT_RESOLUTION" maximum="0.1"
-		minimum="1.0E-10" value="1.0E-8" primitive-type="double"
+		minimum="1.0E-10" value="1.0E-4" primitive-type="double"
 		discreet="false" default-search-variable="false" />
 	<NumericProperty abbreviation="Buffer size" auto-adjustable="false"
 		descriptor="Buffer size" dimensionfactor="1" keyword="BUFFER_SIZE"

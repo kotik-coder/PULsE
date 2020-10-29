@@ -3,6 +3,7 @@ package pulse.search.direction;
 import static pulse.properties.NumericProperties.def;
 import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericProperties.isDiscrete;
+import static pulse.properties.NumericProperty.requireType;
 import static pulse.properties.NumericPropertyKeyword.ERROR_TOLERANCE;
 import static pulse.properties.NumericPropertyKeyword.GRADIENT_RESOLUTION;
 import static pulse.properties.NumericPropertyKeyword.ITERATION_LIMIT;
@@ -46,7 +47,9 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 	
 	private int maxIterations;
 	private double errorTolerance;
+	
 	private double gradientResolution;
+	private double gradientStep;
 
 	private static PathOptimiser instance;
 
@@ -165,17 +168,34 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 		return grad;
 
 	}
+	
+	/**
+	 * Checks whether a discrete property is being optimised and selects the gradient step
+	 * best suited to the optimisation strategy. Should be called before creating the optimisation path.
+	 * @param task the search task defining the search vector
+	 */
+	
+	public void configure(SearchTask task) {
+		var params = task.searchVector()[0];
+		boolean discreteGradient = params.getIndices().stream().anyMatch(index -> isDiscrete(index));
+		final double dxGrid = task.getCurrentCalculation().getScheme().getGrid().getXStep();
+		gradientStep = discreteGradient ? dxGrid : (double) getGradientResolution().getValue();
+	}
 
 	public NumericProperty getErrorTolerance() {
 		return derive(ERROR_TOLERANCE, errorTolerance);
 	}
 
 	public void setErrorTolerance(NumericProperty errorTolerance) {
+		requireType(errorTolerance, ERROR_TOLERANCE);
 		this.errorTolerance = (double) errorTolerance.getValue();
+		firePropertyChanged(this, errorTolerance);
 	}
 
 	public void setGradientResolution(NumericProperty resolution) {
+		requireType(resolution, GRADIENT_RESOLUTION);
 		this.gradientResolution = (double) resolution.getValue();
+		firePropertyChanged(this, resolution);
 	}
 
 	public NumericProperty getGradientResolution() {
@@ -187,7 +207,9 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 	}
 
 	public void setMaxIterations(NumericProperty maxIterations) {
+		requireType(maxIterations, ITERATION_LIMIT);
 		this.maxIterations = (int) maxIterations.getValue();
+		firePropertyChanged(this, maxIterations);
 	}
 
 	@Override
@@ -322,6 +344,10 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 	
 	public boolean compatibleWith(OptimiserStatistic os) {
 		return true;
+	}
+
+	public double getGradientStep() {
+		return gradientStep;
 	}
 
 }

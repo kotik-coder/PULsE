@@ -91,5 +91,19 @@ public abstract class CompositePathOptimiser extends PathOptimiser {
 		list.add(instanceDescriptor);
 		return list;
 	}
+	
+	/**
+	 * Creates a new {@code Path} instance for storing the gradient, direction, and
+	 * minimum point for this {@code PathSolver}.
+	 * 
+	 * @param t the search task
+	 * @return a {@code Path} instance
+	 */
+
+	@Override
+	public Path createPath(SearchTask t) {
+		this.configure(t);
+		return new ComplexPath(t);
+	}
 
 }

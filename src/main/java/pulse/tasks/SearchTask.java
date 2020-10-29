@@ -41,7 +41,6 @@ import pulse.problem.schemes.solvers.SolverException;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.search.direction.Path;
-import pulse.search.direction.PathOptimiser;
 import pulse.search.statistics.CorrelationTest;
 import pulse.search.statistics.NormalityTest;
 import pulse.tasks.listeners.DataCollectionListener;
@@ -257,6 +256,8 @@ public class SearchTask extends Accessible implements Runnable {
 		var optimiser = getInstance();
 
 		path = optimiser.createPath(this);
+		optimiser.configure(this);
+
 		var errorTolerance = (double) optimiser.getErrorTolerance().getValue();
 		int bufferSize = (Integer) getSize().getValue();
 		buffer.init();
@@ -276,7 +277,7 @@ public class SearchTask extends Accessible implements Runnable {
 			e1.printStackTrace();
 		}
 		
-		final int maxIterations = (int)PathOptimiser.getInstance().getMaxIterations().getValue();
+		final int maxIterations = (int)getInstance().getMaxIterations().getValue();
 		
 		outer: do {
 
@@ -449,7 +450,7 @@ public class SearchTask extends Accessible implements Runnable {
 			s.setDetails(MISSING_OPTIMISER);
 		else if (buffer == null)
 			s.setDetails(MISSING_BUFFER);
-		else if (!PathOptimiser.getInstance().compatibleWith(current.getOptimiserStatistic()) )
+		else if (!getInstance().compatibleWith(current.getOptimiserStatistic()) )
 			s.setDetails(INCOMPATIBLE_OPTIMISER);
 		else
 			s = READY;

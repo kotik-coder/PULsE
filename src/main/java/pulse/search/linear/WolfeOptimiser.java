@@ -72,13 +72,13 @@ public class WolfeOptimiser extends LinearOptimiser {
 		final Vector direction = p.getDirection();
 		final Vector g1 = p.getGradient();
 
-		final double G1P = g1.dot(direction);
-		final double G1P_ABS = abs(G1P);
+		final double G1P		= g1.dot(direction);
+		final double G1P_ABS	= abs(G1P);
 
-		var params = task.searchVector();
-		Segment segment = domain(params[0], params[1], direction);
+		var params		= task.searchVector();
+		Segment segment	= domain(params[0], params[1], direction);
 
-		double ss1 = task.solveProblemAndCalculateCost();
+		double cost1		= task.solveProblemAndCalculateCost();
 
 		double randomConfinedValue = 0;
 		double g2p;
@@ -92,14 +92,14 @@ public class WolfeOptimiser extends LinearOptimiser {
 			final var newParams = params[0].sum(direction.multiply(randomConfinedValue));
 			task.assign(new IndexedVector(newParams, params[0].getIndices()));
 
-			final double ss2 = task.solveProblemAndCalculateCost();
+			final double cost2 = task.solveProblemAndCalculateCost();
 
 			/**
 			 * Checks if the first Armijo inequality is not satisfied. In this case, it will
 			 * set the maximum of the search domain to the {@code randomConfinedValue}.
 			 */
 
-			if (ss2 - ss1 > C1 * randomConfinedValue * G1P) {
+			if (cost2 - cost1 > C1 * randomConfinedValue * G1P) {
 				segment.setMaximum(randomConfinedValue);
 				continue;
 			}

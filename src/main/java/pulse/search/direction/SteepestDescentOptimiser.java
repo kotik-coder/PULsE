@@ -68,6 +68,7 @@ public class SteepestDescentOptimiser extends CompositePathOptimiser {
 
 	@Override
 	public Path createPath(SearchTask t) {
+		this.configure(t);
 		return new Path(t);
 	}
 

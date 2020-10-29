@@ -106,17 +106,4 @@ public class BFGSOptimiser extends CompositePathOptimiser {
 		return instance;
 	}
 
-	/**
-	 * Creates a new {@code Path} instance for storing the gradient, direction, and
-	 * minimum point for this {@code PathSolver}.
-	 * 
-	 * @param t the search task
-	 * @return a {@code Path} instance
-	 */
-
-	@Override
-	public Path createPath(SearchTask t) {
-		return new ComplexPath(t);
-	}
-
 }

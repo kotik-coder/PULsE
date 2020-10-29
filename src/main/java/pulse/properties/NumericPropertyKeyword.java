@@ -489,7 +489,13 @@ public enum NumericPropertyKeyword {
 	 * A weight indicating how good a calculation model is.
 	 */
 	
-	MODEL_WEIGHT;
+	MODEL_WEIGHT,
+	
+	/**
+	 * Levenberg-Marquardt damping ratio. A zero value presents pure Levenberg damping. A value of 1 gives pure Marquardt damping.
+	 */
+	
+	DAMPING_RATIO;
 
 	public static Optional<NumericPropertyKeyword> findAny(String key) {
 		return Arrays.asList(values()).stream().filter(keys -> keys.toString().equalsIgnoreCase(key)).findAny();

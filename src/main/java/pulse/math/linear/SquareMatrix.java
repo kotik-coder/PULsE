@@ -98,5 +98,23 @@ public class SquareMatrix extends RectangularMatrix {
 	public static SquareMatrix asSquareMatrix(RectangularMatrix m) {
 		return m.x.length == m.x[0].length ? new SquareMatrix(m.getData()) : null;
 	}
+	
+	public int dimension() {
+		return getData().length;
+	}
+	
+	/**
+	 * Creates a block-diagonal matrix from the diagonal of this matrix.
+	 * @return diag(this)
+	 */
+	
+	public SquareMatrix blockDiagonal() {
+		final int dim = dimension();
+		var data = getData();
+		var diag = new double[dim][dim];
+		for(int i = 0; i < dim; i++)
+			diag[i][i] = data[i][i];
+		return new SquareMatrix(diag);
+	}
 
 }
