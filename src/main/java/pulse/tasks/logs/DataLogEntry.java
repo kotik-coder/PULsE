@@ -57,7 +57,7 @@ public class DataLogEntry extends LogEntry {
 
 		entry = task.alteredParameters();
 		Collections.sort(entry, (p1, p2) -> p1.getDescriptor(false).compareTo(p2.getDescriptor(false)));
-		entry.add(0, task.getPath().getIteration());
+		entry.add(0, task.getIterativeState().getIteration());
 	}
 
 	public List<NumericProperty> getData() {

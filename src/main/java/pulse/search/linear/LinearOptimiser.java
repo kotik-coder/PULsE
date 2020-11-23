@@ -1,7 +1,6 @@
 package pulse.search.linear;
 
 import static java.lang.Math.abs;
-import static java.lang.Math.min;
 import static pulse.properties.NumericProperties.def;
 import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.LINEAR_RESOLUTION;
@@ -10,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import pulse.math.IndexedVector;
+import pulse.math.ParameterVector;
 import pulse.math.Segment;
 import pulse.math.linear.Vector;
 import pulse.problem.schemes.solvers.SolverException;
@@ -32,7 +31,8 @@ import pulse.util.Reflexive;
 public abstract class LinearOptimiser extends PropertyHolder implements Reflexive {
 
 	protected static double searchResolution = (double) def(LINEAR_RESOLUTION).getValue();
-
+	private final static double EPS = 1E-15;
+	
 	protected LinearOptimiser() {
 		super();
 	}
@@ -64,18 +64,16 @@ public abstract class LinearOptimiser extends PropertyHolder implements Reflexiv
 	 * less than unity.
 	 * </p>
 	 * 
-	 * @param x      the current set of parameters
-	 * @param bounds the bounds for x
+	 * @param x      the current set of parameter
 	 * @param p      the result of the direction search with the {@code PathSolver}
 	 * @return a {@code Segment} defining the domain of this search
 	 * @see pulse.search.direction.PathSolver.direction(SearchTask)
 	 */
 
-	public static Segment domain(IndexedVector x, IndexedVector bounds, Vector p) {
-		double alpha = Double.POSITIVE_INFINITY;
-
-		final double EPS = 1E-15;
-
+	public static Segment domain(ParameterVector x, Vector p) {
+		double alphaMax = Double.POSITIVE_INFINITY;
+		double alpha = 0.0;
+		
 		for (int i = 0; i < x.dimension(); i++) {
 
 			final double component = p.get(i);
@@ -84,11 +82,19 @@ public abstract class LinearOptimiser extends PropertyHolder implements Reflexiv
 			if (component < EPS && component > -EPS)
 				continue;
 
-			alpha = min(alpha, abs(bounds.get(i) / component));
+			var bound = x.getTransformedBounds(i);
+			
+			alpha = abs( 
+					(	( component > 0 ? bound.getMaximum() : bound.getMinimum() ) - x.get(i) )
+					/ component);
+			
+			if(Double.isFinite(alpha) && alpha < alphaMax)
+				alphaMax = alpha;
 
 		}
 
-		return new Segment(0, alpha);
+		return new Segment(0.0, alphaMax);
+
 	}
 
 	/**

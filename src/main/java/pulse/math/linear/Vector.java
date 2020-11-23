@@ -112,6 +112,37 @@ public class Vector {
 
 		return factor;
 	}
+	
+	/**
+	 * Creates a vector with random coordinates confined within [min;max]
+	 * @param n the vector dimension
+	 * @param min upper bound for the random number generator
+	 * @param max lower bound for the random generator generator
+	 * @return the randomised vector
+	 */
+	
+	public static Vector random(int n, double min, double max) {
+		var v = new Vector(n);
+		for(int i = 0; i < n; i++) {
+			v.x[i] = min + Math.random()*(max - min);
+		}
+		return v;
+	}
+	
+	/**
+	 * Component-wise vector multiplication
+	 */
+	
+	public Vector multComponents(Vector v) {
+		Vector nv = new Vector(this);
+		
+		for(int i = 0; i < x.length; i++) {
+			nv.x[i] *= v.x[i];
+		}
+		
+		return nv;
+		
+	}
 
 	/**
 	 * Calculates the scalar product of {@code this} and {@code v}.

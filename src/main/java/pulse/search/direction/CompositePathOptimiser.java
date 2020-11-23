@@ -4,7 +4,7 @@ import static pulse.properties.NumericProperties.compare;
 
 import java.util.List;
 
-import pulse.math.IndexedVector;
+import pulse.math.ParameterVector;
 import pulse.problem.schemes.solvers.SolverException;
 import pulse.properties.Property;
 import pulse.search.linear.LinearOptimiser;
@@ -13,7 +13,7 @@ import pulse.tasks.SearchTask;
 import pulse.tasks.logs.Status;
 import pulse.util.InstanceDescriptor;
 
-public abstract class CompositePathOptimiser extends PathOptimiser {
+public abstract class CompositePathOptimiser extends GradientBasedOptimiser {
 
 	private InstanceDescriptor<? extends LinearOptimiser> instanceDescriptor = new InstanceDescriptor<LinearOptimiser>(
 			"Linear Optimiser Selector", LinearOptimiser.class);
@@ -32,7 +32,7 @@ public abstract class CompositePathOptimiser extends PathOptimiser {
 	}
 
 	public boolean iteration(SearchTask task) throws SolverException {
-		var p = task.getPath(); // the previous path of the task
+		var p = (ComplexPath) task.getIterativeState(); // the previous path of the task
 
 		/*
 		 * Checks whether an iteration limit has been already reached
@@ -44,14 +44,14 @@ public abstract class CompositePathOptimiser extends PathOptimiser {
 			
 		} else {
 
-			var parameters = task.searchVector()[0];	// current parameters
+			var parameters = task.searchVector();	// current parameters
 			var dir = getSolver().direction(p);			// find p[k]
-
+			
 			double step = linearSolver.linearStep(task); // find magnitude of step
 			p.setLinearStep(step);
 
 			var candidateParams = parameters.sum(dir.multiply(step)); 					// new set of parameters determined through search
-			task.assign(new IndexedVector(candidateParams, parameters.getIndices()));	// assign to this task
+			task.assign(new ParameterVector(parameters, candidateParams));	// assign to this task
 
 			prepare(task);		// update gradients, Hessians, etc. -> for the next step, [k + 1]
 			p.incrementStep();	// increment the counter of successful steps
@@ -101,7 +101,7 @@ public abstract class CompositePathOptimiser extends PathOptimiser {
 	 */
 
 	@Override
-	public Path createPath(SearchTask t) {
+	public GradientGuidedPath initState(SearchTask t) {
 		this.configure(t);
 		return new ComplexPath(t);
 	}

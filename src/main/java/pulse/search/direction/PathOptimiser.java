@@ -2,18 +2,14 @@ package pulse.search.direction;
 
 import static pulse.properties.NumericProperties.def;
 import static pulse.properties.NumericProperties.derive;
-import static pulse.properties.NumericProperties.isDiscrete;
 import static pulse.properties.NumericProperty.requireType;
 import static pulse.properties.NumericPropertyKeyword.ERROR_TOLERANCE;
-import static pulse.properties.NumericPropertyKeyword.GRADIENT_RESOLUTION;
 import static pulse.properties.NumericPropertyKeyword.ITERATION_LIMIT;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import pulse.math.IndexedVector;
-import pulse.math.linear.Vector;
 import pulse.problem.schemes.solvers.SolverException;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
@@ -48,9 +44,6 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 	private int maxIterations;
 	private double errorTolerance;
 	
-	private double gradientResolution;
-	private double gradientStep;
-
 	private static PathOptimiser instance;
 
 	/**
@@ -79,7 +72,6 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 	public void reset() {
 		maxIterations = (int) def(ITERATION_LIMIT).getValue();
 		errorTolerance = (double) def(ERROR_TOLERANCE).getValue();
-		gradientResolution = (double) def(GRADIENT_RESOLUTION).getValue();
 		ActiveFlags.reset();
 	}
 	
@@ -115,73 +107,6 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 
 	public abstract void prepare(SearchTask task) throws SolverException;
 
-	/**
-	 * Calculates the {@code Vector} gradient of the target function (the sum of
-	 * squared residuals, SSR, for this {@code task}.
-	 * <p>
-	 * If <math><i>&Delta;f(&Delta;x<sub>i</sub>)</i></math> is the change in the
-	 * target function associated with the change of the parameter
-	 * <math><i>x<sub>i</sub></i></math>, the <i>i</i>-th component of the gradient
-	 * is equal to <math><i>g<sub>i</sub> =
-	 * (&Delta;f(&Delta;x<sub>i</sub>)/&Delta;x<sub>i</sub>)</i></math>. The
-	 * accuracy of this calculation depends on the
-	 * <math><i>&Delta;x<sub>i</sub></i></math> value, which is roughly the
-	 * {@code GRADIENT_RESOLUTION}. Note however that instead of using a
-	 * forward-difference scheme to calculate the gradient, this method utilises the
-	 * central-difference calculation of the gradient, which significantly increases
-	 * the overall accuracy of calculation. This means that to evaluate each
-	 * component of this vector, the {@code Problem} associated with this
-	 * {@code task} is solved twice (for <math><i>x<sub>i</sub> &pm;
-	 * &Delta;x<sub>i</sub></i></math>).
-	 * </p>
-	 * 
-	 * @param task a {@code SearchTask} that is being driven to the minimum of SSR
-	 * @return the gradient of the target function
-	 * @throws SolverException
-	 */
-
-	public Vector gradient(SearchTask task) throws SolverException {
-
-		final var params = task.searchVector()[0];
-		var grad = new Vector(params.dimension());
-
-		boolean discreteGradient = params.getIndices().stream().anyMatch(index -> isDiscrete(index));
-		final double dxGrid = task.getCurrentCalculation().getScheme().getGrid().getXStep();
-		final double dx = discreteGradient ? dxGrid : gradientResolution;
-
-		for (int i = 0; i < params.dimension(); i++) {
-			final var shift = new Vector(params.dimension());
-			shift.set(i, 0.5 * dx);
-
-			task.assign(new IndexedVector( params.sum(shift) , params.getIndices()));
-			final double ss2 = task.solveProblemAndCalculateCost();
-
-			task.assign(new IndexedVector( params.subtract(shift), params.getIndices()));
-			final double ss1 = task.solveProblemAndCalculateCost();
-
-			grad.set(i, (ss2 - ss1) / dx);
-
-		}
-
-		task.assign(params);
-
-		return grad;
-
-	}
-	
-	/**
-	 * Checks whether a discrete property is being optimised and selects the gradient step
-	 * best suited to the optimisation strategy. Should be called before creating the optimisation path.
-	 * @param task the search task defining the search vector
-	 */
-	
-	public void configure(SearchTask task) {
-		var params = task.searchVector()[0];
-		boolean discreteGradient = params.getIndices().stream().anyMatch(index -> isDiscrete(index));
-		final double dxGrid = task.getCurrentCalculation().getScheme().getGrid().getXStep();
-		gradientStep = discreteGradient ? dxGrid : (double) getGradientResolution().getValue();
-	}
-
 	public NumericProperty getErrorTolerance() {
 		return derive(ERROR_TOLERANCE, errorTolerance);
 	}
@@ -190,16 +115,6 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 		requireType(errorTolerance, ERROR_TOLERANCE);
 		this.errorTolerance = (double) errorTolerance.getValue();
 		firePropertyChanged(this, errorTolerance);
-	}
-
-	public void setGradientResolution(NumericProperty resolution) {
-		requireType(resolution, GRADIENT_RESOLUTION);
-		this.gradientResolution = (double) resolution.getValue();
-		firePropertyChanged(this, resolution);
-	}
-
-	public NumericProperty getGradientResolution() {
-		return derive(GRADIENT_RESOLUTION, gradientResolution);
 	}
 
 	public NumericProperty getMaxIterations() {
@@ -233,8 +148,7 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 	/**
 	 * <p>
 	 * The types of the listed parameters for this class include:
-	 * <code> GRADIENT_RESOLUTION,
-	 * ERROR_TOLERANCE, ITERATION_LIMIT</code>. Also, all the flags in this class
+	 * <code> ERROR_TOLERANCE, ITERATION_LIMIT</code>. Also, all the flags in this class
 	 * are treated as separate listed parameters.
 	 * </p>
 	 * 
@@ -244,7 +158,6 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 	@Override
 	public List<Property> listedTypes() {
 		List<Property> list = new ArrayList<Property>();
-		list.add(def(GRADIENT_RESOLUTION));
 		list.add(def(ERROR_TOLERANCE));
 		list.add(def(ITERATION_LIMIT));
 
@@ -261,24 +174,15 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 
 	/**
 	 * The accepted types are:
-	 * <code> GRADIENT_RESOLUTION, ERROR_TOLERANCE, ITERATION_LIMIT</code>.
+	 * <code> ERROR_TOLERANCE, ITERATION_LIMIT</code>.
 	 */
 
 	@Override
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
-		switch (type) {
-		case GRADIENT_RESOLUTION:
-			setGradientResolution(property);
-			break;
-		case ERROR_TOLERANCE:
+		if(type == ERROR_TOLERANCE)
 			setErrorTolerance(property);
-			break;
-		case ITERATION_LIMIT:
-			setMaxIterations(property);
-			break;
-		default:
-			break;
-		}
+		else if(type == ITERATION_LIMIT)
+			setMaxIterations(property);		
 	}
 
 	/**
@@ -289,7 +193,6 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 	public boolean ignoreSiblings() {
 		return true;
 	}
-
 
 	/**
 	 * Finds a {@code Flag} equivalent to {@code flag} in the {@code originalList}
@@ -309,15 +212,6 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 			
 		}
 	}
-	
-	/**
-	 * Creates a new {@code Path} suitable for this {@code PathSolver}
-	 * 
-	 * @param t the task, the optimisation path of which will be tracked
-	 * @return a {@code Path} instance
-	 */
-
-	public abstract Path createPath(SearchTask t);
 
 	public static PathOptimiser getInstance() {
 		return instance;
@@ -345,9 +239,17 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 	public boolean compatibleWith(OptimiserStatistic os) {
 		return true;
 	}
+	
+	
+	/**
+	 * Creates a new {@code Path} suitable for this {@code PathSolver}
+	 * 
+	 * @param t the task, the optimisation path of which will be tracked
+	 * @return a {@code Path} instance
+	 */
 
-	public double getGradientStep() {
-		return gradientStep;
-	}
+	public abstract IterativeState initState(SearchTask t);
+	
+	
 
 }

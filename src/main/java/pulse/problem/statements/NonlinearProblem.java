@@ -1,7 +1,5 @@
 package pulse.problem.statements;
 
-import static java.lang.Math.tanh;
-import static pulse.math.MathUtils.atanh;
 import static pulse.properties.NumericProperties.def;
 import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.CONDUCTIVITY;
@@ -14,7 +12,9 @@ import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
 import java.util.List;
 
 import pulse.input.ExperimentalData;
-import pulse.math.IndexedVector;
+import pulse.math.ParameterVector;
+import pulse.math.Segment;
+import pulse.math.transforms.AtanhTransform;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.ImplicitScheme;
 import pulse.properties.Flag;
@@ -26,15 +26,15 @@ public class NonlinearProblem extends ClassicalProblem {
 
 	public NonlinearProblem() {
 		super();
-		setPulse( new Pulse2D() );
+		setPulse(new Pulse2D());
 		setComplexity(ProblemComplexity.MODERATE);
 	}
-	
+
 	public NonlinearProblem(NonlinearProblem p) {
 		super(p);
-		setPulse( new Pulse2D((Pulse2D)p.getPulse()) );
+		setPulse(new Pulse2D((Pulse2D) p.getPulse()));
 	}
-	
+
 	@Override
 	public boolean isReady() {
 		return getProperties().areThermalPropertiesLoaded();
@@ -64,20 +64,27 @@ public class NonlinearProblem extends ClassicalProblem {
 	public NumericProperty getThermalConductivity() {
 		return derive(CONDUCTIVITY, getProperties().thermalConductivity());
 	}
-	
+
 	@Override
-	public void optimisationVector(IndexedVector[] output, List<Flag> flags) {
+	public void optimisationVector(ParameterVector output, List<Flag> flags) {
 		super.optimisationVector(output, flags);
-		int size = output[0].dimension();
+		int size = output.dimension();
+		var properties = getProperties();
 
 		for (int i = 0; i < size; i++) {
 
-			if (output[0].getIndex(i) == HEAT_LOSS) {
-				var properties = getProperties();
-				final double Bi1 = (double)properties.getHeatLoss().getValue();
-				output[0].set(i, atanh(2.0 * Bi1 / properties.maxBiot() - 1.0));
-				output[1].set(i, 10.0);
+			var key = output.getIndex(i);
+
+			if (key == HEAT_LOSS) {
+
+				var bounds = new Segment(1e-5, properties.maxBiot());
+				final double Bi1 = (double) properties.getHeatLoss().getValue();
+				output.setTransform(i, new AtanhTransform(bounds));
+				output.set(i, Bi1);
+				output.setParameterBounds(i, bounds);
+
 			}
+
 		}
 
 	}
@@ -93,16 +100,19 @@ public class NonlinearProblem extends ClassicalProblem {
 	 */
 
 	@Override
-	public void assign(IndexedVector params) {
+	public void assign(ParameterVector params) {
 		super.assign(params);
 		var p = getProperties();
-		
+
 		for (int i = 0, size = params.dimension(); i < size; i++) {
 
-			if (params.getIndex(i) == HEAT_LOSS) {
-				final double heatLoss = 0.5 * p.maxBiot() * (tanh(params.get(i)) + 1.0);
-				p.setHeatLoss(derive(HEAT_LOSS, heatLoss));
+			var key = params.getIndex(i);
+
+			if (key == HEAT_LOSS) {
+
+				p.setHeatLoss(derive(HEAT_LOSS, params.inverseTransform(i)));
 				p.emissivity();
+
 			}
 
 		}
@@ -113,7 +123,7 @@ public class NonlinearProblem extends ClassicalProblem {
 	public Class<? extends DifferenceScheme> defaultScheme() {
 		return ImplicitScheme.class;
 	}
-	
+
 	@Override
 	public Problem copy() {
 		return new NonlinearProblem(this);

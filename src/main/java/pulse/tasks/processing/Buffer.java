@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import pulse.math.IndexedVector;
+import pulse.math.ParameterVector;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
@@ -26,7 +26,7 @@ import pulse.util.PropertyHolder;
 
 public class Buffer extends PropertyHolder {
 
-	private IndexedVector[] data;
+	private ParameterVector[] data;
 	private double[] statistic;
 	private static int size = (int) def(BUFFER_SIZE).getValue();
 
@@ -44,12 +44,12 @@ public class Buffer extends PropertyHolder {
 	 * @return the data
 	 */
 
-	public IndexedVector[] getData() {
+	public ParameterVector[] getData() {
 		return data;
 	}
 
 	public void init() {
-		this.data = new IndexedVector[size];
+		this.data = new ParameterVector[size];
 		statistic = new double[size];
 	}
 
@@ -63,7 +63,7 @@ public class Buffer extends PropertyHolder {
 
 	public void fill(SearchTask t, int bufferElement) {
 		statistic[bufferElement] = (double) t.getCurrentCalculation().getOptimiserStatistic().getStatistic().getValue();
-		data[bufferElement] = t.searchVector()[0];
+		data[bufferElement] = t.searchVector();
 	}
 
 	/**
@@ -106,8 +106,8 @@ public class Buffer extends PropertyHolder {
 
 		double av = 0;
 
-		for (IndexedVector v : data) {
-			av += v.get(index);
+		for (ParameterVector v : data) {
+			av += v.getParameterValue(index);
 		}
 
 		return av / data.length;
@@ -146,8 +146,8 @@ public class Buffer extends PropertyHolder {
 		double sd = 0;
 		double av = average(index);
 
-		for (IndexedVector v : data) {
-			final double s = v.get(index) - av;
+		for (ParameterVector v : data) {
+			final double s = v.getParameterValue(index) - av;
 			sd += s*s;
 		}
 

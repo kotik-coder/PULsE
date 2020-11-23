@@ -9,7 +9,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import pulse.math.IndexedVector;
+import pulse.math.ParameterVector;
+import pulse.math.Segment;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
@@ -122,12 +123,14 @@ public class FlatBaseline extends Baseline {
 	}
 
 	@Override
-	public void optimisationVector(IndexedVector[] output, List<Flag> flags) {
-		for (int i = 0, size = output[0].dimension(); i < size; i++) {
+	public void optimisationVector(ParameterVector output, List<Flag> flags) {
+		for (int i = 0, size = output.dimension(); i < size; i++) {
 
-			if (output[0].getIndex(i) == BASELINE_INTERCEPT) {
-				output[0].set(i, intercept);
-				output[1].set(i, 5);
+			var key = output.getIndex(i);
+			
+			if (key == BASELINE_INTERCEPT) {
+				output.set(i, intercept);
+				output.setParameterBounds(i, new Segment(-10, 10));
 			}
 
 		}
@@ -135,7 +138,7 @@ public class FlatBaseline extends Baseline {
 	}
 
 	@Override
-	public void assign(IndexedVector params) {
+	public void assign(ParameterVector params) {
 		for (int i = 0, size = params.dimension(); i < size; i++) {
 
 			if (params.getIndex(i) == BASELINE_INTERCEPT)

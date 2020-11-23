@@ -22,7 +22,7 @@ import pulse.util.Reflexive;
  * 
  * @see pulse.HeatingCurve
  * @see pulse.tasks.SearchTask
- * @see pulse.math.IndexedVector
+ * @see pulse.math.ParameterVector
  */
 
 public abstract class Baseline extends PropertyHolder implements Reflexive, Optimisable {

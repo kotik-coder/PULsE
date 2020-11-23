@@ -39,7 +39,7 @@ public class SteepestDescentOptimiser extends CompositePathOptimiser {
 
 	@Override
 	public void prepare(SearchTask task) throws SolverException {
-		task.getPath().setGradient(gradient(task));
+		( (GradientGuidedPath) task.getIterativeState() ).setGradient(gradient(task));
 	}
 
 	@Override
@@ -67,9 +67,9 @@ public class SteepestDescentOptimiser extends CompositePathOptimiser {
 	 */
 
 	@Override
-	public Path createPath(SearchTask t) {
+	public GradientGuidedPath initState(SearchTask t) {
 		this.configure(t);
-		return new Path(t);
+		return new GradientGuidedPath(t);
 	}
 
 }

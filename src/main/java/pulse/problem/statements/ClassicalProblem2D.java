@@ -1,16 +1,13 @@
 package pulse.problem.statements;
 
-import static java.lang.Math.exp;
-import static java.lang.Math.log;
-import static java.lang.Math.tanh;
-import static pulse.math.MathUtils.atanh;
 import static pulse.properties.NumericProperties.derive;
-import static pulse.properties.NumericPropertyKeyword.HEAT_LOSS_SIDE;
 import static pulse.properties.NumericPropertyKeyword.SPOT_DIAMETER;
 
 import java.util.List;
 
-import pulse.math.IndexedVector;
+import pulse.math.ParameterVector;
+import pulse.math.Segment;
+import pulse.math.transforms.InvDiamTransform;
 import pulse.problem.laser.DiscretePulse;
 import pulse.problem.laser.DiscretePulse2D;
 import pulse.problem.schemes.ADIScheme;
@@ -20,7 +17,6 @@ import pulse.problem.schemes.Grid2D;
 import pulse.problem.statements.model.ExtendedThermalProperties;
 import pulse.problem.statements.model.ThermalProperties;
 import pulse.properties.Flag;
-import pulse.properties.NumericPropertyKeyword;
 import pulse.ui.Messages;
 
 /**
@@ -34,19 +30,19 @@ public class ClassicalProblem2D extends Problem {
 
 	public ClassicalProblem2D() {
 		super();
-		setPulse( new Pulse2D() );
+		setPulse(new Pulse2D());
 		setComplexity(ProblemComplexity.MODERATE);
 	}
-	
+
 	public ClassicalProblem2D(Problem p) {
 		super(p);
-		setPulse( new Pulse2D(p.getPulse()) );
+		setPulse(new Pulse2D(p.getPulse()));
 		setComplexity(ProblemComplexity.MODERATE);
 	}
 
 	@Override
 	public void initProperties() {
-		setProperties( new ExtendedThermalProperties() );
+		setProperties(new ExtendedThermalProperties());
 	}
 
 	@Override
@@ -70,66 +66,57 @@ public class ClassicalProblem2D extends Problem {
 	}
 
 	@Override
-	public void optimisationVector(IndexedVector[] output, List<Flag> flags) {
+	public void optimisationVector(ParameterVector output, List<Flag> flags) {
 		super.optimisationVector(output, flags);
 		var properties = (ExtendedThermalProperties) getProperties();
-		
 		double value;
-		final double d = (double)properties.getSampleDiameter().getValue();
 		
-		for (int i = 0, size = output[0].dimension(); i < size; i++) {
-			switch (output[0].getIndex(i)) {
+		for (int i = 0, size = output.dimension(); i < size; i++) {
+
+			var key = output.getIndex(i);
+
+			switch (key) {
 			case FOV_OUTER:
-				value = (double)properties.getFOVOuter().getValue();
-				output[0].set(i, value / d);
-				output[1].set(i, 0.25);
+				value = (double) properties.getFOVOuter().getValue();
 				break;
 			case FOV_INNER:
-				value = (double)properties.getFOVInner().getValue();
-				output[0].set(i, value / d);
-				output[1].set(i, 0.25);
+				value = (double) properties.getFOVInner().getValue();
 				break;
-			case SPOT_DIAMETER :
+			case SPOT_DIAMETER:
 				value = (double) ((Pulse2D) getPulse()).getSpotDiameter().getValue();
-				output[0].set(i, value / d);
-				output[1].set(i, 0.25);
 				break;
 			case HEAT_LOSS_SIDE:
-				final double Bi3 = (double)properties.getSideLosses().getValue();
-				output[0].set(i,
-						properties.areThermalPropertiesLoaded() ? atanh(2.0 * Bi3 / properties.maxBiot() - 1.0) : log(Bi3));
-				output[1].set(i, 2.0);
-				break;
+				final double Bi = (double) properties.getSideLosses().getValue();
+				setHeatLossParameter(output, i, Bi);	
+				continue;
 			default:
 				continue;
 			}
+	
+			output.setTransform(i, new InvDiamTransform(properties));
+			output.set(i, value);
+			output.setParameterBounds(i, new Segment(0.5 * value, 1.5 * value));
+
 		}
 
 	}
 
 	@Override
-	public void assign(IndexedVector params) {
+	public void assign(ParameterVector params) {
 		super.assign(params);
 		var properties = (ExtendedThermalProperties) getProperties();
-		NumericPropertyKeyword type;
-		
-		final double d = (double)properties.getSampleDiameter().getValue();
 
 		// TODO one-to-one mapping for FOV and SPOT_DIAMETER
 		for (int i = 0, size = params.dimension(); i < size; i++) {
-			type = params.getIndex(i);
+			var type = params.getIndex(i);
 			switch (type) {
 			case FOV_OUTER:
 			case FOV_INNER:
-				properties.set(type, derive(type, params.get(i) * d));
+			case HEAT_LOSS_SIDE:
+				properties.set(type, derive(type, params.inverseTransform(i) ));
 				break;
 			case SPOT_DIAMETER:
-				var spotDiameter = derive(SPOT_DIAMETER, params.get(i) * d);
-				((Pulse2D) getPulse()).setSpotDiameter(spotDiameter);
-				break;
-			case HEAT_LOSS_SIDE:
-				final double bi = properties.areThermalPropertiesLoaded() ? 0.5 * properties.maxBiot() * (tanh(params.get(i)) + 1.0) : exp(params.get(i));
-				properties.setSideLosses( derive(HEAT_LOSS_SIDE, bi) );
+				((Pulse2D) getPulse()).setSpotDiameter( derive(SPOT_DIAMETER, params.inverseTransform(i) ));
 				break;
 			default:
 				continue;

@@ -18,7 +18,7 @@ public interface HessianDirectionSolver extends DirectionSolver {
 	 */
 
 	@Override
-	public default Vector direction(Path p) throws SolverException {
+	public default Vector direction(GradientGuidedPath p) throws SolverException {
 		var cp = (ComplexPath) p;
 
 		Vector invGrad = p.getGradient().inverted();		

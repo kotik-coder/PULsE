@@ -9,7 +9,7 @@ import static pulse.properties.NumericPropertyKeyword.UPPER_BOUND;
 
 import java.util.List;
 
-import pulse.math.IndexedVector;
+import pulse.math.ParameterVector;
 import pulse.math.Segment;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
@@ -168,23 +168,27 @@ public class Range extends PropertyHolder implements Optimisable {
 	 */
 
 	@Override
-	public void optimisationVector(IndexedVector[] output, List<Flag> flags) {
-		int size = output[0].dimension();
+	public void optimisationVector(ParameterVector output, List<Flag> flags) {
 
-		for (int i = 0; i < size; i++) {
+		double len = segment.length();
+		var bounds = new Segment(-0.25 * len, 0.25 * len);
+		
+		for (int i = 0, size = output.dimension(); i < size; i++) {
 
-			switch (output[0].getIndex(i)) {
+			var key = output.getIndex(i);
+			
+			switch (key) {
 			case UPPER_BOUND:
-				output[0].set(i, segment.getMaximum());
-				output[1].set(i, 0.25 * segment.length());
+				output.set(i, segment.getMaximum());
 				break;
 			case LOWER_BOUND:
-				output[0].set(i, segment.getMinimum());
-				output[1].set(i, 0.25 * segment.length());
+				output.set(i, segment.getMinimum());
 				break;
 			default:
-				continue;
+				continue;			
 			}
+			
+			output.setParameterBounds(i, bounds);
 
 		}
 
@@ -197,7 +201,7 @@ public class Range extends PropertyHolder implements Optimisable {
 	 */
 
 	@Override
-	public void assign(IndexedVector params) {
+	public void assign(ParameterVector params) {
 
 		NumericProperty p = null;
 

@@ -9,7 +9,7 @@ import static pulse.properties.NumericPropertyKeyword.DAMPING_RATIO;
 
 import java.util.List;
 
-import pulse.math.IndexedVector;
+import pulse.math.ParameterVector;
 import pulse.math.linear.Matrices;
 import pulse.math.linear.RectangularMatrix;
 import pulse.math.linear.SquareMatrix;
@@ -25,7 +25,7 @@ import pulse.tasks.SearchTask;
 import pulse.tasks.logs.Status;
 import pulse.ui.Messages;
 
-public class LMOptimiser extends PathOptimiser {
+public class LMOptimiser extends GradientBasedOptimiser {
 
 	private static LMOptimiser instance = new LMOptimiser();
 	private boolean computeJacobian;
@@ -33,8 +33,10 @@ public class LMOptimiser extends PathOptimiser {
 	private final static double EPS = 1e-10; // for numerical comparison
 	private double dampingRatio;
 	
+	/* 
 	private double geodesicParameter = 0.1;
 	private boolean geodesicCorrection = false;
+	*/
 
 	private LMOptimiser() {
 		super();
@@ -52,7 +54,7 @@ public class LMOptimiser extends PathOptimiser {
 
 	@Override
 	public boolean iteration(SearchTask task) throws SolverException {
-		var p = (LMPath) task.getPath(); // the previous path of the task
+		var p = (LMPath) task.getIterativeState(); // the previous path of the task
 
 		/*
 		 * Checks whether an iteration limit has been already reached
@@ -68,7 +70,8 @@ public class LMOptimiser extends PathOptimiser {
 		else {
 
 			double initialCost	= task.solveProblemAndCalculateCost();
-			var parameters		= task.searchVector()[0];
+			var parameters		= task.searchVector();
+
 			p.setParameters(parameters); // store current parameters
 
 			prepare(task); // do the preparatory step
@@ -79,22 +82,24 @@ public class LMOptimiser extends PathOptimiser {
 			 * Geodesic acceleration
 			 */
 			
+			/*
 			var acceleration = p.getJacobian().transpose().multiply( directionalDerivative(task) ); // J' dr/dp
 			var correction = HessianDirectionSolver.solve(p, acceleration.inverted() ); // H^-1 J'dr/dp
 
 			double newCost = Double.POSITIVE_INFINITY;
+			*/
 						
 			/*
 			 *  Additional conditions imposed by geodesic acceleration.
 			 */
 			
-			if( !geodesicCorrection || correction.length() / lmDirection.length() <= geodesicParameter) {
+			//if( !geodesicCorrection || correction.length() / lmDirection.length() <= geodesicParameter) {
 				var candidate = parameters.sum(lmDirection);
-				task.assign(new IndexedVector( 
-						geodesicCorrection ? candidate.sum( correction.multiply(0.5) ) : candidate, 
-						parameters.getIndices() ) ); // assign new parameters
-				newCost = task.solveProblemAndCalculateCost(); // calculate the sum of squared residuals
-			}
+				task.assign(new ParameterVector( 
+						//geodesicCorrection ? candidate.sum( correction.multiply(0.5) ) : 
+						parameters, candidate ) ); // assign new parameters
+				double newCost = task.solveProblemAndCalculateCost(); // calculate the sum of squared residuals
+			//}
 
 			/*
 			 * Delayed gratification
@@ -119,7 +124,7 @@ public class LMOptimiser extends PathOptimiser {
 
 	@Override
 	public void prepare(SearchTask task) throws SolverException {
-		var p = (LMPath) task.getPath();
+		var p = (LMPath) task.getIterativeState();
 		
 		//store residual vector at current parameters
 		p.setResidualVector( new Vector( residualVector(task.getCurrentCalculation().getOptimiserStatistic())  ));
@@ -151,10 +156,9 @@ public class LMOptimiser extends PathOptimiser {
 
 		var residualCalculator = task.getCurrentCalculation().getOptimiserStatistic();
 
-		var p = ((LMPath) task.getPath());
+		var p = ((LMPath) task.getIterativeState());
 
 		final var params = p.getParameters();
-		final var indices = params.getIndices();
 		
 		final int numPoints = p.getResidualVector().dimension();
 		final int numParams = params.dimension();
@@ -169,12 +173,12 @@ public class LMOptimiser extends PathOptimiser {
 			shift.set(i, 0.5 * dx);
 
 			// + shift
-			task.assign(new IndexedVector(params.sum(shift), indices));
+			task.assign(new ParameterVector( params, params.sum(shift) ));
 			task.solveProblemAndCalculateCost();
 			var r1 = residualVector(residualCalculator);
 
 			// - shift
-			task.assign(new IndexedVector(params.subtract(shift), indices));
+			task.assign(new ParameterVector( params, params.subtract(shift) ));
 			task.solveProblemAndCalculateCost();
 			var r2 = residualVector(residualCalculator);
 
@@ -198,7 +202,7 @@ public class LMOptimiser extends PathOptimiser {
 	}
 
 	@Override
-	public Path createPath(SearchTask t) {
+	public GradientGuidedPath initState(SearchTask t) {
 		this.configure(t);
 		computeJacobian = true;
 		return new LMPath(t);
@@ -215,6 +219,7 @@ public class LMOptimiser extends PathOptimiser {
 		return asSquareMatrix(jacobian.transpose().multiply(jacobian));
 	}
 
+	/*
 	private Vector directionalDerivative(SearchTask t) throws SolverException {
 		var p = (LMPath) t.getPath();
 
@@ -256,6 +261,7 @@ public class LMOptimiser extends PathOptimiser {
 		
 		return new Vector(diff);
 	}
+	*/
 	
 	/*
 	 * Additive damping strategy, where the scaling matrix is simply the identity matrix.
@@ -328,75 +334,5 @@ public class LMOptimiser extends PathOptimiser {
 		this.dampingRatio = (double)dampingRatio.getValue();
 		firePropertyChanged(this, dampingRatio);
 	}
-	
-
-	/*
-	 * Path
-	 */
-
-	class LMPath extends ComplexPath {
-
-		private IndexedVector parameters;
-		private Vector residualVector;
-		private RectangularMatrix jacobian;
-		private SquareMatrix nonregularisedHessian;
-		private double lambda;
-
-		public LMPath(SearchTask t) {
-			super(t);
-		}
-
-		public RectangularMatrix getJacobian() {
-			return jacobian;
-		}
-
-		public void setJacobian(RectangularMatrix jacobian) {
-			this.jacobian = jacobian;
-		}
-
-		public double getLambda() {
-			return lambda;
-		}
-
-		public void setLambda(double lambda) {
-			this.lambda = lambda;
-		}
-
-		@Override
-		public void configure(SearchTask t) {
-			super.configure(t);
-			this.jacobian = null;
-			this.setHessian(null);
-			nonregularisedHessian = null;
-			this.lambda = 1.0;
-			this.residualVector = null;
-		}
-
-		public SquareMatrix getNonregularisedHessian() {
-			return nonregularisedHessian;
-		}
-
-		public void setNonregularisedHessian(SquareMatrix nonregularisedHessian) {
-			this.nonregularisedHessian = nonregularisedHessian;
-		}
-
-		public Vector getResidualVector() {
-			return residualVector;
-		}
-
-		public void setResidualVector(Vector residualVector) {
-			this.residualVector = residualVector;
-		}
-
-		public IndexedVector getParameters() {
-			return parameters;
-		}
-
-		public void setParameters(IndexedVector parameters) {
-			this.parameters = parameters;
-		}
-
-	}
-
 
 }

@@ -15,7 +15,7 @@ import pulse.tasks.SearchTask;
  *
  */
 
-public class ComplexPath extends Path {
+public class ComplexPath extends GradientGuidedPath {
 
 	private SquareMatrix hessian;
 	private SquareMatrix inverseHessian;

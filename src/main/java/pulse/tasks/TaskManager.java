@@ -112,6 +112,7 @@ public class TaskManager extends UpwardsNavigable {
 	 */
 
 	public void execute(SearchTask t) {
+
 		t.setStatus(QUEUED); // notify listeners computation is about to start
 
 		// notify listeners
@@ -132,6 +133,7 @@ public class TaskManager extends UpwardsNavigable {
 			} else
 				notifyListeners(e);
 		});
+
 	}
 
 	/**

@@ -1,7 +1,7 @@
 package pulse.baseline;
 
 import static java.lang.Math.sin;
-import static java.lang.Math.sqrt;
+import static pulse.math.transforms.StandardTransformations.SQRT;
 import static pulse.properties.NumericProperties.def;
 import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericProperty.requireType;
@@ -11,7 +11,8 @@ import static pulse.properties.NumericPropertyKeyword.BASELINE_PHASE_SHIFT;
 
 import java.util.List;
 
-import pulse.math.IndexedVector;
+import pulse.math.ParameterVector;
+import pulse.math.Segment;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
@@ -119,23 +120,26 @@ public class SinusoidalBaseline extends FlatBaseline {
 	}
 
 	@Override
-	public void optimisationVector(IndexedVector[] output, List<Flag> flags) {
+	public void optimisationVector(ParameterVector output, List<Flag> flags) {
 		super.optimisationVector(output, flags);
 
-		for (int i = 0, size = output[0].dimension(); i < size; i++) {
+		for (int i = 0, size = output.dimension(); i < size; i++) {
 
-			switch (output[0].getIndex(i)) {
+			var key = output.getIndex(i);
+			
+			switch (key) {
 			case BASELINE_FREQUENCY:
-				output[0].set(i, frequency);
-				output[1].set(i, 30);
+				output.set(i, frequency);
+				output.setParameterBounds(i, new Segment(0, 200));
 				break;
 			case BASELINE_PHASE_SHIFT:
-				output[0].set(i, phaseShift);
-				output[1].set(i, 1.0);
+				output.set(i, phaseShift);
+				output.setParameterBounds(i, new Segment(-3.14, 3.14) );
 				break;
 			case BASELINE_AMPLITUDE:
-				output[0].set(i, sqrt(amplitude));
-				output[1].set(i, 1.0);
+				output.setTransform(i, SQRT);
+				output.set(i, amplitude);
+				output.setParameterBounds(i, new Segment( 0.0, 10.0 ) );
 				break;
 			default:
 				break;
@@ -146,7 +150,7 @@ public class SinusoidalBaseline extends FlatBaseline {
 	}
 
 	@Override
-	public void assign(IndexedVector params) {
+	public void assign(ParameterVector params) {
 		super.assign(params);
 
 		for (int i = 0, size = params.dimension(); i < size; i++) {
@@ -159,8 +163,7 @@ public class SinusoidalBaseline extends FlatBaseline {
 				setPhaseShift(derive(BASELINE_PHASE_SHIFT, params.get(i)));
 				break;
 			case BASELINE_AMPLITUDE:
-				var p = params.get(i);
-				setAmplitude(derive(BASELINE_AMPLITUDE, p*p));
+				setAmplitude(derive(BASELINE_AMPLITUDE, params.inverseTransform(i) ));
 				break;
 			default:
 				break;

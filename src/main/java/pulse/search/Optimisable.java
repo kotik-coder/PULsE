@@ -2,7 +2,7 @@ package pulse.search;
 
 import java.util.List;
 
-import pulse.math.IndexedVector;
+import pulse.math.ParameterVector;
 import pulse.properties.Flag;
 
 /**
@@ -23,7 +23,7 @@ public interface Optimisable {
 	 * @see pulse.util.PropertyHolder.listedTypes()
 	 */
 
-	public void assign(IndexedVector params);
+	public void assign(ParameterVector params);
 
 	/**
 	 * Calculates the vector argument defined on <math><b>R</b><sup>n</sup></math>
@@ -34,6 +34,6 @@ public interface Optimisable {
 	 *               the search
 	 */
 
-	public void optimisationVector(IndexedVector[] output, List<Flag> flags);
+	public void optimisationVector(ParameterVector output, List<Flag> flags);
 
 }

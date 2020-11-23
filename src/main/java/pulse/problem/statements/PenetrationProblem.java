@@ -1,15 +1,13 @@
 package pulse.problem.statements;
 
-import static java.lang.Math.exp;
-import static java.lang.Math.log;
+import static pulse.math.transforms.StandardTransformations.LOG;
 import static pulse.properties.NumericProperties.derive;
-import static pulse.properties.NumericPropertyKeyword.LASER_ABSORPTIVITY;
 import static pulse.properties.NumericPropertyKeyword.NUMPOINTS;
-import static pulse.properties.NumericPropertyKeyword.THERMAL_ABSORPTIVITY;
 
 import java.util.List;
 
-import pulse.math.IndexedVector;
+import pulse.math.ParameterVector;
+import pulse.math.Segment;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.solvers.ImplicitTranslucentSolver;
 import pulse.problem.statements.model.AbsorptionModel;
@@ -37,7 +35,7 @@ public class PenetrationProblem extends ClassicalProblem {
 		instanceDescriptor.addListener(() -> initAbsorption());
 		absorption.setParent(this);
 	}
-	
+
 	public PenetrationProblem(PenetrationProblem p) {
 		super(p);
 		initAbsorption();
@@ -68,42 +66,53 @@ public class PenetrationProblem extends ClassicalProblem {
 	}
 
 	@Override
-	public void optimisationVector(IndexedVector[] output, List<Flag> flags) {
+	public void optimisationVector(ParameterVector output, List<Flag> flags) {
 		super.optimisationVector(output, flags);
 
-		for (int i = 0, size = output[0].dimension(); i < size; i++) {
-			switch (output[0].getIndex(i)) {
+		for (int i = 0, size = output.dimension(); i < size; i++) {
+			var key = output.getIndex(i);
+			double value = 0;
+
+			switch(key) {
 			case LASER_ABSORPTIVITY:
-				output[0].set(i, log((double) (absorption.getLaserAbsorptivity()).getValue()));
-				output[1].set(i, 2.0);
+				value = (double) (absorption.getLaserAbsorptivity()).getValue();
 				break;
-			case THERMAL_ABSORPTIVITY:
-				output[0].set(i, log((double) (absorption.getThermalAbsorptivity()).getValue()));
-				output[0].set(i, 2.0);
+			case THERMAL_ABSORPTIVITY : 
+				value = (double) (absorption.getThermalAbsorptivity()).getValue();
 				break;
-			default:
+			default :
 				continue;
 			}
+				
+			//do this for the listed key values 
+			output.setTransform(i, LOG);
+			output.set(i, value);
+			output.setParameterBounds(i, new Segment(1E-2, 1000.0));
+
 		}
 
 	}
 
 	@Override
-	public void assign(IndexedVector params) {
+	public void assign(ParameterVector params) {
 		super.assign(params);
 
+		double value;
+		
 		for (int i = 0, size = params.dimension(); i < size; i++) {
-			switch (params.getIndex(i)) {
-			case LASER_ABSORPTIVITY:
-				absorption.setLaserAbsorptivity(derive(LASER_ABSORPTIVITY, exp(params.get(i))));
+			var key = params.getIndex(i);
+			
+			switch(key) {
+			case LASER_ABSORPTIVITY :
+			case THERMAL_ABSORPTIVITY :
+				value = params.inverseTransform(i);
 				break;
-			case THERMAL_ABSORPTIVITY:
-				absorption.setThermalAbsorptivity(
-						derive(THERMAL_ABSORPTIVITY, exp(params.get(i))));
-				break;
-			default:
+			default : 
 				continue;
 			}
+			
+			absorption.set(key, derive(key, value) );
+			
 		}
 	}
 
@@ -111,12 +120,12 @@ public class PenetrationProblem extends ClassicalProblem {
 	public Class<? extends DifferenceScheme> defaultScheme() {
 		return ImplicitTranslucentSolver.class;
 	}
-	
+
 	@Override
 	public String toString() {
 		return Messages.getString("DistributedProblem.Descriptor");
 	}
-	
+
 	@Override
 	public Problem copy() {
 		return new PenetrationProblem(this);

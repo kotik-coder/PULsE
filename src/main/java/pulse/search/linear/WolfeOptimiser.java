@@ -2,11 +2,12 @@ package pulse.search.linear;
 
 import static java.lang.Math.abs;
 
-import pulse.math.IndexedVector;
+import pulse.math.ParameterVector;
 import pulse.math.Segment;
 import pulse.math.linear.Vector;
 import pulse.problem.schemes.solvers.SolverException;
-import pulse.search.direction.Path;
+import pulse.search.direction.GradientBasedOptimiser;
+import pulse.search.direction.GradientGuidedPath;
 import pulse.search.direction.PathOptimiser;
 import pulse.tasks.SearchTask;
 import pulse.ui.Messages;
@@ -67,7 +68,7 @@ public class WolfeOptimiser extends LinearOptimiser {
 	@Override
 	public double linearStep(SearchTask task) throws SolverException {
 
-		Path p = task.getPath();
+		GradientGuidedPath p = (GradientGuidedPath) task.getIterativeState();
 
 		final Vector direction = p.getDirection();
 		final Vector g1 = p.getGradient();
@@ -76,21 +77,21 @@ public class WolfeOptimiser extends LinearOptimiser {
 		final double G1P_ABS	= abs(G1P);
 
 		var params		= task.searchVector();
-		Segment segment	= domain(params[0], params[1], direction);
+		Segment segment	= domain(params, direction);
 
 		double cost1		= task.solveProblemAndCalculateCost();
 
 		double randomConfinedValue = 0;
 		double g2p;
 		
-		var instance = PathOptimiser.getInstance();
+		var instance = (GradientBasedOptimiser) PathOptimiser.getInstance();
 
 		for (double initialLength = segment.length(); segment.length() / initialLength > searchResolution;) {
 
 			randomConfinedValue = segment.randomValue();
 
-			final var newParams = params[0].sum(direction.multiply(randomConfinedValue));
-			task.assign(new IndexedVector(newParams, params[0].getIndices()));
+			final var newParams = params.sum(direction.multiply(randomConfinedValue));
+			task.assign(new ParameterVector(params, newParams));
 
 			final double cost2 = task.solveProblemAndCalculateCost();
 
@@ -123,7 +124,7 @@ public class WolfeOptimiser extends LinearOptimiser {
 
 		}
 
-		task.assign(params[0]);
+		task.assign(params);
 		p.setGradient(g1);
 
 		return randomConfinedValue;

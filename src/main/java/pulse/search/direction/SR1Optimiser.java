@@ -36,7 +36,7 @@ public class SR1Optimiser extends CompositePathOptimiser {
 
 	@Override
 	public void prepare(SearchTask task) throws SolverException {
-		var p = (ComplexPath) task.getPath();
+		var p = (ComplexPath) task.getIterativeState();
 		Vector dir = p.getDirection();
 
 		final double minimumPoint = p.getMinimumPoint();

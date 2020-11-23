@@ -16,6 +16,6 @@ public interface DirectionSolver {
 	 * @see pulse.problem.statements.Problem.optimisationVector(List<Flag>)
 	 */
 
-	public Vector direction(Path p) throws SolverException;
+	public Vector direction(GradientGuidedPath p) throws SolverException;
 	
 }

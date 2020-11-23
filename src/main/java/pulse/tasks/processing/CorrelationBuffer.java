@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import pulse.math.IndexedVector;
+import pulse.math.ParameterVector;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.search.statistics.CorrelationTest;
 import pulse.search.statistics.EmptyCorrelationTest;
@@ -18,7 +18,7 @@ import pulse.util.ImmutablePair;
 
 public class CorrelationBuffer {
 
-	private List<IndexedVector> params;
+	private List<ParameterVector> params;
 	private static Set<ImmutablePair<NumericPropertyKeyword>> excludePairList;
 	private static Set<NumericPropertyKeyword> excludeSingleList;
 
@@ -37,7 +37,7 @@ public class CorrelationBuffer {
 	}
 
 	public void inflate(SearchTask t) {
-		params.add(t.searchVector()[0]);
+		params.add(t.searchVector());
 	}
 
 	public void clear() {
@@ -53,7 +53,7 @@ public class CorrelationBuffer {
 
 		var indices = params.get(0).getIndices();
 		var map = indices.stream()
-				.map(index -> new ImmutableDataEntry<>(index, params.stream().mapToDouble(v -> v.get(index)).toArray()))
+				.map(index -> new ImmutableDataEntry<>(index, params.stream().mapToDouble(v -> v.getParameterValue(index)).toArray()))
 				.collect(Collectors.toMap(x -> x.getKey(), x -> x.getValue()));
 
 		int indicesSize = indices.size();

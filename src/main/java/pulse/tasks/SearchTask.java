@@ -36,11 +36,11 @@ import java.util.stream.Collectors;
 
 import pulse.input.ExperimentalData;
 import pulse.input.InterpolationDataset;
-import pulse.math.IndexedVector;
+import pulse.math.ParameterVector;
 import pulse.problem.schemes.solvers.SolverException;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
-import pulse.search.direction.Path;
+import pulse.search.direction.IterativeState;
 import pulse.search.statistics.CorrelationTest;
 import pulse.search.statistics.NormalityTest;
 import pulse.tasks.listeners.DataCollectionListener;
@@ -73,7 +73,7 @@ public class SearchTask extends Accessible implements Runnable {
 	private List<Calculation> stored;
 	private ExperimentalData curve;
 
-	private Path path;
+	private IterativeState path;
 	private Buffer buffer;
 	private Log log;
 
@@ -191,19 +191,15 @@ public class SearchTask extends Accessible implements Runnable {
 	 * @see pulse.problem.statements.Problem.optimisationVector(List<Flag>)
 	 */
 
-	public IndexedVector[] searchVector() {
+	public ParameterVector searchVector() {
 		var flags = getAllFlags();
 		var keywords = activeParameters(this);
-		var optimisationVector = new IndexedVector(keywords);
-		var upperBound = new IndexedVector(optimisationVector.getIndices());
+		var optimisationVector = new ParameterVector(keywords);
 
-		var array = new IndexedVector[] { optimisationVector, upperBound };
+		current.getProblem().optimisationVector(optimisationVector, flags);
+		curve.getRange().optimisationVector(optimisationVector, flags);
 
-		current.getProblem().optimisationVector(array, flags);
-		curve.getRange().optimisationVector(array, flags);
-
-		return array;
-
+		return optimisationVector;
 	}
 
 	/**
@@ -215,7 +211,7 @@ public class SearchTask extends Accessible implements Runnable {
 	 * @see pulse.problem.statements.Problem.assign(IndexedVector)
 	 */
 
-	public void assign(IndexedVector searchParameters) {
+	public void assign(ParameterVector searchParameters) {
 		current.getProblem().assign(searchParameters);
 		curve.getRange().assign(searchParameters);
 	}
@@ -255,8 +251,7 @@ public class SearchTask extends Accessible implements Runnable {
 
 		var optimiser = getInstance();
 
-		path = optimiser.createPath(this);
-		optimiser.configure(this);
+		path = optimiser.initState(this);
 
 		var errorTolerance = (double) optimiser.getErrorTolerance().getValue();
 		int bufferSize = (Integer) getSize().getValue();
@@ -390,7 +385,7 @@ public class SearchTask extends Accessible implements Runnable {
 		return curve;
 	}
 
-	public Path getPath() {
+	public IterativeState getIterativeState() {
 		return path;
 	}
 

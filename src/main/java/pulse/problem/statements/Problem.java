@@ -1,10 +1,7 @@
 package pulse.problem.statements;
 
-import static java.lang.Math.exp;
-import static java.lang.Math.log;
-import static java.lang.Math.tanh;
 import static pulse.input.listeners.CurveEventType.RESCALED;
-import static pulse.math.MathUtils.atanh;
+import static pulse.math.transforms.StandardTransformations.LOG;
 import static pulse.properties.NumericProperties.def;
 import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.DIFFUSIVITY;
@@ -20,7 +17,10 @@ import pulse.HeatingCurve;
 import pulse.baseline.Baseline;
 import pulse.baseline.FlatBaseline;
 import pulse.input.ExperimentalData;
-import pulse.math.IndexedVector;
+import pulse.math.ParameterVector;
+import pulse.math.Segment;
+import pulse.math.transforms.AtanhTransform;
+import pulse.math.transforms.InvLenSqTransform;
 import pulse.problem.laser.DiscretePulse;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.Grid;
@@ -74,7 +74,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
 	protected Problem() {
 		initProperties();
 
-		setHeatingCurve( new HeatingCurve() );
+		setHeatingCurve(new HeatingCurve());
 
 		instanceDescriptor.attemptUpdate(FlatBaseline.class.getSimpleName());
 		addListeners();
@@ -91,21 +91,21 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
 	public Problem(Problem p) {
 		initProperties(p.getProperties().copy());
 
-		setHeatingCurve( new HeatingCurve(p.getHeatingCurve()) );
+		setHeatingCurve(new HeatingCurve(p.getHeatingCurve()));
 		curve.setNumPoints(p.getHeatingCurve().getNumPoints());
 
 		instanceDescriptor.attemptUpdate(p.getBaseline().getClass().getSimpleName());
 		addListeners();
 		this.baseline = p.getBaseline().copy();
 	}
-	
+
 	public abstract Problem copy();
 
 	public void setHeatingCurve(HeatingCurve curve) {
 		this.curve = curve;
 		curve.setParent(this);
 	}
-	
+
 	private void addListeners() {
 		instanceDescriptor.addListener(() -> {
 			initBaseline();
@@ -222,40 +222,56 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
 	 */
 
 	@Override
-	public void optimisationVector(IndexedVector[] output, List<Flag> flags) {
+	public void optimisationVector(ParameterVector output, List<Flag> flags) {
 
 		baseline.optimisationVector(output, flags);
 
-		for (int i = 0, size = output[0].dimension(); i < size; i++) {
+		for (int i = 0, size = output.dimension(); i < size; i++) {
 
-			switch (output[0].getIndex(i)) {
+			var key = output.getIndex(i);
+
+			switch (key) {
 			case DIFFUSIVITY:
-				final double l = (double) properties.getSampleThickness().getValue();
 				final double a = (double) properties.getDiffusivity().getValue();
-				final double prefactor = 1.0 / (l * l);
-				output[0].set(i, a * prefactor);
-				output[1].set(i, 0.45 * a * prefactor);
+				output.setTransform(i, new InvLenSqTransform(properties));
+				output.setParameterBounds(i, new Segment(0.33 * a, 3.0 * a));
+				output.set(i, a);
 				break;
 			case MAXTEMP:
 				final double signalHeight = (double) properties.getMaximumTemperature().getValue();
-				output[0].set(i, signalHeight);
-				output[1].set(i, 0.5 * signalHeight);
+				output.set(i, signalHeight);
+				output.setParameterBounds(i, new Segment(0.5 * signalHeight, 1.5 * signalHeight));
 				break;
 			case HEAT_LOSS:
 				final double Bi = (double) properties.getHeatLoss().getValue();
-				output[0].set(i, properties.areThermalPropertiesLoaded() ? atanh(2.0 * Bi / properties.maxBiot() - 1.0)
-						: log(Bi));
-				output[1].set(i, 2.0);
+				setHeatLossParameter(output, i, Bi);
 				break;
 			case TIME_SHIFT:
-				output[0].set(i, (double) curve.getTimeShift().getValue());
-				output[1].set(i, 0.025 * properties.timeFactor());
+				output.set(i, (double) curve.getTimeShift().getValue());
+				double magnitude = 0.25 * properties.timeFactor();
+				output.setParameterBounds(i, new Segment(-magnitude, magnitude));
 				break;
 			default:
 				continue;
 			}
+
 		}
 
+	}
+	
+	protected void setHeatLossParameter(ParameterVector output, int i, double Bi) {
+		Segment bounds;
+		if (properties.areThermalPropertiesLoaded()) { 
+			bounds = new Segment(1e-5, properties.maxBiot());
+			output.setTransform(i, new AtanhTransform(bounds) );
+		}
+		else {
+			bounds = new Segment(1E-5, 2.0);
+			output.setTransform(i, LOG);
+		}
+		output.setParameterBounds(i, bounds);
+		output.setTransform(i, properties.areThermalPropertiesLoaded() ? new AtanhTransform(bounds) : LOG);
+		output.set(i, Bi);	
 	}
 
 	/**
@@ -267,26 +283,25 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
 	 */
 
 	@Override
-	public void assign(IndexedVector params) {
+	public void assign(ParameterVector params) {
 		baseline.assign(params);
 		for (int i = 0, size = params.dimension(); i < size; i++) {
 
-			switch (params.getIndex(i)) {
+			double value = params.get(i);
+			var key = params.getIndex(i);
+
+			switch (key) {
 			case DIFFUSIVITY:
-				final double l = (double) properties.getSampleThickness().getValue();
-				properties.setDiffusivity(derive(DIFFUSIVITY, params.get(i) * (l * l)));
+				properties.setDiffusivity(derive(DIFFUSIVITY, params.inverseTransform(i) ) );
 				break;
 			case MAXTEMP:
-				properties.setMaximumTemperature(derive(MAXTEMP, params.get(i)));
+				properties.setMaximumTemperature( derive(MAXTEMP, value) );
 				break;
 			case HEAT_LOSS:
-				final double bi = properties.areThermalPropertiesLoaded()
-						? 0.5 * properties.maxBiot() * (tanh(params.get(i)) + 1.0)
-						: exp(params.get(i));
-				properties.setHeatLoss(derive(HEAT_LOSS, bi));
+				properties.setHeatLoss(derive(HEAT_LOSS, params.inverseTransform(i) ) );
 				break;
 			case TIME_SHIFT:
-				curve.set(TIME_SHIFT, derive(TIME_SHIFT, params.get(i)));
+				curve.set(TIME_SHIFT, derive(TIME_SHIFT, value));
 				break;
 			default:
 				continue;

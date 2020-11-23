@@ -37,7 +37,7 @@ public class RegularisedLeastSquares extends OptimiserStatistic {
 	public void evaluate(SearchTask t) {
 		sos.evaluate(t);
 		final double ssr = (double)sos.getStatistic().getValue();
-		final double statistic = ssr + lambda*t.searchVector()[0].lengthSq();
+		final double statistic = ssr + lambda*t.searchVector().lengthSq();
 		setStatistic(derive(OPTIMISER_STATISTIC, statistic));
 	}
 

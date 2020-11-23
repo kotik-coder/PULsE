@@ -8,7 +8,8 @@ import static pulse.properties.NumericPropertyKeyword.BASELINE_SLOPE;
 
 import java.util.List;
 
-import pulse.math.IndexedVector;
+import pulse.math.ParameterVector;
+import pulse.math.Segment;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
@@ -26,7 +27,7 @@ import pulse.properties.Property;
  * 
  * @see pulse.HeatingCurve
  * @see pulse.tasks.SearchTask
- * @see pulse.math.IndexedVector
+ * @see pulse.math.ParameterVector
  */
 
 public class LinearBaseline extends FlatBaseline {
@@ -134,14 +135,16 @@ public class LinearBaseline extends FlatBaseline {
 	}
 
 	@Override
-	public void optimisationVector(IndexedVector[] output, List<Flag> flags) {
+	public void optimisationVector(ParameterVector output, List<Flag> flags) {
 		super.optimisationVector(output, flags);
 
-		for (int i = 0, size = output[0].dimension(); i < size; i++) {
+		for (int i = 0, size = output.dimension(); i < size; i++) {
 
-			if (output[0].getIndex(i) == BASELINE_SLOPE) {
-				output[0].set(i, slope);
-				output[1].set(i, 1000);
+			var key = output.getIndex(i);
+			
+			if (key == BASELINE_SLOPE) {
+				output.set(i, slope);
+				output.setParameterBounds(i, new Segment(1E-4, 1E4));
 			}
 
 		}
@@ -159,12 +162,12 @@ public class LinearBaseline extends FlatBaseline {
 	 */
 
 	@Override
-	public void assign(IndexedVector params) {
+	public void assign(ParameterVector params) {
 		super.assign(params);
 
 		for (int i = 0, size = params.dimension(); i < size; i++) {
 
-			if (params.getIndex(i) == BASELINE_SLOPE)
+			if (params.getIndex(i) == BASELINE_SLOPE) 
 				setSlope(derive(BASELINE_SLOPE, params.get(i)));
 
 		}

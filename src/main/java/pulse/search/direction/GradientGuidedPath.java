@@ -1,11 +1,7 @@
 package pulse.search.direction;
 
-import static pulse.properties.NumericProperties.derive;
-import static pulse.properties.NumericPropertyKeyword.ITERATION;
-
 import pulse.math.linear.Vector;
 import pulse.problem.schemes.solvers.SolverException;
-import pulse.properties.NumericProperty;
 import pulse.tasks.SearchTask;
 
 /**
@@ -28,14 +24,13 @@ import pulse.tasks.SearchTask;
  *
  */
 
-public class Path {
+public class GradientGuidedPath extends IterativeState {
 
 	private Vector direction;
 	private Vector gradient;
 	private double minimumPoint;
-	private int iteration;
 
-	protected Path(SearchTask t) {
+	protected GradientGuidedPath(SearchTask t) {
 		configure(t);
 	}
 
@@ -48,14 +43,14 @@ public class Path {
 	 */
 
 	public void configure(SearchTask t) {
+		super.reset();
 		try {
-			this.gradient = PathOptimiser.getInstance().gradient(t);
+			this.gradient = ( (GradientBasedOptimiser) PathOptimiser.getInstance() ).gradient(t);
 		} catch (SolverException e) {
 			System.err.println("Failed on gradient calculation while resetting optimiser...");
 			e.printStackTrace();
 		}
 		minimumPoint = 0.0;
-		iteration = 0;
 	}
 
 	public Vector getDirection() {
@@ -80,14 +75,6 @@ public class Path {
 
 	public void setLinearStep(double min) {
 		minimumPoint = min;
-	}
-
-	public NumericProperty getIteration() {
-		return derive(ITERATION, iteration);
-	}
-
-	public void incrementStep() {
-		iteration++;
 	}
 
 }

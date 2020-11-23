@@ -1,14 +1,14 @@
 package pulse.problem.statements;
 
-import static java.lang.Math.tanh;
-import static pulse.math.MathUtils.atanh;
 import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.DIATHERMIC_COEFFICIENT;
 import static pulse.properties.NumericPropertyKeyword.NUMPOINTS;
 
 import java.util.List;
 
-import pulse.math.IndexedVector;
+import pulse.math.ParameterVector;
+import pulse.math.Segment;
+import pulse.math.transforms.AtanhTransform;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.solvers.ImplicitDiathermicSolver;
 import pulse.problem.statements.model.DiathermicProperties;
@@ -44,41 +44,54 @@ public class DiathermicMedium extends ClassicalProblem {
 	public DiathermicMedium(Problem p) {
 		super(p);
 	}
-	
+
 	@Override
 	public void initProperties() {
 		setProperties(new DiathermicProperties());
 	}
-	
+
 	@Override
 	public void initProperties(ThermalProperties properties) {
 		setProperties(new DiathermicProperties(properties));
 	}
 
 	@Override
-	public void optimisationVector(IndexedVector[] output, List<Flag> flags) {
+	public void optimisationVector(ParameterVector output, List<Flag> flags) {
 		super.optimisationVector(output, flags);
 		var properties = (DiathermicProperties) this.getProperties();
 
-		for (int i = 0, size = output[0].dimension(); i < size; i++) {
-			if (output[0].getIndex(i) == DIATHERMIC_COEFFICIENT) {
+		for (int i = 0, size = output.dimension(); i < size; i++) {
+
+			var key = output.getIndex(i);
+
+			if (key == DIATHERMIC_COEFFICIENT) {
+
+				var bounds = new Segment(1E-3, 1.0);
 				final double etta = (double) properties.getDiathermicCoefficient().getValue();
-				output[0].set(i, atanh(2.0 * etta - 1.0));
-				output[1].set(i, 10.0);
+
+				output.setTransform(i, new AtanhTransform(bounds));
+				output.set(i, etta);
+				output.setParameterBounds(i, bounds);
+
 			}
+
 		}
 
 	}
 
 	@Override
-	public void assign(IndexedVector params) {
+	public void assign(ParameterVector params) {
 		super.assign(params);
 		var properties = (DiathermicProperties) this.getProperties();
 
 		for (int i = 0, size = params.dimension(); i < size; i++) {
-			switch (params.getIndex(i)) {
+
+			var key = params.getIndex(i);
+
+			switch (key) {
+
 			case DIATHERMIC_COEFFICIENT:
-				properties.setDiathermicCoefficient(derive(DIATHERMIC_COEFFICIENT, 0.5 * (tanh(params.get(i)) + 1.0)));
+				properties.setDiathermicCoefficient(derive(DIATHERMIC_COEFFICIENT, params.inverseTransform(i)));
 				break;
 			case HEAT_LOSS:
 				if (properties.areThermalPropertiesLoaded()) {
@@ -90,8 +103,11 @@ public class DiathermicMedium extends ClassicalProblem {
 				break;
 			default:
 				continue;
+
 			}
+
 		}
+
 	}
 
 	@Override
