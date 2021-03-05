@@ -20,7 +20,7 @@ public class ProgressDialog extends JDialog implements PropertyChangeListener {
 	public ProgressDialog() {
 		super();
 		initComponents();
-		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+		setDefaultCloseOperation(HIDE_ON_CLOSE);
 		setTitle("Please wait...");
 		setPreferredSize(new Dimension(400, 75));
 		pack();

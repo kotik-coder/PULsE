@@ -4,9 +4,6 @@ import java.util.Arrays;
 
 public class StaticTopologies {
 
-	private StaticTopologies() {
-		//empty
-	}
 	
 	/** Global best 
 	 * 
@@ -53,6 +50,10 @@ public class StaticTopologies {
 		
 		return new Particle[] { ps[left], ps[right], ps[above], ps[below] };
 	};
+	
+	private StaticTopologies() {
+		//empty
+	}
 	
 	
 }

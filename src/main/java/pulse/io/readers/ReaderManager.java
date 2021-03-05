@@ -41,6 +41,7 @@ public class ReaderManager {
 	private static List<AbstractReader> allReaders = allReaders();
 
 	private static List<String> allDataExtensions = supportedExtensions(ReaderManager.curveReaders());
+	private static List<String> allPulseExtensions = supportedExtensions(ReaderManager.pulseReaders());
 	private static List<String> allDatasetExtensions = supportedExtensions(ReaderManager.datasetReaders());
 
 	private ReaderManager() {
@@ -60,6 +61,10 @@ public class ReaderManager {
 
 	public static List<String> getCurveExtensions() {
 		return allDataExtensions;
+	}
+	
+	public static List<String> getPulseExtensions() {
+		return allPulseExtensions;
 	}
 
 	/**
@@ -112,6 +117,11 @@ public class ReaderManager {
 				.collect(Collectors.toList());
 	}
 
+	public static List<PulseDataReader> findPulseReaders(String pckgname) {
+		return allReaders.stream().filter(reader -> reader instanceof PulseDataReader).map(r -> (PulseDataReader) r)
+				.collect(Collectors.toList());
+	}
+
 	/**
 	 * Finds all classes assignable from {@code CurveReader} within <b>this</b>
 	 * package.
@@ -121,6 +131,10 @@ public class ReaderManager {
 
 	public static List<CurveReader> curveReaders() {
 		return findCurveReaders(ReaderManager.class.getPackage().getName());
+	}
+	
+	public static List<PulseDataReader> pulseReaders() {
+		return findPulseReaders(ReaderManager.class.getPackage().getName());
 	}
 
 	/**

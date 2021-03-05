@@ -17,19 +17,23 @@ public class FIPSMover implements Mover {
 	
 	@Override
 	public ParticleState attemptMove(Particle p, Particle[] neighbours) {
-		var current = p.getCurrentState();
-		var pos = current.getPosition();
+		var current	= p.getCurrentState();
 		
-		final int n = pos.dimension();
-		var nsum = new Vector(n);
+		var pos		= current.getPosition();
 		
-		for(var neighbour : neighbours)
-			nsum = nsum.sum( Vector.random(n, 0.0, phi).multComponents( neighbour.getCurrentState().getPosition().subtract(pos) ) );
+		final int n	= pos.dimension();
+		var nsum	= new Vector(n);
 		
-		nsum = nsum.multiply(1.0/neighbours.length);
-		
+		for(var neighbour : neighbours) {
+			var nPos 	= neighbour.getCurrentState().getPosition();
+			nsum		= nsum.sum( Vector.random(n, 0.0, phi).multComponents( nPos.subtract(pos) ) );
+		}
+			
+		nsum = nsum.multiply(1.0/((double)neighbours.length));
+	
 		var newVelocity = ( current.getVelocity().sum(nsum) ).multiply(chi);
 		var newPosition = pos.sum(newVelocity);
+		System.out.println(newPosition);
 		
 		return new ParticleState( 
 				new ParameterVector(pos, newPosition ), 

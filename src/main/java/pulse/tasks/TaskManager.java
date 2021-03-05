@@ -133,7 +133,7 @@ public class TaskManager extends UpwardsNavigable {
 			} else
 				notifyListeners(e);
 		});
-
+		
 	}
 
 	/**
@@ -321,6 +321,20 @@ public class TaskManager extends UpwardsNavigable {
 		var o = tasks.stream().filter(t -> t.getIdentifier().equals(id)).findFirst();
 		return o.isPresent() ? o.get() : null;
 	}
+	
+	/**
+	 * Finds a {@code SearchTask} using the external identifier specified in its metadata.
+	 * 
+	 * @param externalId the external ID of the data.
+	 * @return the {@code SearchTask} associated with this {@code Identifier}.
+	 */
+
+	public SearchTask getTask(int externalId) {
+		var o = tasks.stream().filter(t -> 
+											Integer.compare( t.getExperimentalCurve().getMetadata().getExternalID(), 
+													externalId ) == 0 ).findFirst();
+		return o.isPresent() ? o.get() : null;
+	}
 
 	/**
 	 * <p>
@@ -349,6 +363,7 @@ public class TaskManager extends UpwardsNavigable {
 	public void generateTasks(List<File> files) {
 		requireNonNull(files, "Null list of files passed to generatesTasks(...)");
 
+	
 		var pool = Executors.newSingleThreadExecutor();
 		files.stream().forEach(f -> pool.submit(() -> generateTask(f)));
 		pool.shutdown();

@@ -1,13 +1,14 @@
 package pulse.search.direction.pso;
 
 import pulse.math.ParameterVector;
+import pulse.math.linear.Vector;
 import pulse.problem.schemes.solvers.SolverException;
 import pulse.search.direction.IterativeState;
 import pulse.tasks.SearchTask;
 
 public class SwarmState extends IterativeState {
 
-	private ParameterVector current;
+	private ParameterVector seed;
 
 	private Particle[] particles;
 	private NeighbourhoodTopology neighborhoodTopology;
@@ -15,8 +16,10 @@ public class SwarmState extends IterativeState {
 	private Particle bestSoFar;
 	private int bestSoFarIndex;
 	
+	private final static int DEFAULT_PARTICLES = 16;
+	
 	public SwarmState() {
-		this(16, StaticTopologies.GLOBAL);
+		this(DEFAULT_PARTICLES, StaticTopologies.GLOBAL);
 	}
 	
 	public SwarmState(int numberOfParticles, NeighbourhoodTopology neighborhoodTopology) {
@@ -32,12 +35,12 @@ public class SwarmState extends IterativeState {
 	}
 
 	public void prepare(SearchTask t) {
-		current = t.searchVector();
+		seed = t.searchVector();
 	}
 
 	public void create() {
-		for (int i = 0; i < particles.length; i++)
-			particles[i] = new Particle(current, i);
+		for (int i = 0; i < particles.length; i++) 
+			particles[i] = new Particle(new ParticleState(seed), i);
 	}
 
 	/**
@@ -48,17 +51,23 @@ public class SwarmState extends IterativeState {
 
 	public ParticleState bestSoFar() {
 		int bestIndex = 0;
+		
+		double fitness = 0;
 		double bestFitness = Double.MAX_VALUE;
-
+		
 		for (int i = 0; i < particles.length; i++) {
-			if (particles[i].getBestState().getFitness() < bestFitness) {
-				bestIndex = i;
-				bestFitness = particles[i].getBestState().getFitness();
+
+			fitness = particles[i].getBestState().getFitness();
+			
+			if (fitness < bestFitness) {
+				bestIndex	= i;
+				bestFitness = fitness;
 			}
+			
 		}
 
-		this.bestSoFar = particles[bestIndex];
-		this.bestSoFarIndex = bestIndex;
+		this.bestSoFar		= particles[bestIndex];
+		this.bestSoFarIndex	= bestIndex;
 
 		return bestSoFar.getBestState();
 	}

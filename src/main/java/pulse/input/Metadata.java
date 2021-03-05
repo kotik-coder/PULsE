@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
+import pulse.problem.laser.NumericPulseData;
 import pulse.problem.laser.PulseTemporalShape;
 import pulse.problem.laser.RectangularPulse;
 import pulse.properties.NumericProperty;
@@ -47,6 +48,8 @@ public class Metadata extends PropertyHolder implements Reflexive {
 
 	private InstanceDescriptor<? extends PulseTemporalShape> pulseDescriptor = new InstanceDescriptor<PulseTemporalShape>(
 			"Pulse Shape Selector", PulseTemporalShape.class);
+	
+	private NumericPulseData pulseData;
 
 	/**
 	 * Creates a {@code Metadata} with the specified parameters and a default
@@ -116,6 +119,14 @@ public class Metadata extends PropertyHolder implements Reflexive {
 
 	public void setSampleName(SampleName sampleName) {
 		this.sampleName = sampleName;
+	}
+	
+	public void setPulseData(NumericPulseData pulseData) {
+		this.pulseData = pulseData;
+	}
+	
+	public NumericPulseData getPulseData() {
+		return pulseData;
 	}
 
 	/**

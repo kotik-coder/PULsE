@@ -1,7 +1,6 @@
 package pulse.ui.components;
 
-import static pulse.io.readers.ReaderManager.datasetReaders;
-import static pulse.io.readers.ReaderManager.read;
+import static pulse.io.readers.ReaderManager.*;
 
 import java.awt.Window;
 import java.io.File;
@@ -19,6 +18,9 @@ import pulse.input.InterpolationDataset;
 import pulse.input.InterpolationDataset.StandartType;
 import pulse.io.readers.MetaFilePopulator;
 import pulse.io.readers.ReaderManager;
+import pulse.problem.laser.NumericPulse;
+import pulse.problem.laser.NumericPulseData;
+import pulse.problem.laser.RectangularPulse;
 import pulse.tasks.SearchTask;
 import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.TaskRepositoryEvent;
@@ -60,7 +62,7 @@ public class DataLoader {
 	public static void loadDataDialog() {
 		var files = userInput(Messages.getString("TaskControlFrame.ExtensionDescriptor"),
 				ReaderManager.getCurveExtensions());
-
+		
 		if (files != null) {
 			progressFrame.trackProgress(files.size());
 			TaskManager.getManagerInstance().generateTasks(files);
@@ -121,6 +123,41 @@ public class DataLoader {
 
 		// select first of the generated task
 		instance.selectFirstTask();
+
+	}
+	
+	public static void loadPulseDialog() {
+		var files = userInput(Messages.getString("TaskControlFrame.ExtensionDescriptor"),
+				ReaderManager.getPulseExtensions());
+		
+		if (files != null) {
+			
+			var manager = TaskManager.getManagerInstance();
+			
+			progressFrame.trackProgress(files.size());
+			
+			//TODO replace with pool loading
+			for(var f : files) {
+				
+				NumericPulseData pulseData = read(pulseReaders(), f);
+				
+				if(pulseData != null) {
+					
+					var task = manager.getTask(pulseData.getExternalID());
+					
+					if(task != null) {
+					
+						var metadata = task.getExperimentalCurve().getMetadata();
+						metadata.setPulseData(pulseData);
+						metadata.getPulseDescriptor().setSelectedDescriptor(NumericPulse.class.getSimpleName());
+					
+					}
+					
+				}
+				
+			}
+			
+		}
 
 	}
 

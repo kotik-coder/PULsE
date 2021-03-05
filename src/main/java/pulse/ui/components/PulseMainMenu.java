@@ -17,8 +17,7 @@ import static pulse.search.statistics.NormalityTest.setStatisticalSignificance;
 import static pulse.search.statistics.OptimiserStatistic.setSelectedOptimiserDescriptor;
 import static pulse.tasks.TaskManager.getManagerInstance;
 import static pulse.tasks.listeners.TaskRepositoryEvent.State.TASK_ADDED;
-import static pulse.ui.components.DataLoader.loadDataDialog;
-import static pulse.ui.components.DataLoader.loadMetadataDialog;
+import static pulse.ui.components.DataLoader.*;
 import static pulse.util.ImageUtils.loadIcon;
 import static pulse.util.Reflexive.allDescriptors;
 
@@ -65,6 +64,7 @@ public class PulseMainMenu extends JMenuBar {
 	private static JMenuItem resultFormatItem;
 	private static JMenuItem searchSettingsItem;
 	private static JMenuItem loadMetadataItem;
+	private static JMenuItem loadPulseItem;
 	private static JMenuItem modelSettingsItem;
 
 	private static ExportDialog exportDialog = new ExportDialog();
@@ -127,6 +127,7 @@ public class PulseMainMenu extends JMenuBar {
 		fileMenu = new JMenu("File");
 		loadDataItem = new JMenuItem("Load Heating Curve(s)...", loadIcon("load.png", ICON_SIZE));
 		loadMetadataItem = new JMenuItem("Load Metadata...", loadIcon("metadata.png", ICON_SIZE));
+		loadPulseItem = new JMenuItem("Load Pulse Measurement(s)...", loadIcon("pulse.png", ICON_SIZE));
 		exportCurrentItem = new JMenuItem("Export Current", loadIcon("save.png", ICON_SIZE));
 		exportAllItem = new JMenuItem("Export...", loadIcon("save.png", ICON_SIZE));
 		exitItem = new JMenuItem("Exit");
@@ -143,7 +144,8 @@ public class PulseMainMenu extends JMenuBar {
 
 		fileMenu.setMnemonic('f');
 		loadDataItem.setMnemonic('h');
-		loadMetadataItem.setMnemonic('m');
+		loadMetadataItem.setMnemonic('M');
+		loadPulseItem.setMnemonic('P');
 		exportCurrentItem.setMnemonic('c');
 		exportAllItem.setMnemonic('e');
 		exitItem.setMnemonic('x');
@@ -151,6 +153,7 @@ public class PulseMainMenu extends JMenuBar {
 		settingsMenu.setMnemonic('s');
 
 		loadMetadataItem.setEnabled(false);
+		loadPulseItem.setEnabled(false);
 		exportCurrentItem.setEnabled(false);
 		exportAllItem.setEnabled(false);
 		modelSettingsItem.setEnabled(false);
@@ -158,6 +161,7 @@ public class PulseMainMenu extends JMenuBar {
 
 		fileMenu.add(loadDataItem);
 		fileMenu.add(loadMetadataItem);
+		fileMenu.add(loadPulseItem);
 		fileMenu.add(new JSeparator());
 		fileMenu.add(exportCurrentItem);
 		fileMenu.add(exportAllItem);
@@ -296,8 +300,10 @@ public class PulseMainMenu extends JMenuBar {
 	private void assignMenuFunctions() {
 		loadDataItem.addActionListener(e -> loadDataDialog());
 		loadMetadataItem.setEnabled(false);
+		loadPulseItem.setEnabled(false);
 		loadMetadataItem.addActionListener(e -> loadMetadataDialog());
-
+		loadPulseItem.addActionListener(e -> loadPulseDialog());
+		
 		modelSettingsItem.setEnabled(false);
 
 		modelSettingsItem.addActionListener(e -> notifyProblem());
@@ -315,10 +321,12 @@ public class PulseMainMenu extends JMenuBar {
 		getManagerInstance().addTaskRepositoryListener((TaskRepositoryEvent e) -> {
 			if (getManagerInstance().getTaskList().size() > 0) {
 				loadMetadataItem.setEnabled(true);
+				loadPulseItem.setEnabled(true);;
 				modelSettingsItem.setEnabled(true);
 				searchSettingsItem.setEnabled(true);
 			} else {
 				loadMetadataItem.setEnabled(false);
+				loadPulseItem.setEnabled(false);
 				modelSettingsItem.setEnabled(false);
 				searchSettingsItem.setEnabled(false);
 			}

@@ -1,5 +1,12 @@
 package pulse.problem.laser;
 
+import static pulse.properties.NumericProperties.derive;
+import static pulse.properties.NumericPropertyKeyword.INTEGRATION_SEGMENTS;
+
+import pulse.input.ExperimentalData;
+import pulse.math.FixedIntervalIntegrator;
+import pulse.math.MidpointIntegrator;
+import pulse.math.Segment;
 import pulse.util.PropertyHolder;
 import pulse.util.Reflexive;
 
@@ -13,7 +20,43 @@ import pulse.util.Reflexive;
 public abstract class PulseTemporalShape extends PropertyHolder implements Reflexive {
 
 	private double width;
+	
+	private final static int DEFAULT_POINTS = 256;
+	private FixedIntervalIntegrator integrator;
+	
+	public PulseTemporalShape() {
+		//intentionlly blank
+	}
+	
+	public PulseTemporalShape(PulseTemporalShape another) {
+		this.integrator = another.integrator;
+	}
+	
+	public void initAreaIntegrator() {
+		integrator = new MidpointIntegrator(new Segment(0.0, getPulseWidth()),
+				derive(INTEGRATION_SEGMENTS, DEFAULT_POINTS)) {
 
+			@Override
+			public double integrand(double... vars) {
+				return evaluateAt(vars[0]);
+			}
+
+		};
+	}
+	
+	/**
+	 * Uses numeric integration (midpoint rule) to calculate the area of the pulse
+	 * shape corresponding to the selected parameters.
+	 * 
+	 * @return the area
+	 */
+
+	public double area() {
+		integrator.setBounds(new Segment(0.0, getPulseWidth()));
+		return integrator.integrate();
+	}
+
+	
 	/**
 	 * This evaluates the dimensionless, discretised pulse function on a
 	 * {@code grid} needed to evaluate the heat source in the difference scheme.
@@ -25,8 +68,9 @@ public abstract class PulseTemporalShape extends PropertyHolder implements Refle
 
 	public abstract double evaluateAt(double time);
 
-	public void init(DiscretePulse pulse) {
+	public void init(ExperimentalData data, DiscretePulse pulse) {
 		width = pulse.getDiscreteWidth();
+		this.initAreaIntegrator();
 	}
 	
 	public abstract PulseTemporalShape copy();

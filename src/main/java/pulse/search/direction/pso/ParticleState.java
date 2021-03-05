@@ -1,7 +1,6 @@
 package pulse.search.direction.pso;
 
 import pulse.math.ParameterVector;
-import pulse.tasks.SearchTask;
 
 public class ParticleState {
 	
@@ -9,15 +8,20 @@ public class ParticleState {
 	private ParameterVector velocity;
 	private double fitness;
 
-	public ParticleState(SearchTask t) {
-		randomise(t);
+	public ParticleState(ParameterVector cur) {
+		randomise(cur);
+		this.velocity = new ParameterVector(cur);
+		
+		//set initial velocity to zero
+		for(int i = 0, n = velocity.dimension(); i < n; i++) 
+			velocity.set(i, 0.0);
+		
 		this.fitness = Double.MAX_VALUE;
 	}
 	
 	public ParticleState(ParticleState another) {
 		this.position = new ParameterVector(another.position);
-		if(another.velocity != null)
-			this.velocity = new ParameterVector(another.velocity);
+		this.velocity = new ParameterVector(another.velocity);
 		this.fitness = another.fitness;
 	}
 	
@@ -30,23 +34,22 @@ public class ParticleState {
 		return this.fitness < s.fitness;
 	}
 
-	public void randomise(SearchTask task) {
-
-		position = new ParameterVector( task.searchVector() );
-
+	public void randomise(ParameterVector pos) {
+		
+		this.position = new ParameterVector(pos);
+		
 		for (int i = 0, n = position.dimension(); i < n; i++) {
 			
 			var bounds	= position.getBounds();
-			var t		= position.getTransform(i);
 			
-			double max = t.transform( bounds[i].getMaximum() );
-			double min = t.transform( bounds[i].getMinimum() );
-
+			double max = bounds[i].getMaximum();
+			double min = bounds[i].getMinimum();
+			
 			double value = min + Math.random() * ( max - min );
-			position.set(i, value);
+			position.set(i, value );
 			
 		}
-
+		
 	}
 
 	public ParameterVector getPosition() {

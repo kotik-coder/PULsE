@@ -96,7 +96,9 @@ public class Pulse extends PropertyHolder {
 	public void setPulseWidth(NumericProperty pulseWidth) {
 		requireType(pulseWidth, PULSE_WIDTH);
 		this.pulseWidth = (double) pulseWidth.getValue();
-		firePropertyChanged(this, pulseWidth);
+		
+		if(pulseWidth.compareTo(this.getPulseWidth()) != 0)
+			firePropertyChanged(this, pulseWidth);
 	}
 
 	public NumericProperty getLaserEnergy() {

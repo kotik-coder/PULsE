@@ -18,7 +18,6 @@
  */
 package pulse.search.direction.pso;
 
-import pulse.math.ParameterVector;
 import pulse.problem.schemes.solvers.SolverException;
 import pulse.tasks.SearchTask;
 
@@ -35,12 +34,12 @@ public class Particle {
 	
 	private Particle[] neighbours;
 	
-	public Particle(ParameterVector pv, int id) {
+	public Particle(ParticleState cur, int id) {
 		this.id = id;
-		current = new ParticleState( pv, null );
+		current = cur;
 		pbest	= new ParticleState(current);
 	}
-	
+		
 	public void adopt(ParticleState state) {
 		this.current = state;
 	}
@@ -60,6 +59,7 @@ public class Particle {
 	 * 
 	 * @return current state.
 	 */
+	
 	public ParticleState getCurrentState() {
 		return current;
 	}

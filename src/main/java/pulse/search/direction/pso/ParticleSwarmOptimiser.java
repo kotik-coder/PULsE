@@ -11,8 +11,8 @@ public class ParticleSwarmOptimiser extends PathOptimiser {
 	private Mover mover;
 	
 	public ParticleSwarmOptimiser() {
-		this.swarmState = new SwarmState();
-		mover = new FIPSMover();
+		swarmState = new SwarmState();
+		mover	   = new FIPSMover();
 	}
 
 	protected void moveParticles() {
@@ -31,9 +31,14 @@ public class ParticleSwarmOptimiser extends PathOptimiser {
 	public boolean iteration(SearchTask task) throws SolverException {
 		this.prepare(task);
 
-		moveParticles();
 		swarmState.evaluate(task);
+		moveParticles();
 
+		swarmState.incrementStep();
+		
+		task.assign( swarmState.bestSoFar().getPosition() );
+		task.solveProblemAndCalculateCost();
+		
 		return true;
 	}
 
@@ -44,6 +49,7 @@ public class ParticleSwarmOptimiser extends PathOptimiser {
 
 	@Override
 	public IterativeState initState(SearchTask t) {
+		swarmState.prepare(t);
 		swarmState.create();
 		return swarmState;
 	}

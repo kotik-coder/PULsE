@@ -50,7 +50,9 @@ public class ParameterVector extends Vector {
 	
 	public ParameterVector(ParameterVector v) {
 		this( v.dimension() );
-		final int n = indices.length;
+		final int n = dimension();
+		for(int i = 0; i < n; i++)
+			this.set(i, v.get(i));
 		System.arraycopy(v.indices, 0, indices, 0, n);
 		System.arraycopy(v.transforms, 0, transforms, 0, n);
 		System.arraycopy(v.bounds, 0, bounds, 0, n);
@@ -70,7 +72,11 @@ public class ParameterVector extends Vector {
 	
 	@Override
 	public void set(final int i, final double x) {
-		final double t = transforms[i] == null ? x : transforms[i].transform(x);
+		set(i, x, false);
+	}
+	
+	public void set(final int i, final double x, boolean ignoreTransform) {
+		final double t = ignoreTransform || transforms[i] == null ? x : transforms[i].transform(x);
 		super.set(i, t);
 	}
 
@@ -108,7 +114,7 @@ public class ParameterVector extends Vector {
 	}
 	
 	public double inverseTransform(final int i) {
-		return transforms[i].inverse( get(i) );
+		return transforms[i] != null ? transforms[i].inverse( get(i) ) : get(i);
 	}
 	
 	public Transformable getTransform(final int i) {

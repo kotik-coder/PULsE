@@ -6,16 +6,13 @@ import static org.apache.commons.math3.special.Erf.erfc;
 import static pulse.properties.NumericProperties.def;
 import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericProperty.requireType;
-import static pulse.properties.NumericPropertyKeyword.INTEGRATION_SEGMENTS;
 import static pulse.properties.NumericPropertyKeyword.SKEW_LAMBDA;
 import static pulse.properties.NumericPropertyKeyword.SKEW_MU;
 import static pulse.properties.NumericPropertyKeyword.SKEW_SIGMA;
 
 import java.util.List;
 
-import pulse.math.FixedIntervalIntegrator;
-import pulse.math.MidpointIntegrator;
-import pulse.math.Segment;
+import pulse.input.ExperimentalData;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
@@ -35,9 +32,6 @@ public class ExponentiallyModifiedGaussian extends PulseTemporalShape {
 	private double lambda;
 	private double norm;
 
-	private final static int DEFAULT_POINTS = 100;
-	private FixedIntervalIntegrator integrator;
-
 	/**
 	 * Creates an exponentially modified Gaussian with the default parameter values.
 	 */
@@ -47,23 +41,14 @@ public class ExponentiallyModifiedGaussian extends PulseTemporalShape {
 		lambda = (double) def(SKEW_LAMBDA).getValue();
 		sigma = (double) def(SKEW_SIGMA).getValue();
 		norm = 1.0;
-		integrator = new MidpointIntegrator(new Segment(0.0, getPulseWidth()),
-				derive(INTEGRATION_SEGMENTS, DEFAULT_POINTS)) {
-
-			@Override
-			public double integrand(double... vars) {
-				return evaluateAt(vars[0]);
-			}
-
-		};
 	}
 	
 	public ExponentiallyModifiedGaussian(ExponentiallyModifiedGaussian another) {
+		super(another);
 		this.mu = another.mu;
 		this.sigma = another.sigma;
 		this.lambda = another.lambda;
 		this.norm = another.norm;
-		this.integrator = another.integrator;
 	}
 
 	/**
@@ -72,23 +57,11 @@ public class ExponentiallyModifiedGaussian extends PulseTemporalShape {
 	 */
 
 	@Override
-	public void init(DiscretePulse pulse) {
-		super.init(pulse);
+	public void init(ExperimentalData data, DiscretePulse pulse) {
+		super.init(data, pulse);
 		norm = 1.0; // resets the normalisation factor to unity
 		norm = 1.0 / area(); // calculates the area. The normalisation factor is then set to the inverse of
 								// the area.
-	}
-
-	/**
-	 * Uses numeric integration (midpoint rule) to calculate the area of the pulse
-	 * shape corresponding to the selected parameters.
-	 * 
-	 * @return the area
-	 */
-
-	private double area() {
-		integrator.setBounds(new Segment(0.0, getPulseWidth()));
-		return integrator.integrate();
 	}
 
 	/**

@@ -3,6 +3,7 @@ package pulse.problem.laser;
 import pulse.problem.schemes.Grid;
 import pulse.problem.statements.Problem;
 import pulse.problem.statements.Pulse;
+import pulse.tasks.SearchTask;
 
 /**
  * A {@code DiscretePulse} is an object that acts as a medium between the
@@ -37,12 +38,13 @@ public class DiscretePulse {
 		this.pulse = problem.getPulse();
 
 		recalculate();
+		
+		var data = ( (SearchTask) problem.specificAncestor(SearchTask.class) ).getExperimentalCurve();
 
-		pulse.getPulseShape().init(this);
+		pulse.getPulseShape().init(data, this);
 		pulse.addListener(e -> {
 			recalculate();
-			pulse.getPulseShape().init(this);
-
+			pulse.getPulseShape().init(data, this);
 		});
 	}
 
@@ -55,7 +57,7 @@ public class DiscretePulse {
 	 */
 
 	public double laserPowerAt(double time) {
-		return pulse.evaluateAt(time);
+		return pulse.evaluateAt(time / timeFactor);
 	}
 
 	/**

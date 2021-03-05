@@ -8,6 +8,7 @@ import static pulse.properties.NumericPropertyKeyword.TRAPEZOIDAL_RISE_PERCENTAG
 
 import java.util.List;
 
+import pulse.input.ExperimentalData;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
@@ -45,8 +46,8 @@ public class TrapezoidalPulse extends PulseTemporalShape {
 	}
 
 	@Override
-	public void init(DiscretePulse pulse) {
-		super.init(pulse);
+	public void init(ExperimentalData data, DiscretePulse pulse) {
+		super.init(data, pulse);
 		h = height();
 	}
 

@@ -25,7 +25,7 @@ import pulse.problem.statements.Pulse;
 
 public class PulseChart extends AuxPlotter<Pulse> {
 
-	private final static int NUM_PULSE_POINTS = 200;
+	private final static int NUM_PULSE_POINTS = 600;
 	private final static double TO_MILLIS = 1E3;
 
 	public PulseChart(String xLabel, String yLabel) {
