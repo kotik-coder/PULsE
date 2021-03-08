@@ -76,10 +76,10 @@ public class CurveExporter implements Exporter<AbstractData> {
 
 				stream.print("<td>");
 				t = hc.timeAt(i);
-				stream.printf("%.6f %n", t);
+				stream.printf("%.8f %n", t);
 				stream.print("\t</td><td>");
 				T = hc.signalAt(i);
-				stream.printf("%.6f %n</td>", T);
+				stream.printf("%.8f %n</td>", T);
 
 				stream.println("</tr>");
 			}
@@ -102,9 +102,9 @@ public class CurveExporter implements Exporter<AbstractData> {
 			
 			for (int i = 0; i < size; i++) {
 				t = hc.timeAt(i);
-				stream.printf("%n%3.4f", t);
+				stream.printf("%n%3.8f", t);
 				T = hc.signalAt(i);
-				stream.printf("\t%3.4f", T);
+				stream.printf("\t%3.8f", T);
 			}
 		}
 
