@@ -1,6 +1,8 @@
 package pulse.ui.components;
 
-import static pulse.io.readers.ReaderManager.*;
+import static pulse.io.readers.ReaderManager.datasetReaders;
+import static pulse.io.readers.ReaderManager.pulseReaders;
+import static pulse.io.readers.ReaderManager.read;
 
 import java.awt.Window;
 import java.io.File;
@@ -20,7 +22,6 @@ import pulse.io.readers.MetaFilePopulator;
 import pulse.io.readers.ReaderManager;
 import pulse.problem.laser.NumericPulse;
 import pulse.problem.laser.NumericPulseData;
-import pulse.problem.laser.RectangularPulse;
 import pulse.tasks.SearchTask;
 import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.TaskRepositoryEvent;

@@ -1,7 +1,6 @@
 package pulse.search.direction.pso;
 
 import pulse.math.ParameterVector;
-import pulse.math.linear.Vector;
 import pulse.problem.schemes.solvers.SolverException;
 import pulse.search.direction.IterativeState;
 import pulse.tasks.SearchTask;

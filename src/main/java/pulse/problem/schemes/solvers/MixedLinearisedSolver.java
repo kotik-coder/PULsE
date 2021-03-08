@@ -133,6 +133,7 @@ public class MixedLinearisedSolver extends MixedScheme implements Solver<Classic
 	
 	@Override
 	public double firstBeta(final int m) {
+		//TODO
 		final double tau = getGrid().getTimeStep();
 		final var pulse = getDiscretePulse();
 		final double pls = pulse.laserPowerAt((m - 1 + EPS) * tau) + pulse.laserPowerAt((m - EPS) * tau);

@@ -1,17 +1,16 @@
 package pulse.problem.laser;
 
+import static pulse.properties.NumericProperties.derive;
+import static pulse.properties.NumericPropertyKeyword.PULSE_WIDTH;
+
 import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
 
 import pulse.input.ExperimentalData;
-import pulse.problem.schemes.Grid;
 import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.tasks.SearchTask;
-
-import static pulse.properties.NumericPropertyKeyword.PULSE_WIDTH;
-import static pulse.properties.NumericProperties.derive;
 
 public class NumericPulse extends PulseTemporalShape {
 

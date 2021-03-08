@@ -79,10 +79,6 @@ public class Pulse extends PropertyHolder {
 		this.laserEnergy = pulse.laserEnergy;
 		this.pulseShape = pulse.pulseShape;
 	}
-	
-	public double evaluateAt(final double time) {
-		return pulseShape.evaluateAt(time);
-	}
 
 	private void initShape() {
 		setPulseShape(instanceDescriptor.newInstance(PulseTemporalShape.class));

@@ -60,7 +60,7 @@ public abstract class MixedScheme extends ImplicitScheme {
 	public MixedScheme(NumericProperty N, NumericProperty timeFactor, NumericProperty timeLimit) {
 		super(N, timeFactor, timeLimit);
 	}
-
+	
 	/**
 	 * Prints out the description of this problem type.
 	 * 

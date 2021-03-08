@@ -17,7 +17,9 @@ import static pulse.search.statistics.NormalityTest.setStatisticalSignificance;
 import static pulse.search.statistics.OptimiserStatistic.setSelectedOptimiserDescriptor;
 import static pulse.tasks.TaskManager.getManagerInstance;
 import static pulse.tasks.listeners.TaskRepositoryEvent.State.TASK_ADDED;
-import static pulse.ui.components.DataLoader.*;
+import static pulse.ui.components.DataLoader.loadDataDialog;
+import static pulse.ui.components.DataLoader.loadMetadataDialog;
+import static pulse.ui.components.DataLoader.loadPulseDialog;
 import static pulse.util.ImageUtils.loadIcon;
 import static pulse.util.Reflexive.allDescriptors;
 

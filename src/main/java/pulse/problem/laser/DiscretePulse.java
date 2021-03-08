@@ -33,8 +33,8 @@ public class DiscretePulse {
 	 */
 
 	public DiscretePulse(Problem problem, Grid grid) {
-		timeFactor = problem.getProperties().timeFactor();
 		this.grid = grid;
+		timeFactor = problem.getProperties().timeFactor();
 		this.pulse = problem.getPulse();
 
 		recalculate();
@@ -43,6 +43,7 @@ public class DiscretePulse {
 
 		pulse.getPulseShape().init(data, this);
 		pulse.addListener(e -> {
+			timeFactor = problem.getProperties().timeFactor();
 			recalculate();
 			pulse.getPulseShape().init(data, this);
 		});
@@ -57,7 +58,7 @@ public class DiscretePulse {
 	 */
 
 	public double laserPowerAt(double time) {
-		return pulse.evaluateAt(time / timeFactor);
+		return pulse.getPulseShape().evaluateAt(time);
 	}
 
 	/**

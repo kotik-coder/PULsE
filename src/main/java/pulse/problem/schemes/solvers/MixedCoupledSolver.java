@@ -160,6 +160,7 @@ public class MixedCoupledSolver extends CoupledImplicitScheme implements Solver<
 
 	@Override
 	public double pulse(final int m) {
+		//todo
 		var pulse = getDiscretePulse();
 		return (pulse.laserPowerAt((m - 1 + EPS) * tau) * ONE_MINUS_SIGMA
 				+ pulse.laserPowerAt((m - EPS) * tau) * sigma);

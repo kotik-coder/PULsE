@@ -4,9 +4,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.text.NumberFormat;
-import java.text.ParseException;
-import java.util.Locale;
 import java.util.Objects;
 
 import pulse.problem.laser.NumericPulseData;
@@ -37,7 +34,7 @@ public class NetzschPulseCSVReader implements PulseDataReader {
 	public NumericPulseData read(File file) throws IOException {
 		Objects.requireNonNull(file, Messages.getString("DATReader.1"));
 		
-		String delims = "[#();/°Cx%^]+";
+		String delims = "[#(),;/°Cx%^]+";
 
 		NumericPulseData data;
 		
@@ -72,8 +69,8 @@ public class NetzschPulseCSVReader implements PulseDataReader {
 			for (String line = reader.readLine(); line != null && !line.trim().isEmpty(); line = reader.readLine()) {
 				tokens = line.split(delims);
 				
-				time = parseDoubleWithComma(tokens[0]) * TO_SECONDS;
-				power = parseDoubleWithComma(tokens[1]);
+				time = Double.parseDouble(tokens[0]) * TO_SECONDS;
+				power = Double.parseDouble(tokens[1]);
 				data.addPoint(time, power);
 			}
 			
@@ -83,6 +80,7 @@ public class NetzschPulseCSVReader implements PulseDataReader {
 
 	}
 	
+	/*
 	private double parseDoubleWithComma(String s) {
 		var format = NumberFormat.getInstance(Locale.GERMANY);
 		try {
@@ -93,6 +91,7 @@ public class NetzschPulseCSVReader implements PulseDataReader {
 		}
 		return Double.NaN;
 	}
+	*/
 	
 	private String findLineByLabel(BufferedReader reader, String label, String delims) throws IOException {
 		

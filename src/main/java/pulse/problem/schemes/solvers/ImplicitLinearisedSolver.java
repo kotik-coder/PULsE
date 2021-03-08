@@ -55,8 +55,6 @@ public class ImplicitLinearisedSolver extends ImplicitScheme implements Solver<C
 	private double HH;
 	private double _2HTAU;
 
-	private final static double EPS = 1e-7; // a small value ensuring numeric stability
-
 	public ImplicitLinearisedSolver() {
 		super();
 	}
@@ -109,7 +107,7 @@ public class ImplicitLinearisedSolver extends ImplicitScheme implements Solver<C
 	
 	@Override
 	public double firstBeta(final int m) {
-		final double pls = getDiscretePulse().laserPowerAt((m - EPS) * tau); // NOTE: EPS is very important here and ensures numeric stability!
+		final double pls = super.pulse(m);
 		return (HH * getPreviousSolution()[0] + _2HTAU * pls) / (2. * Bi1HTAU + 2. * tau + HH);
 	}
 	

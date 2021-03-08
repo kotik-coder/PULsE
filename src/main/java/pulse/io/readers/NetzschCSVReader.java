@@ -7,12 +7,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.text.NumberFormat;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 
 import pulse.input.ExperimentalData;
@@ -63,7 +60,7 @@ public class NetzschCSVReader implements CurveReader {
 
 		ExperimentalData curve = new ExperimentalData();
 		
-		String delims = "[#();/°Cx%^]+";
+		String delims = "[#();,/°Cx%^]+";
 
 		try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
 			
@@ -78,7 +75,7 @@ public class NetzschCSVReader implements CurveReader {
 				shotId = Integer.parseInt(shotID[shotID.length - 1]);
 			
 			String[] tempTokens = findLineByLabel(reader, SAMPLE_TEMPERATURE, delims).split(delims);
-			double sampleTemperature = parseDoubleWithComma( tempTokens[tempTokens.length - 1] ) + TO_KELVIN;
+			double sampleTemperature = Double.parseDouble( tempTokens[tempTokens.length - 1] ) + TO_KELVIN;
 			
 			var met = new Metadata(derive(TEST_TEMPERATURE, sampleTemperature), shotId);
 			curve.setMetadata(met);
@@ -100,8 +97,8 @@ public class NetzschCSVReader implements CurveReader {
 			for (String line = reader.readLine(); line != null && !line.trim().isEmpty(); line = reader.readLine()) {
 				tokens = line.split(delims);
 				
-				time = parseDoubleWithComma(tokens[0]) * TO_SECONDS;
-				temp = parseDoubleWithComma(tokens[1]);
+				time = Double.parseDouble(tokens[0]) * TO_SECONDS;
+				temp = Double.parseDouble(tokens[1]);
 				curve.addPoint(time, temp);
 			}
 			curve.setRange(new Range(curve.getTimeSequence()));
@@ -112,6 +109,7 @@ public class NetzschCSVReader implements CurveReader {
 
 	}
 	
+	/*
 	private double parseDoubleWithComma(String s) {
 		var format = NumberFormat.getInstance(Locale.GERMANY);
 		try {
@@ -122,6 +120,7 @@ public class NetzschCSVReader implements CurveReader {
 		}
 		return Double.NaN;
 	}
+	*/
 	
 	private String findLineByLabel(BufferedReader reader, String label, String delims) throws IOException {
 		
