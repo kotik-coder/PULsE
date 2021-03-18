@@ -77,7 +77,7 @@ public class ResidualStatisticExporter implements Exporter<ResidualStatistic> {
 			for (int i = 0; i < residualsLength; i++) {
 				double tr = residuals.get(i)[0];
 				double Tr = residuals.get(i)[1];
-				stream.printf("%n<tr><td>%.6f</td><td>%.6f</td></tr>", tr, Tr);
+				stream.printf("%n<tr><td>%.8f</td><td>%.8f</td></tr>", tr, Tr);
 			}
 			
 			stream.print("</table>");
@@ -95,9 +95,9 @@ public class ResidualStatisticExporter implements Exporter<ResidualStatistic> {
 			double tr, Tr;
 			for (int i = 0; i < residualsLength; i++) {
 				tr = residuals.get(i)[0];
-				stream.printf("%n%3.4f", tr);
+				stream.printf("%n%3.8f", tr);
 				Tr = residuals.get(i)[1];
-				stream.printf("\t%3.4f", Tr);
+				stream.printf("\t%3.8f", Tr);
 			}
 		}
 

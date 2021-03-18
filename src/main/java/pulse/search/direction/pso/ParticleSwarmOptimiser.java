@@ -1,11 +1,8 @@
 package pulse.search.direction.pso;
 
-import pulse.problem.schemes.solvers.SolverException;
-import pulse.search.direction.IterativeState;
-import pulse.search.direction.PathOptimiser;
-import pulse.tasks.SearchTask;
-
-public class ParticleSwarmOptimiser extends PathOptimiser {
+public class ParticleSwarmOptimiser 
+	//extends PathOptimiser 
+		{
 
 	private SwarmState swarmState;
 	private Mover mover;
@@ -27,6 +24,7 @@ public class ParticleSwarmOptimiser extends PathOptimiser {
 	 * @param max_iterations max number of iterations to be computed by the swarm.
 	 */
 
+	/*
 	@Override
 	public boolean iteration(SearchTask task) throws SolverException {
 		this.prepare(task);
@@ -41,7 +39,9 @@ public class ParticleSwarmOptimiser extends PathOptimiser {
 		
 		return true;
 	}
+	*/
 
+	/*
 	@Override
 	public void prepare(SearchTask task) throws SolverException {
 		swarmState.prepare(task);
@@ -53,5 +53,6 @@ public class ParticleSwarmOptimiser extends PathOptimiser {
 		swarmState.create();
 		return swarmState;
 	}
+	*/
 
 }

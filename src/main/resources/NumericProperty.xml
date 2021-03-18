@@ -431,8 +431,8 @@
 		default-search-variable="false" />
 	<NumericProperty abbreviation="Baseline (intercept)"
 		auto-adjustable="true" descriptor="Baseline (intercept)"
-		dimensionfactor="1.0" keyword="BASELINE_INTERCEPT" maximum="10.0"
-		minimum="-10.0" value="0.0" primitive-type="double" discreet="false"
+		dimensionfactor="1.0" keyword="BASELINE_INTERCEPT" maximum="20.0"
+		minimum="-20.0" value="0.0" primitive-type="double" discreet="false"
 		default-search-variable="false" />
 	<NumericProperty abbreviation="Bi&lt;sub&gt;s&lt;/sub&gt;"
 		auto-adjustable="true"
