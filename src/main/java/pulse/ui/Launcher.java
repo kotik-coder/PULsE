@@ -34,7 +34,7 @@ public class Launcher {
 
 	private PrintStream errStream;
 	private File errorLog;
-	private final static boolean DEBUG = true;
+	private final static boolean DEBUG = false;
 
 	private Launcher() {
 		arrangeErrorOutput();
