@@ -46,16 +46,16 @@ public class ExportManager {
 	/**
 	 * Finds an exporter that can work with {@code target}.
 	 * <p>
-	 * Searches through available instances of the Exporter class contained in this
+	 * Searches through available instances of the {@code Exporter} class contained in this
 	 * package and checks if any of those have their target set to the argument of
-	 * this method, return the first occurrence. If nothing matches exactly the same
+	 * this method, then returns the first occurrence. If nothing matches exactly the same
 	 * class as specified, searches for exporters of any classes assignable from
 	 * {@code target}.
 	 * </p>
 	 * 
 	 * @param <T>    an instance of {@code Descriptive}
 	 * @param target the target glass
-	 * @return an intancce of the Exporter class that can work worth the type T,
+	 * @return an instance of the Exporter class that can work worth the type T,
 	 *         null if nothing has been found
 	 */
 

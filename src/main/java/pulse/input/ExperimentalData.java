@@ -65,8 +65,8 @@ public class ExperimentalData extends AbstractData {
 
 	/**
 	 * Constructs an {@code ExperimentalData} object using the superclass
-	 * constructor and rejecting the responsibility for the {@code baseline}, making
-	 * its parent {@code null}. The number of points is set to zero by default.
+	 * constructor and creating a new list of data listeners. The number of points is set to zero by default,
+	 * and a new {@code IndexRange} is initialized.
 	 * 
 	 */
 
@@ -114,12 +114,8 @@ public class ExperimentalData extends AbstractData {
 	}
 
 	/**
-	 * Adds {@code time} and {@code temperature} to the respective {@code List}s.
-	 * <p>
-	 * Note that the {@code baselineAdjustedTemperature} will be the same as the
-	 * corresponding {@code temperature}, i.e. no baseline subtraction is performed.
-	 * Upon completion, the {@code count} variable will be incremented.
-	 * </p>
+	 * Adds {@code time} and {@code temperature} to the respective {@code List}s. Increments the counter of points.
+	 * Note that no baseline correction is performed.
 	 * 
 	 * @param time   the next time value
 	 * @param signal the next signal value
@@ -189,8 +185,8 @@ public class ExperimentalData extends AbstractData {
 	}
 
 	/**
-	 * Instead of returning the absolute maximum (which can be an outlier!) of the
-	 * temperature, this overriden method calculates the (absolute) maximum of the
+	 * Instead of returning the simple maximum (which can be an outlier!) of the
+	 * temperature, this overriden method calculates the maximum of the
 	 * {@code runningAverage} using the default reduction factor
 	 * {@value REDUCTION_FACTOR}.
 	 * 
@@ -213,7 +209,7 @@ public class ExperimentalData extends AbstractData {
 	 * to the closest temperature value available for that curve is used to retrieve
 	 * the half-rise time (which also has the same index). If this fails, i.e. the
 	 * associated index is less than 1, this will print out a warning message and
-	 * still return a value equal to the acquistion time divided by a fail-safe
+	 * still return a value equal to the acquisition time divided by a fail-safe
 	 * factor {@value FAIL_SAFE_FACTOR}.
 	 * </p>
 	 * 

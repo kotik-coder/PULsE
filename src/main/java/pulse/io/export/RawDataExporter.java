@@ -7,7 +7,7 @@ import pulse.input.ExperimentalData;
 /**
  * A wrapper singleton class that is made specifically to handle export requests
  * of {@code ExperimentalData}. Does exactly the same as the
- * {@code HeatingCurveExporter}, except that its target is specifically set to
+ * {@code CurveExporter}, except that its target is specifically set to
  * {@code ExperimentalData}.
  * 
  * @see pulse.ui.frames.dialogs.ExportDialog

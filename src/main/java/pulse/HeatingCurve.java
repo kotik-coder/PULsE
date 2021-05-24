@@ -25,7 +25,14 @@ import pulse.properties.Property;
 
 /**
  * The {@code HeatingCurve} represents a time-temperature profile (a {@code AbstractData} instance) 
- * generated using a finite-difference calculation algorithm.
+ * generated using a calculation algorithm implemented by a {@code Problem}'s {@code Solver}. In addition
+ * to the time and signal lists defined in the super-class, it features baseline-corrected signal values
+ * stored in a separate list.The {@code HeatingCurve} may have {@code HeatingCurveListener}s to process
+ * simple events. To enable comparison with {@code ExperimentalData}, a {@code HeatingCurve} builds a 
+ * spline interpolation of its time - baseline-adjusted signal values, thus representing a continuous curve,
+ * rather than just a collection of discrete data.
+ * @see pulse.HeatingCurveListener 
+ * @see org.apache.commons.math3.analysis.interpolation.UnivariateInterpolation
  *
  */
 
@@ -45,11 +52,21 @@ public class HeatingCurve extends AbstractData {
 		this.startTime = startTime;
 	}
 	
+	/**
+	 * Calls the super-constructor and initialises the baseline-corrected signal list. Creates a {@code SplineInterpolator} object.
+	 */
+	
 	public HeatingCurve() {
 		super();
 		adjustedSignal = new ArrayList<Double>((int)this.getNumPoints().getValue());
 		splineInterpolator = new SplineInterpolator();
 	}
+	
+	/**
+	 * Copy constructor. In addition to copying the data, also re-builds the splines.
+	 * @param c another instance of this class
+	 * @see refreshInterpolation()
+	 */
 	
 	public HeatingCurve(HeatingCurve c) {
 		super(c);
@@ -62,8 +79,8 @@ public class HeatingCurve extends AbstractData {
 
 	/**
 	 * Creates a {@code HeatingCurve}, where the number of elements in the
-	 * {@code time} and {@code temperature} collections are set to
-	 * {@code count.getValue()}.
+	 * {@code time}, {@code signal}, and {@code adjustedSignal} collections are set to
+	 * {@code count.getValue()}. The time shift is initialized with a default value.
 	 * 
 	 * @param count The {@code NumericProperty} that is derived from the
 	 *              {@code NumericPropertyKeyword.NUMPOINTS}.
@@ -86,7 +103,8 @@ public class HeatingCurve extends AbstractData {
 	}
 
 	/**
-	 * Retrieves the time from the stored list of values, adding the value of {@code startTime} to the result
+	 * Retrieves the time from the stored list of values, adding the value of {@code startTime} to the result. 
+	 * @return time at {@code index} + startTime
 	 * 
 	 */
 
@@ -96,11 +114,11 @@ public class HeatingCurve extends AbstractData {
 	}
 
 	/**
-	 * Retrieves the <b>baseline-subtracted</b> temperature corresponding to
+	 * Retrieves the <b>baseline-corrected</b> temperature corresponding to
 	 * {@code index} in the respective {@code List}.
 	 * 
 	 * @param index the index of the element
-	 * @return a double, respresenting the baseline-subtracted temperature at
+	 * @return a double, representing the baseline-corrected temperature at
 	 *         {@code index}
 	 */
 
@@ -115,15 +133,19 @@ public class HeatingCurve extends AbstractData {
 	 * where T is the current temperature value at this index. Finally. applies the
 	 * baseline to the scaled temperature values.
 	 * </p>
-	 * This method is used in the DifferenceScheme classes when a dimensionless
+	 * This method is used in the DifferenceScheme subclasses when a dimensionless
 	 * solution needs to be re-scaled to the given maximum temperature (usually
 	 * matching the {@code ExperimentalData}, but also used as a search variable by
 	 * the {@code SearchTask}.
+	 * <p>
+	 * Triggers a {@code RESCALED} {@code CurveEvent}.
+	 * </p>
 	 * 
 	 * @param scale the scale
 	 * @see pulse.problem.schemes.DifferenceScheme
 	 * @see pulse.problem.statements.Problem
 	 * @see pulse.tasks.SearchTask
+	 * @see pulse.input.listeners.CurveEvent
 	 */
 
 	public void scale(double scale) {
@@ -171,10 +193,10 @@ public class HeatingCurve extends AbstractData {
 	}
 
 	/**
-	 * Retrieves the absolute maximum (in arbitrary untis) of the
-	 * <b>baseline-subtracted</b> temperature list.
+	 * Retrieves the simple maximum (in arbitrary units) of the
+	 * <b>baseline-corrected</b> temperature list.
 	 * 
-	 * @return the absolute maximum of the baseline-adjusted temperature.
+	 * @return the simple maximum of the baseline-adjusted temperature.
 	 */
 
 	public double maxAdjustedSignal() {
@@ -182,13 +204,12 @@ public class HeatingCurve extends AbstractData {
 	}
 
 	/**
-	 * Subtracts the baseline values from each element of the {@code temperature}
+	 * Adds the baseline value to each element of the {@code signal}
 	 * list.
 	 * <p>
-	 * The baseline.valueAt(...) is explicitly invoked for all {@code time} values,
-	 * and the result of subtracting the baseline value from the corresponding
-	 * {@code temperature} is assigned to a position in the
-	 * {@code baselineAdjustedTemperature} list.
+	 * The {@code baseline.valueAt} method is explicitly invoked for all {@code time} values,
+	 * and the result of adding the baseline value to the corresponding
+	 * {@code signal} is assigned to a position in the {@code adjustedSignal} list.
 	 * </p>
 	 * 
 	 * @param baseline the baseline. Note it may not specifically belong to this
@@ -248,10 +269,8 @@ public class HeatingCurve extends AbstractData {
 	}
 
 	/**
-	 * Provides general setter accessibility for the number of points of this
-	 * {@code HeatingCurve}.
+	 * Calls {@code super.set} and provides write access to the {@code TIME_SHIFT} property.
 	 * 
-	 * @param type     must be equal to {@code NumericPropertyKeyword.NUMPOINTS}
 	 * @param property the property of the type
 	 *                 {@code NumericPropertyKeyword.NUMPOINTS}
 	 */
@@ -262,6 +281,10 @@ public class HeatingCurve extends AbstractData {
 		if (type == TIME_SHIFT)
 			setTimeShift(property);
 	}
+	
+	/**
+	 * Lists {@code TIME_SHIFT} and {@code NUM_POINTS}.
+	 */
 
 	@Override
 	public List<Property> listedTypes() {
@@ -272,7 +295,7 @@ public class HeatingCurve extends AbstractData {
 
 	/**
 	 * Removes an element with the index {@code i} from all three {@code List}s
-	 * (time, temperature, and baseline-subtracted temperature).
+	 * (time, signal, and baseline-corrected signal).
 	 * 
 	 * @param i the element to be removed
 	 */
@@ -281,10 +304,21 @@ public class HeatingCurve extends AbstractData {
 		super.remove(i);
 		this.adjustedSignal.remove(i);
 	}
+	
+	/**
+	 * The time shift is the position of the 'zero-time'.
+	 * @return a {@code TIME_SHIFT} property
+	 */
 
 	public NumericProperty getTimeShift() {
 		return derive(TIME_SHIFT, startTime);
 	}
+	
+	/**
+	 * Sets the time shift and triggers {@code TIME_ORIGIN_CHANGED} in {@code CurveEvent}. Triggers the 
+	 * {@code firePropertyChanged}.
+	 * @param startTime the new start time value
+	 */
 
 	public void setTimeShift(NumericProperty startTime) {
 		requireType(startTime, TIME_SHIFT);
@@ -298,7 +332,7 @@ public class HeatingCurve extends AbstractData {
 		return splineInterpolation;
 	}
 
-	public List<Double> getAlteredSignalData() {
+	public List<Double> getBaselineCorrectedData() {
 		return adjustedSignal;
 	}
 

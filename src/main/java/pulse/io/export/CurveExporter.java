@@ -10,7 +10,7 @@ import java.io.PrintStream;
 import pulse.AbstractData;
 
 /**
- * A singleton exporter allows writing the data contained in a heating curve in
+ * A singleton exporter allows writing the data contained in a {@code AbstractData} object in
  * a two-column format to create files conforming to either csv or html
  * extension. The first column always represents the time sequence, which may be
  * shifted if the associated property of the heating curve is non-zero. The
@@ -121,7 +121,7 @@ public class CurveExporter implements Exporter<AbstractData> {
 	}
 
 	/**
-	 * @return the {@code HeatingCurve} class.
+	 * @return the {@code AbstractData} class.
 	 */
 
 	@Override

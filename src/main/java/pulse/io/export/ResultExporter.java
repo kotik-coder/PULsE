@@ -10,7 +10,7 @@ import pulse.tasks.processing.Result;
 import pulse.ui.Messages;
 
 /**
- * Provides export capabilities for instances of the {@code Result} class both
+ * Provides export capabilities, for instances, of the {@code Result} class both
  * in the {@code csv} and {@code html} formats.
  *
  */

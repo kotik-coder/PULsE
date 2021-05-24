@@ -10,7 +10,7 @@ import pulse.input.listeners.CurveEvent;
 public interface HeatingCurveListener {
 
 	/**
-	 * Signals that the {@code HeatingCurve} has been rescaled.
+	 * Signals that a {@code CurveEvent} has occurred.
 	 */
 
 	public void onCurveEvent(CurveEvent event);

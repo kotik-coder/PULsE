@@ -21,10 +21,9 @@ import pulse.util.Reflexive;
 public interface Exporter<T extends Descriptive> extends Reflexive {
 
 	/**
-	 * Gets the default export extension. If not overriden, will return
-	 * {@code Extension.CSV}.
+	 * Gets the default export extension. 
 	 * 
-	 * @return the default export extension
+	 * @return {@code Extension.CSV} by default
 	 */
 
 	public static Extension getDefaultExportExtension() {

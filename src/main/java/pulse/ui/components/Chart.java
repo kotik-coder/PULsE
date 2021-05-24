@@ -236,7 +236,7 @@ public class Chart {
 	}
 
 	public XYSeries series(HeatingCurve curve, String title, boolean extendedCurve) {
-		final int realCount = curve.getAlteredSignalData().size();
+		final int realCount = curve.getBaselineCorrectedData().size();
 		final double startTime = (double) ((HeatingCurve) curve).getTimeShift().getValue();
 		return series(curve, title, startTime, realCount, extendedCurve);
 	}

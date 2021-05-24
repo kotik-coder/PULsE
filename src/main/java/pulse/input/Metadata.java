@@ -125,6 +125,11 @@ public class Metadata extends PropertyHolder implements Reflexive {
 		this.pulseData = pulseData;
 	}
 	
+	/**
+	 * If a Numerical Pulse has been loaded (for example, when importing from Proteus), this will return
+	 * an object describing this data.
+	 */
+	
 	public NumericPulseData getPulseData() {
 		return pulseData;
 	}
@@ -179,6 +184,11 @@ public class Metadata extends PropertyHolder implements Reflexive {
 
 	}
 
+	/**
+	 * The listed types include {@code TEST_TEMPERATURE}, {@code THICKNESS}, {@code DIAMETER}, {@code PULSE_WIDTH}, {@code SPOT_DIAMETER},
+	 * {@code LASER_ENERGY}, {@code DETECTOR_GAIN}, {@code DETECTOR_IRIS}, sample name and the types listed by the pulse descriptor.
+	 */
+	
 	@Override
 	public List<Property> listedTypes() {
 		List<Property> list = new ArrayList<>(9);

@@ -22,7 +22,8 @@ import pulse.util.ImmutableDataEntry;
  * 'value') and provides means to interpolate between the 'values' using the
  * 'keys'. This is used mainly to interpolate between available data for thermal
  * properties loaded in tabular representation, e.g. the density and specific
- * heat tables.
+ * heat tables. Features a static list of {@code ExternalDatasetListener}s.
+ * @see pulse.input.listeners.ExternalDatasetListener
  */
 
 public class InterpolationDataset {
@@ -99,7 +100,7 @@ public class InterpolationDataset {
 
 	/**
 	 * Puts a datset specified by {@code type} into the static hash map of this
-	 * class, using {@code type} as key
+	 * class, using {@code type} as key. Triggers {@code onDensityDataLoaded}
 	 * 
 	 * @param dataset a dataset to be appended to the static hash map
 	 * @param type    the dataset type
@@ -107,8 +108,15 @@ public class InterpolationDataset {
 
 	public static void setDataset(InterpolationDataset dataset, StandartType type) {
 		standartDatasets.put(type, dataset);
-		listeners.stream().forEach(l -> l.onDensityDataLoaded(type));
+		listeners.stream().forEach(l -> l.onDataLoaded(type));
 	}
+	
+	/**
+	 * Creates a list of property keywords that can be derived with help of the loaded data.
+	 * For example, if heat capacity and density data is available, the returned list will contain
+	 * {@code CONDUCTIVITY}.
+	 * @return
+	 */
 
 	public static List<NumericPropertyKeyword> derivableProperties() {
 		var list = new ArrayList<NumericPropertyKeyword>();

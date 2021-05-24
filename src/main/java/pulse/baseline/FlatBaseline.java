@@ -62,12 +62,8 @@ public class FlatBaseline extends Baseline {
 	}
 
 	protected double mean(List<Double> x) {
-		double sum = 0.0;
-		final double len = x.size();
-		for (int i = 0; i < len; i++) {
-			sum += x.get(i);
-		}
-		return sum / len;
+		double sum = x.stream().reduce( (a, b) -> a + b).get();
+		return sum / x.size();
 	}
 
 	/**
@@ -121,7 +117,7 @@ public class FlatBaseline extends Baseline {
 			this.firePropertyChanged(this, property);
 		}
 	}
-
+	
 	@Override
 	public void optimisationVector(ParameterVector output, List<Flag> flags) {
 		for (int i = 0, size = output.dimension(); i < size; i++) {

@@ -1,7 +1,7 @@
 package pulse.problem.statements;
 
 import static pulse.properties.NumericProperties.derive;
-import static pulse.properties.NumericPropertyKeyword.SPOT_DIAMETER;
+import static pulse.properties.NumericPropertyKeyword.*;
 
 import java.util.List;
 
@@ -112,9 +112,15 @@ public class ClassicalProblem2D extends Problem {
 			switch (type) {
 			case FOV_OUTER:
 			case FOV_INNER:
-			case HEAT_LOSS_SIDE:
+			case HEAT_LOSS_SIDE: //comment this when locking side + (rear-front)
 				properties.set(type, derive(type, params.inverseTransform(i) ));
 				break;
+			//UNCOMMENT TO MAKE HEAT LOSS LOCKED 
+			/*
+			case HEAT_LOSS:
+				properties.set(HEAT_LOSS_SIDE, derive(HEAT_LOSS_SIDE, params.inverseTransform(i) ));
+				break;
+			*/
 			case SPOT_DIAMETER:
 				((Pulse2D) getPulse()).setSpotDiameter( derive(SPOT_DIAMETER, params.inverseTransform(i) ));
 				break;

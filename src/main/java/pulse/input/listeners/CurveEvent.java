@@ -2,6 +2,12 @@ package pulse.input.listeners;
 
 import pulse.AbstractData;
 
+/**
+ * A {@code CurveEvent} is associated with an {@code AbstractData} object.
+ * @see pulse.AbstractData 
+ *
+ */
+
 public class CurveEvent {
 
 	private CurveEventType type;

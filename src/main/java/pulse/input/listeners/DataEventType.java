@@ -1,11 +1,7 @@
 package pulse.input.listeners;
 
 /**
- * <p>
- * This is an enum type that is used to store some information about the type of
- * the {@code DataEvent}s occurring with a {@code HeatingCurve} object. This is
- * currently limited to two types of events.
- * </p>
+ * An event that is associated with an {@code ExperimentalData} object.
  *
  */
 

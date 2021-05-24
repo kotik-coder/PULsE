@@ -41,10 +41,10 @@ public abstract class Baseline extends PropertyHolder implements Reflexive, Opti
 	/**
 	 * Calculates the baseline parameters based on input arguments.
 	 * <p>
-	 * This will run a simple least-squares estimation of the parameters of this
+	 * This usually runs a simple least-squares estimation of the parameters of this
 	 * baseline using the specified {@code data} within the time range
 	 * {@code rangeMin < t < rangeMax}. If no data is available, the method will NOT
-	 * change the {@code intercept} and {@code slope} values. Upon completion, the
+	 * change the baseline parameters. Upon completion, the
 	 * method will use the respective {@code set} methods of this class to update
 	 * the parameter values, triggering whatever events are associated with them.
 	 * </p>

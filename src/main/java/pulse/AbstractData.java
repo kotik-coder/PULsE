@@ -42,6 +42,11 @@ public abstract class AbstractData extends PropertyHolder {
 		this.name = name;
 	}
 	
+	/**
+	 * Copy constructor. Copies all data and assigns the same name to {@code this}.
+	 * @param d another instance of this class
+	 */
+	
 	public AbstractData(AbstractData d) {
 		this.time = new ArrayList<>(d.time);
 		this.signal = new ArrayList<>(d.signal);
@@ -145,21 +150,27 @@ public abstract class AbstractData extends PropertyHolder {
 	}
 
 	/**
-	 * Retrieves the <b>baseline-subtracted</b> temperature corresponding to
-	 * {@code index} in the respective {@code List}.
+	 * Retrieves the signal value corresponding to the index {@code index}. Is overriden by 
+	 * subclasses.
 	 * 
 	 * @param index the index of the element
-	 * @return a double, respresenting the baseline-subtracted temperature at
+	 * @return a double, representing the signal at
 	 *         {@code index}
 	 */
 
 	public double signalAt(int index) {
 		return signal.get(index);
 	}
+	
+	/**
+	 * Adds a time-signal pair to the lists.
+	 * @param time the time value
+	 * @param sgn the signal value at {@code time} 
+	 */
 
-	public void addPoint(double time, double temperature) {
+	public void addPoint(double time, double sgn) {
 		this.time.add(time);
-		this.signal.add(temperature);
+		this.signal.add(sgn);
 	}
 
 	protected void incrementCount() {
@@ -179,20 +190,31 @@ public abstract class AbstractData extends PropertyHolder {
 	}
 
 	/**
-	 * Sets the temperature {@code t} at the position {@code index} of the
-	 * {@code temperature List}.
+	 * Sets the signal {@code t} at the position {@code index} of the
+	 * {@code signal List}.
 	 * 
 	 * @param index the index
-	 * @param t     the new temperature value at this index
+	 * @param t     the new signal value at this index
 	 */
 
 	public void setSignalAt(int index, double t) {
 		signal.set(index, t);
 	}
 	
+	/**
+	 * Calculates the simple maximum signal.
+	 * @return the maximum signal value
+	 * @see java.util.Collections.max
+	 */
+	
 	public double apparentMaximum() {
 		return max(signal);
 	}
+	
+	/**
+	 * Checks if the time list is incomplete.
+	 * @return {@code false} if the list with time values has less elements than initially declared, {@code true} otherwise.
+	 */
 
 	public boolean isIncomplete() {
 		return time.size() < count;
@@ -225,6 +247,10 @@ public abstract class AbstractData extends PropertyHolder {
 		if (type == NUMPOINTS)
 			setNumPoints(property);
 	}
+	
+	/**
+	 * Lists {@code NUM_POINTS} as an accessible property of this {@code PropertyHolder}.
+	 */
 
 	@Override
 	public List<Property> listedTypes() {
@@ -232,7 +258,7 @@ public abstract class AbstractData extends PropertyHolder {
 	}
 
 	/**
-	 * Removes an element with the index {@code i} from the time-temperature lists.
+	 * Removes a time-value pair that is presend under the index {@code i}.
 	 * 
 	 * @param i the element to be removed
 	 */
@@ -241,6 +267,10 @@ public abstract class AbstractData extends PropertyHolder {
 		this.time.remove(i);
 		this.signal.remove(i);
 	}
+	
+	/**
+	 * @return true
+	 */
 	
 	@Override
 	public boolean ignoreSiblings() {
@@ -254,6 +284,11 @@ public abstract class AbstractData extends PropertyHolder {
 	public List<Double> getSignalData() {
 		return signal;
 	}
+	
+	/**
+	 * @return {@code true} only if {@code o} is an {@code AbstractData} containing all the elements 
+	 * of the time and signal lists of {@code this} object. 
+	 */
 	
 	@Override
 	public boolean equals(Object o) {

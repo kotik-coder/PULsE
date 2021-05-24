@@ -119,6 +119,11 @@ public class SinusoidalBaseline extends FlatBaseline {
 		firePropertyChanged(this, phaseShift);
 	}
 
+	/**
+	 * The optimisation vector can include the amplitude, frequency and phase shift of a sinusoid, and
+	 * a baseline intercept value of the superclass.
+	 */
+	
 	@Override
 	public void optimisationVector(ParameterVector output, List<Flag> flags) {
 		super.optimisationVector(output, flags);

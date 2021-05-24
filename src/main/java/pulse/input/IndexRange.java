@@ -163,7 +163,7 @@ public class IndexRange {
 	 *         <p>
 	 *         any integer greater than 0 and lesser than {@code in.size} that
 	 *         matches the above criterion. If {@code of} is greater than the last
-	 *         elemennt of {@code in}, this will return the latter. Otherwise, if no
+	 *         element of {@code in}, this will return the latter. Otherwise, if no
 	 *         element matching the criterion is found, returns 0.
 	 *         </p>
 	 */
@@ -187,7 +187,7 @@ public class IndexRange {
 	 *         <p>
 	 *         any integer greater than 0 and lesser than {@code in.size} that
 	 *         matches the above criterion. If {@code of} is greater than the last
-	 *         elemennt of {@code in}, this will return the latter. Otherwise, if no
+	 *         element of {@code in}, this will return the latter. Otherwise, if no
 	 *         element matching the criterion is found, returns 0.
 	 *         </p>
 	 */
