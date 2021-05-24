@@ -1,7 +1,7 @@
 package pulse.problem.statements;
 
 import static pulse.properties.NumericProperties.derive;
-import static pulse.properties.NumericPropertyKeyword.*;
+import static pulse.properties.NumericPropertyKeyword.SPOT_DIAMETER;
 
 import java.util.List;
 

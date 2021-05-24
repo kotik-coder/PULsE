@@ -1,7 +1,7 @@
 package pulse.input.listeners;
 
 /**
- * An event that is associated with an {@code ExperimentalData} object.
+ * An event type that is associated with an {@code ExperimentalData} object.
  *
  */
 

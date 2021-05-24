@@ -1,17 +1,17 @@
 package pulse.input.listeners;
 
-import pulse.AbstractData;
+import pulse.HeatingCurve;
 
 /**
- * A {@code CurveEvent} is associated with an {@code AbstractData} object.
- * @see pulse.AbstractData 
+ * A {@code CurveEvent} is associated with an {@code HeatingCurve} object.
+ * @see pulse.HeatingCurve
  *
  */
 
 public class CurveEvent {
 
 	private CurveEventType type;
-	private AbstractData data;
+	private HeatingCurve data;
 
 	/**
 	 * Constructs a {@code CurveEvent} object, combining the {@code type} and
@@ -21,7 +21,7 @@ public class CurveEvent {
 	 * @param data the source of the event
 	 */
 
-	public CurveEvent(CurveEventType type, AbstractData data) {
+	public CurveEvent(CurveEventType type, HeatingCurve data) {
 		this.type = type;
 		this.data = data;
 	}
@@ -43,7 +43,7 @@ public class CurveEvent {
 	 * @return the associated data
 	 */
 
-	public AbstractData getData() {
+	public HeatingCurve getData() {
 		return data;
 	}
 	

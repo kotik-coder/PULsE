@@ -12,9 +12,7 @@ import pulse.ui.Messages;
 public class NetzschPulseCSVReader implements PulseDataReader {
 
 	private static PulseDataReader instance = new NetzschPulseCSVReader();
-	private final static double TO_SECONDS = 1E-3;
 	
-	private final static String SHOT_DATA = "Shot_data";
 	private final static String PULSE = "Laser_pulse_data";
 	
 	private NetzschPulseCSVReader() {
@@ -34,28 +32,14 @@ public class NetzschPulseCSVReader implements PulseDataReader {
 	public NumericPulseData read(File file) throws IOException {
 		Objects.requireNonNull(file, Messages.getString("DATReader.1"));
 		
-		String delims = "[#(),;/°Cx%^]+";
-
 		NumericPulseData data;
 		
 		try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
 			
-			String[] shotID = reader.readLine().split(delims);
-			
-			int shotId = -1;
-			
-			//check if first entry makes sense
-			if(!shotID[shotID.length - 2].equalsIgnoreCase(SHOT_DATA))
-				throw new IllegalArgumentException(file.getName() + " is not a recognised Netzch CSV file. First entry is: " + shotID[shotID.length - 2]);
-			else 
-				shotId = Integer.parseInt(shotID[shotID.length - 1]);
-			
+			int shotId = NetzschCSVReader.determineShotID(reader, file);
 			data = new NumericPulseData(shotId);
-			
-			double time;
-			double power;
-			
-			var pulseLabel = findLineByLabel(reader, PULSE, delims);
+						
+			var pulseLabel = NetzschCSVReader.findLineByLabel(reader, PULSE, NetzschCSVReader.delims);
 			
 			if(pulseLabel == null) {
 				System.err.println("Skipping " + file.getName());
@@ -63,16 +47,7 @@ public class NetzschPulseCSVReader implements PulseDataReader {
 			}
 			
 			reader.readLine();
-			
-			String[] tokens;
-			
-			for (String line = reader.readLine(); line != null && !line.trim().isEmpty(); line = reader.readLine()) {
-				tokens = line.split(delims);
-				
-				time = Double.parseDouble(tokens[0]) * TO_SECONDS;
-				power = Double.parseDouble(tokens[1]);
-				data.addPoint(time, power);
-			}
+			NetzschCSVReader.populate(data, reader);
 			
 		}
 
@@ -92,27 +67,6 @@ public class NetzschPulseCSVReader implements PulseDataReader {
 		return Double.NaN;
 	}
 	*/
-	
-	private String findLineByLabel(BufferedReader reader, String label, String delims) throws IOException {
-		
-		String line = "";
-		String[] tokens;
-		
-		//find sample temperature
-		outer : for(line = reader.readLine(); line != null; line = reader.readLine()) {
-			
-			tokens = line.split(delims);
-			
-			for(String token : tokens) { 			
-				if(token.equalsIgnoreCase(label))
-					break outer;
-			}
-			
-		}
-		
-		return line;
-		
-	}
 
 	/**
 	 * As this class uses the singleton pattern, only one instance is created using

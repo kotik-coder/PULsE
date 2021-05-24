@@ -1,9 +1,15 @@
 package pulse.input.listeners;
 
+/**
+ * An event type associated with an {@code HeatingCurve} object.
+ *
+ */
+
 public enum CurveEventType {
 
 	/**
-	 * Indicates the curve signal values have been re-scaled.
+	 * Indicates the curve signal values have been re-scaled. This means that
+	 * each signal value has been multiplied by a single number.
 	 */
 	
 	RESCALED, 
