@@ -159,7 +159,7 @@ public class ExperimentalData extends AbstractData {
 
 		int start = indexRange.getLowerBound();
 		int end = indexRange.getUpperBound();
-
+		
 		int step = (end - start) / (count / reductionFactor);
 		double av = 0;
 
@@ -177,9 +177,9 @@ public class ExperimentalData extends AbstractData {
 			av /= step;
 
 			crudeAverage.add(new Point2D.Double(timeAt((i1 + i2) / 2), av));
-
+			
 		}
-
+	
 		return crudeAverage;
 
 	}
@@ -410,6 +410,18 @@ public class ExperimentalData extends AbstractData {
 
 		if (metadata != null)
 			range.updateMinimum(metadata.numericProperty(PULSE_WIDTH));
+	}
+	
+	/**
+	 * Retrieves the 
+	 * 
+	 * @see pulse.problem.schemes.DifferenceScheme
+	 * @return a double, equal to the last element of the {@code time List}.
+	 */
+
+	@Override
+	public double timeLimit() {
+		return timeAt(indexRange.getUpperBound());
 	}
 
 }

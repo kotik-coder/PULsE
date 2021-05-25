@@ -97,16 +97,18 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 	/**
 	 * <p>
 	 * Contains preparatory steps to ensure smooth running of the solver. This
-	 * includes creating a {@code DiscretePulse} object and calculating the
-	 * {@code timeInterval}. The latter determines the real-time calculation of a
-	 * {@code HeatingCurve} based on the numerical solution of {@code problem}; it
-	 * thus takes into account the difference between the scheme timestep and the
-	 * {@code HeatingCurve} point spacing. All subclasses of
+	 * includes creating a {@code DiscretePulse} object and adjusting the grid of this 
+	 * scheme to match the {@code DiscretePulse} created for this {@code problem}. 
+	 * Finally, a heating curve is cleared from the previously calculated values.
+	 * </p>
+	 * <p> 
+	 * All subclasses of
 	 * {@code DifferenceScheme} should override and explicitly call this superclass
 	 * method where appropriate.
 	 * </p>
 	 * 
 	 * @param problem the heat problem to be solved
+	 * @see pulse.problem.schemes.Grid.adjustTo()
 	 */
 
 	protected void prepare(Problem problem) {
@@ -305,6 +307,7 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 	public void setTimeLimit(NumericProperty timeLimit) {
 		requireType(timeLimit, TIME_LIMIT);
 		this.timeLimit = (double) timeLimit.getValue();
+		firePropertyChanged(this, timeLimit);
 	}
 
 	@Override

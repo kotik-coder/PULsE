@@ -119,6 +119,11 @@ public class SearchTask extends Accessible implements Runnable {
 			if (p.areThermalPropertiesLoaded())
 				p.useTheoreticalEstimates(curve);
 		});
+		
+		/**
+		 * Sets the difference scheme's time limit to the upper bound of the range of {@code ExperimentalData}
+		 * multiplied by a safety margin {@value Calculation.RELATIVE_TIME_MARGIN}.
+		 */
 
 		curve.addDataListener(dataEvent -> {
 			var scheme = current.getScheme();

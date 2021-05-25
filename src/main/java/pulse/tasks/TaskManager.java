@@ -239,7 +239,9 @@ public class TaskManager extends UpwardsNavigable {
 	 */
 
 	public void truncateData() {
-		tasks.stream().forEach(t -> t.getExperimentalCurve().truncate());
+		tasks.stream().forEach(t -> 
+			t.getExperimentalCurve().truncate()
+			);
 	}
 
 	private void fireTaskSelected(Object source) {
@@ -373,8 +375,12 @@ public class TaskManager extends UpwardsNavigable {
 			System.err.println("Failed to load all tasks within 2 minutes. Details:");
 			e.printStackTrace();
 		}
-
+		
 		selectFirstTask();
+		
+		// check if the data loaded needs truncation
+		if (instance.dataNeedsTruncation())
+			this.truncateData();
 
 	}
 
@@ -512,7 +518,8 @@ public class TaskManager extends UpwardsNavigable {
 	public void evaluate() {
 		tasks.stream().forEach(t -> {
 			var properties = t.getCurrentCalculation().getProblem().getProperties();
-			properties.useTheoreticalEstimates(t.getExperimentalCurve());
+			var c = t.getExperimentalCurve();
+			properties.useTheoreticalEstimates(c);
 		});
 	}
 

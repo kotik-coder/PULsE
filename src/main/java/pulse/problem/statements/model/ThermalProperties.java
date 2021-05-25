@@ -52,7 +52,7 @@ public class ThermalProperties extends PropertyHolder {
 	 *      Chem. Eng. Sci. <b>199</b> (2019) 546-551</a>
 	 */
 
-	public final double PARKERS_COEFFICIENT = 0.1370; // in mm
+	public final double PARKERS_COEFFICIENT = 0.1388; // in mm
 
 	public ThermalProperties() {
 		super();

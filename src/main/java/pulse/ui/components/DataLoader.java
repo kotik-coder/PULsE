@@ -4,7 +4,6 @@ import static pulse.io.readers.ReaderManager.datasetReaders;
 import static pulse.io.readers.ReaderManager.pulseReaders;
 import static pulse.io.readers.ReaderManager.read;
 
-import java.awt.Window;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -64,9 +63,11 @@ public class DataLoader {
 		var files = userInput(Messages.getString("TaskControlFrame.ExtensionDescriptor"),
 				ReaderManager.getCurveExtensions());
 		
+		var instance = TaskManager.getManagerInstance();
+		
 		if (files != null) {
 			progressFrame.trackProgress(files.size());
-			TaskManager.getManagerInstance().generateTasks(files);
+			instance.generateTasks(files);
 		}
 
 	}
@@ -115,10 +116,6 @@ public class DataLoader {
 			progressFrame.incrementProgress();
 
 		}
-
-		// check if the data loaded needs truncation
-		if (instance.dataNeedsTruncation())
-			truncateDataDialog(progressFrame);
 
 		progressFrame.incrementProgress();
 
@@ -177,16 +174,6 @@ public class DataLoader {
 		Objects.requireNonNull(f);
 		InterpolationDataset.setDataset(read(datasetReaders(), f), type);
 		TaskManager.getManagerInstance().evaluate();
-	}
-
-	private static void truncateDataDialog(Window frame) {
-		Object[] options = { "Truncate", "Do not change" };
-		int answer = JOptionPane.showOptionDialog(frame,
-				("The acquisition time for some experiments appears to be too long.\nIf time resolution is low, the model estimates will be biased.\n\nIt is recommended to allow PULSE to truncate this data.\n\nWould you like to proceed? "), //$NON-NLS-1$
-				"Potential Problem with Data", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options,
-				options[0]);
-		if (answer == 0)
-			TaskManager.getManagerInstance().truncateData();
 	}
 
 	private static List<File> userInput(String descriptor, List<String> extensions) {
