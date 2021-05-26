@@ -8,6 +8,7 @@ import pulse.properties.NumericProperty;
 public class IterativeState {
 
 	private int iteration;
+	private int failedAttempts;
 
 	public void reset() {
 		iteration = 0;
@@ -19,6 +20,18 @@ public class IterativeState {
 
 	public void incrementStep() {
 		iteration++;
+	}
+	
+	public int getFailedAttempts() {
+		return failedAttempts;
+	}
+	
+	public void resetFailedAttempts() {
+		failedAttempts = 0;
+	}
+	
+	public void incrementFailedAttempts() {
+		failedAttempts++;
 	}
 
 }

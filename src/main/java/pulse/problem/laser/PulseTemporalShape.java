@@ -13,7 +13,8 @@ import pulse.util.Reflexive;
 /**
  * An abstract time-dependent pulse shape. Declares the abstract method to
  * calculate the laser power function at a given moment of time. This generally
- * utilises a discrete pulse width.
+ * utilises a discrete pulse width. By default, uses a midpoint-rule numeric integrator
+ * to calculate the pulse integral.
  *
  */
 
@@ -32,6 +33,13 @@ public abstract class PulseTemporalShape extends PropertyHolder implements Refle
 		this.integrator = another.integrator;
 	}
 	
+	/**
+	 * Creates a new midpoint-integrator using the number of segments equal to {@value DEFAULT_POINTS}.
+	 * The integrand function is specified by the {@code evaluateAt} method of this class.
+	 * @see pulse.math.MidpointIntegrator
+	 * @see evaluateAt()
+	 */
+	
 	public void initAreaIntegrator() {
 		integrator = new MidpointIntegrator(new Segment(0.0, getPulseWidth()),
 				derive(INTEGRATION_SEGMENTS, DEFAULT_POINTS)) {
@@ -46,7 +54,7 @@ public abstract class PulseTemporalShape extends PropertyHolder implements Refle
 	
 	/**
 	 * Uses numeric integration (midpoint rule) to calculate the area of the pulse
-	 * shape corresponding to the selected parameters.
+	 * shape corresponding to the selected parameters. The integration bounds are non-negative.
 	 * 
 	 * @return the area
 	 */
@@ -68,6 +76,11 @@ public abstract class PulseTemporalShape extends PropertyHolder implements Refle
 
 	public abstract double evaluateAt(double time);
 
+	/**
+	 * Stores the pulse width from {@code pulse} and initialises area integration.
+	 * @param pulse the discrete pulse containing the pulse width
+	 */
+	
 	public void init(ExperimentalData data, DiscretePulse pulse) {
 		width = pulse.getDiscreteWidth();
 		this.initAreaIntegrator();

@@ -12,6 +12,13 @@ import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.tasks.SearchTask;
 
+/**
+ * A numeric pulse is given by a set of discrete {@code NumericPulseData} measured
+ * independelty using a pulse diode.
+ * @see pulse.problem.laser.NumericPulseData
+ *
+ */
+
 public class NumericPulse extends PulseTemporalShape {
 
 	private NumericPulseData pulseData;
@@ -22,10 +29,23 @@ public class NumericPulse extends PulseTemporalShape {
 		//intentionally blank
 	}
 	
+	/**
+	 * Copy constructor
+	 * @param pulse another numeric pulse, the data of which will be copied
+	 */
+	
 	public NumericPulse(NumericPulse pulse) {
 		super(pulse);
 		this.pulseData = new NumericPulseData(pulseData);
 	}
+	
+	/**
+	 * Defines the pulse width as the last element of the time sequence contained in {@code NumericPulseData}.
+	 * Calls {@code super.init}, then interpolates the input pulse using spline functions and normalises the 
+	 * output.
+	 * @see normalise()
+	 * 
+	 */
 	
 	@Override
 	public void init(ExperimentalData data, DiscretePulse pulse) {
@@ -42,6 +62,13 @@ public class NumericPulse extends PulseTemporalShape {
 		
 		normalise(problem);
 	}
+	
+	/**
+	 * Checks that the area of the pulse curve is unity (within a small error margin).
+	 * If this is {@code false}, re-scales the numeric data using {@code 1/area} as the scaling factor.
+	 * @param problem defines the {@code timeFactor} needed for re-building the interpolation
+	 * @see pulse.problem.laser.NumericPulseData.scale()
+	 */
 	
 	public void normalise(Problem problem) {
 		
@@ -76,6 +103,11 @@ public class NumericPulse extends PulseTemporalShape {
 		
 	}
 	
+	/**
+	 * If the argument is less than the pulse width, uses the spline function to interpolated the pulse
+	 * function at {@code time}. Otherwise returns zero. 
+	 */
+	
 	@Override
 	public double evaluateAt(double time) {
 		return time > adjustedPulseWidth ? 0.0 : interpolation.value(time);
@@ -86,6 +118,10 @@ public class NumericPulse extends PulseTemporalShape {
 		return new NumericPulse();
 	}
 
+	/**
+	 * Does not define any property.
+	 */
+	
 	@Override
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
 		// TODO Auto-generated method stub

@@ -4,6 +4,11 @@ import static java.lang.Math.exp;
 import static java.lang.Math.log;
 import static java.lang.Math.sqrt;
 
+/**
+ * A utility class containing standard mathematical transforms and their inverses for non-bounded parameters.
+ *
+ */
+
 public class StandardTransformations {
 		
 	/**

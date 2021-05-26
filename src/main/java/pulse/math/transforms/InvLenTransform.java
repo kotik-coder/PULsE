@@ -2,6 +2,11 @@ package pulse.math.transforms;
 
 import pulse.problem.statements.model.ThermalProperties;
 
+/**
+ * A transform that simply divides the value by the length of the
+ * sample.
+ */
+
 public class InvLenTransform implements Transformable {
 
 	private double l;

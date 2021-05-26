@@ -20,7 +20,7 @@ public class BlockMatrixAlgorithm extends TridiagonalMatrixAlgorithm {
 		p = new double[gamma.length - 1];
 		q = new double[gamma.length - 1];
 	}
-
+	
 	@Override
 	public void sweep(double[] V) {
 		final int N = V.length - 1;

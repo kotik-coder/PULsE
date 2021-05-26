@@ -48,6 +48,11 @@ public class ParameterVector extends Vector {
 		
 	}
 	
+	/**
+	 * Copy constructor
+	 * @param v another vector
+	 */
+	
 	public ParameterVector(ParameterVector v) {
 		this( v.dimension() );
 		final int n = dimension();
@@ -57,6 +62,11 @@ public class ParameterVector extends Vector {
 		System.arraycopy(v.transforms, 0, transforms, 0, n);
 		System.arraycopy(v.bounds, 0, bounds, 0, n);
 	}
+	
+	/**
+	 * Creates an empty ParameterVector with a dimension of {@code n}
+	 * @param n dimension
+	 */
 
 	private ParameterVector(final int n) {
 		super(n);
@@ -74,6 +84,14 @@ public class ParameterVector extends Vector {
 	public void set(final int i, final double x) {
 		set(i, x, false);
 	}
+	
+	/**
+	 * Sets the <math><i>i</i></math>-component of this vector to {@code x} or its corresponding transform,
+	 * if the latter is defined and {@code ignoreTransform} is {@code false}.
+	 * @param i index of the value and its transform
+	 * @param x the non-transformed value, which needs to be assigned to the i-th component
+	 * @param ignoreTransform if {@code} false, will ignore exiting transform.
+	 */
 	
 	public void set(final int i, final double x, boolean ignoreTransform) {
 		final double t = ignoreTransform || transforms[i] == null ? x : transforms[i].transform(x);
@@ -113,9 +131,21 @@ public class ParameterVector extends Vector {
 		return super.get(indexOf(index));
 	}
 	
+	/**
+	 * Performs an inverse transform corresponding to the index {@code i} of this vector.
+	 * @param i the index of the transform
+	 * @return the inverse transform of {@code get(i) } if the transform is defined, {@code get(i)} otherwise.
+	 */
+	
 	public double inverseTransform(final int i) {
 		return transforms[i] != null ? transforms[i].inverse( get(i) ) : get(i);
 	}
+	
+	/**
+	 * Gets the transformable of the i-th component
+	 * @param i index of the component
+	 * @return the corresponding {@code Transforamble}
+	 */
 	
 	public Transformable getTransform(final int i) {
 		return transforms[i];
@@ -129,12 +159,24 @@ public class ParameterVector extends Vector {
 		return bounds[i];
 	}
 	
+	/**
+	 * If transform of {@code i} is not null, applies the transformation to the component bounds
+	 * @param i the index of the component
+	 * @return the transformed bounds
+	 */
+	
 	public Segment getTransformedBounds(final int i) {
 		return transforms[i] != null ? 
 			new Segment( transforms[i].transform( bounds[i].getMinimum() ), 
 						 transforms[i].transform( bounds[i].getMaximum() ) ) :
 			getParameterBounds(i);
 	}
+	
+	/**
+	 * Sets the bounds of i-th component of this vector.
+	 * @param i the index of the component
+	 * @param segment new parameter bounds
+	 */
 	
 	public void setParameterBounds(int i, Segment segment) {
 		bounds[i] = segment;
@@ -149,6 +191,11 @@ public class ParameterVector extends Vector {
 	public List<NumericPropertyKeyword> getIndices() {
 		return Arrays.asList(indices);
 	}
+	
+	/**
+	 * This will assign a new list of indices to this vector
+	 * @param indices a list of indices
+	 */
 
 	private void assign(List<NumericPropertyKeyword> indices) {
 		this.indices = indices.toArray(new NumericPropertyKeyword[indices.size()]);

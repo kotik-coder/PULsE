@@ -59,7 +59,6 @@ public class ExponentiallyModifiedGaussian extends PulseTemporalShape {
 	@Override
 	public void init(ExperimentalData data, DiscretePulse pulse) {
 		super.init(data, pulse);
-		norm = 1.0; // resets the normalisation factor to unity
 		norm = 1.0 / area(); // calculates the area. The normalisation factor is then set to the inverse of
 								// the area.
 	}
@@ -83,6 +82,12 @@ public class ExponentiallyModifiedGaussian extends PulseTemporalShape {
 				* erfc((mu + lambda * sigmaSq - reducedTime) / (sqrt(2) * sigma));
 
 	}
+	
+	/**
+	 * @see pulse.properties.NumericPropertyKeyword.SKEW_MU
+	 * @see pulse.properties.NumericPropertyKeyword.SKEW_LAMBDA
+	 * @see pulse.properties.NumericPropertyKeyword.SKEW_SIGMA
+	 */
 
 	@Override
 	public List<Property> listedTypes() {
@@ -170,8 +175,7 @@ public class ExponentiallyModifiedGaussian extends PulseTemporalShape {
 
 	@Override
 	public PulseTemporalShape copy() {
-		// TODO Auto-generated method stub
-		return null;
+		return new ExponentiallyModifiedGaussian(this);
 	}
 
 }

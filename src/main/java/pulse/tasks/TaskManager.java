@@ -1,6 +1,5 @@
 package pulse.tasks;
 
-import static java.lang.System.gc;
 import static java.time.LocalDateTime.now;
 import static java.time.format.DateTimeFormatter.ISO_WEEK_DATE;
 import static java.util.Objects.requireNonNull;
@@ -24,7 +23,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
@@ -112,7 +110,6 @@ public class TaskManager extends UpwardsNavigable {
 	 */
 
 	public void execute(SearchTask t) {
-
 		t.setStatus(QUEUED); // notify listeners computation is about to start
 
 		// notify listeners
@@ -168,14 +165,8 @@ public class TaskManager extends UpwardsNavigable {
 			}
 		}).collect(toList());
 
-		try {
-			taskPool.submit(() -> queue.parallelStream().forEach(t -> execute(t))).get();
-		} catch (InterruptedException | ExecutionException e) {
-			System.err.println("Execution exception while running multiple tasks");
-			e.printStackTrace();
-		}
-
-		gc();
+		for(SearchTask t : queue)
+			taskPool.submit(() -> execute(t));
 
 	}
 

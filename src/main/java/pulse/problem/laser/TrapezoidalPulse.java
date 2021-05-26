@@ -45,6 +45,10 @@ public class TrapezoidalPulse extends PulseTemporalShape {
 		this.h = another.h;
 	}
 
+	/**
+	 * Calculates the height of the trapez after calling the super-class method.
+	 */
+	
 	@Override
 	public void init(ExperimentalData data, DiscretePulse pulse) {
 		super.init(data, pulse);

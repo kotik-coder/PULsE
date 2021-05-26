@@ -13,6 +13,7 @@ class LMPath extends ComplexPath {
 	private RectangularMatrix jacobian;
 	private SquareMatrix nonregularisedHessian;
 	private double lambda;
+	private boolean computeJacobian;
 
 	public LMPath(SearchTask t) {
 		super(t);
@@ -21,11 +22,8 @@ class LMPath extends ComplexPath {
 	@Override
 	public void configure(SearchTask t) {
 		super.configure(t);
-		this.jacobian = null;
-		this.setHessian(null);
-		nonregularisedHessian = null;
 		this.lambda = 1.0;
-		this.residualVector = null;
+		computeJacobian = true;
 	}
 
 	public RectangularMatrix getJacobian() {
@@ -66,6 +64,14 @@ class LMPath extends ComplexPath {
 
 	public void setParameters(ParameterVector parameters) {
 		this.parameters = parameters;
+	}
+
+	public boolean isComputeJacobian() {
+		return computeJacobian;
+	}
+
+	public void setComputeJacobian(boolean computeJacobian) {
+		this.computeJacobian = computeJacobian;
 	}
 
 }

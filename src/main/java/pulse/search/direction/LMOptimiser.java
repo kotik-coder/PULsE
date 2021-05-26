@@ -25,19 +25,26 @@ import pulse.tasks.SearchTask;
 import pulse.tasks.logs.Status;
 import pulse.ui.Messages;
 
+/**
+ * Given an objective function equal to the sum of squared residuals,
+ * iteratively approaches the minimum of this function by applying
+ * the Levenberg-Marquardt formulas.
+ *
+ */
+
 public class LMOptimiser extends GradientBasedOptimiser {
 
 	private static LMOptimiser instance = new LMOptimiser();
-	private boolean computeJacobian;
 
 	private final static double EPS = 1e-10; // for numerical comparison
 	private double dampingRatio;
 	
-	/* 
-	private double geodesicParameter = 0.1;
-	private boolean geodesicCorrection = false;
-	*/
-
+	/**
+	 * Maximum number of consequent failed iterations that can be rejected.
+	 */
+	
+	public final static int MAX_FAILED_ATTEMPTS = 10;
+		
 	private LMOptimiser() {
 		super();
 		dampingRatio = (double)def(DAMPING_RATIO).getValue();
@@ -47,15 +54,11 @@ public class LMOptimiser extends GradientBasedOptimiser {
 	}
 
 	@Override
-	public void reset() {
-		super.reset();
-		computeJacobian = true;
-	}
-
-	@Override
 	public boolean iteration(SearchTask task) throws SolverException {
 		var p = (LMPath) task.getIterativeState(); // the previous path of the task
 
+		boolean accept = true; //accept the step by default
+		
 		/*
 		 * Checks whether an iteration limit has been already reached
 		 */
@@ -63,7 +66,6 @@ public class LMOptimiser extends GradientBasedOptimiser {
 		if (compare(p.getIteration(), getMaxIterations()) > 0) {
 
 			task.setStatus(Status.TIMEOUT);
-			return true;
 
 		}
 
@@ -78,28 +80,10 @@ public class LMOptimiser extends GradientBasedOptimiser {
 
 			var lmDirection = getSolver().direction(p);
 			
-			/*
-			 * Geodesic acceleration
-			 */
-			
-			/*
-			var acceleration = p.getJacobian().transpose().multiply( directionalDerivative(task) ); // J' dr/dp
-			var correction = HessianDirectionSolver.solve(p, acceleration.inverted() ); // H^-1 J'dr/dp
-
-			double newCost = Double.POSITIVE_INFINITY;
-			*/
-						
-			/*
-			 *  Additional conditions imposed by geodesic acceleration.
-			 */
-			
-			//if( !geodesicCorrection || correction.length() / lmDirection.length() <= geodesicParameter) {
-				var candidate = parameters.sum(lmDirection);
-				task.assign(new ParameterVector( 
-						//geodesicCorrection ? candidate.sum( correction.multiply(0.5) ) : 
-						parameters, candidate ) ); // assign new parameters
-				double newCost = task.solveProblemAndCalculateCost(); // calculate the sum of squared residuals
-			//}
+			var candidate = parameters.sum(lmDirection);
+			task.assign(new ParameterVector( 
+					parameters, candidate ) ); // assign new parameters
+			double newCost = task.solveProblemAndCalculateCost(); // calculate the sum of squared residuals
 
 			/*
 			 * Delayed gratification
@@ -108,20 +92,27 @@ public class LMOptimiser extends GradientBasedOptimiser {
 			if (newCost > initialCost + EPS) {
 				p.setLambda(p.getLambda() * 2.0);
 				task.assign(parameters); // roll back if cost increased
-				computeJacobian = true;
+				p.setComputeJacobian(true);
+				p.incrementFailedAttempts();
+				accept = p.getFailedAttempts() > MAX_FAILED_ATTEMPTS;
 			} else {
+				p.resetFailedAttempts();
 				p.setLambda(p.getLambda() / 3.0);
-				computeJacobian = false;
+				p.setComputeJacobian(false);
 				p.incrementStep(); // increment the counter of successful steps
 			}
 
-			return newCost < initialCost + EPS;
-
 		}
+		
+		return accept; //either accept or reject this step
 
 	}
 	
 
+	/**
+	 * Calculates the Jacobian, if needed, evaluates the gradient and the Hessian matrix.
+	 */
+	
 	@Override
 	public void prepare(SearchTask task) throws SolverException {
 		var p = (LMPath) task.getIterativeState();
@@ -130,7 +121,7 @@ public class LMOptimiser extends GradientBasedOptimiser {
 		p.setResidualVector( new Vector( residualVector(task.getCurrentCalculation().getOptimiserStatistic())  ));
 
 		// Calculate the Jacobian -- if needed
-		if (computeJacobian) {
+		if (p.isComputeJacobian()) {
 			p.setJacobian(jacobian(task)); // J
 			p.setNonregularisedHessian(halfHessian(p)); // this is just J'J
 		}
@@ -138,18 +129,37 @@ public class LMOptimiser extends GradientBasedOptimiser {
 		// the Jacobian is then used to calculate the 'gradient'
 		Vector g1 = halfGradient(p); // g1
 		p.setGradient(g1);
-
+	
 		// the Hessian is then regularised by adding labmda*I
-
+	
 		var hessian = p.getNonregularisedHessian();
 		var damping = 	( levenbergDamping(hessian).multiply(dampingRatio)
 					 	.sum(marquardtDamping(hessian).multiply(1.0 - dampingRatio)) 
 					 	)
 					 	.multiply(p.getLambda());
 		var regularisedHessian = asSquareMatrix(hessian.sum(damping)); // J'J + lambda I
-
-		p.setHessian(regularisedHessian); // so this is the new Hessian
+	
+		p.setHessian(regularisedHessian); // so this is the new Hessian	
+	
 	}
+	
+	/**
+	 * <p>
+	 * Calculates the Jacobian of the model function given as a discrete set of time-signal values.
+	 * The elements of the Jacobian are calculated using central differences from two residual vectors
+	 * evaluated by shifting the search vector slightly to the right or left of each search parameter.
+	 * </p>
+	 * <p>
+	 * This is also equivalent to calculating the difference of the model values when performing the shift,
+	 * when taking the model values at the time points of the reference dataset. Because of a different
+	 * discretisation of the model, it is easier to substitute these with the residuals, which had already 
+	 * been interpolated at the reference time values. 
+	 * </p>
+	 * @param task the task being optimised
+	 * @return the jacobian matrix
+	 * @throws SolverException
+	 * @see pulse.search.statistics.ResidualStatistic.calculateResiduals()
+	 */
 	
 	
 	public RectangularMatrix jacobian(SearchTask task) throws SolverException {
@@ -204,7 +214,6 @@ public class LMOptimiser extends GradientBasedOptimiser {
 	@Override
 	public GradientGuidedPath initState(SearchTask t) {
 		this.configure(t);
-		computeJacobian = true;
 		return new LMPath(t);
 	}
 
@@ -218,50 +227,6 @@ public class LMOptimiser extends GradientBasedOptimiser {
 		var jacobian = path.getJacobian();
 		return asSquareMatrix(jacobian.transpose().multiply(jacobian));
 	}
-
-	/*
-	private Vector directionalDerivative(SearchTask t) throws SolverException {
-		var p = (LMPath) t.getPath();
-
-		var currentParameters	= p.getParameters();
-		final int numParams		= currentParameters.dimension();
-
-		final var dir	= p.getDirection();
-		var shift		= new Vector(numParams);
-	
-		final double h = 0.5*super.getGradientStep();
-		
-		//small shift in a previously calculated direction
-		for(int i = 0; i < numParams; i++)
-			shift.set(i, h * dir.get(i) );
-
-		final var statistic = t.getCurrentCalculation().getOptimiserStatistic();
-		
-		var currentResiduals = p.getResidualVector();
-		
-		t.assign( new IndexedVector( currentParameters.sum(shift), currentParameters.getIndices() ) );
-		t.solveProblemAndCalculateCost();
-		var newResiduals = residualVector(statistic);
-
-		t.assign(currentParameters); //shift back
-		
-		var diff = new double[newResiduals.length];
-		var jacobian = p.getJacobian();
-		
-		for(int i = 0 ; i < newResiduals.length; i++) {
-			diff[i] = ( newResiduals[i] - currentResiduals.get(i) ) / h;
-		
-			double add = 0;
-			for(int j = 0; j < numParams; j++)
-				add += jacobian.get(i, j)*dir.get(j);
-			
-			diff[i] -= add;
-			diff[i] *= 2.0/h;
-		}
-		
-		return new Vector(diff);
-	}
-	*/
 	
 	/*
 	 * Additive damping strategy, where the scaling matrix is simply the identity matrix.

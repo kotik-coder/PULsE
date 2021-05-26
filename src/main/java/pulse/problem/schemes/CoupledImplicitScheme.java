@@ -45,7 +45,6 @@ public abstract class CoupledImplicitScheme extends ImplicitScheme implements Fi
 		super.timeStep(m);
 	}
 
-	@Override
 	public void finaliseIteration(double[] V) {
 		setCalculationStatus( coupling.getRadiativeTransferEquation().compute(V) );
 	}
