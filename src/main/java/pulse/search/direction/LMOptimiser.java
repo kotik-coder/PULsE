@@ -89,12 +89,12 @@ public class LMOptimiser extends GradientBasedOptimiser {
 			 * Delayed gratification
 			 */
 
-			if (newCost > initialCost + EPS) {
+			if (newCost > initialCost + EPS && p.getFailedAttempts() < MAX_FAILED_ATTEMPTS) {
 				p.setLambda(p.getLambda() * 2.0);
 				task.assign(parameters); // roll back if cost increased
 				p.setComputeJacobian(true);
 				p.incrementFailedAttempts();
-				accept = p.getFailedAttempts() > MAX_FAILED_ATTEMPTS;
+				accept = false;
 			} else {
 				p.resetFailedAttempts();
 				p.setLambda(p.getLambda() / 3.0);
@@ -108,7 +108,6 @@ public class LMOptimiser extends GradientBasedOptimiser {
 
 	}
 	
-
 	/**
 	 * Calculates the Jacobian, if needed, evaluates the gradient and the Hessian matrix.
 	 */

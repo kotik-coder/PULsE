@@ -260,17 +260,14 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
 	}
 	
 	protected void setHeatLossParameter(ParameterVector output, int i, double Bi) {
-		Segment bounds;
-		if (properties.areThermalPropertiesLoaded()) { 
-			bounds = new Segment(1e-5, properties.maxBiot());
+		if(output.getTransform(i) == null) {
+			final double min = (double) def(HEAT_LOSS).getMinimum();
+			final double max = (double) def(HEAT_LOSS).getMaximum();
+			var bounds = new Segment(min, properties.areThermalPropertiesLoaded() ? properties.maxBiot() : max);
+			
 			output.setTransform(i, new AtanhTransform(bounds) );
+			output.setParameterBounds(i, bounds);
 		}
-		else {
-			bounds = new Segment(1E-5, 2.0);
-			output.setTransform(i, LOG);
-		}
-		output.setParameterBounds(i, bounds);
-		output.setTransform(i, properties.areThermalPropertiesLoaded() ? new AtanhTransform(bounds) : LOG);
 		output.set(i, Bi);	
 	}
 
