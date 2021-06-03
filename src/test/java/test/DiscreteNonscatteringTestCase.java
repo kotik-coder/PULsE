@@ -1,10 +1,10 @@
-package repository;
+package test;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.INTEGRATION_SEGMENTS;
 import static pulse.properties.NumericPropertyKeyword.OPTICAL_THICKNESS;
-import static repository.TestProfileLoader.loadTestProfileDense;
+import static test.ProfileLoader.loadTestProfileDense;
 
 import java.util.List;
 
@@ -19,10 +19,10 @@ import pulse.problem.schemes.rte.exact.NonscatteringDiscreteDerivatives;
 import pulse.problem.schemes.rte.exact.NonscatteringRadiativeTransfer;
 import pulse.problem.statements.model.ThermoOpticalProperties;
 
-class DiscreteNonscatteringTransferValidation {
+class DiscreteNonscatteringTestCase {
 
 	private static List<Double> testProfile;
-	private static NonscatteringTestCase testCase;
+	private static NonscatteringSetup testCase;
 
 	private NonscatteringRadiativeTransfer newton;
 	private RadiativeTransferSolver dom;
@@ -30,7 +30,7 @@ class DiscreteNonscatteringTransferValidation {
 	@BeforeAll
 	private static void setUpBeforeClass() {
 		testProfile = loadTestProfileDense();
-		testCase = new NonscatteringTestCase(testProfile.size(), 10.0);
+		testCase = new NonscatteringSetup(testProfile.size(), 10.0);
 	}
 
 	@BeforeEach
@@ -48,14 +48,14 @@ class DiscreteNonscatteringTransferValidation {
 	void testFluxesLowThickness() {
 		var properties = (ThermoOpticalProperties)testCase.getTestProblem().getProperties();
 		properties.setOpticalThickness(derive(OPTICAL_THICKNESS, 0.1));
-		assertTrue(testCase.testFluxesAndDerivatives(testProfile, newton, dom, 1e-2, 3e-1));
+		assertTrue(testCase.testFluxesAndDerivatives(testProfile, newton, dom, 1e-3, 1e-1));
 	}
 
 	@Test
 	void testFluxesMediumThickness() {
 		var properties = (ThermoOpticalProperties)testCase.getTestProblem().getProperties();
 		properties.setOpticalThickness(derive(OPTICAL_THICKNESS, 1.5));
-		assertTrue(testCase.testFluxesAndDerivatives(testProfile, newton, dom, 1e-2, 3e-1));
+		assertTrue(testCase.testFluxesAndDerivatives(testProfile, newton, dom, 1e-3, 1e-1));
 	}
 
 }

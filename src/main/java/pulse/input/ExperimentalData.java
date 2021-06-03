@@ -228,7 +228,7 @@ public class ExperimentalData extends AbstractData {
 				degraded.stream().map(point -> point.getY()).collect(Collectors.toList()));
 
 		if (index < 1) {
-			System.err.println(Messages.getString("ExperimentalData.HalfRiseError"));
+			System.out.println(Messages.getString("ExperimentalData.HalfRiseError"));
 			return max(getTimeSequence()) / FAIL_SAFE_FACTOR;
 		}
 

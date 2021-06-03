@@ -38,6 +38,7 @@ public class Launcher {
 
 	private Launcher() {
 		arrangeErrorOutput();
+		arrangeMessages();
 	}
 
 	/**
@@ -66,7 +67,7 @@ public class Launcher {
 				JOptionPane.showMessageDialog(null, "<html>A new version of this software is available: "
 						+ newVersion.toString() + "<br>Please visit the PULsE website for more details.</html>");
 			}
-
+			
 		});
 	}
 
@@ -97,7 +98,17 @@ public class Launcher {
 		try {
 			var dir = new File(decodedPath).getParent();
 			errorLog = new File(dir + File.separator + "ErrorLog_" + now() + ".log");
-			setErr(new PrintStream(errorLog));
+			setErr(new PrintStream(errorLog) {
+				
+				@Override
+				public void println(String str) {
+					super.println(str);
+					JOptionPane.showMessageDialog(null, "An exception has occurred. "
+							+ "Please check the stored log!", "Exception", JOptionPane.ERROR_MESSAGE);
+				}
+				
+			}
+			);
 		} catch (FileNotFoundException e) {
 			System.err.println("Unable to set up error stream");
 			e.printStackTrace();
@@ -105,6 +116,17 @@ public class Launcher {
 
 		createShutdownHook();
 
+	}
+	
+	private void arrangeMessages() {
+		System.setOut( new PrintStream(System.out) {
+			
+			@Override
+			public void println(String str) {
+				JOptionPane.showMessageDialog(null, Messages.getString("TextWrap.0") + str + Messages.getString("TextWrap.0"));
+			}
+			
+		});
 	}
 
 	private void createShutdownHook() {

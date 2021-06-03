@@ -82,12 +82,11 @@ public class SearchOptionsFrame extends JInternalFrame {
 
 	public void update() {
 		var selected = getInstance();
-		if (selected != null) {
-			pathList.setSelectedIndex(pathSolvers.indexOf(selected));
-			pathTable.updateTable();
-		} else {
-			pathList.clearSelection();
-		}
+		if (selected == null)
+			TaskManager.getManagerInstance().selectFirstTask();
+		
+		pathList.setSelectedIndex(pathSolvers.indexOf(selected));
+		pathTable.updateTable();
 	}
 
 	class PathSolversList extends JList<PathOptimiser> {

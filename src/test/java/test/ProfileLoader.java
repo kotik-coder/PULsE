@@ -1,4 +1,4 @@
-package repository;
+package test;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -9,9 +9,9 @@ import java.util.Scanner;
 
 import pulse.problem.schemes.rte.exact.NonscatteringRadiativeTransfer;
 
-public class TestProfileLoader {
+public class ProfileLoader {
 	
-	private TestProfileLoader() {
+	private ProfileLoader() {
 		//intentionally blank
 	}
 

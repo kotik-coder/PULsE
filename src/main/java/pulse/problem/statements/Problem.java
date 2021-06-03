@@ -1,7 +1,6 @@
 package pulse.problem.statements;
 
 import static pulse.input.listeners.CurveEventType.RESCALED;
-import static pulse.math.transforms.StandardTransformations.LOG;
 import static pulse.properties.NumericProperties.def;
 import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.DIFFUSIVITY;

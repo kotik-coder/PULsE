@@ -1,4 +1,4 @@
-package repository;
+package test;
 
 import static java.lang.Math.abs;
 import static pulse.properties.NumericProperties.derive;
@@ -11,6 +11,8 @@ import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
 
 import java.util.List;
 
+import org.apache.commons.math3.stat.regression.SimpleRegression;
+
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.rte.RadiativeTransferSolver;
 import pulse.problem.schemes.solvers.ImplicitCoupledSolver;
@@ -18,12 +20,12 @@ import pulse.problem.statements.ParticipatingMedium;
 import pulse.problem.statements.Pulse2D;
 import pulse.problem.statements.model.ThermoOpticalProperties;
 
-public class NonscatteringTestCase {
+public class NonscatteringSetup {
 
 	private ParticipatingMedium testProblem;
 	private DifferenceScheme testScheme;
 	
-	public NonscatteringTestCase(final int testProfileSize, final double maxHeating) {
+	public NonscatteringSetup(final int testProfileSize, final double maxHeating) {
 		testProblem = new ParticipatingMedium();
 		var properties = (ThermoOpticalProperties)testProblem.getProperties();
 		properties.setSpecificHeat(derive(SPECIFIC_HEAT, 300.0));
@@ -76,12 +78,35 @@ public class NonscatteringTestCase {
 		var fluxes1 = solver1.getFluxes();
 		var fluxes2 = solver2.getFluxes();
 
+		final int n = testProfile.size();
+		double[][] test1 = new double[n][2];
+		double[][] test2 = new double[n][2];
+		
+		System.out.printf("%12s ; %12s ; %12s ; %12s %n", "Flux (Solver1)", "Flux (Solver2)", "Derivative (Solver1)", "Derivative (Solver2)");
 		for (int i = 1, size = testProfile.size(); i < size - 1 && pass; i++) {
-			pass &= approximatelyEquals(fluxes1.getFlux(i), fluxes2.getFlux(i), margin1);
-			pass &= approximatelyEquals(fluxes1.fluxDerivative(i), fluxes2.fluxDerivative(i), margin2);
-			System.out.printf("%1.4e ; % 1.4e %1.4e ; % 1.4e %n", fluxes1.getFlux(i), fluxes2.getFlux(i),
-					fluxes1.fluxDerivative(i), fluxes2.fluxDerivative(i));
+			test1[i][0] = fluxes1.getFlux(i);
+			test1[i][1] = fluxes2.getFlux(i);
+			
+			test2[i][0] = fluxes1.fluxDerivative(i);
+			test2[i][1] = fluxes2.fluxDerivative(i);
+			
+			System.out.printf("%1.4e ; %1.4e %1.4e ; %1.4e %n", test1[i][0], test1[i][1], test2[i][0], test2[i][1]);
 		}
+		
+		
+		var regression1 = new SimpleRegression();
+		regression1.addData(test1);
+		double rsq1 = regression1.getRSquare();
+		System.out.println("R-Squared of linear regression for fluxes: " + rsq1);
+		
+		var regression2 = new SimpleRegression();
+		regression2.addData(test2);
+		double rsq2 = regression2.getRSquare();
+		System.out.println("R-Squared of linear regression for derivatives: " + rsq2);
+		
+		pass &= approximatelyEquals(rsq1, 1.0, margin1);
+		pass &= approximatelyEquals(rsq2, 1.0, margin2);
+		
 		System.out.println(pass ? "SUCCESS" : "FAILED");
 		return pass;
 	}
