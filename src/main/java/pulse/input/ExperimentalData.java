@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import pulse.AbstractData;
-import pulse.baseline.LinearBaseline;
+import pulse.baseline.FlatBaseline;
 import pulse.input.listeners.DataEvent;
 import pulse.input.listeners.DataListener;
 import pulse.properties.NumericProperty;
@@ -219,7 +219,7 @@ public class ExperimentalData extends AbstractData {
 	public double halfRiseTime() {
 		var degraded = runningAverage(REDUCTION_FACTOR);
 		double max = (max(degraded, pointComparator)).getY();
-		var baseline = new LinearBaseline();
+		var baseline = new FlatBaseline();
 		baseline.fitTo(this);
 
 		double halfMax = (max + baseline.valueAt(0)) / 2.0;

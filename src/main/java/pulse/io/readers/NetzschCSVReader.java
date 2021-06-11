@@ -39,7 +39,8 @@ public class NetzschCSVReader implements CurveReader {
 	private final static String SHOT_DATA = "Shot_data";
 	private final static String DETECTOR = "DETECTOR";
 	private final static String THICKNESS = "Thickness_RT";
-
+	private final static String DIAMETER = "Diameter";
+	
 	/**
 	 * Note comma is included as a delimiter character here.
 	 */
@@ -90,6 +91,9 @@ public class NetzschCSVReader implements CurveReader {
 			var tempTokens = findLineByLabel(reader, THICKNESS, delims).split(delims);
 			final double thickness = Double.parseDouble( tempTokens[tempTokens.length - 1] ) * TO_METRES;
 			
+			tempTokens = findLineByLabel(reader, DIAMETER, delims).split(delims);
+			final double diameter = Double.parseDouble( tempTokens[tempTokens.length - 1] ) * TO_METRES;
+			
 			tempTokens = findLineByLabel(reader, SAMPLE_TEMPERATURE, delims).split(delims);
 			final double sampleTemperature = Double.parseDouble( tempTokens[tempTokens.length - 1] ) + TO_KELVIN;
 			
@@ -109,6 +113,9 @@ public class NetzschCSVReader implements CurveReader {
 			
 			var met = new Metadata(derive(TEST_TEMPERATURE, sampleTemperature), shotId);
 			met.set(NumericPropertyKeyword.THICKNESS, derive(NumericPropertyKeyword.THICKNESS, thickness));
+			met.set(NumericPropertyKeyword.DIAMETER, derive(NumericPropertyKeyword.DIAMETER, diameter));
+			met.set(NumericPropertyKeyword.FOV_OUTER, derive(NumericPropertyKeyword.FOV_OUTER, 0.85*diameter));
+			met.set(NumericPropertyKeyword.SPOT_DIAMETER, derive(NumericPropertyKeyword.SPOT_DIAMETER, 0.94*diameter));
 			
 			curve.setMetadata(met);
 			curve.setRange(new Range(curve.getTimeSequence()));
