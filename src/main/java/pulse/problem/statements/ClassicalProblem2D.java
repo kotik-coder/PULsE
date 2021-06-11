@@ -14,6 +14,7 @@ import pulse.problem.schemes.ADIScheme;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.Grid;
 import pulse.problem.schemes.Grid2D;
+import pulse.problem.schemes.solvers.SolverException;
 import pulse.problem.statements.model.ExtendedThermalProperties;
 import pulse.problem.statements.model.ThermalProperties;
 import pulse.properties.Flag;
@@ -102,7 +103,7 @@ public class ClassicalProblem2D extends Problem {
 	}
 
 	@Override
-	public void assign(ParameterVector params) {
+	public void assign(ParameterVector params) throws SolverException {
 		super.assign(params);
 		var properties = (ExtendedThermalProperties) getProperties();
 

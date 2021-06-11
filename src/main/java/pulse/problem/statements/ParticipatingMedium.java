@@ -12,6 +12,7 @@ import pulse.math.transforms.AtanhTransform;
 import pulse.math.transforms.Transformable;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.solvers.MixedCoupledSolver;
+import pulse.problem.schemes.solvers.SolverException;
 import pulse.problem.statements.model.ThermalProperties;
 import pulse.problem.statements.model.ThermoOpticalProperties;
 import pulse.properties.Flag;
@@ -85,7 +86,7 @@ public class ParticipatingMedium extends NonlinearProblem {
 	}
 
 	@Override
-	public void assign(ParameterVector params) {
+	public void assign(ParameterVector params) throws SolverException {
 		super.assign(params);
 		var properties = (ThermoOpticalProperties)getProperties();
 		

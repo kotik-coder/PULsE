@@ -5,6 +5,7 @@ import java.util.List;
 
 import pulse.math.linear.Vector;
 import pulse.math.transforms.Transformable;
+import pulse.properties.NumericProperties;
 import pulse.properties.NumericPropertyKeyword;
 
 /**
@@ -213,6 +214,15 @@ public class ParameterVector extends Vector {
 		sb.append(System.lineSeparator());
 		sb.append(" Values: " + super.toString());
 		return sb.toString();
+	}
+	
+	public boolean validate() {
+		for(int i = 0; i < this.dimension(); i++) {
+			if( !NumericProperties.derive(this.getIndex(i), inverseTransform(i)).validate() ) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	public Segment[] getBounds() {

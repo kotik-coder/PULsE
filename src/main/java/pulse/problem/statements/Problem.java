@@ -24,6 +24,7 @@ import pulse.problem.laser.DiscretePulse;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.Grid;
 import pulse.problem.schemes.solvers.Solver;
+import pulse.problem.schemes.solvers.SolverException;
 import pulse.problem.statements.model.ThermalProperties;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
@@ -199,7 +200,8 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
 	 */
 
 	public void estimateSignalRange(ExperimentalData c) {
-		final double signalHeight = c.maxAdjustedSignal() - baseline.valueAt(0);
+		var maxPoint = c.maxAdjustedSignal();
+		final double signalHeight = maxPoint.getY() - baseline.valueAt(maxPoint.getX());
 		properties.setMaximumTemperature(derive(MAXTEMP, signalHeight));
 	}
 
@@ -279,7 +281,12 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
 	 */
 
 	@Override
-	public void assign(ParameterVector params) {
+	public void assign(ParameterVector params) throws SolverException {
+		
+		if(!params.validate()) {
+			throw new SolverException("Parameter values not sensible");
+		}
+			
 		baseline.assign(params);
 		for (int i = 0, size = params.dimension(); i < size; i++) {
 

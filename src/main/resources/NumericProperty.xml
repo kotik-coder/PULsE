@@ -346,7 +346,7 @@
 		abbreviation="&lt;i&gt;t&lt;/i&gt;&lt;sub&gt;lim&lt;/sub&gt;"
 		auto-adjustable="true"
 		descriptor="End time, &lt;i&gt;t&lt;/i&gt;&lt;sub&gt;lim&lt;/sub&gt; (s)"
-		dimensionfactor="1.0" keyword="TIME_LIMIT" maximum="20.0"
+		dimensionfactor="1.0" keyword="TIME_LIMIT" maximum="100.0"
 		minimum="1.0E-6" value="1.0" primitive-type="double" discreet="true"
 		default-search-variable="false" />
 	<NumericProperty
@@ -438,11 +438,11 @@
 		auto-adjustable="true"
 		descriptor="Heat loss (side surface), Bi&lt;sub&gt;s&lt;/sub&gt;"
 		dimensionfactor="1.0" keyword="HEAT_LOSS_SIDE" maximum="10.0"
-		minimum="0.0" value="1E-3" primitive-type="double" discreet="false"
+		minimum="0.0" value="0.2" primitive-type="double" discreet="false"
 		default-search-variable="true" />
 	<NumericProperty keyword="HEAT_LOSS" abbreviation="Bi"
 		auto-adjustable="true" descriptor="Heat loss, Bi" dimensionfactor="1"
-		maximum="10" minimum="0.0" primitive-type="double" value="1E-3"
+		maximum="10" minimum="0.0" primitive-type="double" value="0.2"
 		discreet="false" default-search-variable="true">
 	</NumericProperty>
 	<NumericProperty abbreviation="Gain" auto-adjustable="false"

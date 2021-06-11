@@ -3,6 +3,7 @@ package pulse.search;
 import java.util.List;
 
 import pulse.math.ParameterVector;
+import pulse.problem.schemes.solvers.SolverException;
 import pulse.properties.Flag;
 
 /**
@@ -20,10 +21,11 @@ public interface Optimisable {
 	 * 
 	 * @param params the optimisation vector, containing a similar set of parameters
 	 *               to this {@code Problem}
+	 * @throws SolverException if {@code params} contains invalid parameter values
 	 * @see pulse.util.PropertyHolder.listedTypes()
 	 */
 
-	public void assign(ParameterVector params);
+	public void assign(ParameterVector params) throws SolverException;
 
 	/**
 	 * Calculates the vector argument defined on <math><b>R</b><sup>n</sup></math>

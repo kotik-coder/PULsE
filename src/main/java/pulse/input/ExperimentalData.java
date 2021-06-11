@@ -157,8 +157,8 @@ public class ExperimentalData extends AbstractData {
 
 		List<Point2D> crudeAverage = new ArrayList<>(count / reductionFactor);
 
-		int start = indexRange.getLowerBound();
-		int end = indexRange.getUpperBound();
+		int start	= indexRange.getLowerBound();
+		int end		= indexRange.getUpperBound();
 		
 		int step = (end - start) / (count / reductionFactor);
 		double av = 0;
@@ -193,9 +193,9 @@ public class ExperimentalData extends AbstractData {
 	 * @see pulse.problem.statements.Problem.estimateSignalRange(ExperimentalData)
 	 */
 
-	public double maxAdjustedSignal() {
+	public Point2D maxAdjustedSignal() {
 		var degraded = runningAverage(REDUCTION_FACTOR);
-		return (max(degraded, pointComparator)).getY();
+		return max(degraded, pointComparator);
 	}
 
 	/**
@@ -217,18 +217,14 @@ public class ExperimentalData extends AbstractData {
 	 */
 
 	public double halfRiseTime() {
-		var degraded = runningAverage(REDUCTION_FACTOR);
-		double max = (max(degraded, pointComparator)).getY();
-		var baseline = new FlatBaseline();
+		var degraded	= runningAverage(REDUCTION_FACTOR);
+		var max			= (max(degraded, pointComparator));
+		var baseline	= new FlatBaseline();
 		baseline.fitTo(this);
 
-		double halfMax = (max + baseline.valueAt(0)) / 2.0;
+		double halfMax = (max.getY() + baseline.valueAt(0)) / 2.0;
 		
-		int cutoffIndex = degraded.size() - 1;
-		
-		for(int i = cutoffIndex; i > 0 && degraded.get(i).getY() < halfMax; i--) 
-			cutoffIndex--;
-		
+		int cutoffIndex = degraded.indexOf(max);
 		degraded = degraded.subList(0, cutoffIndex);
 		
 		int index = IndexRange.closestLeft(halfMax,

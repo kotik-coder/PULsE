@@ -57,12 +57,13 @@ public class ProblemToolbar extends JToolBar {
 		// simulate btn listener
 
 		btnSimulate.addActionListener((ActionEvent e) -> {
+			if (instance.getSelectedTask() == null) 
+				instance.selectFirstTask();
+			
 			var t = instance.getSelectedTask();
-
-			if (t == null)
-				return;
-
+			
 			var calc = t.getCurrentCalculation();
+			
 			t.checkProblems(true);
 			var status = t.getCurrentCalculation().getStatus();
 			

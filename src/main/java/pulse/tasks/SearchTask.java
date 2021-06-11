@@ -48,6 +48,7 @@ import pulse.tasks.listeners.StatusChangeListener;
 import pulse.tasks.listeners.TaskRepositoryEvent;
 import pulse.tasks.logs.CorrelationLogEntry;
 import pulse.tasks.logs.DataLogEntry;
+import pulse.tasks.logs.Details;
 import pulse.tasks.logs.Log;
 import pulse.tasks.logs.LogEntry;
 import pulse.tasks.logs.StateEntry;
@@ -217,7 +218,14 @@ public class SearchTask extends Accessible implements Runnable {
 	 */
 
 	public void assign(ParameterVector searchParameters) {
-		current.getProblem().assign(searchParameters);
+		try {
+			current.getProblem().assign(searchParameters);
+		} catch (SolverException e) {
+			var status = FAILED;
+			status.setDetails(Details.PARAMETER_VALUES_NOT_SENSIBLE);
+			setStatus(status);
+			e.printStackTrace();
+		}
 		curve.getRange().assign(searchParameters);
 	}
 
@@ -282,7 +290,7 @@ public class SearchTask extends Accessible implements Runnable {
 		outer: do {
 
 			bufferFutures.clear();
-
+			
 			for (var i = 0; i < bufferSize; i++) {
 
 				if (current.getStatus() != IN_PROGRESS)
@@ -291,12 +299,14 @@ public class SearchTask extends Accessible implements Runnable {
 				int iter = 0;
 				
 				try {
-					for (boolean finished = false; !finished && iter < maxIterations; iter++)
-						finished = optimiser.iteration(this);
+					for (boolean finished = false; !finished && iter < maxIterations; iter++) {
+						finished	= optimiser.iteration(this);	
+					}
 				} catch (SolverException e) {
 					setStatus(FAILED);
 					System.err.println(this + " failed during execution. Details: ");
 					e.printStackTrace();
+					break outer;
 				}
 				
 				if(iter >= maxIterations) {

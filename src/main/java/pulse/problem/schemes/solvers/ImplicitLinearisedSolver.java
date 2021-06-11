@@ -116,6 +116,7 @@ public class ImplicitLinearisedSolver extends ImplicitScheme implements Solver<C
 		return (HH * getPreviousSolution()[N] + 2. * tau * betaN) / (2 * Bi1HTAU + HH - 2. * tau * (alphaN - 1));
 	}
 
+	
 	@Override
 	public DifferenceScheme copy() {
 		var grid = getGrid();

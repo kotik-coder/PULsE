@@ -10,6 +10,7 @@ import pulse.math.ParameterVector;
 import pulse.math.Segment;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.solvers.ImplicitTranslucentSolver;
+import pulse.problem.schemes.solvers.SolverException;
 import pulse.problem.statements.model.AbsorptionModel;
 import pulse.problem.statements.model.BeerLambertAbsorption;
 import pulse.properties.Flag;
@@ -94,7 +95,7 @@ public class PenetrationProblem extends ClassicalProblem {
 	}
 
 	@Override
-	public void assign(ParameterVector params) {
+	public void assign(ParameterVector params) throws SolverException {
 		super.assign(params);
 
 		double value;

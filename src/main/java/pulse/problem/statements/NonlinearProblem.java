@@ -17,6 +17,7 @@ import pulse.math.Segment;
 import pulse.math.transforms.AtanhTransform;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.ImplicitScheme;
+import pulse.problem.schemes.solvers.SolverException;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.Property;
@@ -96,11 +97,12 @@ public class NonlinearProblem extends ClassicalProblem {
 	 * 
 	 * @param params the optimisation vector, containing a similar set of parameters
 	 *               to this {@code Problem}
+	 * @throws SolverException 
 	 * @see listedTypes()
 	 */
 
 	@Override
-	public void assign(ParameterVector params) {
+	public void assign(ParameterVector params) throws SolverException {
 		super.assign(params);
 		var p = getProperties();
 

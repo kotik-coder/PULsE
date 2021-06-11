@@ -37,7 +37,8 @@ public class Launcher {
 	private final static boolean DEBUG = false;
 
 	private Launcher() {
-		arrangeErrorOutput();
+		if(!DEBUG) 
+			arrangeErrorOutput();
 		arrangeMessages();
 	}
 
@@ -82,9 +83,6 @@ public class Launcher {
 	}
 
 	private void arrangeErrorOutput() {
-		if (DEBUG)
-			return;
-
 		String path = Launcher.class.getProtectionDomain().getCodeSource().getLocation().getPath();
 		String decodedPath = "";
 		//

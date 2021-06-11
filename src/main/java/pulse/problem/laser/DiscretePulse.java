@@ -70,7 +70,7 @@ public class DiscretePulse {
 
 	public void recalculate() {
 		final double width = ((Number) pulse.getPulseWidth().getValue()).doubleValue();
-		discretePulseWidth = grid.gridTime(width, timeFactor);
+		discretePulseWidth = Math.max( grid.gridTime(width, timeFactor), grid.getTimeStep() );
 	}
 
 	/**

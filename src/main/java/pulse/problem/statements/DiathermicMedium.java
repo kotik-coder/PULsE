@@ -11,6 +11,7 @@ import pulse.math.Segment;
 import pulse.math.transforms.AtanhTransform;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.solvers.ImplicitDiathermicSolver;
+import pulse.problem.schemes.solvers.SolverException;
 import pulse.problem.statements.model.DiathermicProperties;
 import pulse.problem.statements.model.ThermalProperties;
 import pulse.properties.Flag;
@@ -80,7 +81,7 @@ public class DiathermicMedium extends ClassicalProblem {
 	}
 
 	@Override
-	public void assign(ParameterVector params) {
+	public void assign(ParameterVector params) throws SolverException {
 		super.assign(params);
 		var properties = (DiathermicProperties) this.getProperties();
 

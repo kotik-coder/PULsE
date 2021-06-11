@@ -14,6 +14,7 @@ import pulse.math.Segment;
 import pulse.math.transforms.InvDiamTransform;
 import pulse.math.transforms.InvLenSqTransform;
 import pulse.math.transforms.InvLenTransform;
+import pulse.problem.schemes.solvers.SolverException;
 import pulse.problem.statements.model.ExtendedThermalProperties;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
@@ -139,7 +140,7 @@ public class CoreShellProblem extends ClassicalProblem2D {
 	}
 
 	@Override
-	public void assign(ParameterVector params) {
+	public void assign(ParameterVector params) throws SolverException {
 		super.assign(params);
 		
 		for (int i = 0, size = params.dimension(); i < size; i++) {
