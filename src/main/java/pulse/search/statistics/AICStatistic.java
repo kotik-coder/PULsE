@@ -25,6 +25,10 @@ public class AICStatistic extends ModelSelectionCriterion {
 		return new AICStatistic(this);
 	}
 	
+	/**
+	 * @return the AIC penalising term.
+	 */
+	
 	@Override
 	public double penalisingTerm(final int kq, final int n) {
 		return 2.0 * (kq + 1);

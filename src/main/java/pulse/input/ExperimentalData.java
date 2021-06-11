@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import pulse.AbstractData;
-import pulse.baseline.FlatBaseline;
+import pulse.baseline.LinearBaseline;
 import pulse.input.listeners.DataEvent;
 import pulse.input.listeners.DataListener;
 import pulse.properties.NumericProperty;
@@ -219,11 +219,18 @@ public class ExperimentalData extends AbstractData {
 	public double halfRiseTime() {
 		var degraded = runningAverage(REDUCTION_FACTOR);
 		double max = (max(degraded, pointComparator)).getY();
-		var baseline = new FlatBaseline();
+		var baseline = new LinearBaseline();
 		baseline.fitTo(this);
 
 		double halfMax = (max + baseline.valueAt(0)) / 2.0;
-
+		
+		int cutoffIndex = degraded.size() - 1;
+		
+		for(int i = cutoffIndex; i > 0 && degraded.get(i).getY() < halfMax; i--) 
+			cutoffIndex--;
+		
+		degraded = degraded.subList(0, cutoffIndex);
+		
 		int index = IndexRange.closestLeft(halfMax,
 				degraded.stream().map(point -> point.getY()).collect(Collectors.toList()));
 

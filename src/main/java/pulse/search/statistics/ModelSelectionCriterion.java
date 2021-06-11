@@ -23,7 +23,7 @@ import pulse.util.PropertyEvent;
 public abstract class ModelSelectionCriterion extends Statistic {
 
 	private OptimiserStatistic os;
-	private int kq;
+	private int kq; 				//the number of parameters (dimensionality of the search vector)
 	private final static double PENALISATION_FACTOR = 1.0 + log(2 * PI);
 	private double criterion;
 	
@@ -40,9 +40,15 @@ public abstract class ModelSelectionCriterion extends Statistic {
 	
 	@Override
 	public void evaluate(SearchTask t) {
-		kq = t.alteredParameters().size(); //number of variables
+		kq = t.alteredParameters().size(); //number of parameters
 		calcCriterion();
 	}
+	
+	/**
+	 * This calculates either the AIC or BIC statistic, which only differ
+	 * by the penalising term.
+	 * @see penalisingTerm()
+	 */
 	
 	public void calcCriterion() {
 		final int n = os.getResiduals().size(); //sample size
@@ -61,10 +67,26 @@ public abstract class ModelSelectionCriterion extends Statistic {
 	
 	public abstract ModelSelectionCriterion copy();
 	
+	/**
+	 * Calculates the weight (in the Akaike sense) when comparing the model associated
+	 * with this statistic with other models represented by statistics of the same type. 
+	 * @param the selection statistics of the same type as this one
+	 * @return a {@code NumericProperty} of the {@code MODEL_WEIGHT} type, which is the probability
+	 * this model is the best one.
+	 */
+	
 	public NumericProperty weight(List<ModelSelectionCriterion> all) {
+		if(all.stream().anyMatch(s -> s.getClass() != this.getClass()))
+			throw new IllegalArgumentException("Cannot mix different model selection criteria!");
 		final double sum = all.stream().map(criterion -> criterion.probability(all)).reduce( (a, b) -> a + b).get();
 		return derive(MODEL_WEIGHT, probability(all)/sum);
 	}
+	
+	/**
+	 * Calculates the probability that this model is the best among {@code all} others. 
+	 * @param all statistics from models that will be compared with this one
+	 * @return the probability, which is a decimal value within the [0,1] range.
+	 */
 	
 	public double probability(List<ModelSelectionCriterion> all) {
 		final double min = all.stream().map(criterion -> (double)criterion.getStatistic().getValue()).reduce( (a, b) -> a < b ? a : b).get();

@@ -5,6 +5,13 @@ import static pulse.properties.NumericPropertyKeyword.OPTIMISER_STATISTIC;
 
 import pulse.tasks.SearchTask;
 
+/**
+ * This is an experimental feature. The objective function here is equal to the ordinary least-square (OLS)
+ * plus a penalising term proportional to the squared length of a search vector. This way, search vectors
+ * of lower dimensionality are favoured. 
+ *
+ */
+
 public class RegularisedLeastSquares extends OptimiserStatistic {
 
 	private double lambda = 1e-4;
@@ -20,6 +27,11 @@ public class RegularisedLeastSquares extends OptimiserStatistic {
 		sos = new SumOfSquares(rls.sos);
 		this.lambda = rls.lambda;
 	}
+	
+	/**
+	 * The lambda is the regularisation strength.
+	 * @return the lambda factor.
+	 */
 
 	public double getLambda() {
 		return lambda;
@@ -30,7 +42,9 @@ public class RegularisedLeastSquares extends OptimiserStatistic {
 	}
 	
 	/*
-	 * SSR with L2 regularisation
+	 * OLS with L2 regularisation. The penalisation term is equal to {@code lambda} times the 
+	 * L2 norm of the search vector. 
+	 * @see pulse.search.statistics.SumOfSquares
 	 */
 	
 	@Override

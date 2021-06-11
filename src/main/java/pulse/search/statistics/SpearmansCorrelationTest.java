@@ -3,7 +3,7 @@ package pulse.search.statistics;
 import org.apache.commons.math3.stat.correlation.SpearmansCorrelation;
 
 /**
- * Wrapper CorrelationTest class for ApacheCommonsMath Spearmans Correlation.
+ * Wrapper {@code CorrelationTest} class for ApacheCommonsMath Spearmans Correlation.
  *
  */
 

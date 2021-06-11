@@ -11,6 +11,17 @@ import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.tasks.SearchTask;
 
+/**
+ * A normality test is invoked after a task finishes, to validate its result.
+ * It may be used as an acceptance criterion for tasks.
+ * 
+ * For the test to pass, the model residuals need be distributed according
+ * to a (0, &sigma;) normal distribution, where &sigma; is the variance of the model residuals. As
+ * this is the pre-requisite for optimizers based on the ordinary least-square statistic, the normality
+ * test can also be used to estimate if a fit 'failed' or 'succeeded' in describing the data.  
+ *
+ */
+
 public abstract class NormalityTest extends ResidualStatistic {
 
 	private double statistic;

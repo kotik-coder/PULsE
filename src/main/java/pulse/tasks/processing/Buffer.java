@@ -19,7 +19,7 @@ import pulse.util.PropertyHolder;
 /**
  * A {@code Buffer} is used to estimate the convergence of the reverse problem
  * solution, by comparing the variance of the properties to a pre-specified
- * error tolerance.
+ * error tolerance. 
  * 
  * @see pulse.tasks.SearchTask.run()
  */
@@ -47,6 +47,10 @@ public class Buffer extends PropertyHolder {
 	public ParameterVector[] getData() {
 		return data;
 	}
+	
+	/*
+	 * Re-inits the storage.
+	 */
 
 	public void init() {
 		this.data = new ParameterVector[size];
@@ -55,7 +59,7 @@ public class Buffer extends PropertyHolder {
 
 	/**
 	 * (Over)writes a buffer cell corresponding to the {@code bufferElement} with
-	 * the current set of parameters of {@code SearchTask}.
+	 * the current set of parameters of {@code SearchTask} and the search statistic.
 	 * 
 	 * @param t             the {@code SearchTask}
 	 * @param bufferElement the {@code bufferElement} which will be written over
@@ -115,13 +119,12 @@ public class Buffer extends PropertyHolder {
 	}
 
 	/**
-	 * Calculated the average statistic value
+	 * Calculates the average statistic value
 	 * 
 	 * @return the mean statistic value.
 	 */
 
 	public double averageStatistic() {
-
 		double av = 0;
 
 		for (double ss : statistic) {
@@ -177,6 +180,11 @@ public class Buffer extends PropertyHolder {
 		Buffer.size = ((Number) newSize.getValue()).intValue();
 	}
 
+	/*
+	 * Sets the buffer size 
+	 * @param type @code{BUFFER_SIZE}
+	 */
+	
 	@Override
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
 		if (type == BUFFER_SIZE)

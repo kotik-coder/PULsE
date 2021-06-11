@@ -10,8 +10,20 @@ import pulse.tasks.SearchTask;
 import umontreal.ssj.gof.GofStat;
 import umontreal.ssj.probdist.NormalDist;
 
+/**
+ * The Anderson-Darling normality test. In this variant of the test, the mean and the variance
+ * are assumed to be known. 
+ *
+ */
+
 public class AndersonDarlingTest extends NormalityTest {
 
+	/**
+	 * This uses the SSJ statistical library to calculate the Anderson-Darling test
+	 * with the input parameters formed by the {@code task} residuals and a normal distribution
+	 * with zero mean and variance equal to the residuals variance.
+	 */
+	
 	@Override
 	public boolean test(SearchTask task) {
 		calculateResiduals(task);

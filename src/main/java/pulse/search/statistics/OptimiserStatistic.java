@@ -1,5 +1,11 @@
 package pulse.search.statistics;
 
+/**
+ * An Optimiser statistic is simply the objective function that is calculated
+ * by the Optimiser.
+ *
+ */
+
 public abstract class OptimiserStatistic extends ResidualStatistic {
 
 	private static String selectedOptimiserDescriptor;

@@ -2,6 +2,12 @@ package pulse.search.statistics;
 
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 
+/**
+ * Wrapper {@code CorrelationTest} class for ApacheCommonsMath Pearson Correlation.
+ *
+ */
+
+
 public class PearsonCorrelation extends CorrelationTest {
 
 	@Override

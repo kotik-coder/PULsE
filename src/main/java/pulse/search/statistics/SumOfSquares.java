@@ -33,14 +33,10 @@ public class SumOfSquares extends OptimiserStatistic {
 	 * <b>reference's</b> time list, which generally does not match to that of this
 	 * heating curve. The
 	 * <math><mover><mi>T</mi><mo>&#x23DE;</mo></mover><mo>(</mo><msub><mi>t</mi><mi>i</mi></msub><mo>)</mo></math>
-	 * is the interpolated value for this heating curve at the reference time. The
-	 * temperature value is interpolated using two nearest elements of the
-	 * <b>baseline-subtracted</b> temperature list. The value is interpolated using
-	 * the experimental time <math><i>t</i><sub>i</sub></math> and the nearest
-	 * solution points to that time. The accuracy of this interpolation depends on
-	 * the number of points. 
+	 * is the interpolated value. 
 	 * 
 	 * @param t The task containing the reference and calculated curves
+	 * @see calculateResiduals()
 	 */
 	
 	@Override

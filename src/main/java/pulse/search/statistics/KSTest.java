@@ -10,6 +10,11 @@ import org.apache.commons.math3.stat.inference.TestUtils;
 
 import pulse.tasks.SearchTask;
 
+/**
+ * The Kolmogorov-Smirnov normality test as implemented in {@code ApacheCommonsMath}.
+ *
+ */
+
 public class KSTest extends NormalityTest {
 
 	private double[] residuals;
@@ -21,7 +26,7 @@ public class KSTest extends NormalityTest {
 		setProbability(derive(PROBABILITY, TestUtils.kolmogorovSmirnovTest(nd, residuals)));
 		return significanceTest();
 	}
-
+	
 	@Override
 	public void evaluate(SearchTask t) {
 		calculateResiduals(t);
