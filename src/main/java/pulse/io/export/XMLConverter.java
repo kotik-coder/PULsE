@@ -177,8 +177,8 @@ public class XMLConverter {
 				Element eElement = (Element) nNode;
 				NumericPropertyKeyword keyword = NumericPropertyKeyword.valueOf(eElement.getAttribute("keyword"));
 				boolean autoAdjustable = Boolean.valueOf(eElement.getAttribute("auto-adjustable"));
-				boolean discreet = Boolean.valueOf(eElement.getAttribute("discreet"));
-				String descriptor = eElement.getAttribute("descriptor");
+				boolean discrete	= Boolean.valueOf(eElement.getAttribute("discreet"));
+				String descriptor	= eElement.getAttribute("descriptor");
 				String abbreviation = eElement.getAttribute("abbreviation");
 				boolean defSearch = Boolean.valueOf(eElement.getAttribute("default-search-variable"));
 
@@ -200,7 +200,7 @@ public class XMLConverter {
 				np.setDescriptor(descriptor);
 				np.setAbbreviation(abbreviation);
 				np.setAutoAdjustable(autoAdjustable);
-				np.setDiscreet(discreet);
+				np.setDiscrete(discrete);
 				np.setDefaultSearchVariable(defSearch);
 				properties.add(np);
 			}

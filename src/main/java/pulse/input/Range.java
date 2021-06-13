@@ -11,6 +11,7 @@ import java.util.List;
 
 import pulse.math.ParameterVector;
 import pulse.math.Segment;
+import pulse.problem.schemes.solvers.SolverException;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
@@ -170,8 +171,8 @@ public class Range extends PropertyHolder implements Optimisable {
 	@Override
 	public void optimisationVector(ParameterVector output, List<Flag> flags) {
 
-		double len = segment.length();
-		var bounds = new Segment(-0.25 * len, 0.25 * len);
+		var curve	 = (ExperimentalData)this.getParent();
+		Segment bounds;
 		
 		for (int i = 0, size = output.dimension(); i < size; i++) {
 
@@ -180,9 +181,12 @@ public class Range extends PropertyHolder implements Optimisable {
 			switch (key) {
 			case UPPER_BOUND:
 				output.set(i, segment.getMaximum());
+				var seq = curve.getTimeSequence();
+				bounds = new Segment( 1.1 * curve.maxAdjustedSignal().getX(), seq.get(seq.size() - 1) );
 				break;
 			case LOWER_BOUND:
 				output.set(i, segment.getMinimum());
+				bounds = new Segment( 0.0, 0.35 * curve.halfRiseTime() );
 				break;
 			default:
 				continue;			
@@ -198,11 +202,14 @@ public class Range extends PropertyHolder implements Optimisable {
 	 * Tries to assign the upper and lower bound based on {@code params}.
 	 * 
 	 * @param params an {@code IndexedVector} which may contain the bounds.
+	 * @throws SolverException 
 	 */
 
 	@Override
-	public void assign(ParameterVector params) {
-
+	public void assign(ParameterVector params) throws SolverException {
+		if(!params.validate())
+			throw new SolverException("Parameter values not sensible");
+		
 		NumericProperty p = null;
 
 		for (int i = 0, size = params.dimension(); i < size; i++) {
@@ -219,7 +226,7 @@ public class Range extends PropertyHolder implements Optimisable {
 			default:
 				continue;
 			}
-
+			
 		}
 
 	}

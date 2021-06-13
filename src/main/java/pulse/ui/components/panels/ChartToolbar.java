@@ -12,6 +12,9 @@ import static javax.swing.JOptionPane.YES_OPTION;
 import static javax.swing.JOptionPane.showConfirmDialog;
 import static javax.swing.JOptionPane.showOptionDialog;
 import static javax.swing.SwingUtilities.getWindowAncestor;
+import static pulse.properties.NumericProperties.derive;
+import static pulse.properties.NumericPropertyKeyword.LOWER_BOUND;
+import static pulse.properties.NumericPropertyKeyword.UPPER_BOUND;
 import static pulse.tasks.listeners.TaskRepositoryEvent.State.TASK_FINISHED;
 import static pulse.ui.Messages.getString;
 import static pulse.ui.frames.MainGraphFrame.getChart;
@@ -234,18 +237,24 @@ public class ChartToolbar extends JToolBar {
 		sb.append(getString("RangeSelectionFrame.ConfirmationMessage1"));
 		sb.append("</p><br>");
 		sb.append(getString("RangeSelectionFrame.ConfirmationMessage2"));
-		sb.append(expCurve.getEffectiveStartTime());
+		sb.append(format("%3.6f", expCurve.getEffectiveStartTime()));
 		sb.append(" to ");
-		sb.append(expCurve.getEffectiveEndTime());
+		sb.append(format("%3.6f", expCurve.getEffectiveEndTime()));
 		sb.append("<br><br>");
 		sb.append(getString("RangeSelectionFrame.ConfirmationMessage3"));
-		sb.append(format("%3.4f", a) + " to " + format("%3.4f", b));
+		sb.append(format("%3.6f", a) + " to " + format("%3.6f", b));
 		sb.append("</html>");
 
 		var dialogResult = showConfirmDialog(getWindowAncestor(this), sb.toString(), "Confirm chocie", YES_NO_OPTION);
 
-		if (dialogResult == YES_OPTION)
-			expCurve.setRange(new Range(a, b));
+		if (dialogResult == YES_OPTION) {
+			if(expCurve.getRange() == null)
+				expCurve.setRange(new Range(a, b));
+			else {
+				expCurve.getRange().setLowerBound(derive(LOWER_BOUND, a));
+				expCurve.getRange().setUpperBound(derive(UPPER_BOUND, b));
+			}
+		}
 
 	}
 

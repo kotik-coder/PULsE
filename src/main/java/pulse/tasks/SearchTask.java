@@ -220,13 +220,13 @@ public class SearchTask extends Accessible implements Runnable {
 	public void assign(ParameterVector searchParameters) {
 		try {
 			current.getProblem().assign(searchParameters);
+			curve.getRange().assign(searchParameters);
 		} catch (SolverException e) {
 			var status = FAILED;
 			status.setDetails(Details.PARAMETER_VALUES_NOT_SENSIBLE);
 			setStatus(status);
 			e.printStackTrace();
 		}
-		curve.getRange().assign(searchParameters);
 	}
 
 	/**

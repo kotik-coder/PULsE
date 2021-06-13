@@ -71,11 +71,11 @@ public abstract class ResidualStatistic extends Statistic {
 
 		var s = estimate.getSplineInterpolation();
 
-		int startIndex = max(closestLeft(estimate.timeAt(0), time), indexRange.getLowerBound());
-		int endIndex = min(closestRight(estimate.timeLimit(), time), indexRange.getUpperBound());
-
-		double interpolated;
+		int startIndex	= max(closestLeft(estimate.timeAt(0), time), indexRange.getLowerBound());
+		int endIndex	= min(closestRight(estimate.timeLimit(), time), indexRange.getUpperBound());
 		
+		double interpolated;
+				
 		for (int i = startIndex; i <= endIndex; i++) {
 			/*
 			 * find the point on the calculated heating curve which has the closest time

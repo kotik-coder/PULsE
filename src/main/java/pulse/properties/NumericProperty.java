@@ -38,7 +38,7 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
 	private NumericPropertyKeyword type;
 
 	private boolean autoAdjustable;
-	private boolean discreet;
+	private boolean discrete;
 	private boolean defaultSearchVariable;
 
 	/**
@@ -82,14 +82,17 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
 	 */
 
 	public NumericProperty(NumericProperty num) {
-		this.value = num.value;
-		this.descriptor = num.descriptor;
-		this.abbreviation = num.abbreviation;
-		this.minimum = num.minimum;
-		this.maximum = num.maximum;
-		this.type = num.type;
+		this.value			= num.value;
+		this.descriptor		= num.descriptor;
+		this.abbreviation	= num.abbreviation;
+		this.minimum		= num.minimum;
+		this.maximum		= num.maximum;
+		this.type 			= num.type;
+		this.discrete		= num.discrete;
 		this.dimensionFactor = num.dimensionFactor;
-		this.autoAdjustable = num.autoAdjustable;
+		this.autoAdjustable  = num.autoAdjustable;
+		this.error			 = num.error;
+		this.defaultSearchVariable = num.defaultSearchVariable;
 	}
 
 	public NumericPropertyKeyword getType() {
@@ -270,11 +273,11 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
 	}
 
 	public boolean isDiscrete() {
-		return discreet;
+		return discrete;
 	}
 
-	public void setDiscreet(boolean discreet) {
-		this.discreet = discreet;
+	public void setDiscrete(boolean discrete) {
+		this.discrete = discrete;
 	}
 
 	@Override

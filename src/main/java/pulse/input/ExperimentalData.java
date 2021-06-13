@@ -2,7 +2,6 @@ package pulse.input;
 
 import static java.lang.Double.valueOf;
 import static java.util.Collections.max;
-import static pulse.input.listeners.DataEventType.TRUNCATED;
 import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.NUMPOINTS;
 import static pulse.properties.NumericPropertyKeyword.PULSE_WIDTH;
@@ -18,6 +17,7 @@ import java.util.stream.Collectors;
 import pulse.AbstractData;
 import pulse.baseline.FlatBaseline;
 import pulse.input.listeners.DataEvent;
+import pulse.input.listeners.DataEventType;
 import pulse.input.listeners.DataListener;
 import pulse.properties.NumericProperty;
 import pulse.ui.Messages;
@@ -301,10 +301,7 @@ public class ExperimentalData extends AbstractData {
 		final double halfMaximum = halfRiseTime();
 		final double cutoff = CUTOFF_FACTOR * halfMaximum;
 
-		this.range.setUpperBound(derive(UPPER_BOUND, cutoff));
-		this.indexRange.set(getTimeSequence(), range);
-
-		fireDataChanged(new DataEvent(TRUNCATED, this));
+		this.range.setUpperBound(derive(UPPER_BOUND, cutoff));;
 	}
 
 	/**
@@ -407,8 +404,10 @@ public class ExperimentalData extends AbstractData {
 		indexRange.set(time, range);
 
 		addHierarchyListener(l -> {
-			if (l.getSource() == range)
+			if (l.getSource() == range) {
 				indexRange.set(time, range);
+				this.fireDataChanged(new DataEvent(DataEventType.RANGE_CHANGED, this));
+			}
 		});
 
 		if (metadata != null)

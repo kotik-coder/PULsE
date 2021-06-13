@@ -281,12 +281,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
 	 */
 
 	@Override
-	public void assign(ParameterVector params) throws SolverException {
-		
-		if(!params.validate()) {
-			throw new SolverException("Parameter values not sensible");
-		}
-			
+	public void assign(ParameterVector params) throws SolverException {	
 		baseline.assign(params);
 		for (int i = 0, size = params.dimension(); i < size; i++) {
 

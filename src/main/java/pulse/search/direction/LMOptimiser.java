@@ -15,6 +15,7 @@ import pulse.math.linear.RectangularMatrix;
 import pulse.math.linear.SquareMatrix;
 import pulse.math.linear.Vector;
 import pulse.problem.schemes.solvers.SolverException;
+import pulse.properties.NumericProperties;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
@@ -174,10 +175,14 @@ public class LMOptimiser extends GradientBasedOptimiser {
 
 		var jacobian = new double[numPoints][numParams];
 
-		final double dx = super.getGradientStep();
+		final double resolutionHigh = super.getGradientStep();
+		final double resolutionLow  = 1E-2; //TODO 
 		
 		for (int i = 0; i < numParams; i++) {
 
+			boolean discrete = NumericProperties.def(params.getIndex(i)).isDiscrete();
+			double dx		 = (discrete ? resolutionLow : resolutionHigh) * params.get(i);
+			
 			final var shift = new Vector(numParams);
 			shift.set(i, 0.5 * dx);
 
@@ -191,7 +196,7 @@ public class LMOptimiser extends GradientBasedOptimiser {
 			task.solveProblemAndCalculateCost();
 			var r2 = residualVector(residualCalculator);
 
-			for (int j = 0; j < numPoints; j++) {
+			for (int j = 0, realNumPoints = Math.min(numPoints, r2.length); j < realNumPoints; j++) {
 
 				jacobian[j][i] = (r1[j] - r2[j]) / dx;
 
@@ -217,8 +222,8 @@ public class LMOptimiser extends GradientBasedOptimiser {
 	}
 
 	private Vector halfGradient(LMPath path) {
-		var jacobian = path.getJacobian();
-		var residuals = path.getResidualVector();
+		var jacobian	= path.getJacobian();
+		var residuals	= path.getResidualVector();
 		return jacobian.transpose().multiply(new Vector(residuals));
 	}
 

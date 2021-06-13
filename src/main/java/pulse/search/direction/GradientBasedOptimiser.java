@@ -11,6 +11,7 @@ import java.util.List;
 import pulse.math.ParameterVector;
 import pulse.math.linear.Vector;
 import pulse.problem.schemes.solvers.SolverException;
+import pulse.properties.NumericProperties;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
@@ -78,11 +79,14 @@ public abstract class GradientBasedOptimiser extends PathOptimiser {
 		final var params = task.searchVector();
 		var grad = new Vector(params.dimension());
 
-		boolean discreteGradient = params.getIndices().stream().anyMatch(index -> isDiscrete(index));
-		final double dxGrid = task.getCurrentCalculation().getScheme().getGrid().getXStep();
-		final double dx = discreteGradient ? dxGrid : gradientResolution;
 
+		final double resolutionHigh = (double) getGradientResolution().getValue();
+		final double resolutionLow  = 5E-2; //TODO 
+		
 		for (int i = 0; i < params.dimension(); i++) {
+			boolean discrete = NumericProperties.def(params.getIndex(i)).isDiscrete();
+			double dx		 = (discrete ? resolutionLow : resolutionHigh) * params.get(i);			
+			
 			final var shift = new Vector(params.dimension());
 			shift.set(i, 0.5 * dx);
 
