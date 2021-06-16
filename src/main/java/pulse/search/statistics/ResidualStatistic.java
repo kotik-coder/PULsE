@@ -41,8 +41,7 @@ public abstract class ResidualStatistic extends Statistic {
 	}
 	
 	public double[] transformResiduals() {
-		return getResiduals().stream().map(doubleArray -> doubleArray[1])
-				.mapToDouble(Double::doubleValue).toArray();
+		return getResiduals().stream().mapToDouble(doubleArray -> doubleArray[1]).toArray();
 	}
 	
 	/**
