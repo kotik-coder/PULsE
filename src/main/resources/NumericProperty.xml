@@ -437,12 +437,12 @@
 	<NumericProperty abbreviation="Bi&lt;sub&gt;s&lt;/sub&gt;"
 		auto-adjustable="true"
 		descriptor="Heat loss (side surface), Bi&lt;sub&gt;s&lt;/sub&gt;"
-		dimensionfactor="1.0" keyword="HEAT_LOSS_SIDE" maximum="10.0"
+		dimensionfactor="1.0" keyword="HEAT_LOSS_SIDE" maximum="40.0"
 		minimum="0.0" value="0.2" primitive-type="double" discreet="false"
 		default-search-variable="true" ></NumericProperty>
 	<NumericProperty keyword="HEAT_LOSS" abbreviation="Bi"
 		auto-adjustable="true" descriptor="Heat loss, Bi" dimensionfactor="1"
-		maximum="10" minimum="0.0" primitive-type="double" value="0.2"
+		maximum="40" minimum="0.0" primitive-type="double" value="0.2"
 		discreet="false" default-search-variable="true">
 	</NumericProperty>
 	<NumericProperty abbreviation="Gain" auto-adjustable="false"
