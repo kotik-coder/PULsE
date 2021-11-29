@@ -225,12 +225,21 @@ public enum NumericPropertyKeyword {
 	HEAT_LOSS_SIDE,
 
 	/**
-	 * A general keyword for the coefficient of heat losses. Indicates primarily
-	 * those on the front and rear faces.
+	 * The coefficient of heat losses from the front and rear surfaces of the sample
+	 * (1D and 2D problems).
 	 */
 
 	HEAT_LOSS,
+        
+        /**
+         * A directive for the optimiser to maintain equal heat losses on all
+         * surfaces of the sample. Note that the dimensionless heat losses, 
+         * i.e. Biot numbers, will differ due to different areas of the side and
+         * front/rear surfaces.
+         */
 
+        HEAT_LOSS_COMBINED,
+        
 	/**
 	 * Search iteration.
 	 */
@@ -261,6 +270,12 @@ public enum NumericPropertyKeyword {
 	
 	THERMAL_ABSORPTIVITY,
 
+      	/**
+	 * A directive to the optimiser informing both front and rear side absorptivities must be equal.
+	 */	
+        
+        COMBINED_ABSORPTIVITY,
+        
 	/**
 	 * Reflectance of the sample (0 &lt; R &le; 1).
 	 */

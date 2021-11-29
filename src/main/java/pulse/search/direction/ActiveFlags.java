@@ -18,86 +18,89 @@ import pulse.tasks.TaskManager;
 
 public class ActiveFlags {
 
-	private static List<Flag> problemIndependentFlags = allProblemIndependentFlags();
-	private static List<Flag> problemDependentFlags = allProblemDependentFlags();
-	
-	private ActiveFlags() {
-		//empty constructor
-	}
-	
-	public static void reset() {
-		problemDependentFlags = allProblemDependentFlags();
-		problemIndependentFlags = allProblemIndependentFlags();
-	}
-	
-	public static List<Flag> getAllFlags() {
-		var newList = new ArrayList<Flag>();
-		newList.addAll(problemDependentFlags);
-		newList.addAll(problemIndependentFlags);
-		return newList;
-	}
-	
-	public static void listAvailableProperties(List<Property> list) {
-		list.addAll(problemIndependentFlags);
+    private static List<Flag> problemIndependentFlags = allProblemIndependentFlags();
+    private static List<Flag> problemDependentFlags = allProblemDependentFlags();
 
-		var t = TaskManager.getManagerInstance().getSelectedTask();
+    private ActiveFlags() {
+        //empty constructor
+    }
 
-		if (t != null) {
-			var p = t.getCurrentCalculation().getProblem();
+    public static void reset() {
+        problemDependentFlags = allProblemDependentFlags();
+        problemIndependentFlags = allProblemIndependentFlags();
+    }
 
-			if (p != null) {
+    public static List<Flag> getAllFlags() {
+        var newList = new ArrayList<Flag>();
+        newList.addAll(problemDependentFlags);
+        newList.addAll(problemIndependentFlags);
+        return newList;
+    }
 
-				var params = p.listedTypes().stream().filter(pp -> pp instanceof NumericProperty)
-						.map(pMap -> ((NumericProperty) pMap).getType()).collect(Collectors.toList());
+    public static void listAvailableProperties(List<Property> list) {
+        list.addAll(problemIndependentFlags);
 
-				NumericPropertyKeyword key;
+        var t = TaskManager.getManagerInstance().getSelectedTask();
 
-				for (Flag property : problemDependentFlags) {
-					key = property.getType();
-					if (params.contains(key))
-						list.add(property);
+        if (t != null) {
+            var p = t.getCurrentCalculation().getProblem();
 
-				}
+            if (p != null) {
 
-			}
-		} else {
-			for (Flag property : problemDependentFlags) {
-				list.add(property);
-			}
-		}
-	}
-	
-	/**
-	 * Finds what properties are being altered in the search
-	 * 
-	 * @return a {@code List} of property types represented by
-	 *         {@code NumericPropertyKeyword}s
-	 */
+                var params = p.listedTypes().stream().filter(pp
+                        -> pp instanceof NumericProperty)
+                        .map(pMap -> ((NumericProperty) pMap)
+                        .getType()).collect(
+                        Collectors.toList());
 
-	public static List<NumericPropertyKeyword> activeParameters(SearchTask t) {
-		Problem p = t.getCurrentCalculation().getProblem();
+                NumericPropertyKeyword key;
 
-		var list = new ArrayList<NumericPropertyKeyword>();
-		list.addAll(selectActiveAndListed(problemDependentFlags, p));
-		list.addAll(selectActiveTypes(problemIndependentFlags));
-		return list;
-	}
-	
-	public static List<NumericPropertyKeyword> selectActiveAndListed(List<Flag> flags, Problem listed) {
-		return selectActiveTypes(flags).stream().filter(type -> listed.isListedNumericType(type))
-				.collect(Collectors.toList());
-	}
+                for (Flag property : problemDependentFlags) {
+                    key = property.getType();
+                    if (params.contains(key)) {
+                        list.add(property);
+                    }
 
-	public static List<NumericPropertyKeyword> selectActiveTypes(List<Flag> flags) {
-		return selectActive(flags).stream().map(flag -> flag.getType()).collect(Collectors.toList());
-	}
+                }
 
-	public static List<Flag> getProblemIndependentFlags() {
-		return problemIndependentFlags;
-	}
+            }
+        } else {
+            for (Flag property : problemDependentFlags) {
+                list.add(property);
+            }
+        }
+    }
 
-	public static List<Flag> getProblemDependentFlags() {
-		return problemDependentFlags;
-	}
-	
+    /**
+     * Finds what properties are being altered in the search
+     *
+     * @return a {@code List} of property types represented by
+     * {@code NumericPropertyKeyword}s
+     */
+    public static List<NumericPropertyKeyword> activeParameters(SearchTask t) {
+        Problem p = t.getCurrentCalculation().getProblem();
+
+        var list = new ArrayList<NumericPropertyKeyword>();
+        list.addAll(selectActiveAndListed(problemDependentFlags, p));
+        list.addAll(selectActiveTypes(problemIndependentFlags));
+        return list;
+    }
+
+    public static List<NumericPropertyKeyword> selectActiveAndListed(List<Flag> flags, Problem listed) {
+        return selectActiveTypes(flags).stream().filter(type -> listed.isListedNumericType(type))
+                .collect(Collectors.toList());
+    }
+
+    public static List<NumericPropertyKeyword> selectActiveTypes(List<Flag> flags) {
+        return selectActive(flags).stream().map(flag -> flag.getType()).collect(Collectors.toList());
+    }
+
+    public static List<Flag> getProblemIndependentFlags() {
+        return problemIndependentFlags;
+    }
+
+    public static List<Flag> getProblemDependentFlags() {
+        return problemDependentFlags;
+    }
+
 }
