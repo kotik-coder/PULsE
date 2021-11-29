@@ -12,39 +12,41 @@ import pulse.properties.Property;
 
 public class Insulator extends AbsorptionModel {
 
-	protected double R;
+    private double R;
 
-	public Insulator() {
-		R = (double) def(REFLECTANCE).getValue();
-	}
+    public Insulator() {
+        super();
+        R = (double) def(REFLECTANCE).getValue();
+    }
 
-	@Override
-	public double absorption(SpectralRange spectrum, double x) {
-		double a = (double) (this.getAbsorptivity(spectrum).getValue());
-		return a * (Math.exp(-a * x) - R * Math.exp(-a * (2.0 - x))) / (1.0 - R * R * Math.exp(-2.0 * a));
-	}
+    @Override
+    public double absorption(SpectralRange spectrum, double x) {
+        double a = (double) (this.getAbsorptivity(spectrum).getValue());
+        return a * (Math.exp(-a * x) - R * Math.exp(-a * (2.0 - x))) / (1.0 - R * R * Math.exp(-2.0 * a));
+    }
 
-	public NumericProperty getReflectance() {
-		return derive(REFLECTANCE, R);
-	}
+    public NumericProperty getReflectance() {
+        return derive(REFLECTANCE, R);
+    }
 
-	public void setReflectance(NumericProperty a) {
-		this.R = (double) a.getValue();
+    public void setReflectance(NumericProperty a) {
+        NumericProperty.requireType(a, REFLECTANCE);
+        this.R = (double) a.getValue();
+    }
 
-	}
+    @Override
+    public void set(NumericPropertyKeyword type, NumericProperty property) {
+        super.set(type, property);
+        if (type == REFLECTANCE) {
+            setReflectance(property);
+        }
+    }
 
-	@Override
-	public void set(NumericPropertyKeyword type, NumericProperty property) {
-		super.set(type, property);
-		if (type == REFLECTANCE)
-			R = ((Number) property.getValue()).doubleValue();
-	}
-
-	@Override
-	public List<Property> listedTypes() {
-		List<Property> list = super.listedTypes();
-		list.add(def(REFLECTANCE));
-		return list;
-	}
+    @Override
+    public List<Property> listedTypes() {
+        List<Property> list = super.listedTypes();
+        list.add(def(REFLECTANCE));
+        return list;
+    }
 
 }

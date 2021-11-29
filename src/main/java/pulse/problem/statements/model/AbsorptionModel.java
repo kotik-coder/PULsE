@@ -12,6 +12,7 @@ import java.util.Map;
 
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
+import static pulse.properties.NumericPropertyKeyword.COMBINED_ABSORPTIVITY;
 import pulse.properties.Property;
 import pulse.util.PropertyHolder;
 import pulse.util.Reflexive;
@@ -36,6 +37,10 @@ public abstract class AbsorptionModel extends PropertyHolder implements Reflexiv
 	public NumericProperty getThermalAbsorptivity() {
 		return absorptionMap.get(THERMAL);
 	}
+        
+        public NumericProperty getCombinedAbsorptivity() {
+		return getThermalAbsorptivity();
+	}
 
 	public NumericProperty getAbsorptivity(SpectralRange spectrum) {
 		return absorptionMap.get(spectrum);
@@ -52,6 +57,11 @@ public abstract class AbsorptionModel extends PropertyHolder implements Reflexiv
 	public void setThermalAbsorptivity(NumericProperty a) {
 		absorptionMap.put(THERMAL, a);
 	}
+        
+        public void setCombinedAbsorptivity(NumericProperty a) {
+            setThermalAbsorptivity(a);
+            setLaserAbsorptivity(a);
+	}
 
 	@Override
 	public void set(NumericPropertyKeyword type, NumericProperty property) {
@@ -62,6 +72,9 @@ public abstract class AbsorptionModel extends PropertyHolder implements Reflexiv
 			break;
 		case THERMAL_ABSORPTIVITY:
 			absorptionMap.put(THERMAL, property);
+			break;
+    		case COMBINED_ABSORPTIVITY:
+			setCombinedAbsorptivity(property);
 			break;
 		default:
 			break;
@@ -79,6 +92,7 @@ public abstract class AbsorptionModel extends PropertyHolder implements Reflexiv
 		List<Property> list = super.listedTypes();
 		list.add(def(LASER_ABSORPTIVITY));
 		list.add(def(THERMAL_ABSORPTIVITY));
+                list.add(def(COMBINED_ABSORPTIVITY));
 		return list;
 	}
 

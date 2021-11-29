@@ -24,265 +24,258 @@ import pulse.util.PropertyHolder;
  * and intensities based on the discrete ordinates method.
  *
  */
-
 public class Discretisation extends PropertyHolder {
 
-	private DiscreteQuantities quantities;
-	private StretchedGrid grid;
-	private OrdinateSet ordinates;
-	private DiscreteSelector<OrdinateSet> quadSelector;
+    private DiscreteQuantities quantities;
+    private StretchedGrid grid;
+    private OrdinateSet ordinates;
+    private DiscreteSelector<OrdinateSet> quadSelector;
 
-	private double emissivity;
-	private double boundaryFluxFactor;
+    private double emissivity;
+    private double boundaryFluxFactor;
 
-	/**
-	 * Constructs a {@code DiscreteIntensities} with the default {@code OrdinateSet}
-	 * and a new uniform grid.
-	 * 
-	 * @param problem the problem statement
-	 */
+    /**
+     * Constructs a {@code DiscreteIntensities} with the default
+     * {@code OrdinateSet} and a new uniform grid.
+     *
+     * @param problem the problem statement
+     */
+    public Discretisation(ParticipatingMedium problem) {
 
-	public Discretisation(ParticipatingMedium problem) {
-		
-		quadSelector = new DiscreteSelector<>(QuadratureReader.getInstance(), "/quadratures/",
-				"Quadratures.list");
-		quadSelector.setDefaultSelection(OrdinateSet.DEFAULT_SET);
-		ordinates = quadSelector.getDefaultSelection();
-		quadSelector.addListener(() -> {
-			ordinates = (OrdinateSet)quadSelector.getValue();
-			quantities.init(grid.getDensity(), ordinates.getTotalNodes());
-		});
-		
-		var properties = (ThermoOpticalProperties) problem.getProperties();
-		setGrid(new StretchedGrid((double) properties.getOpticalThickness().getValue()));
-		quantities = new DiscreteQuantities(grid.getDensity(), ordinates.getTotalNodes());
-		setEmissivity((double) problem.getProperties().getEmissivity().getValue());
-	}
+        quadSelector = new DiscreteSelector<>(QuadratureReader.getInstance(), "/quadratures/",
+                "Quadratures.list");
+        quadSelector.setDefaultSelection(OrdinateSet.DEFAULT_SET);
+        ordinates = quadSelector.getDefaultSelection();
+        quadSelector.addListener(() -> {
+            ordinates = (OrdinateSet) quadSelector.getValue();
+            quantities.init(grid.getDensity(), ordinates.getTotalNodes());
+            this.firePropertyChanged(this, quadSelector);
+        });
 
-	/**
-	 * Calculates the incident radiation <math>&#8721;<sub>i</sub><i>w<sub>i</sub>
-	 * I<sub>ij</sub></i></math>, which is the zeroth moment of the intensities. The
-	 * calculation uses the symmetry of the quadrature weights for positive and
-	 * negativ nodes.
-	 * 
-	 * @param j spatial index
-	 * @return the incident radiation at {@code j}
-	 */
+        var properties = (ThermoOpticalProperties) problem.getProperties();
+        setGrid(new StretchedGrid((double) properties.getOpticalThickness().getValue()));
+        quantities = new DiscreteQuantities(grid.getDensity(), ordinates.getTotalNodes());
+        setEmissivity((double) problem.getProperties().getEmissivity().getValue());
+    }
 
-	public double incidentRadation(final int j) {
-		double integral = 0;
+    /**
+     * Calculates the incident radiation
+     * <math>&#8721;<sub>i</sub><i>w<sub>i</sub>
+     * I<sub>ij</sub></i></math>, which is the zeroth moment of the intensities.
+     * The calculation uses the symmetry of the quadrature weights for positive
+     * and negativ nodes.
+     *
+     * @param j spatial index
+     * @return the incident radiation at {@code j}
+     */
+    public double incidentRadation(final int j) {
+        double integral = 0;
 
-		final int nHalf = ordinates.getFirstNegativeNode();
-		final int nStart = ordinates.getFirstPositiveNode();
+        final int nHalf = ordinates.getFirstNegativeNode();
+        final int nStart = ordinates.getFirstPositiveNode();
 
-		// uses symmetry
-		for (int i = nStart; i < nHalf; i++) {
-			integral += ordinates.getWeight(i)
-					* (quantities.getIntensity(j, i) + quantities.getIntensity(j, i + nHalf));
-		}
+        // uses symmetry
+        for (int i = nStart; i < nHalf; i++) {
+            integral += ordinates.getWeight(i)
+                    * (quantities.getIntensity(j, i) + quantities.getIntensity(j, i + nHalf));
+        }
 
-		if (ordinates.hasZeroNode())
-			integral += ordinates.getWeight(0) * quantities.getIntensity(j, 0);
+        if (ordinates.hasZeroNode()) {
+            integral += ordinates.getWeight(0) * quantities.getIntensity(j, 0);
+        }
 
-		return integral;
-	}
+        return integral;
+    }
 
-	/**
-	 * Calculates the incident radiation <math>&#8721;<sub>i</sub><i>w<sub>i</sub>
-	 * I<sub>ij</sub></i></math>, by performing simple summation for node points
-	 * between {@code startInclusive} and {@code endExclusive}.
-	 * 
-	 * @param j              spatial index
-	 * @param startInclusive lower bound for summation
-	 * @param endExclusive   upper bound (exclusive) for summation
-	 * @return the partial incident radiation at {@code j}
-	 * @see pulse.problem.schemes.rte.dom.LinearAnisotropicPF
-	 */
+    /**
+     * Calculates the incident radiation
+     * <math>&#8721;<sub>i</sub><i>w<sub>i</sub>
+     * I<sub>ij</sub></i></math>, by performing simple summation for node points
+     * between {@code startInclusive} and {@code endExclusive}.
+     *
+     * @param j spatial index
+     * @param startInclusive lower bound for summation
+     * @param endExclusive upper bound (exclusive) for summation
+     * @return the partial incident radiation at {@code j}
+     * @see pulse.problem.schemes.rte.dom.LinearAnisotropicPF
+     */
+    public double incidentRadiation(final int j, final int startInclusive, final int endExclusive) {
+        double integral = 0;
 
-	public double incidentRadiation(final int j, final int startInclusive, final int endExclusive) {
-		double integral = 0;
+        for (int i = startInclusive; i < endExclusive; i++) {
+            integral += ordinates.getWeight(i) * quantities.getIntensity(j, i);
+        }
 
-		for (int i = startInclusive; i < endExclusive; i++) {
-			integral += ordinates.getWeight(i) * quantities.getIntensity(j, i);
-		}
+        return integral;
 
-		return integral;
+    }
 
-	}
+    /**
+     * Calculates the first moment
+     * <math>&#8721;<sub>i</sub><i>w<sub>i</sub>&mu;<sub>i</sub>ext<sub>ij</sub></i></math>,
+     * which can be applied e.g. for flux or flux derivative calculation. The
+     * calculation uses the symmetry of the quadrature weights for positive and
+     * negativ nodes.
+     *
+     * @param j spatial index
+     * @return the first moment at {@code j}
+     */
+    public double firstMoment(final double[][] ext, final int j) {
+        double integral = 0;
 
-	/**
-	 * Calculates the first moment
-	 * <math>&#8721;<sub>i</sub><i>w<sub>i</sub>&mu;<sub>i</sub>ext<sub>ij</sub></i></math>,
-	 * which can be applied e.g. for flux or flux derivative calculation. The
-	 * calculation uses the symmetry of the quadrature weights for positive and
-	 * negativ nodes.
-	 * 
-	 * @param j spatial index
-	 * @return the first moment at {@code j}
-	 */
+        final int nHalf = ordinates.getFirstNegativeNode();
+        final int nStart = ordinates.getFirstPositiveNode();
 
-	public double firstMoment(final double[][] ext, final int j) {
-		double integral = 0;
+        // uses symmetry
+        for (int i = nStart; i < nHalf; i++) {
+            integral += ordinates.getWeight(i) * (ext[j][i] - ext[j][i + nHalf]) * ordinates.getNode(i);
+        }
 
-		final int nHalf = ordinates.getFirstNegativeNode();
-		final int nStart = ordinates.getFirstPositiveNode();
+        return integral;
+    }
 
-		// uses symmetry
-		for (int i = nStart; i < nHalf; i++) {
-			integral += ordinates.getWeight(i) * (ext[j][i] - ext[j][i + nHalf]) * ordinates.getNode(i);
-		}
+    /**
+     * Calculates the net flux at {@code j}.
+     *
+     * @param j the spatial coordinate
+     * @return the flux
+     * @see firstMoment(double[][],int)
+     */
+    public double flux(final int j) {
+        return firstMoment(quantities.getIntensities(), j);
+    }
 
-		return integral;
-	}
+    /**
+     * Calculates the partial flux by performing a simple summation bounded by
+     * the arguments.
+     *
+     * @param j the spatial index
+     * @param startInclusive node index lower bound
+     * @param endExclusive node index upper bound (exclusive)
+     * @return the partial flux
+     */
+    public double flux(final int j, final int startInclusive, final int endExclusive) {
+        double integral = 0;
 
-	/**
-	 * Calculates the net flux at {@code j}.
-	 * 
-	 * @param j the spatial coordinate
-	 * @return the flux
-	 * @see firstMoment(double[][],int)
-	 */
+        for (int i = startInclusive; i < endExclusive; i++) {
+            integral += ordinates.getWeight(i) * quantities.getIntensity(j, i) * ordinates.getNode(i);
+        }
 
-	public double flux(final int j) {
-		return firstMoment(quantities.getIntensities(), j);
-	}
+        return integral;
+    }
 
-	/**
-	 * Calculates the partial flux by performing a simple summation bounded by the
-	 * arguments.
-	 * 
-	 * @param j              the spatial index
-	 * @param startInclusive node index lower bound
-	 * @param endExclusive   node index upper bound (exclusive)
-	 * @return the partial flux
-	 */
+    /**
+     * Calculates the flux at the left boundary using an alternative formula.
+     *
+     * @param emissionFunction the emission function
+     * @return the net flux at the left boundary
+     */
+    public double fluxLeft(final BlackbodySpectrum emissionFunction) {
+        final int nHalf = ordinates.getFirstNegativeNode();
+        return emissivity * PI * (emissionFunction.radianceAt(0.0) + 2.0 * flux(0, nHalf, ordinates.getTotalNodes()));
+    }
 
-	public double flux(final int j, final int startInclusive, final int endExclusive) {
-		double integral = 0;
+    /**
+     * Calculates the flux at the right boundary using an alternative formula.
+     *
+     * @param emissionFunction the emission function
+     * @return the net flux at the right boundary
+     */
+    public double fluxRight(final BlackbodySpectrum emissionFunction) {
+        final int nHalf = ordinates.getFirstNegativeNode();
+        final int nStart = ordinates.getFirstPositiveNode();
+        return -emissivity * PI
+                * (emissionFunction.radianceAt(grid.getDimension()) - 2.0 * flux(grid.getDensity(), nStart, nHalf));
+    }
 
-		for (int i = startInclusive; i < endExclusive; i++) {
-			integral += ordinates.getWeight(i) * quantities.getIntensity(j, i) * ordinates.getNode(i);
-		}
+    /**
+     * Calculates the reflected intensity (positive angles, first half of
+     * indices) at the left boundary (&tau; = 0).
+     *
+     * @param ef the emission function
+     */
+    public void intensitiesLeftBoundary(final BlackbodySpectrum ef) {
+        final int nHalf = ordinates.getFirstNegativeNode();
+        final int nStart = ordinates.getFirstPositiveNode();
 
-		return integral;
-	}
+        for (int i = nStart; i < nHalf; i++) {
+            // for positive streams
+            quantities.setIntensity(0, i, ef.radianceAt(0.0) - boundaryFluxFactor * fluxLeft(ef));
+        }
 
-	/**
-	 * Calculates the flux at the left boundary using an alternative formula.
-	 * 
-	 * @param emissionFunction the emission function
-	 * @return the net flux at the left boundary
-	 */
+    }
 
-	public double fluxLeft(final BlackbodySpectrum emissionFunction) {
-		final int nHalf = ordinates.getFirstNegativeNode();
-		return emissivity * PI * (emissionFunction.radianceAt(0.0) + 2.0 * flux(0, nHalf, ordinates.getTotalNodes()));
-	}
+    /**
+     * Calculates the reflected intensity (negative angles, second half of
+     * indices) at the right boundary (&tau; = &tau;<sub>0</sub>).
+     *
+     * @param ef the emission function
+     */
+    public void intensitiesRightBoundary(final BlackbodySpectrum ef) {
 
-	/**
-	 * Calculates the flux at the right boundary using an alternative formula.
-	 * 
-	 * @param emissionFunction the emission function
-	 * @return the net flux at the right boundary
-	 */
+        final int N = grid.getDensity();
+        final int nHalf = ordinates.getFirstNegativeNode();
+        final double tau0 = grid.getDimension();
 
-	public double fluxRight(final BlackbodySpectrum emissionFunction) {
-		final int nHalf = ordinates.getFirstNegativeNode();
-		final int nStart = ordinates.getFirstPositiveNode();
-		return -emissivity * PI
-				* (emissionFunction.radianceAt(grid.getDimension()) - 2.0 * flux(grid.getDensity(), nStart, nHalf));
-	}
+        for (int i = nHalf; i < ordinates.getTotalNodes(); i++) {
+            // for negative streams
+            quantities.setIntensity(N, i, ef.radianceAt(tau0) + boundaryFluxFactor * fluxRight(ef));
+        }
 
-	/**
-	 * Calculates the reflected intensity (positive angles, first half of indices)
-	 * at the left boundary (&tau; = 0).
-	 * 
-	 * @param ef the emission function
-	 */
+    }
 
-	public void intensitiesLeftBoundary(final BlackbodySpectrum ef) {
-		final int nHalf = ordinates.getFirstNegativeNode();
-		final int nStart = ordinates.getFirstPositiveNode();
+    protected void setEmissivity(double emissivity) {
+        this.emissivity = emissivity;
+        boundaryFluxFactor = (1.0 - emissivity) / (emissivity * PI);
+    }
 
-		for (int i = nStart; i < nHalf; i++) {
-			// for positive streams
-			quantities.setIntensity(0, i, ef.radianceAt(0.0) - boundaryFluxFactor * fluxLeft(ef));
-		}
+    public OrdinateSet getOrdinates() {
+        return ordinates;
+    }
 
-	}
+    public void setOrdinateSet(OrdinateSet set) {
+        this.ordinates = set;
+        quantities.init(grid.getDensity(), ordinates.getTotalNodes());
+    }
 
-	/**
-	 * Calculates the reflected intensity (negative angles, second half of indices)
-	 * at the right boundary (&tau; = &tau;<sub>0</sub>).
-	 * 
-	 * @param ef the emission function
-	 */
+    @Override
+    public void set(NumericPropertyKeyword type, NumericProperty property) {
+        // intentionally left blank
+    }
 
-	public void intensitiesRightBoundary(final BlackbodySpectrum ef) {
+    @Override
+    public List<Property> listedTypes() {
+        return new ArrayList<Property>(Arrays.asList(quadSelector));
+    }
 
-		final int N = grid.getDensity();
-		final int nHalf = ordinates.getFirstNegativeNode();
-		final double tau0 = grid.getDimension();
+    @Override
+    public String getDescriptor() {
+        return "Discretisation";
+    }
 
-		for (int i = nHalf; i < ordinates.getTotalNodes(); i++) {
-			// for negative streams
-			quantities.setIntensity(N, i, ef.radianceAt(tau0) + boundaryFluxFactor * fluxRight(ef));
-		}
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("( ");
+        sb.append("Quadrature: " + ordinates.getName() + " ; ");
+        sb.append("Grid: " + grid.toString());
+        return sb.toString();
+    }
 
-	}
+    public StretchedGrid getGrid() {
+        return grid;
+    }
 
-	protected void setEmissivity(double emissivity) {
-		this.emissivity = emissivity;
-		boundaryFluxFactor = (1.0 - emissivity) / (emissivity * PI);
-	}
+    public void setGrid(StretchedGrid grid) {
+        this.grid = grid;
+        this.grid.setParent(this);
+    }
 
-	public OrdinateSet getOrdinates() {
-		return ordinates;
-	}
+    public DiscreteQuantities getQuantities() {
+        return quantities;
+    }
 
-	public void setOrdinateSet(OrdinateSet set) {
-		this.ordinates = set;
-		quantities.init(grid.getDensity(), ordinates.getTotalNodes());
-	}
-
-	@Override
-	public void set(NumericPropertyKeyword type, NumericProperty property) {
-		// intentionally left blank
-	}
-
-	@Override
-	public List<Property> listedTypes() {
-		return new ArrayList<Property>(Arrays.asList(quadSelector));
-	}
-
-	@Override
-	public String getDescriptor() {
-		return "Discretisation";
-	}
-
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder("( ");
-		sb.append("Quadrature: " + ordinates.getName() + " ; ");
-		sb.append("Grid: " + grid.toString());
-		return sb.toString();
-	}
-
-	public StretchedGrid getGrid() {
-		return grid;
-	}
-
-	public void setGrid(StretchedGrid grid) {
-		this.grid = grid;
-		this.grid.setParent(this);
-	}
-
-	public DiscreteQuantities getQuantities() {
-		return quantities;
-	}
-
-	public DiscreteSelector<OrdinateSet> getQuadratureSelector() {
-		return quadSelector;
-	}
+    public DiscreteSelector<OrdinateSet> getQuadratureSelector() {
+        return quadSelector;
+    }
 
 }

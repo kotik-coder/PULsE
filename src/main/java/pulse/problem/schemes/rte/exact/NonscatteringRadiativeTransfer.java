@@ -239,6 +239,7 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
 
 	private void initQuadrature() {
 		setQuadrature(instanceDescriptor.newInstance(CompositionProduct.class));
+                firePropertyChanged(this, instanceDescriptor);
 	}
 
 }
