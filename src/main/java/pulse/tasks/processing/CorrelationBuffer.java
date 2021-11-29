@@ -30,6 +30,7 @@ public class CorrelationBuffer {
 		excludePair(NumericPropertyKeyword.HEAT_LOSS, NumericPropertyKeyword.MAXTEMP);
 		excludePair(NumericPropertyKeyword.MAXTEMP, NumericPropertyKeyword.BASELINE_INTERCEPT);
 		excludePair(NumericPropertyKeyword.MAXTEMP, NumericPropertyKeyword.BASELINE_SLOPE);
+                excludePair(NumericPropertyKeyword.MAXTEMP, NumericPropertyKeyword.HEAT_LOSS_COMBINED);
 	}
 
 	public CorrelationBuffer() {
