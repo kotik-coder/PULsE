@@ -92,7 +92,9 @@ public class PropertyHolderTable extends JTable {
 			return null;
 
 		List<Object[]> dataList = new ArrayList<>();
-		var data = p.data().stream().map(property -> new Object[] { property.getDescriptor(true), property })
+                //ignore flags
+		var data = p.data().stream().filter(property -> !(property instanceof Flag))
+                        .map(property -> new Object[] { property.getDescriptor(true), property })
 				.collect(Collectors.toList());
 		dataList.addAll(data);
 
@@ -152,8 +154,7 @@ public class PropertyHolderTable extends JTable {
 					new JComboBox<Object>(((Enum<?>) value).getDeclaringClass().getEnumConstants()));
 
 		if (value instanceof InstanceDescriptor) {
-			var inst = new InstanceCellEditor((InstanceDescriptor<?>) value);
-			return inst;
+			return new InstanceCellEditor((InstanceDescriptor<?>) value);
 		}
 
 		if (value instanceof DiscreteSelector) {
