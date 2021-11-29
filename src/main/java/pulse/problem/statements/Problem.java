@@ -18,8 +18,8 @@ import pulse.baseline.FlatBaseline;
 import pulse.input.ExperimentalData;
 import pulse.math.ParameterVector;
 import pulse.math.Segment;
-import pulse.math.transforms.AtanhTransform;
 import pulse.math.transforms.InvLenSqTransform;
+import pulse.math.transforms.StandardTransformations;
 import pulse.problem.laser.DiscretePulse;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.Grid;
@@ -260,13 +260,13 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
 
 	}
 	
+        //TODO remove atanh transform and replace with abs
 	protected void setHeatLossParameter(ParameterVector output, int i, double Bi) {
 		if(output.getTransform(i) == null) {
 			final double min = (double) def(HEAT_LOSS).getMinimum();
 			final double max = (double) def(HEAT_LOSS).getMaximum();
-			var bounds = new Segment(min, properties.areThermalPropertiesLoaded() ? properties.maxBiot() : max);
-			
-			output.setTransform(i, new AtanhTransform(bounds) );
+			var bounds = new Segment(min, properties.areThermalPropertiesLoaded() ? properties.maxBiot() : max);			
+			output.setTransform(i, StandardTransformations.ABS );
 			output.setParameterBounds(i, bounds);
 		}
 		output.set(i, Bi);	

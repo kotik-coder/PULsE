@@ -42,6 +42,20 @@ public class StandardTransformations {
 		}
 		
 	};
+        
+        public final static Transformable ABS = new Transformable() {
+
+		@Override
+		public double transform(double a) {
+			return Math.abs(a);
+		}
+
+		@Override
+		public double inverse(double t) {
+			return transform(t);
+		}
+		
+	};
 	
 	private StandardTransformations() {
 		//empty

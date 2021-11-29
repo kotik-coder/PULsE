@@ -6,15 +6,7 @@ import static pulse.input.InterpolationDataset.StandartType.HEAT_CAPACITY;
 import static pulse.properties.NumericProperties.def;
 import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericProperty.requireType;
-import static pulse.properties.NumericPropertyKeyword.CONDUCTIVITY;
-import static pulse.properties.NumericPropertyKeyword.DENSITY;
-import static pulse.properties.NumericPropertyKeyword.DIFFUSIVITY;
-import static pulse.properties.NumericPropertyKeyword.EMISSIVITY;
-import static pulse.properties.NumericPropertyKeyword.HEAT_LOSS;
-import static pulse.properties.NumericPropertyKeyword.MAXTEMP;
-import static pulse.properties.NumericPropertyKeyword.SPECIFIC_HEAT;
-import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
-import static pulse.properties.NumericPropertyKeyword.THICKNESS;
+import static pulse.properties.NumericPropertyKeyword.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -116,6 +108,16 @@ public class ThermalProperties extends PropertyHolder {
 
 	public ThermalProperties copy() {
 		return new ThermalProperties(this);
+	}
+        
+        /**
+         * Hides optimiser directives
+         * @return true
+         */
+        
+        @Override
+        public boolean areDetailsHidden() {
+            return true;
 	}
 
 	/**

@@ -18,6 +18,8 @@ import pulse.problem.schemes.solvers.SolverException;
 import pulse.problem.statements.model.ExtendedThermalProperties;
 import pulse.problem.statements.model.ThermalProperties;
 import pulse.properties.Flag;
+import static pulse.properties.NumericPropertyKeyword.HEAT_LOSS;
+import static pulse.properties.NumericPropertyKeyword.HEAT_LOSS_SIDE;
 import pulse.ui.Messages;
 
 /**
@@ -90,6 +92,10 @@ public class ClassicalProblem2D extends Problem {
 				final double Bi = (double) properties.getSideLosses().getValue();
 				setHeatLossParameter(output, i, Bi);	
 				continue;
+                        case HEAT_LOSS_COMBINED:
+				final double combined = (double) properties.getHeatLoss().getValue();
+				setHeatLossParameter(output, i, combined);	
+				continue;
 			default:
 				continue;
 			}
@@ -113,15 +119,10 @@ public class ClassicalProblem2D extends Problem {
 			switch (type) {
 			case FOV_OUTER:
 			case FOV_INNER:
-			case HEAT_LOSS_SIDE: //comment this when locking side + (rear-front)
+			case HEAT_LOSS_SIDE: 
+                        case HEAT_LOSS_COMBINED:
 				properties.set(type, derive(type, params.inverseTransform(i) ));
 				break;
-			//UNCOMMENT TO MAKE HEAT LOSS LOCKED 
-			/*
-			case HEAT_LOSS:
-				properties.set(HEAT_LOSS_SIDE, derive(HEAT_LOSS_SIDE, params.inverseTransform(i) ));
-				break;
-			*/
 			case SPOT_DIAMETER:
 				((Pulse2D) getPulse()).setSpotDiameter( derive(SPOT_DIAMETER, params.inverseTransform(i) ));
 				break;
