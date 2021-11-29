@@ -13,105 +13,107 @@ import pulse.properties.Property;
 
 public class InstanceDescriptor<T extends Reflexive> implements Property {
 
-	private String selectedDescriptor = "";
-	private Set<String> allDescriptors;
-	private String generalDescriptor;
-	private int hashCode;
+    private String selectedDescriptor = "";
+    private Set<String> allDescriptors;
+    private String generalDescriptor;
+    private int hashCode;
 
-	private List<DescriptorChangeListener> listeners;
+    private List<DescriptorChangeListener> listeners;
 
-	private static Map<Class<? extends Reflexive>, Set<String>> nameMap = new HashMap<>();
+    private static Map<Class<? extends Reflexive>, Set<String>> nameMap = new HashMap<>();
 
-	public InstanceDescriptor(String generalDescriptor, Class<T> c, Object... arguments) {
-		if (nameMap.get(c) == null)
-			nameMap.put(c, allSubclassesNames(c));
-		this.hashCode = c.hashCode();
-		allDescriptors = nameMap.get(c);
-		selectedDescriptor = allDescriptors.iterator().next();
-		this.generalDescriptor = generalDescriptor;
-		listeners = new ArrayList<DescriptorChangeListener>();
-	}
+    public InstanceDescriptor(String generalDescriptor, Class<T> c, Object... arguments) {
+        if (nameMap.get(c) == null) {
+            nameMap.put(c, allSubclassesNames(c));
+        }
+        this.hashCode = c.hashCode();
+        allDescriptors = nameMap.get(c);
+        selectedDescriptor = allDescriptors.iterator().next();
+        this.generalDescriptor = generalDescriptor;
+        listeners = new ArrayList<DescriptorChangeListener>();
+    }
 
-	public InstanceDescriptor(Class<T> c, Object... arguments) {
-		this(c.getSimpleName(), c, arguments);
-	}
+    public InstanceDescriptor(Class<T> c, Object... arguments) {
+        this(c.getSimpleName(), c, arguments);
+    }
 
-	public <K extends Reflexive> K newInstance(Class<K> c, Object... arguments) {
-		return instancesOf(c, arguments).stream().filter(r -> getValue().equals(r.getClass().getSimpleName())).findAny()
-				.get();
-	}
+    public <K extends Reflexive> K newInstance(Class<K> c, Object... arguments) {
+        return instancesOf(c, arguments).stream().filter(r -> getValue().equals(r.getClass().getSimpleName())).findAny()
+                .get();
+    }
 
-	@Override
-	public Object getValue() {
-		return selectedDescriptor;
-	}
+    @Override
+    public Object getValue() {
+        return selectedDescriptor;
+    }
 
-	@Override
-	public boolean attemptUpdate(Object object) {
-		if (!(object instanceof String))
-			return false;
+    @Override
+    public boolean attemptUpdate(Object object) {
+        var string = object.toString();
 
-		if (selectedDescriptor.equals(object))
-			return false;
+        if (selectedDescriptor.equals(string) || !allDescriptors.contains(string)) {
+            return false;
+        }
 
-		if (!allDescriptors.contains(object))
-			return false;
+        this.selectedDescriptor = string;
+        listeners.stream().forEach(l -> l.onDescriptorChanged());
+        return true;
+    }
 
-		this.selectedDescriptor = (String) object;
-		listeners.stream().forEach(l -> l.onDescriptorChanged());
-		return true;
-	}
+    public void setSelectedDescriptor(String selectedDescriptor) {
+        attemptUpdate(selectedDescriptor);
+    }
 
-	public void setSelectedDescriptor(String selectedDescriptor) {
-		attemptUpdate(selectedDescriptor);
-	}
+    @Override
+    public Object identifier() {
+        return hashCode;
+    }
 
-	@Override
-	public Object identifier() {
-		return hashCode;
-	}
+    @Override
+    public String getDescriptor(boolean addHtmlTags) {
+        return generalDescriptor;
+    }
 
-	@Override
-	public String getDescriptor(boolean addHtmlTags) {
-		return generalDescriptor;
-	}
+    public Set<String> getAllDescriptors() {
+        return allDescriptors;
+    }
 
-	public Set<String> getAllDescriptors() {
-		return allDescriptors;
-	}
+    @Override
+    public String toString() {
+        return selectedDescriptor;
+    }
 
-	@Override
-	public String toString() {
-		return selectedDescriptor;
-	}
+    public void addListener(DescriptorChangeListener l) {
+        this.listeners.add(l);
+    }
 
-	public void addListener(DescriptorChangeListener l) {
-		this.listeners.add(l);
-	}
+    public List<DescriptorChangeListener> getListeners() {
+        return listeners;
+    }
 
-	public List<DescriptorChangeListener> getListeners() {
-		return listeners;
-	}
+    @Override
+    public boolean equals(Object o) {
 
-	@Override
-	public boolean equals(Object o) {
+        if (o == null) {
+            return false;
+        }
 
-		if (o == null)
-			return false;
+        if (o == this) {
+            return true;
+        }
 
-		if (o == this)
-			return true;
+        if (!(o instanceof InstanceDescriptor)) {
+            return false;
+        }
 
-		if (!(o instanceof InstanceDescriptor))
-			return false;
+        var descriptor = (InstanceDescriptor<?>) o;
 
-		var descriptor = (InstanceDescriptor<?>) o;
+        if (!allDescriptors.containsAll(descriptor.allDescriptors)) {
+            return false;
+        }
 
-		if (!allDescriptors.containsAll(descriptor.allDescriptors))
-			return false;
+        return selectedDescriptor.equals(descriptor.selectedDescriptor);
 
-		return selectedDescriptor.equals(descriptor.selectedDescriptor);
+    }
 
-	}
-	
 }
