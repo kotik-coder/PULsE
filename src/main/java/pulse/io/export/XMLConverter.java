@@ -35,196 +35,214 @@ import pulse.ui.Messages;
  * information XML file in the resource folder.
  *
  */
-
 public class XMLConverter {
 
-	private XMLConverter() {
-	}
+    private XMLConverter() {
+    }
 
-	private static void toXML(NumericProperty np, Document doc, Element rootElement) {
-		Element property = doc.createElement(np.getClass().getSimpleName());
-		rootElement.appendChild(property);
+    private static void toXML(NumericProperty np, Document doc, Element rootElement) {
+        Element property = doc.createElement(np.getClass().getSimpleName());
+        rootElement.appendChild(property);
 
-		Attr keyword = doc.createAttribute("keyword");
-		keyword.setValue(np.getType().toString());
-		property.setAttributeNode(keyword);
+        Attr keyword = doc.createAttribute("keyword");
+        keyword.setValue(np.getType().toString());
+        property.setAttributeNode(keyword);
 
-		Attr descriptor = doc.createAttribute("descriptor");
-		descriptor.setValue(np.getDescriptor(false));
-		property.setAttributeNode(descriptor);
+        Attr descriptor = doc.createAttribute("descriptor");
+        descriptor.setValue(np.getDescriptor(false));
+        property.setAttributeNode(descriptor);
 
-		Attr abbreviation = doc.createAttribute("abbreviation");
-		abbreviation.setValue(np.getAbbreviation(false));
-		property.setAttributeNode(abbreviation);
+        Attr abbreviation = doc.createAttribute("abbreviation");
+        abbreviation.setValue(np.getAbbreviation(false));
+        property.setAttributeNode(abbreviation);
 
-		Attr value = doc.createAttribute("value");
-		value.setValue(np.getValue().toString());
-		property.setAttributeNode(value);
+        Attr value = doc.createAttribute("value");
+        value.setValue(np.getValue().toString());
+        property.setAttributeNode(value);
 
-		Attr minimum = doc.createAttribute("minimum");
-		minimum.setValue(np.getMinimum().toString());
-		property.setAttributeNode(minimum);
+        Attr minimum = doc.createAttribute("minimum");
+        minimum.setValue(np.getMinimum().toString());
+        property.setAttributeNode(minimum);
 
-		Attr maximum = doc.createAttribute("maximum");
-		maximum.setValue(np.getMaximum().toString());
-		property.setAttributeNode(maximum);
+        Attr maximum = doc.createAttribute("maximum");
+        maximum.setValue(np.getMaximum().toString());
+        property.setAttributeNode(maximum);
 
-		Attr dim = doc.createAttribute("dimensionfactor");
-		dim.setValue(np.getDimensionFactor().toString());
-		property.setAttributeNode(dim);
+        Attr dim = doc.createAttribute("dimensionfactor");
+        dim.setValue(np.getDimensionFactor().toString());
+        property.setAttributeNode(dim);
 
-		Attr autoAdj = doc.createAttribute("auto-adjustable");
-		autoAdj.setValue(np.isAutoAdjustable() + "");
-		property.setAttributeNode(autoAdj);
+        Attr autoAdj = doc.createAttribute("visible");
+        autoAdj.setValue(np.isVisibleByDefault() + "");
+        property.setAttributeNode(autoAdj);
 
-		Attr primitiveType = doc.createAttribute("primitive-type");
-		primitiveType.setValue(np.getValue() instanceof Double ? "double" : "int");
-		property.setAttributeNode(primitiveType);
+        Attr primitiveType = doc.createAttribute("primitive-type");
+        primitiveType.setValue(np.getValue() instanceof Double ? "double" : "int");
+        property.setAttributeNode(primitiveType);
 
-		Attr defSearch = doc.createAttribute("default-search-variable");
-		primitiveType.setValue(np.isDefaultSearchVariable() + "");
-		property.setAttributeNode(defSearch);
+        Attr defSearch = doc.createAttribute("default-search-variable");
+        primitiveType.setValue(np.isDefaultSearchVariable() + "");
+        property.setAttributeNode(defSearch);
 
-	}
+    }
 
-	/**
-	 * Utility method that creates an {@code .xml} file listing all public final
-	 * static instances of {@code NumericProperty} found in the
-	 * {@code NumericProperty} class.
-	 */
+    /**
+     * Utility method that creates an {@code .xml} file listing all public final
+     * static instances of {@code NumericProperty} found in the
+     * {@code NumericProperty} class.
+     *
+     * @throws javax.xml.parsers.ParserConfigurationException
+     * @throws javax.xml.transform.TransformerException
+     */
+    public static void writeXML() throws ParserConfigurationException, TransformerException {
+        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+        Document doc = dBuilder.newDocument();
 
-	public static void writeXML() throws ParserConfigurationException, TransformerException {
-		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-		DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-		Document doc = dBuilder.newDocument();
+        Element rootElement = doc.createElement("NumericProperties");
+        doc.appendChild(rootElement);
 
-		Element rootElement = doc.createElement("NumericProperties");
-		doc.appendChild(rootElement);
+        List<NumericProperty> properties = new ArrayList<>();
 
-		List<NumericProperty> properties = new ArrayList<>();
+        int modifiers;
 
-		int modifiers;
+        /**
+         * Reads all final static {@code NumericProperty} constants in the
+         * {@code NumericProperty} class
+         */
+        for (Field field : NumericProperty.class.getDeclaredFields()) {
 
-		/**
-		 * Reads all final static {@code NumericProperty} constants in the
-		 * {@code NumericProperty} class
-		 */
+            modifiers = field.getModifiers();
 
-		for (Field field : NumericProperty.class.getDeclaredFields()) {
+            // filter only public final static NumericProperties
+            if ((Modifier.isPublic(modifiers) && Modifier.isStatic(modifiers) && Modifier.isFinal(modifiers))
+                    && field.getType().equals(NumericProperty.class)) {
 
-			modifiers = field.getModifiers();
+                NumericProperty value = null;
+                try {
+                    value = (NumericProperty) field.get(null);
+                } catch (IllegalArgumentException | IllegalAccessException e) {
+                    System.out.println("Unable to access field: " + field);
+                    e.printStackTrace();
+                }
+                if (value != null) {
+                    properties.add(value);
+                }
 
-			// filter only public final static NumericProperties
-			if ((Modifier.isPublic(modifiers) && Modifier.isStatic(modifiers) && Modifier.isFinal(modifiers))
-					&& field.getType().equals(NumericProperty.class)) {
+            }
 
-				NumericProperty value = null;
-				try {
-					value = (NumericProperty) field.get(null);
-				} catch (IllegalArgumentException | IllegalAccessException e) {
-					System.out.println("Unable to access field: " + field);
-					e.printStackTrace();
-				}
-				if (value != null)
-					properties.add(value);
+        }
 
-			}
+        properties.stream().forEach(p -> XMLConverter.toXML(p, doc, rootElement));
 
-		}
+        // write the content into xml file
+        TransformerFactory transformerFactory = TransformerFactory.newInstance();
+        Transformer transformer = transformerFactory.newTransformer();
+        transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+        DOMSource source = new DOMSource(doc);
+        StreamResult result = new StreamResult(new File(NumericProperty.class.getSimpleName() + ".xml"));
+        transformer.transform(source, result);
 
-		properties.stream().forEach(p -> XMLConverter.toXML(p, doc, rootElement));
+        // Output to console for testing
+        StreamResult consoleResult = new StreamResult(System.out);
+        transformer.transform(source, consoleResult);
 
-		// write the content into xml file
-		TransformerFactory transformerFactory = TransformerFactory.newInstance();
-		Transformer transformer = transformerFactory.newTransformer();
-		transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-		transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-		DOMSource source = new DOMSource(doc);
-		StreamResult result = new StreamResult(new File(NumericProperty.class.getSimpleName() + ".xml"));
-		transformer.transform(source, result);
+    }
 
-		// Output to console for testing
-		StreamResult consoleResult = new StreamResult(System.out);
-		transformer.transform(source, consoleResult);
+    /**
+     * Utility method used to read {@code NumericProperty} constants from
+     * {@code xml} files.
+     *
+     * @param inputStream the input stream used to read data from.
+     * @return a list of {@code NumericProperty} objects with their attributes
+     * specified in the {@code xml} file.
+     * @throws javax.xml.parsers.ParserConfigurationException
+     * @throws org.xml.sax.SAXException
+     * @throws java.io.IOException
+     */
+    public static List<NumericProperty> readXML(InputStream inputStream)
+            throws ParserConfigurationException, SAXException, IOException {
 
-	}
+        List<NumericProperty> properties = new ArrayList<>();
 
-	/**
-	 * Utility method used to read {@code NumericProperty} constants from
-	 * {@code xml} files.
-	 * 
-	 * @param inputStream the input stream used to read data from.
-	 * @return a list of {@code NumericProperty} objects with their attributes
-	 *         specified in the {@code xml} file.
-	 */
+        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+        Document doc = dBuilder.parse(inputStream);
 
-	public static List<NumericProperty> readXML(InputStream inputStream)
-			throws ParserConfigurationException, SAXException, IOException {
+        doc.getDocumentElement().normalize();
+        NodeList nList = doc.getElementsByTagName(NumericProperty.class.getSimpleName());
 
-		List<NumericProperty> properties = new ArrayList<>();
+        for (int temp = 0; temp < nList.getLength(); temp++) {
+            Node nNode = nList.item(temp);
 
-		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-		DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-		Document doc = dBuilder.parse(inputStream);
+            if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+                Element eElement = (Element) nNode;
+                NumericPropertyKeyword keyword = NumericPropertyKeyword.valueOf(eElement.getAttribute("keyword"));
+                boolean visible = Boolean.valueOf(eElement.getAttribute("visible"));
+                boolean discrete = Boolean.valueOf(eElement.getAttribute("discreet"));
+                String descriptor = eElement.getAttribute("descriptor");
+                String abbreviation = eElement.getAttribute("abbreviation");
+                boolean defSearch = Boolean.valueOf(eElement.getAttribute("default-search-variable"));
 
-		doc.getDocumentElement().normalize();
-		NodeList nList = doc.getElementsByTagName(NumericProperty.class.getSimpleName());
+                Number value, minimum, maximum, dimensionFactor;
 
-		for (int temp = 0; temp < nList.getLength(); temp++) {
-			Node nNode = nList.item(temp);
+                if (eElement.getAttribute("primitive-type").equalsIgnoreCase("double")) {
+                    value = Double.valueOf(eElement.getAttribute("value"));
+                    minimum = Double.valueOf(eElement.getAttribute("minimum"));
+                    maximum = Double.valueOf(eElement.getAttribute("maximum"));
+                    dimensionFactor = Double.valueOf(eElement.getAttribute("dimensionfactor"));
+                } else {
+                    value = Integer.valueOf(eElement.getAttribute("value"));
+                    minimum = Integer.valueOf(eElement.getAttribute("minimum"));
+                    maximum = Integer.valueOf(eElement.getAttribute("maximum"));
+                    dimensionFactor = Integer.valueOf(eElement.getAttribute("dimensionfactor"));
+                }
 
-			if (nNode.getNodeType() == Node.ELEMENT_NODE) {
-				Element eElement = (Element) nNode;
-				NumericPropertyKeyword keyword = NumericPropertyKeyword.valueOf(eElement.getAttribute("keyword"));
-				boolean autoAdjustable = Boolean.valueOf(eElement.getAttribute("auto-adjustable"));
-				boolean discrete	= Boolean.valueOf(eElement.getAttribute("discreet"));
-				String descriptor	= eElement.getAttribute("descriptor");
-				String abbreviation = eElement.getAttribute("abbreviation");
-				boolean defSearch = Boolean.valueOf(eElement.getAttribute("default-search-variable"));
+                NodeList excludeList = eElement.getElementsByTagName("excludes");
 
-				Number value, minimum, maximum, dimensionFactor;
+                var np = new NumericProperty(keyword, value, minimum, maximum, dimensionFactor);
+                
+                if (excludeList.getLength() > 0) {
+                    var excludeKeywords = ((Element) excludeList.item(0)).getElementsByTagName("keyword");
+                    NumericPropertyKeyword[] array = new NumericPropertyKeyword[excludeKeywords.getLength()];
+                    
+                    for (int i = 0; i < excludeKeywords.getLength(); i++) {
+                        String textValue = excludeKeywords.item(i).getChildNodes().item(0).getNodeValue();
+                        array[i] = NumericPropertyKeyword.valueOf(textValue);
+                    }
+                    
+                    np.setExcludeKeywords(array);
+                    
+                }
 
-				if (eElement.getAttribute("primitive-type").equalsIgnoreCase("double")) {
-					value = Double.valueOf(eElement.getAttribute("value"));
-					minimum = Double.valueOf(eElement.getAttribute("minimum"));
-					maximum = Double.valueOf(eElement.getAttribute("maximum"));
-					dimensionFactor = Double.valueOf(eElement.getAttribute("dimensionfactor"));
-				} else {
-					value = Integer.valueOf(eElement.getAttribute("value"));
-					minimum = Integer.valueOf(eElement.getAttribute("minimum"));
-					maximum = Integer.valueOf(eElement.getAttribute("maximum"));
-					dimensionFactor = Integer.valueOf(eElement.getAttribute("dimensionfactor"));
-				}
+                np.setDescriptor(descriptor);
+                np.setAbbreviation(abbreviation);
+                np.setVisibleByDefault(visible);
+                np.setDiscrete(discrete);
+                np.setDefaultSearchVariable(defSearch);
+                properties.add(np);
+            }
+        }
 
-				var np = new NumericProperty(keyword, value, minimum, maximum, dimensionFactor);
-				np.setDescriptor(descriptor);
-				np.setAbbreviation(abbreviation);
-				np.setAutoAdjustable(autoAdjustable);
-				np.setDiscrete(discrete);
-				np.setDefaultSearchVariable(defSearch);
-				properties.add(np);
-			}
-		}
+        return properties;
 
-		return properties;
+    }
 
-	}
-
-	/**
-	 * The default XML file is specific in the 'messages.properties' text file in
-	 * the {@code pulse.ui} package
-	 * 
-	 * @return a list of default instances of {@code NumericProperty}.
-	 */
-
-	public static List<NumericProperty> readDefaultXML() {
-		try {
-			return readXML(NumericProperty.class.getResourceAsStream(Messages.getString("NumericProperty.XMLFile")));
-		} catch (ParserConfigurationException | SAXException | IOException e) {
-			System.err.println("Unable to read list of default numeric properties");
-			e.printStackTrace();
-		}
-		return null;
-	}
+    /**
+     * The default XML file is specific in the 'messages.properties' text file
+     * in the {@code pulse.ui} package
+     *
+     * @return a list of default instances of {@code NumericProperty}.
+     */
+    public static List<NumericProperty> readDefaultXML() {
+        try {
+            return readXML(NumericProperty.class.getResourceAsStream(Messages.getString("NumericProperty.XMLFile")));
+        } catch (ParserConfigurationException | SAXException | IOException e) {
+            System.err.println("Unable to read list of default numeric properties");
+            e.printStackTrace();
+        }
+        return null;
+    }
 
 }

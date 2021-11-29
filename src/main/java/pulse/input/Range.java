@@ -208,7 +208,7 @@ public class Range extends PropertyHolder implements Optimisable {
 	@Override
 	public void assign(ParameterVector params) throws SolverException {
 		if(!params.validate())
-			throw new SolverException("Parameter values not sensible");
+			throw new SolverException("Parameter values not sensible: " + params);
 		
 		NumericProperty p = null;
 
