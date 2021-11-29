@@ -22,21 +22,25 @@ public class ParameterListModel extends AbstractListModel<NumericPropertyKeyword
 	 */
 	private static final long serialVersionUID = 1L;
 	private List<NumericPropertyKeyword> elements = new ArrayList<NumericPropertyKeyword>();
-
-	public ParameterListModel() {
+        private boolean extendedList;
+        
+	public ParameterListModel(boolean extendedList) {
 		super();
+                this.extendedList = extendedList;
 		update();
 	}
-
+        
 	public void update() {
 		elements.clear();
 		var list = new ArrayList<Property>();
 		listAvailableProperties(list);
 		list.stream().forEach(property -> elements.add(((Flag) property).getType()));
-		elements.add(OPTIMISER_STATISTIC);
-		elements.add(TEST_STATISTIC);
-		elements.add(IDENTIFIER);
-		elements.addAll(InterpolationDataset.derivableProperties());
+		if(extendedList) {
+                    elements.add(OPTIMISER_STATISTIC);
+                    elements.add(TEST_STATISTIC);
+                    elements.add(IDENTIFIER);
+                    elements.addAll(InterpolationDataset.derivableProperties());
+                }
 	}
 
 	@Override
