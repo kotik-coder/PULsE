@@ -20,101 +20,97 @@ import org.ejml.dense.row.MatrixFeatures_DDRM;
  * {@code pulse.math} package, the user needs to invoke the factory class
  * methods {@code Matrices} instead.
  * </p>
- * 
+ *
  * @see pulse.math.linear.Matrices
  */
-
 public class SquareMatrix extends RectangularMatrix {
 
-	/**
-	 * Constructs a {@code Matrix} with the elements copied from {@code args}. The
-	 * elements are copied by invoking System.arraycopy(...).
-	 * 
-	 * @param args a two-dimensional double array
-	 */
+    /**
+     * Constructs a {@code Matrix} with the elements copied from {@code args}.
+     * The elements are copied by invoking System.arraycopy(...).
+     *
+     * @param args a two-dimensional double array
+     */
+    protected SquareMatrix(double[][] args) {
+        super(args);
+    }
 
-	protected SquareMatrix(double[][] args) {
-		super(args);
-	}
+    private SquareMatrix(double[] data, int n) {
+        super(data, n);
+    }
 
-	private SquareMatrix(double[] data, int n) {
-		super(data, n);
-	}
+    /**
+     * Calculates the determinant for an <i>n</i>-by-<i>n</i> square matrix. The
+     * determinant is calculated using the EJML library.
+     *
+     * @return a double, representing the determinant
+     */
+    public double det() {
+        var mx = new DMatrixRMaj(x);
+        return CommonOps_DDRM.det(mx);
+    }
 
-	/**
-	 * Calculates the determinant for an <i>n</i>-by-<i>n</i> square matrix. The
-	 * determinant is calculated using the EJML library.
-	 * 
-	 * @return a double, representing the determinant
-	 */
+    /**
+     * Conducts matrix inversion with the procedural EJML approach. Can be
+     * overriden by subclasses to boost performance.
+     *
+     * @return the inverted {@Code Matrix}.
+     */
+    public SquareMatrix inverse() {
+        var mx = new DMatrixRMaj(x);
+        invert(mx);
+        return new SquareMatrix(mx.getData(), x.length);
+    }
 
-	public double det() {
-		var mx = new DMatrixRMaj(x);
-		return CommonOps_DDRM.det(mx);
-	}
+    /**
+     * Checks if a matrix is positive definite. Uses EJML implementation.
+     *
+     * @return {@code true} is positive-definite
+     */
+    public boolean isPositiveDefinite() {
+        return MatrixFeatures_DDRM.isPositiveDefinite(new DMatrixRMaj(x));
+    }
 
-	/**
-	 * Conducts matrix inversion with the procedural EJML approach. Can be overriden
-	 * by subclasses to boost performance.
-	 * 
-	 * @return the inverted {@Code Matrix}.
-	 */
+    /**
+     * Calculates the outer product of two vectors.
+     *
+     * @param a a Vector
+     * @param b a Vector
+     * @return the outer product of {@code a} and {@code b}
+     */
+    public static SquareMatrix outerProduct(Vector a, Vector b) {
+        double[][] x = new double[a.dimension()][b.dimension()];
 
-	public SquareMatrix inverse() {
-		var mx = new DMatrixRMaj(x);
-		invert(mx);
-		return new SquareMatrix(mx.getData(), x.length);
-	}
-	
-	/**
-	 * Checks if a matrix is positive definite. Uses EJML implementation.
-	 * @return {@code true} is positive-definite
-	 */
-	
-	public boolean isPositiveDefinite() {
-		return MatrixFeatures_DDRM.isPositiveDefinite(new DMatrixRMaj(x));
-	}
-	
-	/**
-	 * Calculates the outer product of two vectors.
-	 * 
-	 * @param a a Vector
-	 * @param b a Vector
-	 * @return the outer product of {@code a} and {@code b}
-	 */
+        for (int i = 0; i < x.length; i++) {
+            for (int j = 0; j < x[0].length; j++) {
+                x[i][j] = a.get(i) * b.get(j);
+            }
+        }
 
-	public static SquareMatrix outerProduct(Vector a, Vector b) {
-		double[][] x = new double[a.dimension()][b.dimension()];
+        return createSquareMatrix(x);
+    }
 
-		for (int i = 0; i < x.length; i++) {
-			for (int j = 0; j < x[0].length; j++) {
-				x[i][j] = a.get(i) * b.get(j);
-			}
-		}
+    public static SquareMatrix asSquareMatrix(RectangularMatrix m) {
+        return m.x.length == m.x[0].length ? new SquareMatrix(m.getData()) : null;
+    }
 
-		return createSquareMatrix(x);
-	}
-	
-	public static SquareMatrix asSquareMatrix(RectangularMatrix m) {
-		return m.x.length == m.x[0].length ? new SquareMatrix(m.getData()) : null;
-	}
-	
-	public int dimension() {
-		return getData().length;
-	}
-	
-	/**
-	 * Creates a block-diagonal matrix from the diagonal of this matrix.
-	 * @return diag(this)
-	 */
-	
-	public SquareMatrix blockDiagonal() {
-		final int dim = dimension();
-		var data = getData();
-		var diag = new double[dim][dim];
-		for(int i = 0; i < dim; i++)
-			diag[i][i] = data[i][i];
-		return new SquareMatrix(diag);
-	}
+    public int dimension() {
+        return getData().length;
+    }
+
+    /**
+     * Creates a block-diagonal matrix from the diagonal of this matrix.
+     *
+     * @return diag(this)
+     */
+    public SquareMatrix blockDiagonal() {
+        final int dim = dimension();
+        var data = getData();
+        var diag = new double[dim][dim];
+        for (int i = 0; i < dim; i++) {
+            diag[i][i] = data[i][i];
+        }
+        return new SquareMatrix(diag);
+    }
 
 }

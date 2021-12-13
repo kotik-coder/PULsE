@@ -4,5 +4,4 @@
  * {@code Problem}s, etc. This package contains all property types used by all
  * other classes.
  */
-
 package pulse.properties;

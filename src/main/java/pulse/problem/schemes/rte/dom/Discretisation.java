@@ -245,7 +245,9 @@ public class Discretisation extends PropertyHolder {
 
     @Override
     public List<Property> listedTypes() {
-        return new ArrayList<Property>(Arrays.asList(quadSelector));
+        var list = super.listedTypes();
+        list.add(quadSelector);
+        return list;
     }
 
     @Override

@@ -10,72 +10,74 @@ import pulse.properties.Property;
 
 public class DiscreteSelector<T extends Descriptive> implements Property {
 
-	private Set<T> allOptions;
-	private T defaultSelection;
-	private T selection;
-	
-	private List<DescriptorChangeListener> listeners;
-	
-	public DiscreteSelector(AbstractReader<T> reader, String directory, String listLocation) {
-		allOptions = ReaderManager.load(reader, directory, listLocation);
-		listeners = new ArrayList<>();
-	}
-	
-	public void addListener(DescriptorChangeListener l) {
-		listeners.add(l);
-	}
-	
-	public List<DescriptorChangeListener> getListeners() {
-		return listeners;
-	}
-	
-	public void fireDescriptorChange() {
-		for(var l : listeners)
-			l.onDescriptorChanged();
-	}
-	
-	@Override
-	public String toString() {
-		return selection.toString();
-	}
-	
-	@Override
-	public Object getValue() {
-		return selection;
-	}
+    private Set<T> allOptions;
+    private T defaultSelection;
+    private T selection;
 
-	@Override
-	public String getDescriptor(boolean addHtmlTags) {
-		return selection.describe();
-	}
-	
-	@Override
-	public boolean attemptUpdate(Object value) {
-		selection = find(value.toString());
-		
-		if(selection == null)
-			return false;
-		
-		fireDescriptorChange();
-		return true;
-	}
+    private List<DescriptorChangeListener> listeners;
 
-	public T find(String name) {
-		var optional = allOptions.stream().filter(t -> t.toString().equalsIgnoreCase(name)).findAny();
-		return optional.get();
-	}
+    public DiscreteSelector(AbstractReader<T> reader, String directory, String listLocation) {
+        allOptions = ReaderManager.load(reader, directory, listLocation);
+        listeners = new ArrayList<>();
+    }
 
-	public T getDefaultSelection() {
-		return defaultSelection;
-	}
+    public void addListener(DescriptorChangeListener l) {
+        listeners.add(l);
+    }
 
-	public void setDefaultSelection(String name) {
-		defaultSelection = allOptions.stream().filter(d -> d.toString().equals(name)).findAny().get();
-		selection = defaultSelection;
-	}
+    public List<DescriptorChangeListener> getListeners() {
+        return listeners;
+    }
 
-	public Set<T> getAllOptions() {
-		return allOptions;
-	}
+    public void fireDescriptorChange() {
+        for (var l : listeners) {
+            l.onDescriptorChanged();
+        }
+    }
+
+    @Override
+    public String toString() {
+        return selection.toString();
+    }
+
+    @Override
+    public Object getValue() {
+        return selection;
+    }
+
+    @Override
+    public String getDescriptor(boolean addHtmlTags) {
+        return selection.describe();
+    }
+
+    @Override
+    public boolean attemptUpdate(Object value) {
+        selection = find(value.toString());
+
+        if (selection == null) {
+            return false;
+        }
+
+        fireDescriptorChange();
+        return true;
+    }
+
+    public T find(String name) {
+        var optional = allOptions.stream().filter(t -> t.toString().equalsIgnoreCase(name)).findAny();
+        return optional.get();
+    }
+
+    public T getDefaultSelection() {
+        return defaultSelection;
+    }
+
+    public void setDefaultSelection(String name) {
+        defaultSelection = allOptions.stream().filter(d -> d.toString().equals(name)).findAny().get();
+        selection = defaultSelection;
+    }
+
+    public Set<T> getAllOptions() {
+        return allOptions;
+    }
 
 }

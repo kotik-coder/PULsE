@@ -9,67 +9,63 @@ import pulse.ui.Messages;
  * The simplest possible {@code PathSolver}, which assumes that the minimum
  * direction coincides with the inverted gradient. Used in combination with the
  * {@code GoldenSectionSolver} for increased accuracy.
- * 
+ *
  * @see pulse.search.linear.GoldenSectionOptimiser
  * @see <a href="https://en.wikipedia.org/wiki/Gradient_descent">Wikipedia
- *      page</a>
+ * page</a>
  */
-
 public class SteepestDescentOptimiser extends CompositePathOptimiser {
 
-	private static SteepestDescentOptimiser instance = new SteepestDescentOptimiser();
+    private static SteepestDescentOptimiser instance = new SteepestDescentOptimiser();
 
-	private SteepestDescentOptimiser() {
-		super();
-		//init gradient solver
-		this.setSolver( p -> {
-			
-			Vector dir = p.getGradient().inverted(); // p_k = -g
-			p.setDirection(dir);
-			return dir;
-			
-		});
-	}
+    private SteepestDescentOptimiser() {
+        super();
+        //init gradient solver
+        this.setSolver(p -> {
 
-	/**
-	 * Calculates the gradient value at the end of each step.
-	 * 
-	 * @throws SolverException
-	 */
+            Vector dir = p.getGradient().inverted(); // p_k = -g
+            p.setDirection(dir);
+            return dir;
 
-	@Override
-	public void prepare(SearchTask task) throws SolverException {
-		( (GradientGuidedPath) task.getIterativeState() ).setGradient(gradient(task));
-	}
+        });
+    }
 
-	@Override
-	public String toString() {
-		return Messages.getString("SteepestDescentSolver.Descriptor");
-	}
+    /**
+     * Calculates the gradient value at the end of each step.
+     *
+     * @throws SolverException
+     */
+    @Override
+    public void prepare(SearchTask task) throws SolverException {
+        ((GradientGuidedPath) task.getIterativeState()).setGradient(gradient(task));
+    }
 
-	/**
-	 * This class uses a singleton pattern, meaning there is only instance of this
-	 * class.
-	 * 
-	 * @return the single (static) instance of this class
-	 */
+    @Override
+    public String toString() {
+        return Messages.getString("SteepestDescentSolver.Descriptor");
+    }
 
-	public static SteepestDescentOptimiser getInstance() {
-		return instance;
-	}
+    /**
+     * This class uses a singleton pattern, meaning there is only instance of
+     * this class.
+     *
+     * @return the single (static) instance of this class
+     */
+    public static SteepestDescentOptimiser getInstance() {
+        return instance;
+    }
 
-	/**
-	 * Creates a new {@code Path} instance for storing the gradient, direction, and
-	 * minimum point for this {@code PathSolver}.
-	 * 
-	 * @param t the search task
-	 * @return a {@code Path} instance
-	 */
-
-	@Override
-	public GradientGuidedPath initState(SearchTask t) {
-		this.configure(t);
-		return new GradientGuidedPath(t);
-	}
+    /**
+     * Creates a new {@code Path} instance for storing the gradient, direction,
+     * and minimum point for this {@code PathSolver}.
+     *
+     * @param t the search task
+     * @return a {@code Path} instance
+     */
+    @Override
+    public GradientGuidedPath initState(SearchTask t) {
+        this.configure(t);
+        return new GradientGuidedPath(t);
+    }
 
 }

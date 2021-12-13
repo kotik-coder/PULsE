@@ -13,50 +13,49 @@ import pulse.ui.Messages;
  * </p>
  *
  */
-
 public class Identifier extends NumericProperty {
-	private static int lastId = -1;
 
-	private Identifier(int value, boolean addToList) {
-		super(def(IDENTIFIER));
-		setValue(value);
-		if (addToList)
-			setLastId(value);
-	}
+    private static int lastId = -1;
 
-	private static void setLastId(int value) {
-		Identifier.lastId = value;
-	}
+    private Identifier(int value, boolean addToList) {
+        super(def(IDENTIFIER));
+        setValue(value);
+        if (addToList) {
+            setLastId(value);
+        }
+    }
 
-	/**
-	 * Creates an {@code Identifier} by incrementing the previously recorded ID.
-	 */
+    private static void setLastId(int value) {
+        Identifier.lastId = value;
+    }
 
-	public Identifier() {
-		this(Identifier.lastId + 1, true);
-	}
+    /**
+     * Creates an {@code Identifier} by incrementing the previously recorded ID.
+     */
+    public Identifier() {
+        this(Identifier.lastId + 1, true);
+    }
 
-	/**
-	 * Seeks an {@code Identifier} from the list of available tasks in
-	 * {@code TaskManager} that matches this {@code string}.
-	 * 
-	 * @param string the string describing the identifier.
-	 * @return a matching {@code Identifier}.
-	 */
+    /**
+     * Seeks an {@code Identifier} from the list of available tasks in
+     * {@code TaskManager} that matches this {@code string}.
+     *
+     * @param string the string describing the identifier.
+     * @return a matching {@code Identifier}.
+     */
+    public static Identifier parse(String string) {
+        var i = TaskManager.getManagerInstance().getTaskList().stream().map(t -> t.getIdentifier())
+                .filter(id -> id.toString().equals(string)).findFirst();
+        return i.isPresent() ? i.get() : null;
+    }
 
-	public static Identifier parse(String string) {
-		var i = TaskManager.getManagerInstance().getTaskList().stream().map(t -> t.getIdentifier())
-				.filter(id -> id.toString().equals(string)).findFirst();
-		return i.isPresent() ? i.get() : null;
-	}
+    public static Identifier externalIdentifier(int id) {
+        return id > -1 ? new Identifier(id, false) : null;
+    }
 
-	public static Identifier externalIdentifier(int id) {
-		return id > -1 ? new Identifier(id, false) : null;
-	}
-
-	@Override
-	public String toString() {
-		return Messages.getString("Identifier.Tag") + " " + getValue();
-	}
+    @Override
+    public String toString() {
+        return Messages.getString("Identifier.Tag") + " " + getValue();
+    }
 
 }

@@ -21,97 +21,101 @@ import pulse.ui.components.listeners.ProblemSelectionListener;
 @SuppressWarnings("serial")
 public class ProblemTree extends JTree {
 
-	private List<ProblemSelectionListener> selectionListeners;
-	
-	public ProblemTree(List<Problem> allProblems) {
-		super();
-		this.setCellRenderer(new ProblemCellRenderer());
-		var root = new DefaultMutableTreeNode("Problem Statements");
-		
-		for (var c : ProblemComplexity.values()) {
-			var currentComplexity = new DefaultMutableTreeNode(c.toString() + " Complexity");
-			
-			allProblems.stream().filter(p -> p.getComplexity() == c).forEach(pFiltered -> {
-				var node = new DefaultMutableTreeNode(pFiltered);
-				currentComplexity.add(node);
-			});
+    private List<ProblemSelectionListener> selectionListeners;
 
-			root.add(currentComplexity);
+    public ProblemTree(List<Problem> allProblems) {
+        super();
+        this.setCellRenderer(new ProblemCellRenderer());
+        var root = new DefaultMutableTreeNode("Problem Statements");
 
-		}
+        for (var c : ProblemComplexity.values()) {
+            var currentComplexity = new DefaultMutableTreeNode(c.toString() + " Complexity");
 
-		var model = (DefaultTreeModel) this.getModel();
-		model.setRoot(root);
+            allProblems.stream().filter(p -> p.getComplexity() == c).forEach(pFiltered -> {
+                var node = new DefaultMutableTreeNode(pFiltered);
+                currentComplexity.add(node);
+            });
 
-		for (int i = 0; i < getRowCount(); i++) {
-			expandRow(i);
-		}
+            root.add(currentComplexity);
 
-		this.setRootVisible(false);
+        }
 
-		selectionListeners = new ArrayList<>();
-		this.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+        var model = (DefaultTreeModel) this.getModel();
+        model.setRoot(root);
 
-		addListeners();
-	}
+        for (int i = 0; i < getRowCount(); i++) {
+            expandRow(i);
+        }
 
-	private void addListeners() {
-		var instance = getManagerInstance();
+        this.setRootVisible(false);
 
-		addTreeSelectionListener(e -> {
-			var object = ((DefaultMutableTreeNode) e.getPath().getLastPathComponent()).getUserObject();
-			if (object instanceof Problem)
-				fireProblemSelection(new ProblemSelectionEvent((Problem) object, this));
-		});
+        selectionListeners = new ArrayList<>();
+        this.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
 
-		instance.addSelectionListener(e -> {
-			var current = instance.getSelectedTask().getCurrentCalculation().getProblem();
-			// select appropriate problem type from list
+        addListeners();
+    }
 
-			setSelectedProblem(current);
-			fireProblemSelection(new ProblemSelectionEvent(current, instance));
+    private void addListeners() {
+        var instance = getManagerInstance();
 
-		});
+        addTreeSelectionListener(e -> {
+            var object = ((DefaultMutableTreeNode) e.getPath().getLastPathComponent()).getUserObject();
+            if (object instanceof Problem) {
+                fireProblemSelection(new ProblemSelectionEvent((Problem) object, this));
+            }
+        });
 
-	}
+        instance.addSelectionListener(e -> {
+            var current = instance.getSelectedTask().getCurrentCalculation().getProblem();
+            // select appropriate problem type from list
 
-	public void setSelectedProblem(Problem p) {
-		if (p == null)
-			return;
+            setSelectedProblem(current);
+            fireProblemSelection(new ProblemSelectionEvent(current, instance));
 
-		var model = this.getModel();
-		var root = model.getRoot();
+        });
 
-		SwingUtilities.invokeLater(() -> {
+    }
 
-			TreePath path = null;
+    public void setSelectedProblem(Problem p) {
+        if (p == null) {
+            return;
+        }
 
-			outer: for (int i = 0, size = model.getChildCount(model.getRoot()); i < size; i++) {
-				var child = model.getChild(model.getRoot(), i);
+        var model = this.getModel();
+        var root = model.getRoot();
 
-				for (int j = 0, cSize = model.getChildCount(child); j < cSize; j++) {
-					var node = (DefaultMutableTreeNode) model.getChild(child, j);
-					var problem = (Problem) node.getUserObject();
-					if (p.getClass().equals(problem.getClass())) {
-						path = new TreePath(new Object[] { root, child, node });
-						break outer;
-					}
-				}
+        SwingUtilities.invokeLater(() -> {
 
-			}
+            TreePath path = null;
 
-			this.setSelectionPath(path);
+            outer:
+            for (int i = 0, size = model.getChildCount(model.getRoot()); i < size; i++) {
+                var child = model.getChild(model.getRoot(), i);
 
-		});
-	}
+                for (int j = 0, cSize = model.getChildCount(child); j < cSize; j++) {
+                    var node = (DefaultMutableTreeNode) model.getChild(child, j);
+                    var problem = (Problem) node.getUserObject();
+                    if (p.getClass().equals(problem.getClass())) {
+                        path = new TreePath(new Object[]{root, child, node});
+                        break outer;
+                    }
+                }
 
-	public void addProblemSelectionListener(ProblemSelectionListener l) {
-		selectionListeners.add(l);
-	}
+            }
 
-	private void fireProblemSelection(ProblemSelectionEvent e) {
-		for (var l : selectionListeners)
-			l.onProblemSelected(e);
-	}
+            this.setSelectionPath(path);
+
+        });
+    }
+
+    public void addProblemSelectionListener(ProblemSelectionListener l) {
+        selectionListeners.add(l);
+    }
+
+    private void fireProblemSelection(ProblemSelectionEvent e) {
+        for (var l : selectionListeners) {
+            l.onProblemSelected(e);
+        }
+    }
 
 }

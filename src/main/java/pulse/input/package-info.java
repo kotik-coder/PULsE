@@ -4,5 +4,4 @@
  * metadata, and property curves (e.g. specific heat and density); (b) are used
  * by the {@code TaskManager} or any affiliated class.
  */
-
 package pulse.input;

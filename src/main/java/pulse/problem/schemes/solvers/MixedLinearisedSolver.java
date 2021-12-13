@@ -24,7 +24,7 @@ import pulse.properties.NumericProperty;
  * calculated solution (with respect to time), and {@code maxTemp} is the
  * {@code maximumTemperature} {@code NumericProperty} of {@code problem}.
  * </p>
- * 
+ *
  * <p>
  * The semi-implicit scheme uses a 6-point template on a one-dimensional grid
  * that utilises the following grid-function values on each step:
@@ -45,118 +45,114 @@ import pulse.properties.NumericProperty;
  * pulse term in the boundary condition, a higher error is introduced into the
  * calculation than for the implicit scheme.
  * </p>
- * 
+ *
  * @see super.solve(Problem)
  */
-
 public class MixedLinearisedSolver extends MixedScheme implements Solver<ClassicalProblem> {
 
-	private double b1;
-	private double b2;
-	private double b3;
-	private double c1;
-	private double c2;
+    private double b1;
+    private double b2;
+    private double b3;
+    private double c1;
+    private double c2;
 
-	private final static double EPS = 1e-7; // a small value ensuring numeric stability
+    private final static double EPS = 1e-7; // a small value ensuring numeric stability
 
-	public MixedLinearisedSolver() {
-		super();
-	}
+    public MixedLinearisedSolver() {
+        super();
+    }
 
-	public MixedLinearisedSolver(NumericProperty N, NumericProperty timeFactor) {
-		super(N, timeFactor);
-	}
+    public MixedLinearisedSolver(NumericProperty N, NumericProperty timeFactor) {
+        super(N, timeFactor);
+    }
 
-	public MixedLinearisedSolver(NumericProperty N, NumericProperty timeFactor, NumericProperty timeLimit) {
-		super(N, timeFactor, timeLimit);
-	}
+    public MixedLinearisedSolver(NumericProperty N, NumericProperty timeFactor, NumericProperty timeLimit) {
+        super(N, timeFactor, timeLimit);
+    }
 
-	@Override
-	public void prepare(Problem problem) {
-		super.prepare(problem);
+    @Override
+    public void prepare(Problem problem) {
+        super.prepare(problem);
 
-		var grid = getGrid();
+        var grid = getGrid();
 
-		final double hx = grid.getXStep();
-		final double tau = grid.getTimeStep();
+        final double hx = grid.getXStep();
+        final double tau = grid.getTimeStep();
 
-		final double Bi1 = (double) problem.getProperties().getHeatLoss().getValue();
+        final double Bi1 = (double) problem.getProperties().getHeatLoss().getValue();
 
-		// precalculated constants
+        // precalculated constants
+        final double HH = pow(hx, 2);
+        final double Bi1HTAU = Bi1 * hx * tau;
 
-		final double HH = pow(hx, 2);
-		final double Bi1HTAU = Bi1 * hx * tau;
+        // constant for boundary-conditions calculation
+        b1 = 1. / (Bi1HTAU + HH + tau);
+        b2 = -hx * (Bi1 * tau - hx);
+        b3 = hx * tau;
+        c1 = b2;
+        c2 = Bi1HTAU + HH;
 
-		// constant for boundary-conditions calculation
+        var tridiagonal = new TridiagonalMatrixAlgorithm(grid) {
 
-		b1 = 1. / (Bi1HTAU + HH + tau);
-		b2 = -hx * (Bi1 * tau - hx);
-		b3 = hx * tau;
-		c1 = b2;
-		c2 = Bi1HTAU + HH;
-		
-		var tridiagonal = new TridiagonalMatrixAlgorithm(grid) {
+            @Override
+            public double phi(int i) {
+                final var U = getPreviousSolution();
+                return U[i] / tau + (U[i + 1] - 2. * U[i] + U[i - 1]) / HH;
+            }
 
-			@Override
-			public double phi(int i) {
-				final var U = getPreviousSolution();
-				return U[i] / tau + (U[i + 1] - 2. * U[i] + U[i - 1]) / HH;
-			}			
+        };
 
-		};
-		
-		setTridiagonalMatrixAlgorithm(tridiagonal);
-		
-		final double a1 = tau / (Bi1HTAU + HH + tau);
-		tridiagonal.setAlpha(1, a1);
-		
-		// coefficients for the finite-difference heat equation
+        setTridiagonalMatrixAlgorithm(tridiagonal);
 
-		tridiagonal.setCoefA( 1. / pow(hx, 2) );
-		tridiagonal.setCoefB( 2. / tau + 2. / pow(hx, 2) );
-		tridiagonal.setCoefC( 1. / pow(hx, 2) );
-		
-		tridiagonal.evaluateAlpha();
+        final double a1 = tau / (Bi1HTAU + HH + tau);
+        tridiagonal.setAlpha(1, a1);
 
-	}
-	
-	@Override
-	public double evalRightBoundary(final int m, final double alphaN, final double betaN) {
-		final var U = getPreviousSolution();
-		
-		final var grid = getGrid();
-		final double tau = grid.getTimeStep();
-		final int N = (int)grid.getGridDensity().getValue();
-		
-		return (c1 * U[N] + tau * betaN - tau * (U[N] - U[N - 1])) / (c2 - tau * (alphaN - 1));
-	}
-	
-	@Override
-	public double firstBeta(final int m) {
-		//TODO
-		final double tau = getGrid().getTimeStep();
-		final var pulse = getDiscretePulse();
-		final double pls = pulse.laserPowerAt((m - 1 + EPS) * tau) + pulse.laserPowerAt((m - EPS) * tau);
-		
-		final var U = getPreviousSolution();
-		return b1 * (b2 * U[0] + b3 * pls - tau * (U[0] - U[1]));
-	}
+        // coefficients for the finite-difference heat equation
+        tridiagonal.setCoefA(1. / pow(hx, 2));
+        tridiagonal.setCoefB(2. / tau + 2. / pow(hx, 2));
+        tridiagonal.setCoefC(1. / pow(hx, 2));
 
-	@Override
-	public void solve(ClassicalProblem problem) {
-		this.prepare(problem);
-		runTimeSequence(problem);
-	}
+        tridiagonal.evaluateAlpha();
 
-	@Override
-	public DifferenceScheme copy() {
-		var grid = getGrid();
-		return new MixedLinearisedSolver(grid.getGridDensity(), grid.getTimeFactor(), getTimeLimit());
-	}
+    }
 
-	@Override
-	public Class<? extends Problem> domain() {
-		return ClassicalProblem.class;
-	}
+    @Override
+    public double evalRightBoundary(final int m, final double alphaN, final double betaN) {
+        final var U = getPreviousSolution();
+
+        final var grid = getGrid();
+        final double tau = grid.getTimeStep();
+        final int N = (int) grid.getGridDensity().getValue();
+
+        return (c1 * U[N] + tau * betaN - tau * (U[N] - U[N - 1])) / (c2 - tau * (alphaN - 1));
+    }
+
+    @Override
+    public double firstBeta(final int m) {
+        //TODO
+        final double tau = getGrid().getTimeStep();
+        final var pulse = getDiscretePulse();
+        final double pls = pulse.laserPowerAt((m - 1 + EPS) * tau) + pulse.laserPowerAt((m - EPS) * tau);
+
+        final var U = getPreviousSolution();
+        return b1 * (b2 * U[0] + b3 * pls - tau * (U[0] - U[1]));
+    }
+
+    @Override
+    public void solve(ClassicalProblem problem) {
+        this.prepare(problem);
+        runTimeSequence(problem);
+    }
+
+    @Override
+    public DifferenceScheme copy() {
+        var grid = getGrid();
+        return new MixedLinearisedSolver(grid.getGridDensity(), grid.getTimeFactor(), getTimeLimit());
+    }
+
+    @Override
+    public Class<? extends Problem> domain() {
+        return ClassicalProblem.class;
+    }
 
 }

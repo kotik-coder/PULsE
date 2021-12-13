@@ -10,48 +10,49 @@ import org.jfree.chart.plot.XYPlot;
 
 public abstract class AuxPlotter<T> {
 
-	private ChartPanel chartPanel;
-	private JFreeChart chart;
-	private XYPlot plot;
-	
-	public AuxPlotter(String xLabel, String yLabel) {
-		createChart(xLabel, yLabel);
-		chart.setBackgroundPaint(UIManager.getColor("Panel.background"));
-		
-		plot = chart.getXYPlot();
-		setFonts();
+    private ChartPanel chartPanel;
+    private JFreeChart chart;
+    private XYPlot plot;
 
-		chart.removeLegend();
-		chartPanel = new ChartPanel(chart);
-	}
-	
-	public void setFonts() {
-		var fontLabel = new Font("Arial", Font.PLAIN, 20);
-		var fontTicks = new Font("Arial", Font.PLAIN, 16);
-		var plot = getPlot();
-		plot.getDomainAxis().setLabelFont(fontLabel);
-		plot.getDomainAxis().setTickLabelFont(fontTicks);
-		plot.getRangeAxis().setLabelFont(fontLabel);
-		plot.getRangeAxis().setTickLabelFont(fontTicks);
-	}
-	
-	public abstract void createChart(String xLabel, String yLabel);
-	public abstract void plot(T t);
+    public AuxPlotter(String xLabel, String yLabel) {
+        createChart(xLabel, yLabel);
+        chart.setBackgroundPaint(UIManager.getColor("Panel.background"));
 
-	public ChartPanel getChartPanel() {
-		return chartPanel;
-	}
+        plot = chart.getXYPlot();
+        setFonts();
 
-	public JFreeChart getChart() {
-		return chart;
-	}
+        chart.removeLegend();
+        chartPanel = new ChartPanel(chart);
+    }
 
-	public XYPlot getPlot() {
-		return plot;
-	}
+    public void setFonts() {
+        var fontLabel = new Font("Arial", Font.PLAIN, 20);
+        var fontTicks = new Font("Arial", Font.PLAIN, 16);
+        var plot = getPlot();
+        plot.getDomainAxis().setLabelFont(fontLabel);
+        plot.getDomainAxis().setTickLabelFont(fontTicks);
+        plot.getRangeAxis().setLabelFont(fontLabel);
+        plot.getRangeAxis().setTickLabelFont(fontTicks);
+    }
 
-	public void setChart(JFreeChart chart) {
-		this.chart = chart;
-	} 
-	
+    public abstract void createChart(String xLabel, String yLabel);
+
+    public abstract void plot(T t);
+
+    public ChartPanel getChartPanel() {
+        return chartPanel;
+    }
+
+    public JFreeChart getChart() {
+        return chart;
+    }
+
+    public XYPlot getPlot() {
+        return plot;
+    }
+
+    public void setChart(JFreeChart chart) {
+        this.chart = chart;
+    }
+
 }

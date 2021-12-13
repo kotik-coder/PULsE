@@ -35,161 +35,170 @@ import pulse.util.PropertyHolder;
 @SuppressWarnings("serial")
 public class PropertyHolderTable extends JTable {
 
-	private PropertyHolder propertyHolder;
+    private PropertyHolder propertyHolder;
 
-	private final static int ROW_HEIGHT = 40;
+    private final static int ROW_HEIGHT = 40;
 
-	public PropertyHolderTable(PropertyHolder p) {
-		super();
-		putClientProperty("terminateEditOnFocusLost", TRUE);
+    public PropertyHolderTable(PropertyHolder p) {
+        super();
+        putClientProperty("terminateEditOnFocusLost", TRUE);
 
-		var model = new DefaultTableModel(dataArray(p), new String[] { getString("PropertyHolderTable.ParameterColumn"), //$NON-NLS-1$
-				getString("PropertyHolderTable.ValueColumn") } //$NON-NLS-1$
-		);
+        var model = new DefaultTableModel(dataArray(p), new String[]{getString("PropertyHolderTable.ParameterColumn"), //$NON-NLS-1$
+            getString("PropertyHolderTable.ValueColumn")} //$NON-NLS-1$
+        );
 
-		setModel(model);
+        setModel(model);
 
-		setAutoResizeMode(AUTO_RESIZE_ALL_COLUMNS);
+        setAutoResizeMode(AUTO_RESIZE_ALL_COLUMNS);
 
-		setShowGrid(false);
-		setRowHeight(ROW_HEIGHT);
+        setShowGrid(false);
+        setRowHeight(ROW_HEIGHT);
 
-		var list = new ArrayList<SortKey>();
-		list.add(new SortKey(0, ASCENDING));
+        var list = new ArrayList<SortKey>();
+        list.add(new SortKey(0, ASCENDING));
 
-		setPropertyHolder(p);
+        setPropertyHolder(p);
 
-		addListeners();
+        addListeners();
 
-	}
+    }
 
-	private void addListeners() {
-		/*
+    private void addListeners() {
+        /*
 		 * Update properties of the PropertyHolder when table is changed by the user
-		 */
+         */
 
-		getModel().addTableModelListener((TableModelEvent e) -> {
+        getModel().addTableModelListener((TableModelEvent e) -> {
 
-			final int row = e.getFirstRow();
-			final int column = e.getColumn();
-			
-			if ((row < 0) || (column < 0))
-				return;
+            final int row = e.getFirstRow();
+            final int column = e.getColumn();
 
-			var changedObject = ((TableModel) e.getSource()).getValueAt(row, column);
-			
-			if (changedObject instanceof Property) {
-				var changedProperty = (Property) changedObject;
-				propertyHolder.updateProperty(this, changedProperty);
-			}
+            if ((row < 0) || (column < 0)) {
+                return;
+            }
 
-		});
+            var changedObject = ((TableModel) e.getSource()).getValueAt(row, column);
 
-	}
+            if (changedObject instanceof Property) {
+                var changedProperty = (Property) changedObject;
+                propertyHolder.updateProperty(this, changedProperty);
+            }
 
-	private Object[][] dataArray(PropertyHolder p) {
-		if (p == null)
-			return null;
+        });
 
-		List<Object[]> dataList = new ArrayList<>();
-                //ignore flags
-		var data = p.data().stream().filter(property -> !(property instanceof Flag))
-                        .map(property -> new Object[] { property.getDescriptor(true), property })
-				.collect(Collectors.toList());
-		dataList.addAll(data);
+    }
 
-		if (p.ignoreSiblings())
-			return dataList.toArray(new Object[data.size()][2]);
+    private Object[][] dataArray(PropertyHolder p) {
+        if (p == null) {
+            return null;
+        }
 
-		p.subgroups().stream().filter(group -> group instanceof PropertyHolder).forEach(holder -> dataList.add(
-				new Object[] { ((PropertyHolder) holder).getPrefix() != null ? ((PropertyHolder) holder).getPrefix()
-						: holder.getDescriptor(), holder })
+        List<Object[]> dataList = new ArrayList<>();
+        //ignore flags
+        var data = p.data().stream().filter(property -> !(property instanceof Flag))
+                .map(property -> new Object[]{property.getDescriptor(true), property})
+                .collect(Collectors.toList());
+        dataList.addAll(data);
 
-		);
+        if (p.ignoreSiblings()) {
+            return dataList.toArray(new Object[data.size()][2]);
+        }
 
-		return dataList.toArray(new Object[dataList.size()][2]);
+        p.subgroups().stream().filter(group -> group instanceof PropertyHolder).forEach(holder -> dataList.add(
+                new Object[]{((PropertyHolder) holder).getPrefix() != null ? ((PropertyHolder) holder).getPrefix()
+                    : holder.getDescriptor(), holder})
+        );
 
-	}
+        return dataList.toArray(new Object[dataList.size()][2]);
 
-	public void setPropertyHolder(PropertyHolder propertyHolder) {
-		this.propertyHolder = propertyHolder;
-		if (propertyHolder != null) {
-			updateTable();
-			propertyHolder.addListener(event -> {
-				if (!(event.getSource() instanceof PropertyHolderTable))
-					updateTable();
-			});
-		}
-	}
+    }
 
-	public void updateTable() {
-		this.editCellAt(-1, -1);
-		this.clearSelection();
+    public void setPropertyHolder(PropertyHolder propertyHolder) {
+        this.propertyHolder = propertyHolder;
+        if (propertyHolder != null) {
+            updateTable();
+            propertyHolder.addListener(event -> {
+                if (!(event.getSource() instanceof PropertyHolderTable)) {
+                    updateTable();
+                }
+            });
+        }
+    }
 
-		var model = ((DefaultTableModel) getModel());
-		model.setDataVector(dataArray(propertyHolder), new String[] { model.getColumnName(0), model.getColumnName(1) });
-	}
+    public void updateTable() {
+        this.editCellAt(-1, -1);
+        this.clearSelection();
 
-	@Override
-	public TableCellEditor getCellEditor(int row, int column) {
+        var model = ((DefaultTableModel) getModel());
+        model.setDataVector(dataArray(propertyHolder), new String[]{model.getColumnName(0), model.getColumnName(1)});
+    }
 
-		var value = super.getValueAt(row, column);
+    @Override
+    public TableCellEditor getCellEditor(int row, int column) {
 
-		if (value == null)
-			super.getCellEditor(row, column);
+        var value = super.getValueAt(row, column);
 
-		// do not edit labels
+        if (value == null) {
+            super.getCellEditor(row, column);
+        }
 
-		if (value instanceof String)
-			return null;
+        // do not edit labels
+        if (value instanceof String) {
+            return null;
+        }
 
-		if (value instanceof NumericProperty)
-			return new NumberEditor((NumericProperty) value);
+        if (value instanceof NumericProperty) {
+            return new NumberEditor((NumericProperty) value);
+        }
 
-		if (value instanceof JComboBox)
-			return new DefaultCellEditor((JComboBox<?>) value);
+        if (value instanceof JComboBox) {
+            return new DefaultCellEditor((JComboBox<?>) value);
+        }
 
-		if (value instanceof Enum)
-			return new DefaultCellEditor(
-					new JComboBox<Object>(((Enum<?>) value).getDeclaringClass().getEnumConstants()));
+        if (value instanceof Enum) {
+            return new DefaultCellEditor(
+                    new JComboBox<Object>(((Enum<?>) value).getDeclaringClass().getEnumConstants()));
+        }
 
-		if (value instanceof InstanceDescriptor) {
-			return new InstanceCellEditor((InstanceDescriptor<?>) value);
-		}
+        if (value instanceof InstanceDescriptor) {
+            return new InstanceCellEditor((InstanceDescriptor<?>) value);
+        }
 
-		if (value instanceof DiscreteSelector) {
-			var selector = (DiscreteSelector<?>) value;
-			var combo = new JComboBox<>(selector.getAllOptions().toArray());
-			combo.setSelectedItem(selector.getValue());
-			combo.addItemListener(e -> {
-				if (e.getStateChange() == ItemEvent.SELECTED) {
-					selector.attemptUpdate(e.getItem());
-					updateTable();
-				}
-			});
-			return new DefaultCellEditor(combo);
-		}
+        if (value instanceof DiscreteSelector) {
+            var selector = (DiscreteSelector<?>) value;
+            var combo = new JComboBox<>(selector.getAllOptions().toArray());
+            combo.setSelectedItem(selector.getValue());
+            combo.addItemListener(e -> {
+                if (e.getStateChange() == ItemEvent.SELECTED) {
+                    selector.attemptUpdate(e.getItem());
+                    updateTable();
+                }
+            });
+            return new DefaultCellEditor(combo);
+        }
 
-		if ((value instanceof PropertyHolder))
-			return new ButtonEditor((AbstractButton) getCellRenderer(row, column).getTableCellRendererComponent(this,
-					value, false, false, row, column), (PropertyHolder) value);
+        if ((value instanceof PropertyHolder)) {
+            return new ButtonEditor((AbstractButton) getCellRenderer(row, column).getTableCellRendererComponent(this,
+                    value, false, false, row, column), (PropertyHolder) value);
+        }
 
-		if (value instanceof Flag) 
-			return new ButtonEditor((IconCheckBox) getCellRenderer(row, column).getTableCellRendererComponent(this,
-					value, false, false, row, column), ((Flag) value).getType());
+        if (value instanceof Flag) {
+            return new ButtonEditor((IconCheckBox) getCellRenderer(row, column).getTableCellRendererComponent(this,
+                    value, false, false, row, column), ((Flag) value).getType());
+        }
 
-		return getDefaultEditor(value.getClass());
+        return getDefaultEditor(value.getClass());
 
-	}
+    }
 
-	@Override
-	public TableCellRenderer getCellRenderer(int row, int column) {
-		var value = super.getValueAt(row, column);
-		return value != null ? new AccessibleTableRenderer() : super.getCellRenderer(row, column);
-	}
+    @Override
+    public TableCellRenderer getCellRenderer(int row, int column) {
+        var value = super.getValueAt(row, column);
+        return value != null ? new AccessibleTableRenderer() : super.getCellRenderer(row, column);
+    }
 
-	public PropertyHolder getPropertyHolder() {
-		return propertyHolder;
-	}
+    public PropertyHolder getPropertyHolder() {
+        return propertyHolder;
+    }
 
 }

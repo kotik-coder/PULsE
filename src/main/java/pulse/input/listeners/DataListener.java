@@ -5,17 +5,15 @@ package pulse.input.listeners;
  * with an {@code ExperimentalData} object.
  *
  */
-
 public interface DataListener {
 
-	/**
-	 * Triggered when a certain {@code DataEvent} specified by its
-	 * {@code DataEventType} is initiated from within the {@code ExperimentalData}
-	 * object.
-	 * 
-	 * @param e the event object.
-	 */
-
-	public void onDataChanged(DataEvent e);
+    /**
+     * Triggered when a certain {@code DataEvent} specified by its
+     * {@code DataEventType} is initiated from within the
+     * {@code ExperimentalData} object.
+     *
+     * @param e the event object.
+     */
+    public void onDataChanged(DataEvent e);
 
 }

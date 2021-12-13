@@ -3,5 +3,4 @@
  * to determine the direction of the minimum of a specific {@code SearchTask}
  * using an iterative approach.
  */
-
 package pulse.search.direction;

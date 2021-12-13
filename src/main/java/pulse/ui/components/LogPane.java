@@ -25,21 +25,21 @@ import pulse.util.Descriptive;
 @SuppressWarnings("serial")
 public class LogPane extends JEditorPane implements Descriptive {
 
-	private ExecutorService updateExecutor = newSingleThreadExecutor();
+    private ExecutorService updateExecutor = newSingleThreadExecutor();
 
-	public LogPane() {
-		super();
-		setContentType("text/html");
-		setEditable(false);
-		var c = (DefaultCaret) getCaret();
-		c.setUpdatePolicy(ALWAYS_UPDATE);
-	}
+    public LogPane() {
+        super();
+        setContentType("text/html");
+        setEditable(false);
+        var c = (DefaultCaret) getCaret();
+        c.setUpdatePolicy(ALWAYS_UPDATE);
+    }
 
-	private void post(LogEntry logEntry) {
-		post(logEntry.toString());
-	}
+    private void post(LogEntry logEntry) {
+        post(logEntry.toString());
+    }
 
-	/*
+    /*
 	private void postError(String text) {
 		var sb = new StringBuilder();
 		sb.append(getString("DataLogEntry.FontTagError"));
@@ -47,88 +47,90 @@ public class LogPane extends JEditorPane implements Descriptive {
 		sb.append(getString("DataLogEntry.FontTagClose"));
 		post(sb.toString());
 	}*/
+    private void post(String text) {
 
-	private void post(String text) {
+        final var doc = (HTMLDocument) getDocument();
+        final var kit = (HTMLEditorKit) this.getEditorKit();
+        try {
+            kit.insertHTML(doc, doc.getLength(), text, 0, 0, null);
+        } catch (BadLocationException e) {
+            err.println(getString("LogPane.InsertError")); //$NON-NLS-1$
+            e.printStackTrace();
+        } catch (IOException e) {
+            err.println(getString("LogPane.PrintError")); //$NON-NLS-1$
+            e.printStackTrace();
+        }
 
-		final var doc = (HTMLDocument) getDocument();
-		final var kit = (HTMLEditorKit) this.getEditorKit();
-		try {
-			kit.insertHTML(doc, doc.getLength(), text, 0, 0, null);
-		} catch (BadLocationException e) {
-			err.println(getString("LogPane.InsertError")); //$NON-NLS-1$
-			e.printStackTrace();
-		} catch (IOException e) {
-			err.println(getString("LogPane.PrintError")); //$NON-NLS-1$
-			e.printStackTrace();
-		}
+    }
 
-	}
+    public void printTimeTaken(Log log) {
+        var seconds = SECONDS.between(log.getStart(), log.getEnd());
+        var ms = MILLIS.between(log.getStart(), log.getEnd()) - 1000L * seconds;
+        var sb = new StringBuilder();
+        sb.append(getString("LogPane.TimeTaken")); //$NON-NLS-1$
+        sb.append(seconds + getString("LogPane.Seconds")); //$NON-NLS-1$
+        sb.append(ms + getString("LogPane.Milliseconds")); //$NON-NLS-1$
+        post(sb.toString());
+    }
 
-	public void printTimeTaken(Log log) {
-		var seconds = SECONDS.between(log.getStart(), log.getEnd());
-		var ms = MILLIS.between(log.getStart(), log.getEnd()) - 1000L * seconds;
-		var sb = new StringBuilder();
-		sb.append(getString("LogPane.TimeTaken")); //$NON-NLS-1$
-		sb.append(seconds + getString("LogPane.Seconds")); //$NON-NLS-1$
-		sb.append(ms + getString("LogPane.Milliseconds")); //$NON-NLS-1$
-		post(sb.toString());
-	}
+    public synchronized void callUpdate() {
+        updateExecutor.submit(() -> update());
+    }
 
-	public synchronized void callUpdate() {
-		updateExecutor.submit(() -> update());
-	}
+    public void printAll() {
+        clear();
 
-	public void printAll() {
-		clear();
+        var task = TaskManager.getManagerInstance().getSelectedTask();
 
-		var task = TaskManager.getManagerInstance().getSelectedTask();
+        if (task != null) {
 
-		if (task != null) {
+            var log = task.getLog();
 
-			var log = task.getLog();
+            if (log.isStarted()) {
 
-			if (log.isStarted()) {
+                log.getLogEntries().stream().forEach(entry -> post(entry));
 
-				log.getLogEntries().stream().forEach(entry -> post(entry));
+                if (task.getCurrentCalculation().getStatus() == DONE) {
+                    printTimeTaken(log);
+                }
 
-				if (task.getCurrentCalculation().getStatus() == DONE)
-					printTimeTaken(log);
+            }
 
-			}
+        }
 
-		}
+    }
 
-	}
+    private synchronized void update() {
+        var task = TaskManager.getManagerInstance().getSelectedTask();
 
-	private synchronized void update() {
-		var task = TaskManager.getManagerInstance().getSelectedTask();
+        if (task == null) {
+            return;
+        }
 
-		if (task == null)
-			return;
+        var log = task.getLog();
 
-		var log = task.getLog();
+        if (!log.isStarted()) {
+            return;
+        }
 
-		if (!log.isStarted())
-			return;
+        post(log.lastEntry());
+    }
 
-		post(log.lastEntry());
-	}
+    public void clear() {
+        try {
+            getDocument().remove(0, getDocument().getLength());
+        } catch (BadLocationException e) {
+            e.printStackTrace();
+        }
+    }
 
-	public void clear() {
-		try {
-			getDocument().remove(0, getDocument().getLength());
-		} catch (BadLocationException e) {
-			e.printStackTrace();
-		}
-	}
+    public ExecutorService getUpdateExecutor() {
+        return updateExecutor;
+    }
 
-	public ExecutorService getUpdateExecutor() {
-		return updateExecutor;
-	}
-
-	@Override
-	public String describe() {
-		return "Log_" + TaskManager.getManagerInstance().getSelectedTask().getIdentifier().getValue();
-	}
+    @Override
+    public String describe() {
+        return "Log_" + TaskManager.getManagerInstance().getSelectedTask().getIdentifier().getValue();
+    }
 
 }

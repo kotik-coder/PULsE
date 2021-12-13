@@ -4,5 +4,4 @@
  * includes ODE solvers, ordinate set handlers, non-uniform grid, iterative
  * solvers, and scattering phase functions.
  */
-
 package pulse.problem.schemes.rte.dom;

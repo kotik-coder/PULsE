@@ -23,9 +23,9 @@ public class PenetrationProblem extends ClassicalProblem {
 
     private final static int DEFAULT_CURVE_POINTS = 300;
 
-    private InstanceDescriptor<AbsorptionModel> instanceDescriptor 
+    private InstanceDescriptor<AbsorptionModel> instanceDescriptor
             = new InstanceDescriptor<AbsorptionModel>(
-            "Absorption Model Selector", AbsorptionModel.class);
+                    "Absorption Model Selector", AbsorptionModel.class);
 
     private AbsorptionModel absorption = instanceDescriptor.newInstance(AbsorptionModel.class);
 
@@ -39,7 +39,7 @@ public class PenetrationProblem extends ClassicalProblem {
 
     public PenetrationProblem(PenetrationProblem p) {
         super(p);
-        instanceDescriptor.setSelectedDescriptor((String)p.getAbsorptionSelector().getValue());
+        instanceDescriptor.setSelectedDescriptor((String) p.getAbsorptionSelector().getValue());
         instanceDescriptor.addListener(() -> initAbsorption());
         initAbsorption();
     }

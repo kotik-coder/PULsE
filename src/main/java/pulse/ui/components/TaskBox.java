@@ -17,39 +17,40 @@ import pulse.ui.components.models.TaskBoxModel;
 @SuppressWarnings("serial")
 public class TaskBox extends JComboBox<SearchTask> {
 
-	public TaskBox() {
-		super();
+    public TaskBox() {
+        super();
 
-		init();
-		this.setModel(new TaskBoxModel());
+        init();
+        this.setModel(new TaskBoxModel());
 
-		var instance = TaskManager.getManagerInstance();
-		
-		addItemListener((ItemEvent event) -> {
-			if (event.getStateChange() == SELECTED) {
-				var id = ((SearchTask) this.getModel().getSelectedItem()).getIdentifier();
-				/*
+        var instance = TaskManager.getManagerInstance();
+
+        addItemListener((ItemEvent event) -> {
+            if (event.getStateChange() == SELECTED) {
+                var id = ((SearchTask) this.getModel().getSelectedItem()).getIdentifier();
+                /*
 				 * if task already selected, just ignore this event and return
-				 */
-				if (instance.getSelectedTask() != instance.getTask(id)) {
-					instance.selectTask(id, this);
-				}
-				
-			}
-		});
+                 */
+                if (instance.getSelectedTask() != instance.getTask(id)) {
+                    instance.selectTask(id, this);
+                }
 
-		instance.addSelectionListener((TaskSelectionEvent e) -> {
-			// simply ignore if source of event is taskBox
-			if (e.getSource() != this)
-				getModel().setSelectedItem(instance.getSelectedTask());
-		});
-	}
+            }
+        });
 
-	public void init() {
-		setMaximumSize(new Dimension(32767, 24));
-		setMinimumSize(new Dimension(250, 20));
-		setToolTipText(getString("TaskBox.DefaultText")); //$NON-NLS-1$
-		setBackground(WHITE);
-	}
+        instance.addSelectionListener((TaskSelectionEvent e) -> {
+            // simply ignore if source of event is taskBox
+            if (e.getSource() != this) {
+                getModel().setSelectedItem(instance.getSelectedTask());
+            }
+        });
+    }
+
+    public void init() {
+        setMaximumSize(new Dimension(32767, 24));
+        setMinimumSize(new Dimension(250, 20));
+        setToolTipText(getString("TaskBox.DefaultText")); //$NON-NLS-1$
+        setBackground(WHITE);
+    }
 
 }

@@ -24,118 +24,115 @@ import pulse.util.Reflexive;
  * steps with listeners.
  *
  */
-
 public abstract class RadiativeTransferSolver extends PropertyHolder implements Reflexive, Descriptive {
 
-	private Fluxes fluxes;
-	private List<RTECalculationListener> rteListeners;
+    private Fluxes fluxes;
+    private List<RTECalculationListener> rteListeners;
 
-	/**
-	 * Dummy constructor.
-	 * 
-	 */
+    /**
+     * Dummy constructor.
+     *
+     */
+    public RadiativeTransferSolver() {
+        rteListeners = new ArrayList<>();
+    }
 
-	public RadiativeTransferSolver() {
-		rteListeners = new ArrayList<>();
-	}
+    /**
+     * Launches a calculation of the radiative transfer equation.
+     *
+     * @param temperatureArray the input temperature profile
+     * @return the status of calculation
+     */
+    public abstract RTECalculationStatus compute(double[] temperatureArray);
 
-	/**
-	 * Launches a calculation of the radiative transfer equation.
-	 * 
-	 * @param temperatureArray the input temperature profile
-	 * @return the status of calculation
-	 */
+    /**
+     * Retrieves the parameters from {@code p} and {@code grid} needed to run
+     * the calculations. Resets the flux arrays.
+     *
+     * @param p the problem statement
+     * @param grid the grid
+     */
+    public void init(ParticipatingMedium p, Grid grid) {
+        if (fluxes != null) {
+            fluxes.setDensity(grid.getGridDensity());
+            var properties = (ThermoOpticalProperties) p.getProperties();
+            fluxes.setOpticalThickness(properties.getOpticalThickness());
+        }
+    }
 
-	public abstract RTECalculationStatus compute(double[] temperatureArray);
+    /**
+     * Performs interpolation with natural cubic splines using the input
+     * arguments.
+     *
+     * @param tempArray an array of data defined on a previously initialised
+     * grid.
+     * @return a {@code UnivariateFunction} generated with a
+     * {@code SplineInterpolator}
+     */
+    public UnivariateFunction interpolateTemperatureProfile(final double[] tempArray) {
+        var xArray = new double[tempArray.length + 2];
+        IntStream.range(0, xArray.length).forEach(i -> xArray[i] = opticalCoordinateAt(i - 1));
 
-	/**
-	 * Retrieves the parameters from {@code p} and {@code grid} needed to run the
-	 * calculations. Resets the flux arrays.
-	 * 
-	 * @param p    the problem statement
-	 * @param grid the grid
-	 */
+        var tarray = new double[tempArray.length + 2];
+        System.arraycopy(tempArray, 0, tarray, 1, tempArray.length - 1);
 
-	public void init(ParticipatingMedium p, Grid grid) {
-		if (fluxes != null) {
-			fluxes.setDensity(grid.getGridDensity());
-			var properties = (ThermoOpticalProperties)p.getProperties();
-			fluxes.setOpticalThickness(properties.getOpticalThickness());
-		}
-	}
+        final double[] p1 = new double[]{xArray[1], tempArray[0]};
+        final double[] p2 = new double[]{xArray[2], tempArray[1]};
+        tarray[0] = linearExtrapolation(p1, p2, xArray[0]);
 
-	/**
-	 * Performs interpolation with natural cubic splines using the input arguments.
-	 * 
-	 * @param tempArray an array of data defined on a previously initialised grid.
-	 * @return a {@code UnivariateFunction} generated with a
-	 *         {@code SplineInterpolator}
-	 */
+        final double[] p3 = new double[]{xArray[xArray.length - 2], tempArray[tempArray.length - 1]};
+        final double[] p4 = new double[]{xArray[xArray.length - 3], tempArray[tempArray.length - 2]};
+        tarray[tarray.length - 1] = linearExtrapolation(p3, p4, xArray[xArray.length - 1]);
 
-	public UnivariateFunction interpolateTemperatureProfile(final double[] tempArray) {
-		var xArray = new double[tempArray.length + 2];
-		IntStream.range(0, xArray.length).forEach(i -> xArray[i] = opticalCoordinateAt(i - 1));
-				
-		var tarray = new double[tempArray.length + 2];
-		System.arraycopy(tempArray, 0, tarray, 1, tempArray.length - 1);
-		
-		final double[] p1 = new double[] { xArray[1], tempArray[0] };
-		final double[] p2 = new double[] { xArray[2], tempArray[1] };
-		tarray[0] =	linearExtrapolation(p1, p2, xArray[0]); 
-		
-		final double[] p3 = new double[] { xArray[xArray.length - 2], tempArray[tempArray.length - 1] };
-		final double[] p4 = new double[] { xArray[xArray.length - 3], tempArray[tempArray.length - 2] };
-		tarray[tarray.length - 1] = linearExtrapolation(p3, p4, xArray[xArray.length - 1]);
-		
-		return (new SplineInterpolator()).interpolate(xArray, tarray);
-	}
+        return (new SplineInterpolator()).interpolate(xArray, tarray);
+    }
 
-	/**
-	 * Retrieves the optical coordinate corresponding to the grid index {@code i}
-	 * 
-	 * @param i the external grid index
-	 * @return <math>&tau;<sub>0</sub>/<i>N</i> <i>i</i> </math>
-	 */
+    /**
+     * Retrieves the optical coordinate corresponding to the grid index
+     * {@code i}
+     *
+     * @param i the external grid index
+     * @return <math>&tau;<sub>0</sub>/<i>N</i> <i>i</i> </math>
+     */
+    public double opticalCoordinateAt(final int i) {
+        return fluxes.getOpticalGridStep() * i;
+    }
 
-	public double opticalCoordinateAt(final int i) {
-		return fluxes.getOpticalGridStep() * i;
-	}
+    @Override
+    public boolean ignoreSiblings() {
+        return true;
+    }
 
-	@Override
-	public boolean ignoreSiblings() {
-		return true;
-	}
+    @Override
+    public String getPrefix() {
+        return "Radiative Transfer Solver";
+    }
 
-	@Override
-	public String getPrefix() {
-		return "Radiative Transfer Solver";
-	}
+    public List<RTECalculationListener> getRTEListeners() {
+        return rteListeners;
+    }
 
-	public List<RTECalculationListener> getRTEListeners() {
-		return rteListeners;
-	}
+    /**
+     * Adds a listener that can listen to status updates.
+     *
+     * @param listener a listener to track the calculation progress
+     */
+    public void addRTEListener(RTECalculationListener listener) {
+        rteListeners.add(listener);
+    }
 
-	/**
-	 * Adds a listener that can listen to status updates.
-	 * 
-	 * @param listener a listener to track the calculation progress
-	 */
+    public void fireStatusUpdate(RTECalculationStatus status) {
+        for (RTECalculationListener l : getRTEListeners()) {
+            l.onStatusUpdate(status);
+        }
+    }
 
-	public void addRTEListener(RTECalculationListener listener) {
-		rteListeners.add(listener);
-	}
+    public Fluxes getFluxes() {
+        return fluxes;
+    }
 
-	public void fireStatusUpdate(RTECalculationStatus status) {
-		for (RTECalculationListener l : getRTEListeners())
-			l.onStatusUpdate(status);
-	}
-
-	public Fluxes getFluxes() {
-		return fluxes;
-	}
-
-	public void setFluxes(Fluxes fluxes) {
-		this.fluxes = fluxes;
-	}
+    public void setFluxes(Fluxes fluxes) {
+        this.fluxes = fluxes;
+    }
 
 }

@@ -10,18 +10,17 @@ import java.io.IOException;
  * latter does not change the internal structure of an object.
  *
  */
-
 public interface AbstractPopulator<T> extends AbstractHandler {
 
-	/**
-	 * Tries to populate {@code t} from data contained in {@code f}.
-	 * 
-	 * @param f a file presumably containing data that can be converted to the
-	 *          internal format of {@code t}.
-	 * @param t a {@code T} object which can potentially be populated by {@code f}.
-	 * @throws IOException if an exception occurs during processing {@code f}.
-	 */
-
-	public void populate(File f, T t) throws IOException;
+    /**
+     * Tries to populate {@code t} from data contained in {@code f}.
+     *
+     * @param f a file presumably containing data that can be converted to the
+     * internal format of {@code t}.
+     * @param t a {@code T} object which can potentially be populated by
+     * {@code f}.
+     * @throws IOException if an exception occurs during processing {@code f}.
+     */
+    public void populate(File f, T t) throws IOException;
 
 }

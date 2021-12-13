@@ -59,174 +59,176 @@ import pulse.properties.NumericProperty;
  * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.*/
-
 public class NumberEditor extends DefaultCellEditor {
-	/**
-	* 
-	*/
-	private static final long serialVersionUID = 1L;
-	JFormattedTextField ftf;
-	NumberFormat numberFormat;
-	private boolean DEBUG = false;
-	private NumericProperty property;
 
-	public NumberEditor(NumericProperty property) {
-		super(new JFormattedTextField());
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
+    JFormattedTextField ftf;
+    NumberFormat numberFormat;
+    private boolean DEBUG = false;
+    private NumericProperty property;
 
-		this.property = property;
-		ftf = (JFormattedTextField) getComponent();
+    public NumberEditor(NumericProperty property) {
+        super(new JFormattedTextField());
 
-		// Set up the editor for the integer cells.
+        this.property = property;
+        ftf = (JFormattedTextField) getComponent();
 
-		var numFormatter = new NumberFormatter(numberFormat);
-		numFormatter.setFormat(numberFormat);
+        // Set up the editor for the integer cells.
+        var numFormatter = new NumberFormatter(numberFormat);
+        numFormatter.setFormat(numberFormat);
 
-		Number value;
+        Number value;
 
-		if (property.getValue() instanceof Integer) {
-			numberFormat = getIntegerInstance();
-			value = (int) property.getValue() * (int) property.getDimensionFactor();
-			numFormatter.setMinimum(property.getMinimum().intValue() * property.getDimensionFactor().intValue());
-			numFormatter.setMaximum(property.getMaximum().intValue() * property.getDimensionFactor().intValue());
-		} else {
-			numberFormat = new DecimalFormat(getString("NumberEditor.NumberFormat")); //$NON-NLS-1$
-			value = ((Number) property.getValue()).doubleValue() * property.getDimensionFactor().doubleValue();
-			numFormatter.setMinimum(property.getMinimum().doubleValue() * property.getDimensionFactor().doubleValue());
-			numFormatter.setMaximum(property.getMaximum().doubleValue() * property.getDimensionFactor().doubleValue());
-		}
+        if (property.getValue() instanceof Integer) {
+            numberFormat = getIntegerInstance();
+            value = (int) property.getValue() * (int) property.getDimensionFactor();
+            numFormatter.setMinimum(property.getMinimum().intValue() * property.getDimensionFactor().intValue());
+            numFormatter.setMaximum(property.getMaximum().intValue() * property.getDimensionFactor().intValue());
+        } else {
+            numberFormat = new DecimalFormat(getString("NumberEditor.NumberFormat")); //$NON-NLS-1$
+            value = ((Number) property.getValue()).doubleValue() * property.getDimensionFactor().doubleValue();
+            numFormatter.setMinimum(property.getMinimum().doubleValue() * property.getDimensionFactor().doubleValue());
+            numFormatter.setMaximum(property.getMaximum().doubleValue() * property.getDimensionFactor().doubleValue());
+        }
 
-		ftf.setFormatterFactory(new DefaultFormatterFactory(numFormatter));
-		ftf.setValue(value);
-		ftf.setHorizontalAlignment(CENTER);
-		ftf.setFocusLostBehavior(PERSIST);
+        ftf.setFormatterFactory(new DefaultFormatterFactory(numFormatter));
+        ftf.setValue(value);
+        ftf.setHorizontalAlignment(CENTER);
+        ftf.setFocusLostBehavior(PERSIST);
 
-		// React when the user presses Enter while the editor is
-		// active. (Tab is handled as specified by
-		// JFormattedTextField's focusLostBehavior property.)
-		ftf.getInputMap().put(getKeyStroke(VK_ENTER, 0), "check");
-		ftf.getActionMap().put("check", new AbstractAction() {
-			/**
-			 * 
-			 */
-			private static final long serialVersionUID = 1L;
+        // React when the user presses Enter while the editor is
+        // active. (Tab is handled as specified by
+        // JFormattedTextField's focusLostBehavior property.)
+        ftf.getInputMap().put(getKeyStroke(VK_ENTER, 0), "check");
+        ftf.getActionMap().put("check", new AbstractAction() {
+            /**
+             *
+             */
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (!ftf.isEditValid()) { // The text is invalid.
-					if (userSaysRevert()) { // reverted
-						ftf.postActionEvent(); // inform the editor
-					}
-				} else
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (!ftf.isEditValid()) { // The text is invalid.
+                    if (userSaysRevert()) { // reverted
+                        ftf.postActionEvent(); // inform the editor
+                    }
+                } else
 					try { // The text is valid,
-						ftf.commitEdit(); // so use it.
-						ftf.postActionEvent(); // stop editing
-					} catch (java.text.ParseException exc) {
-					}
-			}
-		});
-	}
+                    ftf.commitEdit(); // so use it.
+                    ftf.postActionEvent(); // stop editing
+                } catch (java.text.ParseException exc) {
+                }
+            }
+        });
+    }
 
-	// Override to invoke setValue on the formatted text field.
-	@Override
-	public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-		var ftf = (JFormattedTextField) super.getTableCellEditorComponent(table, value, isSelected, row, column);
+    // Override to invoke setValue on the formatted text field.
+    @Override
+    public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+        var ftf = (JFormattedTextField) super.getTableCellEditorComponent(table, value, isSelected, row, column);
 
-		Number num;
-		var prop = (NumericProperty) value;
+        Number num;
+        var prop = (NumericProperty) value;
 
-		if ((prop.getValue() instanceof Integer))
-			num = (int) prop.getValue() * (int) prop.getDimensionFactor();
-		else
-			num = ((Number) prop.getValue()).doubleValue() * prop.getDimensionFactor().doubleValue();
+        if ((prop.getValue() instanceof Integer)) {
+            num = (int) prop.getValue() * (int) prop.getDimensionFactor();
+        } else {
+            num = ((Number) prop.getValue()).doubleValue() * prop.getDimensionFactor().doubleValue();
+        }
 
-		ftf.setValue(num);
-		return ftf;
-	}
+        ftf.setValue(num);
+        return ftf;
+    }
 
-	@Override
-	public Object getCellEditorValue() {
-		var ftf = (JFormattedTextField) getComponent();
-		var o = ftf.getValue();
-		if (o instanceof Number) {
+    @Override
+    public Object getCellEditorValue() {
+        var ftf = (JFormattedTextField) getComponent();
+        var o = ftf.getValue();
+        if (o instanceof Number) {
 
-			try {
-				if (o instanceof Integer) {
-					if (property.getValue() instanceof Integer)
-						property.setValue((int) o / (int) property.getDimensionFactor());
-					else
-						property.setValue(((Number) o).doubleValue() / (double) (property.getDimensionFactor()));
-				} else {
-					if (property.getValue() instanceof Integer)
-						property.setValue(((Number) o).intValue() / (int) property.getDimensionFactor());
-					else
-						property.setValue(((Number) o).doubleValue() / (double) (property.getDimensionFactor()));
-				}
-			} catch (IllegalArgumentException e) {
-				getDefaultToolkit().beep();
-				showMessageDialog(getWindowAncestor(ftf), e.getMessage(), getString("NumberEditor.IllegalTableEntry"), //$NON-NLS-1$
-						ERROR_MESSAGE);
-				property.setValue(property.getMinimum());
-			}
-			return property;
-		} else {
-			if (DEBUG) {
-				out.println(getString("NumberEditor.NotANumberError")); //$NON-NLS-1$
-			}
-			try {
-				return numberFormat.parseObject(o.toString());
-			} catch (ParseException exc) {
-				err.println(getString("NumberEditor.ParseError") + o); //$NON-NLS-1$
-				return null;
-			}
-		}
-	}
+            try {
+                if (o instanceof Integer) {
+                    if (property.getValue() instanceof Integer) {
+                        property.setValue((int) o / (int) property.getDimensionFactor());
+                    } else {
+                        property.setValue(((Number) o).doubleValue() / (double) (property.getDimensionFactor()));
+                    }
+                } else {
+                    if (property.getValue() instanceof Integer) {
+                        property.setValue(((Number) o).intValue() / (int) property.getDimensionFactor());
+                    } else {
+                        property.setValue(((Number) o).doubleValue() / (double) (property.getDimensionFactor()));
+                    }
+                }
+            } catch (IllegalArgumentException e) {
+                getDefaultToolkit().beep();
+                showMessageDialog(getWindowAncestor(ftf), e.getMessage(), getString("NumberEditor.IllegalTableEntry"), //$NON-NLS-1$
+                        ERROR_MESSAGE);
+                property.setValue(property.getMinimum());
+            }
+            return property;
+        } else {
+            if (DEBUG) {
+                out.println(getString("NumberEditor.NotANumberError")); //$NON-NLS-1$
+            }
+            try {
+                return numberFormat.parseObject(o.toString());
+            } catch (ParseException exc) {
+                err.println(getString("NumberEditor.ParseError") + o); //$NON-NLS-1$
+                return null;
+            }
+        }
+    }
 
-	// Override to check whether the edit is valid,
-	// setting the value if it is and complaining if
-	// it isn't. If it's OK for the editor to go
-	// away, we need to invoke the superclass's version
-	// of this method so that everything gets cleaned up.
-	@Override
-	public boolean stopCellEditing() {
-		var ftf = (JFormattedTextField) getComponent();
-		if (ftf.isEditValid()) {
-			try {
-				ftf.commitEdit();
-			} catch (java.text.ParseException exc) {
-			}
+    // Override to check whether the edit is valid,
+    // setting the value if it is and complaining if
+    // it isn't. If it's OK for the editor to go
+    // away, we need to invoke the superclass's version
+    // of this method so that everything gets cleaned up.
+    @Override
+    public boolean stopCellEditing() {
+        var ftf = (JFormattedTextField) getComponent();
+        if (ftf.isEditValid()) {
+            try {
+                ftf.commitEdit();
+            } catch (java.text.ParseException exc) {
+            }
 
-		} else { // text is invalid
-			if (!userSaysRevert()) { // user wants to edit
-				return false; // don't let the editor go away
-			}
-		}
+        } else { // text is invalid
+            if (!userSaysRevert()) { // user wants to edit
+                return false; // don't let the editor go away
+            }
+        }
 
-		return super.stopCellEditing();
-	}
+        return super.stopCellEditing();
+    }
 
-	/**
-	 * Lets the user know that the text they entered is bad. Returns true if the
-	 * user elects to revert to the last good value. Otherwise, returns false,
-	 * indicating that the user wants to continue editing.
-	 */
-	protected boolean userSaysRevert() {
-		getDefaultToolkit().beep();
-		ftf.selectAll();
-		Object[] options = { getString("NumberEditor.EditText"), getString("NumberEditor.RevertText") };
-		var answer = showOptionDialog(getWindowAncestor(ftf),
-				"The value must be a " + property.getMinimum().getClass().getSimpleName() + " between "
-						+ property.getMinimum().doubleValue() * property.getDimensionFactor().doubleValue() + " and "
-						+ property.getMaximum().doubleValue() * property.getDimensionFactor().doubleValue() + ".\n"
-						+ getString("NumberEditor.MessageLine1") //$NON-NLS-1$
-						+ getString("NumberEditor.MessageLine2"), //$NON-NLS-1$
-				getString("NumberEditor.InvalidText"), //$NON-NLS-1$
-				YES_NO_OPTION, ERROR_MESSAGE, null, options, options[1]);
+    /**
+     * Lets the user know that the text they entered is bad. Returns true if the
+     * user elects to revert to the last good value. Otherwise, returns false,
+     * indicating that the user wants to continue editing.
+     */
+    protected boolean userSaysRevert() {
+        getDefaultToolkit().beep();
+        ftf.selectAll();
+        Object[] options = {getString("NumberEditor.EditText"), getString("NumberEditor.RevertText")};
+        var answer = showOptionDialog(getWindowAncestor(ftf),
+                "The value must be a " + property.getMinimum().getClass().getSimpleName() + " between "
+                + property.getMinimum().doubleValue() * property.getDimensionFactor().doubleValue() + " and "
+                + property.getMaximum().doubleValue() * property.getDimensionFactor().doubleValue() + ".\n"
+                + getString("NumberEditor.MessageLine1") //$NON-NLS-1$
+                + getString("NumberEditor.MessageLine2"), //$NON-NLS-1$
+                getString("NumberEditor.InvalidText"), //$NON-NLS-1$
+                YES_NO_OPTION, ERROR_MESSAGE, null, options, options[1]);
 
-		if (answer == 1) { // Revert!
-			ftf.setValue(ftf.getValue());
-			return true;
-		}
-		return false;
-	}
+        if (answer == 1) { // Revert!
+            ftf.setValue(ftf.getValue());
+            return true;
+        }
+        return false;
+    }
 
 }

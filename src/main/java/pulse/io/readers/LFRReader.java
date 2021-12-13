@@ -30,7 +30,7 @@ import pulse.ui.Messages;
  * Linseis software), test temperatures, and other variables. The individual
  * ASCII files encoded in ASCII represent tab-delimited time-temperature data.
  * </p>
- * 
+ *
  * <p>
  * {@code PULsE} currently accepts the formats of only those files output by
  * Linseis LFA systems that are in ASCII formats, so results from other systems
@@ -42,182 +42,178 @@ import pulse.ui.Messages;
  * format). This should be done for any shot or curve you wish to analyse in
  * {@code PULsE}.
  * </p>
- * 
+ *
  * <p>
  * After all shots have been recorded, click “Severals” in the Linseis analysis
  * window and select all exported heating curve {@code .txt} files for the
  * experiment. Clicking “Ok” and “Save” on the following windows will create a
  * {@code .lfr} file with file locations and data for all the heating curves.
  * Save this in the same folder as the {@code .txt} files.
- * 
+ *
  */
-
 public class LFRReader implements CurveReader {
 
-	private static CurveReader instance = new LFRReader();
-	private final static double TO_KELVIN = 273;
-	private final static double TO_SECONDS = 1E-3;
+    private static CurveReader instance = new LFRReader();
+    private final static double TO_KELVIN = 273;
+    private final static double TO_SECONDS = 1E-3;
 
-	private LFRReader() {
-		// intentionally blank
-	}
+    private LFRReader() {
+        // intentionally blank
+    }
 
-	/**
-	 * @return The supported extension ({@code .lfr}).
-	 */
+    /**
+     * @return The supported extension ({@code .lfr}).
+     */
+    @Override
+    public String getSupportedExtension() {
+        return Messages.getString("LFRReader.0");
+    }
 
-	@Override
-	public String getSupportedExtension() {
-		return Messages.getString("LFRReader.0");
-	}
+    /**
+     * Reads through the {@code file}, identifies the names of other files with
+     * individual heating curves, theirs external IDs and test temperatures (in
+     * degrees Celsius, later converted to Kelvin).
+     * <p>
+     * Creates a {@code List} of {@code ExperimentalData} objects with the size
+     * equal to the number of individual entries in the master-file. Searches
+     * for the individual files listed in the namelist and stored in the same
+     * directory where the master-file has been found previously. Upon finding
+     * the individual files, invokes {@code readSingleCurve} on each of them
+     * sequentially and stores the {@code ExperimentalData} in a list. Finally,
+     * invokes the {@code sort} method on that list to sort it.
+     * </p>
+     *
+     * @param file the master-file with {@code .lfr} suffix
+     * @return a {@code List} of @code ExperimentalData}, containing all
+     * information stored in both the master file and linked individual files.
+     * @see sort
+     * @see readSingleCurve
+     */
+    @Override
+    public List<ExperimentalData> read(File file) throws IOException {
+        Objects.requireNonNull(file, Messages.getString("LFRReader.1"));
 
-	/**
-	 * Reads through the {@code file}, identifies the names of other files with
-	 * individual heating curves, theirs external IDs and test temperatures (in
-	 * degrees Celsius, later converted to Kelvin).
-	 * <p>
-	 * Creates a {@code List} of {@code ExperimentalData} objects with the size
-	 * equal to the number of individual entries in the master-file. Searches for
-	 * the individual files listed in the namelist and stored in the same directory
-	 * where the master-file has been found previously. Upon finding the individual
-	 * files, invokes {@code readSingleCurve} on each of them sequentially and
-	 * stores the {@code ExperimentalData} in a list. Finally, invokes the
-	 * {@code sort} method on that list to sort it.
-	 * </p>
-	 * 
-	 * @param file the master-file with {@code .lfr} suffix
-	 * @return a {@code List} of @code ExperimentalData}, containing all information
-	 *         stored in both the master file and linked individual files.
-	 * @see sort
-	 * @see readSingleCurve
-	 */
+        String stringSplitter = Messages.getString("LFRReader.3");
 
-	@Override
-	public List<ExperimentalData> read(File file) throws IOException {
-		Objects.requireNonNull(file, Messages.getString("LFRReader.1"));
+        final String directory = file.getAbsoluteFile().getParent();
+        final Map<String, Metadata> fileMap;
 
-		String stringSplitter = Messages.getString("LFRReader.3");
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            fileMap = fileMap(reader, stringSplitter);
+        }
 
-		final String directory = file.getAbsoluteFile().getParent();
-		final Map<String, Metadata> fileMap;
+        return sort(convertToData(directory, stringSplitter, fileMap));
 
-		try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-			fileMap = fileMap(reader, stringSplitter);
-		}
+    }
 
-		return sort(convertToData(directory, stringSplitter, fileMap));
+    private Map<String, Metadata> fileMap(BufferedReader reader, String stringSplitter) throws IOException {
 
-	}
+        String delims = Messages.getString("LFRReader.2");
+        StringTokenizer tokenizer;
 
-	private Map<String, Metadata> fileMap(BufferedReader reader, String stringSplitter) throws IOException {
+        // skip two first lines
+        reader.readLine();
+        reader.readLine();
 
-		String delims = Messages.getString("LFRReader.2");
-		StringTokenizer tokenizer;
+        var fileTempMap = new HashMap<String, Metadata>();
 
-		// skip two first lines
-		reader.readLine();
-		reader.readLine();
+        String tmp;
+        for (String line = reader.readLine(); line != null; line = reader.readLine()) {
+            tokenizer = new StringTokenizer(line);
+            int id = Integer.parseInt(tokenizer.nextToken(delims)); // id
 
-		var fileTempMap = new HashMap<String, Metadata>();
+            tmp = tokenizer.nextToken(delims).split(stringSplitter)[0]; // write file names without extensions
 
-		String tmp;
-		for (String line = reader.readLine(); line != null; line = reader.readLine()) {
-			tokenizer = new StringTokenizer(line);
-			int id = Integer.parseInt(tokenizer.nextToken(delims)); // id
+            tokenizer.nextToken(delims); // sample id
+            var temperature = derive(TEST_TEMPERATURE, parseDouble(tokenizer.nextToken()) + TO_KELVIN); // test
+            // temperature
 
-			tmp = tokenizer.nextToken(delims).split(stringSplitter)[0]; // write file names without extensions
+            fileTempMap.put(tmp, new Metadata(temperature, id)); // assign metadata object with external id and
+            // temperature
 
-			tokenizer.nextToken(delims); // sample id
-			var temperature = derive(TEST_TEMPERATURE, parseDouble(tokenizer.nextToken()) + TO_KELVIN); // test
-																										// temperature
+        }
 
-			fileTempMap.put(tmp, new Metadata(temperature, id)); // assign metadata object with external id and
-																	// temperature
+        return fileTempMap;
 
-		}
+    }
 
-		return fileTempMap;
+    private List<ExperimentalData> convertToData(String directory, String stringSplitter, Map<String, Metadata> map)
+            throws IOException {
+        List<ExperimentalData> curves = new ArrayList<>();
+        var filenames = map.keySet();
 
-	}
+        for (File f : new File(directory).listFiles()) {
 
-	private List<ExperimentalData> convertToData(String directory, String stringSplitter, Map<String, Metadata> map)
-			throws IOException {
-		List<ExperimentalData> curves = new ArrayList<>();
-		var filenames = map.keySet();
+            var name = f.getName().split(stringSplitter)[0];
 
-		for (File f : new File(directory).listFiles()) {
+            if (filenames.contains(name)) {
+                curves.add(readSingleCurve(f, map.get(name)));
+            }
 
-			var name = f.getName().split(stringSplitter)[0];
+        }
 
-			if (filenames.contains(name))
-				curves.add(readSingleCurve(f, map.get(name)));
+        return curves;
 
-		}
+    }
 
-		return curves;
+    /**
+     * Creates a single {@code ExperimentalData} object with the
+     * time-temperature information retrieved from {@code file} and using the
+     * previously generated {@code Metadata} object, containing the external ID
+     * and the test temperature of this heating curve.
+     * <p>
+     * The time in Linseis files is usually stored in [ms], hence the time
+     * values are multiplied by {@code 1E-3} to adhere to the {@code PULsE}
+     * format. The signal rise is recorded in [mV], hence it represents a
+     * relative scale, which however is functionally linked to the temperature
+     * rise. {@code PULsE} does not establish this functional relation. Instead,
+     * it uses the signal values in the dimensionless problem formulation.
+     * </p>
+     *
+     * @param file the file with a data just enough for a single
+     * {@code ExperimentalData} object
+     * @param metadata the previously loaded {@code Metadata} which includes the
+     * external ID and the test temperature
+     * @return an {@code ExperimentalData} object
+     * @throws IOException
+     */
+    public ExperimentalData readSingleCurve(File file, Metadata metadata) throws IOException {
+        Objects.requireNonNull(file, Messages.getString("LFRReader.9"));
 
-	}
+        var curve = new ExperimentalData();
+        curve.setMetadata(metadata);
+        curve.clear();
 
-	/**
-	 * Creates a single {@code ExperimentalData} object with the time-temperature
-	 * information retrieved from {@code file} and using the previously generated
-	 * {@code Metadata} object, containing the external ID and the test temperature
-	 * of this heating curve.
-	 * <p>
-	 * The time in Linseis files is usually stored in [ms], hence the time values
-	 * are multiplied by {@code 1E-3} to adhere to the {@code PULsE} format. The
-	 * signal rise is recorded in [mV], hence it represents a relative scale, which
-	 * however is functionally linked to the temperature rise. {@code PULsE} does
-	 * not establish this functional relation. Instead, it uses the signal values in
-	 * the dimensionless problem formulation.
-	 * </p>
-	 * 
-	 * @param file     the file with a data just enough for a single
-	 *                 {@code ExperimentalData} object
-	 * @param metadata the previously loaded {@code Metadata} which includes the
-	 *                 external ID and the test temperature
-	 * @return an {@code ExperimentalData} object
-	 * @throws IOException
-	 */
+        String delims = Messages.getString("LFRReader.10");
+        StringTokenizer tokenizer;
 
-	public ExperimentalData readSingleCurve(File file, Metadata metadata) throws IOException {
-		Objects.requireNonNull(file, Messages.getString("LFRReader.9"));
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            reader.readLine(); // skip first line
+            double time, temp;
+            for (String line = reader.readLine(); line != null; line = reader.readLine()) {
+                tokenizer = new StringTokenizer(line);
 
-		var curve = new ExperimentalData();
-		curve.setMetadata(metadata);
-		curve.clear();
+                time = parseDouble(tokenizer.nextToken(delims)) * TO_SECONDS;
+                temp = parseDouble(tokenizer.nextToken(delims));
 
-		String delims = Messages.getString("LFRReader.10");
-		StringTokenizer tokenizer;
+                curve.addPoint(time, temp);
 
-		try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-			reader.readLine(); // skip first line
-			double time, temp;
-			for (String line = reader.readLine(); line != null; line = reader.readLine()) {
-				tokenizer = new StringTokenizer(line);
+            }
+            curve.setRange(new Range(curve.getTimeSequence()));
+        }
 
-				time = parseDouble(tokenizer.nextToken(delims)) * TO_SECONDS;
-				temp = parseDouble(tokenizer.nextToken(delims));
+        return curve;
 
-				curve.addPoint(time, temp);
+    }
 
-			}
-			curve.setRange(new Range(curve.getTimeSequence()));
-		}
-
-		return curve;
-
-	}
-
-	/**
-	 * Retrieves the single instance of this class. As this class uses a singleton
-	 * pattern, there is only one such instance.
-	 * 
-	 * @return the single instance of this class.
-	 */
-
-	public static CurveReader getInstance() {
-		return instance;
-	}
+    /**
+     * Retrieves the single instance of this class. As this class uses a
+     * singleton pattern, there is only one such instance.
+     *
+     * @return the single instance of this class.
+     */
+    public static CurveReader getInstance() {
+        return instance;
+    }
 
 }

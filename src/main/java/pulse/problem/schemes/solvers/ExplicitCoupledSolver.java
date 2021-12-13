@@ -21,139 +21,139 @@ import pulse.properties.NumericProperty;
 
 public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<ParticipatingMedium>, FixedPointIterations {
 
-	private RadiativeTransferCoupling coupling;
-	private RadiativeTransferSolver rte;
-	private RTECalculationStatus status;
-	private Fluxes fluxes;
-	
-	private double hx;
-	private double a;
-	private double nonlinearPrecision;
-	private double pls;
-	
-	private int N;
-	
-	private double HX_NP;
-	private double prefactor;
-	
-	public ExplicitCoupledSolver() {
-		this( derive(GRID_DENSITY, 80), derive(TAU_FACTOR, 0.5) );
-	}
+    private RadiativeTransferCoupling coupling;
+    private RadiativeTransferSolver rte;
+    private RTECalculationStatus status;
+    private Fluxes fluxes;
 
-	public ExplicitCoupledSolver(NumericProperty N, NumericProperty timeFactor) {
-		super( N, timeFactor );
-		nonlinearPrecision = (double) def(NONLINEAR_PRECISION).getValue();
-		setCoupling(new RadiativeTransferCoupling());
-		status = RTECalculationStatus.NORMAL;
-	}
+    private double hx;
+    private double a;
+    private double nonlinearPrecision;
+    private double pls;
 
-	private void prepare(ParticipatingMedium problem) {
-		super.prepare(problem);
+    private int N;
 
-		var grid = getGrid();
+    private double HX_NP;
+    private double prefactor;
 
-		coupling.init(problem, grid);
-		rte = coupling.getRadiativeTransferEquation();
-		fluxes = coupling.getRadiativeTransferEquation().getFluxes();
+    public ExplicitCoupledSolver() {
+        this(derive(GRID_DENSITY, 80), derive(TAU_FACTOR, 0.5));
+    }
 
-		N = (int) grid.getGridDensity().getValue();
-		hx = grid.getXStep();
+    public ExplicitCoupledSolver(NumericProperty N, NumericProperty timeFactor) {
+        super(N, timeFactor);
+        nonlinearPrecision = (double) def(NONLINEAR_PRECISION).getValue();
+        setCoupling(new RadiativeTransferCoupling());
+        status = RTECalculationStatus.NORMAL;
+    }
 
-		var p = (ThermoOpticalProperties) problem.getProperties();
-		double Bi = (double) p.getHeatLoss().getValue();
+    private void prepare(ParticipatingMedium problem) {
+        super.prepare(problem);
 
-		a = 1. / (1. + Bi * hx);
+        var grid = getGrid();
 
-		final double opticalThickness = (double) p.getOpticalThickness().getValue();
-		final double Np = (double) p.getPlanckNumber().getValue();
-		final double tau = getGrid().getTimeStep();
-		
-		HX_NP = hx / Np;
-		prefactor = tau * opticalThickness / Np;
-	}
+        coupling.init(problem, grid);
+        rte = coupling.getRadiativeTransferEquation();
+        fluxes = coupling.getRadiativeTransferEquation().getFluxes();
 
-	@Override
-	public void solve(ParticipatingMedium problem) throws SolverException {
-		this.prepare(problem);
-		status = coupling.getRadiativeTransferEquation().compute(getPreviousSolution());
-		runTimeSequence(problem);
+        N = (int) grid.getGridDensity().getValue();
+        hx = grid.getXStep();
 
-		if (status != RTECalculationStatus.NORMAL)
-			throw new SolverException(status.toString());
-	}
-	
-	@Override
-	public boolean normalOperation() {
-		return super.normalOperation() && (status == RTECalculationStatus.NORMAL);
-	}
+        var p = (ThermoOpticalProperties) problem.getProperties();
+        double Bi = (double) p.getHeatLoss().getValue();
 
-	@Override
-	public void timeStep(int m) {
-		pls = pulse(m);
-		doIterations(getCurrentSolution(), nonlinearPrecision, m);	
-	}
-	
-	@Override
-	public void iteration(final int m) {
-		/*
+        a = 1. / (1. + Bi * hx);
+
+        final double opticalThickness = (double) p.getOpticalThickness().getValue();
+        final double Np = (double) p.getPlanckNumber().getValue();
+        final double tau = getGrid().getTimeStep();
+
+        HX_NP = hx / Np;
+        prefactor = tau * opticalThickness / Np;
+    }
+
+    @Override
+    public void solve(ParticipatingMedium problem) throws SolverException {
+        this.prepare(problem);
+        status = coupling.getRadiativeTransferEquation().compute(getPreviousSolution());
+        runTimeSequence(problem);
+
+        if (status != RTECalculationStatus.NORMAL) {
+            throw new SolverException(status.toString());
+        }
+    }
+
+    @Override
+    public boolean normalOperation() {
+        return super.normalOperation() && (status == RTECalculationStatus.NORMAL);
+    }
+
+    @Override
+    public void timeStep(int m) {
+        pls = pulse(m);
+        doIterations(getCurrentSolution(), nonlinearPrecision, m);
+    }
+
+    @Override
+    public void iteration(final int m) {
+        /*
 		 * Uses the heat equation explicitly to calculate the grid-function everywhere
 		 * except the boundaries
-		 */
-		explicitSolution();
-		
-		var V = getCurrentSolution();
-		
-		// Front face
-		V[0] = (V[1] + hx * pls - HX_NP * fluxes.getFlux(0)) * a;
-		// Rear face
-		V[N] = (V[N - 1] + HX_NP * fluxes.getFlux(N)) * a;
-	}
+         */
+        explicitSolution();
 
-	@Override
-	public void finaliseIteration(double[] V) {
-		status = rte.compute(V);
-	}
-	
-	@Override
-	public double phi(final int i) {
-		return prefactor * fluxes.fluxDerivative(i);
-	}
-	
-	@Override
-	public void finaliseStep() {
-		super.finaliseStep();
-		coupling.getRadiativeTransferEquation().getFluxes().store();
-	}
-	
-	public RadiativeTransferCoupling getCoupling() {
-		return coupling;
-	}
+        var V = getCurrentSolution();
 
-	public void setCoupling(RadiativeTransferCoupling coupling) {
-		this.coupling = coupling;
-		this.coupling.setParent(this);
-	}
-	
-	/**
-	 * Prints out the description of this problem type.
-	 * 
-	 * @return a verbose description of the problem.
-	 */
+        // Front face
+        V[0] = (V[1] + hx * pls - HX_NP * fluxes.getFlux(0)) * a;
+        // Rear face
+        V[N] = (V[N - 1] + HX_NP * fluxes.getFlux(N)) * a;
+    }
 
-	@Override
-	public String toString() {
-		return getString("ExplicitScheme.4");
-	}
+    @Override
+    public void finaliseIteration(double[] V) {
+        status = rte.compute(V);
+    }
 
-	@Override
-	public DifferenceScheme copy() {
-		var grid = getGrid();
-		return new ExplicitCoupledSolver(grid.getGridDensity(), grid.getTimeFactor());
-	}
+    @Override
+    public double phi(final int i) {
+        return prefactor * fluxes.fluxDerivative(i);
+    }
 
-	@Override
-	public Class<? extends Problem> domain() {
-		return ParticipatingMedium.class;
-	}
-	
+    @Override
+    public void finaliseStep() {
+        super.finaliseStep();
+        coupling.getRadiativeTransferEquation().getFluxes().store();
+    }
+
+    public RadiativeTransferCoupling getCoupling() {
+        return coupling;
+    }
+
+    public void setCoupling(RadiativeTransferCoupling coupling) {
+        this.coupling = coupling;
+        this.coupling.setParent(this);
+    }
+
+    /**
+     * Prints out the description of this problem type.
+     *
+     * @return a verbose description of the problem.
+     */
+    @Override
+    public String toString() {
+        return getString("ExplicitScheme.4");
+    }
+
+    @Override
+    public DifferenceScheme copy() {
+        var grid = getGrid();
+        return new ExplicitCoupledSolver(grid.getGridDensity(), grid.getTimeFactor());
+    }
+
+    @Override
+    public Class<? extends Problem> domain() {
+        return ParticipatingMedium.class;
+    }
+
 }

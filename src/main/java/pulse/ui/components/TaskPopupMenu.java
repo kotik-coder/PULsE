@@ -37,172 +37,175 @@ import pulse.tasks.processing.Result;
 @SuppressWarnings("serial")
 public class TaskPopupMenu extends JPopupMenu {
 
-	private JMenuItem itemViewStored;
+    private JMenuItem itemViewStored;
 
-	private final static int ICON_SIZE = 24;
+    private final static int ICON_SIZE = 24;
 
-	private static ImageIcon ICON_GRAPH = loadIcon("graph.png", ICON_SIZE);
-	private static ImageIcon ICON_METADATA = loadIcon("metadata.png", ICON_SIZE);
-	private static ImageIcon ICON_MISSING = loadIcon("missing.png", ICON_SIZE);
-	private static ImageIcon ICON_RUN = loadIcon("execute_single.png", ICON_SIZE);
-	private static ImageIcon ICON_RESET = loadIcon("reset.png", ICON_SIZE);
-	private static ImageIcon ICON_RESULT = loadIcon("result.png", ICON_SIZE);
-	private static ImageIcon ICON_STORED = loadIcon("stored.png", ICON_SIZE);
+    private static ImageIcon ICON_GRAPH = loadIcon("graph.png", ICON_SIZE);
+    private static ImageIcon ICON_METADATA = loadIcon("metadata.png", ICON_SIZE);
+    private static ImageIcon ICON_MISSING = loadIcon("missing.png", ICON_SIZE);
+    private static ImageIcon ICON_RUN = loadIcon("execute_single.png", ICON_SIZE);
+    private static ImageIcon ICON_RESET = loadIcon("reset.png", ICON_SIZE);
+    private static ImageIcon ICON_RESULT = loadIcon("result.png", ICON_SIZE);
+    private static ImageIcon ICON_STORED = loadIcon("stored.png", ICON_SIZE);
 
-	public TaskPopupMenu() {
-		var referenceWindow = getWindowAncestor(this);
+    public TaskPopupMenu() {
+        var referenceWindow = getWindowAncestor(this);
 
-		var itemChart = new JMenuItem(getString("TaskTablePopupMenu.ShowHeatingCurve"), ICON_GRAPH); //$NON-NLS-1$
-		itemChart.addActionListener(e -> plot(false));
+        var itemChart = new JMenuItem(getString("TaskTablePopupMenu.ShowHeatingCurve"), ICON_GRAPH); //$NON-NLS-1$
+        itemChart.addActionListener(e -> plot(false));
 
-		var itemExtendedChart = new JMenuItem(getString("TaskTablePopupMenu.ShowExtendedHeatingCurve"), //$NON-NLS-1$
-				ICON_GRAPH);
-		itemExtendedChart.addActionListener(e -> plot(true));
+        var itemExtendedChart = new JMenuItem(getString("TaskTablePopupMenu.ShowExtendedHeatingCurve"), //$NON-NLS-1$
+                ICON_GRAPH);
+        itemExtendedChart.addActionListener(e -> plot(true));
 
-		var instance = TaskManager.getManagerInstance();
+        var instance = TaskManager.getManagerInstance();
 
-		var itemShowMeta = new JMenuItem("Show metadata", ICON_METADATA);
-		itemShowMeta.addActionListener((ActionEvent e) -> {
-			var t = instance.getSelectedTask();
-			if (t == null) {
-				showMessageDialog(getWindowAncestor((Component) e.getSource()),
-						getString("TaskTablePopupMenu.EmptySelection2"), //$NON-NLS-1$
-						getString("TaskTablePopupMenu.11"), ERROR_MESSAGE); //$NON-NLS-1$
-			} else
-				showMessageDialog(getWindowAncestor((Component) e.getSource()),
-						t.getExperimentalCurve().getMetadata().toString(), "Metadata", PLAIN_MESSAGE);
-		});
+        var itemShowMeta = new JMenuItem("Show metadata", ICON_METADATA);
+        itemShowMeta.addActionListener((ActionEvent e) -> {
+            var t = instance.getSelectedTask();
+            if (t == null) {
+                showMessageDialog(getWindowAncestor((Component) e.getSource()),
+                        getString("TaskTablePopupMenu.EmptySelection2"), //$NON-NLS-1$
+                        getString("TaskTablePopupMenu.11"), ERROR_MESSAGE); //$NON-NLS-1$
+            } else {
+                showMessageDialog(getWindowAncestor((Component) e.getSource()),
+                        t.getExperimentalCurve().getMetadata().toString(), "Metadata", PLAIN_MESSAGE);
+            }
+        });
 
-		var itemShowStatus = new JMenuItem("What is missing?", ICON_MISSING);
+        var itemShowStatus = new JMenuItem("What is missing?", ICON_MISSING);
 
-		instance.addSelectionListener(event -> {
-			instance.getSelectedTask().checkProblems(false);
-			var details = instance.getSelectedTask().getCurrentCalculation().getStatus().getDetails();
-			itemShowStatus.setEnabled((details != null) & (details != NONE));
-		});
+        instance.addSelectionListener(event -> {
+            instance.getSelectedTask().checkProblems(false);
+            var details = instance.getSelectedTask().getCurrentCalculation().getStatus().getDetails();
+            itemShowStatus.setEnabled((details != null) & (details != NONE));
+        });
 
-		itemShowStatus.addActionListener((ActionEvent e) -> {
-			var t = instance.getSelectedTask();
-			if (t != null) {
-				var d = t.getCurrentCalculation().getStatus().getDetails();
-				showMessageDialog(getWindowAncestor((Component) e.getSource()),
-						"<html>This is due to " + d.toString() + "</html>", "Problems with " + t, INFORMATION_MESSAGE);
-			}
-		});
+        itemShowStatus.addActionListener((ActionEvent e) -> {
+            var t = instance.getSelectedTask();
+            if (t != null) {
+                var d = t.getCurrentCalculation().getStatus().getDetails();
+                showMessageDialog(getWindowAncestor((Component) e.getSource()),
+                        "<html>This is due to " + d.toString() + "</html>", "Problems with " + t, INFORMATION_MESSAGE);
+            }
+        });
 
-		var itemExecute = new JMenuItem(getString("TaskTablePopupMenu.Execute"), ICON_RUN); //$NON-NLS-1$
-		itemExecute.addActionListener((ActionEvent e) -> {
-			var t = instance.getSelectedTask();
-			if (t == null) {
-				showMessageDialog(getWindowAncestor((Component) e.getSource()),
-						getString("TaskTablePopupMenu.EmptySelection"), //$NON-NLS-1$
-						getString("TaskTablePopupMenu.ErrorTitle"), ERROR_MESSAGE); //$NON-NLS-1$
-			} else {
-				t.checkProblems(true);
-				var status = t.getCurrentCalculation().getStatus();
+        var itemExecute = new JMenuItem(getString("TaskTablePopupMenu.Execute"), ICON_RUN); //$NON-NLS-1$
+        itemExecute.addActionListener((ActionEvent e) -> {
+            var t = instance.getSelectedTask();
+            if (t == null) {
+                showMessageDialog(getWindowAncestor((Component) e.getSource()),
+                        getString("TaskTablePopupMenu.EmptySelection"), //$NON-NLS-1$
+                        getString("TaskTablePopupMenu.ErrorTitle"), ERROR_MESSAGE); //$NON-NLS-1$
+            } else {
+                t.checkProblems(true);
+                var status = t.getCurrentCalculation().getStatus();
 
-				if (status == DONE) {
-					var dialogButton = YES_NO_OPTION;
-					var dialogResult = showConfirmDialog(referenceWindow,
-							getString("TaskTablePopupMenu.TaskCompletedWarning") + lineSeparator()
-									+ getString("TaskTablePopupMenu.AskToDelete"),
-							getString("TaskTablePopupMenu.DeleteTitle"), dialogButton);
-					if (dialogResult == 0) {
-						// instance.removeResult(t);
-						instance.getSelectedTask().setStatus(READY);
-						instance.execute(instance.getSelectedTask());
-					}
-				} else if (status != READY) {
-					showMessageDialog(getWindowAncestor((Component) e.getSource()),
-							t.toString() + " is " + t.getCurrentCalculation().getStatus().getMessage(), //$NON-NLS-1$
-							getString("TaskTablePopupMenu.TaskNotReady"), //$NON-NLS-1$
-							ERROR_MESSAGE);
-				} else
-					instance.execute(instance.getSelectedTask());
-			}
+                if (status == DONE) {
+                    var dialogButton = YES_NO_OPTION;
+                    var dialogResult = showConfirmDialog(referenceWindow,
+                            getString("TaskTablePopupMenu.TaskCompletedWarning") + lineSeparator()
+                            + getString("TaskTablePopupMenu.AskToDelete"),
+                            getString("TaskTablePopupMenu.DeleteTitle"), dialogButton);
+                    if (dialogResult == 0) {
+                        // instance.removeResult(t);
+                        instance.getSelectedTask().setStatus(READY);
+                        instance.execute(instance.getSelectedTask());
+                    }
+                } else if (status != READY) {
+                    showMessageDialog(getWindowAncestor((Component) e.getSource()),
+                            t.toString() + " is " + t.getCurrentCalculation().getStatus().getMessage(), //$NON-NLS-1$
+                            getString("TaskTablePopupMenu.TaskNotReady"), //$NON-NLS-1$
+                            ERROR_MESSAGE);
+                } else {
+                    instance.execute(instance.getSelectedTask());
+                }
+            }
 
-		});
+        });
 
-		var itemReset = new JMenuItem(getString("TaskTablePopupMenu.Reset"), ICON_RESET);
+        var itemReset = new JMenuItem(getString("TaskTablePopupMenu.Reset"), ICON_RESET);
 
-		itemReset.addActionListener((ActionEvent arg0) -> instance.getSelectedTask().clear());
+        itemReset.addActionListener((ActionEvent arg0) -> instance.getSelectedTask().clear());
 
-		var itemGenerateResult = new JMenuItem(getString("TaskTablePopupMenu.GenerateResult"), ICON_RESULT);
+        var itemGenerateResult = new JMenuItem(getString("TaskTablePopupMenu.GenerateResult"), ICON_RESULT);
 
-		itemGenerateResult.addActionListener((ActionEvent arg0) -> {
-			var t = instance.getSelectedTask();
-			if (t == null)
-				return;
-			var current = t.getCurrentCalculation();
-			if (current != null) {
-				var r = new Result(t, getInstance());
-				current.setResult(r);
-				var e = new TaskRepositoryEvent(TASK_FINISHED, t.getIdentifier());
-				instance.notifyListeners(e);
-			}
-		});
+        itemGenerateResult.addActionListener((ActionEvent arg0) -> {
+            var t = instance.getSelectedTask();
+            if (t == null) {
+                return;
+            }
+            var current = t.getCurrentCalculation();
+            if (current != null) {
+                var r = new Result(t, getInstance());
+                current.setResult(r);
+                var e = new TaskRepositoryEvent(TASK_FINISHED, t.getIdentifier());
+                instance.notifyListeners(e);
+            }
+        });
 
-		itemViewStored = new JMenuItem(getString("TaskTablePopupMenu.ViewStored"), ICON_STORED);
+        itemViewStored = new JMenuItem(getString("TaskTablePopupMenu.ViewStored"), ICON_STORED);
 
-		itemViewStored.setEnabled(false);
+        itemViewStored.setEnabled(false);
 
-		itemViewStored.addActionListener(arg0 -> instance.notifyListeners(
-				new TaskRepositoryEvent(TASK_BROWSING_REQUEST, instance.getSelectedTask().getIdentifier())));
+        itemViewStored.addActionListener(arg0 -> instance.notifyListeners(
+                new TaskRepositoryEvent(TASK_BROWSING_REQUEST, instance.getSelectedTask().getIdentifier())));
 
-		add(itemShowMeta);
-		add(itemShowStatus);
-		add(new JSeparator());
-		add(itemChart);
-		add(itemExtendedChart);
-		add(new JSeparator());
-		add(itemReset);
-		add(itemGenerateResult);
-		add(itemViewStored);
-		add(new JSeparator());
-		add(itemExecute);
+        add(itemShowMeta);
+        add(itemShowStatus);
+        add(new JSeparator());
+        add(itemChart);
+        add(itemExtendedChart);
+        add(new JSeparator());
+        add(itemReset);
+        add(itemGenerateResult);
+        add(itemViewStored);
+        add(new JSeparator());
+        add(itemExecute);
 
-	}
+    }
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public void plot(boolean extended) {
-		var t = TaskManager.getManagerInstance().getSelectedTask();
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public void plot(boolean extended) {
+        var t = TaskManager.getManagerInstance().getSelectedTask();
 
-		if (t == null) {
-			showMessageDialog(getWindowAncestor(this), getString("TaskTablePopupMenu.EmptySelection2"), //$NON-NLS-1$
-					getString("TaskTablePopupMenu.11"), ERROR_MESSAGE); //$NON-NLS-1$
-		} else {
+        if (t == null) {
+            showMessageDialog(getWindowAncestor(this), getString("TaskTablePopupMenu.EmptySelection2"), //$NON-NLS-1$
+                    getString("TaskTablePopupMenu.11"), ERROR_MESSAGE); //$NON-NLS-1$
+        } else {
 
-			var calc = t.getCurrentCalculation();
-			var statusDetails = calc.getStatus().getDetails();
+            var calc = t.getCurrentCalculation();
+            var statusDetails = calc.getStatus().getDetails();
 
-			if (statusDetails == MISSING_HEATING_CURVE) {
+            if (statusDetails == MISSING_HEATING_CURVE) {
 
-				showMessageDialog(getWindowAncestor(this), getString("TaskTablePopupMenu.12"), //$NON-NLS-1$
-						getString("TaskTablePopupMenu.13"), //$NON-NLS-1$
-						ERROR_MESSAGE);
+                showMessageDialog(getWindowAncestor(this), getString("TaskTablePopupMenu.12"), //$NON-NLS-1$
+                        getString("TaskTablePopupMenu.13"), //$NON-NLS-1$
+                        ERROR_MESSAGE);
 
-			} else {
+            } else {
 
-				var scheme = (Solver) calc.getScheme();
-				if (scheme != null) {
-					try {
-						scheme.solve(calc.getProblem());
-					} catch (SolverException e) {
-						err.println("Solver error for " + t + "Details: ");
-						e.printStackTrace();
-					}
-				}
+                var scheme = (Solver) calc.getScheme();
+                if (scheme != null) {
+                    try {
+                        scheme.solve(calc.getProblem());
+                    } catch (SolverException e) {
+                        err.println("Solver error for " + t + "Details: ");
+                        e.printStackTrace();
+                    }
+                }
 
-				getChart().plot(t, extended);
+                getChart().plot(t, extended);
 
-			}
+            }
 
-		}
+        }
 
-	}
+    }
 
-	public JMenuItem getItemViewStored() {
-		return itemViewStored;
-	}
+    public JMenuItem getItemViewStored() {
+        return itemViewStored;
+    }
 
 }

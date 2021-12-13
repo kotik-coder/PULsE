@@ -4,28 +4,28 @@ import pulse.problem.statements.Problem;
 
 public class ProblemSelectionEvent {
 
-	private Problem problem;
-	private Object source;
-	
-	public ProblemSelectionEvent(Problem problem, Object source) {
-		this.problem = problem;
-		this.source = source;
-	}
+    private Problem problem;
+    private Object source;
 
-	public Problem getProblem() {
-		return problem;
-	}
+    public ProblemSelectionEvent(Problem problem, Object source) {
+        this.problem = problem;
+        this.source = source;
+    }
 
-	public void setProblem(Problem problem) {
-		this.problem = problem;
-	}
+    public Problem getProblem() {
+        return problem;
+    }
 
-	public Object getSource() {
-		return source;
-	}
+    public void setProblem(Problem problem) {
+        this.problem = problem;
+    }
 
-	public void setSource(Object source) {
-		this.source = source;
-	}
-	
+    public Object getSource() {
+        return source;
+    }
+
+    public void setSource(Object source) {
+        this.source = source;
+    }
+
 }

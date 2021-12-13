@@ -14,92 +14,88 @@ import pulse.ui.Messages;
  * in the {@code csv} and {@code html} formats.
  *
  */
-
 public class ResultExporter implements Exporter<Result> {
 
-	private static ResultExporter instance = new ResultExporter();
+    private static ResultExporter instance = new ResultExporter();
 
-	private ResultExporter() {
-		// intentionally blank
-	}
+    private ResultExporter() {
+        // intentionally blank
+    }
 
-	/**
-	 * Prints the data of this {@code Result} with {@code fos} either in a
-	 * {@code html} or a {@code csv} file format.
-	 */
+    /**
+     * Prints the data of this {@code Result} with {@code fos} either in a
+     * {@code html} or a {@code csv} file format.
+     */
+    @Override
+    public void printToStream(Result result, FileOutputStream fos, Extension extension) {
+        switch (extension) {
+            case HTML:
+                printHTML(result, fos);
+                break;
+            case CSV:
+                printCSV(result, fos);
+                break;
+            default:
+                throw new IllegalArgumentException("Format not recognised: " + extension);
+        }
+    }
 
-	@Override
-	public void printToStream(Result result, FileOutputStream fos, Extension extension) {
-		switch (extension) {
-		case HTML:
-			printHTML(result, fos);
-			break;
-		case CSV:
-			printCSV(result, fos);
-			break;
-		default:
-			throw new IllegalArgumentException("Format not recognised: " + extension);
-		}
-	}
+    private void printHTML(Result result, FileOutputStream fos) {
+        try (var stream = new PrintStream(fos)) {
+            stream.print(Messages.getString("ResultTableExporter.style"));
+            stream.print("<caption>Calculated parameters</caption>");
 
-	private void printHTML(Result result, FileOutputStream fos) {
-		try (var stream = new PrintStream(fos)) {
-			stream.print(Messages.getString("ResultTableExporter.style"));
-			stream.print("<caption>Calculated parameters</caption>");
+            for (var p : result.getProperties()) {
+                stream.print("<tr>");
+                stream.print("<td>");
 
-			for (var p : result.getProperties()) {
-				stream.print("<tr>");
-				stream.print("<td>");
+                stream.print(p.getDescriptor(true));
+                stream.print("</td><td>");
+                stream.print(p.formattedOutput());
 
-				stream.print(p.getDescriptor(true));
-				stream.print("</td><td>");
-				stream.print(p.formattedOutput());
+                stream.print("</td>");
+                stream.println("</tr>");
+            }
 
-				stream.print("</td>");
-				stream.println("</tr>");
-			}
+            stream.print("</table>");
+        }
+    }
 
-			stream.print("</table>");
-		}
-	}
+    /**
+     * Currently the supported extensions include {@code .html} and
+     * {@code .csv}.
+     */
+    @Override
+    public Extension[] getSupportedExtensions() {
+        return new Extension[]{HTML, CSV};
+    }
 
-	/**
-	 * Currently the supported extensions include {@code .html} and {@code .csv}.
-	 */
+    private void printCSV(Result result, FileOutputStream fos) {
+        try (var stream = new PrintStream(fos)) {
+            stream.print("(Results)");
 
-	@Override
-	public Extension[] getSupportedExtensions() {
-		return new Extension[] { HTML, CSV };
-	}
+            for (var p : result.getProperties()) {
+                stream.printf("%n%-24.12s", p.getType());
+                stream.printf("\t%-24.12s", p.formattedOutput());
+            }
+        }
+    }
 
-	private void printCSV(Result result, FileOutputStream fos) {
-		try (var stream = new PrintStream(fos)) {
-			stream.print("(Results)");
+    /**
+     * @return {@code Result.class}
+     */
+    @Override
+    public Class<Result> target() {
+        return Result.class;
+    }
 
-			for (var p : result.getProperties()) {
-				stream.printf("%n%-24.12s", p.getType());
-				stream.printf("\t%-24.12s", p.formattedOutput());
-			}
-		}
-	}
-
-	/**
-	 * @return {@code Result.class}
-	 */
-
-	@Override
-	public Class<Result> target() {
-		return Result.class;
-	}
-
-	/**
-	 * Returns the single static instance of this class.
-	 * 
-	 * @return instance an instance of this class.
-	 */
-
-	public static ResultExporter getInstance() {
-		return instance;
-	}
+    /**
+     * Returns the single static instance of this class.
+     *
+     * @return instance an instance of this class.
+     */
+    public static ResultExporter getInstance() {
+        return instance;
+    }
 
 }

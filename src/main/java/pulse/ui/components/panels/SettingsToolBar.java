@@ -19,64 +19,64 @@ import pulse.ui.components.TaskBox;
 
 public class SettingsToolBar extends JToolBar {
 
-	private static final long serialVersionUID = -1171612225785102673L;
+    private static final long serialVersionUID = -1171612225785102673L;
 
-	private JCheckBox cbSingleStatement, cbHideDetails;
+    private JCheckBox cbSingleStatement, cbHideDetails;
 
-	public SettingsToolBar(PropertyHolderTable... tables) {
-		super();
-		setFloatable(false);
+    public SettingsToolBar(PropertyHolderTable... tables) {
+        super();
+        setFloatable(false);
 
-		var taskBox = new TaskBox();
+        var taskBox = new TaskBox();
 
-		cbSingleStatement = new JCheckBox(getString("TaskSelectionToolBar.ApplyToAll")); //$NON-NLS-1$
-		cbSingleStatement.setSelected(TaskManager.getManagerInstance().isSingleStatement());
+        cbSingleStatement = new JCheckBox(getString("TaskSelectionToolBar.ApplyToAll")); //$NON-NLS-1$
+        cbSingleStatement.setSelected(TaskManager.getManagerInstance().isSingleStatement());
 
-		cbHideDetails = new JCheckBox(getString("TaskSelectionToolBar.Hide")); //$NON-NLS-1$
-		cbHideDetails.setSelected(true);
+        cbHideDetails = new JCheckBox(getString("TaskSelectionToolBar.Hide")); //$NON-NLS-1$
+        cbHideDetails.setSelected(true);
 
-		setLayout(new GridBagLayout());
+        setLayout(new GridBagLayout());
 
-		var gbc = new GridBagConstraints();
-		gbc.fill = BOTH;
-		gbc.weightx = 3.0;
-		gbc.gridx = 0;
-		gbc.gridy = 0;
+        var gbc = new GridBagConstraints();
+        gbc.fill = BOTH;
+        gbc.weightx = 3.0;
+        gbc.gridx = 0;
+        gbc.gridy = 0;
 
-		add(taskBox, gbc);
+        add(taskBox, gbc);
 
-		gbc.gridx = 1;
-		gbc.weightx = 1.0;
-		add(createHorizontalStrut(5), gbc);
+        gbc.gridx = 1;
+        gbc.weightx = 1.0;
+        add(createHorizontalStrut(5), gbc);
 
-		gbc.gridx = 2;
-		gbc.weightx = 1.0;
+        gbc.gridx = 2;
+        gbc.weightx = 1.0;
 
-		add(cbSingleStatement, gbc);
+        add(cbSingleStatement, gbc);
 
-		cbSingleStatement.addChangeListener(e -> TaskManager.getManagerInstance().setSingleStatement(cbSingleStatement.isSelected()));
+        cbSingleStatement.addChangeListener(e -> TaskManager.getManagerInstance().setSingleStatement(cbSingleStatement.isSelected()));
 
-		gbc.gridx = 3;
+        gbc.gridx = 3;
 
-		add(cbHideDetails, gbc);
+        add(cbHideDetails, gbc);
 
-		cbHideDetails.addChangeListener((ChangeEvent e) -> {
-			var selected = cbHideDetails.isSelected();
-			Problem.setDetailsHidden(selected);
-			DifferenceScheme.setDetailsHidden(selected);
-			for (var table : tables) {
-				table.updateTable();
-			}
-		});
+        cbHideDetails.addChangeListener((ChangeEvent e) -> {
+            var selected = cbHideDetails.isSelected();
+            Problem.setDetailsHidden(selected);
+            DifferenceScheme.setDetailsHidden(selected);
+            for (var table : tables) {
+                table.updateTable();
+            }
+        });
 
-	}
+    }
 
-	public JCheckBox getHideDetailsCheckBox() {
-		return cbHideDetails;
-	}
+    public JCheckBox getHideDetailsCheckBox() {
+        return cbHideDetails;
+    }
 
-	public JCheckBox getSingleStatementCheckBox() {
-		return cbHideDetails;
-	}
+    public JCheckBox getSingleStatementCheckBox() {
+        return cbHideDetails;
+    }
 
 }

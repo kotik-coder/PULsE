@@ -1,5 +1,6 @@
 package pulse.search.direction;
 
+import pulse.math.ParameterVector;
 import static pulse.math.linear.Matrices.createIdentityMatrix;
 
 import pulse.math.linear.SquareMatrix;
@@ -14,44 +15,42 @@ import pulse.tasks.SearchTask;
  * </p>
  *
  */
-
 public class ComplexPath extends GradientGuidedPath {
 
-	private SquareMatrix hessian;
-	private SquareMatrix inverseHessian;
+    private SquareMatrix hessian;
+    private SquareMatrix inverseHessian;
 
-	protected ComplexPath(SearchTask task) {
-		super(task);
-	}
+    protected ComplexPath(SearchTask task) {
+        super(task);
+    }
 
-	/**
-	 * In addition to the superclass method, resets the Hessian to an Identity
-	 * matrix.
-	 * 
-	 * @throws SolverException
-	 */
+    /**
+     * In addition to the superclass method, resets the Hessian to an Identity
+     * matrix.
+     *
+     * @throws SolverException
+     */
+    @Override
+    public void configure(SearchTask task) {
+        super.configure(task);
+        hessian = createIdentityMatrix(ActiveFlags.activeParameters(task).size());
+        inverseHessian = createIdentityMatrix(hessian.getData().length);
+    }
 
-	@Override
-	public void configure(SearchTask task) {
-		super.configure(task);
-		hessian = createIdentityMatrix(ActiveFlags.activeParameters(task).size());
-		inverseHessian = createIdentityMatrix(hessian.getData().length);
-	}
+    public SquareMatrix getHessian() {
+        return hessian;
+    }
 
-	public SquareMatrix getHessian() {
-		return hessian;
-	}
+    public void setHessian(SquareMatrix hes) {
+        this.hessian = hes;
+    }
 
-	public void setHessian(SquareMatrix hes) {
-		this.hessian = hes;
-	}
+    public SquareMatrix getInverseHessian() {
+        return inverseHessian;
+    }
 
-	public SquareMatrix getInverseHessian() {
-		return inverseHessian;
-	}
-
-	public void setInverseHessian(SquareMatrix inverseHessian) {
-		this.inverseHessian = inverseHessian;
-	}
+    public void setInverseHessian(SquareMatrix inverseHessian) {
+        this.inverseHessian = inverseHessian;
+    }
 
 }

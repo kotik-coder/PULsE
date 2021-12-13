@@ -18,84 +18,81 @@ import pulse.ui.Messages;
  * associated resource folder.
  *
  */
-
 public class QuadratureReader implements AbstractReader<OrdinateSet> {
 
-	private final static String SUPPORTED_EXTENSION = "quad";
+    private final static String SUPPORTED_EXTENSION = "quad";
 
-	private static QuadratureReader instance = new QuadratureReader();
+    private static QuadratureReader instance = new QuadratureReader();
 
-	private QuadratureReader() {
-		// intentionally blank
-	}
+    private QuadratureReader() {
+        // intentionally blank
+    }
 
-	/**
-	 * Reads an ordinate set. Scans the first line for any keywords and then treats
-	 * any subsequent lines as consisting of two tokens, which correspond to the
-	 * quadrature node and weight. Ignores all other information.
-	 */
+    /**
+     * Reads an ordinate set. Scans the first line for any keywords and then
+     * treats any subsequent lines as consisting of two tokens, which correspond
+     * to the quadrature node and weight. Ignores all other information.
+     */
+    @Override
+    public OrdinateSet read(File file) throws IOException {
+        Objects.requireNonNull(file, Messages.getString("TBLReader.1"));
 
-	@Override
-	public OrdinateSet read(File file) throws IOException {
-		Objects.requireNonNull(file, Messages.getString("TBLReader.1"));
+        // ignore extension!
+        String name = file.getName().split("\\.")[0];
 
-		// ignore extension!
+        OrdinateSet set = null;
 
-		String name = file.getName().split("\\.")[0];
+        String delims = Messages.getString("}{,\t ");
+        StringTokenizer tokenizer;
 
-		OrdinateSet set = null;
+        List<Double> nodes = new ArrayList<>();
+        List<Double> weights = new ArrayList<>();
 
-		String delims = Messages.getString("}{,\t ");
-		StringTokenizer tokenizer;
+        String line = "";
 
-		List<Double> nodes = new ArrayList<>();
-		List<Double> weights = new ArrayList<>();
+        try (var fr = new FileReader(file); var reader = new BufferedReader(fr)) {
 
-		String line = "";
+            // first line with declarations (e.g. IGNORE, etc.)
+            tokenizer = new StringTokenizer(reader.readLine());
 
-		try (var fr = new FileReader(file); var reader = new BufferedReader(fr)) {
+            while (tokenizer.hasMoreTokens()) {
+                if (tokenizer.nextToken(delims).equalsIgnoreCase("IGNORE")) {
+                    return null;
+                }
+            }
 
-			// first line with declarations (e.g. IGNORE, etc.)
-			tokenizer = new StringTokenizer(reader.readLine());
+            for (line = reader.readLine(); line != null; line = reader.readLine()) {
+                tokenizer = new StringTokenizer(line);
+                nodes.add((ExpressionParser.evaluate(tokenizer.nextToken(delims))));
+                weights.add((ExpressionParser.evaluate(tokenizer.nextToken(delims))));
+            }
 
-			while (tokenizer.hasMoreTokens())
-				if (tokenizer.nextToken(delims).equalsIgnoreCase("IGNORE"))
-					return null;
+            set = new OrdinateSet(name, nodes.stream().mapToDouble(d -> d).toArray(),
+                    weights.stream().mapToDouble(d -> d).toArray());
 
-			for (line = reader.readLine(); line != null; line = reader.readLine()) {
-				tokenizer = new StringTokenizer(line);
-				nodes.add((ExpressionParser.evaluate(tokenizer.nextToken(delims))));
-				weights.add((ExpressionParser.evaluate(tokenizer.nextToken(delims))));
-			}
+            reader.close();
 
-			set = new OrdinateSet(name, nodes.stream().mapToDouble(d -> d).toArray(),
-					weights.stream().mapToDouble(d -> d).toArray());
+        }
 
-			reader.close();
+        return set;
 
-		}
+    }
 
-		return set;
+    /**
+     * @return {@code quad}
+     */
+    @Override
+    public String getSupportedExtension() {
+        return SUPPORTED_EXTENSION;
+    }
 
-	}
-
-	/**
-	 * @return {@code quad}
-	 */
-
-	@Override
-	public String getSupportedExtension() {
-		return SUPPORTED_EXTENSION;
-	}
-
-	/**
-	 * Returns the single instance of this class.
-	 * 
-	 * @return an instance of {@code QuadratureReader}.
-	 */
-
-	public static QuadratureReader getInstance() {
-		return instance;
-	}
+    /**
+     * Returns the single instance of this class.
+     *
+     * @return an instance of {@code QuadratureReader}.
+     */
+    public static QuadratureReader getInstance() {
+        return instance;
+    }
 
 }

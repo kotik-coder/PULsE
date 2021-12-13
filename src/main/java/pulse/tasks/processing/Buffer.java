@@ -19,187 +19,176 @@ import pulse.util.PropertyHolder;
 /**
  * A {@code Buffer} is used to estimate the convergence of the reverse problem
  * solution, by comparing the variance of the properties to a pre-specified
- * error tolerance. 
- * 
+ * error tolerance.
+ *
  * @see pulse.tasks.SearchTask.run()
  */
-
 public class Buffer extends PropertyHolder {
 
-	private ParameterVector[] data;
-	private double[] statistic;
-	private static int size = (int) def(BUFFER_SIZE).getValue();
+    private ParameterVector[] data;
+    private double[] statistic;
+    private static int size = (int) def(BUFFER_SIZE).getValue();
 
-	/**
-	 * Creates a {@code Buffer} with a default size.
-	 */
+    /**
+     * Creates a {@code Buffer} with a default size.
+     */
+    public Buffer() {
+        init();
+    }
 
-	public Buffer() {
-		init();
-	}
+    /**
+     * Retrieves the contents of this {@code Buffer}.
+     *
+     * @return the data
+     */
+    public ParameterVector[] getData() {
+        return data;
+    }
 
-	/**
-	 * Retrieves the contents of this {@code Buffer}.
-	 * 
-	 * @return the data
-	 */
-
-	public ParameterVector[] getData() {
-		return data;
-	}
-	
-	/*
+    /*
 	 * Re-inits the storage.
-	 */
+     */
+    public void init() {
+        this.data = new ParameterVector[size];
+        statistic = new double[size];
+    }
 
-	public void init() {
-		this.data = new ParameterVector[size];
-		statistic = new double[size];
-	}
+    /**
+     * (Over)writes a buffer cell corresponding to the {@code bufferElement}
+     * with the current set of parameters of {@code SearchTask} and the search
+     * statistic.
+     *
+     * @param t the {@code SearchTask}
+     * @param bufferElement the {@code bufferElement} which will be written over
+     */
+    public void fill(SearchTask t, int bufferElement) {
+        statistic[bufferElement] = (double) t.getCurrentCalculation().getOptimiserStatistic().getStatistic().getValue();
+        data[bufferElement] = t.searchVector();
+    }
 
-	/**
-	 * (Over)writes a buffer cell corresponding to the {@code bufferElement} with
-	 * the current set of parameters of {@code SearchTask} and the search statistic.
-	 * 
-	 * @param t             the {@code SearchTask}
-	 * @param bufferElement the {@code bufferElement} which will be written over
-	 */
+    /**
+     * Determines whether the relative error (variance divided by mean) for any
+     * of the properties in this buffer is higher than the expect
+     * {@code errorTolerance}.
+     *
+     * @param errorTolerance the maximum tolerated relative error.
+     * @return {@code true} if convergence has not been reached.
+     */
+    public boolean isErrorTooHigh(double errorTolerance) {
+        double[] e = new double[data[0].dimension()];
 
-	public void fill(SearchTask t, int bufferElement) {
-		statistic[bufferElement] = (double) t.getCurrentCalculation().getOptimiserStatistic().getStatistic().getValue();
-		data[bufferElement] = t.searchVector();
-	}
+        boolean result = false;
 
-	/**
-	 * Determines whether the relative error (variance divided by mean) for any of
-	 * the properties in this buffer is higher than the expect
-	 * {@code errorTolerance}.
-	 * 
-	 * @param errorTolerance the maximum tolerated relative error.
-	 * @return {@code true} if convergence has not been reached.
-	 */
+        for (int i = 0; i < e.length && (!result); i++) {
+            var index = data[0].getIndex(i);
+            final double av = average(index);
+            e[i] = variance(index) / (av * av);
 
-	public boolean isErrorTooHigh(double errorTolerance) {
-		double[] e = new double[data[0].dimension()];
+            result = e[i] > errorTolerance;
+        }
 
-		boolean result = false;
-		
-		for (int i = 0; i < e.length && (!result); i++) {
-			var index = data[0].getIndex(i);
-			final double av = average(index);
-			e[i] = variance(index) / (av*av);
+        return result;
 
-			result = e[i] > errorTolerance;
-		}
+    }
 
-		return result;
+    /**
+     * Calculates the average for the {@code index} -- if the respective
+     * {@code NumericProperty} is contained in the {@code IndexedVector} data of
+     * this {@code Buffer}.
+     *
+     * @param index a symbolic index (keyword)
+     * @return the mean of the data sample for the specific type of
+     * {@code NumericPropert}ies
+     */
+    public double average(NumericPropertyKeyword index) {
 
-	}
+        double av = 0;
 
-	/**
-	 * Calculates the average for the {@code index} -- if the respective
-	 * {@code NumericProperty} is contained in the {@code IndexedVector} data of
-	 * this {@code Buffer}.
-	 * 
-	 * @param index a symbolic index (keyword)
-	 * @return the mean of the data sample for the specific type of
-	 *         {@code NumericPropert}ies
-	 */
+        for (ParameterVector v : data) {
+            av += v.getParameterValue(index);
+        }
 
-	public double average(NumericPropertyKeyword index) {
+        return av / data.length;
 
-		double av = 0;
+    }
 
-		for (ParameterVector v : data) {
-			av += v.getParameterValue(index);
-		}
+    /**
+     * Calculates the average statistic value
+     *
+     * @return the mean statistic value.
+     */
+    public double averageStatistic() {
+        double av = 0;
 
-		return av / data.length;
+        for (double ss : statistic) {
+            av += ss;
+        }
 
-	}
+        return av / data.length;
 
-	/**
-	 * Calculates the average statistic value
-	 * 
-	 * @return the mean statistic value.
-	 */
+    }
 
-	public double averageStatistic() {
-		double av = 0;
+    /**
+     * Calculates the variance for the {@code index} -- if the respective
+     * {@code NumericProperty} is contained in the {@code IndexedVector} data of
+     * this {@code Buffer}.
+     *
+     * @param index a symbolic index (keyword).
+     * @return the variance of the data sample for the specific type of
+     * {@code NumericPropert}ies.
+     */
+    public double variance(NumericPropertyKeyword index) {
+        double sd = 0;
+        double av = average(index);
 
-		for (double ss : statistic) {
-			av += ss;
-		}
+        for (ParameterVector v : data) {
+            final double s = v.getParameterValue(index) - av;
+            sd += s * s;
+        }
 
-		return av / data.length;
+        return sd / data.length;
 
-	}
+    }
 
-	/**
-	 * Calculates the variance for the {@code index} -- if the respective
-	 * {@code NumericProperty} is contained in the {@code IndexedVector} data of
-	 * this {@code Buffer}.
-	 * 
-	 * @param index a symbolic index (keyword).
-	 * @return the variance of the data sample for the specific type of
-	 *         {@code NumericPropert}ies.
-	 */
+    /**
+     * Gets the buffer size (a NumericProperty derived from {@code BUFFER_SIZE}.
+     *
+     * @return the buffer size property
+     * @see pulse.properties.NumericPropertyKeyword
+     */
+    public static NumericProperty getSize() {
+        return derive(BUFFER_SIZE, size);
+    }
 
-	public double variance(NumericPropertyKeyword index) {
-		double sd = 0;
-		double av = average(index);
+    /**
+     * Sets a new size for this {@code Buffer}.
+     *
+     * @param newSize a {@code NumericProperty} of the type {@code BUFFER_SIZE}.
+     */
+    public static void setSize(NumericProperty newSize) {
+        requireType(newSize, BUFFER_SIZE);
+        Buffer.size = ((Number) newSize.getValue()).intValue();
+    }
 
-		for (ParameterVector v : data) {
-			final double s = v.getParameterValue(index) - av;
-			sd += s*s;
-		}
-
-		return sd / data.length;
-
-	}
-
-	/**
-	 * Gets the buffer size (a NumericProperty derived from {@code BUFFER_SIZE}.
-	 * 
-	 * @return the buffer size property
-	 * @see pulse.properties.NumericPropertyKeyword
-	 */
-
-	public static NumericProperty getSize() {
-		return derive(BUFFER_SIZE, size);
-	}
-
-	/**
-	 * Sets a new size for this {@code Buffer}.
-	 * 
-	 * @param newSize a {@code NumericProperty} of the type {@code BUFFER_SIZE}.
-	 */
-
-	public static void setSize(NumericProperty newSize) {
-		requireType(newSize, BUFFER_SIZE);
-		Buffer.size = ((Number) newSize.getValue()).intValue();
-	}
-
-	/*
+    /*
 	 * Sets the buffer size 
 	 * @param type @code{BUFFER_SIZE}
-	 */
-	
-	@Override
-	public void set(NumericPropertyKeyword type, NumericProperty property) {
-		if (type == BUFFER_SIZE)
-			setSize(property);
-	}
+     */
+    @Override
+    public void set(NumericPropertyKeyword type, NumericProperty property) {
+        if (type == BUFFER_SIZE) {
+            setSize(property);
+        }
+    }
 
-	/**
-	 * The {@code BUFFER_SIZE} is the single listed parameter for this class.
-	 * 
-	 * @see pulse.properties.NumericPropertyKeyword
-	 */
-
-	@Override
-	public List<Property> listedTypes() {
-		return new ArrayList<Property>(Arrays.asList(def(BUFFER_SIZE)));
-	}
+    /**
+     * The {@code BUFFER_SIZE} is the single listed parameter for this class.
+     *
+     * @see pulse.properties.NumericPropertyKeyword
+     */
+    @Override
+    public List<Property> listedTypes() {
+        return new ArrayList<Property>(Arrays.asList(def(BUFFER_SIZE)));
+    }
 
 }

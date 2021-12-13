@@ -33,74 +33,71 @@ import pulse.ui.Messages;
  * an absolute scale, according to NIST recommendations.
  * </p>
  */
-
 public class DATReader implements CurveReader {
 
-	private static CurveReader instance = new DATReader();
-	private final static double CONVERSION_TO_KELVIN = 273.15;
+    private static CurveReader instance = new DATReader();
+    private final static double CONVERSION_TO_KELVIN = 273.15;
 
-	private DATReader() {
-		// intentionally blank
-	}
+    private DATReader() {
+        // intentionally blank
+    }
 
-	/**
-	 * @return a {@code String} equal to {.dat}
-	 */
+    /**
+     * @return a {@code String} equal to {.dat}
+     */
+    @Override
+    public String getSupportedExtension() {
+        return Messages.getString("DATReader.0"); //$NON-NLS-1$
+    }
 
-	@Override
-	public String getSupportedExtension() {
-		return Messages.getString("DATReader.0"); //$NON-NLS-1$
-	}
+    /**
+     * <p>
+     * This will return a single {@code ExperimentalData}, which stores all the
+     * information available in the {@code file}, wrapped in a {@code List}
+     * object with the size of unity. In addition to the time-temperature data
+     * loaded directly into the {@code ExperimentalData} lists, a
+     * {@code Metadata} object will be created for the {@code ExperimentalData}
+     * and will store the test temperature declared in {@code file}.
+     *
+     * @param file a '{@code .dat}' file, which conforms to the respective
+     * format.
+     * @return a single {@code ExperimentalData} wrapped in a {@code List} with
+     * the size of unity.
+     */
+    @Override
+    public List<ExperimentalData> read(File file) throws IOException {
+        Objects.requireNonNull(file, Messages.getString("DATReader.1"));
 
-	/**
-	 * <p>
-	 * This will return a single {@code ExperimentalData}, which stores all the
-	 * information available in the {@code file}, wrapped in a {@code List} object
-	 * with the size of unity. In addition to the time-temperature data loaded
-	 * directly into the {@code ExperimentalData} lists, a {@code Metadata} object
-	 * will be created for the {@code ExperimentalData} and will store the test
-	 * temperature declared in {@code file}.
-	 * 
-	 * @param file a '{@code .dat}' file, which conforms to the respective format.
-	 * @return a single {@code ExperimentalData} wrapped in a {@code List} with the
-	 *         size of unity.
-	 */
+        ExperimentalData curve = new ExperimentalData();
 
-	@Override
-	public List<ExperimentalData> read(File file) throws IOException {
-		Objects.requireNonNull(file, Messages.getString("DATReader.1"));
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            double T = Double.parseDouble(reader.readLine()) + CONVERSION_TO_KELVIN;
+            Metadata met = new Metadata(derive(TEST_TEMPERATURE, T), -1);
+            curve.setMetadata(met);
+            double time, temp;
+            String delims = Messages.getString("DATReader.2"); //$NON-NLS-1$
+            StringTokenizer tokenizer;
+            for (String line = reader.readLine(); line != null; line = reader.readLine()) {
+                tokenizer = new StringTokenizer(line, delims);
+                time = Double.parseDouble(tokenizer.nextToken());
+                temp = Double.parseDouble(tokenizer.nextToken());
+                curve.addPoint(time, temp);
+            }
+            curve.setRange(new Range(curve.getTimeSequence()));
+        }
 
-		ExperimentalData curve = new ExperimentalData();
+        return new ArrayList<>(Arrays.asList(curve));
 
-		try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-			double T = Double.parseDouble(reader.readLine()) + CONVERSION_TO_KELVIN;
-			Metadata met = new Metadata(derive(TEST_TEMPERATURE, T), -1);
-			curve.setMetadata(met);
-			double time, temp;
-			String delims = Messages.getString("DATReader.2"); //$NON-NLS-1$
-			StringTokenizer tokenizer;
-			for (String line = reader.readLine(); line != null; line = reader.readLine()) {
-				tokenizer = new StringTokenizer(line, delims);
-				time = Double.parseDouble(tokenizer.nextToken());
-				temp = Double.parseDouble(tokenizer.nextToken());
-				curve.addPoint(time, temp);
-			}
-			curve.setRange(new Range(curve.getTimeSequence()));
-		}
+    }
 
-		return new ArrayList<>(Arrays.asList(curve));
-
-	}
-
-	/**
-	 * As this class uses the singleton pattern, only one instance is created using
-	 * an empty no-argument constructor.
-	 * 
-	 * @return the single instance of this class.
-	 */
-
-	public static CurveReader getInstance() {
-		return instance;
-	}
+    /**
+     * As this class uses the singleton pattern, only one instance is created
+     * using an empty no-argument constructor.
+     *
+     * @return the single instance of this class.
+     */
+    public static CurveReader getInstance() {
+        return instance;
+    }
 
 }

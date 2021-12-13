@@ -4,23 +4,22 @@ import pulse.tasks.SearchTask;
 
 public class EmptyTest extends NormalityTest {
 
-	/**
-	 * Always returns true
-	 */
+    /**
+     * Always returns true
+     */
+    @Override
+    public boolean test(SearchTask task) {
+        return true;
+    }
 
-	@Override
-	public boolean test(SearchTask task) {
-		return true;
-	}
+    @Override
+    public String getDescriptor() {
+        return "Don't test please";
+    }
 
-	@Override
-	public String getDescriptor() {
-		return "Don't test please";
-	}
-
-	@Override
-	public void evaluate(SearchTask t) {
-		// deliberately empty
-	}
+    @Override
+    public void evaluate(SearchTask t) {
+        // deliberately empty
+    }
 
 }

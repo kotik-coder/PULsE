@@ -8,5 +8,4 @@
  * {@code AbstractReader} and place it into this package (otherwise, the
  * {@code ReaderManager} won't know where the class is).
  */
-
 package pulse.io.readers;

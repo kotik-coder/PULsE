@@ -24,61 +24,60 @@ import pulse.tasks.SearchTask;
 /**
  * Class defining a particle - the basic unit of a swarm.
  */
-
 public class Particle {
-	
-	private int id;
 
-	private ParticleState current;
-	private ParticleState pbest;
-	
-	private Particle[] neighbours;
-	
-	public Particle(ParticleState cur, int id) {
-		this.id = id;
-		current = cur;
-		pbest	= new ParticleState(current);
-	}
-		
-	public void adopt(ParticleState state) {
-		this.current = state;
-	}
-	
-	public void evaluate(SearchTask t) throws SolverException {
-		var params = t.searchVector();
-		t.assign( current.getPosition() );
-		current.setFitness( t.solveProblemAndCalculateCost() );
-		t.assign( params );
-		
-		if(current.isBetterThan(pbest))
-			pbest = new ParticleState(current);
-	}
+    private int id;
 
-	/**
-	 * Returns the current state (position, velocity, fitness) of the particle.
-	 * 
-	 * @return current state.
-	 */
-	
-	public ParticleState getCurrentState() {
-		return current;
-	}
+    private ParticleState current;
+    private ParticleState pbest;
 
-	/**
-	 * Returns the personal best state ever achieved by the particle.
-	 * 
-	 * @return personal best state.
-	 */
-	public ParticleState getBestState() {
-		return pbest;
-	}
+    private Particle[] neighbours;
 
-	public int getId() {
-		return id;
-	}
+    public Particle(ParticleState cur, int id) {
+        this.id = id;
+        current = cur;
+        pbest = new ParticleState(current);
+    }
 
-	public Particle[] getNeighbours() {
-		return neighbours;
-	}
+    public void adopt(ParticleState state) {
+        this.current = state;
+    }
+
+    public void evaluate(SearchTask t) throws SolverException {
+        var params = t.searchVector();
+        t.assign(current.getPosition());
+        current.setFitness(t.solveProblemAndCalculateCost());
+        t.assign(params);
+
+        if (current.isBetterThan(pbest)) {
+            pbest = new ParticleState(current);
+        }
+    }
+
+    /**
+     * Returns the current state (position, velocity, fitness) of the particle.
+     *
+     * @return current state.
+     */
+    public ParticleState getCurrentState() {
+        return current;
+    }
+
+    /**
+     * Returns the personal best state ever achieved by the particle.
+     *
+     * @return personal best state.
+     */
+    public ParticleState getBestState() {
+        return pbest;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public Particle[] getNeighbours() {
+        return neighbours;
+    }
 
 }

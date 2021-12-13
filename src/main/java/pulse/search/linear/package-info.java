@@ -3,5 +3,4 @@
  * of a vector variable that is unimodal on a specific {@code Segment}. These
  * should be subclasses of {@code LinearSolver}.
  */
-
 package pulse.search.linear;

@@ -8,7 +8,6 @@ import javax.swing.DefaultCellEditor;
 import javax.swing.JComboBox;
 import javax.swing.JTable;
 import javax.swing.event.PopupMenuEvent;
-import javax.swing.event.PopupMenuListener;
 
 import pulse.util.InstanceDescriptor;
 

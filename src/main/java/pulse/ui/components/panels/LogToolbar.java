@@ -19,40 +19,40 @@ import pulse.ui.components.listeners.LogExportListener;
 @SuppressWarnings("serial")
 public class LogToolbar extends JToolBar {
 
-	private final static int ICON_SIZE = 16;
-	private List<LogExportListener> listeners;
+    private final static int ICON_SIZE = 16;
+    private List<LogExportListener> listeners;
 
-	public LogToolbar() {
-		super();
-		setFloatable(false);
-		initComponents();
-		listeners = new ArrayList<>();
-	}
+    public LogToolbar() {
+        super();
+        setFloatable(false);
+        initComponents();
+        listeners = new ArrayList<>();
+    }
 
-	public void initComponents() {
-		setLayout(new GridLayout());
+    public void initComponents() {
+        setLayout(new GridLayout());
 
-		var saveLogBtn = new JButton(loadIcon("save.png", ICON_SIZE, Color.white));
-		saveLogBtn.setToolTipText("Save");
+        var saveLogBtn = new JButton(loadIcon("save.png", ICON_SIZE, Color.white));
+        saveLogBtn.setToolTipText("Save");
 
-		var verboseCheckBox = new JCheckBox(getString("LogToolBar.Verbose")); //$NON-NLS-1$
-		verboseCheckBox.setSelected(isVerbose());
-		verboseCheckBox.setHorizontalAlignment(CENTER);
+        var verboseCheckBox = new JCheckBox(getString("LogToolBar.Verbose")); //$NON-NLS-1$
+        verboseCheckBox.setSelected(isVerbose());
+        verboseCheckBox.setHorizontalAlignment(CENTER);
 
-		verboseCheckBox.addActionListener(event -> setVerbose(verboseCheckBox.isSelected()));
+        verboseCheckBox.addActionListener(event -> setVerbose(verboseCheckBox.isSelected()));
 
-		saveLogBtn.addActionListener(e -> notifyLog());
+        saveLogBtn.addActionListener(e -> notifyLog());
 
-		add(saveLogBtn);
-		add(verboseCheckBox);
-	}
+        add(saveLogBtn);
+        add(verboseCheckBox);
+    }
 
-	public void notifyLog() {
-		listeners.stream().forEach(l -> l.onLogExportRequest());
-	}
+    public void notifyLog() {
+        listeners.stream().forEach(l -> l.onLogExportRequest());
+    }
 
-	public void addLogExportListener(LogExportListener l) {
-		listeners.add(l);
-	}
+    public void addLogExportListener(LogExportListener l) {
+        listeners.add(l);
+    }
 
 }

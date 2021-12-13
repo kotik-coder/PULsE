@@ -11,37 +11,37 @@ import org.apache.commons.math3.stat.inference.TestUtils;
 import pulse.tasks.SearchTask;
 
 /**
- * The Kolmogorov-Smirnov normality test as implemented in {@code ApacheCommonsMath}.
+ * The Kolmogorov-Smirnov normality test as implemented in
+ * {@code ApacheCommonsMath}.
  *
  */
-
 public class KSTest extends NormalityTest {
 
-	private double[] residuals;
-	private NormalDistribution nd;
+    private double[] residuals;
+    private NormalDistribution nd;
 
-	@Override
-	public boolean test(SearchTask task) {
-		evaluate(task);
-		setProbability(derive(PROBABILITY, TestUtils.kolmogorovSmirnovTest(nd, residuals)));
-		return significanceTest();
-	}
-	
-	@Override
-	public void evaluate(SearchTask t) {
-		calculateResiduals(t);
-		residuals = transformResiduals();
+    @Override
+    public boolean test(SearchTask task) {
+        evaluate(task);
+        setProbability(derive(PROBABILITY, TestUtils.kolmogorovSmirnovTest(nd, residuals)));
+        return significanceTest();
+    }
 
-		final double sd = (new StandardDeviation()).evaluate(residuals);
-		nd = new NormalDistribution(0.0, sd); // null hypothesis: normal distribution with zero mean and empirical
-												// standard dev
-		final double statistic = TestUtils.kolmogorovSmirnovStatistic(nd, residuals);
-		this.setStatistic(derive(TEST_STATISTIC, statistic));
-	}
+    @Override
+    public void evaluate(SearchTask t) {
+        calculateResiduals(t);
+        residuals = transformResiduals();
 
-	@Override
-	public String getDescriptor() {
-		return "Kolmogorov-Smirnov test";
-	}
+        final double sd = (new StandardDeviation()).evaluate(residuals);
+        nd = new NormalDistribution(0.0, sd); // null hypothesis: normal distribution with zero mean and empirical
+        // standard dev
+        final double statistic = TestUtils.kolmogorovSmirnovStatistic(nd, residuals);
+        this.setStatistic(derive(TEST_STATISTIC, statistic));
+    }
+
+    @Override
+    public String getDescriptor() {
+        return "Kolmogorov-Smirnov test";
+    }
 
 }

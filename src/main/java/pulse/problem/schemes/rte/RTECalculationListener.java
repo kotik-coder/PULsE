@@ -5,15 +5,13 @@ package pulse.problem.schemes.rte;
  * subclasses.
  *
  */
-
 public interface RTECalculationListener {
 
-	/**
-	 * Invoked when a sub-step of the RTE solution has finished.
-	 * 
-	 * @param status the status of the completed step
-	 */
-
-	public void onStatusUpdate(RTECalculationStatus status);
+    /**
+     * Invoked when a sub-step of the RTE solution has finished.
+     *
+     * @param status the status of the completed step
+     */
+    public void onStatusUpdate(RTECalculationStatus status);
 
 }

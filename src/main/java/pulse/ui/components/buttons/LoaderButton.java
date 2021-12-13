@@ -31,89 +31,91 @@ import pulse.util.ImageUtils;
 @SuppressWarnings("serial")
 public class LoaderButton extends JButton {
 
-	private InterpolationDataset.StandartType dataType;
-	private static File dir;
+    private InterpolationDataset.StandartType dataType;
+    private static File dir;
 
-	private final static Color NOT_HIGHLIGHTED = UIManager.getColor("Button.background");
-	private final static Color HIGHLIGHTED = ImageUtils.blend(NOT_HIGHLIGHTED, Color.red, 0.75f);
+    private final static Color NOT_HIGHLIGHTED = UIManager.getColor("Button.background");
+    private final static Color HIGHLIGHTED = ImageUtils.blend(NOT_HIGHLIGHTED, Color.red, 0.75f);
 
-	public LoaderButton() {
-		super();
-		init();
-	}
+    public LoaderButton() {
+        super();
+        init();
+    }
 
-	public LoaderButton(String str) {
-		super(str);
-		init();
-	}
+    public LoaderButton(String str) {
+        super(str);
+        init();
+    }
 
-	public void init() {
+    public void init() {
 
-		InterpolationDataset.addListener(e -> {
-			if (dataType == e)
-				highlight(false);
-		});
+        InterpolationDataset.addListener(e -> {
+            if (dataType == e) {
+                highlight(false);
+            }
+        });
 
-		addActionListener((ActionEvent arg0) -> {
-			var fileChooser = new JFileChooser();
-			fileChooser.setCurrentDirectory(dir);
-			var extensions = getDatasetExtensions();
-			var extArray = extensions.toArray(new String[extensions.size()]);
-			fileChooser.setFileFilter(
-					new FileNameExtensionFilter(getString("LoaderButton.SupportedExtensionsDescriptor"), extArray)); //$NON-NLS-1$
-			// $NON-NLS-1$
-			var approve = fileChooser.showOpenDialog(getWindowAncestor((Component) arg0.getSource())) == APPROVE_OPTION;
-			dir = fileChooser.getCurrentDirectory();
-			if (!approve)
-				return;
-			try {
-				switch (dataType) {
-				case HEAT_CAPACITY:
-					load(HEAT_CAPACITY, fileChooser.getSelectedFile());
-					break;
-				case DENSITY:
-					load(DENSITY, fileChooser.getSelectedFile());
-					break;
-				default:
-					throw new IllegalStateException("Unrecognised type: " + dataType);
-				}
-			} catch (IOException e) {
-				getDefaultToolkit().beep();
-				showMessageDialog(getWindowAncestor((Component) arg0.getSource()), getString("LoaderButton.ReadError"), //$NON-NLS-1$
-						getString("LoaderButton.IOError"), //$NON-NLS-1$
-						ERROR_MESSAGE);
-				e.printStackTrace();
-			}
-			var size = getDataset(dataType).getData().size();
-			var label = "";
-			switch (dataType) {
-			case HEAT_CAPACITY:
-				label = getString("LoaderButton.5"); //$NON-NLS-1$
-				// $NON-NLS-1$
-				break;
-			case DENSITY:
-				label = getString("LoaderButton.6"); //$NON-NLS-1$
-				// $NON-NLS-1$
-				break;
-			default:
-				throw new IllegalStateException("Unknown data type: " + dataType);
-			}
-			showMessageDialog(getWindowAncestor((Component) arg0.getSource()),
-					"<html>" + label + " data loaded! A total of " + size + " data points loaded.</html>",
-					"Data loaded", INFORMATION_MESSAGE);
-		});
-	}
+        addActionListener((ActionEvent arg0) -> {
+            var fileChooser = new JFileChooser();
+            fileChooser.setCurrentDirectory(dir);
+            var extensions = getDatasetExtensions();
+            var extArray = extensions.toArray(new String[extensions.size()]);
+            fileChooser.setFileFilter(
+                    new FileNameExtensionFilter(getString("LoaderButton.SupportedExtensionsDescriptor"), extArray)); //$NON-NLS-1$
+            // $NON-NLS-1$
+            var approve = fileChooser.showOpenDialog(getWindowAncestor((Component) arg0.getSource())) == APPROVE_OPTION;
+            dir = fileChooser.getCurrentDirectory();
+            if (!approve) {
+                return;
+            }
+            try {
+                switch (dataType) {
+                    case HEAT_CAPACITY:
+                        load(HEAT_CAPACITY, fileChooser.getSelectedFile());
+                        break;
+                    case DENSITY:
+                        load(DENSITY, fileChooser.getSelectedFile());
+                        break;
+                    default:
+                        throw new IllegalStateException("Unrecognised type: " + dataType);
+                }
+            } catch (IOException e) {
+                getDefaultToolkit().beep();
+                showMessageDialog(getWindowAncestor((Component) arg0.getSource()), getString("LoaderButton.ReadError"), //$NON-NLS-1$
+                        getString("LoaderButton.IOError"), //$NON-NLS-1$
+                        ERROR_MESSAGE);
+                e.printStackTrace();
+            }
+            var size = getDataset(dataType).getData().size();
+            var label = "";
+            switch (dataType) {
+                case HEAT_CAPACITY:
+                    label = getString("LoaderButton.5"); //$NON-NLS-1$
+                    // $NON-NLS-1$
+                    break;
+                case DENSITY:
+                    label = getString("LoaderButton.6"); //$NON-NLS-1$
+                    // $NON-NLS-1$
+                    break;
+                default:
+                    throw new IllegalStateException("Unknown data type: " + dataType);
+            }
+            showMessageDialog(getWindowAncestor((Component) arg0.getSource()),
+                    "<html>" + label + " data loaded! A total of " + size + " data points loaded.</html>",
+                    "Data loaded", INFORMATION_MESSAGE);
+        });
+    }
 
-	public void setDataType(InterpolationDataset.StandartType dataType) {
-		this.dataType = dataType;
-	}
+    public void setDataType(InterpolationDataset.StandartType dataType) {
+        this.dataType = dataType;
+    }
 
-	public void highlight(boolean highlighted) {
-		setBorder(highlighted ? BorderFactory.createLineBorder(HIGHLIGHTED) : null );
-	}
-	
-	public void highlightIfNeeded() {
-		highlight(getDataset(dataType) == null); 
-	}
+    public void highlight(boolean highlighted) {
+        setBorder(highlighted ? BorderFactory.createLineBorder(HIGHLIGHTED) : null);
+    }
+
+    public void highlightIfNeeded() {
+        highlight(getDataset(dataType) == null);
+    }
 
 }

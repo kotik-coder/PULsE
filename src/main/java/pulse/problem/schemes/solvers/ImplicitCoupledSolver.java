@@ -17,121 +17,122 @@ import pulse.properties.NumericProperty;
 
 public class ImplicitCoupledSolver extends CoupledImplicitScheme implements Solver<ParticipatingMedium> {
 
-	private RadiativeTransferSolver rte;
-	private Fluxes fluxes;
+    private RadiativeTransferSolver rte;
+    private Fluxes fluxes;
 
-	private double alpha1;
-	private int N;
+    private double alpha1;
+    private int N;
 
-	private double hx;
+    private double hx;
 
-	private double HX2_2TAU;
-	private double HX2TAU0_2NP;
-	private double HX_NP;
+    private double HX2_2TAU;
+    private double HX2TAU0_2NP;
+    private double HX_NP;
 
-	private double v1;
+    private double v1;
 
-	public ImplicitCoupledSolver() {
-		super(derive(GRID_DENSITY, 20), derive(TAU_FACTOR, 0.66667));
-	}
+    public ImplicitCoupledSolver() {
+        super(derive(GRID_DENSITY, 20), derive(TAU_FACTOR, 0.66667));
+    }
 
-	public ImplicitCoupledSolver(NumericProperty gridDensity, NumericProperty timeFactor, NumericProperty timeLimit) {
-		super(gridDensity, timeFactor, timeLimit);
-	}
+    public ImplicitCoupledSolver(NumericProperty gridDensity, NumericProperty timeFactor, NumericProperty timeLimit) {
+        super(gridDensity, timeFactor, timeLimit);
+    }
 
-	private void prepare(ParticipatingMedium problem) {
-		super.prepare(problem);
+    private void prepare(ParticipatingMedium problem) {
+        super.prepare(problem);
 
-		final var grid = getGrid();
+        final var grid = getGrid();
 
-		var coupling = getCoupling();
-		coupling.init(problem, grid);
-		rte = coupling.getRadiativeTransferEquation();
+        var coupling = getCoupling();
+        coupling.init(problem, grid);
+        rte = coupling.getRadiativeTransferEquation();
 
-		N = (int) getGrid().getGridDensity().getValue();
-		hx = grid.getXStep();
-		final double HH = hx * hx;
-		final double tau = grid.getTimeStep();
+        N = (int) getGrid().getGridDensity().getValue();
+        hx = grid.getXStep();
+        final double HH = hx * hx;
+        final double tau = grid.getTimeStep();
 
-		var p = (ThermoOpticalProperties)problem.getProperties();
-		final double Bi1 = (double) p.getHeatLoss().getValue();
-		final double Np = (double) p.getPlanckNumber().getValue();
-		final double tau0 = (double) p.getOpticalThickness().getValue();
+        var p = (ThermoOpticalProperties) problem.getProperties();
+        final double Bi1 = (double) p.getHeatLoss().getValue();
+        final double Np = (double) p.getPlanckNumber().getValue();
+        final double tau0 = (double) p.getOpticalThickness().getValue();
 
-		final double TAU0_NP = tau0 / Np;
-		HX2_2TAU = HH / (2.0 * tau);
-		HX_NP = hx / Np;
-		HX2TAU0_2NP = 0.5 * HH * tau0 / Np;
+        final double TAU0_NP = tau0 / Np;
+        HX2_2TAU = HH / (2.0 * tau);
+        HX_NP = hx / Np;
+        HX2TAU0_2NP = 0.5 * HH * tau0 / Np;
 
-		v1 = 1.0 + HX2_2TAU + hx * Bi1;
+        v1 = 1.0 + HX2_2TAU + hx * Bi1;
 
-		fluxes = rte.getFluxes();
+        fluxes = rte.getFluxes();
 
-		var tridiagonal = new TridiagonalMatrixAlgorithm(grid) {
+        var tridiagonal = new TridiagonalMatrixAlgorithm(grid) {
 
-			@Override
-			public double phi(int i) {
-				return TAU0_NP * fluxes.fluxDerivative(i);
-			}
+            @Override
+            public double phi(int i) {
+                return TAU0_NP * fluxes.fluxDerivative(i);
+            }
 
-		};
+        };
 
-		alpha1 = 1.0 / (1.0 + Bi1 * hx + HX2_2TAU);
-		tridiagonal.setAlpha(1, alpha1);
+        alpha1 = 1.0 / (1.0 + Bi1 * hx + HX2_2TAU);
+        tridiagonal.setAlpha(1, alpha1);
 
-		tridiagonal.setCoefA(1. / HH);
-		tridiagonal.setCoefB(1. / tau + 2. / HH);
-		tridiagonal.setCoefC(1. / HH);
+        tridiagonal.setCoefA(1. / HH);
+        tridiagonal.setCoefB(1. / tau + 2. / HH);
+        tridiagonal.setCoefC(1. / HH);
 
-		tridiagonal.evaluateAlpha();
-		setTridiagonalMatrixAlgorithm(tridiagonal);
+        tridiagonal.evaluateAlpha();
+        setTridiagonalMatrixAlgorithm(tridiagonal);
 
-	}
+    }
 
-	@Override
-	public void solve(ParticipatingMedium problem) throws SolverException {
-		this.prepare(problem);
-		setCalculationStatus(rte.compute(getPreviousSolution()));
+    @Override
+    public void solve(ParticipatingMedium problem) throws SolverException {
+        this.prepare(problem);
+        setCalculationStatus(rte.compute(getPreviousSolution()));
 
-		runTimeSequence(problem);
+        runTimeSequence(problem);
 
-		var status = getCalculationStatus();
-		if (status != RTECalculationStatus.NORMAL)
-			throw new SolverException(status.toString());
+        var status = getCalculationStatus();
+        if (status != RTECalculationStatus.NORMAL) {
+            throw new SolverException(status.toString());
+        }
 
-	}
+    }
 
-	@Override
-	public String toString() {
-		return getString("ImplicitScheme.4");
-	}
+    @Override
+    public String toString() {
+        return getString("ImplicitScheme.4");
+    }
 
-	@Override
-	public DifferenceScheme copy() {
-		var grid = getGrid();
-		return new ImplicitCoupledSolver(grid.getGridDensity(), grid.getTimeFactor(), getTimeLimit());
-	}
+    @Override
+    public DifferenceScheme copy() {
+        var grid = getGrid();
+        return new ImplicitCoupledSolver(grid.getGridDensity(), grid.getTimeFactor(), getTimeLimit());
+    }
 
-	@Override
-	public double evalRightBoundary(final int m, final double alphaN, final double betaN) {
-		/*
+    @Override
+    public double evalRightBoundary(final int m, final double alphaN, final double betaN) {
+        /*
 		 * UNCOMMENT FOR A SIMPLIFIED CALCULATION 
 		 * return (betaN + HX2_2TAU * getPreviousSolution()[N] + HX_2NP * (fluxes.getFlux(N - 1) +
 		 * fluxes.getFlux(N))) / (v1 - alphaN);
-		 */
-		return (betaN + HX2_2TAU * getPreviousSolution()[N] + HX_NP * fluxes.getFlux(N)
-				+ HX2TAU0_2NP * fluxes.fluxDerivativeRear()) / (v1 - alphaN);
-	}
+         */
+        return (betaN + HX2_2TAU * getPreviousSolution()[N] + HX_NP * fluxes.getFlux(N)
+                + HX2TAU0_2NP * fluxes.fluxDerivativeRear()) / (v1 - alphaN);
+    }
 
-	@Override
-	public double firstBeta(final int m) {
-		/*
+    @Override
+    public double firstBeta(final int m) {
+        /*
 		 * UNCOMMENT FOR A SIMPLIFIED CALCULATION
 		 * return (HX2_2TAU * getPreviousSolution()[0] + hx * getCurrentPulseValue() - HX_2NP *
 		 * (fluxes.getFlux(0) + fluxes.getFlux(1))) * alpha1;
-		 */
-		return (HX2_2TAU * getPreviousSolution()[0] + hx * getCurrentPulseValue()
-				+ HX2TAU0_2NP * fluxes.fluxDerivativeFront() - HX_NP * fluxes.getFlux(0)) * alpha1;
-	}
+         */
+        return (HX2_2TAU * getPreviousSolution()[0] + hx * getCurrentPulseValue()
+                + HX2TAU0_2NP * fluxes.fluxDerivativeFront() - HX_NP * fluxes.getFlux(0)) * alpha1;
+    }
 
 }

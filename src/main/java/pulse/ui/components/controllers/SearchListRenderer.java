@@ -12,16 +12,16 @@ import javax.swing.JList;
 @SuppressWarnings("serial")
 public class SearchListRenderer extends DefaultListCellRenderer {
 
-	@Override
-	public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected,
-			boolean cellHasFocus) {
+    @Override
+    public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected,
+            boolean cellHasFocus) {
 
-		var renderer = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-		((JComponent) renderer).setBorder(createEmptyBorder(10, 10, 10, 10));
-		renderer.setForeground(isSelected ? Color.DARK_GRAY : Color.white);
+        var renderer = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+        ((JComponent) renderer).setBorder(createEmptyBorder(10, 10, 10, 10));
+        renderer.setForeground(isSelected ? Color.DARK_GRAY : Color.white);
 
-		return renderer;
+        return renderer;
 
-	}
+    }
 
 }

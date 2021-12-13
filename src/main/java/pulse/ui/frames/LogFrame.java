@@ -29,82 +29,84 @@ import pulse.ui.components.panels.SystemPanel;
 @SuppressWarnings("serial")
 public class LogFrame extends JInternalFrame {
 
-	private LogPane logTextPane;
+    private LogPane logTextPane;
 
-	public LogFrame() {
-		super("Log", true, false, true, true);
-		initComponents();
-		scheduleLogEvents();
-		setVisible(true);
-	}
+    public LogFrame() {
+        super("Log", true, false, true, true);
+        initComponents();
+        scheduleLogEvents();
+        setVisible(true);
+    }
 
-	private void initComponents() {
-		logTextPane = new LogPane();
-		var logScroller = new JScrollPane();
-		logScroller.setViewportView(logTextPane);
+    private void initComponents() {
+        logTextPane = new LogPane();
+        var logScroller = new JScrollPane();
+        logScroller.setViewportView(logTextPane);
 
-		getContentPane().setLayout(new BorderLayout());
-		getContentPane().add(logScroller, CENTER);
+        getContentPane().setLayout(new BorderLayout());
+        getContentPane().add(logScroller, CENTER);
 
-		var gridBagConstraints = new GridBagConstraints();
-		gridBagConstraints.anchor = WEST;
-		gridBagConstraints.weightx = 0.5;
+        var gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.anchor = WEST;
+        gridBagConstraints.weightx = 0.5;
 
-		getContentPane().add(new SystemPanel(), PAGE_END);
+        getContentPane().add(new SystemPanel(), PAGE_END);
 
-		var logToolbar = new LogToolbar();
-		logToolbar.addLogExportListener(() -> {
-			if (logTextPane.getDocument().getLength() > 0)
-				askToExport(logTextPane, (JFrame) getWindowAncestor(this),
-						getString("LogToolBar.FileFormatDescriptor"));
-		});
-		getContentPane().add(logToolbar, NORTH);
+        var logToolbar = new LogToolbar();
+        logToolbar.addLogExportListener(() -> {
+            if (logTextPane.getDocument().getLength() > 0) {
+                askToExport(logTextPane, (JFrame) getWindowAncestor(this),
+                        getString("LogToolBar.FileFormatDescriptor"));
+            }
+        });
+        getContentPane().add(logToolbar, NORTH);
 
-	}
+    }
 
-	private void scheduleLogEvents() {
-		var instance = TaskManager.getManagerInstance();
-		instance.addSelectionListener(e -> logTextPane.printAll());
+    private void scheduleLogEvents() {
+        var instance = TaskManager.getManagerInstance();
+        instance.addSelectionListener(e -> logTextPane.printAll());
 
-		instance.addTaskRepositoryListener(event -> {
-			if (event.getState() != TASK_ADDED)
-				return;
+        instance.addTaskRepositoryListener(event -> {
+            if (event.getState() != TASK_ADDED) {
+                return;
+            }
 
-			var task = instance.getTask(event.getId());
+            var task = instance.getTask(event.getId());
 
-			task.getLog().addListener(new LogEntryListener() {
+            task.getLog().addListener(new LogEntryListener() {
 
-				@Override
-				public void onLogFinished(Log log) {
-					if (instance.getSelectedTask() == task) {
+                @Override
+                public void onLogFinished(Log log) {
+                    if (instance.getSelectedTask() == task) {
 
-						try {
-							logTextPane.getUpdateExecutor().awaitTermination(10, MILLISECONDS);
-						} catch (InterruptedException e) {
-							err.println("Log not finished in time");
-							e.printStackTrace();
-						}
+                        try {
+                            logTextPane.getUpdateExecutor().awaitTermination(10, MILLISECONDS);
+                        } catch (InterruptedException e) {
+                            err.println("Log not finished in time");
+                            e.printStackTrace();
+                        }
 
-						logTextPane.printTimeTaken(log);
+                        logTextPane.printTimeTaken(log);
 
-					}
-				}
+                    }
+                }
 
-				@Override
-				public void onNewEntry(LogEntry e) {
-					if (instance.getSelectedTask() == task)
-						logTextPane.callUpdate();
-				}
+                @Override
+                public void onNewEntry(LogEntry e) {
+                    if (instance.getSelectedTask() == task) {
+                        logTextPane.callUpdate();
+                    }
+                }
 
-			}
+            }
+            );
 
-			);
+        });
+    }
 
-		});
-	}
-
-	public LogPane getLogTextPane() {
-		return logTextPane;
-	}
+    public LogPane getLogTextPane() {
+        return logTextPane;
+    }
 
 }

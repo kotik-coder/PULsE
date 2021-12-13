@@ -7,106 +7,106 @@ import pulse.tasks.SearchTask;
 
 public class SwarmState extends IterativeState {
 
-	private ParameterVector seed;
+    private ParameterVector seed;
 
-	private Particle[] particles;
-	private NeighbourhoodTopology neighborhoodTopology;
+    private Particle[] particles;
+    private NeighbourhoodTopology neighborhoodTopology;
 
-	private Particle bestSoFar;
-	private int bestSoFarIndex;
-	
-	private final static int DEFAULT_PARTICLES = 16;
-	
-	public SwarmState() {
-		this(DEFAULT_PARTICLES, StaticTopologies.GLOBAL);
-	}
-	
-	public SwarmState(int numberOfParticles, NeighbourhoodTopology neighborhoodTopology) {
-		this.neighborhoodTopology = neighborhoodTopology;
-		this.particles = new Particle[numberOfParticles];
-		this.bestSoFar = null;
-		this.bestSoFarIndex = -1;
-	}
+    private Particle bestSoFar;
+    private int bestSoFarIndex;
 
-	public void evaluate(SearchTask t) throws SolverException {
-		for (var p : particles)
-			p.evaluate(t);
-	}
+    private final static int DEFAULT_PARTICLES = 16;
 
-	public void prepare(SearchTask t) {
-		seed = t.searchVector();
-	}
+    public SwarmState() {
+        this(DEFAULT_PARTICLES, StaticTopologies.GLOBAL);
+    }
 
-	public void create() {
-		for (int i = 0; i < particles.length; i++) 
-			particles[i] = new Particle(new ParticleState(seed), i);
-	}
+    public SwarmState(int numberOfParticles, NeighbourhoodTopology neighborhoodTopology) {
+        this.neighborhoodTopology = neighborhoodTopology;
+        this.particles = new Particle[numberOfParticles];
+        this.bestSoFar = null;
+        this.bestSoFarIndex = -1;
+    }
 
-	/**
-	 * Returns the best state achieved by any particle so far.
-	 * 
-	 * @return State object.
-	 */
+    public void evaluate(SearchTask t) throws SolverException {
+        for (var p : particles) {
+            p.evaluate(t);
+        }
+    }
 
-	public ParticleState bestSoFar() {
-		int bestIndex = 0;
-		
-		double fitness = 0;
-		double bestFitness = Double.MAX_VALUE;
-		
-		for (int i = 0; i < particles.length; i++) {
+    public void prepare(SearchTask t) {
+        seed = t.searchVector();
+    }
 
-			fitness = particles[i].getBestState().getFitness();
-			
-			if (fitness < bestFitness) {
-				bestIndex	= i;
-				bestFitness = fitness;
-			}
-			
-		}
+    public void create() {
+        for (int i = 0; i < particles.length; i++) {
+            particles[i] = new Particle(new ParticleState(seed), i);
+        }
+    }
 
-		this.bestSoFar		= particles[bestIndex];
-		this.bestSoFarIndex	= bestIndex;
+    /**
+     * Returns the best state achieved by any particle so far.
+     *
+     * @return State object.
+     */
+    public ParticleState bestSoFar() {
+        int bestIndex = 0;
 
-		return bestSoFar.getBestState();
-	}
+        double fitness = 0;
+        double bestFitness = Double.MAX_VALUE;
 
-	public NeighbourhoodTopology getNeighborhoodTopology() {
-		return neighborhoodTopology;
-	}
+        for (int i = 0; i < particles.length; i++) {
 
-	public void setNeighborhoodTopology(NeighbourhoodTopology neighborhoodTopology) {
-		this.neighborhoodTopology = neighborhoodTopology;
-	}
+            fitness = particles[i].getBestState().getFitness();
 
-	/**
-	 * Returns the particles of the swarm.
-	 * 
-	 * @return array of Particles.
-	 */
+            if (fitness < bestFitness) {
+                bestIndex = i;
+                bestFitness = fitness;
+            }
 
-	public Particle[] getParticles() {
-		return particles;
-	}
+        }
 
-	public void setParticles(Particle[] particles) {
-		this.particles = particles;
-	}
+        this.bestSoFar = particles[bestIndex];
+        this.bestSoFarIndex = bestIndex;
 
-	public Particle getBestSoFar() {
-		return bestSoFar;
-	}
+        return bestSoFar.getBestState();
+    }
 
-	public void setBestSoFar(Particle bestSoFar) {
-		this.bestSoFar = bestSoFar;
-	}
+    public NeighbourhoodTopology getNeighborhoodTopology() {
+        return neighborhoodTopology;
+    }
 
-	public int getBestSoFarIndex() {
-		return bestSoFarIndex;
-	}
+    public void setNeighborhoodTopology(NeighbourhoodTopology neighborhoodTopology) {
+        this.neighborhoodTopology = neighborhoodTopology;
+    }
 
-	public void setBestSoFarIndex(int bestSoFarIndex) {
-		this.bestSoFarIndex = bestSoFarIndex;
-	}
+    /**
+     * Returns the particles of the swarm.
+     *
+     * @return array of Particles.
+     */
+    public Particle[] getParticles() {
+        return particles;
+    }
+
+    public void setParticles(Particle[] particles) {
+        this.particles = particles;
+    }
+
+    public Particle getBestSoFar() {
+        return bestSoFar;
+    }
+
+    public void setBestSoFar(Particle bestSoFar) {
+        this.bestSoFar = bestSoFar;
+    }
+
+    public int getBestSoFarIndex() {
+        return bestSoFarIndex;
+    }
+
+    public void setBestSoFarIndex(int bestSoFarIndex) {
+        this.bestSoFarIndex = bestSoFarIndex;
+    }
 
 }

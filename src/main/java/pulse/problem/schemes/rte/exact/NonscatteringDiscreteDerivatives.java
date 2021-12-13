@@ -12,20 +12,19 @@ import pulse.problem.statements.model.ThermoOpticalProperties;
  * derivatives are calculated using the central-difference approximation.
  *
  */
-
 public class NonscatteringDiscreteDerivatives extends NonscatteringRadiativeTransfer {
 
-	public NonscatteringDiscreteDerivatives(ParticipatingMedium problem, Grid grid) {
-		super(problem, grid);
-		var properties = (ThermoOpticalProperties)problem.getProperties();
-		setFluxes(new FluxesAndImplicitDerivatives(grid.getGridDensity(), properties.getOpticalThickness()));
-	}
+    public NonscatteringDiscreteDerivatives(ParticipatingMedium problem, Grid grid) {
+        super(problem, grid);
+        var properties = (ThermoOpticalProperties) problem.getProperties();
+        setFluxes(new FluxesAndImplicitDerivatives(grid.getGridDensity(), properties.getOpticalThickness()));
+    }
 
-	@Override
-	public RTECalculationStatus compute(double U[]) {
-		super.compute(U);
-		fluxes();
-		return RTECalculationStatus.NORMAL;
-	}
+    @Override
+    public RTECalculationStatus compute(double U[]) {
+        super.compute(U);
+        fluxes();
+        return RTECalculationStatus.NORMAL;
+    }
 
 }

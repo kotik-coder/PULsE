@@ -12,27 +12,27 @@ import pulse.ui.components.AuxPlotter;
 @SuppressWarnings("serial")
 public class ExternalGraphFrame<T> extends JFrame {
 
-	private AuxPlotter<T> chart;
-	
-	public ExternalGraphFrame(String name, AuxPlotter<T> chart, final int width, final int height) {
-		super(name);
-		this.chart = chart;
-		initComponents(chart);
-		this.setSize(new Dimension(width, height));
-		setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
-	}
+    private AuxPlotter<T> chart;
 
-	private void initComponents(AuxPlotter<T> chart) {
-		var chartPanel = chart.getChartPanel();
-		getContentPane().add(chartPanel, CENTER);
-	}
+    public ExternalGraphFrame(String name, AuxPlotter<T> chart, final int width, final int height) {
+        super(name);
+        this.chart = chart;
+        initComponents(chart);
+        this.setSize(new Dimension(width, height));
+        setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
+    }
 
-	public void plot(T t) {
-		chart.plot(t);
-	}
+    private void initComponents(AuxPlotter<T> chart) {
+        var chartPanel = chart.getChartPanel();
+        getContentPane().add(chartPanel, CENTER);
+    }
 
-	public AuxPlotter<T> getChart() {
-		return chart;
-	}
+    public void plot(T t) {
+        chart.plot(t);
+    }
+
+    public AuxPlotter<T> getChart() {
+        return chart;
+    }
 
 }

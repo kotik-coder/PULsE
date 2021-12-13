@@ -14,20 +14,19 @@ import java.io.IOException;
  * using the reader.
  * </p>
  */
-
 public interface AbstractReader<T> extends AbstractHandler {
 
-	/**
-	 * Reads {@code f} to translate its contents to one of the immutable structures
-	 * of {@code T}. Usually this involves reading arrays and collections and
-	 * pasting their data into existing structural elements. This does not change
-	 * the internal structure of the object.
-	 * 
-	 * @param f a file which has readable content
-	 * @return a {@code T} object created by reading all information from {@code f}.
-	 * @throws IOException
-	 */
-
-	public T read(File f) throws IOException;
+    /**
+     * Reads {@code f} to translate its contents to one of the immutable
+     * structures of {@code T}. Usually this involves reading arrays and
+     * collections and pasting their data into existing structural elements.
+     * This does not change the internal structure of the object.
+     *
+     * @param f a file which has readable content
+     * @return a {@code T} object created by reading all information from
+     * {@code f}.
+     * @throws IOException
+     */
+    public T read(File f) throws IOException;
 
 }

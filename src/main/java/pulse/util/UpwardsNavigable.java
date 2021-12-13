@@ -16,103 +16,103 @@ import pulse.tasks.SearchTask;
  * </p>
  *
  */
-
 public abstract class UpwardsNavigable implements Descriptive {
 
-	private UpwardsNavigable parent;
-	private List<HierarchyListener> listeners = new ArrayList<HierarchyListener>();
+    private UpwardsNavigable parent;
+    private List<HierarchyListener> listeners = new ArrayList<HierarchyListener>();
 
-	public void removeHierarchyListeners() {
-		this.listeners.clear();
-	}
-	
-	public void removeHierarchyListener(HierarchyListener l) {
-		this.listeners.remove(l);
-	}
+    public void removeHierarchyListeners() {
+        this.listeners.clear();
+    }
 
-	public void addHierarchyListener(HierarchyListener l) {
-		this.listeners.add(l);
-	}
+    public void removeHierarchyListener(HierarchyListener l) {
+        this.listeners.remove(l);
+    }
 
-	public List<HierarchyListener> getHierarchyListeners() {
-		return listeners;
-	}
+    public void addHierarchyListener(HierarchyListener l) {
+        this.listeners.add(l);
+    }
 
-	/**
-	 * Recursively informs the parent, the parent of its parent, etc. of this
-	 * {@code UpwardsNavigable} that an action has been taken on its child's
-	 * properties specified by {@e}.
-	 * 
-	 * @param e the property event
-	 */
+    public List<HierarchyListener> getHierarchyListeners() {
+        return listeners;
+    }
 
-	public void tellParent(PropertyEvent e) {
-		if (parent != null) {
-			parent.listeners.forEach(l -> l.onChildPropertyChanged(e));
-			parent.tellParent(e);
-		}
-	}
+    /**
+     * Recursively informs the parent, the parent of its parent, etc. of this
+     * {@code UpwardsNavigable} that an action has been taken on its child's
+     * properties specified by {
+     *
+     * @e}.
+     *
+     * @param e the property event
+     */
+    public void tellParent(PropertyEvent e) {
+        if (parent != null) {
+            parent.listeners.forEach(l -> l.onChildPropertyChanged(e));
+            parent.tellParent(e);
+        }
+    }
 
-	/**
-	 * Return the parent of this {@code UpwardsNavigable} -- if is has been
-	 * previously explicitly set.
-	 * 
-	 * @return the parent (which is also an {@code UpwardsNavigable}).
-	 */
+    /**
+     * Return the parent of this {@code UpwardsNavigable} -- if is has been
+     * previously explicitly set.
+     *
+     * @return the parent (which is also an {@code UpwardsNavigable}).
+     */
+    public UpwardsNavigable getParent() {
+        return parent;
+    }
 
-	public UpwardsNavigable getParent() {
-		return parent;
-	}
+    /**
+     * Finds an ancestor that looks similar to {@code aClass} by recursively
+     * calling {@code getParent()}.
+     *
+     * @param aClass a class which should be similar to an ancestor of this
+     * {@code UpwardsNavigable}
+     * @return the ancestor, which is a parent, or grand-parent, or
+     * grand-grand-parent, etc. of this {@code UpwardsNavigable}.
+     */
+    public UpwardsNavigable specificAncestor(Class<? extends UpwardsNavigable> aClass) {
+        if (aClass.equals(this.getClass())) {
+            return this;
+        }
+        var parent = this.getParent();
+        UpwardsNavigable result = null;
+        if (parent != null) {
+            result = parent.getClass().equals(aClass) ? parent : parent.specificAncestor(aClass);
+        }
+        return result;
+    }
 
-	/**
-	 * Finds an ancestor that looks similar to {@code aClass} by recursively calling
-	 * {@code getParent()}.
-	 * 
-	 * @param aClass a class which should be similar to an ancestor of this
-	 *               {@code UpwardsNavigable}
-	 * @return the ancestor, which is a parent, or grand-parent, or
-	 *         grand-grand-parent, etc. of this {@code UpwardsNavigable}.
-	 */
+    /**
+     * Explicitly sets the parent of this {@code UpwardsNavigable}.
+     *
+     * @param parent the new parent that will adopt this
+     * {@code UpwardsNavigable}.
+     */
+    public void setParent(UpwardsNavigable parent) {
+        this.parent = parent;
+    }
 
-	public UpwardsNavigable specificAncestor(Class<? extends UpwardsNavigable> aClass) {
-		if(aClass.equals(this.getClass()))
-			return this;
-		var parent = this.getParent();
-		UpwardsNavigable result = null;
-		if(parent != null)
-			result = parent.getClass().equals(aClass) ? parent : parent.specificAncestor(aClass); 
-		return result;
-	}
+    /**
+     * Retrieves the Identifier of the SearchTaks this UpwardsNavigable belongs
+     * to.
+     *
+     * @return the identifier of the SearchTask
+     */
+    public Identifier identify() {
+        var un = specificAncestor(SearchTask.class);
+        return un == null ? null : ((SearchTask) un).getIdentifier();
+    }
 
-	/**
-	 * Explicitly sets the parent of this {@code UpwardsNavigable}.
-	 * 
-	 * @param parent the new parent that will adopt this {@code UpwardsNavigable}.
-	 */
-
-	public void setParent(UpwardsNavigable parent) {
-		this.parent = parent;
-	}
-	
-	/**
-	 * Retrieves the Identifier of the SearchTaks this UpwardsNavigable belongs to.
-	 * @return the identifier of the SearchTask
-	 */
-	
-	public Identifier identify() {
-		var un = specificAncestor(SearchTask.class);
-		return un == null ? null : ((SearchTask) un).getIdentifier();
-	}
-
-	/**
-	 * Uses the SearchTask id (if present) to describe this UpwardsNavigable.
-	 */
-	
-	@Override
-	public String describe() {
-		var id = identify();
-		String name = getClass().getSimpleName();
-		return id == null ? name : name + "_" + id.getValue();
-	}
+    /**
+     * Uses the SearchTask id (if present) to describe this UpwardsNavigable.
+     */
+    @Override
+    public String describe() {
+        var id = identify();
+        String name = getClass().getSimpleName();
+        return id == null ? name : name + "_" + id.getValue();
+    }
 
 }

@@ -4,5 +4,4 @@
  * 'message.properties' text file, which is used for storing verbose text
  * constants used e.g. by the GUI.
  */
-
 package pulse.ui;

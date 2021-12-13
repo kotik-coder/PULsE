@@ -19,79 +19,79 @@ import pulse.ui.components.models.StoredCalculationTableModel;
 @SuppressWarnings("serial")
 public class CalculationTable extends JTable {
 
-	private final static int ROW_HEIGHT = 70;
-	private final static int HEADER_HEIGHT = 30;
+    private final static int ROW_HEIGHT = 70;
+    private final static int HEADER_HEIGHT = 30;
 
-	private TaskTableRenderer taskTableRenderer;
+    private TaskTableRenderer taskTableRenderer;
 
-	public CalculationTable() {
-		super();
-		setDefaultEditor(Object.class, null);
-		taskTableRenderer = new TaskTableRenderer();
-		this.setRowSelectionAllowed(true);
-		setRowHeight(ROW_HEIGHT);
+    public CalculationTable() {
+        super();
+        setDefaultEditor(Object.class, null);
+        taskTableRenderer = new TaskTableRenderer();
+        this.setRowSelectionAllowed(true);
+        setRowHeight(ROW_HEIGHT);
 
-		setFillsViewportHeight(true);
-		setSelectionMode(SINGLE_SELECTION);
-		setShowHorizontalLines(false);
+        setFillsViewportHeight(true);
+        setSelectionMode(SINGLE_SELECTION);
+        setShowHorizontalLines(false);
 
-		var model = new StoredCalculationTableModel();
-		setModel(model);
+        var model = new StoredCalculationTableModel();
+        setModel(model);
 
-		getTableHeader().setPreferredSize(new Dimension(50, HEADER_HEIGHT));
+        getTableHeader().setPreferredSize(new Dimension(50, HEADER_HEIGHT));
 
-		setAutoCreateRowSorter(false);
-		initListeners();
+        setAutoCreateRowSorter(false);
+        initListeners();
 
-		var instance = TaskManager.getManagerInstance();
-		instance.addTaskRepositoryListener(e -> {
+        var instance = TaskManager.getManagerInstance();
+        instance.addTaskRepositoryListener(e -> {
 
-			if (e.getState() == TaskRepositoryEvent.State.TASK_MODEL_SWITCH) {
-				var t = instance.getTask(e.getId());
-				identifySelection(t);
-			}
+            if (e.getState() == TaskRepositoryEvent.State.TASK_MODEL_SWITCH) {
+                var t = instance.getTask(e.getId());
+                identifySelection(t);
+            } else if (e.getState() == TaskRepositoryEvent.State.TASK_CRITERION_SWITCH) {
+                update(TaskManager.getManagerInstance().getSelectedTask());
+            }
 
-			else if (e.getState() == TaskRepositoryEvent.State.TASK_CRITERION_SWITCH) {
-				update(TaskManager.getManagerInstance().getSelectedTask());
-			}
+        });
 
-		});
+    }
 
-	}
+    public void update(SearchTask t) {
+        if (t != null) {
+            SwingUtilities.invokeLater(() -> {
+                ((StoredCalculationTableModel) getModel()).update(t);
+                identifySelection(t);
+            });
+        }
+    }
 
-	public void update(SearchTask t) {
-		if (t != null)
-			SwingUtilities.invokeLater(() -> {
-				((StoredCalculationTableModel) getModel()).update(t);
-				identifySelection(t);
-			});
-	}
+    public void identifySelection(SearchTask t) {
+        int modelIndex = t.getStoredCalculations().indexOf(t.getCurrentCalculation());
+        if (modelIndex > -1) {
+            this.getSelectionModel().setSelectionInterval(modelIndex, modelIndex);
+        }
+    }
 
-	public void identifySelection(SearchTask t) {
-		int modelIndex = t.getStoredCalculations().indexOf(t.getCurrentCalculation());
-		if (modelIndex > -1)
-			this.getSelectionModel().setSelectionInterval(modelIndex, modelIndex);
-	}
+    public void initListeners() {
 
-	public void initListeners() {
+        var lsm = getSelectionModel();
 
-		var lsm = getSelectionModel();
+        lsm.addListSelectionListener((ListSelectionEvent e) -> {
+            var task = TaskManager.getManagerInstance().getSelectedTask();
+            var id = convertRowIndexToModel(this.getSelectedRow());
+            if (!lsm.getValueIsAdjusting() && id > -1 && id < task.getStoredCalculations().size()) {
+                task.switchTo(task.getStoredCalculations().get(id));
+                getChart().plot(task, true);
+            }
 
-		lsm.addListSelectionListener((ListSelectionEvent e) -> {
-			var task = TaskManager.getManagerInstance().getSelectedTask();
-			var id = convertRowIndexToModel(this.getSelectedRow());
-			if (!lsm.getValueIsAdjusting() && id > -1 && id < task.getStoredCalculations().size()) {
-				task.switchTo(task.getStoredCalculations().get(id));
-				getChart().plot(task, true);
-			}
+        });
 
-		});
+    }
 
-	}
-
-	@Override
-	public TableCellRenderer getCellRenderer(int row, int column) {
-		return taskTableRenderer;
-	}
+    @Override
+    public TableCellRenderer getCellRenderer(int row, int column) {
+        return taskTableRenderer;
+    }
 
 }

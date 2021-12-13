@@ -21,64 +21,64 @@ import pulse.util.ResourceMonitor;
 @SuppressWarnings("serial")
 public class SystemPanel extends JPanel {
 
-	private JLabel coresLabel;
-	private JLabel cpuLabel;
-	private JLabel memoryLabel;
+    private JLabel coresLabel;
+    private JLabel cpuLabel;
+    private JLabel memoryLabel;
 
-	public SystemPanel() {
-		initComponents();
-		startSystemMonitors();
-	}
+    public SystemPanel() {
+        initComponents();
+        startSystemMonitors();
+    }
 
-	private void initComponents() {
-		coresLabel = new JLabel();
-		cpuLabel = new JLabel();
-		memoryLabel = new JLabel();
+    private void initComponents() {
+        coresLabel = new JLabel();
+        cpuLabel = new JLabel();
+        memoryLabel = new JLabel();
 
-		setLayout(new GridBagLayout());
-		var gridBagConstraints = new GridBagConstraints();
+        setLayout(new GridBagLayout());
+        var gridBagConstraints = new GridBagConstraints();
 
-		cpuLabel.setHorizontalAlignment(LEFT);
-		cpuLabel.setText("CPU:");
-		gridBagConstraints = new GridBagConstraints();
-		gridBagConstraints.weightx = 2.5;
-		add(cpuLabel, gridBagConstraints);
+        cpuLabel.setHorizontalAlignment(LEFT);
+        cpuLabel.setText("CPU:");
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.weightx = 2.5;
+        add(cpuLabel, gridBagConstraints);
 
-		memoryLabel.setHorizontalAlignment(CENTER);
-		memoryLabel.setText("Memory:");
-		gridBagConstraints = new GridBagConstraints();
-		gridBagConstraints.weightx = 2.5;
-		add(memoryLabel, gridBagConstraints);
+        memoryLabel.setHorizontalAlignment(CENTER);
+        memoryLabel.setText("Memory:");
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.weightx = 2.5;
+        add(memoryLabel, gridBagConstraints);
 
-		coresLabel.setHorizontalAlignment(RIGHT);
-		coresLabel.setText("{n cores} ");
-		gridBagConstraints = new GridBagConstraints();
-		gridBagConstraints.weightx = 2.5;
-		add(coresLabel, gridBagConstraints);
-	}
+        coresLabel.setHorizontalAlignment(RIGHT);
+        coresLabel.setText("{n cores} ");
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.weightx = 2.5;
+        add(coresLabel, gridBagConstraints);
+    }
 
-	private void startSystemMonitors() {
-		var monitor = ResourceMonitor.getInstance();
-				
-		var coresAvailable = format("{" + (monitor.getThreadsAvailable() + 1) + " cores}");
-		coresLabel.setText(coresAvailable);
+    private void startSystemMonitors() {
+        var monitor = ResourceMonitor.getInstance();
 
-		var executor = newSingleThreadScheduledExecutor();
-		var defColor = UIManager.getColor("Label.foreground");
-		
-		Runnable periodicTask = () -> {
-			monitor.update();
-			var cpuString = format("CPU usage: %3.1f%%", monitor.getCpuUsage());
-			cpuLabel.setText(cpuString);
-			var memoryString = format("Memory usage: %3.1f%%", monitor.getMemoryUsage());
-			memoryLabel.setText(memoryString);
-			
-			cpuLabel.setForeground(ImageUtils.blend(defColor, red, (float)monitor.getCpuUsage()/100));
-			memoryLabel.setForeground(ImageUtils.blend(defColor, red, (float)monitor.getMemoryUsage()/100));
+        var coresAvailable = format("{" + (monitor.getThreadsAvailable() + 1) + " cores}");
+        coresLabel.setText(coresAvailable);
 
-		};
+        var executor = newSingleThreadScheduledExecutor();
+        var defColor = UIManager.getColor("Label.foreground");
 
-		executor.scheduleAtFixedRate(periodicTask, 0, 2, SECONDS);
-	}
-	
+        Runnable periodicTask = () -> {
+            monitor.update();
+            var cpuString = format("CPU usage: %3.1f%%", monitor.getCpuUsage());
+            cpuLabel.setText(cpuString);
+            var memoryString = format("Memory usage: %3.1f%%", monitor.getMemoryUsage());
+            memoryLabel.setText(memoryString);
+
+            cpuLabel.setForeground(ImageUtils.blend(defColor, red, (float) monitor.getCpuUsage() / 100));
+            memoryLabel.setForeground(ImageUtils.blend(defColor, red, (float) monitor.getMemoryUsage() / 100));
+
+        };
+
+        executor.scheduleAtFixedRate(periodicTask, 0, 2, SECONDS);
+    }
+
 }

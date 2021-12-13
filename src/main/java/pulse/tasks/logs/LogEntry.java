@@ -17,33 +17,31 @@ import pulse.ui.Messages;
  * </p>
  *
  */
-
 public class LogEntry {
 
-	private Identifier identifier;
-	private LocalTime time;
+    private Identifier identifier;
+    private LocalTime time;
 
-	/**
-	 * <p>
-	 * Creates a {@code LogEntry} from this {@code SearchTask}. The data of the
-	 * creation of this {@code LogEntry} will be stored.
-	 * </p>
-	 * 
-	 * @param t a {@code SearchTask}
-	 */
+    /**
+     * <p>
+     * Creates a {@code LogEntry} from this {@code SearchTask}. The data of the
+     * creation of this {@code LogEntry} will be stored.
+     * </p>
+     *
+     * @param t a {@code SearchTask}
+     */
+    public LogEntry(SearchTask t) {
+        Objects.requireNonNull(t, Messages.getString("LogEntry.NullTaskError"));
+        time = LocalDateTime.now().toLocalTime();
+        identifier = t.getIdentifier();
+    }
 
-	public LogEntry(SearchTask t) {
-		Objects.requireNonNull(t, Messages.getString("LogEntry.NullTaskError"));
-		time = LocalDateTime.now().toLocalTime();
-		identifier = t.getIdentifier();
-	}
+    public Identifier getIdentifier() {
+        return identifier;
+    }
 
-	public Identifier getIdentifier() {
-		return identifier;
-	}
-
-	public LocalTime getTime() {
-		return time;
-	}
+    public LocalTime getTime() {
+        return time;
+    }
 
 }

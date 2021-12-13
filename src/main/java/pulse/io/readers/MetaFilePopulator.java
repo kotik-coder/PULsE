@@ -51,17 +51,17 @@ import pulse.util.InstanceDescriptor;
  * </p>
  * The full list of keywords for the {@code .met} files are listed in the
  * {@code NumericPropertyKeyword} enum.
- * 
+ *
  * <p>
  * An example content of a valid {@code .met} file is provided below.
  * </p>
- * 
+ *
  * <pre>
  * <code>
- * Thickness	2.034 						
- * Diameter	9.88 			
- * Spot_Diameter	10.0 						
- *							
+ * Thickness	2.034
+ * Diameter	9.88
+ * Spot_Diameter	10.0
+ *
  * Test_Temperature	Pulse_Width	Spot_Diameter	Laser_Energy	Detector_Gain	TemporalShape	Detector_Iris
  * 200	200	5	2	31.81	50	TrapezoidalPulse	1
  * 201	196	5	2	31.81	100	TrapezoidalPulse	1
@@ -76,154 +76,151 @@ import pulse.util.InstanceDescriptor;
  * 210	400	5	2	31.81	10	TrapezoidalPulse	1
  * </code>
  * </pre>
- * 
+ *
  * @see pulse.properties.NumericPropertyKeyword
  * @see pulse.problem.laser.PulseTemporalShape
  */
-
 public class MetaFilePopulator implements AbstractPopulator<Metadata> {
 
-	private static MetaFilePopulator instance = new MetaFilePopulator();
-	private final static double TO_KELVIN = 273;
+    private static MetaFilePopulator instance = new MetaFilePopulator();
+    private final static double TO_KELVIN = 273;
 
-	private MetaFilePopulator() {
-		// intentionally blank
-	}
+    private MetaFilePopulator() {
+        // intentionally blank
+    }
 
-	/**
-	 * Gets the single instance of this class.
-	 * 
-	 * @return a static instance of {@code MetaFilePopulator}.
-	 */
+    /**
+     * Gets the single instance of this class.
+     *
+     * @return a static instance of {@code MetaFilePopulator}.
+     */
+    public static MetaFilePopulator getInstance() {
+        return instance;
+    }
 
-	public static MetaFilePopulator getInstance() {
-		return instance;
-	}
+    @Override
+    public void populate(File file, Metadata met) throws IOException {
+        Objects.requireNonNull(file, Messages.getString("MetaFileReader.1")); //$NON-NLS-1$
+        Map<Integer, String> metaFormat = new HashMap<>();
+        metaFormat.put(0, "ID"); // id must always be the first entry in the current row
 
-	@Override
-	public void populate(File file, Metadata met) throws IOException {
-		Objects.requireNonNull(file, Messages.getString("MetaFileReader.1")); //$NON-NLS-1$
-		Map<Integer, String> metaFormat = new HashMap<>();
-		metaFormat.put(0, "ID"); // id must always be the first entry in the current row
+        List<String> tokens = new LinkedList<>();
 
-		List<String> tokens = new LinkedList<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
 
-		try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            for (String line = reader.readLine(); line != null; line = reader.readLine()) {
 
-			for (String line = reader.readLine(); line != null; line = reader.readLine()) {
+                tokens.clear();
+                for (StringTokenizer st = new StringTokenizer(line); st.hasMoreTokens();) {
+                    tokens.add(st.nextToken());
+                }
 
-				tokens.clear();
-				for (StringTokenizer st = new StringTokenizer(line); st.hasMoreTokens();)
-					tokens.add(st.nextToken());
+                int size = tokens.size();
 
-				int size = tokens.size();
+                if (size == 2) {
+                    processPair(tokens, met);
+                } else if (size > 2) {
 
-				if (size == 2)
-					processPair(tokens, met);
+                    if (tokens.get(0).equalsIgnoreCase(metaFormat.get(0))) {
 
-				else if (size > 2) {
+                        for (int i = 1; i < size; i++) {
+                            metaFormat.put(i, tokens.get(i));
+                        }
 
-					if (tokens.get(0).equalsIgnoreCase(metaFormat.get(0))) {
+                    } else if (Integer.compare(Integer.valueOf(tokens.get(0)), met.getExternalID()) == 0) {
 
-						for (int i = 1; i < size; i++)
-							metaFormat.put(i, tokens.get(i));
+                        processList(tokens, met, metaFormat);
 
-					}
+                    }
 
-					else if (Integer.compare(Integer.valueOf(tokens.get(0)), met.getExternalID()) == 0) {
+                }
 
-						processList(tokens, met, metaFormat);
+            }
 
-					}
+        }
+    }
 
-				}
+    private void processPair(List<String> tokens, Metadata met) {
+        List<ImmutableDataEntry<String, String>> val = new ArrayList<>();
+        var entry = new ImmutableDataEntry<>(tokens.get(0), tokens.get(1));
+        val.add(entry);
 
-			}
+        try {
+            translate(val, met);
+        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+            System.err.println("Error changing property in Metadata object. Details below.");
+            e.printStackTrace();
+        }
+    }
 
-		}
-	}
+    private void processList(List<String> tokens, Metadata met, Map<Integer, String> metaFormat) {
+        int size = tokens.size();
+        List<ImmutableDataEntry<String, String>> values = new ArrayList<>(size);
 
-	private void processPair(List<String> tokens, Metadata met) {
-		List<ImmutableDataEntry<String, String>> val = new ArrayList<>();
-		var entry = new ImmutableDataEntry<>(tokens.get(0), tokens.get(1));
-		val.add(entry);
+        for (int i = 1; i < size; i++) {
+            values.add(new ImmutableDataEntry<>(metaFormat.get(i), tokens.get(i)));
+        }
 
-		try {
-			translate(val, met);
-		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-			System.err.println("Error changing property in Metadata object. Details below.");
-			e.printStackTrace();
-		}
-	}
+        try {
+            translate(values, met);
+        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+            System.err.println("Error changing property in Metadata object. Details below.");
+            e.printStackTrace();
+        }
+    }
 
-	private void processList(List<String> tokens, Metadata met, Map<Integer, String> metaFormat) {
-		int size = tokens.size();
-		List<ImmutableDataEntry<String, String>> values = new ArrayList<>(size);
+    private void translate(List<ImmutableDataEntry<String, String>> data, Metadata met)
+            throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 
-		for (int i = 1; i < size; i++)
-			values.add(new ImmutableDataEntry<>(metaFormat.get(i), tokens.get(i)));
+        for (var dataEntry : data) {
 
-		try {
-			translate(values, met);
-		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-			System.err.println("Error changing property in Metadata object. Details below.");
-			e.printStackTrace();
-		}
-	}
+            var optional = findAny(dataEntry.getKey());
 
-	private void translate(List<ImmutableDataEntry<String, String>> data, Metadata met)
-			throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+            // numeric properties
+            if (optional.isPresent()) {
+                var key = optional.get();
 
-		for (var dataEntry : data) {
+                double value = Double.valueOf(dataEntry.getValue());
+                if (key == TEST_TEMPERATURE) {
+                    value += TO_KELVIN;
+                }
 
-			var optional = findAny(dataEntry.getKey());
+                var proto = def(key);
+                value /= proto.getDimensionFactor().doubleValue();
 
-			// numeric properties
-			if (optional.isPresent()) {
-				var key = optional.get();
+                if (isValueSensible(proto, value)) {
+                    proto.setValue(value);
+                    met.set(key, proto);
+                }
 
-				double value = Double.valueOf(dataEntry.getValue());
-				if (key == TEST_TEMPERATURE)
-					value += TO_KELVIN;
+            } // generic properties
+            else {
 
-				var proto = def(key);
-				value /= proto.getDimensionFactor().doubleValue();
+                for (Property genericEntry : met.genericProperties()) {
 
-				if (isValueSensible(proto, value)) {
-					proto.setValue(value);
-					met.set(key, proto);
-				}
+                    if (genericEntry instanceof InstanceDescriptor
+                            || dataEntry.getKey().equalsIgnoreCase(genericEntry.getClass().getSimpleName())) {
 
-			}
+                        if (genericEntry.attemptUpdate(dataEntry.getValue())) {
+                            met.updateProperty(instance, genericEntry);
+                        }
 
-			// generic properties
-			else {
+                    }
 
-				for (Property genericEntry : met.genericProperties()) {
+                }
 
-					if (genericEntry instanceof InstanceDescriptor
-							|| dataEntry.getKey().equalsIgnoreCase(genericEntry.getClass().getSimpleName())) {
+            }
 
-						if (genericEntry.attemptUpdate(dataEntry.getValue()))
-							met.updateProperty(instance, genericEntry);
+        }
 
-					}
+    }
 
-				}
-
-			}
-
-		}
-
-	}
-
-	/**
-	 * @return {@code .met}, an internal PULsE meta-file format.
-	 */
-
-	@Override
-	public String getSupportedExtension() {
-		return Messages.getString("MetaFileReader.0"); //$NON-NLS-1$
-	}
+    /**
+     * @return {@code .met}, an internal PULsE meta-file format.
+     */
+    @Override
+    public String getSupportedExtension() {
+        return Messages.getString("MetaFileReader.0"); //$NON-NLS-1$
+    }
 
 }

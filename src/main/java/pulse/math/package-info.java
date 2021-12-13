@@ -3,5 +3,4 @@
  * (a {@code Vector}) of the minimum, including operations with vector and
  * matrices.
  */
-
 package pulse.math;

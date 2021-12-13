@@ -27,7 +27,7 @@ import pulse.util.ImmutableDataEntry;
  * <p>
  * Below is an example of a valid {@code .tbl} file:
  * </p>
- * 
+ *
  * <pre>
  * <code>
  * -273	11000.00
@@ -43,73 +43,72 @@ import pulse.util.ImmutableDataEntry;
  * 450	10814.93
  * 500	10798.58
  * 550	10782.14
- </code>
+ * </code>
  * </pre>
  */
-
 public class TBLReader implements DatasetReader {
 
-	private static DatasetReader instance = new TBLReader();
+    private static DatasetReader instance = new TBLReader();
 
-	private TBLReader() {
-		// intentionally blank
-	}
+    private TBLReader() {
+        // intentionally blank
+    }
 
-	/**
-	 * @return a String equal to '{@code tbl}'
-	 */
+    /**
+     * @return a String equal to '{@code tbl}'
+     */
+    @Override
+    public String getSupportedExtension() {
+        return Messages.getString("TBLReader.0");
+    }
 
-	@Override
-	public String getSupportedExtension() {
-		return Messages.getString("TBLReader.0");
-	}
+    /**
+     * As this class is built using a singleton pattern, only one instance
+     * exists.
+     *
+     * @return the static instance of this class
+     */
+    public static DatasetReader getInstance() {
+        return instance;
+    }
 
-	/**
-	 * As this class is built using a singleton pattern, only one instance exists.
-	 * 
-	 * @return the static instance of this class
-	 */
+    /**
+     * Reads through a {@code file} with {@code .tbl extension}, converting each
+     * row into an {@code ImmutableDataEntry<Double,Double>}, which is then
+     * added to a newly created {@code InterpolationDataset}. Upon completion,
+     * the {@code doInterpolation()} method of {@code InterpolationDataset} is
+     * invoked.
+     *
+     * @see pulse.input.InterpolationDataset.doInterpolation()
+     * @param file a {@code File} with {@code tbl} extension
+     */
+    @Override
+    public InterpolationDataset read(File file) throws IOException {
+        Objects.requireNonNull(file, Messages.getString("TBLReader.1"));
 
-	public static DatasetReader getInstance() {
-		return instance;
-	}
+        if (!isExtensionSupported(file)) {
+            throw new IllegalArgumentException("Extension not supported: " + file.getName());
+        }
 
-	/**
-	 * Reads through a {@code file} with {@code .tbl extension}, converting each row
-	 * into an {@code ImmutableDataEntry<Double,Double>}, which is then added to a
-	 * newly created {@code InterpolationDataset}. Upon completion, the
-	 * {@code doInterpolation()} method of {@code InterpolationDataset} is invoked.
-	 * 
-	 * @see pulse.input.InterpolationDataset.doInterpolation()
-	 * @param file a {@code File} with {@code tbl} extension
-	 */
+        var curve = new InterpolationDataset();
 
-	@Override
-	public InterpolationDataset read(File file) throws IOException {
-		Objects.requireNonNull(file, Messages.getString("TBLReader.1"));
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String delims = Messages.getString("TBLReader.2");
+            StringTokenizer tokenizer;
 
-		if (!isExtensionSupported(file))
-			throw new IllegalArgumentException("Extension not supported: " + file.getName());
+            for (String line = reader.readLine(); line != null; line = reader.readLine()) {
+                tokenizer = new StringTokenizer(line);
+                curve.add(new ImmutableDataEntry<>(parse(tokenizer, delims), parse(tokenizer, delims)));
+            }
+        }
 
-		var curve = new InterpolationDataset();
+        curve.doInterpolation();
+        return curve;
 
-		try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-			String delims = Messages.getString("TBLReader.2");
-			StringTokenizer tokenizer;
+    }
 
-			for (String line = reader.readLine(); line != null; line = reader.readLine()) {
-				tokenizer = new StringTokenizer(line);
-				curve.add(new ImmutableDataEntry<>(parse(tokenizer, delims), parse(tokenizer, delims)));
-			}
-		}
-
-		curve.doInterpolation();
-		return curve;
-
-	}
-
-	private static Double parse(StringTokenizer tokenizer, String delims) {
-		return Double.parseDouble(tokenizer.nextToken(delims));
-	}
+    private static Double parse(StringTokenizer tokenizer, String delims) {
+        return Double.parseDouble(tokenizer.nextToken(delims));
+    }
 
 }
