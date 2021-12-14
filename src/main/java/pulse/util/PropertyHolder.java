@@ -1,9 +1,13 @@
 package pulse.util;
 
 import static java.util.stream.Collectors.toList;
+import static pulse.properties.NumericProperties.def;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
@@ -24,24 +28,39 @@ public abstract class PropertyHolder extends Accessible {
     /**
      * <p>
      * By default, this will search the children of this {@code PropertyHolder}
-     * to collect the types of their listed parameters recursively. Note this
-     * method is used only to retrieve the type and not the data!
+     * to collect the types of their listed numeric parameters recursively.
+     * </p>
+     *
+     * @return a set of {@code NumericPropertyKeyword} instances, which have
+     * been explicitly marked as a listed parameter for this
+     * {@code PropertyHolder}.
+     */
+    public Set<NumericPropertyKeyword> listedKeywords() {
+
+        Set<NumericPropertyKeyword> keys = new HashSet<>();
+
+        accessibleChildren().stream()
+                .filter(accessible -> (accessible instanceof PropertyHolder))
+                .forEachOrdered(accessible -> {
+                    keys.addAll(((PropertyHolder) accessible).listedKeywords());
+                });
+
+        return keys;
+
+    }
+
+    /**
+     * <p>
+     * By default, collects a list of default properties corresponding to types
+     * defined by listedKeywords(). However, this method is overridable to
+     * include non-numeric properties.
      * </p>
      *
      * @return a list of {@code Property} instances, which have been explicitly
      * marked as a listed parameter for this {@code PropertyHolder}.
      */
     public List<Property> listedTypes() {
-
-        List<Property> properties = new ArrayList<>();
-
-        for (var accessible : accessibleChildren()) {
-            if (accessible instanceof PropertyHolder) {
-                properties.addAll(((PropertyHolder) accessible).listedTypes());
-            }
-        }
-
-        return properties;
+        return listedKeywords().stream().map(key -> def(key)).collect(Collectors.toList());
     }
 
     public PropertyHolder() {
@@ -66,7 +85,7 @@ public abstract class PropertyHolder extends Accessible {
             return false;
         }
 
-        return parameters.stream().filter(pr -> pr instanceof NumericProperty)
+        return listedTypes().stream().filter(pr -> pr instanceof NumericProperty)
                 .anyMatch(param -> ((NumericProperty) param).getType() == p);
 
     }
