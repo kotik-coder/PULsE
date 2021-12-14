@@ -2,51 +2,51 @@
 <NumericProperties>
 	<NumericProperty value="1e-4" abbreviation="Damping ratio"
 		descriptor="L-M damping ratio" visible="true"
-		default-search-variable="false" dimensionfactor="1" discreet="false"
+		dimensionfactor="1" discreet="false"
 		keyword="DAMPING_RATIO" maximum="1" minimum="0" primitive-type="double">
 	</NumericProperty>
 	<NumericProperty abbreviation="Model criterion"
-		visible="true" default-search-variable="false"
+		visible="true" 
 		descriptor="Model selection criterion" dimensionfactor="1"
 		discreet="false" keyword="MODEL_CRITERION" maximum="10000"
 		minimum="-1e10" primitive-type="double" value="0.0">
 	</NumericProperty>
 	<NumericProperty abbreviation="&amp;omega;" visible="true"
-		default-search-variable="false" descriptor="Model weight, &amp;omega;"
+		descriptor="Model weight, &amp;omega;"
 		dimensionfactor="1" discreet="false" keyword="MODEL_WEIGHT"
 		maximum="1" minimum="0" primitive-type="double" value="0">
 	</NumericProperty>
 	<NumericProperty abbreviation="&lt;i&gt;A&lt;/i&gt;"
 		visible="true" descriptor="Baseline amplitude, &lt;i&gt;A&lt;/i&gt;"
 		dimensionfactor="1" discreet="false" keyword="BASELINE_AMPLITUDE"
-		maximum="10" minimum="0" primitive-type="double" value="0.1" default-search-variable="false">
+		maximum="10" minimum="0" primitive-type="double" value="0.1" default-search-variable="true">
 	</NumericProperty>
 	<NumericProperty abbreviation="&amp;phi;" visible="true"
 		descriptor="Baseline phase shift, &amp;phi;" dimensionfactor="1"
-		discreet="false" keyword="BASELINE_PHASE_SHIFT" maximum="3.14"
-		minimum="-3.14" value="0" primitive-type="double"
-		default-search-variable="false">
+		discreet="false" keyword="BASELINE_PHASE_SHIFT" maximum="6.28"
+		minimum="0" value="0.1" primitive-type="double"
+		default-search-variable="true">
 	</NumericProperty>
 	<NumericProperty abbreviation="&amp;omega;" visible="true"
 		descriptor="Baseline frequency, &amp;omega; (Hz)" dimensionfactor="1"
-		discreet="false" keyword="BASELINE_FREQUENCY" maximum="1E5"
+		discreet="false" keyword="BASELINE_FREQUENCY" maximum="300"
 		minimum="1" primitive-type="double" value="50"
-		default-search-variable="false">
+		default-search-variable="true">
 	</NumericProperty>
 	<NumericProperty abbreviation="&amp;sigma;" visible="true"
 		descriptor="Variance, $sigma;" dimensionfactor="1" discreet="false"
 		keyword="SKEW_SIGMA" maximum="10.0" minimum="1e-3"
-		primitive-type="double" value="0.14" default-search-variable="false">
+		primitive-type="double" value="0.14">
 	</NumericProperty>
 	<NumericProperty abbreviation="&amp;lambda;" visible="true"
 		descriptor="Skewness, &amp;lambda;" dimensionfactor="1"
 		discreet="false" keyword="SKEW_LAMBDA" maximum="100" minimum="0.0"
-		primitive-type="double" value="15.0" default-search-variable="false">
+		primitive-type="double" value="15.0">
 	</NumericProperty>
 	<NumericProperty abbreviation="&amp;mu;" visible="true"
 		descriptor="Mean, &amp;mu;" dimensionfactor="1" discreet="false"
 		keyword="SKEW_MU" maximum="100.0" minimum="0.0"
-		primitive-type="double" value="0.425" default-search-variable="false">
+		primitive-type="double" value="0.425">
 	</NumericProperty>
 	<NumericProperty
 		abbreviation="t&lt;sub&gt;fall&lt;/sub&gt;/t&lt;sub&gt;fall&lt;/sub&gt; (%)"
@@ -54,7 +54,7 @@
 		descriptor="Fall percentage, t&lt;sub&gt;fall&lt;/sub&gt;/t&lt;sub&gt;fall&lt;/sub&gt; (%)"
 		dimensionfactor="1" discreet="false"
 		keyword="TRAPEZOIDAL_FALL_PERCENTAGE" maximum="40" minimum="1"
-		primitive-type="int" value="10" default-search-variable="false">
+		primitive-type="int" value="10">
 	</NumericProperty>
 	<NumericProperty
 		abbreviation="t&lt;sub&gt;rise&lt;/sub&gt;/t&lt;sub&gt;las&lt;/sub&gt; (%)"
@@ -62,82 +62,74 @@
 		descriptor="Rise percentage, t&lt;sub&gt;rise&lt;/sub&gt;/t&lt;sub&gt;las&lt;/sub&gt; (%)"
 		dimensionfactor="1" discreet="false"
 		keyword="TRAPEZOIDAL_RISE_PERCENTAGE" maximum="40" minimum="1"
-		primitive-type="int" value="10" default-search-variable="false">
+		primitive-type="int" value="10">
 	</NumericProperty>
 	<NumericProperty abbreviation="Max iterations"
 		visible="false" descriptor="Max iterations"
 		dimensionfactor="1" discreet="false" keyword="RTE_MAX_ITERATIONS"
-		maximum="10000" minimum="1" primitive-type="int" value="250"
-		default-search-variable="false">
+		maximum="10000" minimum="1" primitive-type="int" value="250">
 	</NumericProperty>
 	<NumericProperty abbreviation="Integration timeout (s)"
 		visible="false" descriptor="Integration timeout (s)"
 		dimensionfactor="1" discreet="false" keyword="RTE_INTEGRATION_TIMEOUT"
-		maximum="10" minimum="1E-3" primitive-type="double" value="0.5"
-		default-search-variable="false">
+		maximum="10" minimum="1E-3" primitive-type="double" value="0.5">
 	</NumericProperty>
 	<NumericProperty abbreviation="&lt;i&gt;W&lt;/i&gt;"
 		visible="true"
 		descriptor="Relaxation parameter, &lt;i&gt;W&lt;/i&gt;"
 		dimensionfactor="1" discreet="false" keyword="RELAXATION_PARAMETER"
-		maximum="2" minimum="1" value="1.7" primitive-type="double"
-		default-search-variable="false">
+		maximum="2" minimum="1" value="1.7" primitive-type="double">
 	</NumericProperty>
 	<NumericProperty
 		abbreviation="&lt;i&gt;N&lt;/i&gt;&lt;sub&gt;int&lt;/sub&gt;"
 		visible="false"
 		descriptor="Internal grid density, &lt;i&gt;N&lt;/i&gt;&lt;sub&gt;int&lt;/sub&gt;"
 		dimensionfactor="1" discreet="false" keyword="DOM_GRID_DENSITY"
-		maximum="4096" minimum="8" primitive-type="int" value="8"
-		default-search-variable="false">
+		maximum="4096" minimum="8" primitive-type="int" value="8">
 	</NumericProperty>
 	<NumericProperty abbreviation="&lt;i&gt;S&lt;/i&gt;"
 		visible="false"
 		descriptor="Stretching factor, &lt;i&gt;S&lt;/i&gt;"
 		dimensionfactor="1" discreet="false" keyword="GRID_STRETCHING_FACTOR"
-		maximum="5" minimum="1.0" primitive-type="double" value="3.0"
-		default-search-variable="false">
+		maximum="5" minimum="1.0" primitive-type="double" value="3.0">
 	</NumericProperty>
 	<NumericProperty
 		abbreviation="&lt;i&gt;N&lt;/i&gt;&lt;sup&gt;k+1&lt;/sup&gt;/&lt;i&gt;N&lt;/i&gt;&lt;sup&gt;k&lt;/sup&gt;"
 		visible="false"
 		descriptor="Scaling factor, &lt;i&gt;N&lt;/i&gt;&lt;sup&gt;k+1&lt;/sup&gt;/&lt;i&gt;N&lt;/i&gt;&lt;sup&gt;k&lt;/sup&gt;"
 		dimensionfactor="1" discreet="false" keyword="GRID_SCALING_FACTOR"
-		maximum="3.0" minimum="1.1" value="1.5" primitive-type="double"
-		default-search-variable="false">
+		maximum="3.0" minimum="1.1" value="1.5" primitive-type="double">
 	</NumericProperty>
 	<NumericProperty abbreviation="atol" visible="true"
 		descriptor="Absolute tolerance, atol" dimensionfactor="1"
 		discreet="false" keyword="ATOL" maximum="1E-2" minimum="1E-10"
-		value="1E-3" primitive-type="double" default-search-variable="false">
+		value="1E-3" primitive-type="double">
 	</NumericProperty>
 	<NumericProperty abbreviation="rtol" visible="true"
 		descriptor="Relative tolerance, rtol" dimensionfactor="1"
 		discreet="false" keyword="RTOL" maximum="1E-1" minimum="1E-8"
-		value="1E-2" primitive-type="double" default-search-variable="false">
+		value="1E-2" primitive-type="double">
 	</NumericProperty>
 	<NumericProperty
 		abbreviation="&lt;i&gt;E&lt;/i&gt;&lt;sub&gt;L&lt;/sub&gt;"
 		keyword="LAGUERRE_SOLVER_ERROR" visible="false"
 		descriptor="Laguerre solver error, &lt;i&gt;E&lt;/i&gt;&lt;sub&gt;L&lt;/sub&gt;"
 		dimensionfactor="1" discreet="false" maximum="1E-3" minimum="1E-17"
-		primitive-type="double" value="1e-12" default-search-variable="false">
+		primitive-type="double" value="1e-12">
 	</NumericProperty>
 	<NumericProperty
 		abbreviation="&lt;i&gt;n&lt;/i&gt;&lt;sub&gt;DOM&lt;/sub&gt;"
 		visible="false"
 		descriptor="Discrete direction pairs, &lt;i&gt;n&lt;/i&gt;&lt;sub&gt;DOM&lt;/sub&gt;"
 		dimensionfactor="1" discreet="false" keyword="DOM_DIRECTIONS"
-		maximum="64" minimum="2" primitive-type="int" value="8"
-		default-search-variable="false">
+		maximum="64" minimum="2" primitive-type="int" value="8">
 	</NumericProperty>
 	<NumericProperty
 		abbreviation="&lt;i&gt;e&lt;/i&gt;&lt;sub&gt;DOM&lt;/sub&gt;"
 		visible="false"
 		descriptor="Iteration relative tolerance, &lt;i&gt;e&lt;/i&gt;&lt;sub&gt;DOM&lt;/sub&gt;"
 		dimensionfactor="1" discreet="false" keyword="DOM_ITERATION_ERROR"
-		maximum="1E-3" minimum="1E-10" primitive-type="double" value="1E-4"
-		default-search-variable="false">
+		maximum="1E-3" minimum="1E-10" primitive-type="double" value="1E-4">
 	</NumericProperty>
 	<NumericProperty
 		abbreviation="&lt;i&gt;A&lt;/i&gt;&lt;sub&gt;1&lt;/sub&gt;"
@@ -158,28 +150,25 @@
 		visible="false"
 		descriptor="Quadrature points, &lt;i&gt;m&lt;/i&gt;"
 		dimensionfactor="1" discreet="false" keyword="QUADRATURE_POINTS"
-		maximum="32" minimum="2" value="2" primitive-type="int"
-		default-search-variable="false">
+		maximum="32" minimum="2" value="2" primitive-type="int">
 	</NumericProperty>
 	<NumericProperty abbreviation="&amp;sigma;" visible="false"
 		descriptor="Weight, &amp;sigma;" dimensionfactor="1" discreet="true"
 		keyword="SCHEME_WEIGHT" maximum="1" minimum="0" value="0"
-		primitive-type="double" default-search-variable="false">
+		primitive-type="double">
 	</NumericProperty>
 	<NumericProperty abbreviation="&amp;tau;&lt;sub&gt;cut&lt;/sub&gt;"
 		visible="false"
 		descriptor="Integration cutoff, &lt;i&gt;x&lt;/i&gt;&lt;sub&gt;cut&lt;/sub&gt;"
 		dimensionfactor="1" discreet="false" keyword="INTEGRATION_CUTOFF"
-		maximum="100" minimum="2" primitive-type="double" value="3.5"
-		default-search-variable="false">
+		maximum="100" minimum="2" primitive-type="double" value="3.5">
 	</NumericProperty>
 	<NumericProperty
 		abbreviation="&lt;i&gt;n&lt;/i&gt;&lt;sub&gt;int&lt;/sub&gt;"
 		visible="false"
 		descriptor="Integration segments, &lt;i&gt;n&lt;/i&gt;&lt;sub&gt;int&lt;/sub&gt;"
 		dimensionfactor="1" discreet="false" keyword="INTEGRATION_SEGMENTS"
-		maximum="1024" minimum="8" primitive-type="int" value="64"
-		default-search-variable="false">
+		maximum="1024" minimum="8" primitive-type="int" value="64">
 	</NumericProperty>
 	<NumericProperty
 		abbreviation="&lt;i&gt;&amp;tau;&lt;/i&gt;&lt;sub&gt;0&lt;/sub&gt;"
@@ -200,26 +189,24 @@
 	<NumericProperty abbreviation="Correlation threshold"
 		visible="false" descriptor="Correlation threshold"
 		dimensionfactor="1" discreet="false" keyword="CORRELATION_THRESHOLD"
-		maximum="1" minimum="0.5" primitive-type="double" value="0.8"
-		default-search-variable="false">
+		maximum="1" minimum="0.5" primitive-type="double" value="0.8">
 	</NumericProperty>
 	<NumericProperty
 		abbreviation="&lt;i&gt;I&lt;/i&gt;&lt;sub&gt;0&lt;/sub&gt;"
 		descriptor="Incident intensity, &lt;i&gt;I&lt;/i&gt;&lt;sub&gt;0&lt;/sub&gt;"
 		visible="false" dimensionfactor="1" discreet="false"
 		keyword="INCIDENT_INTENSITY" maximum="1E10" minimum="1E-5"
-		primitive-type="double" value="1" default-search-variable="false">
+		primitive-type="double" value="1">
 	</NumericProperty>
 	<NumericProperty abbreviation="Probability" visible="false"
 		descriptor="Probability, &lt;i&gt;p&lt;/i&gt;" dimensionfactor="1"
 		discreet="false" keyword="PROBABILITY" maximum="1" minimum="0"
-		primitive-type="double" value="0" default-search-variable="false">
+		primitive-type="double" value="0">
 	</NumericProperty>
 	<NumericProperty abbreviation="Significance"
 		descriptor="Statistical significance" dimensionfactor="1"
 		visible="false" discreet="false" keyword="SIGNIFICANCE"
-		maximum="0.5" minimum="0.00001" primitive-type="double" value="0.001"
-		default-search-variable="false">
+		maximum="0.5" minimum="0.00001" primitive-type="double" value="0.001">
 	</NumericProperty>
 	<NumericProperty
 		abbreviation="&lt;i&gt;t&lt;/i&gt;&lt;sub&gt;0&lt;/sub&gt;"
@@ -285,7 +272,7 @@
 		primitive-type="double" value="1.0E-5" default-search-variable="true">
 	</NumericProperty>
 	<NumericProperty
-		abbreviation="&lt;i&gt;a&lt;/i&gt; (mm&lt;sup&gt;2&lt;/sup&gt;s&lt;sup&gt;-1&lt;/sup&gt;) "
+		abbreviation="&lt;i&gt;a&lt;/i&gt;"
 		visible="true"
 		descriptor="Thermal diffusivity, &lt;i&gt;a&lt;/i&gt; (mm&lt;sup&gt;2&lt;/sup&gt;s&lt;sup&gt;-1&lt;/sup&gt;) "
 		dimensionfactor="1000000.0" keyword="DIFFUSIVITY" maximum="0.001"
@@ -295,15 +282,13 @@
 		visible="true"
 		descriptor="Sample thickness, &lt;i&gt;l&lt;/i&gt; (mm)"
 		dimensionfactor="1000.0" keyword="THICKNESS" maximum="0.1"
-		minimum="1.0E-6" value="0.001" primitive-type="double" discreet="true"
-		default-search-variable="false">
+		minimum="1.0E-6" value="0.001" primitive-type="double" discreet="true">
 	</NumericProperty>
 	<NumericProperty abbreviation="&lt;i&gt;d&lt;/i&gt; (mm)"
 		visible="true"
 		descriptor="Sample diameter, &lt;i&gt;d&lt;/i&gt; (mm)"
 		dimensionfactor="1000.0" keyword="DIAMETER" maximum="0.1"
-		minimum="1.0E-6" value="0.01" primitive-type="double" discreet="true"
-		default-search-variable="false" />
+		minimum="1.0E-6" value="0.01" primitive-type="double" discreet="true"/>
 	<NumericProperty
 		abbreviation="&amp;Delta;&lt;i&gt;T&lt;/i&gt;&lt;sub&gt;max&lt;/sub&gt;"
 		visible="false"
@@ -316,25 +301,25 @@
 		visible="false" descriptor="Fixed-point iteration solver error"
 		dimensionfactor="1.0" keyword="NONLINEAR_PRECISION" maximum="1e-2"
 		minimum="1.0E-12" value="1e-8" primitive-type="double"
-		discreet="false" default-search-variable="false">
+		discreet="false">
 	</NumericProperty>
 	<NumericProperty abbreviation="&lt;i&gt;N&lt;/i&gt;"
 		visible="true" descriptor="Number of points"
 		dimensionfactor="1" keyword="NUMPOINTS" maximum="10000" minimum="10"
 		value="100" primitive-type="int" discreet="false"
-		default-search-variable="false" />
+		/>
 	<NumericProperty abbreviation="&lt;i&gt;j&lt;/i&gt;"
 		visible="false" descriptor="Search iteration"
 		dimensionfactor="1" keyword="ITERATION" maximum="1000000" minimum="0"
 		value="0" primitive-type="int" discreet="false"
-		default-search-variable="false" />
+		/>
 	<NumericProperty
 		abbreviation="&lt;i&gt;t&lt;/i&gt;&lt;sub&gt;las&lt;/sub&gt; (ms)"
 		visible="true"
 		descriptor="Pulse width, &lt;i&gt;t&lt;/i&gt;&lt;sub&gt;las&lt;/sub&gt; (ms)"
 		dimensionfactor="1000.0" keyword="PULSE_WIDTH" maximum="10"
 		minimum="1E-7" value="0.0015" primitive-type="double" discreet="true"
-		default-search-variable="false" />
+		/>
 	<NumericProperty
 		abbreviation="&lt;i&gt;t&lt;/i&gt;&lt;sub&gt;r&lt;/sub&gt; (&amp;mu;m)"
 		visible="true"
@@ -356,78 +341,70 @@
 		visible="true"
 		descriptor="Laser spot diameter, &lt;i&gt;d&lt;/i&gt;&lt;sub&gt;las&lt;/sub&gt; (mm)"
 		dimensionfactor="1000.0" keyword="SPOT_DIAMETER" maximum="0.05"
-		minimum="1.0E-4" value="0.01" primitive-type="double" discreet="true"
-		default-search-variable="false">
+		minimum="1.0E-4" value="0.01" primitive-type="double" discreet="true">
 	</NumericProperty>
 	<NumericProperty
 		abbreviation="&lt;i&gt;t&lt;/i&gt;&lt;sub&gt;lim&lt;/sub&gt;"
 		visible="false"
 		descriptor="End time, &lt;i&gt;t&lt;/i&gt;&lt;sub&gt;lim&lt;/sub&gt; (s)"
 		dimensionfactor="1.0" keyword="TIME_LIMIT" maximum="100.0"
-		minimum="1.0E-6" value="1.0" primitive-type="double" discreet="true"
-		default-search-variable="false" />
+		minimum="1.0E-6" value="1.0" primitive-type="double" discreet="true"/>
 	<NumericProperty
 		abbreviation="&lt;i&gt;C&lt;/i&gt;&lt;sub&gt;p&lt;/sub&gt; (J&amp;times;kg&lt;sup&gt;-1&lt;/sup&gt;&amp;times;K&lt;sup&gt;-1&lt;/sup&gt;)"
 		visible="false"
 		descriptor="Specific heat, &lt;i&gt;C&lt;/i&gt;&lt;sub&gt;p&lt;/sub&gt; (J&amp;times;kg&lt;sup&gt;-1&lt;/sup&gt;&amp;times;K&lt;sup&gt;-1&lt;/sup&gt;)"
 		dimensionfactor="1.0" keyword="SPECIFIC_HEAT" maximum="10000.0"
-		minimum="1.0" value="0.0" primitive-type="double" discreet="false"
-		default-search-variable="false">
+		minimum="1.0" value="0.0" primitive-type="double" discreet="false">
 	</NumericProperty>
 	<NumericProperty
 		abbreviation="&lt;i&gt;&amp;#955;&lt;/i&gt; (W&amp;times;m&lt;sup&gt;-1&lt;/sup&gt;K&lt;sup&gt;-1&lt;/sup&gt;)"
 		visible="false"
 		descriptor="Thermal conductivity, &lt;i&gt;&amp;#955;&lt;/i&gt; (W&amp;times;m&lt;sup&gt;-1&lt;/sup&gt;K&lt;sup&gt;-1&lt;/sup&gt;)"
 		dimensionfactor="1.0" keyword="CONDUCTIVITY" maximum="10000.0"
-		minimum="1.0" value="0.0" primitive-type="double" discreet="false"
-		default-search-variable="false" />
+		minimum="1.0" value="0.0" primitive-type="double" discreet="false"/>
 	<NumericProperty abbreviation="&lt;i&gt;&amp;#949;&lt;/i&gt;"
 		visible="false"
 		descriptor="Integral emissivity, &lt;i&gt;&amp;#949;&lt;/i&gt;"
 		dimensionfactor="1.0" keyword="EMISSIVITY" maximum="1" minimum="0.001"
-		value="0.8" primitive-type="double" discreet="false"
-		default-search-variable="false" />
+		value="0.8" primitive-type="double" discreet="false"/>
 	<NumericProperty
 		abbreviation="&amp;rho; (kg/m&lt;sup&gt;3&lt;/sup&gt;)"
 		visible="false"
 		descriptor="Density, &amp;rho; (kg/m&lt;sup&gt;3&lt;/sup&gt;)"
 		dimensionfactor="1.0" keyword="DENSITY" maximum="30000.0"
-		minimum="10.0" value="0.0" primitive-type="double" discreet="false"
-		default-search-variable="false" />
+		minimum="10.0" value="0.0" primitive-type="double" discreet="false"/>
 	<NumericProperty
 		abbreviation="&lt;i&gt;Q&lt;/i&gt;&lt;sub&gt;las&lt;/sub&gt; (J)"
 		visible="true"
 		descriptor="Pulse energy, &lt;i&gt;Q&lt;/i&gt;&lt;sub&gt;las&lt;/sub&gt; (J)"
 		dimensionfactor="1.0" keyword="LASER_ENERGY" maximum="100.0"
-		minimum="0.01" value="5.0" primitive-type="double" discreet="false"
-		default-search-variable="false" />
+		minimum="0.01" value="5.0" primitive-type="double" discreet="false"/>
 	<NumericProperty
-		abbreviation="&lt;i&gt;T&lt;/i&gt;&lt;sub&gt;0&lt;/sub&gt; (K)"
+		abbreviation="&lt;i&gt;T&lt;/i&gt;&lt;sub&gt;0&lt;/sub&gt; (&#176;C)"
 		visible="false"
-		descriptor="Test temperature, &lt;i&gt;T&lt;/i&gt;&lt;sub&gt;0&lt;/sub&gt; (K)"
+		descriptor="Test temperature, &lt;i&gt;T&lt;/i&gt;&lt;sub&gt;0&lt;/sub&gt; (&#176;C)"
 		dimensionfactor="1.0" keyword="TEST_TEMPERATURE" maximum="10000.0"
-		minimum="0.0" value="298.0" primitive-type="double" discreet="false"
-		default-search-variable="false" />
+		minimum="0.0" value="298.0" primitive-type="double" discreet="false"/>
 	<NumericProperty abbreviation="Resolution (linear)"
 		visible="false" descriptor="Resolution (linear)"
 		dimensionfactor="1.0" keyword="LINEAR_RESOLUTION" maximum="0.1"
 		minimum="1.0E-8" value="1.0E-7" primitive-type="double"
-		discreet="false" default-search-variable="false">
+		discreet="false">
 	</NumericProperty>
 	<NumericProperty abbreviation="Resolution (gradient)"
 		visible="false" descriptor="Resolution (gradient)"
 		dimensionfactor="1.0" keyword="GRADIENT_RESOLUTION" maximum="0.1"
 		minimum="1.0E-10" value="1.0E-6" primitive-type="double"
-		discreet="false" default-search-variable="false" />
+		discreet="false"/>
 	<NumericProperty abbreviation="Buffer size" visible="false"
 		descriptor="Buffer size" dimensionfactor="1" keyword="BUFFER_SIZE"
 		maximum="32" minimum="1" value="8" primitive-type="int"
-		discreet="false" default-search-variable="false" />
+		discreet="false"/>
 	<NumericProperty abbreviation="Resolution (total)"
 		visible="false" descriptor="Resolution (total)"
 		dimensionfactor="1.0" keyword="ERROR_TOLERANCE" maximum="0.1"
 		minimum="1.0E-7" value="0.00001" primitive-type="double"
-		discreet="false" default-search-variable="false" />
+		discreet="false"/>
 	<NumericProperty abbreviation="FOV&lt;sub&gt;inner&lt;/sub&gt; (mm)"
 		visible="true"
 		descriptor="Field of view (inner), FOV&lt;sub&gt;inner&lt;/sub&gt; (mm)"
@@ -443,8 +420,8 @@
 		default-search-variable="false" />
 	<NumericProperty abbreviation="Baseline (slope)"
 		visible="true" descriptor="Baseline (slope)"
-		dimensionfactor="1.0" keyword="BASELINE_SLOPE" maximum="10.0"
-		minimum="-10.0" value="0.0" primitive-type="double" discreet="false"
+		dimensionfactor="1.0" keyword="BASELINE_SLOPE" maximum="100.0"
+		minimum="-100.0" value="0.0" primitive-type="double" discreet="false"
 		default-search-variable="false" />
 	<NumericProperty abbreviation="Baseline (intercept)"
 		visible="true" descriptor="Baseline (intercept)"
@@ -484,49 +461,46 @@
 	<NumericProperty abbreviation="Gain" visible="false"
 		descriptor="Detector Gain" dimensionfactor="1" keyword="DETECTOR_GAIN"
 		maximum="200" minimum="1" value="10" primitive-type="int"
-		discreet="false" default-search-variable="false" />
+		discreet="false"/>
 	<NumericProperty abbreviation="Iris" visible="false"
 		descriptor="Detector Iris" dimensionfactor="1" keyword="DETECTOR_IRIS"
 		maximum="64" minimum="1" value="1" primitive-type="int"
-		discreet="false" default-search-variable="false" />
+		discreet="false" />
 	<NumericProperty descriptor="Identifier" abbreviation="ID"
 		keyword="IDENTIFIER" visible="false" value="-1" minimum="-1"
 		maximum="10000" dimensionfactor="1" primitive-type="int"
-		discreet="false" default-search-variable="false">
+		discreet="false">
 	</NumericProperty>
 	<NumericProperty
 		abbreviation="&lt;i&gt;N&lt;/i&gt;&lt;sub&gt;S&lt;/sub&gt;"
 		visible="false"
 		descriptor="Shell grid density, &lt;i&gt;N&lt;/i&gt;&lt;sub&gt;S&lt;/sub&gt;"
 		dimensionfactor="1" discreet="false" keyword="SHELL_GRID_DENSITY"
-		maximum="200" minimum="1" primitive-type="int" value="10"
-		default-search-variable="false">
+		maximum="200" minimum="1" primitive-type="int" value="10">
 	</NumericProperty>
 	<NumericProperty abbreviation="&lt;i&gt;N&lt;/i&gt;"
 		visible="false"
 		descriptor="Grid density, &lt;i&gt;N&lt;/i&gt;" dimensionfactor="1"
 		keyword="GRID_DENSITY" primitive-type="int" value="30" minimum="8"
-		maximum="1000" discreet="false" default-search-variable="false">
+		maximum="1000" discreet="false">
 	</NumericProperty>
 	<NumericProperty keyword="TAU_FACTOR"
 		abbreviation="&lt;i&gt;&amp;tau&lt;/i&gt; / h&lt;sup&gt;2&lt;/sup&gt;"
 		visible="false"
 		descriptor="Time factor, &lt;i&gt;&amp;tau&lt;/i&gt; / h&lt;sup&gt;2&lt;/sup&gt;"
 		dimensionfactor="1" primitive-type="double" maximum="10"
-		minimum="1E-4" value="0.25" discreet="false"
-		default-search-variable="false">
+		minimum="1E-4" value="0.25" discreet="false">
 	</NumericProperty>
 	<NumericProperty abbreviation="Test-stat" visible="false"
 		descriptor="Normality test statistic" dimensionfactor="1"
 		discreet="false" keyword="TEST_STATISTIC" maximum="1E10"
-		minimum="-1e10" primitive-type="double" value="Infinity"
-		default-search-variable="false">
+		minimum="-1e10" primitive-type="double" value="Infinity">
 	</NumericProperty>
 	<NumericProperty abbreviation="Search-stat"
 		descriptor="Optimiser statistic" visible="false"
 		dimensionfactor="1" discreet="false" keyword="OPTIMISER_STATISTIC"
 		maximum="1E10" minimum="-1e10" primitive-type="double"
-		value="Infinity" default-search-variable="false">
+		value="Infinity">
 	</NumericProperty>
 	<NumericProperty
 		abbreviation="&lt;i&gt;t&lt;/i&gt;&lt;sub&gt;min&lt;/sub&gt;"
@@ -547,6 +521,6 @@
 	<NumericProperty abbreviation="Window" visible="false"
 		descriptor="Averaging window" dimensionfactor="1" discreet="false"
 		keyword="WINDOW" maximum="1000" minimum="0.001"
-		primitive-type="double" value="1.0" default-search-variable="false">
+		primitive-type="double" value="1.0">
 	</NumericProperty>
 </NumericProperties>
