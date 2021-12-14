@@ -5,6 +5,7 @@ import static pulse.properties.NumericProperties.compare;
 import java.util.List;
 
 import pulse.math.ParameterVector;
+import static pulse.math.linear.Matrices.createIdentityMatrix;
 import pulse.problem.schemes.solvers.SolverException;
 import pulse.properties.Property;
 import pulse.search.linear.LinearOptimiser;
@@ -15,95 +16,124 @@ import pulse.util.InstanceDescriptor;
 
 public abstract class CompositePathOptimiser extends GradientBasedOptimiser {
 
-	private InstanceDescriptor<? extends LinearOptimiser> instanceDescriptor = new InstanceDescriptor<LinearOptimiser>(
-			"Linear Optimiser Selector", LinearOptimiser.class);
+    private InstanceDescriptor<? extends LinearOptimiser> instanceDescriptor = new InstanceDescriptor<LinearOptimiser>(
+            "Linear Optimiser Selector", LinearOptimiser.class);
 
-	private LinearOptimiser linearSolver;
+    private LinearOptimiser linearSolver;
+    
+     /**
+     * Maximum number of consequent failed iterations that can be rejected.
+     * Up to {@value MAX_FAILED_ATTEMPTS} failed attempts are allowed.
+     */
+    
+    public final static int MAX_FAILED_ATTEMPTS = 2;
+    
+    /**
+     * For numerical comparison.
+     */
+    public final static double EPS = 1e-10; 
 
-	public CompositePathOptimiser() {
-		instanceDescriptor.setSelectedDescriptor(WolfeOptimiser.class.getSimpleName());
-		linearSolver = instanceDescriptor.newInstance(LinearOptimiser.class);
-		linearSolver.setParent(this);
-		instanceDescriptor.addListener(() -> initLinearOptimiser());
-	}
+    public CompositePathOptimiser() {
+        instanceDescriptor.setSelectedDescriptor(WolfeOptimiser.class.getSimpleName());
+        linearSolver = instanceDescriptor.newInstance(LinearOptimiser.class);
+        linearSolver.setParent(this);
+        instanceDescriptor.addListener(() -> initLinearOptimiser());
+    }
 
-	private void initLinearOptimiser() {
-		setLinearSolver(instanceDescriptor.newInstance(LinearOptimiser.class));
-	}
+    private void initLinearOptimiser() {
+        setLinearSolver(instanceDescriptor.newInstance(LinearOptimiser.class));
+    }
 
-	public boolean iteration(SearchTask task) throws SolverException {
-		var p = (ComplexPath) task.getIterativeState(); // the previous path of the task
+    public boolean iteration(SearchTask task) throws SolverException {
+        var p = (GradientGuidedPath) task.getIterativeState(); // the previous state of the task
+        
+        boolean accept = true;
 
-		/*
+        /*
 		 * Checks whether an iteration limit has been already reached
-		 */
+         */
+        if (compare(p.getIteration(), getMaxIterations()) > 0) {
 
-		if (compare(p.getIteration(), getMaxIterations()) > 0) {
-			
-			task.setStatus(Status.TIMEOUT);
-			
-		} else {
+            task.setStatus(Status.TIMEOUT);
 
-			var parameters = task.searchVector();	// current parameters
-			var dir = getSolver().direction(p);			// find p[k]
-			
-			double step = linearSolver.linearStep(task); // find magnitude of step
-			p.setLinearStep(step);
+        } else {
 
-			var candidateParams = parameters.sum(dir.multiply(step)); 					// new set of parameters determined through search
-			task.assign(new ParameterVector(parameters, candidateParams));	// assign to this task
+            double initialCost = task.solveProblemAndCalculateCost();
+            var parameters     = task.searchVector();  
 
-			prepare(task);		// update gradients, Hessians, etc. -> for the next step, [k + 1]
-			p.incrementStep();	// increment the counter of successful steps
+            p.setParameters(parameters); // store current parameters
 
-			task.solveProblemAndCalculateCost(); // calculate the sum of squared residuals
-			
-		}
-		
-		return true;
-		
-	}
+            var dir = getSolver().direction(p);		// find p[k]
+            double step = linearSolver.linearStep(task); // find magnitude of step
+            p.setLinearStep(step);
 
-	public LinearOptimiser getLinearSolver() {
-		return linearSolver;
-	}
+            // new set of parameters determined through search
+            var candidateParams = parameters.sum(dir.multiply(step)); 		
+            
+            task.assign(new ParameterVector(parameters, candidateParams)); // assign new parameters
+            double newCost = task.solveProblemAndCalculateCost(); // calculate the sum of squared residuals
 
-	/**
-	 * Assigns a {@code LinearSolver} to this {@code PathSolver} and sets this
-	 * object as its parent.
-	 * 
-	 * @param linearSearch a {@code LinearSolver}
-	 */
+            if (newCost > initialCost - EPS 
+                    && p.getFailedAttempts() < MAX_FAILED_ATTEMPTS 
+                    && p instanceof ComplexPath) {  
+                var complexPath = (ComplexPath)p;
+                task.assign(parameters);    // roll back if cost increased             
+                // attempt to reset -> in case of Hessian-based methods, 
+                // this will change the Hessian) {
+                complexPath.setHessian( createIdentityMatrix(parameters.dimension()) );                
+                p.incrementFailedAttempts();
+                accept = false;
+            } else {
+                task.storeState();
+                p.resetFailedAttempts();
+                this.prepare(task);	 // update gradients, Hessians, etc. -> for the next step, [k + 1]
+                p.incrementStep();       // increment the counter of successful steps
+            }                                                                                                          
 
-	public void setLinearSolver(LinearOptimiser linearSearch) {
-		this.linearSolver = linearSearch;
-		linearSolver.setParent(this);
-		super.parameterListChanged();
-	}
+        }
 
-	public InstanceDescriptor<? extends LinearOptimiser> getLinearOptimiserDescriptor() {
-		return instanceDescriptor;
-	}
+        return accept;
 
-	@Override
-	public List<Property> listedTypes() {
-		List<Property> list = super.listedTypes();
-		list.add(instanceDescriptor);
-		return list;
-	}
-	
-	/**
-	 * Creates a new {@code Path} instance for storing the gradient, direction, and
-	 * minimum point for this {@code PathSolver}.
-	 * 
-	 * @param t the search task
-	 * @return a {@code Path} instance
-	 */
+    }
 
-	@Override
-	public GradientGuidedPath initState(SearchTask t) {
-		this.configure(t);
-		return new ComplexPath(t);
-	}
+    public LinearOptimiser getLinearSolver() {
+        return linearSolver;
+    }
+
+    /**
+     * Assigns a {@code LinearSolver} to this {@code PathSolver} and sets this
+     * object as its parent.
+     *
+     * @param linearSearch a {@code LinearSolver}
+     */
+    public void setLinearSolver(LinearOptimiser linearSearch) {
+        this.linearSolver = linearSearch;
+        linearSolver.setParent(this);
+        super.parameterListChanged();
+    }
+
+    public InstanceDescriptor<? extends LinearOptimiser> getLinearOptimiserDescriptor() {
+        return instanceDescriptor;
+    }
+
+    @Override
+    public List<Property> listedTypes() {
+        List<Property> list = super.listedTypes();
+        list.add(instanceDescriptor);
+        return list;
+    }
+
+    /**
+     * Creates a new {@code Path} instance for storing the gradient, direction,
+     * and minimum point for this {@code PathSolver}.
+     *
+     * @param t the search task
+     * @return a {@code Path} instance
+     */
+    @Override
+    public GradientGuidedPath initState(SearchTask t) {
+        this.configure(t);
+        return new ComplexPath(t);
+    }
 
 }

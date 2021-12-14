@@ -7,7 +7,7 @@ import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericProperty.requireType;
 import static pulse.properties.NumericPropertyKeyword.DAMPING_RATIO;
 
-import java.util.List;
+import java.util.Set;
 
 import pulse.math.ParameterVector;
 import pulse.math.linear.Matrices;
@@ -18,7 +18,7 @@ import pulse.problem.schemes.solvers.SolverException;
 import pulse.properties.NumericProperties;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
-import pulse.properties.Property;
+import static pulse.search.direction.CompositePathOptimiser.EPS;
 import pulse.search.statistics.OptimiserStatistic;
 import pulse.search.statistics.ResidualStatistic;
 import pulse.search.statistics.SumOfSquares;
@@ -35,14 +35,13 @@ import pulse.ui.Messages;
 public class LMOptimiser extends GradientBasedOptimiser {
 
     private static LMOptimiser instance = new LMOptimiser();
-
-    private final static double EPS = 1e-10; // for numerical comparison
     private double dampingRatio;
-
+    
     /**
-     * Maximum number of consequent failed iterations that can be rejected.
+     * Up to {@value MAX_FAILED_ATTEMPTS} failed attempts are allowed.
      */
-    public final static int MAX_FAILED_ATTEMPTS = 10;
+    
+    public final static int MAX_FAILED_ATTEMPTS = 4;
 
     private LMOptimiser() {
         super();
@@ -91,6 +90,7 @@ public class LMOptimiser extends GradientBasedOptimiser {
                 p.incrementFailedAttempts();
                 accept = false;
             } else {
+                task.storeState();
                 p.resetFailedAttempts();
                 p.setLambda(p.getLambda() / 3.0);
                 p.setComputeJacobian(false);
@@ -168,13 +168,9 @@ public class LMOptimiser extends GradientBasedOptimiser {
 
         var jacobian = new double[numPoints][numParams];
 
-        final double resolutionHigh = super.getGradientStep();
-        final double resolutionLow = 1E-2; //TODO 
-
         for (int i = 0; i < numParams; i++) {
 
-            boolean discrete = NumericProperties.def(params.getIndex(i)).isDiscrete();
-            double dx = (discrete ? resolutionLow : resolutionHigh) * params.get(i);
+            double dx = dx( NumericProperties.def(params.getIndex(i)), params.get(i));
 
             final var shift = new Vector(numParams);
             shift.set(i, 0.5 * dx);
@@ -240,12 +236,12 @@ public class LMOptimiser extends GradientBasedOptimiser {
     private SquareMatrix marquardtDamping(SquareMatrix hessian) {
         return hessian.blockDiagonal();
     }
-
-    @Override
-    public List<Property> listedTypes() {
-        var list = super.listedTypes();
-        list.add(def(DAMPING_RATIO));
-        return list;
+    
+   @Override
+    public Set<NumericPropertyKeyword> listedKeywords() {
+        var set = super.listedKeywords();
+        set.add(DAMPING_RATIO);
+        return set;
     }
 
     /**

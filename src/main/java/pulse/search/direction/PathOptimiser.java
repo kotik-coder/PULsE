@@ -8,12 +8,14 @@ import static pulse.properties.NumericPropertyKeyword.ITERATION_LIMIT;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import pulse.problem.schemes.solvers.SolverException;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
+import static pulse.properties.NumericPropertyKeyword.GRADIENT_RESOLUTION;
 import pulse.properties.Property;
 import pulse.search.statistics.OptimiserStatistic;
 import pulse.tasks.SearchTask;
@@ -136,8 +138,7 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
     @Override
     public List<Property> genericProperties() {
         var original = super.genericProperties();
-        original.addAll(ActiveFlags.getProblemDependentFlags());
-        original.addAll(ActiveFlags.getProblemIndependentFlags());
+        original.addAll(ActiveFlags.getAllFlags());
         return original;
     }
 
@@ -151,20 +152,11 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
      * @see pulse.properties.NumericPropertyKeyword
      */
     @Override
-    public List<Property> listedTypes() {
-        List<Property> list = new ArrayList<Property>();
-        list.add(def(ERROR_TOLERANCE));
-        list.add(def(ITERATION_LIMIT));
-
-        ActiveFlags.listAvailableProperties(list);
-
-        return list;
-    }
-
-    @Override
-    public List<Property> data() {
-        var list = listedTypes();
-        return super.data().stream().filter(p -> list.contains(p)).collect(Collectors.toList());
+    public Set<NumericPropertyKeyword> listedKeywords() {
+        var set = super.listedKeywords();
+        set.add(ERROR_TOLERANCE);
+        set.add(ITERATION_LIMIT);
+        return set;
     }
 
     /**
@@ -226,9 +218,10 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
 
     /**
      * Checks if this optimiser is compatible with the statistic passed to the
-     * method as its argument. By default, this will accept any
-     * {@code OptimiserStatistic}.
+     * method as its argument.By default, this will accept any
+    {@code OptimiserStatistic}
      *
+     * @param os a selected optimiser metric
      * @return {@code true}, if not specified otherwise by its subclass
      * implementation.
      */
