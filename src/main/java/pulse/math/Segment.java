@@ -1,6 +1,8 @@
 package pulse.math;
 
 import java.util.Random;
+import pulse.properties.NumericPropertyKeyword;
+import static pulse.properties.NumericProperties.def;
 
 /**
  * A {@code Segment} is simply a pair of values {@code a} and {@code b} such
@@ -31,6 +33,18 @@ public class Segment {
     public Segment(Segment segment) {
         this.a = segment.a;
         this.b = segment.b;
+    }
+    
+    /**
+     * Creates a segment representing the bounds of {@code p}, i.e. the range
+     * in which the property value is allowed to change
+     * @param p a property keyword to extract default bounds
+     * @return a {@code Segment} with the bounds
+     */
+    
+    public static Segment boundsFrom(NumericPropertyKeyword p) {
+        return new Segment(def(p).getMinimum().doubleValue(), 
+                           def(p).getMaximum().doubleValue());
     }
 
     /**

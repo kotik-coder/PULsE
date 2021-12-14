@@ -1,152 +1,64 @@
+/*
+ * Copyright 2021 Artem Lunev <artem.v.lunev@gmail.com>.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package pulse.baseline;
 
 import static java.lang.String.format;
+import java.util.List;
 import static pulse.properties.NumericProperties.derive;
-import static pulse.properties.NumericProperty.requireType;
 import static pulse.properties.NumericPropertyKeyword.BASELINE_INTERCEPT;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import pulse.math.ParameterVector;
-import pulse.math.Segment;
-import pulse.properties.Flag;
-import pulse.properties.NumericProperty;
-import pulse.properties.NumericPropertyKeyword;
-import pulse.properties.Property;
-import pulse.util.PropertyHolder;
-
 /**
- * A simple constant baseline with no slope. The intercept value can be used as
- * an optimisation variable.
- *
+ * A flat baseline.
+ * @author Artem Lunev <artem.v.lunev@gmail.com>
  */
 
-public class FlatBaseline extends Baseline {
+public class FlatBaseline extends AdjustableBaseline {
+    
+        /**
+     * A primitive constructor, which initialises a {@code CONSTANT} baseline
+     * with zero intercept and slope.
+     */
+    public FlatBaseline() {
+        this(0.0);
+    }
 
-	private double intercept;
+    /**
+     * Creates a flat baseline equal to the argument.
+     *
+     * @param intercept the constant baseline value.
+     */
+    public FlatBaseline(double intercept) {
+        super(intercept);
+    }
+    
+    
+    @Override
+    protected void doFit(List<Double> x, List<Double> y, int size) {
+        double intercept = mean(y);
+        set(BASELINE_INTERCEPT, derive(BASELINE_INTERCEPT, intercept));
+    }
 
-	/**
-	 * A primitive constructor, which initialises a {@code CONSTANT} baseline with
-	 * zero intercept and slope.
-	 */
+    @Override
+    public Baseline copy() {
+        return new FlatBaseline((double)getIntercept().getValue());
+    }
 
-	public FlatBaseline() {
-		// intentionally blank
-	}
-
-	/**
-	 * Creates a flat baseline equal to the argument.
-	 * 
-	 * @param intercept the constant baseline value.
-	 */
-
-	public FlatBaseline(double intercept) {
-		this.intercept = intercept;
-	}
-
-	/**
-	 * @return the constant value of this {@code FlatBaseline}
-	 */
-
-	@Override
-	public double valueAt(double x) {
-		return intercept;
-	}
-
-	@Override
-	protected void doFit(List<Double> x, List<Double> y, int size) {
-		intercept = mean(y);
-		set(BASELINE_INTERCEPT, derive(BASELINE_INTERCEPT, intercept));
-	}
-
-	protected double mean(List<Double> x) {
-		double sum = x.stream().reduce( (a, b) -> a + b).get();
-		return sum / x.size();
-	}
-
-	/**
-	 * Provides getter accessibility to the intercept as a NumericProperty
-	 * 
-	 * @return a NumericProperty derived from
-	 *         NumericPropertyKeyword.BASELINE_INTERCEPT where the value is set to
-	 *         that of {@code slope}
-	 */
-
-	public NumericProperty getIntercept() {
-		return derive(BASELINE_INTERCEPT, intercept);
-	}
-
-	/**
-	 * Checks whether {@code intercept} is a baseline intercept property and updates
-	 * the respective value of this baseline.
-	 * 
-	 * @param intercept a {@code NumericProperty} of the {@code BASELINE_INTERCEPT}
-	 *                  type
-	 * @see set
-	 */
-
-	public void setIntercept(NumericProperty intercept) {
-		requireType(intercept, BASELINE_INTERCEPT);
-		this.intercept = (double) intercept.getValue();
-		firePropertyChanged(this, intercept);
-	}
-
-	/**
-	 * Lists the {@code intercept} as accessible property for this
-	 * {@code FlatBaseline}.
-	 * 
-	 * @see PropertyHolder
-	 */
-
-	@Override
-	public List<Property> listedTypes() {
-		return new ArrayList<Property>(Arrays.asList(getIntercept()));
-	}
-
-	@Override
-	public String toString() {
-		return getClass().getSimpleName() + " = " + format("%3.2f", intercept);
-	}
-
-	@Override
-	public void set(NumericPropertyKeyword type, NumericProperty property) {
-		if (type == BASELINE_INTERCEPT) {
-			setIntercept(property);
-			this.firePropertyChanged(this, property);
-		}
-	}
-	
-	@Override
-	public void optimisationVector(ParameterVector output, List<Flag> flags) {
-		for (int i = 0, size = output.dimension(); i < size; i++) {
-
-			var key = output.getIndex(i);
-			
-			if (key == BASELINE_INTERCEPT) {
-				output.set(i, intercept);
-				output.setParameterBounds(i, new Segment(-10, 10));
-			}
-
-		}
-
-	}
-
-	@Override
-	public void assign(ParameterVector params) {
-		for (int i = 0, size = params.dimension(); i < size; i++) {
-
-			if (params.getIndex(i) == BASELINE_INTERCEPT)
-				setIntercept(derive(BASELINE_INTERCEPT, params.get(i)));
-
-		}
-
-	}
-
-	@Override
-	public Baseline copy() {
-		return new FlatBaseline(this.intercept);
-	}
-
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + " = " + format("%3.2f", getIntercept().getValue());
+    }
+    
 }

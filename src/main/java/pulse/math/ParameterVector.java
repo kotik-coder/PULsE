@@ -6,7 +6,6 @@ import java.util.List;
 
 import pulse.math.linear.Vector;
 import pulse.math.transforms.Transformable;
-import pulse.problem.schemes.solvers.SolverException;
 import pulse.properties.NumericProperties;
 import static pulse.properties.NumericProperties.def;
 import pulse.properties.NumericProperty;
@@ -78,15 +77,22 @@ public class ParameterVector extends Vector {
         bounds = new Segment[n];
     }
 
-    /**
-     * Applies the corresponding transformation (defined by the respective
-     * {@code Transformable}) -- if present, and sets the result of this
-     * transformation to the <math>i</math>th component of this
-     * {@code ParameterVector}.
-     */
     @Override
     public void set(final int i, final double x) {
         set(i, x, false);
+    }
+    
+    /**
+     * Sets the <i>i</i>-th parameter value to {@code x} without applying the 
+     * transform. Sets the bound for this value as the default bound for {@code key}. 
+     * @param i the index of the parameter
+     * @param x value to be set
+     * @param key type of property
+     */
+    
+    public void set(final int i, final double x, NumericPropertyKeyword key) {
+        set(i, x);
+        setParameterBounds(i, Segment.boundsFrom(key));
     }
 
     /**

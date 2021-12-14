@@ -1,7 +1,6 @@
 package pulse.baseline;
 
 import static java.lang.Math.sin;
-import static pulse.math.transforms.StandardTransformations.SQRT;
 import static pulse.properties.NumericProperties.def;
 import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericProperty.requireType;
@@ -10,13 +9,14 @@ import static pulse.properties.NumericPropertyKeyword.BASELINE_FREQUENCY;
 import static pulse.properties.NumericPropertyKeyword.BASELINE_PHASE_SHIFT;
 
 import java.util.List;
+import java.util.Set;
 
 import pulse.math.ParameterVector;
 import pulse.math.Segment;
+import pulse.math.transforms.StickTransform;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
-import pulse.properties.Property;
 
 /**
  * A simple sinusoidal baseline.
@@ -31,162 +31,167 @@ import pulse.properties.Property;
  * </p>
  *
  */
+public class SinusoidalBaseline extends AdjustableBaseline {
 
-public class SinusoidalBaseline extends FlatBaseline {
+    private double frequency;
+    private double phaseShift;
+    private double amplitude;
+    private final static double _2PI = 2.0 * Math.PI;
 
-	private double frequency;
-	private double phaseShift;
-	private double amplitude;
-	private final static double _2PI = 2.0 * Math.PI;
+    /**
+     * Creates a sinusoidal baseline with default properties.
+     */
+    public SinusoidalBaseline() {
+        super(0.0);
+        setFrequency(def(BASELINE_FREQUENCY));
+        setAmplitude(def(BASELINE_AMPLITUDE));
+        setPhaseShift(def(BASELINE_PHASE_SHIFT));
+    }
 
-	/**
-	 * Creates a sinusoidal baseline with default properties.
-	 */
+    @Override
+    public double valueAt(double x) {
+        var intercept = (double) getIntercept().getValue();
+        return intercept + amplitude * sin(_2PI * x * frequency + phaseShift);
+    }
 
-	public SinusoidalBaseline() {
-		super();
-		setFrequency(def(BASELINE_FREQUENCY));
-		setAmplitude(def(BASELINE_AMPLITUDE));
-		setPhaseShift(def(BASELINE_PHASE_SHIFT));
-	}
+    /**
+     * Listed properties include the frequency, amplitude, phase shift, and
+     * intercept.
+     */
+    @Override
+    public Set<NumericPropertyKeyword> listedKeywords() {
+        var set = super.listedKeywords();
+        set.add(BASELINE_FREQUENCY);
+        set.add(BASELINE_AMPLITUDE);
+        set.add(BASELINE_PHASE_SHIFT);
+        return set;
+    }
 
-	@Override
-	public double valueAt(double x) {
-		var intercept = (double) getIntercept().getValue();
-		return intercept + amplitude * sin(_2PI * (x * frequency + phaseShift));
-	}
+    @Override
+    public void set(NumericPropertyKeyword type, NumericProperty property) {
 
-	/**
-	 * Listed properties include the frequency, amplitude, phase shift, and
-	 * intercept.
-	 */
+        switch (type) {
+            case BASELINE_FREQUENCY:
+                setFrequency(property);
+                break;
+            case BASELINE_PHASE_SHIFT:
+                setPhaseShift(property);
+                break;
+            case BASELINE_AMPLITUDE:
+                setAmplitude(property);
+                break;
+            default:
+                super.set(type, property);
+        }
 
-	@Override
-	public List<Property> listedTypes() {
-		var list = super.listedTypes();
-		list.add(def(BASELINE_FREQUENCY));
-		list.add(def(BASELINE_AMPLITUDE));
-		list.add(def(BASELINE_PHASE_SHIFT));
-		return list;
-	}
+    }
 
-	@Override
-	public void set(NumericPropertyKeyword type, NumericProperty property) {
+    public NumericProperty getFrequency() {
+        return derive(BASELINE_FREQUENCY, frequency);
+    }
 
-		switch (type) {
-		case BASELINE_FREQUENCY:
-			setFrequency(property);
-			break;
-		case BASELINE_PHASE_SHIFT:
-			setPhaseShift(property);
-			break;
-		case BASELINE_AMPLITUDE:
-			setAmplitude(property);
-			break;
-		default:
-			super.set(type, property);
-		}
+    public NumericProperty getAmplitude() {
+        return derive(BASELINE_AMPLITUDE, amplitude);
+    }
 
-	}
+    public NumericProperty getPhaseShift() {
+        return derive(BASELINE_PHASE_SHIFT, phaseShift);
+    }
 
-	public NumericProperty getFrequency() {
-		return derive(BASELINE_FREQUENCY, frequency);
-	}
+    public void setFrequency(NumericProperty frequency) {
+        requireType(frequency, BASELINE_FREQUENCY);
+        this.frequency = (double) frequency.getValue();
+        firePropertyChanged(this, frequency);
+    }
 
-	public NumericProperty getAmplitude() {
-		return derive(BASELINE_AMPLITUDE, amplitude);
-	}
+    public void setAmplitude(NumericProperty amplitude) {
+        requireType(amplitude, BASELINE_AMPLITUDE);
+        this.amplitude = (double) amplitude.getValue();
+        firePropertyChanged(this, amplitude);
+    }
 
-	public NumericProperty getPhaseShift() {
-		return derive(BASELINE_PHASE_SHIFT, phaseShift);
-	}
+    public void setPhaseShift(NumericProperty phaseShift) {
+        requireType(phaseShift, BASELINE_PHASE_SHIFT);
+        this.phaseShift = (double) phaseShift.getValue();
+        firePropertyChanged(this, phaseShift);
+    }
 
-	public void setFrequency(NumericProperty frequency) {
-		requireType(frequency, BASELINE_FREQUENCY);
-		this.frequency = (double) frequency.getValue();
-		firePropertyChanged(this, frequency);
-	}
+    /**
+     * The optimisation vector can include the amplitude, frequency and phase
+     * shift of a sinusoid, and a baseline intercept value of the superclass.
+     */
+    @Override
+    public void optimisationVector(ParameterVector output, List<Flag> flags) {
+        super.optimisationVector(output, flags);
 
-	public void setAmplitude(NumericProperty amplitude) {
-		requireType(amplitude, BASELINE_AMPLITUDE);
-		this.amplitude = (double) amplitude.getValue();
-		firePropertyChanged(this, amplitude);
-	}
+        for (int i = 0, size = output.dimension(); i < size; i++) {
 
-	public void setPhaseShift(NumericProperty phaseShift) {
-		requireType(phaseShift, BASELINE_PHASE_SHIFT);
-		this.phaseShift = (double) phaseShift.getValue();
-		firePropertyChanged(this, phaseShift);
-	}
+            var key = output.getIndex(i);
 
-	/**
-	 * The optimisation vector can include the amplitude, frequency and phase shift of a sinusoid, and
-	 * a baseline intercept value of the superclass.
-	 */
-	
-	@Override
-	public void optimisationVector(ParameterVector output, List<Flag> flags) {
-		super.optimisationVector(output, flags);
+            switch (key) {
+                case BASELINE_FREQUENCY:
+                    output.set(i, frequency, BASELINE_FREQUENCY);                  
+                    break;
+                case BASELINE_PHASE_SHIFT:
+                    output.set(i, phaseShift, BASELINE_PHASE_SHIFT);
+                    break;
+                case BASELINE_AMPLITUDE:
+                    output.set(i, amplitude, BASELINE_AMPLITUDE);
+                    break;
+                default:
+                    continue;
+            }
+            
+            output.setTransform(i, new StickTransform(output.getParameterBounds(i)));
 
-		for (int i = 0, size = output.dimension(); i < size; i++) {
+        }
 
-			var key = output.getIndex(i);
-			
-			switch (key) {
-			case BASELINE_FREQUENCY:
-				output.set(i, frequency);
-				output.setParameterBounds(i, new Segment(0, 200));
-				break;
-			case BASELINE_PHASE_SHIFT:
-				output.set(i, phaseShift);
-				output.setParameterBounds(i, new Segment(-3.14, 3.14) );
-				break;
-			case BASELINE_AMPLITUDE:
-				output.setTransform(i, SQRT);
-				output.set(i, amplitude);
-				output.setParameterBounds(i, new Segment( 0.0, 10.0 ) );
-				break;
-			default:
-				break;
-			}
+    }
 
-		}
+    @Override
+    public void assign(ParameterVector params) {
+        super.assign(params);
 
-	}
+        for (int i = 0, size = params.dimension(); i < size; i++) {
 
-	@Override
-	public void assign(ParameterVector params) {
-		super.assign(params);
+            switch (params.getIndex(i)) {
+                case BASELINE_FREQUENCY:
+                    setFrequency(derive(BASELINE_FREQUENCY, params.inverseTransform(i)));
+                    break;
+                case BASELINE_PHASE_SHIFT:
+                    setPhaseShift(derive(BASELINE_PHASE_SHIFT, params.inverseTransform(i)));
+                    break;
+                case BASELINE_AMPLITUDE:
+                    setAmplitude(derive(BASELINE_AMPLITUDE, params.inverseTransform(i)));
+                    break;
+                default:
+                    break;
+            }
 
-		for (int i = 0, size = params.dimension(); i < size; i++) {
+        }
 
-			switch (params.getIndex(i)) {
-			case BASELINE_FREQUENCY:
-				setFrequency(derive(BASELINE_FREQUENCY, params.get(i)));
-				break;
-			case BASELINE_PHASE_SHIFT:
-				setPhaseShift(derive(BASELINE_PHASE_SHIFT, params.get(i)));
-				break;
-			case BASELINE_AMPLITUDE:
-				setAmplitude(derive(BASELINE_AMPLITUDE, params.inverseTransform(i) ));
-				break;
-			default:
-				break;
-			}
+    }
 
-		}
+    @Override
+    public Baseline copy() {
+        var baseline = new SinusoidalBaseline();
+        baseline.setIntercept(this.getIntercept());
+        baseline.amplitude = this.amplitude;
+        baseline.frequency = this.frequency;
+        baseline.phaseShift = this.phaseShift;
+        return baseline;
+    }
 
-	}
-	
-	@Override
-	public Baseline copy() {
-		var baseline = new SinusoidalBaseline();
-		baseline.setIntercept(this.getIntercept());
-		baseline.amplitude = this.amplitude;
-		baseline.frequency = this.frequency;
-		baseline.phaseShift = this.phaseShift;
-		return baseline;
-	}
+    @Override
+    protected void doFit(List<Double> x, List<Double> y, int size) {
+        var flatBaseline = new FlatBaseline();
+        flatBaseline.doFit(x, y, size);
+        //TODO Fourier transform
+    }
 
+    @Override
+    public String toString() {
+        return getClass().getSimpleName();
+    }    
 
 }
