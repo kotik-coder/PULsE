@@ -18,27 +18,30 @@ package pulse.ui.components.panels;
 import java.awt.GridBagConstraints;
 import static java.awt.GridBagConstraints.BOTH;
 import static javax.swing.BorderFactory.createTitledBorder;
-import javax.swing.DefaultListModel;
-import javax.swing.JList;
 import javax.swing.SwingConstants;
 import javax.swing.JPanel;
+import javax.swing.JTable;
 import pulse.properties.NumericProperties;
 import pulse.properties.NumericPropertyKeyword;
+import pulse.ui.components.models.ParameterTableModel;
+import pulse.ui.components.models.SelectedKeysModel;
 
-public class DoubleListPanel extends JPanel {
+public class DoubleTablePanel extends JPanel {
 
     private javax.swing.JButton moveLeftBtn;
     private javax.swing.JButton moveRightBtn;
 
-    public DoubleListPanel(JList leftList, String titleLeft, JList rightList, String titleRight) {
+    public DoubleTablePanel(JTable leftTable, String titleLeft, JTable rightTable, String titleRight) {
 
         super();
-        initComponents(leftList, titleLeft, rightList, titleRight);
-
+        initComponents(leftTable, titleLeft, rightTable, titleRight);
+        
         moveRightBtn.addActionListener(e -> {
 
-            var key = leftList.getSelectedValue();
-            var model = (DefaultListModel<NumericPropertyKeyword>) rightList.getModel();
+            var model = (SelectedKeysModel) rightTable.getModel();
+            NumericPropertyKeyword key = ( (ParameterTableModel) leftTable.getModel() )
+                                            .getElementAt(leftTable
+                                                    .convertRowIndexToModel(leftTable.getSelectedRow()));
 
             if (key != null) {
                 if (!model.contains(key)) {
@@ -60,18 +63,19 @@ public class DoubleListPanel extends JPanel {
 
         moveLeftBtn.addActionListener(e -> {
 
-            var key = rightList.getSelectedValue();
-            var model = (DefaultListModel<NumericPropertyKeyword>) rightList.getModel();
+            var model = (SelectedKeysModel) rightTable.getModel();
+            NumericPropertyKeyword key = model.getElementAt(rightTable
+                    .convertRowIndexToModel(rightTable.getSelectedRow()));
 
             if (key != null) {
                 model.removeElement(key);
             }
 
         });
-
+        
     }
 
-    public void initComponents(JList leftList, String titleLeft, JList rightList, String titleRight) {
+    public void initComponents(JTable leftTable, String titleLeft, JTable rightTable, String titleRight) {
         var leftScroller = new javax.swing.JScrollPane();
         var rightScroller = new javax.swing.JScrollPane();
         var moveToolbar = new javax.swing.JToolBar();
@@ -84,10 +88,10 @@ public class DoubleListPanel extends JPanel {
         var borderLeft = createTitledBorder(titleLeft);
         leftScroller.setBorder(borderLeft);
         borderLeft.setTitleColor(java.awt.Color.WHITE);
+        
+        leftTable.setRowHeight(80);
 
-        leftList.setFixedCellHeight(50);
-
-        leftScroller.setViewportView(leftList);
+        leftScroller.setViewportView(leftTable);
 
         var gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.fill = BOTH;
@@ -100,8 +104,8 @@ public class DoubleListPanel extends JPanel {
         rightScroller.setBorder(borderRight);
         borderRight.setTitleColor(java.awt.Color.WHITE);
 
-        rightList.setFixedCellHeight(50);
-        rightScroller.setViewportView(rightList);
+        rightTable.setRowHeight(80);
+        rightScroller.setViewportView(rightTable);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
