@@ -88,14 +88,14 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
      * After setting and adopting the {@code problem} by this
      * {@code SearchTask}, this will attempt to change the parameters of that
      * {@code problem} in accordance with the loaded {@code ExperimentalData}
-     * for this {@code SearchTask} (if not null). Later, if any changes to the
+     * for this {@code SearchTask} (if not null).Later, if any changes to the
      * properties of that {@code Problem} occur and if the source of that event
      * is either the {@code Metadata} or the {@code PropertyHolderTable}, they
      * will be accounted for by altering the parameters of the {@code problem}
      * accordingly -- immediately after the former take place.
-     * </p>
      *
      * @param problem a {@code Problem}
+     * @param curve
      */
     public void setProblem(Problem problem, ExperimentalData curve) {
         this.problem = problem;
@@ -112,7 +112,7 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
             if (source instanceof Metadata || source instanceof PropertyHolderTable) {
 
                 var property = event.getProperty();
-                if (property instanceof NumericProperty && ((NumericProperty) property).isVisibleByDefault()) {
+                if (property instanceof NumericProperty && ((NumericProperty) property).isOptimisable()) {
                     return;
                 }
 
@@ -172,10 +172,32 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
         return status;
     }
 
+    /**
+     * Attempts to set the status of this calculation to {@code status}.
+     * @param status a status
+     * @return {@code true} if this attempt is successful, including the case 
+     * when the status being set is equal to the current status. {@code false}
+     * if the current status is one of the following: {@code DONE}, {@code EXECUTION_ERROR},
+     * {@code INCOMPLETE}, {@code IN_PROGRES}, AND the {@code status} being set 
+     * is {@code QUEUED}.
+     */
+    
     public boolean setStatus(Status status) {
-        boolean done = this.status != status;
+
+        switch(this.status) {
+            case DONE:
+            case EXECUTION_ERROR:
+            case INCOMPLETE:
+            case IN_PROGRESS:
+                 //if the TaskManager attempts to run this calculation
+                if(status == Status.QUEUED) 
+                    return false;
+            default:
+        }
+        
         this.status = status;
-        return done;
+        return true;
+        
     }
 
     public NumericProperty weight(List<Calculation> all) {
