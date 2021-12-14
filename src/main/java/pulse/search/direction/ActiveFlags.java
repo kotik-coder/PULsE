@@ -1,106 +1,97 @@
 package pulse.search.direction;
 
-import static pulse.properties.Flag.allProblemDependentFlags;
-import static pulse.properties.Flag.allProblemIndependentFlags;
-import static pulse.properties.Flag.selectActive;
-
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
-
 import pulse.problem.statements.Problem;
 import pulse.properties.Flag;
-import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
-import pulse.properties.Property;
 import pulse.tasks.SearchTask;
 import pulse.tasks.TaskManager;
+import pulse.util.PropertyHolder;
 
 public class ActiveFlags {
 
-    private static List<Flag> problemIndependentFlags = allProblemIndependentFlags();
-    private static List<Flag> problemDependentFlags = allProblemDependentFlags();
+    private static List<Flag> flags;
+
+    static {
+        reset();
+    }
 
     private ActiveFlags() {
         //empty constructor
     }
 
     public static void reset() {
-        problemDependentFlags = allProblemDependentFlags();
-        problemIndependentFlags = allProblemIndependentFlags();
+        flags = Flag.allFlags();
     }
 
     public static List<Flag> getAllFlags() {
-        var newList = new ArrayList<Flag>();
-        newList.addAll(problemDependentFlags);
-        newList.addAll(problemIndependentFlags);
-        return newList;
+        return flags;
     }
 
-    public static void listAvailableProperties(List<Property> list) {
-        list.addAll(problemIndependentFlags);
+    public static Set<Flag> availableProperties() {
+        var set = new HashSet<Flag>();
 
         var t = TaskManager.getManagerInstance().getSelectedTask();
 
-        if (t != null) {
-            var p = t.getCurrentCalculation().getProblem();
+        if (t == null) {
+            return set;
+        }
 
-            if (p != null) {
+        var p = t.getCurrentCalculation().getProblem();
 
-                var params = p.listedTypes().stream().filter(pp
-                        -> pp instanceof NumericProperty)
-                        .map(pMap -> ((NumericProperty) pMap)
-                        .getType()).collect(
-                        Collectors.toList());
+        if (p != null) {
 
-                NumericPropertyKeyword key;
+            var fullList = p.listedKeywords();
+            fullList.addAll(t.getExperimentalCurve().listedKeywords());
+            NumericPropertyKeyword key;
 
-                for (Flag property : problemDependentFlags) {
-                    key = property.getType();
-                    if (params.contains(key)) {
-                        list.add(property);
-                    }
-
+            for (Flag property : flags) {
+                key = property.getType();
+                if (fullList.contains(key)) {
+                    set.add(property);
                 }
 
             }
-        } else {
-            for (Flag property : problemDependentFlags) {
-                list.add(property);
-            }
+
         }
+
+        return set;
     }
 
     /**
      * Finds what properties are being altered in the search
      *
+     * @param t task for which the active parameters should be listed
      * @return a {@code List} of property types represented by
      * {@code NumericPropertyKeyword}s
      */
     public static List<NumericPropertyKeyword> activeParameters(SearchTask t) {
-        Problem p = t.getCurrentCalculation().getProblem();
-
-        var list = new ArrayList<NumericPropertyKeyword>();
-        list.addAll(selectActiveAndListed(problemDependentFlags, p));
-        list.addAll(selectActiveTypes(problemIndependentFlags));
-        return list;
+        var c = t.getCurrentCalculation();
+        //problem dependent
+        var allActiveParams = selectActiveAndListed(flags, c.getProblem()); 
+        //problem independent (lower/upper bound)
+        var listed = selectActiveAndListed(flags, t.getExperimentalCurve() );
+        allActiveParams.addAll( selectActiveAndListed(flags, t.getExperimentalCurve() ) );          
+        return allActiveParams;
     }
 
-    public static List<NumericPropertyKeyword> selectActiveAndListed(List<Flag> flags, Problem listed) {
-        return selectActiveTypes(flags).stream().filter(type -> listed.isListedNumericType(type))
+    public static List<NumericPropertyKeyword> selectActiveAndListed(List<Flag> flags, PropertyHolder listed) {
+        //return empty list
+        if(listed == null) {
+            return new ArrayList<NumericPropertyKeyword>();
+        }
+            
+        return selectActiveTypes(flags).stream()
+                .filter(type -> listed.isListedNumericType(type))
                 .collect(Collectors.toList());
     }
-
+   
     public static List<NumericPropertyKeyword> selectActiveTypes(List<Flag> flags) {
-        return selectActive(flags).stream().map(flag -> flag.getType()).collect(Collectors.toList());
-    }
-
-    public static List<Flag> getProblemIndependentFlags() {
-        return problemIndependentFlags;
-    }
-
-    public static List<Flag> getProblemDependentFlags() {
-        return problemDependentFlags;
+        return Flag.selectActive(flags).stream().map(flag -> flag.getType()).collect(Collectors.toList());
     }
 
 }

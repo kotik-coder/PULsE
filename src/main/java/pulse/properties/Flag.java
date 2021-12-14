@@ -1,12 +1,6 @@
 package pulse.properties;
 
 import static pulse.properties.NumericProperties.def;
-import static pulse.properties.NumericProperties.defaultList;
-import static pulse.properties.NumericPropertyKeyword.LOWER_BOUND;
-import static pulse.properties.NumericPropertyKeyword.TIME_SHIFT;
-import static pulse.properties.NumericPropertyKeyword.UPPER_BOUND;
-
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -63,24 +57,21 @@ public class Flag implements Property {
     }
 
     /**
-     * The default list of {@code Flag}s used in finding the reverse solution of
-     * the heat conduction problem contains:
-	 * <code>DIFFUSIVITY (true), HEAT_LOSS (true), MAXTEMP (true), BASELINE_INTERCEPT (false), BASELINE_SLOPE (false) </code>.
+     * List of all possible {@code Flag}s that can be used in finding the
+     * reverse solution of the heat conduction problems. Includes all flags that
+     * correspond to {@code NumericPropert}ies satisfying
+     * {@code p.isOptimisable() = true}. The default value of the flag is set to
+     * {@code p.isDefaultSearchVariable()} -- based on the information contained
+     * in the {@code NumericProperty.xml} file.
      *
-     * @return a {@code List} of default {@code Flag}s
+     * @return a {@code List} of all possible {@code Flag}s
+     * @see
      */
-    public static List<Flag> allProblemDependentFlags() {
-        return defaultList().stream()
+    public static List<Flag> allFlags() {
+        return NumericProperties.defaultList().stream()
+                .filter(p -> p.isOptimisable())
                 .map(p -> new Flag(p, p.isDefaultSearchVariable()))
                 .collect(Collectors.toList());
-    }
-
-    public static List<Flag> allProblemIndependentFlags() {
-        List<Flag> flags = new ArrayList<>();
-        flags.add(new Flag(def(TIME_SHIFT), false));
-        flags.add(new Flag(def(LOWER_BOUND), false));
-        flags.add(new Flag(def(UPPER_BOUND), false));
-        return flags;
     }
 
     /**
@@ -159,13 +150,8 @@ public class Flag implements Property {
 
         Flag f = (Flag) o;
 
-        if (f.getType() == this.getType()) {
-            if (f.getValue().equals(this.getValue())) {
-                return true;
-            }
-        }
-
-        return false;
+        return (f.getType() == this.getType())
+                && (f.getValue().equals(this.getValue()));
 
     }
 

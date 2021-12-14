@@ -1,10 +1,12 @@
 package pulse.properties;
 
+import java.text.ParseException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import pulse.math.Segment;
 import static pulse.properties.NumericProperties.compare;
 import static pulse.properties.NumericProperties.derive;
-import static pulse.properties.NumericProperties.formattedValueAndError;
 import static pulse.properties.NumericProperties.isValueSensible;
-import static pulse.properties.NumericProperties.numberFormat;
 import static pulse.properties.NumericProperties.printRangeAndNumber;
 
 /**
@@ -40,6 +42,7 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
     private boolean autoAdjustable;
     private boolean discrete;
     private boolean defaultSearchVariable;
+    private boolean optimisable;
 
     /**
      * Creates a {@code NumericProperty} based on {
@@ -94,6 +97,7 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
         this.autoAdjustable = num.autoAdjustable;
         this.error = num.error;
         this.defaultSearchVariable = num.defaultSearchVariable;
+        this.optimisable = num.optimisable;
         this.excludes = num.excludes;
     }
 
@@ -176,33 +180,16 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
      */
     @Override
     public String toString() {
-        return (type + " = " + formattedValueAndError(this, false));
-    }
-
-    /**
-     * Calls {@code formattedValue(true)}.
-     *
-     * @see NumericProperties.formattedValueAndError(boolean)
-     */
-    @Override
-    public String formattedOutput() {
-        return formattedValueAndError(this, true);
-    }
-
-    public String valueOutput() {
-        return numberFormat(this, true).format(valueInCurrentUnits());
-    }
-
-    public String errorOutput() {
-        return numberFormat(this, true).format(errorInCurrentUnits());
+        return type + " = " + formattedOutput();
     }
 
     public Number valueInCurrentUnits() {
-        return value instanceof Double ? (double) value * dimensionFactor.doubleValue() : (int) value;
+        return value instanceof Double ? (double) value * dimensionFactor.doubleValue()
+                + getDimensionDelta().doubleValue() : (int) value;
     }
 
-    public double errorInCurrentUnits() {
-        return error == null ? 0.0 : (double) error * dimensionFactor.doubleValue();
+    public Number errorInCurrentUnits() {
+        return error == null ? 0.0 : error.doubleValue() * dimensionFactor.doubleValue();
     }
 
     public Number getDimensionFactor() {
@@ -315,8 +302,45 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
         return defaultSearchVariable;
     }
 
+    public boolean isOptimisable() {
+        return optimisable;
+    }
+
     public void setDefaultSearchVariable(boolean defaultSearchVariable) {
         this.defaultSearchVariable = defaultSearchVariable;
     }
 
+    public void setOptimisable(boolean optimisable) {
+        this.optimisable = optimisable;
+    }
+    
+    public Number getDimensionDelta() {
+        if(type == NumericPropertyKeyword.TEST_TEMPERATURE)
+            return -273.15;
+        else
+            return 0.0;
+    }
+    
+    /**
+     * Represents the bounds specified for this numeric property 
+     * as a {@code Segment} object. The bound numbers are taken by
+     * their double values and assigned to the segment.
+     * @return the bounds in which this property is allowed to change
+     */
+    
+    public Segment getBounds() {
+        return new Segment(minimum.doubleValue(), maximum.doubleValue());
+    }
+    
+    /**
+     * Uses a {@code NumericPropertyFormatter} to generate a formatted output
+     * @return a formatted string output with the value (and error -- if available)
+     * of this numeric property
+     */
+    
+    public String formattedOutput() {
+        var num = new NumericPropertyFormatter(this, true, true);
+        return num.numberFormat(this).format(value);
+    }
+    
 }
