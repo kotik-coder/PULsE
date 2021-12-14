@@ -1,21 +1,11 @@
 package pulse.ui.components.panels;
 
-import static java.awt.Color.GRAY;
-import static java.awt.Color.gray;
-import static java.awt.Color.white;
 import static java.awt.GridBagConstraints.BOTH;
-import static java.awt.Toolkit.getDefaultToolkit;
-import static java.lang.String.format;
-import static javax.swing.JOptionPane.ERROR_MESSAGE;
-import static javax.swing.JOptionPane.YES_NO_OPTION;
-import static javax.swing.JOptionPane.YES_OPTION;
-import static javax.swing.JOptionPane.showConfirmDialog;
 import static javax.swing.JOptionPane.showOptionDialog;
 import static javax.swing.SwingUtilities.getWindowAncestor;
 import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.LOWER_BOUND;
 import static pulse.properties.NumericPropertyKeyword.UPPER_BOUND;
-import static pulse.tasks.listeners.TaskRepositoryEvent.State.TASK_FINISHED;
 import static pulse.ui.Messages.getString;
 import static pulse.ui.frames.MainGraphFrame.getChart;
 import static pulse.util.ImageUtils.loadIcon;
@@ -23,239 +13,175 @@ import static pulse.util.ImageUtils.loadIcon;
 import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.JButton;
-import javax.swing.JFormattedTextField;
-import javax.swing.JTextField;
+import javax.swing.JOptionPane;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
-import javax.swing.text.NumberFormatter;
+import pulse.input.ExperimentalData;
 
 import pulse.input.Range;
 import pulse.tasks.TaskManager;
+import pulse.ui.Messages;
+import pulse.ui.components.RangeTextFields;
 import pulse.ui.components.ResidualsChart;
 import pulse.ui.components.listeners.PlotRequestListener;
 import pulse.ui.frames.HistogramFrame;
 
 @SuppressWarnings("serial")
-public class ChartToolbar extends JToolBar {
+public final class ChartToolbar extends JToolBar {
 
-	private final static int ICON_SIZE = 16;
-	private List<PlotRequestListener> listeners;
+    private final static int ICON_SIZE = 16;
+    private List<PlotRequestListener> listeners;
 
-	public ChartToolbar() {
-		super();
-		setFloatable(false);
-		listeners = new ArrayList<>();
-		initComponents();
-	}
+    private RangeTextFields rtf;
 
-	public void initComponents() {
-		setLayout(new GridBagLayout());
+    public ChartToolbar() {
+        super();
+        setFloatable(false);
+        listeners = new ArrayList<>();
+        rtf = new RangeTextFields();
+        initComponents();
+    }
 
-		var lowerLimitField = new JFormattedTextField(new NumberFormatter());
-		var upperLimitField = new JFormattedTextField(new NumberFormatter());
+    public final void initComponents() {
+        setLayout(new GridBagLayout());
 
-		var limitRangeBtn = new JButton();
-		var adiabaticSolutionBtn = new JToggleButton(loadIcon("parker.png", ICON_SIZE, Color.white));
-		var residualsBtn = new JToggleButton(loadIcon("residuals.png", ICON_SIZE, Color.white));
-		var pdfBtn = new JButton(loadIcon("pdf.png", ICON_SIZE, Color.white));
-		pdfBtn.setToolTipText("Residuals Histogram");
+        var limitRangeBtn = new JButton();
+        var adiabaticSolutionBtn = new JToggleButton(loadIcon("parker.png", ICON_SIZE, Color.white));
+        var residualsBtn = new JToggleButton(loadIcon("residuals.png", ICON_SIZE, Color.white));
+        var pdfBtn = new JButton(loadIcon("pdf.png", ICON_SIZE, Color.white));
+        pdfBtn.setToolTipText("Residuals Histogram");
 
-		var instance = TaskManager.getManagerInstance();
+        var residualsChart = new ResidualsChart("Residual value", "Frequency");
+        var chFrame = new HistogramFrame(residualsChart, 450, 450);
 
-		var residualsChart = new ResidualsChart("Residual value", "Frequency");
-		var chFrame = new HistogramFrame(residualsChart, 450, 450);
-		
-		pdfBtn.addActionListener(e -> {
-		
-			var task = instance.getSelectedTask();
-			
-			if(task != null && task.getCurrentCalculation().getModelSelectionCriterion() != null) {
-				
-				chFrame.setLocationRelativeTo(null);
-				chFrame.setVisible(true);
-				chFrame.plot(task.getCurrentCalculation().getOptimiserStatistic());
-				
-			}
-			
-		} );
-		
-		var gbc = new GridBagConstraints();
-		gbc.fill = BOTH;
-		gbc.weightx = 0.25;
+        pdfBtn.addActionListener(e -> {
 
-		lowerLimitField.setValue(0.0);
+            var task = TaskManager.getManagerInstance().getSelectedTask();
 
-		var ghostText1 = "Lower bound";
-		lowerLimitField.setText(ghostText1);
+            if (task != null && task.getCurrentCalculation().getModelSelectionCriterion() != null) {
 
-		var ghostText2 = "Upper bound";
+                chFrame.setLocationRelativeTo(null);
+                chFrame.setVisible(true);
+                chFrame.plot(task.getCurrentCalculation().getOptimiserStatistic());
 
-		add(lowerLimitField, gbc);
+            }
 
-		upperLimitField.setValue(1.0);
-		upperLimitField.setText(ghostText2);
+        });
 
-		add(upperLimitField, gbc);
+        var gbc = new GridBagConstraints();
+        gbc.fill = BOTH;
+        gbc.weightx = 0.25;
 
-		limitRangeBtn.setText("Limit Range To");
+        add(rtf.getLowerLimitField(), gbc);
+        add(rtf.getUpperLimitField(), gbc);
 
-		lowerLimitField.setForeground(GRAY);
-		upperLimitField.setForeground(GRAY);
+        limitRangeBtn.setText("Set Range");
+        limitRangeBtn.addActionListener(e -> {
+            var lower = ((Number) rtf.getLowerLimitField().getValue()).doubleValue();
+            var upper = ((Number) rtf.getUpperLimitField().getValue()).doubleValue();
+            validateRange(lower, upper);
+            notifyPlot();
+        });
 
-		var ftfFocusListener = new FocusListener() {
+        gbc.weightx = 0.25;
+        add(limitRangeBtn, gbc);
 
-			@Override
-			public void focusGained(FocusEvent e) {
-				var src = (JTextField) e.getSource();
-				if (src.getText().length() > 0)
-					src.setForeground(white);
-			}
+        adiabaticSolutionBtn.setToolTipText("Sanity check (original adiabatic solution)");
 
-			@Override
-			public void focusLost(FocusEvent e) {
-				var src = (JFormattedTextField) e.getSource();
-				if (src.getValue() == null) {
-					src.setText(ghostText1);
-					src.setForeground(gray);
-				}
-			}
+        adiabaticSolutionBtn.addActionListener(e -> {
+            getChart().setZeroApproximationShown(adiabaticSolutionBtn.isSelected());
+            notifyPlot();
+        });
 
-		};
-		
-		instance.addSelectionListener(event -> {
-			var t = instance.getSelectedTask();
-			var expCurve = t.getExperimentalCurve();
+        gbc.weightx = 0.08;
+        add(adiabaticSolutionBtn, gbc);
 
-			lowerLimitField.setValue(expCurve.getRange().getSegment().getMinimum());
-			upperLimitField.setValue(expCurve.getRange().getSegment().getMaximum());
+        residualsBtn.setToolTipText("Plot residuals");
+        residualsBtn.setSelected(true);
 
-		});
+        residualsBtn.addActionListener(e -> {
+            getChart().setResidualsShown(residualsBtn.isSelected());
+            notifyPlot();
+        });
 
-		instance.addTaskRepositoryListener(e -> {
+        add(residualsBtn, gbc);
+        add(pdfBtn, gbc);
+    }
 
-			if (e.getState() == TASK_FINISHED) {
+    public void addPlotRequestListener(PlotRequestListener plotRequestListener) {
+        listeners.add(plotRequestListener);
+    }
 
-				var t = instance.getSelectedTask();
+    private void notifyPlot() {
+        listeners.stream().forEach(l -> l.onPlotRequest());
+    }
 
-				if (e.getId().equals(t.getIdentifier())) {
-					lowerLimitField.setValue(t.getExperimentalCurve().getRange().getSegment().getMinimum());
-					upperLimitField.setValue(t.getExperimentalCurve().getRange().getSegment().getMaximum());
-					notifyPlot();
-				}
+    private void validateRange(double a, double b) {
+        var task = TaskManager.getManagerInstance().getSelectedTask();
 
-			}
+        if (task == null) {
+            return;
+        }
 
-		});
+        var expCurve = task.getExperimentalCurve();
 
-		lowerLimitField.addFocusListener(ftfFocusListener);
-		upperLimitField.addFocusListener(ftfFocusListener);
+        if (expCurve == null) {
+            return;
+        }
 
-		limitRangeBtn.addActionListener(e -> {
-			if ((!lowerLimitField.isEditValid()) || (!upperLimitField.isEditValid())) { // The text is invalid.
-				if (userSaysRevert(lowerLimitField)) { // reverted
-					lowerLimitField.postActionEvent(); // inform the editor
-				}
-			}
+        var sb = new StringBuilder();
 
-			else {
-				var lower = ((Number) lowerLimitField.getValue()).doubleValue();
-				var upper = ((Number) upperLimitField.getValue()).doubleValue();
-				validateRange(lower, upper);
-				notifyPlot();
-			}
-		});
+        sb.append(Messages.getString("TextWrap.0"))
+                .append(getString("RangeSelectionFrame.ConfirmationMessage1"))
+                .append("<br>")
+                .append(getString("RangeSelectionFrame.ConfirmationMessage2"));
+        try {
+            sb.append(rtf.getLowerLimitField().getFormatter().valueToString(expCurve.getEffectiveStartTime()))
+                    .append(" to ")
+                    .append(rtf.getUpperLimitField().getFormatter().valueToString(expCurve.getEffectiveEndTime())
+                    );
+        } catch (ParseException ex) {
+            Logger.getLogger(ChartToolbar.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        sb.append("<br>").append(getString("RangeSelectionFrame.ConfirmationMessage3"))
+                .append(rtf.getLowerLimitField().getText())
+                .append(" to ")
+                .append(rtf.getUpperLimitField().getText())
+                .append(Messages.getString("TextWrap.1"));
 
-		gbc.weightx = 0.25;
-		add(limitRangeBtn, gbc);
+        String[] options = new String[]{"Apply to all", "Change current", "Cancel"};
 
-		adiabaticSolutionBtn.setToolTipText("Sanity check (original adiabatic solution)");
+        var dialogResult = showOptionDialog(getWindowAncestor(this),
+                sb.toString(), "Confirm chocie", JOptionPane.YES_NO_CANCEL_OPTION,
+                JOptionPane.QUESTION_MESSAGE, null, options, options[2]);
 
-		adiabaticSolutionBtn.addActionListener(e -> {
-			getChart().setZeroApproximationShown(adiabaticSolutionBtn.isSelected());
-			notifyPlot();
-		});
+        if (dialogResult == JOptionPane.NO_OPTION) {
+            //just set the range for this particular dataset
+            setRange(expCurve, a, b);
+        } else if (dialogResult == JOptionPane.YES_OPTION) {
+            // set range for all available experimental datasets
+            TaskManager.getManagerInstance().getTaskList()
+                    .stream().forEach((aTask)
+                            -> setRange(aTask.getExperimentalCurve(), a, b)
+                    );
+        }
 
-		gbc.weightx = 0.08;
-		add(adiabaticSolutionBtn, gbc);
+    }
 
-		residualsBtn.setToolTipText("Plot residuals");
-		residualsBtn.setSelected(true);
-
-		residualsBtn.addActionListener(e -> {
-			getChart().setResidualsShown(residualsBtn.isSelected());
-			notifyPlot();
-		});
-
-		add(residualsBtn, gbc);
-		add(pdfBtn, gbc);
-	}
-
-	public void addPlotRequestListener(PlotRequestListener plotRequestListener) {
-		listeners.add(plotRequestListener);
-	}
-
-	private void notifyPlot() {
-		listeners.stream().forEach(l -> l.onPlotRequest());
-	}
-
-	private static boolean userSaysRevert(JFormattedTextField ftf) {
-		getDefaultToolkit().beep();
-		ftf.selectAll();
-		Object[] options = { getString("NumberEditor.EditText"), getString("NumberEditor.RevertText") };
-		var answer = showOptionDialog(getWindowAncestor(ftf),
-				"<html>Time domain should be consistent with the experimental data range.<br>"
-						+ getString("NumberEditor.MessageLine1") + getString("NumberEditor.MessageLine2") + "</html>",
-				getString("NumberEditor.InvalidText"), YES_NO_OPTION, ERROR_MESSAGE, null, options, options[1]);
-
-		if (answer == 1) { // Revert!
-			ftf.setValue(ftf.getValue());
-			return true;
-		}
-		return false;
-	}
-
-	private void validateRange(double a, double b) {
-		var task = TaskManager.getManagerInstance().getSelectedTask();
-
-		if (task == null)
-			return;
-
-		var expCurve = task.getExperimentalCurve();
-
-		if (expCurve == null)
-			return;
-
-		var sb = new StringBuilder();
-
-		sb.append("<html><p>");
-		sb.append(getString("RangeSelectionFrame.ConfirmationMessage1"));
-		sb.append("</p><br>");
-		sb.append(getString("RangeSelectionFrame.ConfirmationMessage2"));
-		sb.append(format("%3.6f", expCurve.getEffectiveStartTime()));
-		sb.append(" to ");
-		sb.append(format("%3.6f", expCurve.getEffectiveEndTime()));
-		sb.append("<br><br>");
-		sb.append(getString("RangeSelectionFrame.ConfirmationMessage3"));
-		sb.append(format("%3.6f", a) + " to " + format("%3.6f", b));
-		sb.append("</html>");
-
-		var dialogResult = showConfirmDialog(getWindowAncestor(this), sb.toString(), "Confirm chocie", YES_NO_OPTION);
-
-		if (dialogResult == YES_OPTION) {
-			if(expCurve.getRange() == null)
-				expCurve.setRange(new Range(a, b));
-			else {
-				expCurve.getRange().setLowerBound(derive(LOWER_BOUND, a));
-				expCurve.getRange().setUpperBound(derive(UPPER_BOUND, b));
-			}
-		}
-
-	}
+    private void setRange(ExperimentalData expCurve, double a, double b) {
+        if (expCurve.getRange() == null) {
+            expCurve.setRange(new Range(a, b));
+        } else {
+            expCurve.getRange().setLowerBound(derive(LOWER_BOUND, a));
+            expCurve.getRange().setUpperBound(derive(UPPER_BOUND, b));
+        }
+    }
 
 }

@@ -18,7 +18,8 @@ import static pulse.ui.Messages.getString;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
-import java.awt.Stroke;
+import java.awt.event.MouseEvent;
+import javax.swing.SwingUtilities;
 
 import javax.swing.UIManager;
 
@@ -26,7 +27,6 @@ import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.annotations.XYTitleAnnotation;
 import org.jfree.chart.block.BlockBorder;
-import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.LegendTitle;
@@ -39,272 +39,353 @@ import pulse.AbstractData;
 import pulse.HeatingCurve;
 import pulse.input.ExperimentalData;
 import pulse.input.IndexRange;
+import pulse.input.Range;
+import pulse.input.listeners.DataEvent;
+import pulse.properties.NumericProperties;
+import static pulse.properties.NumericPropertyKeyword.LOWER_BOUND;
+import static pulse.properties.NumericPropertyKeyword.UPPER_BOUND;
 import pulse.tasks.Calculation;
 import pulse.tasks.SearchTask;
+import pulse.tasks.TaskManager;
+import pulse.tasks.listeners.TaskRepositoryEvent;
+import pulse.ui.components.listeners.MouseOnMarkerListener;
 
 public class Chart {
 
-	private ChartPanel chartPanel;
-	private JFreeChart chart;
-	private XYPlot plot;
+    private ChartPanel chartPanel;
+    private JFreeChart chart;
+    private XYPlot plot;
 
-	private float opacity = 0.15f;
-	private boolean residualsShown = true;
-	private boolean zeroApproximationShown = false;
+    private float opacity = 0.15f;
+    private boolean residualsShown = true;
+    private boolean zeroApproximationShown = false;
 
-	private final static double TO_MILLIS = 1E3;
-	private final static double RANGE_THRESHOLD = 1E-1;
-	private double factor;
+    private final static double TO_MILLIS = 1E3;
+    private final static double RANGE_THRESHOLD = 1E-1;
+    private double factor;
 
-	public Chart() {
-		chart = createScatterPlot("", getString("Charting.TimeAxisLabel"), (getString("Charting.TemperatureAxisLabel")),
-				null, VERTICAL, true, true, false);
+    private MovableValueMarker lowerMarker;
+    private MovableValueMarker upperMarker;
 
-		plot = chart.getXYPlot();
-		setRenderers();
-		setBackgroundAndGrid();
-		setLegendTitle();
-		setFonts();
+    public Chart() {
+        chart = createScatterPlot("", getString("Charting.TimeAxisLabel"), (getString("Charting.TemperatureAxisLabel")),
+                null, VERTICAL, true, true, false);
 
-		chart.removeLegend();
-		chart.setBackgroundPaint(UIManager.getColor("Panel.background"));
-		chartPanel = new ChartPanel(chart);
-	}
+        plot = chart.getXYPlot();
+        setRenderers();
+        setBackgroundAndGrid();
+        setLegendTitle();
+        setFonts();
 
-	private void setFonts() {
-		var fontLabel = new Font("Arial", Font.PLAIN, 20);
-		var fontTicks = new Font("Arial", Font.PLAIN, 14);
-		plot.getDomainAxis().setLabelFont(fontLabel);
-		plot.getDomainAxis().setTickLabelFont(fontTicks);
-		plot.getRangeAxis().setLabelFont(fontLabel);
-		plot.getRangeAxis().setTickLabelFont(fontTicks);
-	}
+        final TaskManager instance = TaskManager.getManagerInstance();
 
-	private void setBackgroundAndGrid() {
-		// plot.setBackgroundPaint(UIManager.getColor("Panel.background"));
-		plot.setRangeGridlinesVisible(true);
-		plot.setRangeGridlinePaint(GRAY);
+        chart.removeLegend();
+        chart.setBackgroundPaint(UIManager.getColor("Panel.background"));
+        chartPanel = new ChartPanel(chart) {
 
-		plot.setDomainGridlinesVisible(true);
-		plot.setDomainGridlinePaint(GRAY);
-	}
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                if (lowerMarker == null || upperMarker == null) {
+                    super.mouseDragged(e);
+                }
 
-	private void setLegendTitle() {
-		var lt = new LegendTitle(plot);
-		lt.setItemFont(new Font("Dialog", PLAIN, 14));
-		lt.setBackgroundPaint(new Color(200, 200, 255, 100));
-		lt.setFrame(new BlockBorder(black));
-		lt.setPosition(RectangleEdge.RIGHT);
-		var ta = new XYTitleAnnotation(0.98, 0.2, lt, RectangleAnchor.RIGHT);
-		ta.setMaxWidth(0.58);
-		plot.addAnnotation(ta);
-	}
+                SwingUtilities.invokeLater(() -> {
+                    
+                    //process dragged events        
+                    Range range = instance.getSelectedTask()
+                            .getExperimentalCurve().getRange();
+                    double value = xCoord(e);
 
-	private void setRenderers() {
-		var renderer = (XYLineAndShapeRenderer) chart.getXYPlot().getRenderer();
-		renderer.setDefaultShapesFilled(false);
-		renderer.setUseFillPaint(false);
-		renderer.setSeriesPaint(0, new Color(1.0f, 0.0f, 0.0f, opacity));
+                    if (lowerMarker.getState() != MovableValueMarker.State.IDLE) {
+                        if (range.boundLimits(false).contains(value)) {
+                            range.setLowerBound(NumericProperties.derive(LOWER_BOUND, value));
+                        }
+                    } else if (upperMarker.getState() != MovableValueMarker.State.IDLE) {
+                        if (range.boundLimits(true).contains(value)) {
+                            range.setUpperBound(NumericProperties.derive(UPPER_BOUND, value));
+                        }
+                    } else {
+                        super.mouseDragged(e);
+                    }
+                    
+                });
 
-		var rendererLines = new XYLineAndShapeRenderer();
-		rendererLines.setSeriesPaint(0, BLUE);
-		rendererLines.setSeriesStroke(0, new BasicStroke(2.0f));
-		rendererLines.setSeriesShapesVisible(0, false);
+            }
 
-		var rendererResiduals = new XYLineAndShapeRenderer();
-		rendererResiduals.setSeriesPaint(0, GREEN);
-		rendererResiduals.setSeriesShapesVisible(0, false);
+        };
 
-		var rendererClassic = new XYLineAndShapeRenderer();
-		rendererClassic.setSeriesPaint(0, BLACK);
-		rendererClassic.setSeriesShapesVisible(0, false);
+        instance.addTaskRepositoryListener((TaskRepositoryEvent e) -> {
+            //for each new task
+            var eventTask = instance.getTask(e.getId());
+            if (e.getState() == TaskRepositoryEvent.State.TASK_ADDED) {
+                //add passive data listener
+                eventTask.getExperimentalCurve().addDataListener((DataEvent e1) -> {
+                    //that will be triggered only when this task is selected
+                    if (instance.getSelectedTask() == eventTask) {
+                        //update marker values
+                        var segment = eventTask.getExperimentalCurve().getRange().getSegment();
+                        lowerMarker.setValue(segment.getMinimum());
+                        upperMarker.setValue(segment.getMaximum());
+                    }
+                });
+            } //tasks that have been finihed
+            else if (e.getState() == TaskRepositoryEvent.State.TASK_FINISHED
+                    && instance.getSelectedTask() == eventTask) {
+                //add passive data listener
+                plot(eventTask, false);
+            }
+        });
 
-		var rendererOld = new XYLineAndShapeRenderer();
-		rendererOld.setSeriesPaint(0, BLUE);
-		rendererOld.setSeriesStroke(0, new BasicStroke(2.0f, CAP_BUTT, JOIN_MITER, 2.0f, new float[] { 10f }, 0));
-		rendererOld.setSeriesShapesVisible(0, false);
+    }
 
-		plot.setRenderer(0, rendererLines);
-		plot.setRenderer(1, rendererResiduals);
-		plot.setRenderer(2, rendererClassic);
-		plot.setRenderer(3, renderer);
+    public double xCoord(MouseEvent e) {
+        double xVirtual = e.getX();
+        return plot.getDomainAxis().java2DToValue(xVirtual,
+                chartPanel.getScreenDataArea(), plot.getDomainAxisEdge());
+    }
 
-	}
+    private void setFonts() {
+        var fontLabel = new Font("Arial", Font.PLAIN, 20);
+        var fontTicks = new Font("Arial", Font.PLAIN, 14);
+        plot.getDomainAxis().setLabelFont(fontLabel);
+        plot.getDomainAxis().setTickLabelFont(fontTicks);
+        plot.getRangeAxis().setLabelFont(fontLabel);
+        plot.getRangeAxis().setTickLabelFont(fontTicks);
+    }
 
-	private void adjustAxisLabel(double maximum) {
-		if (maximum < RANGE_THRESHOLD) {
-			factor = TO_MILLIS;
-			plot.getDomainAxis().setLabel("Time (ms)");
-		} else {
-			factor = 1.0;
-			plot.getDomainAxis().setLabel("Time (s)");
-		}
-	}
+    private void setBackgroundAndGrid() {
+        // plot.setBackgroundPaint(UIManager.getColor("Panel.background"));
+        plot.setRangeGridlinesVisible(true);
+        plot.setRangeGridlinePaint(GRAY);
 
-	public void plot(SearchTask task, boolean extendedCurve) {
-		requireNonNull(task);
+        plot.setDomainGridlinesVisible(true);
+        plot.setDomainGridlinePaint(GRAY);
+    }
 
-		var plot = chart.getXYPlot();
+    private void setLegendTitle() {
+        var lt = new LegendTitle(plot);
+        lt.setItemFont(new Font("Dialog", PLAIN, 14));
+        lt.setBackgroundPaint(new Color(200, 200, 255, 100));
+        lt.setFrame(new BlockBorder(black));
+        lt.setPosition(RectangleEdge.RIGHT);
+        var ta = new XYTitleAnnotation(0.98, 0.2, lt, RectangleAnchor.RIGHT);
+        ta.setMaxWidth(0.58);
+        plot.addAnnotation(ta);
+    }
 
-		for (int i = 0; i < 6; i++)
-			plot.setDataset(i, null);
+    private void setRenderers() {
+        var renderer = (XYLineAndShapeRenderer) chart.getXYPlot().getRenderer();
+        renderer.setDefaultShapesFilled(false);
+        renderer.setUseFillPaint(false);
+        renderer.setSeriesPaint(0, new Color(1.0f, 0.0f, 0.0f, opacity));
 
-		var rawData = task.getExperimentalCurve();
-		var segment = rawData.getRange().getSegment();
+        var rendererLines = new XYLineAndShapeRenderer();
+        rendererLines.setSeriesPaint(0, BLUE);
+        rendererLines.setSeriesStroke(0, new BasicStroke(2.0f));
+        rendererLines.setSeriesShapesVisible(0, false);
 
-		adjustAxisLabel(segment.getMaximum());
+        var rendererResiduals = new XYLineAndShapeRenderer();
+        rendererResiduals.setSeriesPaint(0, GREEN);
+        rendererResiduals.setSeriesShapesVisible(0, false);
 
-		factor = segment.getMaximum() < RANGE_THRESHOLD ? TO_MILLIS : 1.0;
+        var rendererClassic = new XYLineAndShapeRenderer();
+        rendererClassic.setSeriesPaint(0, BLACK);
+        rendererClassic.setSeriesShapesVisible(0, false);
 
-		var rawDataset = new XYSeriesCollection();
+        var rendererOld = new XYLineAndShapeRenderer();
+        rendererOld.setSeriesPaint(0, BLUE);
+        rendererOld.setSeriesStroke(0, new BasicStroke(2.0f, CAP_BUTT, JOIN_MITER, 2.0f, new float[]{10f}, 0));
+        rendererOld.setSeriesShapesVisible(0, false);
 
-		rawDataset.addSeries(series(rawData, "Raw data (" + task.getIdentifier() + ")", extendedCurve));
-		plot.setDataset(3, rawDataset);
-		plot.getRenderer(3).setSeriesPaint(0, new Color(1.0f, 0.0f, 0.0f, opacity));
+        plot.setRenderer(0, rendererLines);
+        plot.setRenderer(1, rendererResiduals);
+        plot.setRenderer(2, rendererClassic);
+        plot.setRenderer(3, renderer);
 
-		plot.clearDomainMarkers();
+    }
 
-		var lowerMarker = new ValueMarker(segment.getMinimum() * factor);
+    private void adjustAxisLabel(double maximum) {
+        if (maximum < RANGE_THRESHOLD) {
+            factor = TO_MILLIS;
+            plot.getDomainAxis().setLabel("Time (ms)");
+        } else {
+            factor = 1.0;
+            plot.getDomainAxis().setLabel("Time (s)");
+        }
+    }
 
-		Stroke dashed = new BasicStroke(1.5f, CAP_BUTT, JOIN_MITER, 5.0f, new float[] { 10f }, 0.0f);
+    public void plot(SearchTask task, boolean extendedCurve) {
+        requireNonNull(task);
 
-		lowerMarker.setPaint(black);
-		lowerMarker.setStroke(dashed);
+        var plot = chart.getXYPlot();
 
-		var upperMarker = new ValueMarker(segment.getMaximum() * factor);
-		upperMarker.setPaint(black);
-		upperMarker.setStroke(dashed);
+        for (int i = 0; i < 6; i++) {
+            plot.setDataset(i, null);
+        }
 
-		plot.addDomainMarker(upperMarker);
-		plot.addDomainMarker(lowerMarker);
+        var rawData = task.getExperimentalCurve();
+        var segment = rawData.getRange().getSegment();
 
-		var calc = task.getCurrentCalculation();
-		var problem = calc.getProblem();
+        adjustAxisLabel(segment.getMaximum());
 
-		if (problem != null) {
+        factor = segment.getMaximum() < RANGE_THRESHOLD ? TO_MILLIS : 1.0;
 
-			var solution = problem.getHeatingCurve();
-			var scheme = calc.getScheme();
+        var rawDataset = new XYSeriesCollection();
 
-			if (solution != null && scheme != null && !solution.isIncomplete()) {
+        rawDataset.addSeries(series(rawData, "Raw data (" + task.getIdentifier() + ")", extendedCurve));
+        plot.setDataset(3, rawDataset);
+        plot.getRenderer(3).setSeriesPaint(0, new Color(1.0f, 0.0f, 0.0f, opacity));
 
-				var solutionDataset = new XYSeriesCollection();
-				var displayedCurve = extendedCurve ? solution.extendedTo(rawData, problem.getBaseline()) : solution;
+        plot.clearDomainMarkers();
 
-				solutionDataset
-						.addSeries(series(displayedCurve, "Solution with " + scheme.getSimpleName(), extendedCurve));
-				plot.setDataset(0, solutionDataset);
+        lowerMarker = new MovableValueMarker(segment.getMinimum() * factor);
+        upperMarker = new MovableValueMarker(segment.getMaximum() * factor);
 
-				/*
+        final double margin = segment.getMaximum() / 20.0;
+
+        //add listener to handle range adjustment
+        var lowerMarkerListener = new MouseOnMarkerListener(this, lowerMarker, margin);
+        var upperMarkerListener = new MouseOnMarkerListener(this, upperMarker, margin);
+
+        chartPanel.addChartMouseListener(lowerMarkerListener);
+        chartPanel.addChartMouseListener(upperMarkerListener);
+
+        plot.addDomainMarker(upperMarker);
+        plot.addDomainMarker(lowerMarker);
+
+        var calc = task.getCurrentCalculation();
+        var problem = calc.getProblem();
+
+        if (problem != null) {
+
+            var solution = problem.getHeatingCurve();
+            var scheme = calc.getScheme();
+
+            if (solution != null && scheme != null && !solution.isIncomplete()) {
+
+                var solutionDataset = new XYSeriesCollection();
+                var displayedCurve = extendedCurve ? solution.extendedTo(rawData, problem.getBaseline()) : solution;
+
+                solutionDataset
+                        .addSeries(series(displayedCurve, "Solution with " + scheme.getSimpleName(), extendedCurve));
+                plot.setDataset(0, solutionDataset);
+
+                /*
 				 * plot residuals
-				 */
+                 */
+                if (residualsShown) {
+                    var residuals = calc.getOptimiserStatistic().getResiduals();
+                    if (residuals != null && residuals.size() > 0) {
+                        var residualsDataset = new XYSeriesCollection();
+                        residualsDataset.addSeries(residuals(calc));
+                        plot.setDataset(1, residualsDataset);
+                    }
+                }
 
-				if (residualsShown) {
-					var residuals = calc.getOptimiserStatistic().getResiduals();
-					if (residuals != null && residuals.size() > 0) {
-						var residualsDataset = new XYSeriesCollection();
-						residualsDataset.addSeries(residuals(calc));
-						plot.setDataset(1, residualsDataset);
-					}
-				}
+            }
 
-			}
+        }
 
-		}
+        if (zeroApproximationShown) {
+            var p = calc.getProblem();
+            var s = calc.getScheme();
 
-		if (zeroApproximationShown) {
-			var p = calc.getProblem();
-			var s = calc.getScheme();
+            if (p != null && s != null) {
+                plotSingle(classicSolution(p, (double) (s.getTimeLimit().getValue())));
+            }
+        }
 
-			if (p != null && s != null)
-				plotSingle(classicSolution(p, (double) (s.getTimeLimit().getValue())));
-		}
+    }
 
-	}
+    public void plotSingle(HeatingCurve curve) {
+        requireNonNull(curve);
 
-	public void plotSingle(HeatingCurve curve) {
-		requireNonNull(curve);
+        var plot = chart.getXYPlot();
 
-		var plot = chart.getXYPlot();
+        var classicDataset = new XYSeriesCollection();
 
-		var classicDataset = new XYSeriesCollection();
+        classicDataset.addSeries(series(curve, curve.getName(), false));
 
-		classicDataset.addSeries(series(curve, curve.getName(), false));
+        plot.setDataset(2, classicDataset);
+        plot.getRenderer(2).setSeriesPaint(0, black);
+    }
 
-		plot.setDataset(2, classicDataset);
-		plot.getRenderer(2).setSeriesPaint(0, black);
-	}
+    public XYSeries series(HeatingCurve curve, String title, boolean extendedCurve) {
+        final int realCount = curve.getBaselineCorrectedData().size();
+        final double startTime = (double) ((HeatingCurve) curve).getTimeShift().getValue();
+        return series(curve, title, startTime, realCount, extendedCurve);
+    }
 
-	public XYSeries series(HeatingCurve curve, String title, boolean extendedCurve) {
-		final int realCount = curve.getBaselineCorrectedData().size();
-		final double startTime = (double) ((HeatingCurve) curve).getTimeShift().getValue();
-		return series(curve, title, startTime, realCount, extendedCurve);
-	}
+    public XYSeries series(ExperimentalData curve, String title, boolean extendedCurve) {
+        return series(curve, title, 0, curve.actualNumPoints(), extendedCurve);
+    }
 
-	public XYSeries series(ExperimentalData curve, String title, boolean extendedCurve) {
-		return series(curve, title, 0, curve.actualNumPoints(), extendedCurve);
-	}
+    private XYSeries series(AbstractData curve, String title, final double startTime, final int realCount,
+            boolean extendedCurve) {
+        var series = new XYSeries(title);
 
-	private XYSeries series(AbstractData curve, String title, final double startTime, final int realCount,
-			boolean extendedCurve) {
-		var series = new XYSeries(title);
+        int iStart = IndexRange.closestLeft(startTime < 0 ? startTime : 0, curve.getTimeSequence());
 
-		int iStart = IndexRange.closestLeft(startTime < 0 ? startTime : 0, curve.getTimeSequence());
+        for (var i = 0; i < iStart && extendedCurve; i++) {
+            series.add(factor * curve.timeAt(i), curve.signalAt(i));
+        }
 
-		for (var i = 0; i < iStart && extendedCurve; i++)
-			series.add(factor * curve.timeAt(i), curve.signalAt(i));
+        for (var i = iStart; i < realCount; i++) {
+            series.add(factor * curve.timeAt(i), curve.signalAt(i));
+        }
 
-		for (var i = iStart; i < realCount; i++)
-			series.add(factor * curve.timeAt(i), curve.signalAt(i));
+        return series;
+    }
 
-		return series;
-	}
+    public XYSeries residuals(Calculation calc) {
+        var problem = calc.getProblem();
+        var baseline = problem.getBaseline();
 
-	public XYSeries residuals(Calculation calc) {
-		var problem = calc.getProblem();
-		var baseline = problem.getBaseline();
+        var residuals = calc.getOptimiserStatistic().getResiduals();
+        var size = residuals.size();
 
-		var residuals = calc.getOptimiserStatistic().getResiduals();
-		var size = residuals.size();
+        final var span = problem.getHeatingCurve().maxAdjustedSignal() - baseline.valueAt(0);
+        final var offset = baseline.valueAt(0) - span / 2.0;
 
-		final var span = problem.getHeatingCurve().maxAdjustedSignal() - baseline.valueAt(0);
-		final var offset = baseline.valueAt(0) - span / 2.0;
+        var series = new XYSeries(format("Residuals (offset %3.2f)", offset));
 
-		var series = new XYSeries(format("Residuals (offset %3.2f)", offset));
+        for (var i = 0; i < size; i++) {
+            series.add(factor * residuals.get(i)[0], (Number) (residuals.get(i)[1] + offset));
+        }
 
-		for (var i = 0; i < size; i++) {
-			series.add(factor * residuals.get(i)[0], (Number) (residuals.get(i)[1] + offset));
-		}
+        return series;
+    }
 
-		return series;
-	}
+    public void setOpacity(float opacity) {
+        this.opacity = opacity;
+    }
 
-	public void setOpacity(float opacity) {
-		this.opacity = opacity;
-	}
+    public double getOpacity() {
+        return opacity;
+    }
 
-	public double getOpacity() {
-		return opacity;
-	}
+    public boolean isResidualsShown() {
+        return residualsShown;
+    }
 
-	public boolean isResidualsShown() {
-		return residualsShown;
-	}
+    public void setResidualsShown(boolean residualsShown) {
+        this.residualsShown = residualsShown;
+    }
 
-	public void setResidualsShown(boolean residualsShown) {
-		this.residualsShown = residualsShown;
-	}
+    public boolean isZeroApproximationShown() {
+        return zeroApproximationShown;
+    }
 
-	public boolean isZeroApproximationShown() {
-		return zeroApproximationShown;
-	}
+    public void setZeroApproximationShown(boolean zeroApproximationShown) {
+        this.zeroApproximationShown = zeroApproximationShown;
+    }
 
-	public void setZeroApproximationShown(boolean zeroApproximationShown) {
-		this.zeroApproximationShown = zeroApproximationShown;
-	}
+    public ChartPanel getChartPanel() {
+        return chartPanel;
+    }
 
-	public ChartPanel getChartPanel() {
-		return chartPanel;
-	}
+    public XYPlot getChartPlot() {
+        return plot;
+    }
 
 }
