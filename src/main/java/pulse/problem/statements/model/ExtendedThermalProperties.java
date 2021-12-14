@@ -9,12 +9,14 @@ import static pulse.properties.NumericPropertyKeyword.HEAT_LOSS_SIDE;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import pulse.input.ExperimentalData;
 import pulse.properties.NumericProperties;
 import static pulse.properties.NumericProperties.def;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
+import static pulse.properties.NumericPropertyKeyword.DIATHERMIC_COEFFICIENT;
 import static pulse.properties.NumericPropertyKeyword.HEAT_LOSS;
 import static pulse.properties.NumericPropertyKeyword.HEAT_LOSS_COMBINED;
 import pulse.properties.Property;
@@ -120,15 +122,14 @@ public class ExtendedThermalProperties extends ThermalProperties {
     }
 
     @Override
-    public List<Property> listedTypes() {
-        List<Property> list = new ArrayList<>();
-        list.addAll(super.listedTypes());
-        list.add(def(HEAT_LOSS_SIDE));
-        list.add(def(HEAT_LOSS_COMBINED));
-        list.add(def(DIAMETER));
-        list.add(def(FOV_OUTER));
-        list.add(def(FOV_INNER));
-        return list;
+    public Set<NumericPropertyKeyword> listedKeywords() {
+        var set = super.listedKeywords();
+        set.add(HEAT_LOSS_SIDE);
+        set.add(HEAT_LOSS_COMBINED);
+        set.add(DIAMETER);
+        set.add(FOV_OUTER);
+        set.add(FOV_INNER);
+        return set;
     }
 
     @Override
