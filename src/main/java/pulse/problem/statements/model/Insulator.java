@@ -5,6 +5,7 @@ import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.REFLECTANCE;
 
 import java.util.List;
+import java.util.Set;
 
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
@@ -43,10 +44,10 @@ public class Insulator extends AbsorptionModel {
     }
 
     @Override
-    public List<Property> listedTypes() {
-        List<Property> list = super.listedTypes();
-        list.add(def(REFLECTANCE));
-        return list;
+    public Set<NumericPropertyKeyword> listedKeywords() {
+        var set = super.listedKeywords();
+        set.add(REFLECTANCE);
+        return set;
     }
 
 }

@@ -4,43 +4,40 @@ package pulse.properties;
  * The basic interface for properties. The only declared functionality consists
  * in the ability to report the associated value and deliver text description.
  */
-
 public interface Property {
 
-	/**
-	 * Retrieves the value of this {@code Property}.
-	 * 
-	 * @return an object representing the value of this {@code Property}
-	 */
+    /**
+     * Retrieves the value of this {@code Property}.
+     *
+     * @return an object representing the value of this {@code Property}
+     */
+    public Object getValue();
 
-	public Object getValue();
+    /**
+     * Formats the value so that it is suitable for output using the GUI or
+     * console.
+     *
+     * @return a formatted {@code String} representing the {@code value}
+     */
+    public default String formattedOutput() {
+        return getValue().toString();
+    }
 
-	/**
-	 * Formats the value so that it is suitable for output using the GUI or console.
-	 * 
-	 * @return a formatted {@code String} representing the {@code value}
-	 */
+    /**
+     * Creates a {@code String} to describe this property (often used in GUI
+     * applications).
+     *
+     * @param addHtmlTags if {@code true}, adds the 'html' tags at both ends of
+     * the descriptor {@code String}.
+     * @return a {@code String}, with or without 'html' tags, describing this
+     * {@code Property}
+     */
+    public String getDescriptor(boolean addHtmlTags);
 
-	public default String formattedOutput() {
-		return getValue().toString();
-	};
+    public boolean attemptUpdate(Object value);
 
-	/**
-	 * Creates a {@code String} to describe this property (often used in GUI
-	 * applications).
-	 * 
-	 * @param addHtmlTags if {@code true}, adds the 'html' tags at both ends of the
-	 *                    descriptor {@code String}.
-	 * @return a {@code String}, with or without 'html' tags, describing this
-	 *         {@code Property}
-	 */
-
-	public String getDescriptor(boolean addHtmlTags);
-
-	public boolean attemptUpdate(Object value);
-	
-	public default Object identifier() {
-		return getClass();
-	}
+    public default Object identifier() {
+        return getClass();
+    }
 
 }

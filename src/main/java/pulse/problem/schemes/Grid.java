@@ -11,10 +11,12 @@ import static pulse.properties.NumericPropertyKeyword.TAU_FACTOR;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import pulse.problem.laser.DiscretePulse;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
+import static pulse.properties.NumericPropertyKeyword.NONLINEAR_PRECISION;
 import pulse.properties.Property;
 import pulse.util.PropertyHolder;
 
@@ -28,218 +30,207 @@ import pulse.util.PropertyHolder;
  * </p>
  *
  */
-
 public class Grid extends PropertyHolder {
 
-	private double hx;
-	private double tau;
-	private double tauFactor;
-	private int N;
+    private double hx;
+    private double tau;
+    private double tauFactor;
+    private int N;
 
-	/**
-	 * Creates a {@code Grid} object with the specified {@code gridDensity} and
-	 * {@code timeFactor}.
-	 * 
-	 * @param gridDensity a {@code NumericProperty} of the type {@code GRID_DENSITY}
-	 * @param timeFactor  a {@code NumericProperty} of the type {@code TIME_FACTOR}
-	 * @see pulse.properties.NumericPropertyKeyword
-	 */
+    /**
+     * Creates a {@code Grid} object with the specified {@code gridDensity} and
+     * {@code timeFactor}.
+     *
+     * @param gridDensity a {@code NumericProperty} of the type
+     * {@code GRID_DENSITY}
+     * @param timeFactor a {@code NumericProperty} of the type
+     * {@code TIME_FACTOR}
+     * @see pulse.properties.NumericPropertyKeyword
+     */
+    public Grid(NumericProperty gridDensity, NumericProperty timeFactor) {
+        setGridDensity(gridDensity);
+        setTimeFactor(timeFactor);
+    }
 
-	public Grid(NumericProperty gridDensity, NumericProperty timeFactor) {
-		setGridDensity(gridDensity);
-		setTimeFactor(timeFactor);
-	}
+    protected Grid() {
+        // intentionally blank
+    }
 
-	protected Grid() {
-		// intentionally blank
-	}
+    /**
+     * Creates a new {@code Grid} object with exactly the same parameters as
+     * this one.
+     *
+     * @return a new {@code Grid} object replicating this {@code Grid}
+     */
+    public Grid copy() {
+        return new Grid(getGridDensity(), getTimeFactor());
+    }
 
-	/**
-	 * Creates a new {@code Grid} object with exactly the same parameters as this
-	 * one.
-	 * 
-	 * @return a new {@code Grid} object replicating this {@code Grid}
-	 */
+    /**
+     * Optimises the {@code Grid} parameters.
+     * <p>
+     * This can change the {@code tauFactor} and {@code tau} variables in the
+     * {@code Grid} object if {@code discretePulseWidth < grid.tau}.
+     * </p>
+     *
+     * @param pulse the discrete pulse representation
+     */
+    public void adjustTo(DiscretePulse pulse) {
+        final double ADJUSTMENT_FACTOR = 0.75;
+        for (final double factor = 0.95; factor * tau > pulse.getDiscreteWidth(); pulse.recalculate()) {
+            tauFactor *= ADJUSTMENT_FACTOR;
+            tau = tauFactor * pow(hx, 2);
+        }
+    }
 
-	public Grid copy() {
-		return new Grid(getGridDensity(), getTimeFactor());
-	}
+    /**
+     * The listed properties include {@code GRID_DENSITY} and
+     * {@code TAU_FACTOR}.
+     */
+    @Override
+    public Set<NumericPropertyKeyword> listedKeywords() {
+        var set = super.listedKeywords();
+        set.add(GRID_DENSITY);
+        set.add(TAU_FACTOR);
+        return set;
+    }
 
-	/**
-	 * Optimises the {@code Grid} parameters.
-	 * <p>
-	 * This can change the {@code tauFactor} and {@code tau} variables in the
-	 * {@code Grid} object if {@code discretePulseWidth < grid.tau}.
-	 * </p>
-	 * 
-	 * @param pulse the discrete pulse representation
-	 */
+    @Override
+    public void set(NumericPropertyKeyword type, NumericProperty property) {
+        switch (type) {
+            case TAU_FACTOR:
+                setTimeFactor(property);
+                break;
+            case GRID_DENSITY:
+                setGridDensity(property);
+                break;
+            default:
+                break;
+        }
+    }
 
-	public void adjustTo(DiscretePulse pulse) {
-		final double ADJUSTMENT_FACTOR = 0.75;
-		for (final double factor = 0.95; factor * tau > pulse.getDiscreteWidth(); pulse.recalculate()) {
-			tauFactor *= ADJUSTMENT_FACTOR;
-			tau = tauFactor * pow(hx, 2);
-		}
-	}
+    /**
+     * Retrieves the value of the <math><i>h<sub>x</sub></i></math> coordinate
+     * step used in finite-difference calculation.
+     *
+     * @return a double, representing the {@code hx} value.
+     */
+    public double getXStep() {
+        return hx;
+    }
 
-	/**
-	 * The listed properties include {@code GRID_DENSITY} and {@code TAU_FACTOR}.
-	 */
+    /**
+     * Sets the value of the <math><i>h<sub>x</sub></i></math> coordinate step.
+     *
+     * @param hx a double, representing the new {@code hx} value.
+     */
+    public void setXStep(double hx) {
+        this.hx = hx;
+    }
 
-	@Override
-	public List<Property> listedTypes() {
-		List<Property> list = new ArrayList<>(2);
-		list.add(def(GRID_DENSITY));
-		list.add(def(TAU_FACTOR));
-		return list;
-	}
+    /**
+     * Retrieves the value of the &tau; time step used in finite-difference
+     * calculation.
+     *
+     * @return a double, representing the {@code tau} value.
+     */
+    public double getTimeStep() {
+        return tau;
+    }
 
-	@Override
-	public void set(NumericPropertyKeyword type, NumericProperty property) {
-		switch (type) {
-		case TAU_FACTOR:
-			setTimeFactor(property);
-			break;
-		case GRID_DENSITY:
-			setGridDensity(property);
-			break;
-		default:
-			break;
-		}
-	}
+    protected void setTimeStep(double tau) {
+        this.tau = tau;
+    }
 
-	/**
-	 * Retrieves the value of the <math><i>h<sub>x</sub></i></math> coordinate step
-	 * used in finite-difference calculation.
-	 * 
-	 * @return a double, representing the {@code hx} value.
-	 */
+    /**
+     * Retrieves the value of the &tau;-factor, or the time factor, used in
+     * finite-difference calculation. This factor determines the proportionally
+     * coefficient between &tau; and <math><i>h<sub>x</sub></i></math>.
+     *
+     * @return a NumericProperty of the {@code TAU_FACTOR} type, representing
+     * the {@code tauFactor} value.
+     */
+    public NumericProperty getTimeFactor() {
+        return derive(TAU_FACTOR, tauFactor);
+    }
 
-	public double getXStep() {
-		return hx;
-	}
+    /**
+     * Retrieves the value of the {@code gridDensity} used to calculate the
+     * {@code hx} and {@code tau}.
+     *
+     * @return a NumericProperty of the {@code GRID_DENSITY} type, representing
+     * the {@code gridDensity} value.
+     */
+    public NumericProperty getGridDensity() {
+        return derive(GRID_DENSITY, N);
+    }
 
-	/**
-	 * Sets the value of the <math><i>h<sub>x</sub></i></math> coordinate step.
-	 * 
-	 * @param hx a double, representing the new {@code hx} value.
-	 */
+    protected int getGridDensityValue() {
+        return N;
+    }
 
-	public void setXStep(double hx) {
-		this.hx = hx;
-	}
+    protected void setGridDensityValue(int N) {
+        this.N = N;
+    }
 
-	/**
-	 * Retrieves the value of the &tau; time step used in finite-difference
-	 * calculation.
-	 * 
-	 * @return a double, representing the {@code tau} value.
-	 */
+    /**
+     * Sets the value of the {@code gridDensity}. Automatically recalculates the
+     * {@code hx} value.
+     *
+     * @param gridDensity a NumericProperty of the {@code GRID_DENSITY} type
+     */
+    public void setGridDensity(NumericProperty gridDensity) {
+        requireType(gridDensity, GRID_DENSITY);
+        this.N = (int) gridDensity.getValue();
+        hx = 1. / N;
+        setTimeFactor(derive(TAU_FACTOR, 1.0));
+    }
 
-	public double getTimeStep() {
-		return tau;
-	}
+    /**
+     * Sets the value of the {@code tauFactor}. Automatically recalculates the
+     * {@code tau} value.
+     *
+     * @param timeFactor a NumericProperty of the {@code TAU_FACTOR} type
+     */
+    public void setTimeFactor(NumericProperty timeFactor) {
+        requireType(timeFactor, TAU_FACTOR);
+        this.tauFactor = (double) timeFactor.getValue();
+        setTimeStep(tauFactor * pow(hx, 2));
+    }
 
-	protected void setTimeStep(double tau) {
-		this.tau = tau;
-	}
+    /**
+     * The dimensionless time on this {@code Grid}, which is the
+     * {@code time/dimensionFactor} rounded up to a factor of the time step
+     * {@code tau}.
+     *
+     * @param time the time
+     * @param dimensionFactor a conversion factor with the dimension of time
+     * @return a double representing the time on the finite grid
+     */
+    public double gridTime(double time, double dimensionFactor) {
+        return rint((time / dimensionFactor) / tau) * tau;
+    }
 
-	/**
-	 * Retrieves the value of the &tau;-factor, or the time factor, used in
-	 * finite-difference calculation. This factor determines the proportionally
-	 * coefficient between &tau; and <math><i>h<sub>x</sub></i></math>.
-	 * 
-	 * @return a NumericProperty of the {@code TAU_FACTOR} type, representing the
-	 *         {@code tauFactor} value.
-	 */
+    /**
+     * The dimensionless axial distance on this {@code Grid}, which is the
+     * {@code distance/lengthFactor} rounded up to a factor of the coordinate
+     * step {@code hx}.
+     *
+     * @param distance the distance along the axial direction
+     * @param lengthFactor a conversion factor with the dimension of length
+     * @return a double representing the axial distance on the finite grid
+     */
+    public double gridAxialDistance(double distance, double lengthFactor) {
+        return rint((distance / lengthFactor) / hx) * hx;
+    }
 
-	public NumericProperty getTimeFactor() {
-		return derive(TAU_FACTOR, tauFactor);
-	}
-
-	/**
-	 * Retrieves the value of the {@code gridDensity} used to calculate the
-	 * {@code hx} and {@code tau}.
-	 * 
-	 * @return a NumericProperty of the {@code GRID_DENSITY} type, representing the
-	 *         {@code gridDensity} value.
-	 */
-
-	public NumericProperty getGridDensity() {
-		return derive(GRID_DENSITY, N);
-	}
-
-	protected int getGridDensityValue() {
-		return N;
-	}
-
-	protected void setGridDensityValue(int N) {
-		this.N = N;
-	}
-
-	/**
-	 * Sets the value of the {@code gridDensity}. Automatically recalculates the
-	 * {@code hx} value.
-	 * 
-	 * @param gridDensity a NumericProperty of the {@code GRID_DENSITY} type
-	 */
-
-	public void setGridDensity(NumericProperty gridDensity) {
-		requireType(gridDensity, GRID_DENSITY);
-		this.N = (int) gridDensity.getValue();
-		hx = 1. / N;
-		setTimeFactor(derive(TAU_FACTOR, 1.0));
-	}
-
-	/**
-	 * Sets the value of the {@code tauFactor}. Automatically recalculates the
-	 * {@code tau} value.
-	 * 
-	 * @param timeFactor a NumericProperty of the {@code TAU_FACTOR} type
-	 */
-
-	public void setTimeFactor(NumericProperty timeFactor) {
-		requireType(timeFactor, TAU_FACTOR);
-		this.tauFactor = (double) timeFactor.getValue();
-		setTimeStep(tauFactor * pow(hx, 2));
-	}
-
-	/**
-	 * The dimensionless time on this {@code Grid}, which is the
-	 * {@code time/dimensionFactor} rounded up to a factor of the time step
-	 * {@code tau}.
-	 * 
-	 * @param time            the time
-	 * @param dimensionFactor a conversion factor with the dimension of time
-	 * @return a double representing the time on the finite grid
-	 */
-
-	public double gridTime(double time, double dimensionFactor) {
-		return rint((time / dimensionFactor) / tau) * tau;
-	}
-
-	/**
-	 * The dimensionless axial distance on this {@code Grid}, which is the
-	 * {@code distance/lengthFactor} rounded up to a factor of the coordinate step
-	 * {@code hx}.
-	 * 
-	 * @param distance     the distance along the axial direction
-	 * @param lengthFactor a conversion factor with the dimension of length
-	 * @return a double representing the axial distance on the finite grid
-	 */
-
-	public double gridAxialDistance(double distance, double lengthFactor) {
-		return rint((distance / lengthFactor) / hx) * hx;
-	}
-
-	@Override
-	public String toString() {
-		var sb = new StringBuilder();
-		sb.append("<html>");
-		sb.append(getClass().getSimpleName() + ": <math><i>h<sub>x</sub></i>=" + format("%3.2e", hx) + "; ");
-		sb.append("<i>&tau;</i>=" + format("%3.2e", tau) + "; ");
-		return sb.toString();
-	}
+    @Override
+    public String toString() {
+        var sb = new StringBuilder();
+        sb.append("<html>");
+        sb.append(getClass().getSimpleName() + ": <math><i>h<sub>x</sub></i>=" + format("%3.2e", hx) + "; ");
+        sb.append("<i>&tau;</i>=" + format("%3.2e", tau) + "; ");
+        return sb.toString();
+    }
 
 }
