@@ -3,6 +3,8 @@ package pulse.ui.components.controllers;
 import static java.awt.Font.BOLD;
 
 import java.awt.Component;
+import java.awt.Font;
+import javax.swing.JLabel;
 
 import javax.swing.JTable;
 
@@ -15,37 +17,34 @@ import pulse.util.PropertyHolder;
 @SuppressWarnings("serial")
 public class TaskTableRenderer extends NumericPropertyRenderer {
 
-	public TaskTableRenderer() {
-		super();
-	}
+    public TaskTableRenderer() {
+        super();
+    }
 
-	@Override
+    @Override
 
-	public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
-			int row, int column) {
+    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
+            int row, int column) {
 
-		if (value instanceof NumericProperty)
-			return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+        var superRenderer = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 
-		else if (value instanceof Identifier)
-			return initLabel("" + ((Property) value).getValue(), table.isRowSelected(row));
+        if (value instanceof Identifier) {
+            var lab = (JLabel) superRenderer;
+            lab.setHorizontalAlignment(JLabel.CENTER);
+        } else if (value instanceof NumericProperty) {
+            return superRenderer;
+        } else if (value instanceof Status) {
 
-		else if (value instanceof Status) {
+            superRenderer.setForeground(((Status) value).getColor());
+            superRenderer.setFont(superRenderer.getFont().deriveFont(BOLD));
+            ((JLabel)superRenderer).setHorizontalAlignment(JLabel.CENTER);
 
-			var lab = initLabel(value.toString(), table.isRowSelected(row));
-			lab.setForeground(((Status) value).getColor());
-			lab.setFont(lab.getFont().deriveFont(BOLD));
+            return superRenderer;
 
-			return lab;
+        } 
 
-		}
-		
-		else if(value instanceof PropertyHolder) {
-			return initLabel("" + ((PropertyHolder)value).getDescriptor(), table.isRowSelected(row));
-		}
+        return superRenderer;
 
-		return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-
-	}
+    }
 
 }
