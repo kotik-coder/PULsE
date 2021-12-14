@@ -5,7 +5,6 @@ import static java.awt.BasicStroke.JOIN_ROUND;
 import static java.awt.BorderLayout.CENTER;
 import static java.awt.BorderLayout.SOUTH;
 import static java.awt.Color.BLUE;
-import static java.awt.Color.GRAY;
 import static java.awt.Color.RED;
 import static org.jfree.chart.ChartFactory.createScatterPlot;
 import static org.jfree.chart.plot.PlotOrientation.VERTICAL;
@@ -17,8 +16,7 @@ import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GridLayout;
-import java.awt.Shape;
-import java.awt.geom.Rectangle2D;
+import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,236 +27,259 @@ import javax.swing.JSeparator;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.UIManager;
+import org.apache.commons.math3.analysis.interpolation.AkimaSplineInterpolator;
+import org.apache.commons.math3.analysis.interpolation.LoessInterpolator;
+import org.apache.commons.math3.exception.NonMonotonicSequenceException;
 
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.renderer.xy.XYErrorRenderer;
-import org.jfree.chart.renderer.xy.XYSplineRenderer;
 import org.jfree.data.xy.XYIntervalSeries;
 import org.jfree.data.xy.XYIntervalSeriesCollection;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
+import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
+import org.apache.commons.math3.exception.DimensionMismatchException;
+import org.apache.commons.math3.exception.NumberIsTooSmallException;
+import org.apache.commons.math3.exception.OutOfRangeException;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 
 import pulse.tasks.processing.ResultFormat;
 
 @SuppressWarnings("serial")
 public class PreviewFrame extends JInternalFrame {
 
-	private final static int FRAME_WIDTH = 640;
-	private final static int FRAME_HEIGHT = 480;
+    private final static int FRAME_WIDTH = 640;
+    private final static int FRAME_HEIGHT = 480;
 
-	private List<String> propertyNames;
-	private JComboBox<String> selectXBox, selectYBox;
+    private List<String> propertyNames;
+    private JComboBox<String> selectXBox, selectYBox;
 
-	private static String xLabel, yLabel;
+    private static String xLabel, yLabel;
 
-	private double[][][] data;
-	private static JFreeChart chart;
+    private double[][][] data;
+    private static JFreeChart chart;
 
-	private final static Color RESULT_COLOR = BLUE;
-	private final static Color SMOOTH_COLOR = RED;
+    private final static Color RESULT_COLOR = BLUE;
+    private final static Color SMOOTH_COLOR = RED;
 
-	private static boolean drawSmooth = true;
+    private static boolean drawSmooth = true;
 
-	private final static int ICON_SIZE = 24;
+    private final static int ICON_SIZE = 24;
+    private final static int MARKER_SIZE = 6;
+    private final static int SPLINE_SAMPLES = 100;
 
-	public PreviewFrame() {
-		super("Preview Plotting", true, true, true, true);
-		init();
-	}
+    public PreviewFrame() {
+        super("Preview Plotting", true, true, true, true);
+        init();
+    }
 
-	private void init() {
-		setSize(FRAME_WIDTH, FRAME_HEIGHT);
-		setDefaultCloseOperation(HIDE_ON_CLOSE);
+    private void init() {
+        setSize(FRAME_WIDTH, FRAME_HEIGHT);
+        setDefaultCloseOperation(HIDE_ON_CLOSE);
 
-		getContentPane().setLayout(new BorderLayout());
+        getContentPane().setLayout(new BorderLayout());
 
-		getContentPane().add(createEmptyPanel(), CENTER);
+        getContentPane().add(createEmptyPanel(), CENTER);
 
-		var toolbar = new JToolBar();
-		toolbar.setFloatable(false);
-		toolbar.setLayout(new GridLayout());
+        var toolbar = new JToolBar(); 
+        toolbar.setFloatable(false);
+        toolbar.setLayout(new GridLayout());
 
-		getContentPane().add(toolbar, SOUTH);
+        getContentPane().add(toolbar, SOUTH);
 
-		var selectX = new JLabel("Bottom axis: ");
-		toolbar.add(selectX);
+        var selectX = new JLabel("Bottom axis: ");
+        toolbar.add(selectX);
 
-		selectXBox = new JComboBox<>();
+        selectXBox = new JComboBox<>();
+        selectXBox.setFont(selectXBox.getFont().deriveFont(11));
 
-		toolbar.add(selectXBox);
-		toolbar.add(new JSeparator());
+        toolbar.add(selectXBox);
+        toolbar.add(new JSeparator());
 
-		var selectY = new JLabel("Vertical axis:");
-		toolbar.add(selectY);
+        var selectY = new JLabel("Vertical axis:");
+        toolbar.add(selectY);
 
-		selectYBox = new JComboBox<>();
-		toolbar.add(selectYBox);
+        selectYBox = new JComboBox<>();
+        selectYBox.setFont(selectYBox.getFont().deriveFont(11));
+        toolbar.add(selectYBox);
 
-		var drawSmoothBtn = new JToggleButton();
-		drawSmoothBtn.setToolTipText("Smooth with cubic normal splines");
-		drawSmoothBtn.setIcon(loadIcon("spline.png", ICON_SIZE));
-		drawSmoothBtn.setSelected(true);
-		toolbar.add(drawSmoothBtn);
+        var drawSmoothBtn = new JToggleButton();
+        drawSmoothBtn.setToolTipText("Smooth with cubic normal splines");
+        drawSmoothBtn.setIcon(loadIcon("spline.png", ICON_SIZE));
+        drawSmoothBtn.setSelected(true);
+        toolbar.add(drawSmoothBtn);
 
-		drawSmoothBtn.addActionListener(e -> {
-			drawSmooth = drawSmoothBtn.isSelected();
-			replot(chart);
-		});
+        drawSmoothBtn.addActionListener(e -> {
+            drawSmooth = drawSmoothBtn.isSelected();
+            replot(chart);
+        });
 
-		selectXBox.addItemListener(e -> replot(chart));
-		selectYBox.addItemListener(e -> replot(chart));
-		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
-	}
+        selectXBox.addItemListener(e -> replot(chart));
+        selectYBox.addItemListener(e -> replot(chart));
+        this.setDefaultCloseOperation(EXIT_ON_CLOSE);                               
+    }
 
-	private void replot(JFreeChart chart) {
-		var selectedX = selectXBox.getSelectedIndex();
-		var selectedY = selectYBox.getSelectedIndex();
+    private void replot(JFreeChart chart) {
+        int selectedX = selectXBox.getSelectedIndex();
+        int selectedY = selectYBox.getSelectedIndex();
 
-		if (selectedX < 0 || selectedY < 0)
-			return;
+        if (selectedX < 0 || selectedY < 0) {
+            return;
+        }
 
-		xLabel = propertyNames.get(selectedX);
-		yLabel = propertyNames.get(selectedY);
+        var plot = chart.getXYPlot();
 
-		var plot = chart.getXYPlot();
+        plot.setDataset(0, null);
+        plot.setDataset(1, null);
 
-		plot.setDataset(0, null);
-		plot.setDataset(1, null);
+        var dataset = new XYIntervalSeriesCollection();
 
-		plot.getDomainAxis().setLabel(xLabel);
-		plot.getRangeAxis().setLabel(yLabel);
+        if (data == null) {
+            return;
+        }
 
-		var dataset = new XYIntervalSeriesCollection();
-		var datasetSmooth = new XYSeriesCollection();
+        dataset.addSeries(series(data[selectedX][0], data[selectedX][1], data[selectedY][0], data[selectedY][1]));
+        plot.setDataset(0, dataset);
 
-		if (data == null)
-			return;
+        if (drawSmooth) {
+            drawSmooth(plot, selectedX, selectedY);
+        }
+        
+    }
 
-		dataset.addSeries(series(data[selectedX][0], data[selectedX][1], data[selectedY][0], data[selectedY][1]));
-		plot.setDataset(0, dataset);
+    private void drawSmooth(XYPlot plot, int selectedX, int selectedY) {
+        PolynomialSplineFunction interpolation = null;
 
-		if (drawSmooth) {
-			datasetSmooth.addSeries(series(data[selectedX][0], data[selectedY][0]));
-			plot.setDataset(1, datasetSmooth);
-		}
+        try {
+            //LOESS interpolator for monotonic x sequence (average results)
+            //usually works when number of points is large
+            var interpolator = new LoessInterpolator();
+            interpolation = interpolator.interpolate(data[selectedX][0], data[selectedY][0]);
+        } catch (DimensionMismatchException | NumberIsTooSmallException e) {
+            //Akima spline for small number of points
+            var interpolator = new AkimaSplineInterpolator();
+            interpolation = interpolator.interpolate(data[selectedX][0], data[selectedY][0]);
+        } catch( NonMonotonicSequenceException e) {
+            //do not draw if points not strictly increasing
+            return;
+        }
 
-	}
+        double[] x = new double[SPLINE_SAMPLES];
+        double[] y = new double[SPLINE_SAMPLES];
 
-	public void update(ResultFormat fmt, double[][][] data) {
-		this.data = data;
-		var descriptors = fmt.descriptors();
-		List<String> htmlDescriptors = new ArrayList<>();
-		var size = descriptors.size();
+        double dx = (data[selectedX][0][data[selectedX][0].length - 1] - data[selectedX][0][0]) / (SPLINE_SAMPLES - 1);
 
-		propertyNames = new ArrayList<>(size);
-		String tmp;
+        for (int i = 0; i < SPLINE_SAMPLES; i++) {
+            x[i] = data[selectedX][0][0] + dx * i;
+            try {
+                y[i] = interpolation.value(x[i]);
+            } catch(OutOfRangeException e) {
+                y[i] = Double.NaN;
+            }
+        }
 
-		for (var i = 0; i < size; i++) {
-			tmp = descriptors.get(i).replaceAll("<.*?>", " ").replaceAll("&.*?;", "");
-			htmlDescriptors.add("<html>" + descriptors.get(i) + "</html>");
-			propertyNames.add(tmp);
-		}
+        var datasetSmooth = new XYSeriesCollection();
+        datasetSmooth.addSeries(series(x, y));
+        plot.setDataset(1, datasetSmooth);
+    }
 
-		selectXBox.removeAllItems();
+    public void update(ResultFormat fmt, double[][][] data) {
+        this.data = data;
+        var descriptors = fmt.descriptors();
+        var size = descriptors.size();
 
-		for (var s : htmlDescriptors) {
-			selectXBox.addItem(s);
-		}
+        propertyNames = new ArrayList<>(size);
+        String tmp;
+        
+        selectXBox.removeAllItems();
+        selectYBox.removeAllItems();
 
-		selectXBox.setSelectedIndex(fmt.indexOf(TEST_TEMPERATURE));
+        for (var s : descriptors) {
+            selectXBox.addItem(s);
+            selectYBox.addItem(s);
+        }        
 
-		selectYBox.removeAllItems();
+        selectXBox.setSelectedIndex(fmt.indexOf(TEST_TEMPERATURE));
+        selectYBox.setSelectedIndex(fmt.indexOf(DIFFUSIVITY));
+    }
 
-		for (var s : htmlDescriptors) {
-			selectYBox.addItem(s);
-		}
-
-		selectYBox.setSelectedIndex(fmt.indexOf(DIFFUSIVITY));
-	}
-
-	/*
+    /*
 	 * 
-	 */
+     */
+    private static ChartPanel createEmptyPanel() {
+        chart = createScatterPlot("", xLabel, yLabel, null, VERTICAL, true, true, false);
 
-	private static ChartPanel createEmptyPanel() {
-		chart = createScatterPlot("", xLabel, yLabel, null, VERTICAL, true, true, false);
+        var renderer = new XYErrorRenderer();
+        renderer.setSeriesPaint(0, RESULT_COLOR);
+        renderer.setDefaultShapesFilled(false);
 
-		var renderer = new XYErrorRenderer();
-		renderer.setSeriesPaint(0, RESULT_COLOR);
+        var rendererLine = new XYLineAndShapeRenderer();
+        rendererLine.setDefaultShapesVisible(false);
+        rendererLine.setSeriesPaint(0, SMOOTH_COLOR);
+        rendererLine.setSeriesStroke(0,
+                new BasicStroke(2.0f, CAP_ROUND, JOIN_ROUND, 1.0f, new float[]{6.0f, 6.0f}, 0.0f));
 
-		var rendererSpline = new XYSplineRenderer();
-		rendererSpline.setSeriesPaint(0, SMOOTH_COLOR);
-		rendererSpline.setSeriesStroke(0,
-				new BasicStroke(2.0f, CAP_ROUND, JOIN_ROUND, 1.0f, new float[] { 6.0f, 6.0f }, 0.0f));
+        var plot = chart.getXYPlot();
 
-		var size = 6.0;
-		var delta = size / 2.0;
-		Shape shape1 = new Rectangle2D.Double(-delta, -delta, size, size);
-		renderer.setSeriesShape(0, shape1);
+        plot.setRenderer(0, renderer);
+        plot.setRenderer(1, rendererLine);
 
-		var plot = chart.getXYPlot();
+        //plot.setRangeGridlinesVisible(false);
+        //plot.setDomainGridlinesVisible(false);        
 
-		plot.setRenderer(0, renderer);
-		plot.setRenderer(1, rendererSpline);
+        plot.getRenderer(1).setSeriesPaint(1, SMOOTH_COLOR);
+        plot.getRenderer(0).setSeriesPaint(0, RESULT_COLOR);
+        plot.getRenderer(0).setSeriesShape(0, 
+                new Rectangle(-MARKER_SIZE/2, -MARKER_SIZE/2, MARKER_SIZE, MARKER_SIZE));
 
-		plot.setRangeGridlinesVisible(true);
-		plot.setRangeGridlinePaint(GRAY);
+        chart.removeLegend();
 
-		plot.setDomainGridlinesVisible(true);
-		plot.setDomainGridlinePaint(GRAY);
+        var cp = new ChartPanel(chart);
 
-		plot.getRenderer(1).setSeriesPaint(1, SMOOTH_COLOR);
-		plot.getRenderer(0).setSeriesPaint(0, RESULT_COLOR);
+        cp.setMaximumDrawHeight(2000);
+        cp.setMaximumDrawWidth(2000);
+        cp.setMinimumDrawWidth(10);
+        cp.setMinimumDrawHeight(10);
 
-		chart.removeLegend();
+        chart.setBackgroundPaint(UIManager.getColor("Panel.background"));
+        
+        return cp;
+    }
 
-		var cp = new ChartPanel(chart);
-
-		cp.setMaximumDrawHeight(2000);
-		cp.setMaximumDrawWidth(2000);
-		cp.setMinimumDrawWidth(10);
-		cp.setMinimumDrawHeight(10);
-		
-		chart.setBackgroundPaint(UIManager.getColor("Panel.background"));
-
-		return cp;
-	}
-
-	/*
+    /*
 	 * 
-	 */
+     */
+    private static XYIntervalSeries series(double[] x, double[] xerr, double[] y, double[] yerr) {
+        var series = new XYIntervalSeries("Preview");
 
-	private static XYIntervalSeries series(double[] x, double[] xerr, double[] y, double[] yerr) {
-		var series = new XYIntervalSeries("Preview");
+        for (var i = 0; i < x.length; i++) {
+            series.add(x[i], x[i] - xerr[i], x[i] + xerr[i], y[i], y[i] - yerr[i], y[i] + yerr[i]);
+        }
 
-		for (var i = 0; i < x.length; i++) {
-			series.add(x[i], x[i] - xerr[i], x[i] + xerr[i], y[i], y[i] - yerr[i], y[i] + yerr[i]);
-		}
+        return series;
+    }
 
-		return series;
-	}
-
-	/*
+    /*
 	 * 
-	 */
+     */
+    private static XYSeries series(double[] x, double[] y) {
+        var series = new XYSeries("Preview");
 
-	private static XYSeries series(double[] x, double[] y) {
-		var series = new XYSeries("Preview");
+        for (var i = 0; i < x.length; i++) {
+            series.add(x[i], y[i]);
+        }
 
-		for (var i = 0; i < x.length; i++) {
-			series.add(x[i], y[i]);
-		}
+        return series;
+    }
 
-		return series;
-	}
+    public boolean isDrawSmooth() {
+        return drawSmooth;
+    }
 
-	public boolean isDrawSmooth() {
-		return drawSmooth;
-	}
-
-	public void setDrawSmooth(boolean drawSmooth) {
-		PreviewFrame.drawSmooth = drawSmooth;
-	}
+    public void setDrawSmooth(boolean drawSmooth) {
+        PreviewFrame.drawSmooth = drawSmooth;
+    }
 
 }
