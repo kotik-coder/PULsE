@@ -13,6 +13,7 @@ import static pulse.ui.Messages.getString;
 import java.awt.Component;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
+import java.util.concurrent.Executors;
 
 import javax.swing.JButton;
 import javax.swing.JToolBar;
@@ -27,76 +28,73 @@ import pulse.ui.frames.TaskControlFrame;
 @SuppressWarnings("serial")
 public class ProblemToolbar extends JToolBar {
 
-	private JButton btnSimulate;
-	private LoaderButton btnLoadCv;
-	private LoaderButton btnLoadDensity;
+    private JButton btnSimulate;
+    private LoaderButton btnLoadCv;
+    private LoaderButton btnLoadDensity;
 
-	public ProblemToolbar() {
-		super();
-		setFloatable(false);
-		setLayout(new GridLayout());
+    public ProblemToolbar() {
+        super();
+        setFloatable(false);
+        setLayout(new GridLayout());
 
-		btnSimulate = new JButton(getString("ProblemStatementFrame.SimulateButton")); //$NON-NLS-1$
-		add(btnSimulate);
+        btnSimulate = new JButton(getString("ProblemStatementFrame.SimulateButton")); //$NON-NLS-1$
+        add(btnSimulate);
 
-		btnLoadCv = new LoaderButton(getString("ProblemStatementFrame.LoadSpecificHeatButton")); //$NON-NLS-1$
-		btnLoadCv.setDataType(HEAT_CAPACITY);
-		add(btnLoadCv);
+        btnLoadCv = new LoaderButton(getString("ProblemStatementFrame.LoadSpecificHeatButton")); //$NON-NLS-1$
+        btnLoadCv.setDataType(HEAT_CAPACITY);
+        add(btnLoadCv);
 
-		btnLoadDensity = new LoaderButton(getString("ProblemStatementFrame.LoadDensityButton")); //$NON-NLS-1$
-		btnLoadDensity.setDataType(DENSITY);
-		add(btnLoadDensity);
+        btnLoadDensity = new LoaderButton(getString("ProblemStatementFrame.LoadDensityButton")); //$NON-NLS-1$
+        btnLoadDensity.setDataType(DENSITY);
+        add(btnLoadDensity);
 
-		addListeners();
-	}
+        btnSimulate.addActionListener((ActionEvent e)
+                -> Executors.newSingleThreadExecutor().submit(()
+                        -> ProblemToolbar.plot(e)));
+    }
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private void addListeners() {
-		var instance = TaskManager.getManagerInstance();
+    public static void plot(ActionEvent e) {
+        var instance = TaskManager.getManagerInstance();
 
-		// simulate btn listener
+        if (instance.getSelectedTask() == null) {
+            instance.selectFirstTask();
+        }
 
-		btnSimulate.addActionListener((ActionEvent e) -> {
-			if (instance.getSelectedTask() == null) 
-				instance.selectFirstTask();
-			
-			var t = instance.getSelectedTask();
-			
-			var calc = t.getCurrentCalculation();
-			
-			t.checkProblems(true);
-			var status = t.getCurrentCalculation().getStatus();
-			
-			if (status == INCOMPLETE && !status.checkProblemStatementSet()) {
+        var t = instance.getSelectedTask();
 
-				getDefaultToolkit().beep();
-				showMessageDialog(getWindowAncestor((Component) e.getSource()), calc.getStatus().getMessage(),
-						getString("ProblemStatementFrame.ErrorTitle"), //$NON-NLS-1$
-						ERROR_MESSAGE);
+        var calc = t.getCurrentCalculation();
 
-			} else {
-				try {
-					((Solver) calc.getScheme()).solve(calc.getProblem());
-				} catch (SolverException se) {
-					err.println("Solver of " + t + " has encountered an error. Details: ");
-					se.printStackTrace();
-				}
-				MainGraphFrame.getInstance().plot();
-				TaskControlFrame.getInstance().getPulseFrame().plot(calc.getProblem().getPulse());
-			}
-		});
+        t.checkProblems(true);
+        var status = t.getCurrentCalculation().getStatus();
 
-	}
+        if (status == INCOMPLETE && !status.checkProblemStatementSet()) {
 
-	public void highlightButtons(boolean highlight) {
-		if(highlight) {
-			btnLoadDensity.highlightIfNeeded();
-			btnLoadCv.highlightIfNeeded();
-		}
-		else {
-			btnLoadDensity.highlight(false);
-			btnLoadCv.highlight(false);
-		}
-	}
+            getDefaultToolkit().beep();
+            showMessageDialog(getWindowAncestor((Component) e.getSource()), calc.getStatus().getMessage(),
+                    getString("ProblemStatementFrame.ErrorTitle"), //$NON-NLS-1$
+                    ERROR_MESSAGE);
+
+        } else {
+            try {
+                ((Solver) calc.getScheme()).solve(calc.getProblem());
+            } catch (SolverException se) {
+                err.println("Solver of " + t + " has encountered an error. Details: ");
+                se.printStackTrace();
+            }
+            MainGraphFrame.getInstance().plot();
+            TaskControlFrame.getInstance().getPulseFrame().plot(calc.getProblem().getPulse());
+        }
+
+    }
+
+    public void highlightButtons(boolean highlight) {
+        if (highlight) {
+            btnLoadDensity.highlightIfNeeded();
+            btnLoadCv.highlightIfNeeded();
+        } else {
+            btnLoadDensity.highlight(false);
+            btnLoadCv.highlight(false);
+        }
+    }
 
 }
