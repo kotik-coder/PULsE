@@ -47,256 +47,261 @@ import pulse.util.ResourceMonitor;
 @SuppressWarnings("serial")
 public class ExportDialog extends JDialog {
 
-	private static Map<Class<?>, Boolean> exportSettings = new HashMap<Class<?>, Boolean>();
-	private final static int HEIGHT = 180;
-	private final static int WIDTH = 750;
+    private static Map<Class<?>, Boolean> exportSettings = new HashMap<Class<?>, Boolean>();
+    private final static int HEIGHT = 180;
+    private final static int WIDTH = 750;
 
-	private static ProgressDialog progressFrame = new ProgressDialog();
+    private static ProgressDialog progressFrame = new ProgressDialog();
 
-	static {
-		progressFrame.setLocationRelativeTo(null);
-		progressFrame.setAlwaysOnTop(true);
-	}
+    static {
+        progressFrame.setLocationRelativeTo(null);
+        progressFrame.setAlwaysOnTop(true);
+    }
 
-	static {
-		exportSettings.put(MetadataExporter.getInstance().target(), false);
-		exportSettings.put(CurveExporter.getInstance().target(), true);
-		exportSettings.put(ResidualStatisticExporter.getInstance().target(), true);
-		exportSettings.put(RawDataExporter.getInstance().target(), true);
-		exportSettings.put(ResultExporter.getInstance().target(), true);
-		exportSettings.put(LogExporter.getInstance().target(), false);
-	}
-	private boolean createSubdirectories = false;
+    static {
+        exportSettings.put(MetadataExporter.getInstance().target(), false);
+        exportSettings.put(CurveExporter.getInstance().target(), true);
+        exportSettings.put(ResidualStatisticExporter.getInstance().target(), true);
+        exportSettings.put(RawDataExporter.getInstance().target(), true);
+        exportSettings.put(ResultExporter.getInstance().target(), true);
+        exportSettings.put(LogExporter.getInstance().target(), false);
+    }
+    private boolean createSubdirectories = false;
 
-	private File dir;
+    private File dir;
 
-	private JFileChooser fileChooser;
+    private JFileChooser fileChooser;
 
-	private String projectName;
+    private String projectName;
 
-	public ExportDialog() {
-		initComponents();
-		setTitle("Export Dialog");
-		setSize(new Dimension(WIDTH, HEIGHT));
-	}
+    public ExportDialog() {
+        initComponents();
+        setTitle("Export Dialog");
+        setSize(new Dimension(WIDTH, HEIGHT));
+    }
 
-	private File directoryQuery() {
-		var returnVal = fileChooser.showSaveDialog(this);
+    private File directoryQuery() {
+        var returnVal = fileChooser.showSaveDialog(this);
 
-		if (returnVal == APPROVE_OPTION) {
-			dir = fileChooser.getSelectedFile();
-			return dir;
-		}
+        File f = null;
+        
+        if (returnVal == APPROVE_OPTION) {
+            f = fileChooser.getCurrentDirectory();
+        }
+        
+        return f;
 
-		return null;
+    }
 
-	}
+    private void export(Extension extension) {
+        var instance = TaskManager.getManagerInstance();
 
-	private void export(Extension extension) {
-		var instance = TaskManager.getManagerInstance();
-		
-		if (instance.numberOfTasks() < 1)
-			return; // nothing to export
+        if (instance.numberOfTasks() < 1) {
+            return; // nothing to export
+        }
+        var destination = new File(dir + separator + projectName);
+        var subdirs = instance.getTaskList();
 
-		var destination = new File(dir + separator + projectName);
-		var subdirs = instance.getTaskList();
+        if (subdirs.size() > 0 && !destination.exists()) {
+            destination.mkdirs();
+        }
 
-		if (subdirs.size() > 0 && !destination.exists())
-			destination.mkdirs();
+        var monitor = ResourceMonitor.getInstance();
 
-		var monitor = ResourceMonitor.getInstance();
+        if (createSubdirectories) {
+            progressFrame.trackProgress(subdirs.size());
+            var pool = newFixedThreadPool(monitor.getThreadsAvailable());
+            subdirs.stream().forEach(s -> {
+                pool.submit(() -> {
+                    exportGroup(s, destination, extension);
+                    progressFrame.incrementProgress();
+                });
+            });
+        } else {
+            var groupped = instance.allGrouppedContents();
+            var pool = newFixedThreadPool(monitor.getThreadsAvailable());
+            progressFrame.trackProgress(groupped.size());
 
-		if (createSubdirectories) {
-			progressFrame.trackProgress(subdirs.size());
-			var pool = newFixedThreadPool( monitor.getThreadsAvailable() );
-			subdirs.stream().forEach(s -> {
-				pool.submit(() -> {
-					exportGroup(s, destination, extension);
-					progressFrame.incrementProgress();
-				});
-			});
-		} else {
-			var groupped = instance.allGrouppedContents();
-			var pool = newFixedThreadPool( monitor.getThreadsAvailable() );
-			progressFrame.trackProgress(groupped.size());
+            groupped.stream().forEach(individual -> pool.submit(() -> {
+                Class<?> individualClass = individual.getClass();
 
-			groupped.stream().forEach(individual -> pool.submit(() -> {
-				Class<?> individualClass = individual.getClass();
+                if (!exportSettings.containsKey(individualClass)) {
 
-				if (!exportSettings.containsKey(individualClass)) {
+                    var key = exportSettings.keySet().stream()
+                            .filter(aClass -> aClass.isAssignableFrom(individual.getClass())).findFirst();
 
-					var key = exportSettings.keySet().stream()
-							.filter(aClass -> aClass.isAssignableFrom(individual.getClass())).findFirst();
+                    if (key.isPresent()) {
+                        individualClass = key.get();
+                    }
 
-					if (key.isPresent())
-						individualClass = key.get();
+                }
 
-				}
+                if (individualClass != null) {
+                    if (exportSettings.containsKey(individualClass)) {
+                        if (exportSettings.get(individualClass)) {
+                            ExportManager.export(individual, destination, extension);
+                        }
+                    }
+                }
 
-				if (individualClass != null) {
-					if (exportSettings.containsKey(individualClass))
-						if (exportSettings.get(individualClass))
-							ExportManager.export(individual, destination, extension);
-				}
+                progressFrame.incrementProgress();
 
-				progressFrame.incrementProgress();
+            })
+            );
+        }
 
-			})
+        if (exportSettings.get(Result.class)) {
+            exportAllResults(destination, extension);
+        }
 
-			);
-		}
+    }
 
-		if (exportSettings.get(Result.class))
-			exportAllResults(destination, extension);
+    private void initComponents() {
 
-	}
+        var layout = new GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setAutoCreateGaps(true);
+        layout.setAutoCreateContainerGaps(true);
 
-	private void initComponents() {
+        final var defaultProjectName = TaskManager.getManagerInstance().describe();
+        projectName = defaultProjectName;
 
-		var layout = new GroupLayout(getContentPane());
-		getContentPane().setLayout(layout);
-		layout.setAutoCreateGaps(true);
-		layout.setAutoCreateContainerGaps(true);
+        var directoryLabel = new JLabel("Export to:");
 
-		final var defaultProjectName = TaskManager.getManagerInstance().describe();
-		projectName = defaultProjectName;
+        fileChooser = new JFileChooser();
+        fileChooser.setMultiSelectionEnabled(false);
+        fileChooser.setFileSelectionMode(DIRECTORIES_ONLY);
+        // Checkboxex
+        dir = fileChooser.getCurrentDirectory();
 
-		var directoryLabel = new JLabel("Export to:");
+        var directoryField = new JTextField(dir.getPath() + separator + projectName + separator);
+        directoryField.setEditable(false);
 
-		fileChooser = new JFileChooser();
-		fileChooser.setMultiSelectionEnabled(false);
-		fileChooser.setFileSelectionMode(DIRECTORIES_ONLY);
-		// Checkboxex
-		dir = fileChooser.getCurrentDirectory();
+        var formatLabel = new JLabel("Export format:");
+        var formats = new JComboBox<Extension>(Extension.values());
 
-		var directoryField = new JTextField(dir.getPath() + separator + projectName + separator);
-		directoryField.setEditable(false);
+        var projectLabel = new JLabel("Project name:");
+        var projectText = new JTextField(projectName);
 
-		var formatLabel = new JLabel("Export format:");
-		var formats = new JComboBox<Extension>(Extension.values());
+        projectText.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                //
+            }
 
-		var projectLabel = new JLabel("Project name:");
-		var projectText = new JTextField(projectName);
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                if (projectText.getText().trim().isEmpty()) {
+                    return;
+                }
+                projectName = projectText.getText();
+                directoryField.setText(dir.getPath() + separator + projectName + separator);
+            }
 
-		projectText.getDocument().addDocumentListener(new DocumentListener() {
-			@Override
-			public void changedUpdate(DocumentEvent e) {
-				//
-			}
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                if (projectText.getText().trim().isEmpty()) {
+                    projectName = TaskManager.getManagerInstance().describe();
+                    directoryField.setText(dir.getPath() + separator + projectName + separator);
+                } else {
+                    projectName = projectText.getText();
+                    directoryField.setText(dir.getPath() + separator + projectName + separator);
+                }
+            }
+        });
 
-			@Override
-			public void insertUpdate(DocumentEvent e) {
-				if (projectText.getText().trim().isEmpty())
-					return;
-				projectName = projectText.getText();
-				directoryField.setText(dir.getPath() + separator + projectName + separator);
-			}
+        var solutionCheckbox = new JCheckBox("Export Solution(s)");
+        solutionCheckbox.setSelected(exportSettings.get(AbstractData.class));
+        solutionCheckbox.addActionListener(e -> {
+            exportSettings.put(AbstractData.class, solutionCheckbox.isSelected());
+            exportSettings.put(ResidualStatisticExporter.class, solutionCheckbox.isSelected());
+        });
 
-			@Override
-			public void removeUpdate(DocumentEvent e) {
-				if (projectText.getText().trim().isEmpty()) {
-					projectName = TaskManager.getManagerInstance().describe();
-					directoryField.setText(dir.getPath() + separator + projectName + separator);
-				} else {
-					projectName = projectText.getText();
-					directoryField.setText(dir.getPath() + separator + projectName + separator);
-				}
-			}
-		});
+        var rawDataCheckbox = new JCheckBox("Export Raw Data");
+        rawDataCheckbox.setSelected(exportSettings.get(ExperimentalData.class));
+        rawDataCheckbox
+                .addActionListener(e -> exportSettings.put(ExperimentalData.class, rawDataCheckbox.isSelected()));
 
-		var solutionCheckbox = new JCheckBox("Export Solution(s)");
-		solutionCheckbox.setSelected(exportSettings.get(AbstractData.class));
-		solutionCheckbox.addActionListener(e -> {
-			exportSettings.put(AbstractData.class, solutionCheckbox.isSelected());
-			exportSettings.put(ResidualStatisticExporter.class, solutionCheckbox.isSelected());
-		});
+        var metadataCheckbox = new JCheckBox("Export Metadata");
+        metadataCheckbox.setSelected(exportSettings.get(Metadata.class));
+        metadataCheckbox.addActionListener(e -> exportSettings.put(Metadata.class, metadataCheckbox.isSelected()));
 
-		var rawDataCheckbox = new JCheckBox("Export Raw Data");
-		rawDataCheckbox.setSelected(exportSettings.get(ExperimentalData.class));
-		rawDataCheckbox
-				.addActionListener(e -> exportSettings.put(ExperimentalData.class, rawDataCheckbox.isSelected()));
+        var createDirCheckbox = new JCheckBox("Create Sub-Directories");
+        createDirCheckbox.setSelected(createSubdirectories);
 
-		var metadataCheckbox = new JCheckBox("Export Metadata");
-		metadataCheckbox.setSelected(exportSettings.get(Metadata.class));
-		metadataCheckbox.addActionListener(e -> exportSettings.put(Metadata.class, metadataCheckbox.isSelected()));
+        var logCheckbox = new JCheckBox("Export log(s)");
+        logCheckbox.setSelected(exportSettings.get(Log.class));
+        logCheckbox.addActionListener(e -> exportSettings.put(Log.class, logCheckbox.isSelected()));
 
-		var createDirCheckbox = new JCheckBox("Create Sub-Directories");
-		createDirCheckbox.setSelected(createSubdirectories);
+        createDirCheckbox.addActionListener(e -> {
+            metadataCheckbox.setEnabled(!createDirCheckbox.isSelected());
+            rawDataCheckbox.setEnabled(!createDirCheckbox.isSelected());
+            solutionCheckbox.setEnabled(!createDirCheckbox.isSelected());
+            logCheckbox.setEnabled(!createDirCheckbox.isSelected());
+            createSubdirectories = createDirCheckbox.isSelected();
+        });
 
-		var logCheckbox = new JCheckBox("Export log(s)");
-		logCheckbox.setSelected(exportSettings.get(Log.class));
-		logCheckbox.addActionListener(e -> exportSettings.put(Log.class, logCheckbox.isSelected()));
+        var resultsCheckbox = new JCheckBox("Export Results");
+        resultsCheckbox.setSelected(exportSettings.get(Result.class));
+        resultsCheckbox.addActionListener(e -> exportSettings.put(Result.class, resultsCheckbox.isSelected()));
 
-		createDirCheckbox.addActionListener(e -> {
-			metadataCheckbox.setEnabled(!createDirCheckbox.isSelected());
-			rawDataCheckbox.setEnabled(!createDirCheckbox.isSelected());
-			solutionCheckbox.setEnabled(!createDirCheckbox.isSelected());
-			logCheckbox.setEnabled(!createDirCheckbox.isSelected());
-			createSubdirectories = createDirCheckbox.isSelected();
-		});
+        var browseBtn = new JButton("Browse...");
 
-		var resultsCheckbox = new JCheckBox("Export Results");
-		resultsCheckbox.setSelected(exportSettings.get(Result.class));
-		resultsCheckbox.addActionListener(e -> exportSettings.put(Result.class, resultsCheckbox.isSelected()));
+        browseBtn.addActionListener(e -> {
+            if (directoryQuery() != null) {
+                directoryField.setText(dir.getPath() + separator + projectName + separator);
+            }
+        });
 
-		var browseBtn = new JButton("Browse...");
+        var exportBtn = new JButton("Export");
 
-		browseBtn.addActionListener(e -> {
-			if (directoryQuery() != null)
-				directoryField.setText(dir.getPath() + separator + projectName + separator);
-		});
+        exportBtn.addActionListener(
+                e -> invokeLater(() -> export(valueOf(formats.getSelectedItem().toString().toUpperCase()))));
 
-		var exportBtn = new JButton("Export");
-
-		exportBtn.addActionListener(
-				e -> invokeLater(() -> export(valueOf(formats.getSelectedItem().toString().toUpperCase()))));
-
-		/*
+        /*
 		 * layout
-		 */
+         */
+        layout.setHorizontalGroup(layout.createSequentialGroup()
+                // #1
+                .addComponent(directoryLabel)
+                // #2
+                .addGroup(layout.createParallelGroup(LEADING).addComponent(directoryField)
+                        // #2a
+                        .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(LEADING).addComponent(solutionCheckbox)
+                                        .addComponent(rawDataCheckbox))
+                                .addGroup(layout.createParallelGroup(LEADING).addComponent(metadataCheckbox)
+                                        .addComponent(createDirCheckbox))
+                                .addGroup(layout.createParallelGroup(LEADING).addComponent(logCheckbox)
+                                        .addComponent(resultsCheckbox)))
+                        // #2b
+                        // .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createSequentialGroup().addComponent(formatLabel).addComponent(formats)
+                                .addComponent(projectLabel).addComponent(projectText))
+                // )
+                )
+                // #3
+                .addGroup(layout.createParallelGroup(LEADING).addComponent(browseBtn).addComponent(exportBtn)));
+        layout.linkSize(HORIZONTAL, browseBtn, exportBtn);
 
-		layout.setHorizontalGroup(layout.createSequentialGroup()
-				// #1
-				.addComponent(directoryLabel)
-				// #2
-				.addGroup(layout.createParallelGroup(LEADING).addComponent(directoryField)
-						// #2a
-						.addGroup(layout.createSequentialGroup()
-								.addGroup(layout.createParallelGroup(LEADING).addComponent(solutionCheckbox)
-										.addComponent(rawDataCheckbox))
-								.addGroup(layout.createParallelGroup(LEADING).addComponent(metadataCheckbox)
-										.addComponent(createDirCheckbox))
-								.addGroup(layout.createParallelGroup(LEADING).addComponent(logCheckbox)
-										.addComponent(resultsCheckbox)))
-						// #2b
-						// .addGroup(layout.createSequentialGroup()
-						.addGroup(layout.createSequentialGroup().addComponent(formatLabel).addComponent(formats)
-								.addComponent(projectLabel).addComponent(projectText))
-				// )
-				)
-				// #3
-				.addGroup(layout.createParallelGroup(LEADING).addComponent(browseBtn).addComponent(exportBtn)));
-		layout.linkSize(HORIZONTAL, browseBtn, exportBtn);
+        layout.setVerticalGroup(layout.createSequentialGroup()
+                // #1
+                .addGroup(layout.createParallelGroup(BASELINE).addComponent(directoryLabel)
+                        .addComponent(directoryField).addComponent(browseBtn))
+                // #2
+                .addGroup(layout.createParallelGroup(LEADING)
+                        // #2a
+                        .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(BASELINE).addComponent(solutionCheckbox)
+                                        .addComponent(metadataCheckbox).addComponent(logCheckbox))
+                                .addGroup(layout.createParallelGroup(BASELINE).addComponent(rawDataCheckbox)
+                                        .addComponent(createDirCheckbox).addComponent(resultsCheckbox)))
+                        // #2b
+                        .addComponent(exportBtn))
+                // 2b
+                .addGroup(layout.createParallelGroup(BASELINE).addComponent(formats).addComponent(formatLabel)
+                        .addComponent(projectLabel).addComponent(projectText)));
 
-		layout.setVerticalGroup(layout.createSequentialGroup()
-				// #1
-				.addGroup(layout.createParallelGroup(BASELINE).addComponent(directoryLabel)
-
-						.addComponent(directoryField).addComponent(browseBtn))
-				// #2
-				.addGroup(layout.createParallelGroup(LEADING)
-						// #2a
-						.addGroup(layout.createSequentialGroup()
-								.addGroup(layout.createParallelGroup(BASELINE).addComponent(solutionCheckbox)
-										.addComponent(metadataCheckbox).addComponent(logCheckbox))
-								.addGroup(layout.createParallelGroup(BASELINE).addComponent(rawDataCheckbox)
-										.addComponent(createDirCheckbox).addComponent(resultsCheckbox)))
-						// #2b
-						.addComponent(exportBtn))
-				// 2b
-				.addGroup(layout.createParallelGroup(BASELINE).addComponent(formats).addComponent(formatLabel)
-						.addComponent(projectLabel).addComponent(projectText)));
-
-	}
+    }
 
 }
