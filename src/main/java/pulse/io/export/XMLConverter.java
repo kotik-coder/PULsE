@@ -80,9 +80,11 @@ public class XMLConverter {
         primitiveType.setValue(np.getValue() instanceof Double ? "double" : "int");
         property.setAttributeNode(primitiveType);
 
-        Attr defSearch = doc.createAttribute("default-search-variable");
-        primitiveType.setValue(np.isDefaultSearchVariable() + "");
-        property.setAttributeNode(defSearch);
+        if (np.isOptimisable()) {
+            Attr defSearch = doc.createAttribute("default-search-variable");
+            primitiveType.setValue(np.isDefaultSearchVariable() + "");
+            property.setAttributeNode(defSearch);
+        }
 
     }
 
@@ -183,7 +185,8 @@ public class XMLConverter {
                 boolean discrete = Boolean.valueOf(eElement.getAttribute("discreet"));
                 String descriptor = eElement.getAttribute("descriptor");
                 String abbreviation = eElement.getAttribute("abbreviation");
-                boolean defSearch = Boolean.valueOf(eElement.getAttribute("default-search-variable"));
+
+                String search = eElement.getAttribute("default-search-variable");
 
                 Number value, minimum, maximum, dimensionFactor;
 
@@ -202,25 +205,28 @@ public class XMLConverter {
                 NodeList excludeList = eElement.getElementsByTagName("excludes");
 
                 var np = new NumericProperty(keyword, value, minimum, maximum, dimensionFactor);
-                
+
                 if (excludeList.getLength() > 0) {
                     var excludeKeywords = ((Element) excludeList.item(0)).getElementsByTagName("keyword");
                     NumericPropertyKeyword[] array = new NumericPropertyKeyword[excludeKeywords.getLength()];
-                    
+
                     for (int i = 0; i < excludeKeywords.getLength(); i++) {
                         String textValue = excludeKeywords.item(i).getChildNodes().item(0).getNodeValue();
                         array[i] = NumericPropertyKeyword.valueOf(textValue);
                     }
-                    
+
                     np.setExcludeKeywords(array);
-                    
+
                 }
 
                 np.setDescriptor(descriptor);
                 np.setAbbreviation(abbreviation);
                 np.setVisibleByDefault(visible);
                 np.setDiscrete(discrete);
-                np.setDefaultSearchVariable(defSearch);
+                if (!search.isEmpty()) {
+                    np.setDefaultSearchVariable(Boolean.valueOf(search));
+                    np.setOptimisable(true);
+                }
                 properties.add(np);
             }
         }
