@@ -21,6 +21,9 @@ import pulse.util.Group;
  *
  */
 public class ExportManager {
+    
+    //current working dir
+    private static File cwd = null;
 
     private ExportManager() {
         // intentionally blank
@@ -85,7 +88,7 @@ public class ExportManager {
     public static <T extends Descriptive> void askToExport(T target, JFrame parentWindow, String fileTypeLabel) {
         var exporter = findExporter(target);
         if (exporter != null) {
-            exporter.askToExport(target, parentWindow, fileTypeLabel);
+            cwd = exporter.askToExport(target, parentWindow, fileTypeLabel, cwd);
         } else {
             throw new IllegalArgumentException("No exporter for " + target.getClass().getSimpleName());
         }

@@ -186,9 +186,10 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
 
         switch(this.status) {
             case DONE:
+            case IN_PROGRESS:
+            case FAILED:
             case EXECUTION_ERROR:
             case INCOMPLETE:
-            case IN_PROGRESS:
                  //if the TaskManager attempts to run this calculation
                 if(status == Status.QUEUED) 
                     return false;

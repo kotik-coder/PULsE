@@ -74,8 +74,8 @@ public class ActiveFlags {
         //problem dependent
         var allActiveParams = selectActiveAndListed(flags, c.getProblem()); 
         //problem independent (lower/upper bound)
-        var listed = selectActiveAndListed(flags, t.getExperimentalCurve() );
-        allActiveParams.addAll( selectActiveAndListed(flags, t.getExperimentalCurve() ) );          
+        var listed = selectActiveAndListed(flags, t.getExperimentalCurve().getRange() );
+        allActiveParams.addAll(listed);          
         return allActiveParams;
     }
 

@@ -16,6 +16,7 @@ import pulse.math.ParameterVector;
 import pulse.math.Segment;
 import pulse.math.transforms.InvLenSqTransform;
 import pulse.math.transforms.StandardTransformations;
+import pulse.math.transforms.StickTransform;
 import pulse.problem.laser.DiscretePulse;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.Grid;
@@ -228,6 +229,13 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
             var key = output.getIndex(i);
 
             switch (key) {
+                case THICKNESS:
+                    final double l = (double) properties.getSampleThickness().getValue();
+                    var bounds = Segment.boundsFrom(THICKNESS);
+                    output.setParameterBounds(i, bounds);
+                    output.setTransform(i, new StickTransform(bounds));
+                    output.set(i, l);
+                    break;
                 case DIFFUSIVITY:
                     final double a = (double) properties.getDiffusivity().getValue();
                     output.setTransform(i, new InvLenSqTransform(properties));
@@ -284,6 +292,9 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
             var key = params.getIndex(i);
 
             switch (key) {
+                case THICKNESS:
+                    properties.setSampleThickness(derive(THICKNESS, params.inverseTransform(i) ));
+                    break;
                 case DIFFUSIVITY:
                     properties.setDiffusivity(derive(DIFFUSIVITY, params.inverseTransform(i)));
                     break;

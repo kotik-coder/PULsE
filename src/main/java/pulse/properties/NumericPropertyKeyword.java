@@ -210,23 +210,20 @@ public enum NumericPropertyKeyword {
      */
     OPTICAL_THICKNESS,
     /**
-     * Time shift (pulse sync)
+     * Time shift (pulse sync).
      */
     TIME_SHIFT,
     /**
-     * Statistical significance.
+     * Statistical significance for calculating the critical value.
      */
     SIGNIFICANCE,
-    /**
-     * Statistical probability.
-     */
-    PROBABILITY,
+
     /**
      * Optimiser statistic (usually, RSS).
      */
     OPTIMISER_STATISTIC,
     /**
-     * Model selection criterion (AIC, BIC, etc.)
+     * Model selection criterion (AIC, BIC, etc.).
      */
     MODEL_CRITERION,
     /**

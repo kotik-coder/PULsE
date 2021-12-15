@@ -74,7 +74,9 @@ public class NumericPropertyFormatter extends AbstractFormatter {
                     : (double) value;
             double absAdjustedValue = Math.abs(adjustedValue);
 
-            if ((absAdjustedValue > UPPER_LIMIT) || (absAdjustedValue < LOWER_LIMIT && absAdjustedValue > ZERO)) {
+            if (addHtmlTags && 
+                    ( (absAdjustedValue > UPPER_LIMIT) 
+                   || (absAdjustedValue < LOWER_LIMIT && absAdjustedValue > ZERO)) ) {
                 //format with scientific notations
                 f = new ScientificFormat(p.getDimensionFactor(), p.getDimensionDelta());
             } else {

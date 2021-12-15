@@ -27,16 +27,19 @@ import pulse.ui.components.MovableValueMarker;
  */
 public class MouseOnMarkerListener implements ChartMouseListener {
 
-    private final MovableValueMarker marker;
+    private final MovableValueMarker lower;
+    private final MovableValueMarker upper;
+    
     private final Chart chart;
     private final double margin;
     
     private final static Cursor CROSSHAIR = new Cursor(Cursor.CROSSHAIR_CURSOR);
     private final static Cursor RESIZE = new Cursor(Cursor.E_RESIZE_CURSOR);    
 
-    public MouseOnMarkerListener(Chart chart, MovableValueMarker marker, double margin) {
+    public MouseOnMarkerListener(Chart chart, MovableValueMarker lower, MovableValueMarker upper, double margin) {
         this.chart = chart;
-        this.marker = marker;
+        this.lower = lower;
+        this.upper = upper;
         this.margin = margin;
     }
 
@@ -48,20 +51,29 @@ public class MouseOnMarkerListener implements ChartMouseListener {
     @Override
     public void chartMouseMoved(ChartMouseEvent arg0) {
         double xCoord = chart.xCoord(arg0.getTrigger());
-        highlightMarker(xCoord, marker);        
+        highlightMarker(xCoord);        
     }
 
-    private void highlightMarker(double xCoord, MovableValueMarker marker) {
+    private void highlightMarker(double xCoord) {
 
-        if (xCoord > (marker.getValue() - margin)
-                & xCoord < (marker.getValue() + margin)) {
+        if (xCoord > (lower.getValue() - margin)
+                & xCoord < (lower.getValue() + margin)) {
             
-            marker.setState(MovableValueMarker.State.SELECTED);
+            lower.setState(MovableValueMarker.State.SELECTED);            
             chart.getChartPanel().setCursor(RESIZE);
             
-        } else {
+        } 
+        else if (xCoord > (upper.getValue() - margin)
+                & xCoord < (upper.getValue() + margin)) {
             
-            marker.setState(MovableValueMarker.State.IDLE);
+            upper.setState(MovableValueMarker.State.SELECTED);
+            chart.getChartPanel().setCursor(RESIZE);
+            
+        }
+        else {
+            
+            lower.setState(MovableValueMarker.State.IDLE);
+            upper.setState(MovableValueMarker.State.IDLE);
             chart.getChartPanel().setCursor(CROSSHAIR);
             
         }

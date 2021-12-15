@@ -13,6 +13,7 @@ import java.io.IOException;
  * lists, arrays and containers may (and usually will) change as a result of
  * using the reader.
  * </p>
+ * @param <T>
  */
 public interface AbstractReader<T> extends AbstractHandler {
 

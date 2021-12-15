@@ -419,7 +419,7 @@ public class ExperimentalData extends AbstractData {
     }
 
     /**
-     * Retrieves the
+     * Retrieves the time limit.
      *
      * @see pulse.problem.schemes.DifferenceScheme
      * @return a double, equal to the last element of the {@code time List}.
@@ -427,6 +427,6 @@ public class ExperimentalData extends AbstractData {
     @Override
     public double timeLimit() {
         return timeAt(indexRange.getUpperBound());
-    }
+    }  
 
 }

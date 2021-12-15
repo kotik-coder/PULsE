@@ -1,7 +1,6 @@
 package pulse.search.statistics;
 
 import static pulse.properties.NumericProperties.derive;
-import static pulse.properties.NumericPropertyKeyword.PROBABILITY;
 import static pulse.properties.NumericPropertyKeyword.TEST_STATISTIC;
 
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
@@ -32,9 +31,9 @@ public class AndersonDarlingTest extends NormalityTest {
         var testResult = GofStat.andersonDarling(residuals, nd);
 
         this.setStatistic(derive(TEST_STATISTIC, testResult[0]));
-        setProbability(derive(PROBABILITY, testResult[1]));
-
-        return significanceTest();
+        
+        //compare the p-value and the significance
+        return testResult[1] > significance;
     }
 
     @Override

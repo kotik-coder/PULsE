@@ -8,6 +8,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
@@ -207,13 +213,32 @@ public class ReaderManager {
             throw new IllegalArgumentException("Not a directory: " + directory);
         }
 
-        var list = new HashSet<T>();
-
+        var es = Executors.newSingleThreadExecutor();
+        
+        var callableList = new ArrayList<Callable<T>>();
+        
         for (File f : directory.listFiles()) {
-            list.add(read(readers, f));
+            Callable<T> callable = () -> read(readers, f);
+            callableList.add(callable);
+        }
+        
+        Set<T> result = new HashSet<>();
+        
+        try {
+            List<Future<T>> futures = es.invokeAll(callableList);
+            
+            for(Future<T> f : futures)
+                result.add(f.get());
+ 
+        } catch (InterruptedException ex) {
+            Logger.getLogger(ReaderManager.class.getName()).log(Level.SEVERE, 
+                    "Reading interrupted when loading files from " + directory.toString(), ex);
+        } catch (ExecutionException ex) {
+            Logger.getLogger(ReaderManager.class.getName()).log(Level.SEVERE, 
+                    "Error executing read operation using concurrency", ex);
         }
 
-        return list;
+        return result;
     }
 
     /**

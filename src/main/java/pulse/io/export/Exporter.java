@@ -89,12 +89,11 @@ public interface Exporter<T extends Descriptive> extends Reflexive {
      * @param target the exported target
      * @param parentWindow the parent frame.
      * @param fileTypeLabel the label describing the specific type of files that
-     * will be saved.
+     * @param directory the default directory of the file will be saved.
+     * @return the directory where files were exported
      */
-    public default void askToExport(T target, JFrame parentWindow, String fileTypeLabel) {
-        var fileChooser = new JFileChooser();
-        var workingDirectory = new File(System.getProperty("user.home"));
-        fileChooser.setCurrentDirectory(workingDirectory);
+    public default File askToExport(T target, JFrame parentWindow, String fileTypeLabel, File directory) {
+        var fileChooser = new JFileChooser(directory);
         fileChooser.setMultiSelectionEnabled(true);
 
         FileNameExtensionFilter choosable = null;
@@ -113,29 +112,35 @@ public interface Exporter<T extends Descriptive> extends Reflexive {
             var file = fileChooser.getSelectedFile();
             var path = file.getPath();
 
-            if (!(fileChooser.getFileFilter() instanceof FileNameExtensionFilter)) {
-                return;
+            directory = file.isDirectory() ? file : file.getParentFile();
+
+            if ((fileChooser.getFileFilter() instanceof FileNameExtensionFilter)) {
+
+                var currentFilter = (FileNameExtensionFilter) fileChooser.getFileFilter();
+                var ext = currentFilter.getExtensions()[0];
+
+                if (!path.contains(".")) {
+                    file = new File(path + "." + ext);
+                } else {
+                    file = new File(path.substring(0, path.indexOf(".") + 1) + ext);
+                }
+
+                try {
+                    var fos = new FileOutputStream(file);
+                    printToStream(target, fos, Extension.valueOf(ext.toUpperCase()));
+                    fos.close();
+                } catch (IOException e) {
+                    System.err.println("An exception has been encountered while writing the contents of "
+                            + target.getClass().getSimpleName() + " to " + file);
+                    e.printStackTrace();
+                }
+
             }
 
-            var currentFilter = (FileNameExtensionFilter) fileChooser.getFileFilter();
-            var ext = currentFilter.getExtensions()[0];
-
-            if (!path.contains(".")) {
-                file = new File(path + "." + ext);
-            }
-            else
-                file = new File(path.substring(0, path.indexOf(".") + 1) + ext);
-
-            try {
-                var fos = new FileOutputStream(file);
-                printToStream(target, fos, Extension.valueOf(ext.toUpperCase()));
-                fos.close();
-            } catch (IOException e) {
-                System.err.println("An exception has been encountered while writing the contents of "
-                        + target.getClass().getSimpleName() + " to " + file);
-                e.printStackTrace();
-            }
         }
+
+        return directory;
+
     }
 
     /**

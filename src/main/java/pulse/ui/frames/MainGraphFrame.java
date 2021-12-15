@@ -8,6 +8,7 @@ import java.util.concurrent.Executors;
 import javax.swing.JInternalFrame;
 
 import pulse.tasks.TaskManager;
+import pulse.tasks.logs.Status;
 import pulse.ui.components.Chart;
 import pulse.ui.components.panels.ChartToolbar;
 import pulse.ui.components.panels.OpacitySlider;
@@ -44,7 +45,8 @@ public class MainGraphFrame extends JInternalFrame {
 
     public void plot() {
         var task = TaskManager.getManagerInstance().getSelectedTask();
-        if (task != null) {
+        //do not plot tasks that are not finished
+        if (task != null && task.getCurrentCalculation().getStatus() != Status.IN_PROGRESS) {
             Executors.newSingleThreadExecutor().submit(() -> chart.plot(task, false));
         }
     }

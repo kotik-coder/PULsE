@@ -95,17 +95,7 @@ public class Launcher {
         try {
             var dir = new File(decodedPath).getParent();
             errorLog = new File(dir + File.separator + "ErrorLog_" + now() + ".log");
-            setErr(new PrintStream(errorLog) {
-
-                @Override
-                public void println(String str) {
-                    super.println(str);
-                    JOptionPane.showMessageDialog(null, "An exception has occurred. "
-                            + "Please check the stored log!", "Exception", JOptionPane.ERROR_MESSAGE);
-                }
-
-            }
-            );
+            setErr(new PrintStream(errorLog));
         } catch (FileNotFoundException e) {
             System.err.println("Unable to set up error stream");
             e.printStackTrace();

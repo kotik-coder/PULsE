@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <NumericProperties>
+	<NumericProperty abbreviation="Correlation threshold"
+		visible="false" descriptor="Correlation threshold"
+		dimensionfactor="1" discreet="false" keyword="CORRELATION_THRESHOLD"
+		maximum="1" minimum="0.5" primitive-type="double" value="0.8">
+	</NumericProperty>
 	<NumericProperty value="1e-4" abbreviation="Damping ratio"
 		descriptor="L-M damping ratio" visible="true"
 		dimensionfactor="1" discreet="false"
@@ -185,23 +190,13 @@
 		dimensionfactor="1" discreet="false" keyword="PLANCK_NUMBER"
 		maximum="100" minimum="0.01" primitive-type="double" value="0.8612"
 		default-search-variable="true">
-	</NumericProperty>
-	<NumericProperty abbreviation="Correlation threshold"
-		visible="false" descriptor="Correlation threshold"
-		dimensionfactor="1" discreet="false" keyword="CORRELATION_THRESHOLD"
-		maximum="1" minimum="0.5" primitive-type="double" value="0.8">
-	</NumericProperty>
+	</NumericProperty>	
 	<NumericProperty
 		abbreviation="&lt;i&gt;I&lt;/i&gt;&lt;sub&gt;0&lt;/sub&gt;"
 		descriptor="Incident intensity, &lt;i&gt;I&lt;/i&gt;&lt;sub&gt;0&lt;/sub&gt;"
 		visible="false" dimensionfactor="1" discreet="false"
 		keyword="INCIDENT_INTENSITY" maximum="1E10" minimum="1E-5"
 		primitive-type="double" value="1">
-	</NumericProperty>
-	<NumericProperty abbreviation="Probability" visible="false"
-		descriptor="Probability, &lt;i&gt;p&lt;/i&gt;" dimensionfactor="1"
-		discreet="false" keyword="PROBABILITY" maximum="1" minimum="0"
-		primitive-type="double" value="0">
 	</NumericProperty>
 	<NumericProperty abbreviation="Significance"
 		descriptor="Statistical significance" dimensionfactor="1"
@@ -282,7 +277,8 @@
 		visible="true"
 		descriptor="Sample thickness, &lt;i&gt;l&lt;/i&gt; (mm)"
 		dimensionfactor="1000.0" keyword="THICKNESS" maximum="0.1"
-		minimum="1.0E-6" value="0.001" primitive-type="double" discreet="true">
+		minimum="1.0E-6" value="0.001" primitive-type="double" discreet="true"
+		default-search-variable="false">
 	</NumericProperty>
 	<NumericProperty abbreviation="&lt;i&gt;d&lt;/i&gt; (mm)"
 		visible="true"

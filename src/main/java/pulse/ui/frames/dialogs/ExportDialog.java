@@ -14,6 +14,7 @@ import static pulse.io.export.Extension.valueOf;
 
 import java.awt.Dimension;
 import java.io.File;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -81,12 +82,12 @@ public class ExportDialog extends JDialog {
     }
 
     private File directoryQuery() {
-        var returnVal = fileChooser.showSaveDialog(this);
+        var returnVal = fileChooser.showOpenDialog(this);
 
         File f = null;
         
         if (returnVal == APPROVE_OPTION) {
-            f = fileChooser.getCurrentDirectory();
+            dir = f = fileChooser.getSelectedFile();
         }
         
         return f;
@@ -171,8 +172,9 @@ public class ExportDialog extends JDialog {
         fileChooser = new JFileChooser();
         fileChooser.setMultiSelectionEnabled(false);
         fileChooser.setFileSelectionMode(DIRECTORIES_ONLY);
-        // Checkboxex
-        dir = fileChooser.getCurrentDirectory();
+
+        //get cwd
+        dir = new File("").getAbsoluteFile();
 
         var directoryField = new JTextField(dir.getPath() + separator + projectName + separator);
         directoryField.setEditable(false);
@@ -247,11 +249,8 @@ public class ExportDialog extends JDialog {
 
         var browseBtn = new JButton("Browse...");
 
-        browseBtn.addActionListener(e -> {
-            if (directoryQuery() != null) {
-                directoryField.setText(dir.getPath() + separator + projectName + separator);
-            }
-        });
+        browseBtn.addActionListener(e -> directoryField.setText(directoryQuery()
+                .getPath() + separator + projectName + separator) );
 
         var exportBtn = new JButton("Export");
 

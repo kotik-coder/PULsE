@@ -32,8 +32,8 @@ public abstract class AbstractData extends PropertyHolder {
 
     private int count;
 
-    private List<Double> time;
-    private List<Double> signal;
+    protected List<Double> time;
+    protected List<Double> signal;
 
     private String name;
 

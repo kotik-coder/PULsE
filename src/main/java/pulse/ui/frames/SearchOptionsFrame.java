@@ -50,7 +50,7 @@ public class SearchOptionsFrame extends JInternalFrame {
     private final static Font FONT = new Font(getString("PropertyHolderTable.FontName"), ITALIC, 16);
     private final static List<PathOptimiser> pathSolvers = instancesOf(PathOptimiser.class);
 
-    private final NumericPropertyKeyword[] mandatorySelection = new NumericPropertyKeyword[]{DIFFUSIVITY, MAXTEMP};
+    private final NumericPropertyKeyword[] mandatorySelection = new NumericPropertyKeyword[]{MAXTEMP};
 
     /**
      * Create the frame.

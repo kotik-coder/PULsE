@@ -1,7 +1,6 @@
 package pulse.search.statistics;
 
 import static pulse.properties.NumericProperties.derive;
-import static pulse.properties.NumericPropertyKeyword.PROBABILITY;
 import static pulse.properties.NumericPropertyKeyword.TEST_STATISTIC;
 
 import org.apache.commons.math3.distribution.NormalDistribution;
@@ -23,8 +22,10 @@ public class KSTest extends NormalityTest {
     @Override
     public boolean test(SearchTask task) {
         evaluate(task);
-        setProbability(derive(PROBABILITY, TestUtils.kolmogorovSmirnovTest(nd, residuals)));
-        return significanceTest();
+                
+        this.setStatistic(derive(TEST_STATISTIC, 
+                TestUtils.kolmogorovSmirnovStatistic(nd, residuals)));        
+        return !TestUtils.kolmogorovSmirnovTest(nd, residuals, this.significance);        
     }
 
     @Override

@@ -94,7 +94,7 @@ public class Chart {
                     //process dragged events        
                     Range range = instance.getSelectedTask()
                             .getExperimentalCurve().getRange();
-                    double value = xCoord(e);
+                    double value = xCoord(e) / factor;  //convert to seconds back from ms -- if needed
 
                     if (lowerMarker.getState() != MovableValueMarker.State.IDLE) {
                         if (range.boundLimits(false).contains(value)) {
@@ -124,8 +124,8 @@ public class Chart {
                     if (instance.getSelectedTask() == eventTask) {
                         //update marker values
                         var segment = eventTask.getExperimentalCurve().getRange().getSegment();
-                        lowerMarker.setValue(segment.getMinimum());
-                        upperMarker.setValue(segment.getMaximum());
+                        lowerMarker.setValue(segment.getMinimum() * factor); //convert to ms -- if needed
+                        upperMarker.setValue(segment.getMaximum() * factor); //convert to ms -- if needed
                     }
                 });
             } //tasks that have been finihed
@@ -241,11 +241,11 @@ public class Chart {
         lowerMarker = new MovableValueMarker(segment.getMinimum() * factor);
         upperMarker = new MovableValueMarker(segment.getMaximum() * factor);
 
-        final double margin = segment.getMaximum() / 20.0;
+        final double margin = (lowerMarker.getValue() + upperMarker.getValue())/20.0;
 
         //add listener to handle range adjustment
-        var lowerMarkerListener = new MouseOnMarkerListener(this, lowerMarker, margin);
-        var upperMarkerListener = new MouseOnMarkerListener(this, upperMarker, margin);
+        var lowerMarkerListener = new MouseOnMarkerListener(this, lowerMarker, upperMarker, margin);
+        var upperMarkerListener = new MouseOnMarkerListener(this, upperMarker, upperMarker, margin);
 
         chartPanel.addChartMouseListener(lowerMarkerListener);
         chartPanel.addChartMouseListener(upperMarkerListener);

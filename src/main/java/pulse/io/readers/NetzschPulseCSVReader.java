@@ -4,7 +4,10 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import pulse.problem.laser.NumericPulseData;
 import pulse.ui.Messages;
@@ -37,10 +40,12 @@ public class NetzschPulseCSVReader implements PulseDataReader {
 
     /**
      * This performs a basic check, finding the shot ID, which is then passed to
-     * a new {@code NumericPulseData} object. The latter is populated using the
-     * time-power sequence stored in this file. If the {@value PULSE} keyword is
+     * a new {@code NumericPulseData} object.The latter is populated using the
+     * time-power sequence stored in this file.If the {@value PULSE} keyword is
      * not found, the method will display an error.
      *
+     * @param file
+     * @throws java.io.IOException
      * @see pulse.io.readers.NetzschCSVReader.read()
      * @return a new {@code NumericPulseData} object encapsulating the contents
      * of {@code file}
@@ -49,14 +54,14 @@ public class NetzschPulseCSVReader implements PulseDataReader {
     public NumericPulseData read(File file) throws IOException {
         Objects.requireNonNull(file, Messages.getString("DATReader.1"));
 
-        NumericPulseData data;
+        NumericPulseData data = null;
 
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
 
             int shotId = NetzschCSVReader.determineShotID(reader, file);
             data = new NumericPulseData(shotId);
 
-            var pulseLabel = NetzschCSVReader.findLineByLabel(reader, PULSE, NetzschCSVReader.delims);
+            var pulseLabel = NetzschCSVReader.findLineByLabel(reader, PULSE, NetzschCSVReader.getDelims());
 
             if (pulseLabel == null) {
                 System.err.println("Skipping " + file.getName());
@@ -66,24 +71,14 @@ public class NetzschPulseCSVReader implements PulseDataReader {
             reader.readLine();
             NetzschCSVReader.populate(data, reader);
 
+        } catch (ParseException ex) {
+            Logger.getLogger(NetzschPulseCSVReader.class.getName()).log(Level.SEVERE, null, ex);
         }
 
         return data;
 
     }
 
-    /*
-	private double parseDoubleWithComma(String s) {
-		var format = NumberFormat.getInstance(Locale.GERMANY);
-		try {
-			return format.parse(s).doubleValue();
-		} catch (ParseException e) {
-			System.out.println("Couldn't parse double from: " + s);
-			e.printStackTrace();
-		}
-		return Double.NaN;
-	}
-     */
     /**
      * As this class uses the singleton pattern, only one instance is created
      * using an empty no-argument constructor.
