@@ -22,6 +22,8 @@ public class CorrelationBuffer {
     private static Set<ImmutablePair<NumericPropertyKeyword>> excludePairList;
     private static Set<NumericPropertyKeyword> excludeSingleList;
 
+    private final static double DEFAULT_THRESHOLD = 1E-3;
+    
     static {
         excludePairList = new HashSet<>();
         excludeSingleList = new HashSet<>();
@@ -44,6 +46,27 @@ public class CorrelationBuffer {
     public void clear() {
         params.clear();
     }
+    
+    /**
+     * Truncates the buffer by excluding nearly-converged results.
+     */
+    
+    private void truncate(double threshold) {
+        int i = 0;
+        int size = params.size();
+        final double thresholdSq = threshold*threshold;
+        
+        for(i = 0; i < size - 1; i = i + 2) {
+            
+            ParameterVector diff = new ParameterVector( params.get(i), params.get(i + 1).subtract(params.get(i) ));
+            if(diff.lengthSq()/params.get(i).lengthSq() < thresholdSq)
+                break;    
+        }
+        
+        for(int j = size - 1; j > i; j--)
+            params.remove(j);
+       
+    }
 
     public Map<ImmutablePair<NumericPropertyKeyword>, Double> evaluate(CorrelationTest t) {
         if (params.isEmpty()) {
@@ -54,6 +77,8 @@ public class CorrelationBuffer {
             return null;
         }
 
+        truncate(DEFAULT_THRESHOLD);
+        
         var indices = params.get(0).getIndices();
         var map = indices.stream()
                 .map(index -> new ImmutableDataEntry<>(index, params.stream().mapToDouble(v -> v.getParameterValue(index)).toArray()))

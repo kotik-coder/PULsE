@@ -84,15 +84,14 @@ public class SearchTask extends Accessible implements Runnable {
     private CorrelationTest correlationTest;
     private NormalityTest normalityTest;
 
-    private Identifier identifier;
-
+    private final Identifier identifier;
     /**
      * If {@code SearchTask} finishes, and its <i>R<sup>2</sup></i> value is
      * lower than this constant, the result will be considered
      * {@code AMBIGUOUS}.
      */
-    private List<DataCollectionListener> listeners = new CopyOnWriteArrayList<>();
-    private List<StatusChangeListener> statusChangeListeners = new CopyOnWriteArrayList<>();
+    private List<DataCollectionListener> listeners;
+    private List<StatusChangeListener> statusChangeListeners;
 
     /**
      * <p>
@@ -106,8 +105,9 @@ public class SearchTask extends Accessible implements Runnable {
      * @param curve the {@code ExperimentalData}
      */
     public SearchTask(ExperimentalData curve) {
-        current = new Calculation();
-        current.setParent(this);
+        this.statusChangeListeners = new CopyOnWriteArrayList<>();
+        this.listeners = new CopyOnWriteArrayList<>();
+        current = new Calculation(this);
         this.identifier = new Identifier();
         this.curve = curve;
         curve.setParent(this);
@@ -285,7 +285,7 @@ public class SearchTask extends Accessible implements Runnable {
 
         /* search cycle */
 
- /* sets an independent thread for manipulating the buffer */
+        /* sets an independent thread for manipulating the buffer */
         List<CompletableFuture<Void>> bufferFutures = new ArrayList<>(bufferSize);
         var singleThreadExecutor = Executors.newSingleThreadExecutor();
 
@@ -598,7 +598,7 @@ public class SearchTask extends Accessible implements Runnable {
     }
 
     public void initCorrelationTest() {
-        correlationTest = instantiate(CorrelationTest.class, CorrelationTest.getSelectedTestDescriptor());
+        correlationTest = CorrelationTest.init();
         correlationTest.setParent(this);
     }
 
@@ -617,6 +617,11 @@ public class SearchTask extends Accessible implements Runnable {
     public List<Calculation> getStoredCalculations() {
         return this.stored;
     }
+    
+    public void storeCalculation() {
+        var copy = new Calculation(current);
+        stored.add(copy);
+    }
 
     public void switchTo(Calculation calc) {
         current.setParent(null);
@@ -625,10 +630,20 @@ public class SearchTask extends Accessible implements Runnable {
         var e = new TaskRepositoryEvent(TaskRepositoryEvent.State.TASK_MODEL_SWITCH, this.getIdentifier());
         fireRepositoryEvent(e);
     }
+    
+    /**
+     * Finds the best calculation by comparing those already stored by their
+     * model selection statistics.
+     * @return the calculation showing the optimal value of the model selection statistic.
+     */
+    
+    public Calculation findBestCalculation() {
+        var c = stored.stream().reduce((c1, c2) -> c1.compareTo(c2) > 0 ? c2 : c1);
+        return c.isPresent() ? c.get() : null;
+    }
 
     public void switchToBestModel() {
-        var best = stored.stream().reduce((c1, c2) -> c1.compareTo(c2) > 0 ? c2 : c1);
-        this.switchTo(best.get());
+        this.switchTo(findBestCalculation());
         var e = new TaskRepositoryEvent(TaskRepositoryEvent.State.BEST_MODEL_SELECTED, this.getIdentifier());
         fireRepositoryEvent(e);
     }

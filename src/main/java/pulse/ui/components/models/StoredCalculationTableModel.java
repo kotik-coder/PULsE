@@ -32,8 +32,10 @@ public class StoredCalculationTableModel extends DefaultTableModel {
         var list = t.getStoredCalculations();
 
         for (Calculation c : list) {
-            var problem = c.getProblem();
-            var baseline = c.getProblem().getBaseline();
+            //we assume all problem descriptions contain the word Problem after their titles
+            String problem = c.getProblem().toString().split("Problem")[0] + "</html>";
+            //likewise -- for baselines containing Baseline
+            String baseline = c.getProblem().getBaseline().getSimpleName().split("Baseline")[0];
             var optimiser = c.getOptimiserStatistic();
             var criterion = c.getModelSelectionCriterion();
             var parameters = c.getModelSelectionCriterion().getNumVariables();

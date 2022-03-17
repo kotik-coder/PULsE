@@ -11,6 +11,7 @@ import pulse.problem.schemes.TridiagonalMatrixAlgorithm;
 import pulse.problem.statements.PenetrationProblem;
 import pulse.problem.statements.Problem;
 import pulse.problem.statements.model.AbsorptionModel;
+import pulse.problem.statements.model.BeerLambertAbsorption;
 import pulse.properties.NumericProperty;
 
 public class ImplicitTranslucentSolver extends ImplicitScheme implements Solver<PenetrationProblem> {
@@ -44,14 +45,16 @@ public class ImplicitTranslucentSolver extends ImplicitScheme implements Solver<
 
         final double Bi1H = (double) problem.getProperties().getHeatLoss().getValue() * grid.getXStep();
         final double hx = grid.getXStep();
+
+        absorption = problem.getAbsorptionModel();
+        
         HH = hx * hx;
         _2Bi1HTAU = 2.0 * Bi1H * tau;
         b11 = 1.0 / (1.0 + 2.0 * tau / HH * (1 + Bi1H));
 
-        absorption = problem.getAbsorptionModel();
         final double EPS = 1E-7;
-        rearAbsorption = tau * absorption.absorption(LASER, (N - EPS) * hx);
-        frontAbsorption = tau * absorption.absorption(LASER, 0.0);
+        rearAbsorption  = tau * absorption.absorption(LASER, (N - EPS) * hx);
+        frontAbsorption = tau * absorption.absorption(LASER, 0.0) + 2.0*tau/hx;
 
         var tridiagonal = new TridiagonalMatrixAlgorithm(grid) {
 
@@ -61,7 +64,7 @@ public class ImplicitTranslucentSolver extends ImplicitScheme implements Solver<
             }
 
         };
-
+                
         // coefficients for difference equation
         tridiagonal.setCoefA(1. / HH);
         tridiagonal.setCoefB(1. / tau + 2. / HH);

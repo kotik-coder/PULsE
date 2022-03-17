@@ -45,6 +45,7 @@ public class NetzschCSVReader implements CurveReader {
     private final static String SHOT_DATA = "Shot_data";
     private final static String DETECTOR = "DETECTOR";
     private final static String THICKNESS = "Thickness_RT";
+    private final static String DETECTOR_SPOT_SIZE = "Spotsize";
     private final static String DIAMETER = "Diameter";
 
     /**
@@ -109,6 +110,13 @@ public class NetzschCSVReader implements CurveReader {
             var format = DecimalFormat.getInstance(locale);
             format.setGroupingUsed(false);
 
+            var spot = findLineByLabel(reader, DETECTOR_SPOT_SIZE, THICKNESS, delims);
+            double spotSize = 0;
+            if(spot != null) {
+                var spotTokens = spot.split(delims);
+                spotSize = format.parse(spotTokens[spotTokens.length - 1]).doubleValue() * TO_METRES;
+            }
+                
             var tempTokens = findLineByLabel(reader, THICKNESS, delims).split(delims);
             
             final double thickness = format.parse(tempTokens[tempTokens.length - 1]).doubleValue() * TO_METRES;
@@ -135,7 +143,7 @@ public class NetzschCSVReader implements CurveReader {
             var met = new Metadata(derive(TEST_TEMPERATURE, sampleTemperature), shotId);
             met.set(NumericPropertyKeyword.THICKNESS, derive(NumericPropertyKeyword.THICKNESS, thickness));
             met.set(NumericPropertyKeyword.DIAMETER, derive(NumericPropertyKeyword.DIAMETER, diameter));
-            met.set(NumericPropertyKeyword.FOV_OUTER, derive(NumericPropertyKeyword.FOV_OUTER, 0.85 * diameter));
+            met.set(NumericPropertyKeyword.FOV_OUTER, derive(NumericPropertyKeyword.FOV_OUTER, spotSize != 0 ? spotSize : 0.85 * diameter));
             met.set(NumericPropertyKeyword.SPOT_DIAMETER, derive(NumericPropertyKeyword.SPOT_DIAMETER, 0.94 * diameter));
 
             curve.setMetadata(met);
@@ -198,12 +206,18 @@ public class NetzschCSVReader implements CurveReader {
         return shotId;
 
     }
-    
+
     protected static String findLineByLabel(BufferedReader reader, String label, String delims) throws IOException {
+        return findLineByLabel(reader, label, "!!!", delims);
+    }
+    
+    protected static String findLineByLabel(BufferedReader reader, String label, String stopLabel, String delims) throws IOException {
 
         String line = "";
         String[] tokens;
 
+        reader.mark(1000);
+        
         //find keyword
         outer:
         for (line = reader.readLine(); line != null; line = reader.readLine()) {
@@ -211,9 +225,17 @@ public class NetzschCSVReader implements CurveReader {
             tokens = line.split(delims);
 
             for (String token : tokens) {
+                
                 if (token.equalsIgnoreCase(label)) {
                     break outer;
                 }
+                
+                if(token.equalsIgnoreCase(stopLabel)) {
+                    line = null;
+                    reader.reset();
+                    break outer;
+                }
+                
             }
 
         }
@@ -221,6 +243,7 @@ public class NetzschCSVReader implements CurveReader {
         return line;
 
     }
+    
     /**
      * As this class uses the singleton pattern, only one instance is created
      * using an empty no-argument constructor.

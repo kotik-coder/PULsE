@@ -19,7 +19,7 @@ public abstract class ADIScheme extends DifferenceScheme {
      * time factor.
      */
     public ADIScheme() {
-        this(derive(GRID_DENSITY, 30), derive(TAU_FACTOR, 1.0));
+        this(derive(GRID_DENSITY, 30), derive(TAU_FACTOR, 0.5));
     }
 
     /**

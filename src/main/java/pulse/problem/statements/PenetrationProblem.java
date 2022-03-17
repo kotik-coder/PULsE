@@ -1,14 +1,8 @@
 package pulse.problem.statements;
 
-import static pulse.math.transforms.StandardTransformations.LOG;
-import static pulse.properties.NumericProperties.derive;
-import static pulse.properties.NumericPropertyKeyword.NUMPOINTS;
-
 import java.util.List;
 
 import pulse.math.ParameterVector;
-import pulse.math.Segment;
-import static pulse.math.transforms.StandardTransformations.ABS;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.solvers.ImplicitTranslucentSolver;
 import pulse.problem.schemes.solvers.SolverException;
@@ -21,8 +15,6 @@ import pulse.util.InstanceDescriptor;
 
 public class PenetrationProblem extends ClassicalProblem {
 
-    private final static int DEFAULT_CURVE_POINTS = 300;
-
     private InstanceDescriptor<AbsorptionModel> instanceDescriptor
             = new InstanceDescriptor<AbsorptionModel>(
                     "Absorption Model Selector", AbsorptionModel.class);
@@ -31,7 +23,6 @@ public class PenetrationProblem extends ClassicalProblem {
 
     public PenetrationProblem() {
         super();
-        getHeatingCurve().setNumPoints(derive(NUMPOINTS, DEFAULT_CURVE_POINTS));
         instanceDescriptor.setSelectedDescriptor(BeerLambertAbsorption.class.getSimpleName());
         instanceDescriptor.addListener(() -> initAbsorption());
         absorption.setParent(this);
@@ -72,56 +63,13 @@ public class PenetrationProblem extends ClassicalProblem {
     @Override
     public void optimisationVector(ParameterVector output, List<Flag> flags) {
         super.optimisationVector(output, flags);
-
-        for (int i = 0, size = output.dimension(); i < size; i++) {
-            var key = output.getIndex(i);
-            double value = 0;
-
-            switch (key) {
-                case LASER_ABSORPTIVITY:
-                    value = (double) (absorption.getLaserAbsorptivity()).getValue();
-                    break;
-                case THERMAL_ABSORPTIVITY:
-                    value = (double) (absorption.getThermalAbsorptivity()).getValue();
-                    break;
-                case COMBINED_ABSORPTIVITY:
-                    value = (double) (absorption.getCombinedAbsorptivity()).getValue();
-                    break;
-                default:
-                    continue;
-            }
-
-            //do this for the listed key values 
-            output.setTransform(i, ABS);
-            output.set(i, value);
-            output.setParameterBounds(i, new Segment(1E-2, 1000.0));
-
-        }
-
+        absorption.optimisationVector(output, flags);
     }
 
     @Override
     public void assign(ParameterVector params) throws SolverException {
         super.assign(params);
-
-        double value;
-
-        for (int i = 0, size = params.dimension(); i < size; i++) {
-            var key = params.getIndex(i);
-
-            switch (key) {
-                case LASER_ABSORPTIVITY:
-                case THERMAL_ABSORPTIVITY:
-                case COMBINED_ABSORPTIVITY:
-                    value = params.inverseTransform(i);
-                    break;
-                default:
-                    continue;
-            }
-
-            absorption.set(key, derive(key, value));
-
-        }
+        absorption.assign(params);
     }
 
     @Override

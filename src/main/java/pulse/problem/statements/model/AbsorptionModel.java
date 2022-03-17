@@ -10,22 +10,25 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import pulse.math.ParameterVector;
+import pulse.math.Segment;
+import static pulse.math.transforms.StandardTransformations.ABS;
+import pulse.math.transforms.Transformable;
+import pulse.problem.schemes.solvers.SolverException;
+import pulse.properties.Flag;
+import static pulse.properties.NumericProperties.derive;
 
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import static pulse.properties.NumericPropertyKeyword.COMBINED_ABSORPTIVITY;
-import static pulse.properties.NumericPropertyKeyword.DIFFUSIVITY;
-import static pulse.properties.NumericPropertyKeyword.HEAT_LOSS;
-import static pulse.properties.NumericPropertyKeyword.MAXTEMP;
-import static pulse.properties.NumericPropertyKeyword.THICKNESS;
-import pulse.properties.Property;
 import pulse.util.PropertyHolder;
 import pulse.util.Reflexive;
+import pulse.search.Optimisable;
 
-public abstract class AbsorptionModel extends PropertyHolder implements Reflexive {
+public abstract class AbsorptionModel extends PropertyHolder implements Reflexive, Optimisable {
 
     private Map<SpectralRange, NumericProperty> absorptionMap;
-
+    
     protected AbsorptionModel() {
         setPrefix("Absorption model");
         absorptionMap = new HashMap<>();
@@ -99,6 +102,59 @@ public abstract class AbsorptionModel extends PropertyHolder implements Reflexiv
         set.add(THERMAL_ABSORPTIVITY);
         set.add(COMBINED_ABSORPTIVITY);
         return set;
+    }
+    
+    @Override
+    public void optimisationVector(ParameterVector output, List<Flag> flags) {
+        for (int i = 0, size = output.dimension(); i < size; i++) {
+            var key = output.getIndex(i);
+            double value = 0;
+
+            Transformable transform = ABS;
+            output.setParameterBounds(i, new Segment(1E-2, 1000.0));
+            
+            switch (key) {
+                case LASER_ABSORPTIVITY:
+                    value = (double) (getLaserAbsorptivity()).getValue();
+                    break;
+                case THERMAL_ABSORPTIVITY:
+                    value = (double) (getThermalAbsorptivity()).getValue();
+                    break;
+                case COMBINED_ABSORPTIVITY:
+                    value = (double) (getCombinedAbsorptivity()).getValue();
+                    break;
+                default:
+                    continue;
+            }
+
+            //do this for the listed key values 
+            output.setTransform(i, transform);
+            output.set(i, value);
+
+        }
+
+    }
+
+    @Override
+    public void assign(ParameterVector params) throws SolverException {
+        double value;
+
+        for (int i = 0, size = params.dimension(); i < size; i++) {
+            var key = params.getIndex(i);
+
+            switch (key) {
+                case LASER_ABSORPTIVITY:
+                case THERMAL_ABSORPTIVITY:
+                case COMBINED_ABSORPTIVITY:
+                    value = params.inverseTransform(i);
+                    break;
+                default:
+                    continue;
+            }
+
+            set(key, derive(key, value));
+
+        }
     }
 
 }

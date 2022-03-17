@@ -51,6 +51,7 @@ import pulse.ui.components.listeners.FrameVisibilityRequestListener;
 import pulse.ui.frames.dialogs.ExportDialog;
 import pulse.ui.frames.dialogs.FormattedInputDialog;
 import pulse.ui.frames.dialogs.ResultChangeDialog;
+import pulse.util.Reflexive;
 
 @SuppressWarnings("serial")
 public class PulseMainMenu extends JMenuBar {
@@ -270,16 +271,30 @@ public class PulseMainMenu extends JMenuBar {
 
         JRadioButtonMenuItem corrItem = null;
 
+        var ct = CorrelationTest.init();
+        
         for (var corrName : allDescriptors(CorrelationTest.class)) {
             corrItem = new JRadioButtonMenuItem(corrName);
             corrItems.add(corrItem);
             correlationsSubMenu.add(corrItem);
+            
+            if(ct.getDescriptor().equalsIgnoreCase(corrName))
+                corrItem.setSelected(true);
+            
             corrItem.addItemListener(e -> {
 
                 if (((AbstractButton) e.getItem()).isSelected()) {
                     var text = ((AbstractButton) e.getItem()).getText();
-                    CorrelationTest.setSelectedTestDescriptor(text);
-                    getManagerInstance().getTaskList().stream().forEach(t -> t.initCorrelationTest());
+                    var allTests = Reflexive.instancesOf(CorrelationTest.class);
+                    var optionalTest = allTests.stream().filter(test -> 
+                                       test.getDescriptor().equalsIgnoreCase(corrName)).findAny();
+                    
+                    if(optionalTest.isPresent()) {
+                        CorrelationTest.getTestDescriptor()
+                                .setSelectedDescriptor(optionalTest.get().getClass().getSimpleName());
+                        getManagerInstance().getTaskList().stream().forEach(t -> t.initCorrelationTest());
+                    }
+                    
                 }
 
             });
@@ -293,8 +308,6 @@ public class PulseMainMenu extends JMenuBar {
         correlationsSubMenu.add(new JSeparator());
         correlationsSubMenu.add(thrItem);
         thrItem.addActionListener(e -> thresholdDialog.setVisible(true));
-
-        correlationsSubMenu.getItem(0).setSelected(true);
 
         analysisSubMenu.add(correlationsSubMenu);
         return analysisSubMenu;

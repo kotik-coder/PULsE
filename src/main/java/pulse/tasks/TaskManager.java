@@ -38,6 +38,7 @@ import pulse.tasks.listeners.TaskRepositoryEvent;
 import pulse.tasks.listeners.TaskRepositoryListener;
 import pulse.tasks.listeners.TaskSelectionEvent;
 import pulse.tasks.listeners.TaskSelectionListener;
+import pulse.tasks.logs.Status;
 import pulse.tasks.processing.Result;
 import pulse.tasks.processing.ResultFormat;
 import pulse.util.Group;
@@ -120,7 +121,7 @@ public class TaskManager extends UpwardsNavigable {
      * @param t a {@code SearchTask} that will be executed
      */
     public void execute(SearchTask t) {
-        t.checkProblems(true);
+        t.checkProblems(t.getCurrentCalculation().getStatus() != Status.DONE);
 
         //try to start cmputation 
         // notify listeners computation is about to start
@@ -139,12 +140,10 @@ public class TaskManager extends UpwardsNavigable {
                 current.setResult(new Result(t, ResultFormat.getInstance()));
                 //notify listeners before the task is re-assigned
                 notifyListeners(e);
-                current.setParent(null);
-                t.getStoredCalculations().add(current.copy());
-                current.setParent(t);
-            } else {
-                notifyListeners(e);
+                t.storeCalculation();
             }
+            else 
+                notifyListeners(e);
         });
 
     }
@@ -170,7 +169,6 @@ public class TaskManager extends UpwardsNavigable {
 
         var queue = tasks.stream().filter(t -> {
             switch (t.getCurrentCalculation().getStatus()) {
-                case DONE:
                 case IN_PROGRESS:
                 case EXECUTION_ERROR:
                     return false;

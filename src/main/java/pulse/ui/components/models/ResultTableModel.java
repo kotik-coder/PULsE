@@ -1,23 +1,25 @@
 package pulse.ui.components.models;
 
 import static java.lang.Math.abs;
-import static java.util.stream.Collectors.toList;
 import static pulse.tasks.processing.AbstractResult.filterProperties;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import static javax.swing.SwingUtilities.invokeLater;
 
 import javax.swing.table.DefaultTableModel;
 import pulse.properties.NumericProperties;
-import pulse.properties.NumericProperty;
 import static pulse.properties.NumericPropertyKeyword.IDENTIFIER;
 import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
+import pulse.tasks.Calculation;
 
 import pulse.tasks.Identifier;
+import pulse.tasks.SearchTask;
 import pulse.tasks.listeners.ResultFormatEvent;
+import pulse.tasks.logs.Details;
+import pulse.tasks.logs.Status;
 import pulse.tasks.processing.AbstractResult;
 import pulse.tasks.processing.AverageResult;
 import pulse.tasks.processing.Result;
@@ -78,9 +80,7 @@ public class ResultTableModel extends DefaultTableModel {
             results.clear();
             this.setColumnIdentifiers(fmt.abbreviations().toArray());
 
-            for (var r : oldResults) {
-                addRow(r);
-            }
+            oldResults.stream().filter(Objects::nonNull).forEach(r -> addRow(r));
 
         } else {
             this.setColumnIdentifiers(fmt.abbreviations().toArray());
@@ -93,21 +93,22 @@ public class ResultTableModel extends DefaultTableModel {
     }
 
     /**
-     * Transforms the result model by merging individual results which:
-     * (a) correspond to test temperatures within a specified {@code temperatureDelta}
-     * (b) form a single sequence of measurements
-     * @param temperatureDelta the maximum difference between the test temperature of two results being merged
+     * Transforms the result model by merging individual results which: (a)
+     * correspond to test temperatures within a specified
+     * {@code temperatureDelta} (b) form a single sequence of measurements
+     *
+     * @param temperatureDelta the maximum difference between the test
+     * temperature of two results being merged
      */
-    
     public void merge(double temperatureDelta) {
         List<AbstractResult> skipList = new ArrayList<>();
         List<AbstractResult> avgResults = new ArrayList<>();
         List<AbstractResult> sortedResults = new ArrayList<>(results);
-        
+
         /*sort results in the order of their ids
         * This is essential for the algorithm below which assumes the results
         * are listed in the order of ascending ids.
-        */
+         */
         sortedResults.sort((AbstractResult arg0, AbstractResult arg1) -> {
             var id1 = arg0.getProperties().get(fmt.indexOf(IDENTIFIER));
             var id2 = arg1.getProperties().get(fmt.indexOf(IDENTIFIER));
@@ -146,22 +147,23 @@ public class ResultTableModel extends DefaultTableModel {
         invokeLater(() -> {
             setRowCount(0);
             results.clear();
-            avgResults.stream().forEach(r -> addRow(r));
+            avgResults.stream().filter(Objects::nonNull).forEach(r -> addRow(r));
         });
 
     }
-    
-    /**
-     * Takes a list of results, which should be mandatory sorted in the order of ascending id values,
-     * and searches for those results that can be merged with {@code r}, satisfying these criteria:
-     * (a) these results correspond to test temperatures within a specified {@code temperatureDelta}
-     * (b) they form a single sequence of measurements
-     * @param listOfResults an orderer list of results, as explained above
-     * @param r the result of interest 
-     * @param propertyInterval an interval for the temperature merging 
-     * @return a group of results 
-     */
 
+    /**
+     * Takes a list of results, which should be mandatory sorted in the order of
+     * ascending id values, and searches for those results that can be merged
+     * with {@code r}, satisfying these criteria: (a) these results correspond
+     * to test temperatures within a specified {@code temperatureDelta} (b) they
+     * form a single sequence of measurements
+     *
+     * @param listOfResults an orderer list of results, as explained above
+     * @param r the result of interest
+     * @param propertyInterval an interval for the temperature merging
+     * @return a group of results
+     */
     public List<AbstractResult> group(List<AbstractResult> listOfResults, AbstractResult r, double propertyInterval) {
         List<AbstractResult> selection = new ArrayList<>();
 
@@ -214,8 +216,52 @@ public class ResultTableModel extends DefaultTableModel {
     }
 
     public void addRow(AbstractResult result) {
-        if (result == null) {
-            return;
+        Objects.requireNonNull(result, "Entry added to the results table must not be null");
+
+        //result must have a valid ancestor!
+        var ancestor = Objects.requireNonNull(
+                result.specificAncestor(SearchTask.class),
+                "Result " + result.toString() + " does not belong a SearchTask!");
+
+        //the ancestor then has the SearchTask type
+        SearchTask parentTask = (SearchTask) ancestor;
+
+        //any old result asssociated withis this task
+        var oldResult = results.stream().filter(r
+                -> r.specificAncestor(
+                        SearchTask.class) == parentTask).findAny();
+
+        //ignore average results
+        if (result instanceof Result && oldResult.isPresent()) {
+            AbstractResult oldResultExisting = oldResult.get();
+            Optional<Calculation> oldCalculation = parentTask.getStoredCalculations().stream()
+                    .filter(c -> c.getResult().equals(oldResultExisting)).findAny();
+
+            //old calculation found
+            if (oldCalculation.isPresent()) {
+
+                //since the task has already been completed anyway
+                Status status = Status.DONE;
+
+                //better result than already present -- update table
+                if (parentTask.getCurrentCalculation().isBetterThan(oldCalculation.get())) {
+                    remove(oldResultExisting);
+                    status.setDetails(Details.BETTER_CALCULATION_RESULTS_THAN_PREVIOUSLY_OBTAINED);
+                    parentTask.setStatus(status);
+                } else {
+                    //do not remove result and do not add new result
+                    status.setDetails(Details.CALCULATION_RESULTS_WORSE_THAN_PREVIOUSLY_OBTAINED);
+                    parentTask.setStatus(status);
+                    return;
+                }
+
+            } else {
+            //calculation has been purged -- delete previous result
+
+                remove(oldResultExisting);
+
+            }
+
         }
 
         var propertyList = filterProperties(result, fmt);

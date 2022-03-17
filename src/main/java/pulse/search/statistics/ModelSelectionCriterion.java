@@ -28,7 +28,7 @@ public abstract class ModelSelectionCriterion extends Statistic {
 
     public ModelSelectionCriterion(OptimiserStatistic os) {
         super();
-        setOptimiser(os);
+        setOptimiserStatistic(os);
     }
 
     public ModelSelectionCriterion(ModelSelectionCriterion another) {
@@ -96,20 +96,15 @@ public abstract class ModelSelectionCriterion extends Statistic {
         return exp(-0.5 * di);
     }
 
-    @Override
-    public String getDescriptor() {
-        return "Akaike Information Criterion (AIC)";
-    }
-
     public int getNumVariables() {
         return kq;
     }
 
-    public OptimiserStatistic getOptimiser() {
+    public OptimiserStatistic getOptimiserStatistic() {
         return os;
     }
 
-    public void setOptimiser(OptimiserStatistic os) {
+    public void setOptimiserStatistic(OptimiserStatistic os) {
         this.os = os;
     }
 

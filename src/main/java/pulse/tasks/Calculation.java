@@ -19,7 +19,8 @@ import pulse.problem.schemes.solvers.SolverException;
 import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
-import pulse.search.statistics.AICStatistic;
+import pulse.search.statistics.BICStatistic;
+import pulse.search.statistics.FTest;
 import pulse.search.statistics.ModelSelectionCriterion;
 import pulse.search.statistics.OptimiserStatistic;
 import pulse.tasks.logs.Status;
@@ -43,38 +44,32 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
     private static InstanceDescriptor<? extends ModelSelectionCriterion> instanceDescriptor = new InstanceDescriptor<>(
             "Model Selection Criterion", ModelSelectionCriterion.class);
 
+    //BIC as default
     static {
-        instanceDescriptor.setSelectedDescriptor(AICStatistic.class.getSimpleName());
+        instanceDescriptor.setSelectedDescriptor(BICStatistic.class.getSimpleName());
     }
 
-    public Calculation() {
+    public Calculation(SearchTask t) {
         status = INCOMPLETE;
         this.initOptimiser();
+        setParent(t);
         instanceDescriptor.addListener(() -> initModelCriterion());
     }
 
-    public Calculation(Problem problem, DifferenceScheme scheme, ModelSelectionCriterion rs) {
-        this();
-        this.problem = problem;
-        this.scheme = scheme;
-        this.os = rs.getOptimiser();
-        this.rs = rs;
-        problem.setParent(this);
-        scheme.setParent(this);
-        os.setParent(this);
-        rs.setParent(this);
-    }
-
-    public Calculation copy() {
-        var status = this.status;
-        var nCalc = new Calculation(problem.copy(), scheme.copy(), rs.copy());
-        var p = nCalc.getProblem();
-        p.getProperties().setMaximumTemperature(problem.getProperties().getMaximumTemperature());
-        nCalc.status = status;
-        if (this.getResult() != null) {
-            nCalc.setResult(new Result(this.getResult()));
+    /**
+     * Creates an orphan Calculation, retaining some properties of the argument
+     *
+     * @param c another calculation to be archived.
+     */
+    public Calculation(Calculation c) {
+        this.problem = c.problem.copy();
+        this.scheme = c.scheme.copy();
+        this.rs = c.rs.copy();
+        this.os = c.os.copy();
+        this.status = c.status;
+        if (c.getResult() != null) {
+            this.result = new Result(c.getResult());
         }
-        return nCalc;
     }
 
     public void clear() {
@@ -136,11 +131,10 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
 
     /**
      * Adopts the {@code scheme} by this {@code SearchTask} and updates the time
-     * limit of {
-     *
-     * @scheme} to match {@code ExperimentalData}.
+     * limit of {@code scheme} to match {@code ExperimentalData}.
      *
      * @param scheme the {@code DiffenceScheme}.
+     * @param curve
      */
     public void setScheme(DifferenceScheme scheme, ExperimentalData curve) {
         this.scheme = scheme;
@@ -174,31 +168,44 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
 
     /**
      * Attempts to set the status of this calculation to {@code status}.
+     *
      * @param status a status
-     * @return {@code true} if this attempt is successful, including the case 
+     * @return {@code true} if this attempt is successful, including the case
      * when the status being set is equal to the current status. {@code false}
-     * if the current status is one of the following: {@code DONE}, {@code EXECUTION_ERROR},
-     * {@code INCOMPLETE}, {@code IN_PROGRES}, AND the {@code status} being set 
-     * is {@code QUEUED}.
+     * if the current status is one of the following: {@code DONE},
+     * {@code EXECUTION_ERROR}, {@code INCOMPLETE}, {@code IN_PROGRES}, AND the
+     * {@code status} being set is {@code QUEUED}.
      */
-    
     public boolean setStatus(Status status) {
 
-        switch(this.status) {
-            case DONE:
+        boolean changeStatus = true;
+
+        switch (this.status) {
+            case QUEUED:
             case IN_PROGRESS:
+                switch (status) {
+                    case QUEUED:
+                    case READY:
+                    case INCOMPLETE:
+                        changeStatus = false;
+                        break;
+                    default:
+                }
+                break;
             case FAILED:
             case EXECUTION_ERROR:
             case INCOMPLETE:
-                 //if the TaskManager attempts to run this calculation
-                if(status == Status.QUEUED) 
-                    return false;
+                //if the TaskManager attempts to run this calculation
+                changeStatus = status != Status.QUEUED;
+                break;
             default:
         }
+
+        if(changeStatus)
+            this.status = status;
         
-        this.status = status;
-        return true;
-        
+        return changeStatus;
+
     }
 
     public NumericProperty weight(List<Calculation> all) {
@@ -259,10 +266,44 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
         // intentionally left blank
     }
 
+    /**
+     * Checks if this {@code Calculation} is better than {@code a}.
+     *
+     * @param a another completed calculation
+     * @return {@code true} if another calculation hasn't been completed or if
+     * this calculation's statistic is lower than statistic of {@code a}.
+     */
+    public boolean isBetterThan(Calculation a) {
+        boolean result = true;
+
+        if (a.getStatus() == Status.DONE) {
+            result = compareTo(a) < 0;  //compare statistic
+
+            //do F-test
+            Calculation fBest = FTest.test(this, a);
+            //if the models are nested and calculations can be compared
+            if (fBest != null) {
+                //use the F-test result instead
+                result = fBest == this;
+            }
+
+        }
+
+        return result;
+    }
+
+    /**
+     * Compares two calculations based on their model selection criteria.
+     *
+     * @param arg0 another calculation
+     * @return the result of comparing the model selection statistics of
+     * {@code this} and {@code arg0}.
+     */
     @Override
     public int compareTo(Calculation arg0) {
-        var s1 = arg0.getModelSelectionCriterion().getStatistic();
-        return getModelSelectionCriterion().getStatistic().compareTo(s1);
+        var sAnother = arg0.getModelSelectionCriterion().getStatistic();
+        var sThis = getModelSelectionCriterion().getStatistic();;
+        return sThis.compareTo(sAnother);
     }
 
     @Override

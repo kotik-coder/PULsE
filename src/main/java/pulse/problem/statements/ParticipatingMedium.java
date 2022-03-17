@@ -21,11 +21,8 @@ import pulse.ui.Messages;
 
 public class ParticipatingMedium extends NonlinearProblem {
 
-    private final static int DEFAULT_CURVE_POINTS = 300;
-
     public ParticipatingMedium() {
         super();
-        getHeatingCurve().setNumPoints(derive(NUMPOINTS, DEFAULT_CURVE_POINTS));
         setComplexity(ProblemComplexity.HIGH);
     }
 

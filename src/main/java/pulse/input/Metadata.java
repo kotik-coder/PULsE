@@ -22,6 +22,7 @@ import pulse.problem.laser.PulseTemporalShape;
 import pulse.problem.laser.RectangularPulse;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
+import static pulse.properties.NumericPropertyKeyword.FOV_OUTER;
 import pulse.properties.Property;
 import pulse.properties.SampleName;
 import pulse.tasks.Identifier;
@@ -199,6 +200,7 @@ public class Metadata extends PropertyHolder implements Reflexive {
         set.add(LASER_ENERGY);
         set.add(DETECTOR_GAIN);
         set.add(DETECTOR_IRIS);
+        set.add(FOV_OUTER);
         return set;
     }
 

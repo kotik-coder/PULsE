@@ -4,12 +4,10 @@ import static pulse.properties.NumericProperties.def;
 import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.REFLECTANCE;
 
-import java.util.List;
 import java.util.Set;
 
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
-import pulse.properties.Property;
 
 public class Insulator extends AbsorptionModel {
 

@@ -34,11 +34,9 @@ import pulse.ui.Messages;
  */
 public class DiathermicMedium extends ClassicalProblem {
 
-    private final static int DEFAULT_CURVE_POINTS = 300;
 
     public DiathermicMedium() {
         super();
-        getHeatingCurve().setNumPoints(derive(NUMPOINTS, DEFAULT_CURVE_POINTS));
     }
 
     public DiathermicMedium(Problem p) {

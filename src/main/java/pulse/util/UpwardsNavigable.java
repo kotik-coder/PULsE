@@ -90,7 +90,7 @@ public abstract class UpwardsNavigable implements Descriptive {
      * @param parent the new parent that will adopt this
      * {@code UpwardsNavigable}.
      */
-    public void setParent(UpwardsNavigable parent) {
+    public final void setParent(UpwardsNavigable parent) {
         this.parent = parent;
     }
 

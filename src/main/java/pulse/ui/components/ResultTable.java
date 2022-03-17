@@ -8,6 +8,7 @@ import static javax.swing.SwingUtilities.invokeLater;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Objects;
 
 import javax.swing.JTable;
 import javax.swing.RowSorter;
@@ -79,7 +80,9 @@ public class ResultTable extends JTable implements Descriptive {
             switch (e.getState()) {
                 case TASK_FINISHED:
                     var r = t.getCurrentCalculation().getResult();
-                    invokeLater(() -> ((ResultTableModel) getModel()).addRow(r));
+                    var resultTableModel = (ResultTableModel) getModel();
+                    Objects.requireNonNull(r, "Task finished with a null result!");
+                    invokeLater(() -> resultTableModel.addRow(r));
                     break;
                 case TASK_REMOVED:
                 case TASK_RESET:
@@ -134,7 +137,7 @@ public class ResultTable extends JTable implements Descriptive {
 
         for (var i = 0; i < data.length; i++) {
             for (var j = 0; j < data[0][0].length; j++) {
-                property = (NumericProperty) getValueAt(j, i) ;
+                property = (NumericProperty) getValueAt(j, i);
                 data[i][0][j] = ((Number) property.getValue()).doubleValue()
                         * property.getDimensionFactor().doubleValue() + property.getDimensionDelta().doubleValue();
                 data[i][1][j] = property.getError() == null ? 0
@@ -230,6 +233,7 @@ public class ResultTable extends JTable implements Descriptive {
 
         var instance = TaskManager.getManagerInstance();
         instance.getTaskList().stream().map(t -> t.getStoredCalculations()).flatMap(list -> list.stream())
+                .filter(Objects::nonNull)
                 .forEach(c -> dtm.addRow(c.getResult()));
     }
 

@@ -7,16 +7,32 @@ import static pulse.properties.NumericPropertyKeyword.CORRELATION_THRESHOLD;
 
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
+import pulse.util.InstanceDescriptor;
 import pulse.util.PropertyHolder;
 import pulse.util.Reflexive;
 
 public abstract class CorrelationTest extends PropertyHolder implements Reflexive {
 
     private static double threshold = (double) def(CORRELATION_THRESHOLD).getValue();
-    private static String selectedTestDescriptor;
 
+    private static InstanceDescriptor<CorrelationTest> instanceDescriptor
+            = new InstanceDescriptor<CorrelationTest>(
+                    "Correlation Test Selector", CorrelationTest.class);
+
+    static {
+        instanceDescriptor.setSelectedDescriptor(PearsonCorrelation.class.getSimpleName());
+    }
+    
     public CorrelationTest() {
         //intentionally blank
+    }
+
+    public static CorrelationTest init() {
+       return instanceDescriptor.newInstance(CorrelationTest.class);
+    }
+    
+    public final static InstanceDescriptor<CorrelationTest> getTestDescriptor() {
+        return instanceDescriptor;
     }
 
     public abstract double evaluate(double[] x, double[] y);
@@ -39,14 +55,6 @@ public abstract class CorrelationTest extends PropertyHolder implements Reflexiv
         if (type == NumericPropertyKeyword.CORRELATION_THRESHOLD) {
             threshold = (double) property.getValue();
         }
-    }
-
-    public static String getSelectedTestDescriptor() {
-        return selectedTestDescriptor;
-    }
-
-    public static void setSelectedTestDescriptor(String selectedTestDescriptor) {
-        CorrelationTest.selectedTestDescriptor = selectedTestDescriptor;
     }
 
 }

@@ -50,10 +50,13 @@ public class InstanceDescriptor<T extends Reflexive> implements Property {
     @Override
     public boolean attemptUpdate(Object object) {
         var string = object.toString();
-
-        if (selectedDescriptor.equals(string) || !allDescriptors.contains(string)) {
+            
+        if (selectedDescriptor.equals(string)) {
             return false;
         }
+        
+        if(!allDescriptors.contains(string))
+            throw new IllegalArgumentException("Unknown descriptor: " + selectedDescriptor);
 
         this.selectedDescriptor = string;
         listeners.stream().forEach(l -> l.onDescriptorChanged());

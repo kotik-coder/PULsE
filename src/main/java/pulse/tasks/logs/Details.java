@@ -41,7 +41,22 @@ public enum Details {
     SIGNIFICANT_CORRELATION_BETWEEN_PARAMETERS,
     PARAMETER_VALUES_NOT_SENSIBLE,
     MAX_ITERATIONS_REACHED,
-    ABNORMAL_DISTRIBUTION_OF_RESIDUALS;
+    ABNORMAL_DISTRIBUTION_OF_RESIDUALS,
+    
+    /**
+     * Indicates that the result table had not been updated, as the selected 
+     * model produced results worse than expected by the model selection criterion.
+     */
+    
+    CALCULATION_RESULTS_WORSE_THAN_PREVIOUSLY_OBTAINED,
+    
+    
+    /**
+     * Indicates that the result table had been updated, as the current
+     * model selection criterion showed better result than already present.
+     */
+    
+    BETTER_CALCULATION_RESULTS_THAN_PREVIOUSLY_OBTAINED;
 
     @Override
     public String toString() {

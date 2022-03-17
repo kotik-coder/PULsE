@@ -272,13 +272,20 @@
 		descriptor="Thermal diffusivity, &lt;i&gt;a&lt;/i&gt; (mm&lt;sup&gt;2&lt;/sup&gt;s&lt;sup&gt;-1&lt;/sup&gt;) "
 		dimensionfactor="1000000.0" keyword="DIFFUSIVITY" maximum="0.001"
 		minimum="1.0E-10" value="1.0E-6" primitive-type="double"
-		discreet="false" default-search-variable="true" />
+		discreet="false" default-search-variable="true">
+		<excludes>
+		<keyword>THICKNESS</keyword>
+		</excludes>
+	</NumericProperty>
 	<NumericProperty abbreviation="&lt;i&gt;l&lt;/i&gt; (mm)"
 		visible="true"
 		descriptor="Sample thickness, &lt;i&gt;l&lt;/i&gt; (mm)"
 		dimensionfactor="1000.0" keyword="THICKNESS" maximum="0.1"
 		minimum="1.0E-6" value="0.001" primitive-type="double" discreet="true"
 		default-search-variable="false">
+		<excludes>
+		<keyword>DIFFUSIVITY</keyword>
+		</excludes>
 	</NumericProperty>
 	<NumericProperty abbreviation="&lt;i&gt;d&lt;/i&gt; (mm)"
 		visible="true"
@@ -302,7 +309,7 @@
 	<NumericProperty abbreviation="&lt;i&gt;N&lt;/i&gt;"
 		visible="true" descriptor="Number of points"
 		dimensionfactor="1" keyword="NUMPOINTS" maximum="10000" minimum="10"
-		value="100" primitive-type="int" discreet="false"
+		value="300" primitive-type="int" discreet="false"
 		/>
 	<NumericProperty abbreviation="&lt;i&gt;j&lt;/i&gt;"
 		visible="false" descriptor="Search iteration"

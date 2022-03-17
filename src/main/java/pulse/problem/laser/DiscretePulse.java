@@ -1,5 +1,7 @@
 package pulse.problem.laser;
 
+import java.util.Objects;
+import pulse.input.ExperimentalData;
 import pulse.problem.schemes.Grid;
 import pulse.problem.statements.Problem;
 import pulse.problem.statements.Pulse;
@@ -37,7 +39,11 @@ public class DiscretePulse {
 
         recalculate();
 
-        var data = ((SearchTask) problem.specificAncestor(SearchTask.class)).getExperimentalCurve();
+        Object ancestor = 
+        Objects.requireNonNull( problem.specificAncestor(SearchTask.class), 
+                "Problem has not been assigned to a SearchTask");
+        
+        ExperimentalData data = ((SearchTask)ancestor).getExperimentalCurve();
 
         pulse.getPulseShape().init(data, this);
         pulse.addListener(e -> {
@@ -45,6 +51,7 @@ public class DiscretePulse {
             recalculate();
             pulse.getPulseShape().init(data, this);
         });
+        
     }
 
     /**

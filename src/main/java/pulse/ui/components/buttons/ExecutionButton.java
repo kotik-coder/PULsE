@@ -32,14 +32,14 @@ public class ExecutionButton extends JButton {
 
         this.addActionListener((ActionEvent e) -> {
             /*
-			 * STOP PRESSED?
+             * STOP PRESSED?
              */
             if (state == STOP) {
                 instance.cancelAllTasks();
                 return;
             }
             /*
-			 * EXECUTE PRESSED?
+             * EXECUTE PRESSED?
              */
             if (instance.getTaskList().isEmpty()) {
                 showMessageDialog(getWindowAncestor((Component) e.getSource()),
