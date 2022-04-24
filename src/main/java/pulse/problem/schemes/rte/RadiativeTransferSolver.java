@@ -55,6 +55,7 @@ public abstract class RadiativeTransferSolver extends PropertyHolder implements 
     public void init(ParticipatingMedium p, Grid grid) {
         if (fluxes != null) {
             fluxes.setDensity(grid.getGridDensity());
+            fluxes.init();
             var properties = (ThermoOpticalProperties) p.getProperties();
             fluxes.setOpticalThickness(properties.getOpticalThickness());
         }

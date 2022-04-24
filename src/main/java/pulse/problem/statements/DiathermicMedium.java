@@ -93,7 +93,7 @@ public class DiathermicMedium extends ClassicalProblem {
                     break;
                 case HEAT_LOSS:
                     if (properties.areThermalPropertiesLoaded()) {
-                        properties.emissivity();
+                        properties.calculateEmissivity();
                         final double emissivity = (double) properties.getEmissivity().getValue();
                         properties
                                 .setDiathermicCoefficient(derive(DIATHERMIC_COEFFICIENT, emissivity / (2.0 - emissivity)));

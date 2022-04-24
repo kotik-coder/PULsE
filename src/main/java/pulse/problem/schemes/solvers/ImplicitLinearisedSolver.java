@@ -53,6 +53,7 @@ public class ImplicitLinearisedSolver extends ImplicitScheme implements Solver<C
 
     private double HH;
     private double _2HTAU;
+    private double zeta;
 
     public ImplicitLinearisedSolver() {
         super();
@@ -75,6 +76,7 @@ public class ImplicitLinearisedSolver extends ImplicitScheme implements Solver<C
         N = (int) grid.getGridDensity().getValue();
         final double hx = grid.getXStep();
         tau = grid.getTimeStep();
+        zeta = (double) ((ClassicalProblem)problem).getGeometricFactor().getValue();
 
         final double Bi1 = (double) problem.getProperties().getHeatLoss().getValue();
 
@@ -97,7 +99,7 @@ public class ImplicitLinearisedSolver extends ImplicitScheme implements Solver<C
     }
 
     @Override
-    public void solve(ClassicalProblem problem) {
+    public void solve(ClassicalProblem problem) throws SolverException {
         prepare(problem);
         runTimeSequence(problem);
     }
@@ -105,12 +107,15 @@ public class ImplicitLinearisedSolver extends ImplicitScheme implements Solver<C
     @Override
     public double firstBeta(final int m) {
         final double pls = super.pulse(m);
-        return (HH * getPreviousSolution()[0] + _2HTAU * pls) / (2. * Bi1HTAU + 2. * tau + HH);
+        return (HH * getPreviousSolution()[0] + _2HTAU * pls * zeta) / (2. * Bi1HTAU + 2. * tau + HH);
     }
 
     @Override
     public double evalRightBoundary(final int m, final double alphaN, final double betaN) {
-        return (HH * getPreviousSolution()[N] + 2. * tau * betaN) / (2 * Bi1HTAU + HH - 2. * tau * (alphaN - 1));
+        final double pls = super.pulse(m);
+        return (HH * getPreviousSolution()[N] + 2. * tau * betaN 
+                + _2HTAU * (1.0 - zeta) * pls //additional term due to stray light 
+                ) / (2 * Bi1HTAU + HH - 2. * tau * (alphaN - 1));
     }
 
     @Override

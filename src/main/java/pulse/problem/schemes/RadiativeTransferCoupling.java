@@ -1,7 +1,5 @@
 package pulse.problem.schemes;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import pulse.problem.schemes.rte.RadiativeTransferSolver;
@@ -38,7 +36,7 @@ public class RadiativeTransferCoupling extends PropertyHolder {
                 newRTE(problem, grid);
                 rte.init(problem, grid);
             });
-
+        
         } else {
             rte.init(problem, grid);
         }

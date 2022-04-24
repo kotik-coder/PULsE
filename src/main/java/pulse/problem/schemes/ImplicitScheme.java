@@ -1,5 +1,6 @@
 package pulse.problem.schemes;
 
+import pulse.problem.schemes.solvers.SolverException;
 import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.GRID_DENSITY;
 import static pulse.properties.NumericPropertyKeyword.TAU_FACTOR;
@@ -65,8 +66,17 @@ public abstract class ImplicitScheme extends OneDimensionalScheme {
         tridiagonal = new TridiagonalMatrixAlgorithm(getGrid());
     }
 
+    /**
+     * Calculates the solution at the boundaries using the boundary conditions 
+     * specific to the problem statement and runs the tridiagonal matrix algorithm
+     * to evaluate solution at the intermediate grid points.
+     * @param m the time step
+     * @throws SolverException if the calculation failed 
+     * @see leftBoundary(), evalRightBoundary(), pulse.problem.schemes.TridiagonalMatrixAlgorithm.sweep()
+     */
+    
     @Override
-    public void timeStep(final int m) {
+    public void timeStep(final int m) throws SolverException {
         leftBoundary(m);
         final var V = getCurrentSolution();
         final int N = V.length - 1;

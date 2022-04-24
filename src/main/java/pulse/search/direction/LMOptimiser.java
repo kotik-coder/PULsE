@@ -1,5 +1,6 @@
 package pulse.search.direction;
 
+import java.util.Arrays;
 import static pulse.math.linear.SquareMatrix.asSquareMatrix;
 import static pulse.properties.NumericProperties.compare;
 import static pulse.properties.NumericProperties.def;
@@ -76,8 +77,14 @@ public class LMOptimiser extends GradientBasedOptimiser {
             var lmDirection = getSolver().direction(p);
 
             var candidate = parameters.sum(lmDirection);
+            
+            if( Arrays.stream( candidate.getData() ).anyMatch(el -> !Double.isFinite(el) ) ) {
+                throw new SolverException("Illegal candidate parameters: not finite! " + p.getIteration());
+            }
+                
             task.assign(new ParameterVector(
                     parameters, candidate)); // assign new parameters
+                        
             double newCost = task.solveProblemAndCalculateCost(); // calculate the sum of squared residuals
 
             /*
@@ -123,7 +130,11 @@ public class LMOptimiser extends GradientBasedOptimiser {
         // the Jacobian is then used to calculate the 'gradient'
         Vector g1 = halfGradient(p); // g1
         p.setGradient(g1);
-
+        
+        if(Arrays.stream(g1.getData()).anyMatch(v -> !Double.isFinite(v))) {
+            throw new SolverException("Could not calculate objective function gradient");
+        }
+            
         // the Hessian is then regularised by adding labmda*I
         var hessian = p.getNonregularisedHessian();
         var damping = (levenbergDamping(hessian).multiply(dampingRatio)
@@ -158,7 +169,7 @@ public class LMOptimiser extends GradientBasedOptimiser {
     public RectangularMatrix jacobian(SearchTask task) throws SolverException {
 
         var residualCalculator = task.getCurrentCalculation().getOptimiserStatistic();
-
+        
         var p = ((LMPath) task.getIterativeState());
 
         final var params = p.getParameters();
@@ -192,7 +203,7 @@ public class LMOptimiser extends GradientBasedOptimiser {
             }
 
         }
-
+        
         // revert to original params
         task.assign(params);
 

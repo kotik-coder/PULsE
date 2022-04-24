@@ -39,7 +39,7 @@ public class ImplicitCoupledSolver extends CoupledImplicitScheme implements Solv
         super(gridDensity, timeFactor, timeLimit);
     }
 
-    private void prepare(ParticipatingMedium problem) {
+    private void prepare(ParticipatingMedium problem) throws SolverException {
         super.prepare(problem);
 
         final var grid = getGrid();
@@ -66,7 +66,7 @@ public class ImplicitCoupledSolver extends CoupledImplicitScheme implements Solv
         v1 = 1.0 + HX2_2TAU + hx * Bi1;
 
         fluxes = rte.getFluxes();
-
+        
         var tridiagonal = new TridiagonalMatrixAlgorithm(grid) {
 
             @Override

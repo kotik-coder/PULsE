@@ -159,6 +159,13 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
     public void process() throws SolverException {
+        var list = problem.getProperties().findMalformedProperties();
+        if(!list.isEmpty()) {
+            StringBuilder sb = new StringBuilder("Illegal values:");
+            for(NumericProperty np : list)
+                sb.append(String.format("%n %-25s", np));
+            throw new SolverException(sb.toString());
+        }
         ((Solver) scheme).solve(problem);
     }
 

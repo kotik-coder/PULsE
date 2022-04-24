@@ -6,7 +6,7 @@ import pulse.util.Reflexive;
 
 public abstract class PhaseFunction implements Reflexive {
 
-    private Discretisation intensities;
+    private final Discretisation intensities;
     private double anisotropy;
     private double halfAlbedo;
 

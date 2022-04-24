@@ -5,7 +5,7 @@ package pulse.problem.schemes.rte.dom;
  * This includes the various intensity and flux arrays used internally by the
  * integrators.
  */
-class DiscreteQuantities {
+public class DiscreteQuantities {
 
     private double[][] I;
     private double[][] Ik;

@@ -12,7 +12,6 @@ import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import pulse.AbstractData;
@@ -53,11 +52,13 @@ public class ExperimentalData extends AbstractData {
      * Scientific Instruments, 91(6), 064902.
      */
     public final static int REDUCTION_FACTOR = 32;
+    
+    public final static int MAX_REDUCTION_FACTOR = 256;
 
     /**
      * A fail-safe factor.
      */
-    public final static double FAIL_SAFE_FACTOR = 3.0;
+    public final static double FAIL_SAFE_FACTOR = 10.0;
 
     private static Comparator<Point2D> pointComparator = (p1, p2) -> valueOf(p1.getY()).compareTo(valueOf(p2.getY()));
 
@@ -217,19 +218,28 @@ public class ExperimentalData extends AbstractData {
      * @see getHalfTime()
      */
     public void calculateHalfTime() {
-        var degraded = runningAverage(REDUCTION_FACTOR);
-        var max = (max(degraded, pointComparator));
         var baseline = new FlatBaseline();
         baseline.fitTo(this);
-
-        double halfMax = (max.getY() + baseline.valueAt(0)) / 2.0;
-
-        int cutoffIndex = degraded.indexOf(max);
+        
+        int curRedFactor = REDUCTION_FACTOR/2; // reduced twofold since first operation 
+                                               // in the while loop will increase it likewise
+        int cutoffIndex = 0;         
+        List<Point2D> degraded = null; //running average
+        Point2D max = null;
+        
+        do {
+            curRedFactor *= 2;
+            degraded = runningAverage(curRedFactor);
+            max = (max(degraded, pointComparator));
+            cutoffIndex = degraded.indexOf(max);
+        } while(cutoffIndex < 1 && curRedFactor < MAX_REDUCTION_FACTOR);
+        
+        double halfMax = (max.getY() + baseline.valueAt(0)) / 2.0;        
         degraded = degraded.subList(0, cutoffIndex);
-
+        
         int index = IndexRange.closestLeft(halfMax,
                 degraded.stream().map(point -> point.getY()).collect(Collectors.toList()));
-
+            
         if (index < 1) {
             System.err.println(Messages.getString("ExperimentalData.HalfRiseError"));
             halfTime = max(getTimeSequence()) / FAIL_SAFE_FACTOR;

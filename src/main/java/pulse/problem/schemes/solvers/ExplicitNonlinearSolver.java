@@ -70,7 +70,7 @@ public class ExplicitNonlinearSolver extends ExplicitScheme implements Solver<No
     }
 
     @Override
-    public void timeStep(int m) {
+    public void timeStep(int m) throws SolverException {
         explicitSolution();
         pls = pulse(m);
         doIterations(getCurrentSolution(), nonlinearPrecision, m);
@@ -95,7 +95,7 @@ public class ExplicitNonlinearSolver extends ExplicitScheme implements Solver<No
     }
 
     @Override
-    public void solve(NonlinearProblem problem) {
+    public void solve(NonlinearProblem problem) throws SolverException {
         prepare(problem);
         runTimeSequence(problem);
     }

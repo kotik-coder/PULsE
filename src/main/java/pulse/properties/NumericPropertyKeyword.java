@@ -346,7 +346,14 @@ public enum NumericPropertyKeyword {
      * Levenberg-Marquardt damping ratio. A zero value presents pure Levenberg
      * damping. A value of 1 gives pure Marquardt damping.
      */
-    DAMPING_RATIO;
+    DAMPING_RATIO,
+    
+    /**
+     * Determines how much weight is attributed to the front-face light source
+     * compared to rear face. Can be a number between zero and unity. 
+     */
+    
+    SOURCE_GEOMETRIC_FACTOR;
 
     public static Optional<NumericPropertyKeyword> findAny(String key) {
         return Arrays.asList(values()).stream().filter(keys -> keys.toString().equalsIgnoreCase(key)).findAny();

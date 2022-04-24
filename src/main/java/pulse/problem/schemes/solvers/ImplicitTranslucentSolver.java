@@ -76,13 +76,13 @@ public class ImplicitTranslucentSolver extends ImplicitScheme implements Solver<
     }
 
     @Override
-    public void solve(PenetrationProblem problem) {
+    public void solve(PenetrationProblem problem) throws SolverException {
         prepare(problem);
         runTimeSequence(problem);
     }
 
     @Override
-    public void timeStep(final int m) {
+    public void timeStep(final int m) throws SolverException {
         pls = pulse(m);
         super.timeStep(m);
     }

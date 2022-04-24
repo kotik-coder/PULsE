@@ -72,7 +72,7 @@
 	<NumericProperty abbreviation="Max iterations"
 		visible="false" descriptor="Max iterations"
 		dimensionfactor="1" discreet="false" keyword="RTE_MAX_ITERATIONS"
-		maximum="10000" minimum="1" primitive-type="int" value="250">
+		maximum="10000" minimum="1" primitive-type="int" value="200">
 	</NumericProperty>
 	<NumericProperty abbreviation="Integration timeout (s)"
 		visible="false" descriptor="Integration timeout (s)"
@@ -188,7 +188,7 @@
 		visible="true"
 		descriptor="Planck number, &lt;i&gt;N&lt;/i&gt;&lt;sub&gt;Pl&lt;/sub&gt;"
 		dimensionfactor="1" discreet="false" keyword="PLANCK_NUMBER"
-		maximum="100" minimum="0.01" primitive-type="double" value="0.8612"
+		maximum="500" minimum="0.001" primitive-type="double" value="0.8612"
 		default-search-variable="true">
 	</NumericProperty>	
 	<NumericProperty
@@ -257,6 +257,14 @@
 		abbreviation="Iteration limit" visible="true"
 		descriptor="Iteration limit" dimensionfactor="1" maximum="1000"
 		minimum="1" primitive-type="int" value="256" discreet="false">
+	</NumericProperty>
+	<NumericProperty
+		abbreviation="&amp;zeta;"
+		visible="true"
+		descriptor="Source geometric factor, &amp;zeta;"
+		dimensionfactor="1" discreet="false"
+		keyword="SOURCE_GEOMETRIC_FACTOR" maximum="1" minimum="0"
+		primitive-type="double" value="1" default-search-variable="false">
 	</NumericProperty>
 	<NumericProperty
 		abbreviation="&lt;i&gt;a&lt;/i&gt;&lt;sub&gt;c&lt;/sub&gt; (mm&lt;sup&gt;2&lt;/sup&gt;s&lt;sup&gt;-1&lt;/sup&gt;) "
@@ -380,8 +388,9 @@
 		abbreviation="&lt;i&gt;Q&lt;/i&gt;&lt;sub&gt;las&lt;/sub&gt; (J)"
 		visible="true"
 		descriptor="Pulse energy, &lt;i&gt;Q&lt;/i&gt;&lt;sub&gt;las&lt;/sub&gt; (J)"
-		dimensionfactor="1.0" keyword="LASER_ENERGY" maximum="100.0"
-		minimum="0.01" value="5.0" primitive-type="double" discreet="false"/>
+		dimensionfactor="1.0" keyword="LASER_ENERGY" maximum="32.0"
+		minimum="0.01" value="5.0" primitive-type="double" discreet="false"
+		default-search-variable="false"/>
 	<NumericProperty
 		abbreviation="&lt;i&gt;T&lt;/i&gt;&lt;sub&gt;0&lt;/sub&gt; (&#176;C)"
 		visible="false"

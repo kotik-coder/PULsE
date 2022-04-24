@@ -19,6 +19,9 @@ import javax.swing.UIManager;
 
 import com.alee.laf.WebLookAndFeel;
 import com.alee.skin.dark.WebDarkSkin;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * <p>
@@ -35,6 +38,8 @@ public class Launcher {
     private File errorLog;
     private final static boolean DEBUG = false;
 
+    private static final File LOCK = new File("pulse.lock");
+
     private Launcher() {
         if (!DEBUG) {
             arrangeErrorOutput();
@@ -47,28 +52,44 @@ public class Launcher {
      */
     public static void main(String[] args) {
         new Launcher();
-        splashScreen();
+ 
+        if (!LOCK.exists()) {
 
-        WebLookAndFeel.install(WebDarkSkin.class);
-        try {
-            UIManager.setLookAndFeel(new WebLookAndFeel());
-        } catch (Exception ex) {
-            System.err.println("Failed to initialize LaF");
-        }
+            try {
+                LOCK.createNewFile();
+            } catch (IOException ex) {
+                Logger.getLogger(Launcher.class.getName()).log(Level.SEVERE, "Unable to create lock file", ex);
+            }
+            
+            LOCK.deleteOnExit();
 
-        var newVersion = Version.getCurrentVersion().checkNewVersion();
+            splashScreen();
 
-        /* Create and display the form */
-        invokeLater(() -> {
-            getInstance().setLocationRelativeTo(null);
-            getInstance().setVisible(true);
-
-            if (newVersion != null) {
-                JOptionPane.showMessageDialog(null, "<html>A new version of this software is available: "
-                        + newVersion.toString() + "<br>Please visit the PULsE website for more details.</html>");
+            WebLookAndFeel.install(WebDarkSkin.class);
+            try {
+                UIManager.setLookAndFeel(new WebLookAndFeel());
+            } catch (Exception ex) {
+                System.err.println("Failed to initialize LaF");
             }
 
-        });
+            var newVersion = Version.getCurrentVersion().checkNewVersion();
+
+            /* Create and display the form */
+            invokeLater(() -> {
+                getInstance().setLocationRelativeTo(null);
+                getInstance().setVisible(true);
+
+                if (newVersion != null) {
+                    JOptionPane.showMessageDialog(null, "<html>A new version of this software is available: "
+                            + newVersion.toString() + "<br>Please visit the PULsE website for more details.</html>");
+                }
+
+            });
+
+        } else {
+            System.out.println("An instance of PULsE is already running!");
+        }
+
     }
 
     private static void splashScreen() {

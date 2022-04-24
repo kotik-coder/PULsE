@@ -55,6 +55,7 @@ public enum Status {
 
     private final Color clr;
     private Details details = Details.NONE;
+    private String message = "";
 
     Status(Color clr) {
         this.clr = clr;
@@ -70,6 +71,14 @@ public enum Status {
 
     public void setDetails(Details details) {
         this.details = details;
+    }
+    
+    public String getDetailedMessage() {
+        return message;
+    }
+    
+    public void setDetailedMessage(String str) {
+        this.message = str;
     }
 
     static String parse(String str) {

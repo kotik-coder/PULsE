@@ -89,7 +89,7 @@ public class ImplicitNonlinearSolver extends ImplicitScheme implements Solver<No
     }
 
     @Override
-    public void solve(NonlinearProblem problem) {
+    public void solve(NonlinearProblem problem) throws SolverException {
         prepare(problem);
         runTimeSequence(problem);
     }
@@ -132,19 +132,20 @@ public class ImplicitNonlinearSolver extends ImplicitScheme implements Solver<No
     }
 
     @Override
-    public void timeStep(final int m) {
+    public void timeStep(final int m) throws SolverException {
         pls = pulse(m);
         doIterations(getCurrentSolution(), nonlinearPrecision, m);
     }
 
     @Override
-    public void iteration(int m) {
+    public void iteration(int m) throws SolverException {
         super.timeStep(m);
     }
 
     @Override
     public double evalRightBoundary(int m, double alphaN, double betaN) {
-        return c2 * (2. * betaN * tau + HH * getPreviousSolution()[N] + c1 * (fastPowLoop(getCurrentSolution()[N] * dT_T + 1, 4) - 1));
+        return c2 * (2. * betaN * tau + HH * getPreviousSolution()[N] 
+                + c1 * (fastPowLoop(getCurrentSolution()[N] * dT_T + 1, 4) - 1));
     }
 
     @Override

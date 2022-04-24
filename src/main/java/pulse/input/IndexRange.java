@@ -186,24 +186,31 @@ public class IndexRange {
     }
 
     private static int closest(double of, List<Double> in, boolean reverseOrder) {
-        int sizeMinusOne = Math.max( in.size() - 1, 0); //has to be non-negative
-        
-        if (of > in.get(sizeMinusOne)) {
-            return sizeMinusOne;
-        }
+        int sizeMinusOne = in.size() - 1; //has to be non-negative
 
-        int start = reverseOrder ? sizeMinusOne - 1 : 0;
-        int increment = reverseOrder ? -1 : 1;
+        int result = 0;
 
-        for (int i = start; reverseOrder ? (i > -1) : (i < sizeMinusOne); i += increment) {
+        if (sizeMinusOne < 1) {
+            result = 0;
+        } else if (of > in.get(sizeMinusOne)) {
+            result = sizeMinusOne;
+        } else {
 
-            if (between(of, in.get(i), in.get(i + 1))) {
-                return i;
+            int start = reverseOrder ? sizeMinusOne - 1 : 0;
+            int increment = reverseOrder ? -1 : 1;
+
+            for (int i = start; reverseOrder ? (i > -1) : (i < sizeMinusOne); i += increment) {
+
+                if (between(of, in.get(i), in.get(i + 1))) {
+                    result = i;
+                    break;
+                }
+
             }
 
         }
 
-        return 0;
+        return result;
 
     }
 

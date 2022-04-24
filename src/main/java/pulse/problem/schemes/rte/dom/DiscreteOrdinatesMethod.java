@@ -77,7 +77,7 @@ public class DiscreteOrdinatesMethod extends RadiativeTransferSolver {
         if (status == RTECalculationStatus.NORMAL) {
             fluxesAndDerivatives(tempArray.length);
         }
-
+        
         fireStatusUpdate(status);
         return status;
     }
@@ -90,9 +90,11 @@ public class DiscreteOrdinatesMethod extends RadiativeTransferSolver {
         var fluxes = (FluxesAndExplicitDerivatives) getFluxes();
 
         for (int i = 0; i < nExclusive; i++) {
-            fluxes.setFlux(i, DOUBLE_PI * discrete.firstMoment(interpolation[0], i));
+            double flux = DOUBLE_PI * discrete.firstMoment(interpolation[0], i);
+            fluxes.setFlux(i, flux);
             fluxes.setFluxDerivative(i, -DOUBLE_PI * discrete.firstMoment(interpolation[1], i));
         }
+        
     }
 
     @Override

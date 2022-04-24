@@ -42,15 +42,16 @@ public class NumericProperties {
         }
 
         double v = val.doubleValue();
-
         final double EPS = 1E-12;
-
-        if (v > property.getMaximum().doubleValue() + EPS) {
-            return false;
+        boolean ok = true;
+        
+        if(        !Double.isFinite(v) 
+                || v > property.getMaximum().doubleValue() + EPS
+                || v < property.getMinimum().doubleValue() - EPS) {
+            ok = false;
         }
 
-        return v >= property.getMinimum().doubleValue() - EPS;
-
+        return ok;
     }
 
     public static String printRangeAndNumber(NumericProperty p, Number value) {
@@ -102,7 +103,9 @@ public class NumericProperties {
      * Searches for the default {@code NumericProperty} corresponding to
      * {@code keyword} in the list of pre-defined properties loaded from the
      * respective {@code .xml} file, and if found creates a new
-     * {@NumericProperty} which will replicate all field of the latter, but will
+     * {
+     *
+     * @NumericProperty} which will replicate all field of the latter, but will
      * set its value to {@code value}.
      *
      * @param keyword one of the constant {@code NumericPropertyKeyword}s

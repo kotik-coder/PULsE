@@ -4,16 +4,14 @@ import static pulse.properties.NumericProperties.def;
 import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.NONLINEAR_PRECISION;
 
-import java.util.List;
 import java.util.Set;
 
 import pulse.problem.schemes.rte.RTECalculationStatus;
+import pulse.problem.schemes.solvers.SolverException;
 import pulse.problem.statements.ParticipatingMedium;
 import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
-import static pulse.properties.NumericPropertyKeyword.BASELINE_INTERCEPT;
-import pulse.properties.Property;
 
 public abstract class CoupledImplicitScheme extends ImplicitScheme implements FixedPointIterations {
 
@@ -37,17 +35,20 @@ public abstract class CoupledImplicitScheme extends ImplicitScheme implements Fi
     }
 
     @Override
-    public void timeStep(final int m) {
+    public void timeStep(final int m) throws SolverException {
         pls = pulse(m);
         doIterations(getCurrentSolution(), nonlinearPrecision, m);
     }
 
     @Override
-    public void iteration(final int m) {
+    public void iteration(final int m) throws SolverException {
         super.timeStep(m);
     }
 
-    public void finaliseIteration(double[] V) {
+    @Override
+    public void finaliseIteration(double[] V) throws SolverException {
+        FixedPointIterations.super.finaliseIteration(V);
+        var rte = coupling.getRadiativeTransferEquation();
         setCalculationStatus(coupling.getRadiativeTransferEquation().compute(V));
     }
 
@@ -55,13 +56,13 @@ public abstract class CoupledImplicitScheme extends ImplicitScheme implements Fi
         return coupling;
     }
 
-    public void setCoupling(RadiativeTransferCoupling coupling) {
+    public final void setCoupling(RadiativeTransferCoupling coupling) {
         this.coupling = coupling;
         this.coupling.setParent(this);
     }
 
     @Override
-    public void finaliseStep() {
+    public void finaliseStep() throws SolverException {
         super.finaliseStep();
         coupling.getRadiativeTransferEquation().getFluxes().store();
     }
@@ -104,8 +105,10 @@ public abstract class CoupledImplicitScheme extends ImplicitScheme implements Fi
         return calculationStatus;
     }
 
-    public void setCalculationStatus(RTECalculationStatus calculationStatus) {
+    public void setCalculationStatus(RTECalculationStatus calculationStatus) throws SolverException {
         this.calculationStatus = calculationStatus;
+        if(calculationStatus != RTECalculationStatus.NORMAL)
+            throw new SolverException(calculationStatus.toString());
     }
 
     public double getCurrentPulseValue() {

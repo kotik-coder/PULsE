@@ -52,7 +52,6 @@ public class InterpolationDataset {
      */
     public double interpolateAt(double key) {
         return interpolation.value(key);
-
     }
 
     /**

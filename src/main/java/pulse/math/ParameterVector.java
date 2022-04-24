@@ -236,9 +236,8 @@ public class ParameterVector extends Vector {
         var list = new ArrayList<NumericProperty>();
         
         for (int i = 0; i < dimension(); i++) {
-            var property = def(getIndex(i));
-            boolean sensible = NumericProperties.isValueSensible(property, get(i));
-            if (!sensible) {
+            var property = NumericProperties.derive(getIndex(i), inverseTransform(i));
+            if (!property.validate()) {
                 list.add(property);
             }
         }

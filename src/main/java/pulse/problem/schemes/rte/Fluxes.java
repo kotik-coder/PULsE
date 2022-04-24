@@ -1,5 +1,8 @@
 package pulse.problem.schemes.rte;
 
+import java.util.Arrays;
+import static pulse.problem.schemes.rte.RTECalculationStatus.INVALID_FLUXES;
+import static pulse.problem.schemes.rte.RTECalculationStatus.NORMAL;
 import pulse.properties.NumericProperty;
 
 public abstract class Fluxes implements DerivativeCalculator {
@@ -19,6 +22,17 @@ public abstract class Fluxes implements DerivativeCalculator {
      */
     public void store() {
         System.arraycopy(fluxes, 0, storedFluxes, 0, N + 1); // store previous results
+    }
+    
+    /**
+     * Checks whether all stored values are finite. This is equivalent to summing
+     * all elements and checking whether the sum if finite.
+     * @return {@code true} if the elements are finite.
+     */
+
+    public RTECalculationStatus checkArrays() {
+        double sum = Arrays.stream(fluxes).sum() + Arrays.stream(storedFluxes).sum();
+        return Double.isFinite(sum) ? NORMAL : INVALID_FLUXES;
     }
 
     /**
@@ -63,13 +77,17 @@ public abstract class Fluxes implements DerivativeCalculator {
         return opticalThickness;
     }
 
-    public void setDensity(NumericProperty gridDensity) {
+    public final void setDensity(NumericProperty gridDensity) {
         this.N = (int) gridDensity.getValue();
+        init();
+    }
+
+    public void init() {
         fluxes = new double[N + 1];
         storedFluxes = new double[N + 1];
     }
 
-    public void setOpticalThickness(NumericProperty opticalThickness) {
+    public final void setOpticalThickness(NumericProperty opticalThickness) {
         this.opticalThickness = (double) opticalThickness.getValue();
     }
 

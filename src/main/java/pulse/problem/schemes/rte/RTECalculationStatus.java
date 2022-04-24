@@ -21,5 +21,12 @@ public enum RTECalculationStatus {
     /**
      * The grid density required to reach the error threshold was too large.
      */
-    GRID_TOO_LARGE;
+    GRID_TOO_LARGE,
+    
+    /**
+     * The radiative fluxes contain illegal values.
+     */
+    
+    INVALID_FLUXES;
+    
 }

@@ -41,6 +41,10 @@ public class StateEntry extends LogEntry {
         if (status.getDetails() != NONE) {
             sb.append(" due to <b>" + status.getDetails() + "</b>");
         }
+        if(status.getDetailedMessage().length() > 0) {
+            sb.append(" Details: ");
+            sb.append(status.getDetailedMessage());
+        }
         sb.append(" at ");
         sb.append(getTime());
         return sb.toString();

@@ -56,7 +56,9 @@ public enum Details {
      * model selection criterion showed better result than already present.
      */
     
-    BETTER_CALCULATION_RESULTS_THAN_PREVIOUSLY_OBTAINED;
+    BETTER_CALCULATION_RESULTS_THAN_PREVIOUSLY_OBTAINED,
+    
+    SOLVER_ERROR;
 
     @Override
     public String toString() {

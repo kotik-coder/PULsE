@@ -139,7 +139,7 @@ public class MixedLinearisedSolver extends MixedScheme implements Solver<Classic
     }
 
     @Override
-    public void solve(ClassicalProblem problem) {
+    public void solve(ClassicalProblem problem) throws SolverException {
         this.prepare(problem);
         runTimeSequence(problem);
     }

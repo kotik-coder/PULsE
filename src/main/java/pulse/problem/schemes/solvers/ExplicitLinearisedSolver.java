@@ -49,6 +49,7 @@ public class ExplicitLinearisedSolver extends ExplicitScheme implements Solver<C
     private int N;
     private double hx;
     private double a;
+    private double zeta;
 
     public ExplicitLinearisedSolver() {
         super();
@@ -65,6 +66,8 @@ public class ExplicitLinearisedSolver extends ExplicitScheme implements Solver<C
     @Override
     public void prepare(Problem problem) {
         super.prepare(problem);
+        
+        zeta = (double) ( (ClassicalProblem) problem).getGeometricFactor().getValue();
 
         N = (int) getGrid().getGridDensity().getValue();
         hx = getGrid().getXStep();
@@ -74,7 +77,7 @@ public class ExplicitLinearisedSolver extends ExplicitScheme implements Solver<C
     }
 
     @Override
-    public void solve(ClassicalProblem problem) {
+    public void solve(ClassicalProblem problem) throws SolverException {
         prepare(problem);
         runTimeSequence(problem);
     }
@@ -83,8 +86,9 @@ public class ExplicitLinearisedSolver extends ExplicitScheme implements Solver<C
     public void timeStep(int m) {
         explicitSolution();
         var V = getCurrentSolution();
-        setSolutionAt(0, (V[1] + hx * pulse(m)) * a);
-        setSolutionAt(N, V[N - 1] * a);
+        double pulse = pulse(m);
+        setSolutionAt(0, (V[1] + hx * zeta * pulse) * a);
+        setSolutionAt(N, (V[N - 1] + hx * (1.0 - zeta) * pulse) * a);
     }
 
     @Override

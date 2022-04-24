@@ -162,7 +162,7 @@ public class ADILinearisedSolver extends ADIScheme implements Solver<ClassicalPr
     }
 
     @Override
-    public void solve(ClassicalProblem2D problem) {
+    public void solve(ClassicalProblem2D problem) throws SolverException {
         prepare(problem);
         runTimeSequence(problem);
     }

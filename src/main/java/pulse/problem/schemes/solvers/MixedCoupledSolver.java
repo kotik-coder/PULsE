@@ -7,27 +7,21 @@ import static pulse.properties.NumericPropertyKeyword.GRID_DENSITY;
 import static pulse.properties.NumericPropertyKeyword.SCHEME_WEIGHT;
 import static pulse.properties.NumericPropertyKeyword.TAU_FACTOR;
 
-import java.util.List;
 import java.util.Set;
 
 import pulse.problem.schemes.CoupledImplicitScheme;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.TridiagonalMatrixAlgorithm;
-import pulse.problem.schemes.rte.Fluxes;
-import pulse.problem.schemes.rte.RTECalculationStatus;
 import pulse.problem.schemes.rte.RadiativeTransferSolver;
 import pulse.problem.statements.ParticipatingMedium;
 import pulse.problem.statements.model.ThermoOpticalProperties;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
-import static pulse.properties.NumericPropertyKeyword.NONLINEAR_PRECISION;
-import pulse.properties.Property;
 import pulse.ui.Messages;
 
 public class MixedCoupledSolver extends CoupledImplicitScheme implements Solver<ParticipatingMedium> {
 
     private RadiativeTransferSolver rte;
-    private Fluxes fluxes;
 
     private int N;
     private double hx;
@@ -64,7 +58,7 @@ public class MixedCoupledSolver extends CoupledImplicitScheme implements Solver<
         sigma = (double) def(SCHEME_WEIGHT).getValue();
     }
 
-    private void prepare(ParticipatingMedium problem) {
+    private void prepare(ParticipatingMedium problem) throws SolverException {
         super.prepare(problem);
 
         var grid = getGrid();
@@ -73,31 +67,30 @@ public class MixedCoupledSolver extends CoupledImplicitScheme implements Solver<
         coupling.init(problem, grid);
         rte = coupling.getRadiativeTransferEquation();
 
-        var U = getPreviousSolution();
-
         N = (int) grid.getGridDensity().getValue();
         hx = grid.getXStep();
         tau = grid.getTimeStep();
 
         Bi1 = (double) problem.getProperties().getHeatLoss().getValue();
-
-        fluxes = rte.getFluxes();
-
+ 
         var tridiagonal = new TridiagonalMatrixAlgorithm(grid) {
 
             @Override
             public double phi(int i) {
+                var fluxes = rte.getFluxes();
                 return A * fluxes.meanFluxDerivative(i)
                         + B * (fluxes.meanFluxDerivative(i - 1) + fluxes.meanFluxDerivative(i + 1));
             }
 
             @Override
             public double beta(final double f, final double phi, final int i) {
+                var U = getPreviousSolution();
                 return super.beta(f + ONE_MINUS_SIGMA * (U[i] - 2.0 * U[i - 1] + U[i - 2]) / HX2, TAU0_NP * phi, i);
             }
-
+            
             @Override
             public void evaluateBeta(final double[] U) {
+                var fluxes = rte.getFluxes();
                 final double phiSecond = A * fluxes.meanFluxDerivative(1)
                         + B * (fluxes.meanFluxDerivativeFront() + fluxes.meanFluxDerivative(2));
                 setBeta(2, beta(U[1] / tau, phiSecond, 2));
@@ -150,15 +143,7 @@ public class MixedCoupledSolver extends CoupledImplicitScheme implements Solver<
     public void solve(ParticipatingMedium problem) throws SolverException {
         this.prepare(problem);
         initConst(problem);
-
-        setCalculationStatus(rte.compute(getPreviousSolution()));
         this.runTimeSequence(problem);
-
-        var status = getCalculationStatus();
-        if (status != RTECalculationStatus.NORMAL) {
-            throw new SolverException(status.toString());
-        }
-
     }
 
     @Override
@@ -171,6 +156,7 @@ public class MixedCoupledSolver extends CoupledImplicitScheme implements Solver<
 
     @Override
     public double firstBeta(final int m) {
+        var fluxes = rte.getFluxes();
         var U = getPreviousSolution();
         final double phi = TAU0_NP * fluxes.fluxDerivativeFront();
         return (_2TAUHX
@@ -180,6 +166,7 @@ public class MixedCoupledSolver extends CoupledImplicitScheme implements Solver<
 
     @Override
     public double evalRightBoundary(final int m, final double alphaN, final double betaN) {
+        var fluxes = rte.getFluxes();
         final double phi = TAU0_NP * fluxes.fluxDerivativeRear();
         final var U = getPreviousSolution();
         return (sigma * betaN + HX2_2TAU * U[N] + 0.5 * HX2 * phi

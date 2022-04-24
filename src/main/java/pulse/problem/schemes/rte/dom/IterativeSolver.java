@@ -6,15 +6,11 @@ import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.DOM_ITERATION_ERROR;
 import static pulse.properties.NumericPropertyKeyword.RTE_MAX_ITERATIONS;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 import pulse.problem.schemes.rte.RTECalculationStatus;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
-import static pulse.properties.NumericPropertyKeyword.NONLINEAR_PRECISION;
-import pulse.properties.Property;
 import pulse.util.PropertyHolder;
 import pulse.util.Reflexive;
 

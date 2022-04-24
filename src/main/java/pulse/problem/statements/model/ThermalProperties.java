@@ -1,6 +1,7 @@
 package pulse.problem.statements.model;
 
 import static java.lang.Math.PI;
+import java.util.List;
 import static pulse.input.InterpolationDataset.getDataset;
 import static pulse.input.InterpolationDataset.StandartType.HEAT_CAPACITY;
 import static pulse.properties.NumericProperties.def;
@@ -9,10 +10,13 @@ import static pulse.properties.NumericProperty.requireType;
 import static pulse.properties.NumericPropertyKeyword.*;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import pulse.input.ExperimentalData;
 import pulse.input.InterpolationDataset;
 import pulse.input.InterpolationDataset.StandartType;
+import pulse.math.Segment;
+import pulse.math.transforms.StickTransform;
 import pulse.problem.statements.Pulse2D;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
@@ -67,14 +71,20 @@ public class ThermalProperties extends PropertyHolder {
         fill();
     }
 
+    public List<NumericProperty> findMalformedProperties() {
+        var list = this.numericData().stream()
+                .filter(np -> !np.validate()).collect(Collectors.toList());
+        return list;
+    }
+
     private void fill() {
         var rhoCurve = getDataset(StandartType.DENSITY);
         var cpCurve = getDataset(StandartType.HEAT_CAPACITY);
         if (rhoCurve != null) {
-            rhoCurve.interpolateAt(T);
+            rho = rhoCurve.interpolateAt(T);
         }
         if (cpCurve != null) {
-            cpCurve.interpolateAt(T);
+            cP = cpCurve.interpolateAt(T);
         }
     }
 
@@ -270,15 +280,14 @@ public class ThermalProperties extends PropertyHolder {
         return derive(CONDUCTIVITY, thermalConductivity());
     }
 
-    public void emissivity() {
-        setEmissivity(derive(EMISSIVITY, Bi * thermalConductivity() / (4. * Math.pow(T, 3) * l * STEFAN_BOTLZMAN)));
+    public void calculateEmissivity() {
+        double newEmissivity = Bi * thermalConductivity() / (4. * Math.pow(T, 3) * l * STEFAN_BOTLZMAN);
+        var transform = new StickTransform(new Segment(0.01, 1.0));
+        setEmissivity(derive(EMISSIVITY, 
+                transform.transform(newEmissivity))
+        );
     }
-
-    public double maxBiot() {
-        double lambda = thermalConductivity();
-        return 4.0 * STEFAN_BOTLZMAN * Math.pow(T, 3) * l / lambda;
-    }
-
+    
     public double biot() {
         double lambda = thermalConductivity();
         return 4.0 * emissivity * STEFAN_BOTLZMAN * Math.pow(T, 3) * l / lambda;
@@ -329,7 +338,6 @@ public class ThermalProperties extends PropertyHolder {
     public void setEmissivity(NumericProperty e) {
         requireType(e, EMISSIVITY);
         this.emissivity = (double) e.getValue();
-        setHeatLoss(derive(HEAT_LOSS, biot()));
     }
 
     @Override
@@ -339,7 +347,12 @@ public class ThermalProperties extends PropertyHolder {
 
     @Override
     public String toString() {
-        return "Show Details...";
+        StringBuilder sb = new StringBuilder(getDescriptor());
+        sb.append(":");
+        sb.append(String.format("%n %-25s", this.getDiffusivity()));
+        sb.append(String.format("%n %-25s", this.getMaximumTemperature()));
+        sb.append(String.format("%n %-25s", this.getHeatLoss()));
+        return sb.toString();
     }
 
 }

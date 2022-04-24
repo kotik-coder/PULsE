@@ -51,6 +51,7 @@ import pulse.tasks.listeners.TaskRepositoryEvent;
 import pulse.tasks.logs.CorrelationLogEntry;
 import pulse.tasks.logs.DataLogEntry;
 import pulse.tasks.logs.Details;
+import static pulse.tasks.logs.Details.SOLVER_ERROR;
 import pulse.tasks.logs.Log;
 import pulse.tasks.logs.LogEntry;
 import pulse.tasks.logs.StateEntry;
@@ -115,30 +116,32 @@ public class SearchTask extends Accessible implements Runnable {
         clear();
         addListeners();
     }
-    
+
     /**
-     * Update the best state. The instance of this class stores two objects
-     * of the type IterativeState: the current state of the optimiser and
-     * the global best state. Calling this method will check if a new global
-     * best is found, and if so, this will store its parameters in the corresponding
-     * variable. This will then be used at the final stage of running the search task,
-     * comparing the converged result to the global best, and selecting whichever
-     * has the lowest cost. Such routine is required due to the possibility of 
-     * some optimisers going uphill.
+     * Update the best state. The instance of this class stores two objects of
+     * the type IterativeState: the current state of the optimiser and the
+     * global best state. Calling this method will check if a new global best is
+     * found, and if so, this will store its parameters in the corresponding
+     * variable. This will then be used at the final stage of running the search
+     * task, comparing the converged result to the global best, and selecting
+     * whichever has the lowest cost. Such routine is required due to the
+     * possibility of some optimisers going uphill.
      */
-    
     public void storeState() {
-        if(best == null || best.getCost() > path.getCost())
+        if (best == null || best.getCost() > path.getCost()) {
             best = new IterativeState(path);
+        }
     }
 
     private void addListeners() {
         InterpolationDataset.addListener(e -> {
-            var p = current.getProblem().getProperties();
-            if (p.areThermalPropertiesLoaded()) {
-                p.useTheoreticalEstimates(curve);
+            if (current.getProblem() != null) {
+                var p = current.getProblem().getProperties();
+                if (p.areThermalPropertiesLoaded()) {
+                    p.useTheoreticalEstimates(curve);
+                }
             }
-        });                
+        });
 
         /**
          * Sets the difference scheme's time limit to the upper bound of the
@@ -237,10 +240,7 @@ public class SearchTask extends Accessible implements Runnable {
             current.getProblem().assign(searchParameters);
             curve.getRange().assign(searchParameters);
         } catch (SolverException e) {
-            var status = FAILED;
-            status.setDetails(Details.PARAMETER_VALUES_NOT_SENSIBLE);
-            setStatus(status);
-            e.printStackTrace();
+            notifyFailedStatus(e);
         }
     }
 
@@ -285,15 +285,14 @@ public class SearchTask extends Accessible implements Runnable {
 
         /* search cycle */
 
-        /* sets an independent thread for manipulating the buffer */
+ /* sets an independent thread for manipulating the buffer */
         List<CompletableFuture<Void>> bufferFutures = new ArrayList<>(bufferSize);
         var singleThreadExecutor = Executors.newSingleThreadExecutor();
 
         try {
             solveProblemAndCalculateCost();
         } catch (SolverException e1) {
-            System.err.println("Failed on first calculation. Details:");
-            e1.printStackTrace();
+            notifyFailedStatus(e1);
         }
 
         final int maxIterations = (int) getInstance().getMaxIterations().getValue();
@@ -316,9 +315,7 @@ public class SearchTask extends Accessible implements Runnable {
                         finished = optimiser.iteration(this);
                     }
                 } catch (SolverException e) {
-                    setStatus(FAILED);
-                    System.err.println(this + " failed during execution. Details: ");
-                    e.printStackTrace();
+                    notifyFailedStatus(e);
                     break outer;
                 }
 
@@ -327,16 +324,16 @@ public class SearchTask extends Accessible implements Runnable {
                     fail.setDetails(MAX_ITERATIONS_REACHED);
                     setStatus(fail);
                 }
-                
+
                 //if global best is better than the converged value
-                if(best != null && best.getCost() < path.getCost()) {
+                if (best != null && best.getCost() < path.getCost()) {
                     //assign the global best parameters
                     assign(path.getParameters());
                     //and try to re-calculate
                     try {
                         solveProblemAndCalculateCost();
                     } catch (SolverException ex) {
-                        Logger.getLogger(SearchTask.class.getName()).log(Level.SEVERE, null, ex);
+                        notifyFailedStatus(ex);
                     }
                 }
 
@@ -398,6 +395,13 @@ public class SearchTask extends Accessible implements Runnable {
         }
 
     }
+    
+    private void notifyFailedStatus(SolverException e1) {
+        var status = Status.FAILED;
+        status.setDetails(Details.SOLVER_ERROR);
+        status.setDetailedMessage(e1.getMessage());
+        setStatus(status);
+    }
 
     public void addTaskListener(DataCollectionListener toAdd) {
         listeners.add(toAdd);
@@ -441,41 +445,43 @@ public class SearchTask extends Accessible implements Runnable {
         }
 
     }
-    
+
     /**
-     * Will return {@code true} if status could be updated. 
+     * Will return {@code true} if status could be updated.
+     *
      * @param status the status of the task
-     * @return {@code} true if status has been updated. {@code false} if 
-     * the status was already set to {@code status} previously, or if it could 
-     * not be updated at this time.
+     * @return {@code} true if status has been updated. {@code false} if the
+     * status was already set to {@code status} previously, or if it could not
+     * be updated at this time.
      * @see Calculation.setStatus()
      */
-
     public boolean setStatus(Status status) {
         Objects.requireNonNull(status);
-        
+
         Status oldStatus = current.getStatus();
-        boolean changed = current.setStatus(status) 
+        boolean changed = current.setStatus(status)
                 && (oldStatus != current.getStatus());
         if (changed) {
             notifyStatusListeners(new StateEntry(this, status));
-         }
-        
+        }
+
         return changed;
     }
 
     /**
      * <p>
-     * Checks if this {@code SearchTask} is ready to be run. Performs basic
-     * check to see whether the user has uploaded all necessary data. If not,
-     * will create a status update with information about the missing data.
+     * Checks if this {@code SearchTask} is ready to be run.Performs basic check
+     * to see whether the user has uploaded all necessary data. If not, will
+     * create a status update with information about the missing data.
      * </p>
      *
-     * @return {@code READY} if the task is ready to be run, {@code DONE} if has
-     * already been done previously, {@code INCOMPLETE} if some problems exist.
-     * For the latter, additional details will be available using the
-     * {@code status.getDetails()} method.
+     * Status will be set to {@code READY} if the task is ready to be run,
+     * {@code DONE} if has already been done previously, {@code INCOMPLETE} if
+     * some problems exist. For the latter, additional details will be available
+     * using the {@code status.getDetails()} method.
      * </p>
+     *
+     * @param updateStatus
      */
     public void checkProblems(boolean updateStatus) {
         var status = current.getStatus();
@@ -617,7 +623,7 @@ public class SearchTask extends Accessible implements Runnable {
     public List<Calculation> getStoredCalculations() {
         return this.stored;
     }
-    
+
     public void storeCalculation() {
         var copy = new Calculation(current);
         stored.add(copy);
@@ -630,13 +636,14 @@ public class SearchTask extends Accessible implements Runnable {
         var e = new TaskRepositoryEvent(TaskRepositoryEvent.State.TASK_MODEL_SWITCH, this.getIdentifier());
         fireRepositoryEvent(e);
     }
-    
+
     /**
      * Finds the best calculation by comparing those already stored by their
      * model selection statistics.
-     * @return the calculation showing the optimal value of the model selection statistic.
+     *
+     * @return the calculation showing the optimal value of the model selection
+     * statistic.
      */
-    
     public Calculation findBestCalculation() {
         var c = stored.stream().reduce((c1, c2) -> c1.compareTo(c2) > 0 ? c2 : c1);
         return c.isPresent() ? c.get() : null;

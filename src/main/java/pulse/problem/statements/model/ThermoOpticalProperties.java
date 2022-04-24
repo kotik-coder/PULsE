@@ -9,19 +9,11 @@ import static pulse.properties.NumericPropertyKeyword.PLANCK_NUMBER;
 import static pulse.properties.NumericPropertyKeyword.SCATTERING_ALBEDO;
 import static pulse.properties.NumericPropertyKeyword.SCATTERING_ANISOTROPY;
 
-import java.util.List;
 import java.util.Set;
 
 import pulse.input.ExperimentalData;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
-import static pulse.properties.NumericPropertyKeyword.DENSITY;
-import static pulse.properties.NumericPropertyKeyword.DIFFUSIVITY;
-import static pulse.properties.NumericPropertyKeyword.HEAT_LOSS;
-import static pulse.properties.NumericPropertyKeyword.MAXTEMP;
-import static pulse.properties.NumericPropertyKeyword.SPECIFIC_HEAT;
-import static pulse.properties.NumericPropertyKeyword.THICKNESS;
-import pulse.properties.Property;
 
 public class ThermoOpticalProperties extends ThermalProperties {
 
@@ -154,6 +146,18 @@ public class ThermoOpticalProperties extends ThermalProperties {
     @Override
     public String getDescriptor() {
         return "Thermo-Physical & Optical Properties";
+    }
+    
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder(super.toString());
+        sb.append(String.format("%n %-25s", this.getOpticalThickness()));
+        sb.append(String.format("%n %-25s", this.getPlanckNumber()));
+        sb.append(String.format("%n %-25s", this.getScatteringAlbedo()));
+        sb.append(String.format("%n %-25s", this.getScatteringAnisostropy()));
+        sb.append(String.format("%n %-25s", this.getSpecificHeat()));
+        sb.append(String.format("%n %-25s", this.getDensity()));
+        return sb.toString();
     }
 
 }

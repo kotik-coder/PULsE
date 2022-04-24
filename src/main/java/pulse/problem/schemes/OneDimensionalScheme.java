@@ -1,5 +1,6 @@
 package pulse.problem.schemes;
 
+import pulse.problem.schemes.solvers.SolverException;
 import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
 
@@ -29,8 +30,14 @@ public abstract class OneDimensionalScheme extends DifferenceScheme {
         return V[V.length - 1];
     }
 
+    /**
+     * Overwrites previously calculated temperature values with the calculations
+     * made at the current time step
+     * @throws SolverException if the calculation failed
+     */
+    
     @Override
-    public void finaliseStep() {
+    public void finaliseStep() throws SolverException {
         System.arraycopy(V, 0, U, 0, V.length);
     }
 

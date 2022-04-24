@@ -87,7 +87,7 @@ public class ImplicitDiathermicSolver extends ImplicitScheme implements Solver<D
     }
 
     @Override
-    public void solve(DiathermicMedium problem) {
+    public void solve(DiathermicMedium problem) throws SolverException {
         prepare(problem);
         runTimeSequence(problem);
     }

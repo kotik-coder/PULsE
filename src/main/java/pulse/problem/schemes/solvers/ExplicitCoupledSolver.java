@@ -47,7 +47,7 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
         status = RTECalculationStatus.NORMAL;
     }
 
-    private void prepare(ParticipatingMedium problem) {
+    private void prepare(ParticipatingMedium problem) throws SolverException {
         super.prepare(problem);
 
         var grid = getGrid();
@@ -55,7 +55,8 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
         coupling.init(problem, grid);
         rte = coupling.getRadiativeTransferEquation();
         fluxes = coupling.getRadiativeTransferEquation().getFluxes();
-
+        setCalculationStatus(fluxes.checkArrays());
+                
         N = (int) grid.getGridDensity().getValue();
         hx = grid.getXStep();
 
@@ -74,13 +75,9 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
 
     @Override
     public void solve(ParticipatingMedium problem) throws SolverException {
-        this.prepare(problem);
-        status = coupling.getRadiativeTransferEquation().compute(getPreviousSolution());
+        this.prepare(problem);        
+        setCalculationStatus(coupling.getRadiativeTransferEquation().compute(getPreviousSolution()));
         runTimeSequence(problem);
-
-        if (status != RTECalculationStatus.NORMAL) {
-            throw new SolverException(status.toString());
-        }
     }
 
     @Override
@@ -89,7 +86,7 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
     }
 
     @Override
-    public void timeStep(int m) {
+    public void timeStep(int m) throws SolverException {
         pls = pulse(m);
         doIterations(getCurrentSolution(), nonlinearPrecision, m);
     }
@@ -111,8 +108,9 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
     }
 
     @Override
-    public void finaliseIteration(double[] V) {
-        status = rte.compute(V);
+    public void finaliseIteration(double[] V) throws SolverException {
+        FixedPointIterations.super.finaliseIteration(V);
+        setCalculationStatus(rte.compute(V));
     }
 
     @Override
@@ -121,7 +119,7 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
     }
 
     @Override
-    public void finaliseStep() {
+    public void finaliseStep() throws SolverException {
         super.finaliseStep();
         coupling.getRadiativeTransferEquation().getFluxes().store();
     }
@@ -130,7 +128,7 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
         return coupling;
     }
 
-    public void setCoupling(RadiativeTransferCoupling coupling) {
+    public final void setCoupling(RadiativeTransferCoupling coupling) {
         this.coupling = coupling;
         this.coupling.setParent(this);
     }
@@ -154,6 +152,12 @@ public class ExplicitCoupledSolver extends ExplicitScheme implements Solver<Part
     @Override
     public Class<? extends Problem> domain() {
         return ParticipatingMedium.class;
+    }
+    
+    public void setCalculationStatus(RTECalculationStatus calculationStatus) throws SolverException {
+        this.status = calculationStatus;
+        if(status != RTECalculationStatus.NORMAL)
+            throw new SolverException(status.toString());
     }
 
 }

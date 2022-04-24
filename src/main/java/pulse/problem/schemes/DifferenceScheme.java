@@ -5,16 +5,14 @@ import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericProperty.requireType;
 import static pulse.properties.NumericPropertyKeyword.TIME_LIMIT;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 import pulse.problem.laser.DiscretePulse;
+import pulse.problem.schemes.solvers.SolverException;
 import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
-import static pulse.properties.NumericPropertyKeyword.NONLINEAR_PRECISION;
-import pulse.properties.Property;
+import static pulse.properties.NumericPropertyKeyword.NUMPOINTS;
 import pulse.util.PropertyHolder;
 import pulse.util.Reflexive;
 
@@ -119,16 +117,14 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
         hc.clear();
     }
 
-    public void runTimeSequence(Problem problem) {
+    public void runTimeSequence(Problem problem) throws SolverException {
         runTimeSequence(problem, 0, timeLimit);
         var curve = problem.getHeatingCurve();
         final double maxTemp = (double) problem.getProperties().getMaximumTemperature().getValue();
         curve.scale(maxTemp / curve.apparentMaximum());
     }
 
-    public void runTimeSequence(Problem problem, final double offset, final double endTime) {
-        final var grid = getGrid();
-
+    public void runTimeSequence(Problem problem, final double offset, final double endTime) throws SolverException {
         var curve = problem.getHeatingCurve();
 
         int adjustedNumPoints = (int) curve.getNumPoints().getValue();
@@ -137,7 +133,7 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
         final double timeSegment = (endTime - startTime - offset) / problem.getProperties().timeFactor();
         final double tau = grid.getTimeStep();
 
-        for (double dt = 0, factor = 1.0; dt < tau; adjustedNumPoints *= factor) {
+        for (double dt = 0, factor; dt < tau; adjustedNumPoints *= factor) {
             dt = timeSegment / (adjustedNumPoints - 1);
             factor = dt / tau;
             timeInterval = (int) factor;
@@ -164,10 +160,19 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
             curve.addPoint(nextTime, signal());
 
         }
+        
+        /**
+         * If the total number of points added by the procedure 
+         * is actually less than the pre-set number of points -- change that number
+         */
+        
+        if(curve.actualNumPoints() < (int)curve.getNumPoints().getValue()) {
+            curve.setNumPoints(derive(NUMPOINTS, curve.actualNumPoints()));
+        }
 
     }
 
-    private void timeSegment(final int m1, final int m2) {
+    private void timeSegment(final int m1, final int m2) throws SolverException {
         for (int m = m1; m < m2 && normalOperation(); m++) {
             timeStep(m);
             finaliseStep();
@@ -180,9 +185,9 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 
     public abstract double signal();
 
-    public abstract void timeStep(final int m);
+    public abstract void timeStep(final int m) throws SolverException;
 
-    public abstract void finaliseStep();
+    public abstract void finaliseStep() throws SolverException;
 
     public boolean normalOperation() {
         return true;
@@ -209,7 +214,7 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
      * @return the discrete pulse
      * @see pulse.problem.statements.Pulse
      */
-    public DiscretePulse getDiscretePulse() {
+    public final DiscretePulse getDiscretePulse() {
         return discretePulse;
     }
 
@@ -219,7 +224,7 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
      *
      * @return the grid
      */
-    public Grid getGrid() {
+    public final Grid getGrid() {
         return grid;
     }
 
@@ -228,7 +233,7 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
      *
      * @param grid the grid
      */
-    public void setGrid(Grid grid) {
+    public final void setGrid(Grid grid) {
         this.grid = grid;
         this.grid.setParent(this);
     }
@@ -240,7 +245,7 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
      *
      * @return the time interval
      */
-    public int getTimeInterval() {
+    public final int getTimeInterval() {
         return timeInterval;
     }
 
@@ -249,7 +254,7 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
      *
      * @param timeInterval a positive integer.
      */
-    public void setTimeInterval(int timeInterval) {
+    public final void setTimeInterval(int timeInterval) {
         this.timeInterval = timeInterval;
     }
 
@@ -259,7 +264,7 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
      * need to be displayed.
      */
     @Override
-    public boolean areDetailsHidden() {
+    public final boolean areDetailsHidden() {
         return hideDetailedAdjustment;
     }
 
@@ -269,7 +274,7 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
      *
      * @param b a boolean.
      */
-    public static void setDetailsHidden(boolean b) {
+    public final static void setDetailsHidden(boolean b) {
         hideDetailedAdjustment = b;
     }
 
@@ -281,7 +286,7 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
      * @return the {@code NumericProperty} with the type {@code TIME_LIMIT}
      * @see pulse.properties.NumericPropertyKeyword
      */
-    public NumericProperty getTimeLimit() {
+    public final NumericProperty getTimeLimit() {
         return derive(TIME_LIMIT, timeLimit);
     }
 
@@ -294,7 +299,7 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
      * {@code TIME_LIMIT}
      * @see pulse.properties.NumericPropertyKeyword
      */
-    public void setTimeLimit(NumericProperty timeLimit) {
+    public final void setTimeLimit(NumericProperty timeLimit) {
         requireType(timeLimit, TIME_LIMIT);
         this.timeLimit = (double) timeLimit.getValue();
         firePropertyChanged(this, timeLimit);

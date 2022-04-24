@@ -16,6 +16,7 @@ import pulse.math.ParameterVector;
 import pulse.math.Segment;
 import pulse.math.transforms.InvLenSqTransform;
 import pulse.math.transforms.StandardTransformations;
+import static pulse.math.transforms.StandardTransformations.ABS;
 import pulse.math.transforms.StickTransform;
 import pulse.problem.laser.DiscretePulse;
 import pulse.problem.schemes.DifferenceScheme;
@@ -24,7 +25,6 @@ import pulse.problem.schemes.solvers.Solver;
 import pulse.problem.schemes.solvers.SolverException;
 import pulse.problem.statements.model.ThermalProperties;
 import pulse.properties.Flag;
-import static pulse.properties.NumericProperties.def;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import static pulse.properties.NumericPropertyKeyword.DIFFUSIVITY;
@@ -156,7 +156,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
         return curve;
     }
 
-    public Pulse getPulse() {
+    public final Pulse getPulse() {
         return pulse;
     }
 
@@ -166,7 +166,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
      *
      * @param pulse a {@code Pulse} object
      */
-    public void setPulse(Pulse pulse) {
+    public final void setPulse(Pulse pulse) {
         this.pulse = pulse;
         pulse.setParent(this);               
     }
@@ -244,11 +244,13 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
                     break;
                 case MAXTEMP:
                     final double signalHeight = (double) properties.getMaximumTemperature().getValue();
-                    output.set(i, signalHeight);
+                    output.setTransform(i, ABS);
                     output.setParameterBounds(i, new Segment(0.5 * signalHeight, 1.5 * signalHeight));
+                    output.set(i, signalHeight);
                     break;
                 case HEAT_LOSS:
                     final double Bi = (double) properties.getHeatLoss().getValue();
+                    output.setParameterBounds(i, Segment.boundsFrom(HEAT_LOSS));
                     setHeatLossParameter(output, i, Bi);
                     break;
                 case TIME_SHIFT:
@@ -257,22 +259,14 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
                     output.setParameterBounds(i, new Segment(-magnitude, magnitude));
                     break;
                 default:
-                    continue;
             }
 
         }
 
     }
 
-    //TODO remove atanh transform and replace with abs
     protected void setHeatLossParameter(ParameterVector output, int i, double Bi) {
-        if (output.getTransform(i) == null) {
-            final double min = (double) def(HEAT_LOSS).getMinimum();
-            final double max = (double) def(HEAT_LOSS).getMaximum();
-            var bounds = new Segment(min, properties.areThermalPropertiesLoaded() ? properties.maxBiot() : max);
-            output.setTransform(i, StandardTransformations.ABS);
-            output.setParameterBounds(i, bounds);
-        }
+        output.setTransform(i, StandardTransformations.ABS);
         output.set(i, Bi);
     }
 
@@ -286,6 +280,17 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
     @Override
     public void assign(ParameterVector params) throws SolverException {
         baseline.assign(params);
+        
+        List<NumericProperty> malformedList = params.findMalformedElements();
+        
+        if(!malformedList.isEmpty()) {
+            StringBuilder sb = new StringBuilder("Cannot assign values: ");
+            malformedList.forEach(p -> 
+                sb.append(String.format("%n %-25s", p.toString()))
+            );
+            throw new SolverException(sb.toString());
+        }
+        
         for (int i = 0, size = params.dimension(); i < size; i++) {
 
             double value = params.get(i);
@@ -308,7 +313,6 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
                     curve.set(TIME_SHIFT, derive(TIME_SHIFT, value));
                     break;
                 default:
-                    continue;
             }
         }
 
@@ -390,11 +394,11 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
         return this.getClass().getSimpleName();
     }
 
-    public ProblemComplexity getComplexity() {
+    public final ProblemComplexity getComplexity() {
         return complexity;
     }
 
-    public void setComplexity(ProblemComplexity complexity) {
+    public final void setComplexity(ProblemComplexity complexity) {
         this.complexity = complexity;
     }
 

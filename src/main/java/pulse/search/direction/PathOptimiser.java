@@ -208,11 +208,11 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
         selectedPathOptimiser.setParent(TaskManager.getManagerInstance());
     }
 
-    protected DirectionSolver getSolver() {
+    protected final DirectionSolver getSolver() {
         return solver;
     }
 
-    protected void setSolver(DirectionSolver solver) {
+    protected final void setSolver(DirectionSolver solver) {
         this.solver = solver;
     }
 
