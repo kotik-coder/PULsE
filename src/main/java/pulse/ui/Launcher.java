@@ -36,7 +36,7 @@ public class Launcher {
 
     private PrintStream errStream;
     private File errorLog;
-    private final static boolean DEBUG = false;
+    private final static boolean DEBUG = true;
 
     private static final File LOCK = new File("pulse.lock");
 
@@ -146,6 +146,10 @@ public class Launcher {
         Runnable r = () -> {
             if (errorLog != null && errorLog.exists() && errorLog.length() < 1) {
                 errorLog.delete();
+            }
+            //delete lock explicitly on abnormal termination
+            if(LOCK.exists()) {
+                LOCK.delete();
             }
         };
         Runtime.getRuntime().addShutdownHook(new Thread(r));

@@ -8,6 +8,7 @@ import static pulse.properties.NumericPropertyKeyword.PULSE_WIDTH;
 
 import java.util.List;
 import java.util.Set;
+import pulse.input.ExperimentalData;
 
 import pulse.problem.laser.PulseTemporalShape;
 import pulse.problem.laser.RectangularPulse;
@@ -90,9 +91,17 @@ public class Pulse extends PropertyHolder {
                     NumericProperty pw = NumericProperties
                             .derive(NumericPropertyKeyword.LOWER_BOUND,
                                     (Number) np.getValue());
+                    
+                    var range = corrTask.getExperimentalCurve().getRange();
+                    
+                    if( range.getLowerBound().compareTo(pw) < 0 ) {
+
                     //update lower bound of the range for that SearchTask
                     corrTask.getExperimentalCurve().getRange()
                             .setLowerBound(pw);
+                    
+                    }
+                    
                 }
 
             }
@@ -123,21 +132,24 @@ public class Pulse extends PropertyHolder {
         requireType(pulseWidth, PULSE_WIDTH);
 
         double newValue = (double) pulseWidth.getValue();
+        
+        double relChange = Math.abs((newValue - this.pulseWidth) / (this.pulseWidth + newValue));
         final double EPS = 1E-3;
-
+        
         //do not update -- if new value is the same as the previous one
-        if (Math.abs((newValue - this.pulseWidth)
-                / (this.pulseWidth + newValue)) < EPS) {
-            return;
+        if (relChange > EPS && newValue > 0) {
+            
+            //validate -- do not update if the new pulse width is greater than 2 half-times
+            SearchTask task         = (SearchTask) this.specificAncestor(SearchTask.class);
+            ExperimentalData data   = task.getExperimentalCurve();
+            
+            if(newValue < 2.0 * data.getHalfTime()) {
+                this.pulseWidth = (double) pulseWidth.getValue();
+                firePropertyChanged(this, pulseWidth);
+            }
+            
         }
-
-        //validate -- do not update if the new pulse width is greater than 2 half-times
-        var task = (SearchTask) this.specificAncestor(SearchTask.class);
-        var data = task.getExperimentalCurve();
-        if (newValue > 0 && newValue < 2.0 * data.getHalfTime()) {
-            this.pulseWidth = (double) pulseWidth.getValue();
-            firePropertyChanged(this, pulseWidth);
-        }
+        
     }
 
     public NumericProperty getLaserEnergy() {
@@ -205,7 +217,7 @@ public class Pulse extends PropertyHolder {
 
     public void setPulseShape(PulseTemporalShape pulseShape) {
         this.pulseShape = pulseShape;
-        pulseShape.setParent(this);
+        pulseShape.setParent(this);        
     }
 
 }

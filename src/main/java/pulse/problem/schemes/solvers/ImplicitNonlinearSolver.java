@@ -3,9 +3,6 @@ package pulse.problem.schemes.solvers;
 import static pulse.math.MathUtils.fastPowLoop;
 import static pulse.properties.NumericProperties.def;
 import static pulse.properties.NumericProperties.derive;
-import static pulse.properties.NumericPropertyKeyword.NONLINEAR_PRECISION;
-
-import java.util.List;
 import java.util.Set;
 
 import pulse.problem.schemes.DifferenceScheme;
@@ -17,14 +14,12 @@ import pulse.problem.statements.Pulse2D;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import static pulse.properties.NumericPropertyKeyword.NONLINEAR_PRECISION;
-import pulse.properties.Property;
 
 public class ImplicitNonlinearSolver extends ImplicitScheme implements Solver<NonlinearProblem>, FixedPointIterations {
 
     private int N;
     private double HH;
     private double tau;
-    private double pls;
 
     private double dT_T;
 
@@ -51,7 +46,8 @@ public class ImplicitNonlinearSolver extends ImplicitScheme implements Solver<No
         nonlinearPrecision = (double) def(NONLINEAR_PRECISION).getValue();
     }
 
-    private void prepare(NonlinearProblem problem) {
+    @Override
+    public void prepare(Problem problem) throws SolverException {
         super.prepare(problem);
 
         var grid = getGrid();
@@ -101,8 +97,8 @@ public class ImplicitNonlinearSolver extends ImplicitScheme implements Solver<No
     }
 
     @Override
-    public Class<? extends Problem> domain() {
-        return NonlinearProblem.class;
+    public Class<? extends Problem>[] domain() {
+        return new Class[]{NonlinearProblem.class};
     }
 
     public NumericProperty getNonlinearPrecision() {
@@ -133,7 +129,6 @@ public class ImplicitNonlinearSolver extends ImplicitScheme implements Solver<No
 
     @Override
     public void timeStep(final int m) throws SolverException {
-        pls = pulse(m);
         doIterations(getCurrentSolution(), nonlinearPrecision, m);
     }
 
@@ -143,14 +138,15 @@ public class ImplicitNonlinearSolver extends ImplicitScheme implements Solver<No
     }
 
     @Override
-    public double evalRightBoundary(int m, double alphaN, double betaN) {
+    public double evalRightBoundary(double alphaN, double betaN) {
         return c2 * (2. * betaN * tau + HH * getPreviousSolution()[N] 
                 + c1 * (fastPowLoop(getCurrentSolution()[N] * dT_T + 1, 4) - 1));
     }
 
     @Override
-    public double firstBeta(int m) {
-        return b1 * getPreviousSolution()[0] + b2 * (pls - b3 * (fastPowLoop(getCurrentSolution()[0] * dT_T + 1, 4) - 1));
+    public double firstBeta() {
+        return b1 * getPreviousSolution()[0] + b2 * (getCurrentPulseValue()
+                - b3 * (fastPowLoop(getCurrentSolution()[0] * dT_T + 1, 4) - 1));
     }
 
 }

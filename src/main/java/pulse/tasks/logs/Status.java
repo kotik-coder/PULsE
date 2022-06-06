@@ -31,9 +31,16 @@ public enum Status {
      */
     EXECUTION_ERROR(Color.red),
     /**
-     * The task has been terminated by the user.
+     * Termination requested.
      */
+    AWAITING_TERMINATION(Color.DARK_GRAY),
+    
+    /**
+     * Task terminated
+     */
+    
     TERMINATED(Color.DARK_GRAY),
+    
     /**
      * Task has been queued and is waiting to be executed.
      */

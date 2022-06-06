@@ -12,7 +12,8 @@ import pulse.problem.schemes.solvers.SolverException;
 import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
-import static pulse.properties.NumericPropertyKeyword.NUMPOINTS;
+import static pulse.properties.NumericPropertyKeyword.GRID_DENSITY;
+import static pulse.properties.NumericPropertyKeyword.TAU_FACTOR;
 import pulse.util.PropertyHolder;
 import pulse.util.Reflexive;
 
@@ -33,6 +34,7 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
     private Grid grid;
 
     private double timeLimit;
+    private double pls;
     private int timeInterval;
 
     private static boolean hideDetailedAdjustment = true;
@@ -62,23 +64,6 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
     }
 
     /**
-     * Used to get a class of problems on which this difference scheme is
-     * applicable.
-     *
-     * @return a subclass of the {@code Problem} class which can be used as
-     * input for this difference scheme.
-     */
-    public abstract Class<? extends Problem> domain();
-
-    /**
-     * Creates a {@code DifferenceScheme}, which is an exact copy of this
-     * object.
-     *
-     * @return an exact copy of this {@code DifferenceScheme}.
-     */
-    public abstract DifferenceScheme copy();
-
-    /**
      * Copies the {@code Grid} and {@code timeLimit} from {@code df}.
      *
      * @param df the DifferenceScheme to copy from
@@ -91,91 +76,88 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 
     /**
      * <p>
-     * Contains preparatory steps to ensure smooth running of the solver. This
-     * includes creating a {@code DiscretePulse} object and adjusting the grid
-     * of this scheme to match the {@code DiscretePulse} created for this
-     * {@code problem}. Finally, a heating curve is cleared from the previously
-     * calculated values.
-     * </p>
+     * Contains preparatory steps to ensure smooth running of the solver.This
+     * includes creating a {@code DiscretePulse}object and adjusting the grid of
+     * this scheme to match the {@code DiscretePulse}created for this
+     * {@code problem} Finally, a heating curve is cleared from the previously
+     * calculated values.</p>
      * <p>
      * All subclasses of {@code DifferenceScheme} should override and explicitly
      * call this superclass method where appropriate.
      * </p>
      *
      * @param problem the heat problem to be solved
+     * @throws pulse.problem.schemes.solvers.SolverException
      * @see pulse.problem.schemes.Grid.adjustTo()
      */
-    protected void prepare(Problem problem) {
-        if(discretePulse == null)
+    protected void prepare(Problem problem) throws SolverException {
+        if (discretePulse == null) {
             discretePulse = problem.discretePulseOn(grid);
-        else
+        }    
+        else {
             discretePulse.recalculate();
+        }
         
-        grid.adjustTo(discretePulse);
-
-        var hc = problem.getHeatingCurve();
-        hc.clear();
+        clearArrays();
     }
 
     public void runTimeSequence(Problem problem) throws SolverException {
         runTimeSequence(problem, 0, timeLimit);
+    }
+
+    public void scaleSolution(Problem problem) {
         var curve = problem.getHeatingCurve();
         final double maxTemp = (double) problem.getProperties().getMaximumTemperature().getValue();
-        curve.scale(maxTemp / curve.apparentMaximum());
+        //curve.scale(maxTemp / curve.apparentMaximum());
+        curve.scale(maxTemp);
     }
 
     public void runTimeSequence(Problem problem, final double offset, final double endTime) throws SolverException {
         var curve = problem.getHeatingCurve();
+        curve.clear();
 
-        int adjustedNumPoints = (int) curve.getNumPoints().getValue();
+        int numPoints = (int) curve.getNumPoints().getValue();
 
-        final double startTime = (double) curve.getTimeShift().getValue();
+        final double startTime   = (double) curve.getTimeShift().getValue();
         final double timeSegment = (endTime - startTime - offset) / problem.getProperties().timeFactor();
-        final double tau = grid.getTimeStep();
 
-        for (double dt = 0, factor; dt < tau; adjustedNumPoints *= factor) {
-            dt = timeSegment / (adjustedNumPoints - 1);
-            factor = dt / tau;
-            timeInterval = (int) factor;
-        }
+        double tau = grid.getTimeStep();
+        final double dt = timeSegment / (numPoints - 1);
+        timeInterval = Math.max( (int) (dt / tau), 1);
 
-        final double wFactor = timeInterval * tau * problem.getProperties().timeFactor();
+        double wFactor = timeInterval * tau * problem.getProperties().timeFactor();
 
         // First point (index = 0) is always (0.0, 0.0)
-
-        /*
-		 * The outer cycle iterates over the number of points of the HeatingCurve
-         */
-        double nextTime = offset + wFactor;
         curve.addPoint(0.0, 0.0);
 
-        for (int w = 1; nextTime < 1.01 * endTime; nextTime = offset + (++w) * wFactor) {
+        double nextTime;
+        int previous;
+
+        /*
+         * The outer cycle iterates over the number of points of the HeatingCurve
+         */
+        for (previous = 1, nextTime = offset; nextTime < endTime || !curve.isFull();
+                previous += timeInterval) {
 
             /*
-			 * Two adjacent points of the heating curves are separated by timeInterval on
-			 * the time grid. Thus, to calculate the next point on the heating curve,
-			 * timeInterval/tau time steps have to be made first.
+             * Two adjacent points of the heating curves are separated by timeInterval on
+	     * the time grid. Thus, to calculate the next point on the heating curve,
+	     * timeInterval/tau time steps have to be made first.
              */
-            timeSegment((w - 1) * timeInterval + 1, w * timeInterval + 1);
+            timeSegment(previous, previous + timeInterval);
+            nextTime += wFactor;
             curve.addPoint(nextTime, signal());
-
-        }
-        
-        /**
-         * If the total number of points added by the procedure 
-         * is actually less than the pre-set number of points -- change that number
-         */
-        
-        if(curve.actualNumPoints() < (int)curve.getNumPoints().getValue()) {
-            curve.setNumPoints(derive(NUMPOINTS, curve.actualNumPoints()));
         }
 
+        curve.copyToLastCalculation();
+        scaleSolution(problem);
     }
 
     private void timeSegment(final int m1, final int m2) throws SolverException {
         for (int m = m1; m < m2 && normalOperation(); m++) {
-            timeStep(m);
-            finaliseStep();
+            prepareStep(m);     //prepare
+            timeStep(m);        //calculate
+            finaliseStep();     //finalise
         }
     }
 
@@ -183,11 +165,15 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
         return getDiscretePulse().laserPowerAt((m - EPS) * getGrid().getTimeStep());
     }
 
-    public abstract double signal();
-
-    public abstract void timeStep(final int m) throws SolverException;
-
-    public abstract void finaliseStep() throws SolverException;
+    /**
+     * Do preparatory calculations that depend only on the time variable, e.g.,
+     * calculate the pulse power.
+     *
+     * @param m the time step number
+     */
+    public void prepareStep(int m) {
+        pls = pulse(m);
+    }
 
     public boolean normalOperation() {
         return true;
@@ -290,6 +276,10 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
         return derive(TIME_LIMIT, timeLimit);
     }
 
+    public double getCurrentPulseValue() {
+        return pls;
+    }
+
     /**
      * Sets the time limit (in units defined by the corresponding
      * {@code NumericProperty}), which serves as the breakpoint for the
@@ -311,5 +301,30 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
             setTimeLimit(property);
         }
     }
+    
+    public abstract double signal();
+    
+    public abstract void clearArrays();
 
+    public abstract void timeStep(int m) throws SolverException;
+
+    public abstract void finaliseStep() throws SolverException;
+
+        /**
+     * Retrieves all problem statements that can be solved with this
+     * implementation of the difference scheme.
+     *
+     * @return an array containing subclasses of the {@code Problem} class which
+     * can be used as input for this difference scheme.
+     */
+    public abstract Class<? extends Problem>[] domain();
+
+    /**
+     * Creates a {@code DifferenceScheme}, which is an exact copy of this
+     * object.
+     *
+     * @return an exact copy of this {@code DifferenceScheme}.
+     */
+    public abstract DifferenceScheme copy();
+    
 }

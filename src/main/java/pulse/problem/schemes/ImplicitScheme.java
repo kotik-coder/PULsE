@@ -61,7 +61,7 @@ public abstract class ImplicitScheme extends OneDimensionalScheme {
     }
 
     @Override
-    protected void prepare(Problem problem) {
+    protected void prepare(Problem problem) throws SolverException {
         super.prepare(problem);
         tridiagonal = new TridiagonalMatrixAlgorithm(getGrid());
     }
@@ -77,21 +77,21 @@ public abstract class ImplicitScheme extends OneDimensionalScheme {
     
     @Override
     public void timeStep(final int m) throws SolverException {
-        leftBoundary(m);
+        leftBoundary();
         final var V = getCurrentSolution();
         final int N = V.length - 1;
-        setSolutionAt(N, evalRightBoundary(m, tridiagonal.getAlpha()[N], tridiagonal.getBeta()[N]));
+        setSolutionAt(N, evalRightBoundary(tridiagonal.getAlpha()[N], tridiagonal.getBeta()[N]));
         tridiagonal.sweep(V);
     }
 
-    public void leftBoundary(final int m) {
-        tridiagonal.setBeta(1, firstBeta(m));
+    public void leftBoundary() {
+        tridiagonal.setBeta(1, firstBeta());
         tridiagonal.evaluateBeta(getPreviousSolution());
     }
 
-    public abstract double evalRightBoundary(final int m, final double alphaN, final double betaN);
+    public abstract double evalRightBoundary(final double alphaN, final double betaN);
 
-    public abstract double firstBeta(final int m);
+    public abstract double firstBeta();
 
     /**
      * Prints out the description of this problem type.

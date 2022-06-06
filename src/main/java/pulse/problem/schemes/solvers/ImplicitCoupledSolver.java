@@ -6,16 +6,18 @@ import static pulse.properties.NumericPropertyKeyword.TAU_FACTOR;
 import static pulse.ui.Messages.getString;
 
 import pulse.problem.schemes.CoupledImplicitScheme;
-import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.TridiagonalMatrixAlgorithm;
 import pulse.problem.schemes.rte.Fluxes;
 import pulse.problem.schemes.rte.RTECalculationStatus;
 import pulse.problem.schemes.rte.RadiativeTransferSolver;
+import pulse.problem.statements.ClassicalProblem;
 import pulse.problem.statements.ParticipatingMedium;
+import pulse.problem.statements.Problem;
 import pulse.problem.statements.model.ThermoOpticalProperties;
 import pulse.properties.NumericProperty;
 
-public class ImplicitCoupledSolver extends CoupledImplicitScheme implements Solver<ParticipatingMedium> {
+public abstract class ImplicitCoupledSolver extends CoupledImplicitScheme 
+        implements Solver<ParticipatingMedium> {
 
     private RadiativeTransferSolver rte;
     private Fluxes fluxes;
@@ -30,6 +32,7 @@ public class ImplicitCoupledSolver extends CoupledImplicitScheme implements Solv
     private double HX_NP;
 
     private double v1;
+    private double zeta;
 
     public ImplicitCoupledSolver() {
         super(derive(GRID_DENSITY, 20), derive(TAU_FACTOR, 0.66667));
@@ -39,13 +42,14 @@ public class ImplicitCoupledSolver extends CoupledImplicitScheme implements Solv
         super(gridDensity, timeFactor, timeLimit);
     }
 
-    private void prepare(ParticipatingMedium problem) throws SolverException {
+    @Override
+    public void prepare(Problem problem) throws SolverException {
         super.prepare(problem);
 
         final var grid = getGrid();
 
         var coupling = getCoupling();
-        coupling.init(problem, grid);
+        coupling.init( (ParticipatingMedium) problem, grid);
         rte = coupling.getRadiativeTransferEquation();
 
         N = (int) getGrid().getGridDensity().getValue();
@@ -85,7 +89,8 @@ public class ImplicitCoupledSolver extends CoupledImplicitScheme implements Solv
 
         tridiagonal.evaluateAlpha();
         setTridiagonalMatrixAlgorithm(tridiagonal);
-
+        
+        zeta = (double) ((ClassicalProblem)problem).getGeometricFactor().getValue();
     }
 
     @Override
@@ -108,30 +113,25 @@ public class ImplicitCoupledSolver extends CoupledImplicitScheme implements Solv
     }
 
     @Override
-    public DifferenceScheme copy() {
-        var grid = getGrid();
-        return new ImplicitCoupledSolver(grid.getGridDensity(), grid.getTimeFactor(), getTimeLimit());
-    }
-
-    @Override
-    public double evalRightBoundary(final int m, final double alphaN, final double betaN) {
+    public double evalRightBoundary(final double alphaN, final double betaN) {
         /*
 		 * UNCOMMENT FOR A SIMPLIFIED CALCULATION 
 		 * return (betaN + HX2_2TAU * getPreviousSolution()[N] + HX_2NP * (fluxes.getFlux(N - 1) +
 		 * fluxes.getFlux(N))) / (v1 - alphaN);
          */
-        return (betaN + HX2_2TAU * getPreviousSolution()[N] + HX_NP * fluxes.getFlux(N)
+        return (betaN + HX2_2TAU * getPreviousSolution()[N] + hx * (1.0 - zeta) * getCurrentPulseValue()
+                + HX_NP * fluxes.getFlux(N)
                 + HX2TAU0_2NP * fluxes.fluxDerivativeRear()) / (v1 - alphaN);
     }
 
     @Override
-    public double firstBeta(final int m) {
+    public double firstBeta() {
         /*
 		 * UNCOMMENT FOR A SIMPLIFIED CALCULATION
 		 * return (HX2_2TAU * getPreviousSolution()[0] + hx * getCurrentPulseValue() - HX_2NP *
 		 * (fluxes.getFlux(0) + fluxes.getFlux(1))) * alpha1;
          */
-        return (HX2_2TAU * getPreviousSolution()[0] + hx * getCurrentPulseValue()
+        return (HX2_2TAU * getPreviousSolution()[0] + hx * zeta * getCurrentPulseValue()
                 + HX2TAU0_2NP * fluxes.fluxDerivativeFront() - HX_NP * fluxes.getFlux(0)) * alpha1;
     }
 

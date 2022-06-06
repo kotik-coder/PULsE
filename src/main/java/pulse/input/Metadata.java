@@ -1,7 +1,6 @@
 package pulse.input;
 
 import static java.lang.System.lineSeparator;
-import static pulse.properties.NumericProperties.def;
 import static pulse.properties.NumericPropertyKeyword.DETECTOR_GAIN;
 import static pulse.properties.NumericPropertyKeyword.DETECTOR_IRIS;
 import static pulse.properties.NumericPropertyKeyword.DIAMETER;
@@ -20,6 +19,7 @@ import java.util.TreeSet;
 import pulse.problem.laser.NumericPulseData;
 import pulse.problem.laser.PulseTemporalShape;
 import pulse.problem.laser.RectangularPulse;
+import static pulse.properties.NumericProperties.derive;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import static pulse.properties.NumericPropertyKeyword.FOV_OUTER;
@@ -46,8 +46,8 @@ public class Metadata extends PropertyHolder implements Reflexive {
     private SampleName sampleName;
     private int externalID;
 
-    private InstanceDescriptor<? extends PulseTemporalShape> pulseDescriptor = new InstanceDescriptor<PulseTemporalShape>(
-            "Pulse Shape Selector", PulseTemporalShape.class);
+    private InstanceDescriptor<? extends PulseTemporalShape> pulseDescriptor 
+            = new InstanceDescriptor<>("Pulse Shape Selector", PulseTemporalShape.class);
 
     private NumericPulseData pulseData;
 
@@ -64,7 +64,7 @@ public class Metadata extends PropertyHolder implements Reflexive {
         sampleName = new SampleName();
         setExternalID(externalId);
         pulseDescriptor.setSelectedDescriptor(RectangularPulse.class.getSimpleName());
-        data = new TreeSet<NumericProperty>();
+        data = new TreeSet<>();
         set(TEST_TEMPERATURE, temperature);
     }
 
@@ -115,15 +115,17 @@ public class Metadata extends PropertyHolder implements Reflexive {
         this.sampleName = sampleName;
     }
 
-    public void setPulseData(NumericPulseData pulseData) {
+    public final void setPulseData(NumericPulseData pulseData) {
         this.pulseData = pulseData;
+        this.set(PULSE_WIDTH, derive(PULSE_WIDTH, pulseData.pulseWidth()) );
     }
 
     /**
      * If a Numerical Pulse has been loaded (for example, when importing from
      * Proteus), this will return an object describing this data.
+     * @return 
      */
-    public NumericPulseData getPulseData() {
+    public final NumericPulseData getPulseData() {
         return pulseData;
     }
 

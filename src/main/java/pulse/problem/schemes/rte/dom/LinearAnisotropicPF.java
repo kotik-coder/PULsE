@@ -1,6 +1,7 @@
 package pulse.problem.schemes.rte.dom;
 
 import pulse.problem.statements.ParticipatingMedium;
+import pulse.problem.statements.model.ThermoOpticalProperties;
 
 /**
  * The linear-anisotropic scattering phase function.
@@ -10,13 +11,13 @@ public class LinearAnisotropicPF extends PhaseFunction {
 
     private double g;
 
-    public LinearAnisotropicPF(ParticipatingMedium medium, Discretisation intensities) {
-        super(medium, intensities);
+    public LinearAnisotropicPF(ThermoOpticalProperties top, Discretisation intensities) {
+        super(top, intensities);
     }
 
     @Override
-    public void init(ParticipatingMedium medium) {
-        super.init(medium);
+    public void init(ThermoOpticalProperties top) {
+        super.init(top);
         g = 3.0 * getAnisotropyFactor();
     }
 
@@ -28,8 +29,7 @@ public class LinearAnisotropicPF extends PhaseFunction {
 
     @Override
     public double function(final int i, final int k) {
-        final var ordinates = getDiscreteIntensities().getOrdinates();
-        return 1.0 + g * ordinates.getNode(i) * ordinates.getNode(k);
+        return 1.0 + g * cosineTheta(i,k);
     }
 
 }

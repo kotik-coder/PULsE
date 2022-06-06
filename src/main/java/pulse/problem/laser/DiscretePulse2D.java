@@ -19,7 +19,7 @@ import pulse.problem.statements.model.ExtendedThermalProperties;
 public class DiscretePulse2D extends DiscretePulse {
 
     private double discretePulseSpot;
-    private double coordFactor;
+    private double radialFactor;
 
     /**
      * The constructor for {@code DiscretePulse2D}.
@@ -35,12 +35,11 @@ public class DiscretePulse2D extends DiscretePulse {
     public DiscretePulse2D(ClassicalProblem2D problem, Grid2D grid) {
         super(problem, grid);
         var properties = (ExtendedThermalProperties) problem.getProperties();
-        coordFactor = (double) properties.getSampleDiameter().getValue() / 2.0;
-        var pulse = (Pulse2D) problem.getPulse();
-        discretePulseSpot = grid.gridRadialDistance((double) pulse.getSpotDiameter().getValue() / 2.0, coordFactor);
-
+        init(properties);
+        
+        properties.addListener(e -> init(properties) );
     }
-
+    
     /**
      * This calculates the dimensionless, discretised pulse function at a
      * dimensionless radial coordinate {@code coord}.
@@ -59,22 +58,31 @@ public class DiscretePulse2D extends DiscretePulse {
     public double evaluateAt(double time, double radialCoord) {
         return laserPowerAt(time) * (0.5 + 0.5 * signum(discretePulseSpot - radialCoord));
     }
+    
+    private void init(ExtendedThermalProperties properties) {
+        radialFactor    = (double) properties.getSampleDiameter().getValue() / 2.0;
+        evalPulseSpot();
+    }
 
     /**
-     * Calls the superclass method, then calculates the
-     * {@code discretePulseSpot} using the {@code gridRadialDistance} method.
+     * Calculates the {@code discretePulseSpot} using the {@code gridRadialDistance} method.
      *
      * @see pulse.problem.schemes.Grid2D.gridRadialDistance(double,double)
      */
-    @Override
-    public void recalculate() {
-        super.recalculate();
-        final double radius = (double) ((Pulse2D) getPulse()).getSpotDiameter().getValue() / 2.0;
-        discretePulseSpot = ((Grid2D) getGrid()).gridRadialDistance(radius, coordFactor);
+    public final void evalPulseSpot() {
+        var pulse = (Pulse2D) getPulse();
+        var grid2d = (Grid2D) getGrid();
+        final double radius = (double) pulse.getSpotDiameter().getValue() / 2.0;       
+        discretePulseSpot = grid2d.gridRadialDistance(radius, radialFactor);
+        grid2d.adjustStepSize(this);
     }
 
-    public double getDiscretePulseSpot() {
+    public final double getDiscretePulseSpot() {
         return discretePulseSpot;
+    }
+    
+    public final double getRadialConversionFactor() {
+        return radialFactor;
     }
 
 }

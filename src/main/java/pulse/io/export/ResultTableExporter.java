@@ -2,13 +2,16 @@ package pulse.io.export;
 
 import java.io.FileOutputStream;
 import java.io.PrintStream;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import pulse.properties.NumericProperty;
-import pulse.properties.NumericPropertyKeyword;
+import pulse.tasks.TaskManager;
 import pulse.tasks.processing.AbstractResult;
 import pulse.tasks.processing.AverageResult;
 import pulse.ui.Messages;
+import pulse.ui.Version;
 import pulse.ui.components.ResultTable;
 import pulse.ui.components.models.ResultTableModel;
 
@@ -61,26 +64,33 @@ public class ResultTableExporter implements Exporter<ResultTable> {
     }
 
     private void printHeaderCSV(ResultTable table, PrintStream stream) {
-        NumericPropertyKeyword p = null;
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        stream.println("Summary report on "
+                + LocalDateTime.now().format(formatter));
+        stream.println("PULsE Version: " + Version.getCurrentVersion().toString());
+        stream.println("Sample: " + TaskManager.getManagerInstance().getSampleName());
+        stream.println("Ouput format sequence below: ");
+
+        var fmt = ((ResultTableModel) table.getModel()).getFormat();
+
         for (int col = 0; col < table.getColumnCount(); col++) {
-            p = ((ResultTableModel) table.getModel()).getFormat().fromAbbreviation(table.getColumnName(col));
-            stream.printf("%20s ", p);
+            var colName = fmt.fromAbbreviation(table.getColumnName(col));
+            stream.println("Col. no.: " + col + " - " + colName);
         }
-        stream.println("");
+
+        stream.println("Note: average results are formatted as <value> ; <error> in the list below.");
+        stream.println();
     }
 
     private void printIndividualCSV(NumericProperty p, PrintStream stream) {
-        if(p.getError() == null || p.getError().doubleValue() < 1E-20 ) {
-        if(p.getValue() instanceof Double)
-            stream.printf("%12.5e", p.valueInCurrentUnits());
-        else 
-            stream.printf("%12d", p.valueInCurrentUnits().intValue());
-        }
-        else {            
-        if(p.getValue() instanceof Double)
-            stream.printf("%12.5e +/- %12.5e", p.valueInCurrentUnits(), p.errorInCurrentUnits());
-        else 
-            stream.printf("%12d +/- %12d", p.valueInCurrentUnits().intValue(), p.errorInCurrentUnits().intValue());
+        String fmt = p.getValue() instanceof Double ? "%-2.5e" : "%-6d";
+        String s1 = String.format(fmt, p.getValue()).trim();
+        String s2 = "";
+        if (p.getError() != null) {
+            s2 = String.format(fmt, p.getError()).trim();
+            stream.print(s1 + " ; " + s2 + " ");
+        } else {
+            stream.print(s1 + " ");
         }
     }
 
@@ -103,8 +113,6 @@ public class ResultTableExporter implements Exporter<ResultTable> {
                 stream.println("");
                 stream.print(Messages.getString("ResultTable.SeparatorCSV"));
                 stream.println("");
-
-                printHeaderCSV(table, stream);
 
                 results.stream().filter(r -> r instanceof AverageResult)
                         .forEach(ar -> ((AverageResult) ar).getIndividualResults().stream().forEach(ir -> {

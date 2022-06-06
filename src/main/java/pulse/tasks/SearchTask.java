@@ -21,7 +21,6 @@ import static pulse.tasks.logs.Status.FAILED;
 import static pulse.tasks.logs.Status.INCOMPLETE;
 import static pulse.tasks.logs.Status.IN_PROGRESS;
 import static pulse.tasks.logs.Status.READY;
-import static pulse.tasks.logs.Status.TERMINATED;
 import static pulse.tasks.processing.Buffer.getSize;
 import static pulse.util.Reflexive.instantiate;
 
@@ -31,8 +30,6 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import pulse.input.ExperimentalData;
@@ -51,7 +48,6 @@ import pulse.tasks.listeners.TaskRepositoryEvent;
 import pulse.tasks.logs.CorrelationLogEntry;
 import pulse.tasks.logs.DataLogEntry;
 import pulse.tasks.logs.Details;
-import static pulse.tasks.logs.Details.SOLVER_ERROR;
 import pulse.tasks.logs.Log;
 import pulse.tasks.logs.LogEntry;
 import pulse.tasks.logs.StateEntry;
@@ -59,6 +55,8 @@ import pulse.tasks.logs.Status;
 import pulse.tasks.processing.Buffer;
 import pulse.tasks.processing.CorrelationBuffer;
 import pulse.util.Accessible;
+import static pulse.tasks.logs.Status.AWAITING_TERMINATION;
+import static pulse.tasks.logs.Status.TERMINATED;
 
 /**
  * A {@code SearchTask} is the most important class in {@code PULsE}. It
@@ -81,7 +79,7 @@ public class SearchTask extends Accessible implements Runnable {
     private Buffer buffer;
     private Log log;
 
-    private CorrelationBuffer correlationBuffer;
+    private final CorrelationBuffer correlationBuffer;
     private CorrelationTest correlationTest;
     private NormalityTest normalityTest;
 
@@ -171,7 +169,7 @@ public class SearchTask extends Accessible implements Runnable {
      * </p>
      */
     public void clear() {
-        stored = new ArrayList<Calculation>();
+        stored = new ArrayList<>();
         curve.resetRanges();
         buffer = new Buffer();
         correlationBuffer.clear();
@@ -233,15 +231,12 @@ public class SearchTask extends Accessible implements Runnable {
      *
      * @param searchParameters an {@code IndexedVector} with relevant search
      * parameters
+     * @throws pulse.problem.schemes.solvers.SolverException
      * @see pulse.problem.statements.Problem.assign(IndexedVector)
      */
-    public void assign(ParameterVector searchParameters) {
-        try {
-            current.getProblem().assign(searchParameters);
-            curve.getRange().assign(searchParameters);
-        } catch (SolverException e) {
-            notifyFailedStatus(e);
-        }
+    public void assign(ParameterVector searchParameters) throws SolverException {
+        current.getProblem().assign(searchParameters);
+        curve.getRange().assign(searchParameters);
     }
 
     /**
@@ -284,8 +279,7 @@ public class SearchTask extends Accessible implements Runnable {
         correlationBuffer.clear();
 
         /* search cycle */
-
- /* sets an independent thread for manipulating the buffer */
+        /* sets an independent thread for manipulating the buffer */
         List<CompletableFuture<Void>> bufferFutures = new ArrayList<>(bufferSize);
         var singleThreadExecutor = Executors.newSingleThreadExecutor();
 
@@ -295,8 +289,6 @@ public class SearchTask extends Accessible implements Runnable {
             notifyFailedStatus(e1);
         }
 
-        final int maxIterations = (int) getInstance().getMaxIterations().getValue();
-
         outer:
         do {
 
@@ -304,14 +296,8 @@ public class SearchTask extends Accessible implements Runnable {
 
             for (var i = 0; i < bufferSize; i++) {
 
-                if (current.getStatus() != IN_PROGRESS) {
-                    break outer;
-                }
-
-                int iter = 0;
-
                 try {
-                    for (boolean finished = false; !finished && iter < maxIterations; iter++) {
+                    for (boolean finished = false; !finished;) {
                         finished = optimiser.iteration(this);
                     }
                 } catch (SolverException e) {
@@ -319,18 +305,12 @@ public class SearchTask extends Accessible implements Runnable {
                     break outer;
                 }
 
-                if (iter >= maxIterations) {
-                    var fail = FAILED;
-                    fail.setDetails(MAX_ITERATIONS_REACHED);
-                    setStatus(fail);
-                }
-
                 //if global best is better than the converged value
                 if (best != null && best.getCost() < path.getCost()) {
-                    //assign the global best parameters
-                    assign(path.getParameters());
-                    //and try to re-calculate
                     try {
+                        //assign the global best parameters
+                        assign(path.getParameters());
+                        //and try to re-calculate
                         solveProblemAndCalculateCost();
                     } catch (SolverException ex) {
                         notifyFailedStatus(ex);
@@ -338,7 +318,7 @@ public class SearchTask extends Accessible implements Runnable {
                 }
 
                 final var j = i;
-
+                
                 bufferFutures.add(CompletableFuture.runAsync(() -> {
                     buffer.fill(this, j);
                     correlationBuffer.inflate(this);
@@ -349,13 +329,14 @@ public class SearchTask extends Accessible implements Runnable {
 
             bufferFutures.forEach(future -> future.join());
 
-        } while (buffer.isErrorTooHigh(errorTolerance));
+        } while (buffer.isErrorTooHigh(errorTolerance) 
+                && current.getStatus() == IN_PROGRESS);
 
         singleThreadExecutor.shutdown();
 
         if (current.getStatus() == IN_PROGRESS) {
             runChecks();
-        }
+        } 
 
     }
 
@@ -393,13 +374,13 @@ public class SearchTask extends Accessible implements Runnable {
             }
 
         }
-
     }
-    
-    private void notifyFailedStatus(SolverException e1) {
+
+    public void notifyFailedStatus(SolverException e1) {
         var status = Status.FAILED;
         status.setDetails(Details.SOLVER_ERROR);
         status.setDetailedMessage(e1.getMessage());
+        e1.printStackTrace();
         setStatus(status);
     }
 
@@ -544,9 +525,9 @@ public class SearchTask extends Accessible implements Runnable {
         sb.append("_Task_");
         var extId = curve.getMetadata().getExternalID();
         if (extId < 0) {
-            sb.append("IntID_" + identifier.getValue());
+            sb.append("IntID_").append(identifier.getValue());
         } else {
-            sb.append("ExtID_" + extId);
+            sb.append("ExtID_").append(extId);
         }
 
         return sb.toString();
@@ -564,10 +545,9 @@ public class SearchTask extends Accessible implements Runnable {
             case IN_PROGRESS:
             case QUEUED:
             case READY:
-                setStatus(TERMINATED);
+                setStatus(AWAITING_TERMINATION);
                 break;
             default:
-                return;
         }
     }
 

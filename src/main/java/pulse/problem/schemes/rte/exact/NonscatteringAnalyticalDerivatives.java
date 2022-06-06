@@ -30,8 +30,9 @@ public class NonscatteringAnalyticalDerivatives extends NonscatteringRadiativeTr
 
     /**
      * Evaluates fluxes and their derivatives using analytical formulae and the
-     * selected numerical quadrature. Usually works best with the
-     * {@code ChandrasekharsQuadrature}.
+     * selected numerical quadrature.Usually works best with the
+    {@code ChandrasekharsQuadrature}
+     * @return 
      */
     @Override
     public RTECalculationStatus compute(double U[]) {

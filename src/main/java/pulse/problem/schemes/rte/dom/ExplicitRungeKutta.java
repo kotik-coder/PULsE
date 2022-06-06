@@ -115,7 +115,7 @@ public class ExplicitRungeKutta extends AdaptiveIntegrator {
             for (int l = n1; l < n2; l++) { // find unknown intensities (sum over the outward intensities)
 
                 /*
-				 * OUTWARD
+		 * OUTWARD
                  */
                 sum = tableau.getMatrix().get(m, 0) * q[l - n1][0];
                 for (int k = 1; k < m; k++) {

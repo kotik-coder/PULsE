@@ -27,7 +27,7 @@ import pulse.util.Reflexive;
 public abstract class RadiativeTransferSolver extends PropertyHolder implements Reflexive, Descriptive {
 
     private Fluxes fluxes;
-    private List<RTECalculationListener> rteListeners;
+    private final List<RTECalculationListener> rteListeners;
 
     /**
      * Dummy constructor.
@@ -47,17 +47,17 @@ public abstract class RadiativeTransferSolver extends PropertyHolder implements 
 
     /**
      * Retrieves the parameters from {@code p} and {@code grid} needed to run
-     * the calculations. Resets the flux arrays.
+     * the calculations.Resets the flux arrays.
      *
-     * @param p the problem statement
+     * @param p
      * @param grid the grid
      */
     public void init(ParticipatingMedium p, Grid grid) {
         if (fluxes != null) {
             fluxes.setDensity(grid.getGridDensity());
             fluxes.init();
-            var properties = (ThermoOpticalProperties) p.getProperties();
-            fluxes.setOpticalThickness(properties.getOpticalThickness());
+            ThermoOpticalProperties top = (ThermoOpticalProperties) p.getProperties();
+            fluxes.setOpticalThickness(top.getOpticalThickness());
         }
     }
 
@@ -128,11 +128,11 @@ public abstract class RadiativeTransferSolver extends PropertyHolder implements 
         }
     }
 
-    public Fluxes getFluxes() {
+    public final Fluxes getFluxes() {
         return fluxes;
     }
 
-    public void setFluxes(Fluxes fluxes) {
+    public final void setFluxes(Fluxes fluxes) {
         this.fluxes = fluxes;
     }
 

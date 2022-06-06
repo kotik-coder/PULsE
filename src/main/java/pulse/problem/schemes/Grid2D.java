@@ -56,24 +56,25 @@ public class Grid2D extends Grid {
      *
      * @param pulse the discrete puls representation
      */
-    @Override
-    public void adjustTo(DiscretePulse pulse) {
-        super.adjustTo(pulse);
-        if (pulse instanceof DiscretePulse2D) {
-            adjustTo((DiscretePulse2D) pulse);
+    
+    public void adjustStepSize(DiscretePulse pulse) {
+        var pulse2d = (DiscretePulse2D)pulse;
+        double pulseSpotSize = pulse2d.getDiscretePulseSpot();
+
+        if(hy > pulseSpotSize) {
+            final int INCREMENT = 5;
+            final int newN = getGridDensityValue() + INCREMENT;
+            setGridDensityValue(newN);
+            adjustStepSize(pulse);
         }
+        
+        adjustTimeStep(pulse);
     }
 
-    private void adjustTo(DiscretePulse2D pulse) {
-        final int GRID_DENSITY_INCREMENT = 5;
-
-        for (final var factor = 1.05; factor * hy > pulse.getDiscretePulseSpot(); pulse.recalculate()) {
-            int N = getGridDensityValue();
-            setGridDensityValue(N + GRID_DENSITY_INCREMENT);
-            hy = 1. / N;
-            setXStep(1. / N);
-        }
-
+    @Override
+    protected void setGridDensityValue(int N) {
+        super.setGridDensityValue(N);
+        hy = 1. / N;
     }
 
     /**
@@ -101,9 +102,7 @@ public class Grid2D extends Grid {
 
     @Override
     public String toString() {
-        var sb = new StringBuilder(super.toString());
-        sb.append("<math><i>h<sub>y</sub></i>=" + format("%3.3f", hy));
-        return sb.toString();
+        return super.toString() + "<math><i>h<sub>y</sub></i>=" + format("%3.3f", hy);
     }
 
     public double getYStep() {

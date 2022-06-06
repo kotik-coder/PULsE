@@ -2,7 +2,7 @@ package pulse.problem.schemes.rte.dom;
 
 import pulse.problem.schemes.rte.BlackbodySpectrum;
 import pulse.problem.schemes.rte.RTECalculationStatus;
-import pulse.problem.statements.ParticipatingMedium;
+import pulse.problem.statements.NonlinearProblem;
 import pulse.problem.statements.model.ThermoOpticalProperties;
 import pulse.util.PropertyHolder;
 import pulse.util.Reflexive;
@@ -19,11 +19,14 @@ public abstract class ODEIntegrator extends PropertyHolder implements Reflexive 
 
     public abstract RTECalculationStatus integrate();
 
-    protected void init(ParticipatingMedium problem) {
-        discretisation.setEmissivity((double) problem.getProperties().getEmissivity().getValue());
-        var properties = (ThermoOpticalProperties) problem.getProperties();
+    protected void init(NonlinearProblem problem) {
+        extract((ThermoOpticalProperties) problem.getProperties());
+        setEmissionFunction( new BlackbodySpectrum(problem) );
+    }
+        
+    protected void extract(ThermoOpticalProperties properties) {
+        discretisation.setEmissivity((double) properties.getEmissivity().getValue());
         discretisation.setGrid(new StretchedGrid((double) properties.getOpticalThickness().getValue()));
-        setEmissionFunction(new BlackbodySpectrum(problem));
     }
 
     protected void treatZeroIndex() {
@@ -100,11 +103,11 @@ public abstract class ODEIntegrator extends PropertyHolder implements Reflexive 
         return (1.0 - 2.0 * pf.getHalfAlbedo()) * spectrum.radianceAt(t);
     }
 
-    public PhaseFunction getPhaseFunction() {
+    public final PhaseFunction getPhaseFunction() {
         return pf;
     }
 
-    protected void setPhaseFunction(PhaseFunction pf) {
+    protected final void setPhaseFunction(PhaseFunction pf) {
         this.pf = pf;
     }
 
@@ -118,20 +121,20 @@ public abstract class ODEIntegrator extends PropertyHolder implements Reflexive 
         return getClass().getSimpleName();
     }
 
-    public Discretisation getDiscretisation() {
+    public final Discretisation getDiscretisation() {
         return discretisation;
     }
 
-    public void setDiscretisation(Discretisation discretisation) {
+    public final void setDiscretisation(Discretisation discretisation) {
         this.discretisation = discretisation;
         discretisation.setParent(this);
     }
 
-    public BlackbodySpectrum getEmissionFunction() {
+    public final BlackbodySpectrum getEmissionFunction() {
         return spectrum;
     }
 
-    public void setEmissionFunction(BlackbodySpectrum emissionFunction) {
+    public final void setEmissionFunction(BlackbodySpectrum emissionFunction) {
         this.spectrum = emissionFunction;
     }
 

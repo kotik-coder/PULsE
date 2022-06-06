@@ -7,7 +7,6 @@ import java.util.List;
 import pulse.math.linear.Vector;
 import pulse.math.transforms.Transformable;
 import pulse.properties.NumericProperties;
-import static pulse.properties.NumericProperties.def;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 

@@ -18,6 +18,13 @@ public enum CurveEventType {
      * shifting it relative to the experimental data points) or by the search
      * procedure.
      */
-    TIME_ORIGIN_CHANGED;
+    TIME_ORIGIN_CHANGED,
+    
+    /**
+     * A calculation associated with this curve has finished and 
+     * the required arrays have been filled.
+     */
+    
+    CALCULATION_FINISHED;
 
 }

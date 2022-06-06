@@ -49,8 +49,7 @@ public class ProblemToolbar extends JToolBar {
         add(btnLoadDensity);
 
         btnSimulate.addActionListener((ActionEvent e)
-                -> Executors.newSingleThreadExecutor().submit(()
-                        -> ProblemToolbar.plot(e)));
+                -> plot(e));
     }
 
     public static void plot(ActionEvent e) {
@@ -76,7 +75,8 @@ public class ProblemToolbar extends JToolBar {
 
         } else {
             try {
-                ((Solver) calc.getScheme()).solve(calc.getProblem());
+                Solver solver = (Solver) calc.getScheme();
+                solver.solve(calc.getProblem());
             } catch (SolverException se) {
                 err.println("Solver of " + t + " has encountered an error. Details: ");
                 se.printStackTrace();

@@ -1,10 +1,8 @@
 package pulse.search.direction;
 
-import pulse.math.ParameterVector;
 import static pulse.math.linear.Matrices.createIdentityMatrix;
 
 import pulse.math.linear.SquareMatrix;
-import pulse.problem.schemes.solvers.SolverException;
 import pulse.tasks.SearchTask;
 
 /**
@@ -28,13 +26,13 @@ public class ComplexPath extends GradientGuidedPath {
      * In addition to the superclass method, resets the Hessian to an Identity
      * matrix.
      *
-     * @throws SolverException
+     * @param task
      */
     @Override
     public void configure(SearchTask task) {
-        super.configure(task);
         hessian = createIdentityMatrix(ActiveFlags.activeParameters(task).size());
         inverseHessian = createIdentityMatrix(hessian.getData().length);
+        super.configure(task);
     }
 
     public SquareMatrix getHessian() {

@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -50,16 +51,22 @@ public class NetzschCSVReader implements CurveReader {
     /**
      * Note comma is included as a delimiter character here.
      */
-    private final static String ENGLISH_DELIMS = "[#(),/°Cx%^]+";
+    private final static String ENGLISH_DELIMS = "[#(),;/°Cx%^]+";
     private final static String GERMAN_DELIMS = "[#();/°Cx%^]+";
     
-    private static String delims = ENGLISH_DELIMS; 
-    
+    private static String delims;
     //default number format (British format)
-    private static Locale locale = Locale.ENGLISH;
+    private static Locale locale;
+    
+    private static NumberFormat format;
     
     private NetzschCSVReader() {
-        //intentionally blank
+        //do nothing
+    }
+    
+    protected void setDefaultLocale() {
+        delims = ENGLISH_DELIMS;
+        locale = Locale.ENGLISH;
     }
 
     /**
@@ -97,8 +104,9 @@ public class NetzschCSVReader implements CurveReader {
     @Override
     public List<ExperimentalData> read(File file) throws IOException {
         Objects.requireNonNull(file, Messages.getString("DATReader.1"));
-
         ExperimentalData curve = new ExperimentalData();
+        
+        setDefaultLocale(); //always start with a default locale
         
         //gets the number format for this locale
 
@@ -106,30 +114,29 @@ public class NetzschCSVReader implements CurveReader {
 
             int shotId = determineShotID(reader, file);
             
-            var format = DecimalFormat.getInstance(locale);
-            format.setGroupingUsed(false);
-
-            var spot = findLineByLabel(reader, DETECTOR_SPOT_SIZE, THICKNESS, delims);
+            String spot = findLineByLabel(reader, DETECTOR_SPOT_SIZE, THICKNESS, false);            
+            
             double spotSize = 0;
             if(spot != null) {
                 var spotTokens = spot.split(delims);
                 spotSize = format.parse(spotTokens[spotTokens.length - 1]).doubleValue() * TO_METRES;
             }
                 
-            var tempTokens = findLineByLabel(reader, THICKNESS, delims).split(delims);
+            String tempLine = findLineByLabel(reader, THICKNESS, false);
+            var tempTokens = tempLine.split(delims);
             
             final double thickness = format.parse(tempTokens[tempTokens.length - 1]).doubleValue() * TO_METRES;
 
-            tempTokens = findLineByLabel(reader, DIAMETER, delims).split(delims);
+            tempTokens = findLineByLabel(reader, DIAMETER, false).split(delims);
             final double diameter = format.parse(tempTokens[tempTokens.length - 1]).doubleValue() * TO_METRES;
 
-            tempTokens = findLineByLabel(reader, SAMPLE_TEMPERATURE, delims).split(delims);
+            tempTokens = findLineByLabel(reader, SAMPLE_TEMPERATURE, false).split(delims);
             final double sampleTemperature = format.parse(tempTokens[tempTokens.length - 1]).doubleValue() + TO_KELVIN;
 
             /*
 			 * Finds the detector keyword.
              */
-            var detectorLabel = findLineByLabel(reader, DETECTOR, delims);
+            var detectorLabel = findLineByLabel(reader, DETECTOR, true);
 
             if (detectorLabel == null) {
                 System.err.println("Skipping " + file.getName());
@@ -156,17 +163,41 @@ public class NetzschCSVReader implements CurveReader {
         return null;
 
     }
+    
+    /**
+     * Note: the {@code line} must contain a decimal-separated number.
+     * @param line a line containing number with a decimal separator  
+     */
+    
+    private static void guessLocaleAndFormat(String line) {
+                
+        if(line.contains(".")) {
+            delims = ENGLISH_DELIMS;
+            locale = Locale.ENGLISH;
+        }
+        
+        else {
+            delims = GERMAN_DELIMS;
+            locale = Locale.GERMAN;
+        }
+        
+        format = DecimalFormat.getInstance(locale);
+        format.setGroupingUsed(false); 
+    }
 
     protected static void populate(AbstractData data, BufferedReader reader) throws IOException, ParseException {
         double time;
         double power;
         String[] tokens;
-        var format = DecimalFormat.getInstance(locale);
-        format.setGroupingUsed(false);
 
         for (String line = reader.readLine(); line != null && !line.trim().isEmpty(); line = reader.readLine()) {
             tokens = line.split(delims);
-
+            
+            if(tokens.length < 2) {
+                guessLocaleAndFormat(line);
+                tokens = line.split(delims);
+            }
+                
             time = format.parse(tokens[0]).doubleValue() * NetzschCSVReader.TO_SECONDS;
             power = format.parse(tokens[1]).doubleValue();
             data.addPoint(time, power);
@@ -178,39 +209,25 @@ public class NetzschCSVReader implements CurveReader {
         String shotIDLine = reader.readLine();
         String[] shotID = shotIDLine.split(delims);
 
-        int shotId = -1;
+        int id;
         
-        if(shotID.length < 3) {
-            
-            if(locale == Locale.ENGLISH) {
-                delims = GERMAN_DELIMS;
-                locale = Locale.GERMAN;
-            }
-            else {
-                delims = ENGLISH_DELIMS;
-                locale = Locale.ENGLISH;
-            }            
-            
-            shotID = shotIDLine.split(delims);
-        }
-
         //check if first entry makes sense
         if (!shotID[shotID.length - 2].equalsIgnoreCase(SHOT_DATA)) {
             throw new IllegalArgumentException(file.getName()
                     + " is not a recognised Netzch CSV file. First entry is: " + shotID[shotID.length - 2]);
         } else {
-            shotId = Integer.parseInt(shotID[shotID.length - 1]);
+            id = Integer.parseInt(shotID[shotID.length - 1]);
         }
 
-        return shotId;
+        return id;
 
     }
 
-    protected static String findLineByLabel(BufferedReader reader, String label, String delims) throws IOException {
-        return findLineByLabel(reader, label, "!!!", delims);
+    protected static String findLineByLabel(BufferedReader reader, String label, boolean ignoreLocale) throws IOException {
+        return findLineByLabel(reader, label, "!!!", ignoreLocale);
     }
     
-    protected static String findLineByLabel(BufferedReader reader, String label, String stopLabel, String delims) throws IOException {
+    protected static String findLineByLabel(BufferedReader reader, String label, String stopLabel, boolean ignoreLocale) throws IOException {
 
         String line = "";
         String[] tokens;
@@ -221,6 +238,11 @@ public class NetzschCSVReader implements CurveReader {
         outer:
         for (line = reader.readLine(); line != null; line = reader.readLine()) {
 
+            if(line.isBlank())
+                continue;
+            
+            if(!ignoreLocale)
+                guessLocaleAndFormat(line);
             tokens = line.split(delims);
 
             for (String token : tokens) {

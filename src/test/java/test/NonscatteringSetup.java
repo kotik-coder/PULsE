@@ -16,6 +16,7 @@ import org.apache.commons.math3.stat.regression.SimpleRegression;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.rte.RadiativeTransferSolver;
 import pulse.problem.schemes.solvers.ImplicitCoupledSolver;
+import pulse.problem.schemes.solvers.ImplicitCoupledSolverNL;
 import pulse.problem.statements.ParticipatingMedium;
 import pulse.problem.statements.Pulse2D;
 import pulse.problem.statements.model.ThermoOpticalProperties;
@@ -38,7 +39,7 @@ public class NonscatteringSetup {
 		properties.setTestTemperature(derive(TEST_TEMPERATURE, 800.0));
 		properties.setScatteringAlbedo(derive(SCATTERING_ALBEDO, 0.0));
 
-		testScheme = new ImplicitCoupledSolver();
+		testScheme = new ImplicitCoupledSolverNL();
 		var grid = testScheme.getGrid();
 		grid.setGridDensity(derive(GRID_DENSITY, testProfileSize - 1));
 

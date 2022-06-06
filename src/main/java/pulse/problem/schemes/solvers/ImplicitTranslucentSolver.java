@@ -5,28 +5,21 @@ import static pulse.problem.statements.model.SpectralRange.LASER;
 import static pulse.ui.Messages.getString;
 
 import pulse.problem.schemes.DifferenceScheme;
-import pulse.problem.schemes.Grid;
 import pulse.problem.schemes.ImplicitScheme;
 import pulse.problem.schemes.TridiagonalMatrixAlgorithm;
 import pulse.problem.statements.PenetrationProblem;
 import pulse.problem.statements.Problem;
 import pulse.problem.statements.model.AbsorptionModel;
-import pulse.problem.statements.model.BeerLambertAbsorption;
 import pulse.properties.NumericProperty;
 
 public class ImplicitTranslucentSolver extends ImplicitScheme implements Solver<PenetrationProblem> {
 
     private AbsorptionModel absorption;
-    private Grid grid;
-    private double pls;
     private int N;
 
     private double HH;
     private double _2Bi1HTAU;
     private double b11;
-
-    private double frontAbsorption;
-    private double rearAbsorption;
 
     public ImplicitTranslucentSolver() {
         super();
@@ -36,31 +29,28 @@ public class ImplicitTranslucentSolver extends ImplicitScheme implements Solver<
         super(N, timeFactor, timeLimit);
     }
 
-    private void prepare(PenetrationProblem problem) {
+    @Override
+    public void prepare(Problem problem) throws SolverException {
         super.prepare(problem);
 
-        grid = getGrid();
+        var grid = getGrid();
         final double tau = grid.getTimeStep();
         N = (int) grid.getGridDensity().getValue();
 
         final double Bi1H = (double) problem.getProperties().getHeatLoss().getValue() * grid.getXStep();
         final double hx = grid.getXStep();
 
-        absorption = problem.getAbsorptionModel();
+        absorption = ((PenetrationProblem)problem).getAbsorptionModel();
         
         HH = hx * hx;
         _2Bi1HTAU = 2.0 * Bi1H * tau;
         b11 = 1.0 / (1.0 + 2.0 * tau / HH * (1 + Bi1H));
-
-        final double EPS = 1E-7;
-        rearAbsorption  = tau * absorption.absorption(LASER, (N - EPS) * hx);
-        frontAbsorption = tau * absorption.absorption(LASER, 0.0) + 2.0*tau/hx;
-
+       
         var tridiagonal = new TridiagonalMatrixAlgorithm(grid) {
 
             @Override
             public double phi(final int i) {
-                return pls * absorption.absorption(LASER, (i - EPS) * hx);
+                return getCurrentPulseValue() * absorption.absorption(LASER, i * hx);
             }
 
         };
@@ -82,27 +72,24 @@ public class ImplicitTranslucentSolver extends ImplicitScheme implements Solver<
     }
 
     @Override
-    public void timeStep(final int m) throws SolverException {
-        pls = pulse(m);
-        super.timeStep(m);
-    }
-
-    @Override
     public double signal() {
-        return evaluateSignal(absorption, grid, getCurrentSolution());
+        return evaluateSignal(absorption, getGrid(), getCurrentSolution());
     }
 
     @Override
-    public double evalRightBoundary(final int m, final double alphaN, final double betaN) {
-        final double tau = grid.getTimeStep();
+    public double evalRightBoundary(final double alphaN, final double betaN) {
+        final double tau = getGrid().getTimeStep();
+        var tridiagonal = this.getTridiagonalMatrixAlgorithm();
 
-        return (HH * (getPreviousSolution()[N] + pls * rearAbsorption)
+        return (HH * getPreviousSolution()[N] + HH*tau*tridiagonal.phi(N)
                 + 2. * tau * betaN) / (_2Bi1HTAU + HH + 2. * tau * (1 - alphaN));
     }
 
     @Override
-    public double firstBeta(int m) {
-        return (getPreviousSolution()[0] + pls * frontAbsorption) * b11;
+    public double firstBeta() {
+        var tridiagonal = this.getTridiagonalMatrixAlgorithm();
+        double tau = getGrid().getTimeStep();
+        return (getPreviousSolution()[0] + tau*tridiagonal.phi(0))* b11;
     }
 
     @Override
@@ -122,8 +109,8 @@ public class ImplicitTranslucentSolver extends ImplicitScheme implements Solver<
     }
 
     @Override
-    public Class<? extends Problem> domain() {
-        return PenetrationProblem.class;
+    public Class<? extends Problem>[] domain() {
+        return new Class[]{PenetrationProblem.class};
     }
 
 }

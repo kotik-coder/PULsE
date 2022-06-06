@@ -134,6 +134,7 @@ public class ThermalProperties extends PropertyHolder {
      * allowed to use those types of {@code NumericPropery} that are listed by
      * the {@code listedParameters()}.
      *
+     * @param value
      * @see listedTypes()
      */
     @Override
@@ -222,6 +223,7 @@ public class ThermalProperties extends PropertyHolder {
     public void setSpecificHeat(NumericProperty cP) {
         requireType(cP, SPECIFIC_HEAT);
         this.cP = (double) cP.getValue();
+        firePropertyChanged(this, cP);
     }
 
     public NumericProperty getDensity() {
@@ -231,6 +233,7 @@ public class ThermalProperties extends PropertyHolder {
     public void setDensity(NumericProperty p) {
         requireType(p, DENSITY);
         this.rho = (double) (p.getValue());
+        firePropertyChanged(this, p);
     }
 
     public NumericProperty getTestTemperature() {
@@ -338,6 +341,7 @@ public class ThermalProperties extends PropertyHolder {
     public void setEmissivity(NumericProperty e) {
         requireType(e, EMISSIVITY);
         this.emissivity = (double) e.getValue();
+        firePropertyChanged(this, e);
     }
 
     @Override

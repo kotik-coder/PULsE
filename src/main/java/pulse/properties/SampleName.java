@@ -7,7 +7,7 @@ public class SampleName implements Property {
     private String name;
 
     public SampleName() {
-        name = "Nameless";
+        //null name
     }
 
     @Override

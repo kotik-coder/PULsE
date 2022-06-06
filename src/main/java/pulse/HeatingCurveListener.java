@@ -10,6 +10,7 @@ public interface HeatingCurveListener {
 
     /**
      * Signals that a {@code CurveEvent} has occurred.
+     * @param event
      */
     public void onCurveEvent(CurveEvent event);
 

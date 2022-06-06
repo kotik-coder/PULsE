@@ -6,16 +6,13 @@ import static pulse.properties.NumericProperty.requireType;
 import static pulse.properties.NumericPropertyKeyword.ERROR_TOLERANCE;
 import static pulse.properties.NumericPropertyKeyword.ITERATION_LIMIT;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import pulse.problem.schemes.solvers.SolverException;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
-import static pulse.properties.NumericPropertyKeyword.GRADIENT_RESOLUTION;
 import pulse.properties.Property;
 import pulse.search.statistics.OptimiserStatistic;
 import pulse.tasks.SearchTask;

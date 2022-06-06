@@ -27,9 +27,14 @@ public class InstanceCellEditor extends DefaultCellEditor {
         combobox = new JComboBox<>(((InstanceDescriptor<?>) value).getAllDescriptors().toArray());
         combobox.setSelectedItem(descriptor.getValue());
 
-        combobox.addItemListener(e -> {
+        combobox.addItemListener((ItemEvent e) -> {
             if (e.getStateChange() == ItemEvent.SELECTED) {
-                descriptor.attemptUpdate(e.getItem());
+                try {
+                    descriptor.attemptUpdate(e.getItem());
+                } catch(NullPointerException npe) {
+                    System.out.println("Error updating " + descriptor.getDescriptor(false) 
+                            + ". Cannot be set to " + e.getItem());
+                }
             }
         });
 

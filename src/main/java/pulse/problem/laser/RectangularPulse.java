@@ -14,8 +14,11 @@ import pulse.properties.NumericPropertyKeyword;
  */
 public class RectangularPulse extends PulseTemporalShape {
 
+    private final static int MIN_POINTS = 4;
+    
     /**
      * @param time the time measured from the start of the laser pulse.
+     * @return 
      */
     @Override
     public double evaluateAt(double time) {
@@ -31,6 +34,11 @@ public class RectangularPulse extends PulseTemporalShape {
     @Override
     public PulseTemporalShape copy() {
         return new RectangularPulse();
+    }
+    
+    @Override
+    public int getRequiredDiscretisation() {
+        return MIN_POINTS;
     }
 
 }

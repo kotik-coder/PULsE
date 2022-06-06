@@ -3,21 +3,16 @@ package pulse.problem.schemes;
 import static java.lang.Math.pow;
 import static java.lang.Math.rint;
 import static java.lang.String.format;
-import static pulse.properties.NumericProperties.def;
 import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericProperty.requireType;
 import static pulse.properties.NumericPropertyKeyword.GRID_DENSITY;
 import static pulse.properties.NumericPropertyKeyword.TAU_FACTOR;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 import pulse.problem.laser.DiscretePulse;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
-import static pulse.properties.NumericPropertyKeyword.NONLINEAR_PRECISION;
-import pulse.properties.Property;
 import pulse.util.PropertyHolder;
 
 /**
@@ -48,8 +43,10 @@ public class Grid extends PropertyHolder {
      * @see pulse.properties.NumericPropertyKeyword
      */
     public Grid(NumericProperty gridDensity, NumericProperty timeFactor) {
-        setGridDensity(gridDensity);
-        setTimeFactor(timeFactor);
+        this.N = (int) gridDensity.getValue();
+        this.tauFactor = (double) timeFactor.getValue();
+        hx = 1. / N;
+        setTimeStep(tauFactor * pow(hx, 2));   
     }
 
     protected Grid() {
@@ -67,20 +64,34 @@ public class Grid extends PropertyHolder {
     }
 
     /**
-     * Optimises the {@code Grid} parameters.
+     * Optimises the {@code Grid} parameters so that the timestep is
+     * sufficiently small to enable accurate pulse correction.
      * <p>
      * This can change the {@code tauFactor} and {@code tau} variables in the
-     * {@code Grid} object if {@code discretePulseWidth < grid.tau}.
+     * {@code Grid} object if {@code discretePulseWidth/(M - 1) < grid.tau},
+     * where M is the required number of pulse calculations.
      * </p>
      *
      * @param pulse the discrete pulse representation
+     * @see PulseTemporalShape.getRequiredDiscretisation()
      */
-    public void adjustTo(DiscretePulse pulse) {
-        final double ADJUSTMENT_FACTOR = 0.75;
-        for (final double factor = 0.95; factor * tau > pulse.getDiscreteWidth(); pulse.recalculate()) {
-            tauFactor *= ADJUSTMENT_FACTOR;
-            tau = tauFactor * pow(hx, 2);
+    public final void adjustTimeStep(DiscretePulse pulse) {
+        double timeFactor = pulse.getConversionFactor(); 
+    
+        final int reqPoints     = pulse.getPulse().getPulseShape().getRequiredDiscretisation();
+        
+        double pNominalWidth    = (double) pulse.getPulse().getPulseWidth().getValue();
+        double pResolvedWidth   = pulse.resolvedPulseWidth();
+        double pWidth           = pNominalWidth < pResolvedWidth ? pResolvedWidth : pNominalWidth;
+        
+        double newTau       = pWidth / timeFactor / (reqPoints > 1 ? reqPoints - 1 : 1);
+        double newTauFactor = newTau / (hx * hx);
+        
+        final double EPS = 1E-10;
+        if (newTauFactor < tauFactor - EPS) {
+            setTimeFactor(derive(TAU_FACTOR, newTauFactor));
         }
+        
     }
 
     /**
@@ -115,7 +126,7 @@ public class Grid extends PropertyHolder {
      *
      * @return a double, representing the {@code hx} value.
      */
-    public double getXStep() {
+    public final double getXStep() {
         return hx;
     }
 
@@ -124,7 +135,7 @@ public class Grid extends PropertyHolder {
      *
      * @param hx a double, representing the new {@code hx} value.
      */
-    public void setXStep(double hx) {
+    public final void setXStep(double hx) {
         this.hx = hx;
     }
 
@@ -134,12 +145,13 @@ public class Grid extends PropertyHolder {
      *
      * @return a double, representing the {@code tau} value.
      */
-    public double getTimeStep() {
+    public final double getTimeStep() {
         return tau;
     }
 
-    protected void setTimeStep(double tau) {
+    protected final void setTimeStep(double tau) {
         this.tau = tau;
+        
     }
 
     /**
@@ -150,7 +162,7 @@ public class Grid extends PropertyHolder {
      * @return a NumericProperty of the {@code TAU_FACTOR} type, representing
      * the {@code tauFactor} value.
      */
-    public NumericProperty getTimeFactor() {
+    public final NumericProperty getTimeFactor() {
         return derive(TAU_FACTOR, tauFactor);
     }
 
@@ -161,16 +173,17 @@ public class Grid extends PropertyHolder {
      * @return a NumericProperty of the {@code GRID_DENSITY} type, representing
      * the {@code gridDensity} value.
      */
-    public NumericProperty getGridDensity() {
+    public final NumericProperty getGridDensity() {
         return derive(GRID_DENSITY, N);
     }
 
-    protected int getGridDensityValue() {
+    protected final int getGridDensityValue() {
         return N;
     }
 
     protected void setGridDensityValue(int N) {
         this.N = N;
+        hx = 1. / N;
     }
 
     /**
@@ -183,7 +196,8 @@ public class Grid extends PropertyHolder {
         requireType(gridDensity, GRID_DENSITY);
         this.N = (int) gridDensity.getValue();
         hx = 1. / N;
-        setTimeFactor(derive(TAU_FACTOR, 1.0));
+        setTimeStep(tauFactor * pow(hx, 2));  
+        firePropertyChanged(this, gridDensity);
     }
 
     /**
@@ -195,7 +209,8 @@ public class Grid extends PropertyHolder {
     public void setTimeFactor(NumericProperty timeFactor) {
         requireType(timeFactor, TAU_FACTOR);
         this.tauFactor = (double) timeFactor.getValue();
-        setTimeStep(tauFactor * pow(hx, 2));
+        setTimeStep(tauFactor * pow(hx, 2));        
+        firePropertyChanged(this, timeFactor);
     }
 
     /**
@@ -207,7 +222,7 @@ public class Grid extends PropertyHolder {
      * @param dimensionFactor a conversion factor with the dimension of time
      * @return a double representing the time on the finite grid
      */
-    public double gridTime(double time, double dimensionFactor) {
+    public final double gridTime(double time, double dimensionFactor) {
         return rint((time / dimensionFactor) / tau) * tau;
     }
 
@@ -220,16 +235,21 @@ public class Grid extends PropertyHolder {
      * @param lengthFactor a conversion factor with the dimension of length
      * @return a double representing the axial distance on the finite grid
      */
-    public double gridAxialDistance(double distance, double lengthFactor) {
+    public final double gridAxialDistance(double distance, double lengthFactor) {
         return rint((distance / lengthFactor) / hx) * hx;
     }
 
     @Override
     public String toString() {
         var sb = new StringBuilder();
-        sb.append("<html>");
-        sb.append(getClass().getSimpleName() + ": <math><i>h<sub>x</sub></i>=" + format("%3.2e", hx) + "; ");
-        sb.append("<i>&tau;</i>=" + format("%3.2e", tau) + "; ");
+        sb.append("<html>").
+        append(getClass().getSimpleName())
+                .append(": <math><i>h<sub>x</sub></i>=")
+                .append(format("%3.2e", hx))
+                .append("; ").
+        append("<i>&tau;</i>=")
+                .append(format("%3.2e", tau))
+                .append("; ");
         return sb.toString();
     }
 

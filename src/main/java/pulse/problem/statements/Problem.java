@@ -1,5 +1,6 @@
 package pulse.problem.statements;
 
+import java.util.Arrays;
 import static pulse.input.listeners.CurveEventType.RESCALED;
 import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.TIME_SHIFT;
@@ -15,8 +16,6 @@ import pulse.input.ExperimentalData;
 import pulse.math.ParameterVector;
 import pulse.math.Segment;
 import pulse.math.transforms.InvLenSqTransform;
-import pulse.math.transforms.StandardTransformations;
-import static pulse.math.transforms.StandardTransformations.ABS;
 import pulse.math.transforms.StickTransform;
 import pulse.problem.laser.DiscretePulse;
 import pulse.problem.schemes.DifferenceScheme;
@@ -58,7 +57,8 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
     private static boolean hideDetailedAdjustment = true;
     private ProblemComplexity complexity = ProblemComplexity.LOW;
 
-    private InstanceDescriptor<? extends Baseline> instanceDescriptor = new InstanceDescriptor<Baseline>(
+    private InstanceDescriptor<? extends Baseline> instanceDescriptor 
+            = new InstanceDescriptor<>(
             "Baseline Selector", Baseline.class);
 
     /**
@@ -73,7 +73,6 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
      */
     protected Problem() {
         initProperties();
-
         setHeatingCurve(new HeatingCurve());
 
         instanceDescriptor.attemptUpdate(LinearBaseline.class.getSimpleName());
@@ -100,7 +99,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
 
     public abstract Problem copy();
 
-    public void setHeatingCurve(HeatingCurve curve) {
+    public final void setHeatingCurve(HeatingCurve curve) {
         this.curve = curve;
         curve.setParent(this);
     }
@@ -112,10 +111,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
         });
         curve.addHeatingCurveListener(e -> {
             if (e.getType() == RESCALED) {
-                var c = e.getData();
-                if (!c.isIncomplete()) {
-                    curve.apply(getBaseline());
-                }
+                curve.apply(getBaseline());
             }
         });
     }
@@ -134,9 +130,10 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
      * @return a {@code List} of available {@code DifferenceScheme}s for solving
      * this {@code Problem}.
      */
-    public List<DifferenceScheme> availableSolutions() {
+    public final List<DifferenceScheme> availableSolutions() {
         var allSchemes = Reflexive.instancesOf(DifferenceScheme.class);
-        return allSchemes.stream().filter(scheme -> scheme instanceof Solver).filter(s -> s.domain() == this.getClass())
+        return allSchemes.stream().filter(scheme -> scheme instanceof Solver)
+                .filter(s -> Arrays.asList(s.domain()).contains(this.getClass()) )
                 .collect(Collectors.toList());
     }
 
@@ -152,7 +149,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
         properties.set(type, value);
     }
 
-    public HeatingCurve getHeatingCurve() {
+    public final HeatingCurve getHeatingCurve() {
         return curve;
     }
 
@@ -228,46 +225,45 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
 
             var key = output.getIndex(i);
 
+            Segment bounds = Segment.boundsFrom(key);
+            double value = 0;
+            
             switch (key) {
                 case THICKNESS:
-                    final double l = (double) properties.getSampleThickness().getValue();
-                    var bounds = Segment.boundsFrom(THICKNESS);
-                    output.setParameterBounds(i, bounds);
-                    output.setTransform(i, new StickTransform(bounds));
-                    output.set(i, l);
+                    value = (double) properties.getSampleThickness().getValue();
                     break;
                 case DIFFUSIVITY:
                     final double a = (double) properties.getDiffusivity().getValue();
                     output.setTransform(i, new InvLenSqTransform(properties));
-                    output.setParameterBounds(i, new Segment(0.33 * a, 3.0 * a));
+                    bounds = new Segment(0.01 * a, 20.0 * a);
+                    output.setParameterBounds(i, bounds);
                     output.set(i, a);
-                    break;
+                    //custom transform here -- skip assigning StickTransform
+                    continue;
                 case MAXTEMP:
                     final double signalHeight = (double) properties.getMaximumTemperature().getValue();
-                    output.setTransform(i, ABS);
-                    output.setParameterBounds(i, new Segment(0.5 * signalHeight, 1.5 * signalHeight));
-                    output.set(i, signalHeight);
+                    bounds = new Segment(0.5 * signalHeight, 1.5 * signalHeight);
+                    value = signalHeight;
                     break;
                 case HEAT_LOSS:
-                    final double Bi = (double) properties.getHeatLoss().getValue();
-                    output.setParameterBounds(i, Segment.boundsFrom(HEAT_LOSS));
-                    setHeatLossParameter(output, i, Bi);
+                    value = (double) properties.getHeatLoss().getValue();
+                    output.setTransform(i, new StickTransform(bounds));
                     break;
                 case TIME_SHIFT:
-                    output.set(i, (double) curve.getTimeShift().getValue());
                     double magnitude = 0.25 * properties.timeFactor();
-                    output.setParameterBounds(i, new Segment(-magnitude, magnitude));
+                    bounds = new Segment(-magnitude, magnitude);
+                    value = (double) curve.getTimeShift().getValue();
                     break;
                 default:
+                    continue;
             }
-
+            
+            output.setTransform(i, new StickTransform(bounds));
+            output.setParameterBounds(i, bounds);
+            output.set(i, value);
+            
         }
 
-    }
-
-    protected void setHeatLossParameter(ParameterVector output, int i, double Bi) {
-        output.setTransform(i, StandardTransformations.ABS);
-        output.set(i, Bi);
     }
 
     /**
@@ -293,21 +289,21 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
         
         for (int i = 0, size = params.dimension(); i < size; i++) {
 
-            double value = params.get(i);
+            double value = params.inverseTransform(i);
             var key = params.getIndex(i);
 
             switch (key) {
                 case THICKNESS:
-                    properties.setSampleThickness(derive(THICKNESS, params.inverseTransform(i) ));
+                    properties.setSampleThickness(derive(THICKNESS, value ));
                     break;
                 case DIFFUSIVITY:
-                    properties.setDiffusivity(derive(DIFFUSIVITY, params.inverseTransform(i)));
+                    properties.setDiffusivity(derive(DIFFUSIVITY, value));
                     break;
                 case MAXTEMP:
                     properties.setMaximumTemperature(derive(MAXTEMP, value));
                     break;
                 case HEAT_LOSS:
-                    properties.setHeatLoss(derive(HEAT_LOSS, params.inverseTransform(i)));
+                    properties.setHeatLoss(derive(HEAT_LOSS, value));
                     break;
                 case TIME_SHIFT:
                     curve.set(TIME_SHIFT, derive(TIME_SHIFT, value));
@@ -337,12 +333,8 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
      * @param b {@code true} if the user does not want to see the details,
      * {@code false} otherwise.
      */
-    public static void setDetailsHidden(boolean b) {
+    public final static void setDetailsHidden(boolean b) {
         Problem.hideDetailedAdjustment = b;
-    }
-
-    public String shortName() {
-        return getClass().getSimpleName();
     }
 
     /**
@@ -419,11 +411,10 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
      * @param baseline the new baseline.
      * @see pulse.baseline.Baseline.apply(Baseline)
      */
-    public void setBaseline(Baseline baseline) {
+    public final void setBaseline(Baseline baseline) {
         this.baseline = baseline;
-        if (!curve.isIncomplete()) {
-            curve.apply(baseline);
-        }
+        curve.apply(baseline);
+
         baseline.setParent(this);
 
         var searchTask = (SearchTask) this.specificAncestor(SearchTask.class);
@@ -433,7 +424,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
         }
     }
 
-    public InstanceDescriptor<? extends Baseline> getBaselineDescriptor() {
+    public final InstanceDescriptor<? extends Baseline> getBaselineDescriptor() {
         return instanceDescriptor;
     }
 
@@ -443,7 +434,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
         parameterListChanged();
     }
 
-    public ThermalProperties getProperties() {
+    public final ThermalProperties getProperties() {
         return properties;
     }
 

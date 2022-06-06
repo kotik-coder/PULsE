@@ -24,7 +24,7 @@ public class DiscreteQuantities {
         init(gridDensity, ordinates);
     }
 
-    public void init(int gridDensity, int ordinates) {
+    protected final void init(int gridDensity, int ordinates) {
         I = new double[gridDensity + 1][ordinates];
         f = new double[gridDensity + 1][ordinates];
         Ik = new double[gridDensity + 1][ordinates];
@@ -32,7 +32,7 @@ public class DiscreteQuantities {
         qLast = new double[ordinates];
     }
 
-    public void store() {
+    protected void store() {
         final int n = I.length;
         final int m = I[0].length;
 
@@ -49,47 +49,47 @@ public class DiscreteQuantities {
 
     }
 
-    public double[][] getIntensities() {
+    public final double[][] getIntensities() {
         return I;
     }
 
-    public double[][] getDerivatives() {
+    public final double[][] getDerivatives() {
         return f;
     }
 
-    public double getQLast(int i) {
+    protected final double getQLast(int i) {
         return qLast[i];
     }
 
-    public void setQLast(int i, double q) {
+    protected final void setQLast(int i, double q) {
         this.qLast[i] = q;
     }
 
-    public double getDerivative(int i, int j) {
+    public final double getDerivative(int i, int j) {
         return f[i][j];
     }
 
-    public void setDerivative(int i, int j, double f) {
+    public final void setDerivative(int i, int j, double f) {
         this.f[i][j] = f;
     }
 
-    public double getStoredIntensity(final int i, final int j) {
+    public final double getStoredIntensity(final int i, final int j) {
         return Ik[i][j];
     }
 
-    public double getStoredDerivative(final int i, final int j) {
+    public final double getStoredDerivative(final int i, final int j) {
         return fk[i][j];
     }
 
-    public void setStoredDerivative(final int i, final int j, final double f) {
+    public final void setStoredDerivative(final int i, final int j, final double f) {
         this.f[i][j] = f;
     }
 
-    public double getIntensity(int i, int j) {
+    public final double getIntensity(int i, int j) {
         return I[i][j];
     }
 
-    public void setIntensity(int i, int j, double value) {
+    public final void setIntensity(int i, int j, double value) {
         I[i][j] = value;
     }
 

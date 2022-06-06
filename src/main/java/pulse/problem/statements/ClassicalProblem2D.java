@@ -8,6 +8,8 @@ import java.util.List;
 import pulse.math.ParameterVector;
 import pulse.math.Segment;
 import pulse.math.transforms.InvDiamTransform;
+import pulse.math.transforms.StickTransform;
+import pulse.math.transforms.Transformable;
 import pulse.problem.laser.DiscretePulse;
 import pulse.problem.laser.DiscretePulse2D;
 import pulse.problem.schemes.ADIScheme;
@@ -18,7 +20,6 @@ import pulse.problem.schemes.solvers.SolverException;
 import pulse.problem.statements.model.ExtendedThermalProperties;
 import pulse.problem.statements.model.ThermalProperties;
 import pulse.properties.Flag;
-import static pulse.properties.NumericPropertyKeyword.HEAT_LOSS;
 import static pulse.properties.NumericPropertyKeyword.HEAT_LOSS_SIDE;
 import pulse.ui.Messages;
 
@@ -67,6 +68,7 @@ public class ClassicalProblem2D extends Problem {
         return grid instanceof Grid2D ? new DiscretePulse2D(this, (Grid2D) grid) : super.discretePulseOn(grid);
     }
 
+    
     @Override
     public void optimisationVector(ParameterVector output, List<Flag> flags) {
         super.optimisationVector(output, flags);
@@ -76,7 +78,9 @@ public class ClassicalProblem2D extends Problem {
         for (int i = 0, size = output.dimension(); i < size; i++) {
 
             var key = output.getIndex(i);
-
+            Transformable transform = new InvDiamTransform(properties);
+            var bounds = Segment.boundsFrom(key);
+            
             switch (key) {
                 case FOV_OUTER:
                     value = (double) properties.getFOVOuter().getValue();
@@ -88,20 +92,20 @@ public class ClassicalProblem2D extends Problem {
                     value = (double) ((Pulse2D) getPulse()).getSpotDiameter().getValue();
                     break;
                 case HEAT_LOSS_SIDE:
-                    final double Bi = (double) properties.getSideLosses().getValue();
-                    setHeatLossParameter(output, i, Bi);
-                    continue;
+                    value = (double) properties.getSideLosses().getValue();
+                    transform = new StickTransform(bounds);
+                    break;
                 case HEAT_LOSS_COMBINED:
-                    final double combined = (double) properties.getHeatLoss().getValue();
-                    setHeatLossParameter(output, i, combined);
-                    continue;
+                    value = (double) properties.getHeatLoss().getValue();
+                    transform = new StickTransform(bounds);
+                    break;
                 default:
                     continue;
             }
 
-            output.setTransform(i, new InvDiamTransform(properties));
+            output.setTransform(i, transform);
+            output.setParameterBounds(i, bounds);
             output.set(i, value);
-            output.setParameterBounds(i, new Segment(0.5 * value, 1.5 * value));
 
         }
 

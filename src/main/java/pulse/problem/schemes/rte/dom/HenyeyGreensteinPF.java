@@ -3,6 +3,7 @@ package pulse.problem.schemes.rte.dom;
 import static java.lang.Math.sqrt;
 
 import pulse.problem.statements.ParticipatingMedium;
+import pulse.problem.statements.model.ThermoOpticalProperties;
 
 /**
  * The single-parameter Henyey-Greenstein scattering phase function.
@@ -14,13 +15,13 @@ public class HenyeyGreensteinPF extends PhaseFunction {
     private double a2;
     private double b1;
 
-    public HenyeyGreensteinPF(ParticipatingMedium medium, Discretisation intensities) {
-        super(medium, intensities);
+    public HenyeyGreensteinPF(ThermoOpticalProperties properties, Discretisation intensities) {
+        super(properties, intensities);
     }
 
     @Override
-    public void init(ParticipatingMedium problem) {
-        super.init(problem);
+    public void init(ThermoOpticalProperties properties) {
+        super.init(properties);
         final double anisotropy = getAnisotropyFactor();
         b1 = 2.0 * anisotropy;
         final double aSq = anisotropy * anisotropy;
@@ -30,9 +31,7 @@ public class HenyeyGreensteinPF extends PhaseFunction {
 
     @Override
     public double function(final int i, final int k) {
-        final var ordinates = getDiscreteIntensities().getOrdinates();
-        final double theta = ordinates.getNode(k) * ordinates.getNode(i);
-        final double f = a2 - b1 * theta;
+        final double f = a2 - b1 * cosineTheta(i, k);
         return a1 / (f * sqrt(f));
     }
 

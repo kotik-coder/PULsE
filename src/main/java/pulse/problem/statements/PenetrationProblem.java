@@ -1,6 +1,7 @@
 package pulse.problem.statements;
 
 import java.util.List;
+import java.util.Set;
 
 import pulse.math.ParameterVector;
 import pulse.problem.schemes.DifferenceScheme;
@@ -9,6 +10,8 @@ import pulse.problem.schemes.solvers.SolverException;
 import pulse.problem.statements.model.AbsorptionModel;
 import pulse.problem.statements.model.BeerLambertAbsorption;
 import pulse.properties.Flag;
+import pulse.properties.NumericPropertyKeyword;
+import static pulse.properties.NumericPropertyKeyword.SOURCE_GEOMETRIC_FACTOR;
 import pulse.properties.Property;
 import pulse.ui.Messages;
 import pulse.util.InstanceDescriptor;
@@ -16,9 +19,8 @@ import pulse.util.InstanceDescriptor;
 public class PenetrationProblem extends ClassicalProblem {
 
     private InstanceDescriptor<AbsorptionModel> instanceDescriptor
-            = new InstanceDescriptor<AbsorptionModel>(
+            = new InstanceDescriptor<>(
                     "Absorption Model Selector", AbsorptionModel.class);
-
     private AbsorptionModel absorption = instanceDescriptor.newInstance(AbsorptionModel.class);
 
     public PenetrationProblem() {
@@ -54,6 +56,13 @@ public class PenetrationProblem extends ClassicalProblem {
         List<Property> list = super.listedTypes();
         list.add(instanceDescriptor);
         return list;
+    }
+    
+    @Override
+    public Set<NumericPropertyKeyword> listedKeywords() {
+        var set = super.listedKeywords();
+        set.remove(SOURCE_GEOMETRIC_FACTOR);
+        return set;
     }
 
     public InstanceDescriptor<AbsorptionModel> getAbsorptionSelector() {

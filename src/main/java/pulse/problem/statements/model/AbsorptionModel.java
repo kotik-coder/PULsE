@@ -111,7 +111,6 @@ public abstract class AbsorptionModel extends PropertyHolder implements Reflexiv
             double value = 0;
 
             Transformable transform = ABS;
-            output.setParameterBounds(i, new Segment(1E-2, 1000.0));
             
             switch (key) {
                 case LASER_ABSORPTIVITY:
@@ -128,6 +127,7 @@ public abstract class AbsorptionModel extends PropertyHolder implements Reflexiv
             }
 
             //do this for the listed key values 
+            output.setParameterBounds(i, Segment.boundsFrom(key));
             output.setTransform(i, transform);
             output.set(i, value);
 

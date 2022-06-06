@@ -19,7 +19,6 @@ import pulse.baseline.FlatBaseline;
 import pulse.input.listeners.DataEvent;
 import pulse.input.listeners.DataEventType;
 import pulse.input.listeners.DataListener;
-import pulse.properties.NumericProperty;
 import pulse.ui.Messages;
 import pulse.util.PropertyHolderListener;
 
@@ -79,15 +78,15 @@ public class ExperimentalData extends AbstractData {
         
     }
 
-    public void addDataListener(DataListener listener) {
+    public final void addDataListener(DataListener listener) {
         dataListeners.add(listener);
     }
 
-    public void clearDataListener() {
+    public final void clearDataListener() {
         dataListeners.clear();
     }
 
-    public void fireDataChanged(DataEvent dataEvent) {
+    public final void fireDataChanged(DataEvent dataEvent) {
         dataListeners.stream().forEach(l -> l.onDataChanged(dataEvent));
     }
 
@@ -98,7 +97,7 @@ public class ExperimentalData extends AbstractData {
      * @see pulse.input.Range.reset()
      * @see pulse.input.IndexRange.reset()
      */
-    public void resetRanges() {
+    public final void resetRanges() {
         indexRange.reset(getTimeSequence());
         range.reset(indexRange, getTimeSequence());
     }
@@ -335,19 +334,6 @@ public class ExperimentalData extends AbstractData {
             range.updateMinimum(metadata.numericProperty(PULSE_WIDTH));
         }
 
-        metadata.addListener(event -> {
-
-            if (event.getProperty() instanceof NumericProperty) {
-                var p = (NumericProperty) event.getProperty();
-
-                if (p.getType() == PULSE_WIDTH) {
-                    range.updateMinimum(metadata.numericProperty(PULSE_WIDTH));
-                }
-
-            }
-
-        });
-
     }
     
     /**
@@ -413,7 +399,6 @@ public class ExperimentalData extends AbstractData {
     }
 
     private void doSetRange() {
-        var time = getTimeSequence();
         indexRange.set(time, range);
 
         addHierarchyListener(l -> {

@@ -7,8 +7,6 @@ import static pulse.properties.NumericPropertyKeyword.FOV_INNER;
 import static pulse.properties.NumericPropertyKeyword.FOV_OUTER;
 import static pulse.properties.NumericPropertyKeyword.HEAT_LOSS_SIDE;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 import pulse.input.ExperimentalData;
@@ -16,10 +14,8 @@ import pulse.properties.NumericProperties;
 import static pulse.properties.NumericProperties.def;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
-import static pulse.properties.NumericPropertyKeyword.DIATHERMIC_COEFFICIENT;
 import static pulse.properties.NumericPropertyKeyword.HEAT_LOSS;
 import static pulse.properties.NumericPropertyKeyword.HEAT_LOSS_COMBINED;
-import pulse.properties.Property;
 
 public class ExtendedThermalProperties extends ThermalProperties {
 

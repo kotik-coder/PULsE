@@ -1,21 +1,29 @@
 package pulse.problem.statements.model;
 
+import java.util.List;
 import static pulse.math.MathUtils.fastPowLoop;
 import static pulse.properties.NumericProperties.def;
-import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericProperty.requireType;
-import static pulse.properties.NumericPropertyKeyword.OPTICAL_THICKNESS;
-import static pulse.properties.NumericPropertyKeyword.PLANCK_NUMBER;
 import static pulse.properties.NumericPropertyKeyword.SCATTERING_ALBEDO;
 import static pulse.properties.NumericPropertyKeyword.SCATTERING_ANISOTROPY;
 
 import java.util.Set;
 
 import pulse.input.ExperimentalData;
+import pulse.math.ParameterVector;
+import pulse.math.Segment;
+import pulse.math.transforms.StickTransform;
+import pulse.math.transforms.Transformable;
+import pulse.problem.schemes.solvers.SolverException;
+import pulse.properties.Flag;
+import static pulse.properties.NumericProperties.derive;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
+import static pulse.properties.NumericPropertyKeyword.OPTICAL_THICKNESS;
+import static pulse.properties.NumericPropertyKeyword.PLANCK_NUMBER;
+import pulse.search.Optimisable;
 
-public class ThermoOpticalProperties extends ThermalProperties {
+public class ThermoOpticalProperties extends ThermalProperties implements Optimisable {
 
     private double opticalThickness;
     private double planckNumber;
@@ -158,6 +166,72 @@ public class ThermoOpticalProperties extends ThermalProperties {
         sb.append(String.format("%n %-25s", this.getSpecificHeat()));
         sb.append(String.format("%n %-25s", this.getDensity()));
         return sb.toString();
+    }
+    
+    @Override
+    public void optimisationVector(ParameterVector output, List<Flag> flags) {
+        Segment bounds = null;
+        double value;
+        Transformable transform;
+
+        for (int i = 0, size = output.dimension(); i < size; i++) {
+
+            var key = output.getIndex(i);
+
+            switch (key) {
+                case PLANCK_NUMBER:
+                    final double lowerBound = Segment.boundsFrom(PLANCK_NUMBER).getMinimum();
+                    bounds = new Segment(lowerBound, maxNp());
+                    value = (double) getPlanckNumber().getValue();
+                    break;
+                case OPTICAL_THICKNESS:
+                    value = (double) getOpticalThickness().getValue();
+                    bounds = Segment.boundsFrom(OPTICAL_THICKNESS);
+                    break;
+                case SCATTERING_ALBEDO:
+                    value = (double) getScatteringAlbedo().getValue();
+                    bounds = new Segment(0.0, 1.0);
+                    break;
+                case SCATTERING_ANISOTROPY:
+                    value = (double) getScatteringAnisostropy().getValue();
+                    bounds = new Segment(-1.0, 1.0);
+                    break;
+                default:
+                    continue;
+
+            }
+
+            transform = new StickTransform(bounds);
+            output.setTransform(i, transform);
+            output.set(i, value);
+            output.setParameterBounds(i, bounds);
+
+        }
+
+    }
+
+    @Override
+    public void assign(ParameterVector params) throws SolverException {
+
+        for (int i = 0, size = params.dimension(); i < size; i++) {
+
+            var type = params.getIndex(i);
+
+            switch (type) {
+
+                case PLANCK_NUMBER:
+                case SCATTERING_ALBEDO:
+                case SCATTERING_ANISOTROPY:
+                case OPTICAL_THICKNESS:
+                    set(type, derive(type, params.inverseTransform(i)));
+                    break;
+                default:
+                    break;
+
+            }
+
+        }
+
     }
 
 }

@@ -21,7 +21,6 @@ public class ExplicitNonlinearSolver extends ExplicitScheme implements Solver<No
 
     private int N;
     private double hx;
-    private double pls;
 
     private double dT_T;
 
@@ -47,7 +46,8 @@ public class ExplicitNonlinearSolver extends ExplicitScheme implements Solver<No
         nonlinearPrecision = (double) def(NONLINEAR_PRECISION).getValue();
     }
 
-    private void prepare(NonlinearProblem problem) {
+    @Override
+    public void prepare(Problem problem) throws SolverException {
         super.prepare(problem);
 
         var grid = getGrid();
@@ -72,7 +72,6 @@ public class ExplicitNonlinearSolver extends ExplicitScheme implements Solver<No
     @Override
     public void timeStep(int m) throws SolverException {
         explicitSolution();
-        pls = pulse(m);
         doIterations(getCurrentSolution(), nonlinearPrecision, m);
     }
 
@@ -85,7 +84,7 @@ public class ExplicitNonlinearSolver extends ExplicitScheme implements Solver<No
          * y = 0
          */
         final double f0 = f01 * (fastPowLoop(V[0] * dT_T + 1, 4) - 1);
-        V[0] = a00 * (V[1] + a11 * U[0] + hx * (pls - f0));
+        V[0] = a00 * (V[1] + a11 * U[0] + hx * (getCurrentPulseValue() - f0));
 
         /**
          * y = 1
@@ -107,8 +106,8 @@ public class ExplicitNonlinearSolver extends ExplicitScheme implements Solver<No
     }
 
     @Override
-    public Class<? extends Problem> domain() {
-        return NonlinearProblem.class;
+    public Class<? extends Problem>[] domain() {
+        return new Class[]{NonlinearProblem.class};
     }
 
     public NumericProperty getNonlinearPrecision() {

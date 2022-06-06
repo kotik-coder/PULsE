@@ -1,7 +1,6 @@
 package pulse.problem.schemes;
 
 import pulse.problem.schemes.solvers.SolverException;
-import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
 
 public abstract class OneDimensionalScheme extends DifferenceScheme {
@@ -16,10 +15,10 @@ public abstract class OneDimensionalScheme extends DifferenceScheme {
     protected OneDimensionalScheme(NumericProperty timeLimit) {
         super(timeLimit);
     }
-
+    
+    
     @Override
-    protected void prepare(Problem problem) {
-        super.prepare(problem);
+    public void clearArrays() {
         final int N = (int) getGrid().getGridDensity().getValue();
         U = new double[N + 1];
         V = new double[N + 1];

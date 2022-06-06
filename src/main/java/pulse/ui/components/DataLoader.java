@@ -21,7 +21,6 @@ import pulse.input.InterpolationDataset.StandartType;
 import pulse.io.readers.MetaFilePopulator;
 import pulse.io.readers.ReaderManager;
 import pulse.problem.laser.NumericPulse;
-import pulse.problem.laser.NumericPulseData;
 import pulse.tasks.SearchTask;
 import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.TaskRepositoryEvent;
@@ -66,6 +65,7 @@ public class DataLoader {
         var instance = TaskManager.getManagerInstance();
 
         if (files != null) {
+
             progressFrame.trackProgress(files.size());
             instance.generateTasks(files);
         }
@@ -151,13 +151,15 @@ public class DataLoader {
                                     metadata.getPulseDescriptor()
                                             .setSelectedDescriptor(
                                                     NumericPulse.class.getSimpleName());
-                                });
+                                    progressFrame.incrementProgress();
+                                }
+                                );
                             }
 
                         });
 
             };
-            
+
             Executors.newSingleThreadExecutor().submit(loader);
 
         }

@@ -10,9 +10,22 @@ public abstract class PhaseFunction implements Reflexive {
     private double anisotropy;
     private double halfAlbedo;
 
-    public PhaseFunction(ParticipatingMedium medium, Discretisation intensities) {
+    public PhaseFunction(ThermoOpticalProperties top, Discretisation intensities) {
         this.intensities = intensities;
-        init(medium);
+        init(top);
+    }
+    
+    /** 
+     * Calculates the cosine of the scattering angle as the product 
+     * of the two discrete cosine nodes.
+     * @param i
+     * @param k
+     * @return 
+     */
+    
+    public final double cosineTheta(int i, int k) {
+        final var ordinates = getDiscreteIntensities().getOrdinates();
+        return ordinates.getNode(k) * ordinates.getNode(i);
     }
 
     public double fullSum(int i, int j) {
@@ -55,8 +68,7 @@ public abstract class PhaseFunction implements Reflexive {
         return intensities;
     }
 
-    public void init(ParticipatingMedium problem) {
-        var properties = (ThermoOpticalProperties) problem.getProperties();
+    public void init(ThermoOpticalProperties properties) {
         this.anisotropy = (double) properties.getScatteringAnisostropy().getValue();
         this.halfAlbedo = 0.5 * (double) properties.getScatteringAlbedo().getValue();
     }

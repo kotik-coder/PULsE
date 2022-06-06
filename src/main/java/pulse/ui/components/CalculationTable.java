@@ -81,8 +81,10 @@ public class CalculationTable extends JTable {
             var task = TaskManager.getManagerInstance().getSelectedTask();
             var id = convertRowIndexToModel(this.getSelectedRow());
             if (!lsm.getValueIsAdjusting() && id > -1 && id < task.getStoredCalculations().size()) {
+                
                 task.switchTo(task.getStoredCalculations().get(id));
                 getChart().plot(task, true);
+            
             }
 
         });

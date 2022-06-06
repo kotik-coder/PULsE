@@ -10,7 +10,7 @@ import pulse.AbstractData;
  */
 public class NumericPulseData extends AbstractData {
 
-    private int externalID;
+    private final int externalID;
 
     /**
      * Stores {@code id} and calls super-constructor
@@ -50,20 +50,9 @@ public class NumericPulseData extends AbstractData {
     public int getExternalID() {
         return externalID;
     }
-
-    /**
-     * Uniformly scales the values of the pulse power by {@code factor}.
-     *
-     * @param factor the scaling factor
-     */
-    public void scale(double factor) {
-
-        var power = this.getSignalData();
-
-        for (int i = 0, size = power.size(); i < size; i++) {
-            power.set(i, power.get(i) * factor);
-        }
-
+    
+    public double pulseWidth() {
+        return super.timeLimit();
     }
 
 }

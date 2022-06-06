@@ -178,7 +178,7 @@ public class ResultTable extends JTable implements Descriptive {
 
     @Override
     public String describe() {
-        return "SummaryTable";
+        return "Summary_" + TaskManager.getManagerInstance().describe();
     }
 
     public boolean isSelectionEmpty() {

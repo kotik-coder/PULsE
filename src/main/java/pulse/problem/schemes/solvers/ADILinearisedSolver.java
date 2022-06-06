@@ -77,14 +77,27 @@ public class ADILinearisedSolver extends ADIScheme implements Solver<ClassicalPr
     public ADILinearisedSolver(NumericProperty N, NumericProperty timeFactor, NumericProperty timeLimit) {
         super(N, timeFactor, timeLimit);
     }
+    
+    @Override
+    public void clearArrays() {
+        N   = (int) getGrid().getGridDensity().getValue();
+        U1  = new double[N + 1][N + 1];
+        U2  = new double[N + 1][N + 1];
 
-    private void prepare(ClassicalProblem2D problem) {
+        U1_E = new double[N + 3][N + 3];
+        U2_E = new double[N + 3][N + 3];
+
+        a1 = new double[N + 1];
+        b1 = new double[N + 1];
+        c1 = new double[N + 1];
+    }
+
+    @Override
+    public void prepare(Problem problem) throws SolverException {
         super.prepare(problem);
 
         var grid = getGrid();
         tridiagonal = new TridiagonalMatrixAlgorithm(grid);
-
-        N = (int) grid.getGridDensity().getValue();
 
         hx = grid.getXStep();
         hy = ((Grid2D) getGrid()).getYStep();
@@ -104,15 +117,6 @@ public class ADILinearisedSolver extends ADIScheme implements Solver<ClassicalPr
         l = (double) properties.getSampleThickness().getValue();
 
         // end
-        U1 = new double[N + 1][N + 1];
-        U2 = new double[N + 1][N + 1];
-
-        U1_E = new double[N + 3][N + 3];
-        U2_E = new double[N + 3][N + 3];
-
-        a1 = new double[N + 1];
-        b1 = new double[N + 1];
-        c1 = new double[N + 1];
 
         // a[i]*u[i-1] - b[i]*u[i] + c[i]*u[i+1] = F[i]
         lastIndex = (int) (fovOuter / d / hx);
@@ -174,8 +178,8 @@ public class ADILinearisedSolver extends ADIScheme implements Solver<ClassicalPr
     }
 
     @Override
-    public Class<? extends Problem> domain() {
-        return ClassicalProblem2D.class;
+    public Class<? extends Problem>[] domain() {
+        return new Class[]{ClassicalProblem2D.class};
     }
 
     @Override
@@ -197,7 +201,6 @@ public class ADILinearisedSolver extends ADIScheme implements Solver<ClassicalPr
         for (int i = 0; i <= N; i++) {
 
             System.arraycopy(U1[i], 0, U1_E[i + 1], 1, N + 1);
-
             U1_E[i + 1][0] = U1[i][1] + 2.0 * hy * pulse(m, i) - E_C_U1 * U1[i][0];
             U1_E[i + 1][N + 2] = U1[i][N - 1] - E_C_U1 * U1[i][N];
         }

@@ -26,11 +26,11 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.SwingUtilities;
 import pulse.input.ExperimentalData;
+import pulse.input.listeners.DataEvent;
+import pulse.input.listeners.DataEventType;
 
 import pulse.properties.SampleName;
 import pulse.search.direction.PathOptimiser;
@@ -39,6 +39,7 @@ import pulse.tasks.listeners.TaskRepositoryListener;
 import pulse.tasks.listeners.TaskSelectionEvent;
 import pulse.tasks.listeners.TaskSelectionListener;
 import pulse.tasks.logs.Status;
+import static pulse.tasks.logs.Status.AWAITING_TERMINATION;
 import pulse.tasks.processing.Result;
 import pulse.tasks.processing.ResultFormat;
 import pulse.util.Group;
@@ -58,19 +59,19 @@ import pulse.util.UpwardsNavigable;
  */
 public class TaskManager extends UpwardsNavigable {
 
-    private static TaskManager instance = new TaskManager();
+    private static final TaskManager instance = new TaskManager();
 
     private List<SearchTask> tasks;
     private SearchTask selectedTask;
 
     private boolean singleStatement = true;
 
-    private ForkJoinPool taskPool;
+    private final ForkJoinPool taskPool;
 
-    private List<TaskSelectionListener> selectionListeners;
-    private List<TaskRepositoryListener> taskRepositoryListeners;
+    private final List<TaskSelectionListener> selectionListeners;
+    private final List<TaskRepositoryListener> taskRepositoryListeners;
 
-    private final static String DEFAULT_NAME = "Project 1 - " + now().format(ISO_WEEK_DATE);
+    private final static String DEFAULT_NAME = "Measurement_" + now().format(ISO_WEEK_DATE);
 
     private final HierarchyListener statementListener = e -> {
 
@@ -96,10 +97,11 @@ public class TaskManager extends UpwardsNavigable {
         addHierarchyListener(statementListener);
         /*
         Calculate the half-time once data is loaded.
-        */
+         */
         addTaskRepositoryListener((TaskRepositoryEvent e) -> {
-            if(e.getState() == TaskRepositoryEvent.State.TASK_ADDED)
+            if (e.getState() == TaskRepositoryEvent.State.TASK_ADDED) {
                 getTask(e.getId()).getExperimentalCurve().calculateHalfTime();
+            }
         });
     }
 
@@ -125,10 +127,10 @@ public class TaskManager extends UpwardsNavigable {
 
         //try to start cmputation 
         // notify listeners computation is about to start
-        
-        if( ! t.setStatus(QUEUED) ) 
-            return; 
-        
+        if (!t.setStatus(QUEUED)) {
+            return;
+        }
+
         // notify listeners calculation started
         notifyListeners(new TaskRepositoryEvent(TASK_SUBMITTED, t.getIdentifier()));
 
@@ -141,9 +143,13 @@ public class TaskManager extends UpwardsNavigable {
                 //notify listeners before the task is re-assigned
                 notifyListeners(e);
                 t.storeCalculation();
+            } 
+            else if(current.getStatus() == AWAITING_TERMINATION) {
+                t.setStatus(Status.TERMINATED);
             }
-            else 
+            else {
                 notifyListeners(e);
+            }
         });
 
     }
@@ -312,12 +318,12 @@ public class TaskManager extends UpwardsNavigable {
      * Generates a {@code SearchTask} assuming that the {@code ExperimentalData}
      * is stored in the {@code file}. This will make the {@code ReaderManager}
      * attempt to read that {@code file}. If successful, invokes
-     * {@code addTask(...)} on the created {@code SearchTask}. After the 
-     * task is generated, checks whether the acquisition time recorded by the experimental setup
-     * has been chosen appropriately.
+     * {@code addTask(...)} on the created {@code SearchTask}. After the task is
+     * generated, checks whether the acquisition time recorded by the
+     * experimental setup has been chosen appropriately.
      *
      * @see pulse.input.ExperimentalData.isAcquisitionTimeSensible()
-
+     *
      * </p>
      *
      * @param file the file to load the experimental data from
@@ -325,17 +331,24 @@ public class TaskManager extends UpwardsNavigable {
      * @see pulse.io.readers.ReaderManager.extract(File)
      */
     public void generateTask(File file) {
-        read(curveReaders(), file).stream().forEach((ExperimentalData curve) -> {
+        var curves = read(curveReaders(), file);
+        //notify curves have been loaded
+        curves.stream().forEach(c -> c.fireDataChanged(new DataEvent(
+                DataEventType.DATA_LOADED, c
+        )));
+        //create tasks
+        curves.stream().forEach((ExperimentalData curve) -> {
             var task = new SearchTask(curve);
             addTask(task);
             var data = task.getExperimentalCurve();
-            if(!data.isAcquisitionTimeSensible())
+            if (!data.isAcquisitionTimeSensible()) {
                 data.truncate();
+            }
         });
     }
 
     /**
-     * Generates multiple tasks from multiple {@code files}. 
+     * Generates multiple tasks from multiple {@code files}.
      *
      * @param files a list of {@code File}s that can be parsed down to
      * {@code ExperimentalData}.
@@ -344,22 +357,22 @@ public class TaskManager extends UpwardsNavigable {
         requireNonNull(files, "Null list of files passed to generatesTasks(...)");
 
         //this is the loader runnable submitted to the executor service
-        Runnable loader = () -> {        
-            var pool = Executors.newSingleThreadExecutor();            
+        Runnable loader = () -> {
+            var pool = Executors.newSingleThreadExecutor();
             files.stream().forEach(f -> pool.submit(() -> generateTask(f)));
             pool.shutdown();
-            
+
             try {
                 pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
             } catch (InterruptedException ex) {
                 Logger.getLogger(TaskManager.class.getName()).log(Level.SEVERE, null, ex);
-            }           
-            
+            }
+
             //when pool has been shutdown
             selectFirstTask();
-            
+
         };
-        
+
         Executors.newSingleThreadExecutor().submit(loader);
 
     }
@@ -488,10 +501,13 @@ public class TaskManager extends UpwardsNavigable {
     /**
      * This {@code TaskManager} will be described by the sample name for the
      * experiment.
+     *
+     * @return the string descriptor
      */
     @Override
     public String describe() {
-        return tasks.size() > 0 ? getSampleName().toString() : DEFAULT_NAME;
+        var name = getSampleName();
+        return name == null || name.getValue() == null ? DEFAULT_NAME : name.toString();
     }
 
     public void evaluate() {

@@ -5,9 +5,6 @@ import static pulse.properties.NumericProperties.def;
 import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.LINEAR_RESOLUTION;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Set;
 
 import pulse.math.ParameterVector;
@@ -16,8 +13,6 @@ import pulse.math.linear.Vector;
 import pulse.problem.schemes.solvers.SolverException;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
-import static pulse.properties.NumericPropertyKeyword.GRADIENT_RESOLUTION;
-import pulse.properties.Property;
 import pulse.tasks.SearchTask;
 import pulse.util.PropertyHolder;
 import pulse.util.Reflexive;
@@ -71,7 +66,7 @@ public abstract class LinearOptimiser extends PropertyHolder implements Reflexiv
      */
     public static Segment domain(ParameterVector x, Vector p) {
         double alphaMax = Double.POSITIVE_INFINITY;
-        double alpha = 0.0;
+        double alpha;
 
         for (int i = 0; i < x.dimension(); i++) {
 
@@ -94,7 +89,9 @@ public abstract class LinearOptimiser extends PropertyHolder implements Reflexiv
 
         }
 
-        return new Segment(0.0, alphaMax);
+        //check that alphaMax is not zero! otherwise the optimise will crash
+        return new Segment(0.0, 
+                Math.max(alphaMax, 1E-10));
 
     }
 

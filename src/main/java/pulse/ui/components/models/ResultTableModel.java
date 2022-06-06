@@ -135,7 +135,8 @@ public class ResultTableModel extends DefaultTableModel {
                 avgResults.addAll(group);
             } else {
                 //add and average result
-                avgResults.add(new AverageResult(group, fmt));
+                var result = new AverageResult(group, fmt);
+                avgResults.add(result);
             }
 
             //ignore processed results later on
@@ -218,47 +219,53 @@ public class ResultTableModel extends DefaultTableModel {
     public void addRow(AbstractResult result) {
         Objects.requireNonNull(result, "Entry added to the results table must not be null");
 
-        //result must have a valid ancestor!
-        var ancestor = Objects.requireNonNull(
-                result.specificAncestor(SearchTask.class),
-                "Result " + result.toString() + " does not belong a SearchTask!");
-
-        //the ancestor then has the SearchTask type
-        SearchTask parentTask = (SearchTask) ancestor;
-
-        //any old result asssociated withis this task
-        var oldResult = results.stream().filter(r
-                -> r.specificAncestor(
-                        SearchTask.class) == parentTask).findAny();
-
         //ignore average results
-        if (result instanceof Result && oldResult.isPresent()) {
-            AbstractResult oldResultExisting = oldResult.get();
-            Optional<Calculation> oldCalculation = parentTask.getStoredCalculations().stream()
-                    .filter(c -> c.getResult().equals(oldResultExisting)).findAny();
+        if (result instanceof Result) {
 
-            //old calculation found
-            if (oldCalculation.isPresent()) {
+            //result must have a valid ancestor!
+            var ancestor = Objects.requireNonNull(
+                    result.specificAncestor(SearchTask.class),
+                    "Result " + result.toString() + " does not belong a SearchTask!");
 
-                //since the task has already been completed anyway
-                Status status = Status.DONE;
+            //the ancestor then has the SearchTask type
+            SearchTask parentTask = (SearchTask) ancestor;
 
-                //better result than already present -- update table
-                if (parentTask.getCurrentCalculation().isBetterThan(oldCalculation.get())) {
-                    remove(oldResultExisting);
-                    status.setDetails(Details.BETTER_CALCULATION_RESULTS_THAN_PREVIOUSLY_OBTAINED);
-                    parentTask.setStatus(status);
+            //any old result asssociated withis this task
+            var oldResult = results.stream().filter(r
+                    -> r.specificAncestor(
+                            SearchTask.class) == parentTask).findAny();
+
+            //check the following only if the old result is present
+            if (oldResult.isPresent()) {
+
+                AbstractResult oldResultExisting = oldResult.get();
+                Optional<Calculation> oldCalculation = parentTask.getStoredCalculations().stream()
+                        .filter(c -> c.getResult().equals(oldResultExisting)).findAny();
+
+                //old calculation found
+                if (oldCalculation.isPresent()) {
+
+                    //since the task has already been completed anyway
+                    Status status = Status.DONE;
+
+                    //better result than already present -- update table
+                    if (parentTask.getCurrentCalculation().isBetterThan(oldCalculation.get())) {
+                        remove(oldResultExisting);
+                        status.setDetails(Details.BETTER_CALCULATION_RESULTS_THAN_PREVIOUSLY_OBTAINED);
+                        parentTask.setStatus(status);
+                    } else {
+                        //do not remove result and do not add new result
+                        status.setDetails(Details.CALCULATION_RESULTS_WORSE_THAN_PREVIOUSLY_OBTAINED);
+                        parentTask.setStatus(status);
+                        return;
+                    }
+
                 } else {
-                    //do not remove result and do not add new result
-                    status.setDetails(Details.CALCULATION_RESULTS_WORSE_THAN_PREVIOUSLY_OBTAINED);
-                    parentTask.setStatus(status);
-                    return;
+                    //calculation has been purged -- delete previous result
+
+                    remove(oldResultExisting);
+
                 }
-
-            } else {
-            //calculation has been purged -- delete previous result
-
-                remove(oldResultExisting);
 
             }
 

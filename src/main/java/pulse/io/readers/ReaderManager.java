@@ -165,12 +165,12 @@ public class ReaderManager {
     /**
      * Attempts to find a {@code DatasetReader} for processing {@code file}.
      *
+     * @param <T>
+     * @param readers
      * @param file the target file supposedly containing data for an
      * {@code InterpolationDataset}.
      * @return an {@code InterpolationDataset} extracted from {
      * @file} using the first available {@code DatasetReader} from the list
-     * @throws IOException if the reader has been found, but an error occurred
-     * when reading the file
      * @throws IllegalArgumentException if the file has an unsupported extension
      */
     public static <T> T read(List<? extends AbstractReader<T>> readers, File file) {

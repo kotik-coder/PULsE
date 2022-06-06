@@ -212,7 +212,7 @@
 		default-search-variable="false">
 	</NumericProperty>
 	<NumericProperty abbreviation="&amp;eta;" visible="true"
-		dimensionfactor="1" keyword="DIATHERMIC_COEFFICIENT" maximum="1"
+		dimensionfactor="1" keyword="DIATHERMIC_COEFFICIENT" maximum="2"
 		minimum="0" primitive-type="double" value="0.2"
 		descriptor="Diathermic coefficient, &amp;eta;" discreet="false"
 		default-search-variable="true">
@@ -301,9 +301,9 @@
 		dimensionfactor="1000.0" keyword="DIAMETER" maximum="0.1"
 		minimum="1.0E-6" value="0.01" primitive-type="double" discreet="true"/>
 	<NumericProperty
-		abbreviation="&amp;Delta;&lt;i&gt;T&lt;/i&gt;&lt;sub&gt;max&lt;/sub&gt;"
-		visible="false"
-		descriptor="Rear-side heating, &amp;Delta;&lt;i&gt;T&lt;/i&gt;&lt;sub&gt;max&lt;/sub&gt; (a.u. or degrees)"
+		abbreviation="&amp;Delta&lt;i&gt;T&lt;/i&gt;&lt;sub&gt;inf&lt;/sub&gt;"
+		visible="true"
+		descriptor="Adiabatic heating, &amp;Delta&lt;i&gt;T&lt;/i&gt;&lt;sub&gt;inf&lt;/sub&gt; (a.u.)"
 		dimensionfactor="1.0" keyword="MAXTEMP" maximum="100.0" minimum="0.01"
 		value="1.0" primitive-type="double" discreet="false"
 		default-search-variable="true">

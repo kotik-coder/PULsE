@@ -6,6 +6,7 @@ import pulse.problem.schemes.Grid;
 import pulse.problem.schemes.rte.FluxesAndExplicitDerivatives;
 import pulse.problem.schemes.rte.RTECalculationStatus;
 import pulse.problem.schemes.rte.RadiativeTransferSolver;
+import pulse.problem.statements.ClassicalProblem;
 import pulse.problem.statements.ParticipatingMedium;
 import pulse.problem.statements.model.ThermoOpticalProperties;
 import pulse.properties.NumericProperty;
@@ -45,7 +46,7 @@ public class DiscreteOrdinatesMethod extends RadiativeTransferSolver {
         var properties = (ThermoOpticalProperties) problem.getProperties();
         setFluxes(new FluxesAndExplicitDerivatives(grid.getGridDensity(), properties.getOpticalThickness()));
 
-        var discrete = new Discretisation(problem);
+        var discrete = new Discretisation(properties);
 
         integratorDescriptor.setSelectedDescriptor(TRBDF2.class.getSimpleName());
         setIntegrator(integratorDescriptor.newInstance(AdaptiveIntegrator.class, discrete));
@@ -54,8 +55,8 @@ public class DiscreteOrdinatesMethod extends RadiativeTransferSolver {
         setIterativeSolver(iterativeSolverSelector.newInstance(IterativeSolver.class));
 
         phaseFunctionSelector.setSelectedDescriptor(HenyeyGreensteinPF.class.getSimpleName());
-        phaseFunctionSelector.addListener(() -> initPhaseFunction(problem, discrete));
-        initPhaseFunction(problem, discrete);
+        phaseFunctionSelector.addListener(() -> initPhaseFunction(properties, discrete));
+        initPhaseFunction(properties, discrete);
 
         init(problem, grid);
 
@@ -83,7 +84,8 @@ public class DiscreteOrdinatesMethod extends RadiativeTransferSolver {
     }
 
     private void fluxesAndDerivatives(final int nExclusive) {
-        final var interpolation = integrator.getHermiteInterpolator().interpolateOnExternalGrid(nExclusive, integrator);
+        final var interpolation = integrator.getHermiteInterpolator()
+                .interpolateOnExternalGrid(nExclusive, integrator);
 
         final double DOUBLE_PI = 2.0 * Math.PI;
         final var discrete = integrator.getDiscretisation();
@@ -92,7 +94,8 @@ public class DiscreteOrdinatesMethod extends RadiativeTransferSolver {
         for (int i = 0; i < nExclusive; i++) {
             double flux = DOUBLE_PI * discrete.firstMoment(interpolation[0], i);
             fluxes.setFlux(i, flux);
-            fluxes.setFluxDerivative(i, -DOUBLE_PI * discrete.firstMoment(interpolation[1], i));
+            fluxes.setFluxDerivative(i, 
+                    -DOUBLE_PI * discrete.firstMoment(interpolation[1], i));
         }
         
     }
@@ -105,9 +108,11 @@ public class DiscreteOrdinatesMethod extends RadiativeTransferSolver {
     @Override
     public void init(ParticipatingMedium problem, Grid grid) {
         super.init(problem, grid);
-        initPhaseFunction(problem, integrator.getDiscretisation());
+        var top = (ThermoOpticalProperties)problem.getProperties();
+        initPhaseFunction(top, 
+                integrator.getDiscretisation());
         integrator.init(problem);
-        integrator.getPhaseFunction().init(problem);
+        integrator.getPhaseFunction().init(top);
     }
 
     @Override
@@ -119,35 +124,35 @@ public class DiscreteOrdinatesMethod extends RadiativeTransferSolver {
         return list;
     }
 
-    public AdaptiveIntegrator getIntegrator() {
+    public final AdaptiveIntegrator getIntegrator() {
         return integrator;
     }
 
-    public InstanceDescriptor<AdaptiveIntegrator> getIntegratorDescriptor() {
+    public final InstanceDescriptor<AdaptiveIntegrator> getIntegratorDescriptor() {
         return integratorDescriptor;
     }
 
-    public void setIntegrator(AdaptiveIntegrator integrator) {
+    public final void setIntegrator(AdaptiveIntegrator integrator) {
         this.integrator = integrator;
         integrator.setParent(this);
         firePropertyChanged(this, integratorDescriptor);
     }
 
-    public IterativeSolver getIterativeSolver() {
+    public final IterativeSolver getIterativeSolver() {
         return iterativeSolver;
     }
 
-    public InstanceDescriptor<IterativeSolver> getIterativeSolverSelector() {
+    public final InstanceDescriptor<IterativeSolver> getIterativeSolverSelector() {
         return iterativeSolverSelector;
     }
 
-    public void setIterativeSolver(IterativeSolver solver) {
+    public final void setIterativeSolver(IterativeSolver solver) {
         this.iterativeSolver = solver;
         solver.setParent(this);
         firePropertyChanged(this, iterativeSolverSelector);
     }
 
-    public InstanceDescriptor<PhaseFunction> getPhaseFunctionSelector() {
+    public final InstanceDescriptor<PhaseFunction> getPhaseFunctionSelector() {
         return phaseFunctionSelector;
     }
 
@@ -161,10 +166,10 @@ public class DiscreteOrdinatesMethod extends RadiativeTransferSolver {
         // intentionally left blank
     }
 
-    private void initPhaseFunction(ParticipatingMedium problem, Discretisation discrete) {
-        var pf = phaseFunctionSelector.newInstance(PhaseFunction.class, problem, discrete);
+    private void initPhaseFunction(ThermoOpticalProperties top, Discretisation discrete) {
+        var pf = phaseFunctionSelector.newInstance(PhaseFunction.class, top, discrete);
         integrator.setPhaseFunction(pf);
-        pf.init(problem);
+        pf.init(top);
         firePropertyChanged(this, phaseFunctionSelector);
     }
 

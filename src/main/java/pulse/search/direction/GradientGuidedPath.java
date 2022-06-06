@@ -1,8 +1,11 @@
 package pulse.search.direction;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import pulse.math.linear.Vector;
 import pulse.problem.schemes.solvers.SolverException;
 import pulse.tasks.SearchTask;
+import pulse.tasks.logs.Status;
 
 /**
  * <p>
@@ -35,18 +38,18 @@ public class GradientGuidedPath extends IterativeState {
 
     /**
      * Resets the {@code Path}: calculates the current gradient and the
-     * direction of search. Sets the minimum point to 0.0.
+     * direction of search.Sets the minimum point to 0.0.
      *
      * @param t the {@code SearchTask}, for which this {@code Path} is created.
+     * @throws pulse.problem.schemes.solvers.SolverException
      * @see pulse.search.direction.PathSolver.direction(Path)
      */
     public void configure(SearchTask t) {
         super.reset();
         try {
             this.gradient = ((GradientBasedOptimiser) PathOptimiser.getInstance()).gradient(t);
-        } catch (SolverException e) {
-            System.err.println("Failed on gradient calculation while resetting optimiser...");
-            e.printStackTrace();
+        } catch (SolverException ex) {
+            t.notifyFailedStatus(ex);
         }
         minimumPoint = 0.0;
     }

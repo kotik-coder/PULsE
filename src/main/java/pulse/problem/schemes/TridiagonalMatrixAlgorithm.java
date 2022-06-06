@@ -8,20 +8,23 @@ package pulse.problem.schemes;
  */
 public class TridiagonalMatrixAlgorithm {
 
-    private Grid grid;
+    private final double tau;
+    private final double h;
 
     private double a;
     private double b;
     private double c;
 
-    private double[] alpha;
-    private double[] beta;
+    private final int N;
+    private final double[] alpha;
+    private final double[] beta;
 
     public TridiagonalMatrixAlgorithm(Grid grid) {
-        this.grid = grid;
-        final int N = grid.getGridDensityValue();
-        alpha = new double[N + 2];
-        beta = new double[N + 2];
+        tau = grid.getTimeStep();
+        N   = grid.getGridDensityValue();
+        h   = grid.getXStep();
+        alpha   = new double[N + 2];
+        beta    = new double[N + 2];               
     }
 
     /**
@@ -34,7 +37,7 @@ public class TridiagonalMatrixAlgorithm {
      * from the respective boundary condition
      */
     public void sweep(double[] V) {
-        for (int j = grid.getGridDensityValue() - 1; j >= 0; j--) {
+        for (int j = N - 1; j >= 0; j--) {
             V[j] = alpha[j + 1] * V[j + 1] + beta[j + 1];
         }
     }
@@ -44,21 +47,23 @@ public class TridiagonalMatrixAlgorithm {
      * matrix algorithm.
      */
     public void evaluateAlpha() {
-        for (int i = 1, N = grid.getGridDensityValue(); i < N; i++) {
+        for (int i = 1; i < N; i++) {
             alpha[i + 1] = c / (b - a * alpha[i]);
         }
     }
 
     public void evaluateBeta(final double[] U) {
-        evaluateBeta(U, 2, grid.getGridDensityValue() + 1);
+        evaluateBeta(U, 2, N + 1);
     }
 
     /**
      * Calculates the {@code beta} coefficients as part of the tridiagonal
      * matrix algorithm.
+     * @param U
+     * @param start
+     * @param endExclusive
      */
     public void evaluateBeta(final double[] U, final int start, final int endExclusive) {
-        final double tau = grid.getTimeStep();
         for (int i = start; i < endExclusive; i++) {
             beta[i] = beta(U[i - 1] / tau, phi(i - 1), i);
         }
@@ -111,9 +116,17 @@ public class TridiagonalMatrixAlgorithm {
     protected double getCoefC() {
         return c;
     }
-
-    public Grid getGrid() {
-        return grid;
+    
+    public final double getTimeStep() {
+        return tau;
+    }
+    
+    public final int getGridPoints() {
+        return N;
+    }
+    
+    public final double getGridStep() {
+        return h;
     }
 
 }

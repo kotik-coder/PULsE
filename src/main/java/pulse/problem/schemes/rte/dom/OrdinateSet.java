@@ -59,7 +59,7 @@ public class OrdinateSet implements Descriptive {
 
     }
 
-    public boolean hasZeroNode() {
+    public final boolean hasZeroNode() {
         return Arrays.stream(mu).anyMatch(Double.valueOf(0.0)::equals);
     }
 
@@ -75,7 +75,7 @@ public class OrdinateSet implements Descriptive {
         return name;
     }
 
-    public void setName(String name) {
+    public final void setName(String name) {
         this.name = name;
     }
 

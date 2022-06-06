@@ -18,10 +18,6 @@ public class ExplicitTranslucentSolver extends ExplicitScheme implements Solver<
     private double tau;
     private double a;
 
-    private double pls;
-
-    private final static double EPS = 1e-7; // a small value ensuring numeric stability
-
     private AbsorptionModel model;
 
     public ExplicitTranslucentSolver() {
@@ -32,11 +28,12 @@ public class ExplicitTranslucentSolver extends ExplicitScheme implements Solver<
         super(N, timeFactor, timeLimit);
     }
 
-    private void prepare(PenetrationProblem problem) {
+    @Override
+    public void prepare(Problem problem) throws SolverException {
         super.prepare(problem);
 
         var grid = getGrid();
-        model = problem.getAbsorptionModel();
+        model = ((PenetrationProblem)problem).getAbsorptionModel();
 
         N = (int) grid.getGridDensity().getValue();
         hx = grid.getXStep();
@@ -54,8 +51,6 @@ public class ExplicitTranslucentSolver extends ExplicitScheme implements Solver<
 
     @Override
     public void timeStep(final int m) {
-        pls = this.pulse(m);
-
         /*
 		 * Uses the heat equation explicitly to calculate the grid-function everywhere
 		 * except the boundaries
@@ -73,7 +68,7 @@ public class ExplicitTranslucentSolver extends ExplicitScheme implements Solver<
 
     @Override
     public double phi(final int i) {
-        return tau * pls * model.absorption(LASER, (i - EPS) * hx);
+        return tau * getCurrentPulseValue() * model.absorption(LASER, i * hx);
     }
 
     @Override
@@ -93,8 +88,8 @@ public class ExplicitTranslucentSolver extends ExplicitScheme implements Solver<
     }
 
     @Override
-    public Class<? extends Problem> domain() {
-        return PenetrationProblem.class;
+    public Class<? extends Problem>[] domain() {
+        return new Class[]{PenetrationProblem.class};
     }
 
     @Override

@@ -10,16 +10,17 @@ import static pulse.properties.NumericPropertyKeyword.TAU_FACTOR;
 import java.util.Set;
 
 import pulse.problem.schemes.CoupledImplicitScheme;
-import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.TridiagonalMatrixAlgorithm;
 import pulse.problem.schemes.rte.RadiativeTransferSolver;
+import pulse.problem.statements.ClassicalProblem;
 import pulse.problem.statements.ParticipatingMedium;
+import pulse.problem.statements.Problem;
 import pulse.problem.statements.model.ThermoOpticalProperties;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
-import pulse.ui.Messages;
 
-public class MixedCoupledSolver extends CoupledImplicitScheme implements Solver<ParticipatingMedium> {
+public abstract class MixedCoupledSolver extends CoupledImplicitScheme 
+        implements Solver<ParticipatingMedium> {
 
     private RadiativeTransferSolver rte;
 
@@ -47,6 +48,7 @@ public class MixedCoupledSolver extends CoupledImplicitScheme implements Solver<
     private double _2TAU_ONE_MINUS_SIGMA;
     private double BETA1_FACTOR;
     private double ONE_MINUS_SIGMA;
+    private double zeta;
 
     public MixedCoupledSolver() {
         super(derive(GRID_DENSITY, 16), derive(TAU_FACTOR, 0.25));
@@ -58,13 +60,14 @@ public class MixedCoupledSolver extends CoupledImplicitScheme implements Solver<
         sigma = (double) def(SCHEME_WEIGHT).getValue();
     }
 
-    private void prepare(ParticipatingMedium problem) throws SolverException {
+    @Override
+    public void prepare(Problem problem) throws SolverException {
         super.prepare(problem);
 
         var grid = getGrid();
 
         var coupling = getCoupling();
-        coupling.init(problem, grid);
+        coupling.init((ParticipatingMedium) problem, grid);
         rte = coupling.getRadiativeTransferEquation();
 
         N = (int) grid.getGridDensity().getValue();
@@ -72,7 +75,9 @@ public class MixedCoupledSolver extends CoupledImplicitScheme implements Solver<
         tau = grid.getTimeStep();
 
         Bi1 = (double) problem.getProperties().getHeatLoss().getValue();
- 
+
+        zeta = (double) ( (ClassicalProblem)problem ).getGeometricFactor().getValue();
+        
         var tridiagonal = new TridiagonalMatrixAlgorithm(grid) {
 
             @Override
@@ -107,7 +112,7 @@ public class MixedCoupledSolver extends CoupledImplicitScheme implements Solver<
         setTridiagonalMatrixAlgorithm(tridiagonal);
     }
 
-    private void initConst(ParticipatingMedium problem) {
+    private void initConst(ClassicalProblem problem) {
         var p = (ThermoOpticalProperties) problem.getProperties();
         final double Np = (double) p.getPlanckNumber().getValue();
         final double opticalThickness = (double) p.getOpticalThickness().getValue();
@@ -155,21 +160,23 @@ public class MixedCoupledSolver extends CoupledImplicitScheme implements Solver<
     }
 
     @Override
-    public double firstBeta(final int m) {
+    public double firstBeta() {
         var fluxes = rte.getFluxes();
         var U = getPreviousSolution();
         final double phi = TAU0_NP * fluxes.fluxDerivativeFront();
         return (_2TAUHX
-                * (getCurrentPulseValue() - SIGMA_NP * fluxes.getFlux(0) - ONE_MINUS_SIGMA_NP * fluxes.getStoredFlux(0))
-                + HX2 * (U[0] + phi * tau) + _2TAU_ONE_MINUS_SIGMA * (U[1] - U[0] * ONE_PLUS_Bi1_HX)) * BETA1_FACTOR;
+                * (getCurrentPulseValue() * zeta - SIGMA_NP * fluxes.getFlux(0) 
+                - ONE_MINUS_SIGMA_NP * fluxes.getStoredFlux(0))
+                + HX2 * (U[0] + phi * tau) + _2TAU_ONE_MINUS_SIGMA * 
+                (U[1] - U[0] * ONE_PLUS_Bi1_HX)) * BETA1_FACTOR;
     }
 
     @Override
-    public double evalRightBoundary(final int m, final double alphaN, final double betaN) {
+    public double evalRightBoundary(final double alphaN, final double betaN) {
         var fluxes = rte.getFluxes();
         final double phi = TAU0_NP * fluxes.fluxDerivativeRear();
         final var U = getPreviousSolution();
-        return (sigma * betaN + HX2_2TAU * U[N] + 0.5 * HX2 * phi
+        return (sigma * betaN + hx * getCurrentPulseValue() * (1.0 - zeta) + HX2_2TAU * U[N] + 0.5 * HX2 * phi
                 + ONE_MINUS_SIGMA * (U[N - 1] - U[N] * ONE_PLUS_Bi1_HX)
                 + HX_NP * (sigma * fluxes.getFlux(N) + ONE_MINUS_SIGMA * fluxes.getStoredFlux(N)))
                 / (HX2_2TAU + sigma * (ONE_PLUS_Bi1_HX - alphaN));
@@ -203,17 +210,6 @@ public class MixedCoupledSolver extends CoupledImplicitScheme implements Solver<
         } else {
             super.set(type, property);
         }
-    }
-
-    @Override
-    public String toString() {
-        return Messages.getString("MixedScheme2.4");
-    }
-
-    @Override
-    public DifferenceScheme copy() {
-        var grid = getGrid();
-        return new MixedCoupledSolver(grid.getGridDensity(), grid.getTimeFactor(), getTimeLimit());
     }
 
 }

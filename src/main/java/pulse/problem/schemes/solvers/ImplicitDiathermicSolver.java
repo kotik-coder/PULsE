@@ -3,6 +3,7 @@ package pulse.problem.schemes.solvers;
 import pulse.problem.schemes.BlockMatrixAlgorithm;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.ImplicitScheme;
+import pulse.problem.statements.ClassicalProblem;
 import pulse.problem.statements.DiathermicMedium;
 import pulse.problem.statements.Problem;
 import pulse.problem.statements.model.DiathermicProperties;
@@ -16,8 +17,8 @@ public class ImplicitDiathermicSolver extends ImplicitScheme implements Solver<D
     private double HX2_2TAU;
     private double z0;
     private double zN_1;
-    private double fN1;
-
+    private double zeta;
+   
     public ImplicitDiathermicSolver() {
         super();
     }
@@ -30,7 +31,8 @@ public class ImplicitDiathermicSolver extends ImplicitScheme implements Solver<D
         super(N, timeFactor, timeLimit);
     }
 
-    private void prepare(DiathermicMedium problem) {
+    @Override
+    public void prepare(Problem problem) throws SolverException {
         super.prepare(problem);
 
         var grid = getGrid();
@@ -50,8 +52,6 @@ public class ImplicitDiathermicSolver extends ImplicitScheme implements Solver<D
 
         z0 = 1.0 + HX2_2TAU + hx * Bi1 * (1.0 + eta);
         zN_1 = -hx * eta * Bi1;
-        final double f01 = HX2_2TAU;
-        fN1 = f01;
 
         /* End of constants */
         var tridiagonal = new BlockMatrixAlgorithm(grid);
@@ -64,26 +64,29 @@ public class ImplicitDiathermicSolver extends ImplicitScheme implements Solver<D
         tridiagonal.evaluateAlpha();
         setTridiagonalMatrixAlgorithm(tridiagonal);
 
+        zeta = (double) ((ClassicalProblem)problem).getGeometricFactor().getValue();
     }
 
     @Override
-    public void leftBoundary(final int m) {
+    public void leftBoundary() {
         var tridiagonal = (BlockMatrixAlgorithm) getTridiagonalMatrixAlgorithm();
         tridiagonal.setGamma(1, -zN_1 / z0);
-        super.leftBoundary(m);
+        super.leftBoundary();
     }
 
     @Override
-    public double firstBeta(final int m) {
-        return (HX2_2TAU * getPreviousSolution()[0] + hx * pulse(m)) / z0;
+    public double firstBeta() {
+        return (HX2_2TAU * getPreviousSolution()[0] + hx * zeta * getCurrentPulseValue()) / z0;
     }
 
     @Override
-    public double evalRightBoundary(int m, double alphaN, double betaN) {
+    public double evalRightBoundary(double alphaN, double betaN) {
         var tri = (BlockMatrixAlgorithm) getTridiagonalMatrixAlgorithm();
         var p = tri.getP();
         var q = tri.getQ();
-        return (fN1 * getPreviousSolution()[N] - zN_1 * p[0] + p[N - 1]) / (z0 + zN_1 * q[0] - q[N - 1]);
+        return (HX2_2TAU * getPreviousSolution()[N] + (1.0 - zeta) *hx * getCurrentPulseValue() 
+                - zN_1 * p[0] + p[N - 1])
+                / (z0 + zN_1 * q[0] - q[N - 1]);
     }
 
     @Override
@@ -99,8 +102,8 @@ public class ImplicitDiathermicSolver extends ImplicitScheme implements Solver<D
     }
 
     @Override
-    public Class<? extends Problem> domain() {
-        return DiathermicMedium.class;
+    public Class<? extends Problem>[] domain() {
+        return new Class[]{DiathermicMedium.class};
     }
 
 }

@@ -4,7 +4,10 @@ import java.util.List;
 
 import pulse.problem.schemes.rte.RadiativeTransferSolver;
 import pulse.problem.schemes.rte.dom.DiscreteOrdinatesMethod;
+import pulse.problem.statements.ClassicalProblem;
 import pulse.problem.statements.ParticipatingMedium;
+import pulse.problem.statements.Problem;
+import pulse.problem.statements.model.ThermoOpticalProperties;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
@@ -31,19 +34,24 @@ public class RadiativeTransferCoupling extends PropertyHolder {
     public void init(ParticipatingMedium problem, Grid grid) {
 
         if (rte == null) {
+            
+            if (!(problem.getProperties() instanceof ThermoOpticalProperties)) {
+                throw new IllegalArgumentException("Illegal problem type: " + problem);
+            }
+
             newRTE(problem, grid);
             instanceDescriptor.addListener(() -> {
                 newRTE(problem, grid);
                 rte.init(problem, grid);
             });
-        
+
         } else {
             rte.init(problem, grid);
         }
 
     }
 
-    private void newRTE(ParticipatingMedium problem, Grid grid) {
+    private void newRTE(Problem problem, Grid grid) {
         rte = instanceDescriptor.newInstance(RadiativeTransferSolver.class, problem, grid);
         rte.setParent(this);
     }

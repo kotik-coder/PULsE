@@ -55,6 +55,8 @@ public class MixedLinearisedSolver extends MixedScheme implements Solver<Classic
     private double b3;
     private double c1;
     private double c2;
+    
+    private double zeta;
 
     private final static double EPS = 1e-7; // a small value ensuring numeric stability
 
@@ -71,7 +73,7 @@ public class MixedLinearisedSolver extends MixedScheme implements Solver<Classic
     }
 
     @Override
-    public void prepare(Problem problem) {
+    public void prepare(Problem problem) throws SolverException {
         super.prepare(problem);
 
         var grid = getGrid();
@@ -91,6 +93,8 @@ public class MixedLinearisedSolver extends MixedScheme implements Solver<Classic
         b3 = hx * tau;
         c1 = b2;
         c2 = Bi1HTAU + HH;
+        
+        zeta = (double) ((ClassicalProblem)problem).getGeometricFactor().getValue();
 
         var tridiagonal = new TridiagonalMatrixAlgorithm(grid) {
 
@@ -117,25 +121,29 @@ public class MixedLinearisedSolver extends MixedScheme implements Solver<Classic
     }
 
     @Override
-    public double evalRightBoundary(final int m, final double alphaN, final double betaN) {
+    public double evalRightBoundary(final double alphaN, final double betaN) {
         final var U = getPreviousSolution();
 
         final var grid = getGrid();
         final double tau = grid.getTimeStep();
         final int N = (int) grid.getGridDensity().getValue();
 
-        return (c1 * U[N] + tau * betaN - tau * (U[N] - U[N - 1])) / (c2 - tau * (alphaN - 1));
+        return ( c1 * U[N] + tau * betaN + b3 * (1.0 - zeta) * getCurrentPulseValue() 
+                - tau * (U[N] - U[N - 1]) ) / (c2 - tau * (alphaN - 1));
+    }
+    
+    @Override
+    public double pulse(int m) {
+        final double tau = getGrid().getTimeStep();
+        var pulse = getDiscretePulse();
+        return pulse.laserPowerAt((m - 1 + EPS) * tau) + pulse.laserPowerAt((m - EPS) * tau); 
     }
 
     @Override
-    public double firstBeta(final int m) {
-        //TODO
+    public double firstBeta() {
         final double tau = getGrid().getTimeStep();
-        final var pulse = getDiscretePulse();
-        final double pls = pulse.laserPowerAt((m - 1 + EPS) * tau) + pulse.laserPowerAt((m - EPS) * tau);
-
         final var U = getPreviousSolution();
-        return b1 * (b2 * U[0] + b3 * pls - tau * (U[0] - U[1]));
+        return b1 * (b2 * U[0] + b3 * zeta * getCurrentPulseValue() - tau * (U[0] - U[1]));
     }
 
     @Override
@@ -151,8 +159,8 @@ public class MixedLinearisedSolver extends MixedScheme implements Solver<Classic
     }
 
     @Override
-    public Class<? extends Problem> domain() {
-        return ClassicalProblem.class;
+    public Class<? extends Problem>[] domain() {
+        return new Class[]{ClassicalProblem.class};
     }
 
 }

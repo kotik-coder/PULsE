@@ -21,6 +21,7 @@ import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import static pulse.properties.NumericPropertyKeyword.LASER_ENERGY;
+import static pulse.properties.NumericPropertyKeyword.SOURCE_GEOMETRIC_FACTOR;
 import pulse.ui.Messages;
 
 public class NonlinearProblem extends ClassicalProblem {
@@ -54,6 +55,7 @@ public class NonlinearProblem extends ClassicalProblem {
         set.add(SPECIFIC_HEAT);
         set.add(DENSITY);
         set.remove(SPOT_DIAMETER);
+        set.remove(SOURCE_GEOMETRIC_FACTOR);
         return set;
     }
 

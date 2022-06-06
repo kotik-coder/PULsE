@@ -10,14 +10,10 @@ import static pulse.properties.NumericPropertyKeyword.SKEW_LAMBDA;
 import static pulse.properties.NumericPropertyKeyword.SKEW_MU;
 import static pulse.properties.NumericPropertyKeyword.SKEW_SIGMA;
 
-import java.util.List;
 import java.util.Set;
 
-import pulse.input.ExperimentalData;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
-import static pulse.properties.NumericPropertyKeyword.INTEGRATION_SEGMENTS;
-import pulse.properties.Property;
 
 /**
  * Represents the exponentially modified Gaussian function, which is given by
@@ -31,7 +27,8 @@ public class ExponentiallyModifiedGaussian extends PulseTemporalShape {
     private double mu;
     private double sigma;
     private double lambda;
-    private double norm;
+   
+    private final static int MIN_POINTS = 10;
 
     /**
      * Creates an exponentially modified Gaussian with the default parameter
@@ -41,7 +38,6 @@ public class ExponentiallyModifiedGaussian extends PulseTemporalShape {
         mu = (double) def(SKEW_MU).getValue();
         lambda = (double) def(SKEW_LAMBDA).getValue();
         sigma = (double) def(SKEW_SIGMA).getValue();
-        norm = 1.0;
     }
 
     public ExponentiallyModifiedGaussian(ExponentiallyModifiedGaussian another) {
@@ -49,18 +45,6 @@ public class ExponentiallyModifiedGaussian extends PulseTemporalShape {
         this.mu = another.mu;
         this.sigma = another.sigma;
         this.lambda = another.lambda;
-        this.norm = another.norm;
-    }
-
-    /**
-     * This calls the superclass {@code init method} and sets the normalisation
-     * factor to <math>1/&#8747;&Phi;(Fo)<i>d<i>Fo</math>.
-     */
-    @Override
-    public void init(ExperimentalData data, DiscretePulse pulse) {
-        super.init(data, pulse);
-        norm = 1.0 / area(); // calculates the area. The normalisation factor is then set to the inverse of
-        // the area.
     }
 
     /**
@@ -77,7 +61,7 @@ public class ExponentiallyModifiedGaussian extends PulseTemporalShape {
         final double lambdaHalf = 0.5 * lambda;
         final double sigmaSq = sigma * sigma;
 
-        return norm * lambdaHalf * exp(lambdaHalf * (2.0 * mu + lambda * sigmaSq - 2.0 * reducedTime))
+        return lambdaHalf * exp(lambdaHalf * (2.0 * mu + lambda * sigmaSq - 2.0 * reducedTime))
                 * erfc((mu + lambda * sigmaSq - reducedTime) / (sqrt(2) * sigma));
 
     }
@@ -168,6 +152,11 @@ public class ExponentiallyModifiedGaussian extends PulseTemporalShape {
     @Override
     public PulseTemporalShape copy() {
         return new ExponentiallyModifiedGaussian(this);
+    }
+
+    @Override
+    public int getRequiredDiscretisation() {
+        return MIN_POINTS;
     }
 
 }

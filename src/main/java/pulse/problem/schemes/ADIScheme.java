@@ -56,5 +56,16 @@ public abstract class ADIScheme extends DifferenceScheme {
     public String toString() {
         return getString("ADIScheme.4");
     }
+    
+    /**
+     * Contains only an empty statement, as the pulse needs to be calculated not only
+     * for the time step {@code m} but also accounting for the radial coordinate
+     * @param m thte time step
+     */
+    
+    @Override
+    public void prepareStep(int m) {
+        //do nothing
+    }
 
 }

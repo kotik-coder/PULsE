@@ -11,15 +11,16 @@ package pulse.problem.schemes;
  */
 public class BlockMatrixAlgorithm extends TridiagonalMatrixAlgorithm {
 
-    private double[] gamma;
-    private double[] p;
-    private double[] q;
+    private final double[] gamma;
+    private final double[] p;
+    private final double[] q;
 
     public BlockMatrixAlgorithm(Grid grid) {
         super(grid);
-        gamma = new double[getAlpha().length];
-        p = new double[gamma.length - 1];
-        q = new double[gamma.length - 1];
+        final int N = this.getGridPoints();
+        gamma = new double[N + 2];
+        p = new double[N];
+        q = new double[N];
     }
 
     @Override
@@ -33,9 +34,10 @@ public class BlockMatrixAlgorithm extends TridiagonalMatrixAlgorithm {
     @Override
     public void evaluateBeta(final double[] U) {
         super.evaluateBeta(U);
-        final int N = getGrid().getGridDensityValue();
         var alpha = getAlpha();
         var beta = getBeta();
+        
+        final int N = getGridPoints();
 
         p[N - 1] = beta[N];
         q[N - 1] = alpha[N] + gamma[N];
@@ -49,8 +51,9 @@ public class BlockMatrixAlgorithm extends TridiagonalMatrixAlgorithm {
     @Override
     public void evaluateBeta(final double[] U, final int start, final int endExclusive) {
         var alpha = getAlpha();
-        var grid = getGrid();
-        final double HX2_TAU = grid.getXStep() * grid.getXStep() / getGrid().getTimeStep();
+        
+        final double h = this.getGridStep();
+        final double HX2_TAU = h * h / this.getTimeStep();
 
         final double a = getCoefA();
         final double b = getCoefB();

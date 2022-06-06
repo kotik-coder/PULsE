@@ -1,7 +1,5 @@
 package pulse.problem.schemes;
 
-import static pulse.properties.NumericProperties.def;
-import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.NONLINEAR_PRECISION;
 
 import java.util.Set;
@@ -13,18 +11,15 @@ import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 
-public abstract class CoupledImplicitScheme extends ImplicitScheme implements FixedPointIterations {
+public abstract class CoupledImplicitScheme extends ImplicitScheme {
 
     private RadiativeTransferCoupling coupling;
     private RTECalculationStatus calculationStatus;
-    private double nonlinearPrecision;
-
-    private double pls;
+    private boolean autoUpdateFluxes = true; //should be false for nonlinear solvers
 
     public CoupledImplicitScheme(NumericProperty N, NumericProperty timeFactor) {
         super();
         setGrid(new Grid(N, timeFactor));
-        nonlinearPrecision = (double) def(NONLINEAR_PRECISION).getValue();
         setCoupling(new RadiativeTransferCoupling());
         calculationStatus = RTECalculationStatus.NORMAL;
     }
@@ -33,37 +28,14 @@ public abstract class CoupledImplicitScheme extends ImplicitScheme implements Fi
         this(N, timeFactor);
         setTimeLimit(timeLimit);
     }
-
-    @Override
-    public void timeStep(final int m) throws SolverException {
-        pls = pulse(m);
-        doIterations(getCurrentSolution(), nonlinearPrecision, m);
-    }
-
-    @Override
-    public void iteration(final int m) throws SolverException {
-        super.timeStep(m);
-    }
-
-    @Override
-    public void finaliseIteration(double[] V) throws SolverException {
-        FixedPointIterations.super.finaliseIteration(V);
-        var rte = coupling.getRadiativeTransferEquation();
-        setCalculationStatus(coupling.getRadiativeTransferEquation().compute(V));
-    }
-
-    public RadiativeTransferCoupling getCoupling() {
-        return coupling;
-    }
-
-    public final void setCoupling(RadiativeTransferCoupling coupling) {
-        this.coupling = coupling;
-        this.coupling.setParent(this);
-    }
-
+    
     @Override
     public void finaliseStep() throws SolverException {
         super.finaliseStep();
+        if(autoUpdateFluxes) {
+            var rte = this.getCoupling().getRadiativeTransferEquation();
+            setCalculationStatus(rte.compute(getCurrentSolution()));
+        }
         coupling.getRadiativeTransferEquation().getFluxes().store();
     }
 
@@ -74,45 +46,42 @@ public abstract class CoupledImplicitScheme extends ImplicitScheme implements Fi
         return set;
     }
 
-    public NumericProperty getNonlinearPrecision() {
-        return derive(NONLINEAR_PRECISION, nonlinearPrecision);
-    }
-
-    public void setNonlinearPrecision(NumericProperty nonlinearPrecision) {
-        this.nonlinearPrecision = (double) nonlinearPrecision.getValue();
-    }
-
-    @Override
-    public Class<? extends Problem> domain() {
-        return ParticipatingMedium.class;
-    }
-
     @Override
     public boolean normalOperation() {
         return super.normalOperation() && (getCalculationStatus() == RTECalculationStatus.NORMAL);
     }
 
-    @Override
-    public void set(NumericPropertyKeyword type, NumericProperty property) {
-        if (type == NONLINEAR_PRECISION) {
-            setNonlinearPrecision(property);
-        } else {
-            super.set(type, property);
-        }
-    }
-
-    public RTECalculationStatus getCalculationStatus() {
+    public final RTECalculationStatus getCalculationStatus() {
         return calculationStatus;
     }
 
-    public void setCalculationStatus(RTECalculationStatus calculationStatus) throws SolverException {
+    public final void setCalculationStatus(RTECalculationStatus calculationStatus) throws SolverException {
         this.calculationStatus = calculationStatus;
-        if(calculationStatus != RTECalculationStatus.NORMAL)
+        if (calculationStatus != RTECalculationStatus.NORMAL) {
             throw new SolverException(calculationStatus.toString());
+        }
+    }
+    
+    public final RadiativeTransferCoupling getCoupling() {
+        return coupling;
     }
 
-    public double getCurrentPulseValue() {
-        return pls;
+    public final void setCoupling(RadiativeTransferCoupling coupling) {
+        this.coupling = coupling;
+        this.coupling.setParent(this);
+    }
+    
+    public final boolean isAutoUpdateFluxes() {
+        return this.autoUpdateFluxes;
+    }
+    
+    public final void setAutoUpdateFluxes(boolean auto) {
+        this.autoUpdateFluxes = auto;
+    }
+    
+    @Override
+    public Class<? extends Problem>[] domain() {
+        return new Class[]{ParticipatingMedium.class};
     }
 
 }

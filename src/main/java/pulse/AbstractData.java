@@ -8,13 +8,11 @@ import static pulse.properties.NumericProperty.requireType;
 import static pulse.properties.NumericPropertyKeyword.NUMPOINTS;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
-import pulse.properties.Property;
 import pulse.util.PropertyHolder;
 
 /**
@@ -105,7 +103,7 @@ public abstract class AbstractData extends PropertyHolder {
      * @return a {@code NumericProperty} derived from
      * {@code NumericPropertyKeyword.NUMPOINTS} with the value of {@code count}
      */
-    public NumericProperty getNumPoints() {
+    public final NumericProperty getNumPoints() {
         return derive(NUMPOINTS, count);
     }
 
@@ -117,7 +115,7 @@ public abstract class AbstractData extends PropertyHolder {
      *
      * @param c
      */
-    public void setNumPoints(NumericProperty c) {
+    public final void setNumPoints(NumericProperty c) {
         requireType(c, NUMPOINTS);
         this.count = (int) c.getValue();
         firePropertyChanged(this, c);
@@ -168,7 +166,7 @@ public abstract class AbstractData extends PropertyHolder {
         this.signal.add(sgn);
     }
 
-    protected void incrementCount() {
+    protected final void incrementCount() {
         count++;
     }
 
@@ -179,7 +177,7 @@ public abstract class AbstractData extends PropertyHolder {
      * @param index the index
      * @param t the new time value at this index
      */
-    public void setTimeAt(int index, double t) {
+    public final void setTimeAt(int index, double t) {
         time.set(index, t);
     }
 
@@ -190,7 +188,7 @@ public abstract class AbstractData extends PropertyHolder {
      * @param index the index
      * @param t the new signal value at this index
      */
-    public void setSignalAt(int index, double t) {
+    public final void setSignalAt(int index, double t) {
         signal.set(index, t);
     }
 
@@ -200,18 +198,8 @@ public abstract class AbstractData extends PropertyHolder {
      * @return the maximum signal value
      * @see java.util.Collections.max
      */
-    public double apparentMaximum() {
+    public final double apparentMaximum() {
         return max(signal);
-    }
-
-    /**
-     * Checks if the time list is incomplete.
-     *
-     * @return {@code false} if the list with time values has less elements than
-     * initially declared, {@code true} otherwise.
-     */
-    public boolean isIncomplete() {
-        return time.size() < count;
     }
 
     @Override
@@ -269,6 +257,10 @@ public abstract class AbstractData extends PropertyHolder {
     @Override
     public boolean ignoreSiblings() {
         return true;
+    }
+    
+    public boolean isFull() {
+        return actualNumPoints() >= count;
     }
 
     public List<Double> getTimeSequence() {

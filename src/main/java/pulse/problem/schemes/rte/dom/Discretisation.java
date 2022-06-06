@@ -2,13 +2,10 @@ package pulse.problem.schemes.rte.dom;
 
 import static java.lang.Math.PI;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import pulse.io.readers.QuadratureReader;
 import pulse.problem.schemes.rte.BlackbodySpectrum;
-import pulse.problem.statements.ParticipatingMedium;
 import pulse.problem.statements.model.ThermoOpticalProperties;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
@@ -38,9 +35,9 @@ public class Discretisation extends PropertyHolder {
      * Constructs a {@code DiscreteIntensities} with the default
      * {@code OrdinateSet} and a new uniform grid.
      *
-     * @param problem the problem statement
+     * @param properties
      */
-    public Discretisation(ParticipatingMedium problem) {
+    public Discretisation(ThermoOpticalProperties properties) {
 
         quadSelector = new DiscreteSelector<>(QuadratureReader.getInstance(), "/quadratures/",
                 "Quadratures.list");
@@ -52,10 +49,9 @@ public class Discretisation extends PropertyHolder {
             this.firePropertyChanged(this, quadSelector);
         });
 
-        var properties = (ThermoOpticalProperties) problem.getProperties();
         setGrid(new StretchedGrid((double) properties.getOpticalThickness().getValue()));
         quantities = new DiscreteQuantities(grid.getDensity(), ordinates.getTotalNodes());
-        setEmissivity((double) problem.getProperties().getEmissivity().getValue());
+        setEmissivity((double) properties.getEmissivity().getValue());
     }
 
     /**
@@ -224,7 +220,7 @@ public class Discretisation extends PropertyHolder {
 
     }
 
-    protected void setEmissivity(double emissivity) {
+    protected final void setEmissivity(double emissivity) {
         this.emissivity = emissivity;
         boundaryFluxFactor = (1.0 - emissivity) / (emissivity * PI);
     }
@@ -267,7 +263,7 @@ public class Discretisation extends PropertyHolder {
         return grid;
     }
 
-    public void setGrid(StretchedGrid grid) {
+    public final void setGrid(StretchedGrid grid) {
         this.grid = grid;
         this.grid.setParent(this);
     }

@@ -14,6 +14,12 @@ public enum DataEventType {
      * @see pulse.input.ExperimentalData.truncate()
      */
 
-    RANGE_CHANGED
+    RANGE_CHANGED,
+    
+    /**
+     * All data points loaded and are ready for processing.
+     */
+    
+    DATA_LOADED;
 
 }

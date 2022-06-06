@@ -5,14 +5,10 @@ import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericProperty.requireType;
 import static pulse.properties.NumericPropertyKeyword.INTEGRATION_SEGMENTS;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Set;
 
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
-import pulse.properties.Property;
 
 /**
  * A fixed-interval integrator implements a numerical scheme in which the domain
@@ -64,7 +60,7 @@ public abstract class FixedIntervalIntegrator extends AbstractIntegrator {
      * @param integrationSegments a property of the {@code INTEGRATION_SEGMENTS}
      * type
      */
-    public void setIntegrationSegments(NumericProperty integrationSegments) {
+    public final void setIntegrationSegments(NumericProperty integrationSegments) {
         requireType(integrationSegments, INTEGRATION_SEGMENTS);
         this.integrationSegments = (int) integrationSegments.getValue();
     }
@@ -76,7 +72,7 @@ public abstract class FixedIntervalIntegrator extends AbstractIntegrator {
      * @param bounds the integration bounds
      */
     @Override
-    public void setBounds(Segment bounds) {
+    public final void setBounds(Segment bounds) {
         super.setBounds(bounds);
     }
 
@@ -104,7 +100,7 @@ public abstract class FixedIntervalIntegrator extends AbstractIntegrator {
      *
      * @return the integration step size.
      */
-    public double stepSize() {
+    public final double stepSize() {
         return getBounds().length() / (double) this.integrationSegments;
     }
 

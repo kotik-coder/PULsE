@@ -217,8 +217,6 @@ public class Chart {
     public void plot(SearchTask task, boolean extendedCurve) {
         requireNonNull(task);
 
-        var plot = chart.getXYPlot();
-
         for (int i = 0; i < 6; i++) {
             plot.setDataset(i, null);
         }
@@ -261,7 +259,7 @@ public class Chart {
             var solution = problem.getHeatingCurve();
             var scheme = calc.getScheme();
 
-            if (solution != null && scheme != null && !solution.isIncomplete()) {
+            if (solution != null && scheme != null) {
 
                 var solutionDataset = new XYSeriesCollection();
                 var displayedCurve = extendedCurve ? solution.extendedTo(rawData, problem.getBaseline()) : solution;

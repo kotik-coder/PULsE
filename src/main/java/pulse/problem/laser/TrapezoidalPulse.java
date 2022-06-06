@@ -6,14 +6,10 @@ import static pulse.properties.NumericProperty.requireType;
 import static pulse.properties.NumericPropertyKeyword.TRAPEZOIDAL_FALL_PERCENTAGE;
 import static pulse.properties.NumericPropertyKeyword.TRAPEZOIDAL_RISE_PERCENTAGE;
 
-import java.util.List;
 import java.util.Set;
 
-import pulse.input.ExperimentalData;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
-import static pulse.properties.NumericPropertyKeyword.INTEGRATION_SEGMENTS;
-import pulse.properties.Property;
 
 /**
  * A trapezoidal pulse shape, which combines a rise segment, a constant-power
@@ -26,6 +22,8 @@ public class TrapezoidalPulse extends PulseTemporalShape {
     private double fall;
     private double h;
 
+    private final static int MIN_POINTS = 6;
+    
     /**
      * Constructs a trapezoidal pulse using a default segmentation principle.
      * The reader is referred to the {@code .xml} file containing the default
@@ -36,7 +34,7 @@ public class TrapezoidalPulse extends PulseTemporalShape {
     public TrapezoidalPulse() {
         rise = (int) def(TRAPEZOIDAL_RISE_PERCENTAGE).getValue() / 100.0;
         fall = (int) def(TRAPEZOIDAL_FALL_PERCENTAGE).getValue() / 100.0;
-        h = height();
+        h = 1.0;
     }
 
     public TrapezoidalPulse(TrapezoidalPulse another) {
@@ -44,16 +42,7 @@ public class TrapezoidalPulse extends PulseTemporalShape {
         this.fall = another.fall;
         this.h = another.h;
     }
-
-    /**
-     * Calculates the height of the trapez after calling the super-class method.
-     */
-    @Override
-    public void init(ExperimentalData data, DiscretePulse pulse) {
-        super.init(data, pulse);
-        h = height();
-    }
-
+    
     /**
      * Calculates the height of the trapezium which under current segmentation
      * will yield an area of unity.
@@ -135,6 +124,11 @@ public class TrapezoidalPulse extends PulseTemporalShape {
     @Override
     public PulseTemporalShape copy() {
         return new TrapezoidalPulse(this);
+    }
+    
+    @Override
+    public int getRequiredDiscretisation() {
+        return MIN_POINTS;
     }
 
 }

@@ -40,6 +40,7 @@ public class StickTransform extends BoundedParameterTransform {
     }
 
     /**
+     * @param a
      * @see pulse.math.MathUtils.atanh()
      * @see pulse.math.Segment.getBounds()
      */

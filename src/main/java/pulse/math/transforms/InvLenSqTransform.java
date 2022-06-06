@@ -16,12 +16,12 @@ public class InvLenSqTransform implements Transformable {
 
     @Override
     public double transform(double value) {
-        return value / (l * l);
+        return Math.abs(value) / (l * l);
     }
 
     @Override
     public double inverse(double t) {
-        return t * (l * l);
+        return Math.abs(t) * (l * l);
     }
 
 }

@@ -55,13 +55,16 @@ public class NetzschPulseCSVReader implements PulseDataReader {
         Objects.requireNonNull(file, Messages.getString("DATReader.1"));
 
         NumericPulseData data = null;
+        
+        ( (NetzschCSVReader) NetzschCSVReader.getInstance() )
+                .setDefaultLocale(); //always start with a default locale
 
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
 
             int shotId = NetzschCSVReader.determineShotID(reader, file);
             data = new NumericPulseData(shotId);
 
-            var pulseLabel = NetzschCSVReader.findLineByLabel(reader, PULSE, NetzschCSVReader.getDelims());
+            var pulseLabel = NetzschCSVReader.findLineByLabel(reader, PULSE, false);
 
             if (pulseLabel == null) {
                 System.err.println("Skipping " + file.getName());

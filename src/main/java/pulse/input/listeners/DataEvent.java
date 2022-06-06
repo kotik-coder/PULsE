@@ -1,6 +1,6 @@
 package pulse.input.listeners;
 
-import pulse.input.ExperimentalData;
+import pulse.AbstractData;
 
 /**
  * A {@code DataEvent} is used to track changes happening with a
@@ -10,7 +10,7 @@ import pulse.input.ExperimentalData;
 public class DataEvent {
 
     private DataEventType type;
-    private ExperimentalData data;
+    private AbstractData data;
 
     /**
      * Constructs a {@code DataEvent} object, combining the {@code type} and
@@ -19,7 +19,7 @@ public class DataEvent {
      * @param type the type of this event
      * @param data the source of the event
      */
-    public DataEvent(DataEventType type, ExperimentalData data) {
+    public DataEvent(DataEventType type, AbstractData data) {
         this.type = type;
         this.data = data;
     }
@@ -39,7 +39,7 @@ public class DataEvent {
      *
      * @return the associated data
      */
-    public ExperimentalData getData() {
+    public AbstractData getData() {
         return data;
     }
 

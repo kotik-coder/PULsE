@@ -24,8 +24,10 @@ import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.UIManager;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import org.apache.commons.math3.exception.OutOfRangeException;
 
 import pulse.input.InterpolationDataset;
+import pulse.ui.Messages;
 import pulse.util.ImageUtils;
 
 @SuppressWarnings("serial")
@@ -84,7 +86,18 @@ public class LoaderButton extends JButton {
                 showMessageDialog(getWindowAncestor((Component) arg0.getSource()), getString("LoaderButton.ReadError"), //$NON-NLS-1$
                         getString("LoaderButton.IOError"), //$NON-NLS-1$
                         ERROR_MESSAGE);
-                e.printStackTrace();
+            }
+            catch(OutOfRangeException ofre) {
+                getDefaultToolkit().beep();
+                StringBuilder sb = new StringBuilder(getString("TextWrap.0"));
+                sb.append(getString("LoaderButton.OFRErrorDescriptor") );
+                sb.append(ofre.getMessage());
+                sb.append(getString("LoaderButton.OFRErrorDescriptor2"));
+                sb.append(getString("TextWrap.1"));
+                showMessageDialog(getWindowAncestor((Component) arg0.getSource()), 
+                        sb.toString(), 
+                        getString("LoaderButton.OFRError"), //$NON-NLS-1$
+                ERROR_MESSAGE);
             }
             var size = getDataset(dataType).getData().size();
             var label = "";

@@ -289,6 +289,7 @@ public abstract class PropertyHolder extends Accessible {
      *
      * @return the descriptor
      */
+    @Override
     public String getDescriptor() {
         return prefix != null ? getPrefix() : super.getDescriptor();
     }

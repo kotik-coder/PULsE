@@ -15,8 +15,8 @@ public abstract class CorrelationTest extends PropertyHolder implements Reflexiv
 
     private static double threshold = (double) def(CORRELATION_THRESHOLD).getValue();
 
-    private static InstanceDescriptor<CorrelationTest> instanceDescriptor
-            = new InstanceDescriptor<CorrelationTest>(
+    private static final InstanceDescriptor<CorrelationTest> instanceDescriptor
+            = new InstanceDescriptor<>(
                     "Correlation Test Selector", CorrelationTest.class);
 
     static {

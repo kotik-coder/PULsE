@@ -2,7 +2,6 @@ package pulse.problem.statements;
 
 import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.DIATHERMIC_COEFFICIENT;
-import static pulse.properties.NumericPropertyKeyword.NUMPOINTS;
 
 import java.util.List;
 
@@ -64,7 +63,7 @@ public class DiathermicMedium extends ClassicalProblem {
 
             if (key == DIATHERMIC_COEFFICIENT) {
 
-                var bounds = new Segment(0.0, 1.0);
+                var bounds = Segment.boundsFrom(DIATHERMIC_COEFFICIENT);
                 final double etta = (double) properties.getDiathermicCoefficient().getValue();
 
                 output.setTransform(i, new StickTransform(bounds));
@@ -90,14 +89,6 @@ public class DiathermicMedium extends ClassicalProblem {
 
                 case DIATHERMIC_COEFFICIENT:
                     properties.setDiathermicCoefficient(derive(DIATHERMIC_COEFFICIENT, params.inverseTransform(i)));
-                    break;
-                case HEAT_LOSS:
-                    if (properties.areThermalPropertiesLoaded()) {
-                        properties.calculateEmissivity();
-                        final double emissivity = (double) properties.getEmissivity().getValue();
-                        properties
-                                .setDiathermicCoefficient(derive(DIATHERMIC_COEFFICIENT, emissivity / (2.0 - emissivity)));
-                    }
                     break;
                 default:
                     continue;

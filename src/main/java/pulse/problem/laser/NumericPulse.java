@@ -25,7 +25,8 @@ public class NumericPulse extends PulseTemporalShape {
 
     private NumericPulseData pulseData;
     private UnivariateFunction interpolation;
-    private double adjustedPulseWidth;
+    
+    private final static int MIN_POINTS = 20;
 
     public NumericPulse() {
         //intentionally blank
@@ -47,12 +48,32 @@ public class NumericPulse extends PulseTemporalShape {
      * interpolates the input pulse using spline functions and normalises the
      * output.
      *
+     * @param data
      * @see normalise()
      *
      */
     @Override
     public void init(ExperimentalData data, DiscretePulse pulse) {
-        pulseData = data.getMetadata().getPulseData();
+        //generate baseline-subtracted numeric data from ExperimentalData
+        baselineSubtractedFrom(data);
+      
+        //notify host pulse object of a new pulse width
+        var problem = ((SearchTask) data.getParent()).getCurrentCalculation().getProblem();
+        setPulseWidthOf(problem);
+
+        //convert to dimensionless time and interpolate
+        double timeFactor = problem.getProperties().timeFactor();
+        doInterpolation(timeFactor);
+    }
+    
+    /**
+     * Copies the numeric pulse from metadata and subtracts a horizontal baseline
+     * from the data points assigned to {@code pulseData}.
+     * @param data the experimental data containing the metadata with numeric pulse data.
+     */
+    
+    private void baselineSubtractedFrom(ExperimentalData data) {
+        pulseData = new NumericPulseData(data.getMetadata().getPulseData());
         
         //subtracts a horizontal baseline from the pulse data
         var baseline = new FlatBaseline();
@@ -61,45 +82,13 @@ public class NumericPulse extends PulseTemporalShape {
         for(int i = 0, size = pulseData.getTimeSequence().size(); i < size; i++)
             pulseData.setSignalAt(i, 
                     pulseData.signalAt(i) - baseline.valueAt(pulseData.timeAt(i)));
-      
-        var problem = ((SearchTask) data.getParent()).getCurrentCalculation().getProblem();
-        setPulseWidth(problem);
-
-        double timeFactor = problem.getProperties().timeFactor();
-
-        super.init(data, pulse);
-
-        doInterpolation(timeFactor);
-
-        normalise(problem);
     }
 
-    /**
-     * Checks that the area of the pulse curve is unity (within a small error
-     * margin). If this is {@code false}, re-scales the numeric data using
-     * {@code 1/area} as the scaling factor.
-     *
-     * @param problem defines the {@code timeFactor} needed for re-building the
-     * interpolation
-     * @see pulse.problem.laser.NumericPulseData.scale()
-     */
-    public void normalise(Problem problem) {
+    private void setPulseWidthOf(Problem problem) {
+        var timeSequence    = pulseData.getTimeSequence();
+        double pulseWidth   = timeSequence.get(timeSequence.size() - 1);
 
-        final double EPS = 1E-2;
-        double timeFactor = problem.getProperties().timeFactor();
-
-        for (double area = area(); Math.abs(area - 1.0) > EPS; area = area()) {
-            pulseData.scale(1.0 / area);
-            doInterpolation(timeFactor);
-        }
-
-    }
-
-    private void setPulseWidth(Problem problem) {
-        var timeSequence = pulseData.getTimeSequence();
-        double pulseWidth = timeSequence.get(timeSequence.size() - 1);
-
-        var pulseObject = problem.getPulse();
+        var pulseObject     = problem.getPulse();
         pulseObject.setPulseWidth(derive(PULSE_WIDTH, pulseWidth));
 
     }
@@ -107,13 +96,13 @@ public class NumericPulse extends PulseTemporalShape {
     private void doInterpolation(double timeFactor) {
         var interpolator = new AkimaSplineInterpolator();
 
-        var timeList = pulseData.getTimeSequence().stream().mapToDouble(d -> d / timeFactor).toArray();
-        adjustedPulseWidth = timeList[timeList.length - 1];
-        var powerList = pulseData.getSignalData();
+        var timeList    = pulseData.getTimeSequence().stream().mapToDouble(d -> d / timeFactor).toArray();
+        var powerList   = pulseData.getSignalData();
 
+        this.setPulseWidth(timeList[timeList.length - 1]);
+        
         interpolation = interpolator.interpolate(timeList,
                 powerList.stream().mapToDouble(d -> d).toArray());
-
     }
 
     /**
@@ -122,7 +111,7 @@ public class NumericPulse extends PulseTemporalShape {
      */
     @Override
     public double evaluateAt(double time) {
-        return time > adjustedPulseWidth ? 0.0 : interpolation.value(time);
+        return time > getPulseWidth() ? 0.0 : interpolation.value(time);
     }
 
     @Override
@@ -144,10 +133,16 @@ public class NumericPulse extends PulseTemporalShape {
 
     public void setData(NumericPulseData pulseData) {
         this.pulseData = pulseData;
+        
     }
 
     public UnivariateFunction getInterpolation() {
         return interpolation;
+    }
+
+    @Override
+    public int getRequiredDiscretisation() {
+        return MIN_POINTS;
     }
 
 }

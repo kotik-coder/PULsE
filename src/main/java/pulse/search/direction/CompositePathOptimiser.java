@@ -1,6 +1,5 @@
 package pulse.search.direction;
 
-import java.util.Arrays;
 import static pulse.properties.NumericProperties.compare;
 
 import java.util.List;
@@ -17,7 +16,8 @@ import pulse.util.InstanceDescriptor;
 
 public abstract class CompositePathOptimiser extends GradientBasedOptimiser {
 
-    private InstanceDescriptor<? extends LinearOptimiser> instanceDescriptor = new InstanceDescriptor<LinearOptimiser>(
+    private InstanceDescriptor<? extends LinearOptimiser> instanceDescriptor 
+            = new InstanceDescriptor<LinearOptimiser>(
             "Linear Optimiser Selector", LinearOptimiser.class);
 
     private LinearOptimiser linearSolver;
@@ -45,6 +45,7 @@ public abstract class CompositePathOptimiser extends GradientBasedOptimiser {
         setLinearSolver(instanceDescriptor.newInstance(LinearOptimiser.class));
     }
 
+    @Override
     public boolean iteration(SearchTask task) throws SolverException {
         var p = (GradientGuidedPath) task.getIterativeState(); // the previous state of the task
         
@@ -71,11 +72,8 @@ public abstract class CompositePathOptimiser extends GradientBasedOptimiser {
             // new set of parameters determined through search
             var candidateParams = parameters.sum(dir.multiply(step)); 		
             
-            if( Arrays.stream( candidateParams.getData() ).anyMatch(el -> !Double.isFinite(el) ) ) {
-                throw new SolverException("Illegal candidate parameters: not finite! " + p.getIteration());
-            }
-                
             task.assign(new ParameterVector(parameters, candidateParams)); // assign new parameters
+
             double newCost = task.solveProblemAndCalculateCost(); // calculate the sum of squared residuals
 
             if (newCost > initialCost - EPS 

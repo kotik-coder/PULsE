@@ -22,7 +22,6 @@ import pulse.input.ExperimentalData;
 import pulse.input.listeners.CurveEvent;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
-import pulse.properties.Property;
 
 /**
  * The {@code HeatingCurve} represents a time-temperature profile (a
@@ -42,10 +41,12 @@ import pulse.properties.Property;
  */
 public class HeatingCurve extends AbstractData {
 
-    private List<Double> adjustedSignal;
+    private final List<Double> adjustedSignal;
+    private List<Double> lastCalculation;
     private double startTime;
 
-    private List<HeatingCurveListener> listeners = new ArrayList<HeatingCurveListener>();
+    private final List<HeatingCurveListener> listeners
+            = new ArrayList<>();
 
     private UnivariateInterpolator splineInterpolator;
     private UnivariateFunction splineInterpolation;
@@ -62,7 +63,7 @@ public class HeatingCurve extends AbstractData {
      */
     public HeatingCurve() {
         super();
-        adjustedSignal = new ArrayList<Double>((int) this.getNumPoints().getValue());
+        adjustedSignal = new ArrayList<>((int) this.getNumPoints().getValue());
         splineInterpolator = new SplineInterpolator();
     }
 
@@ -102,10 +103,16 @@ public class HeatingCurve extends AbstractData {
         splineInterpolator = new SplineInterpolator();
     }
 
+    //TODO
+    public void copyToLastCalculation() {
+        lastCalculation = new ArrayList<>(0);
+        lastCalculation = new ArrayList<>(adjustedSignal);
+    }
+
     @Override
     public void clear() {
         super.clear();
-        this.adjustedSignal.clear();
+        adjustedSignal.clear();
     }
 
     /**
@@ -128,6 +135,7 @@ public class HeatingCurve extends AbstractData {
      * @return a double, representing the baseline-corrected temperature at
      * {@code index}
      */
+    @Override
     public double signalAt(int index) {
         return adjustedSignal.get(index);
     }
@@ -154,7 +162,6 @@ public class HeatingCurve extends AbstractData {
      * @see pulse.input.listeners.CurveEvent
      */
     public void scale(double scale) {
-        var signal = getSignalData();
         final int count = this.actualNumPoints();
         for (int i = 0; i < count; i++) {
             signal.set(i, signal.get(i) * scale);
@@ -166,9 +173,8 @@ public class HeatingCurve extends AbstractData {
     private void refreshInterpolation() {
 
         /*
-		 * Prepare extended time array
+	 * Prepare extended time array
          */
-        var time = this.getTimeSequence();
         var timeExtended = new double[time.size() + 1];
 
         for (int i = 1; i < timeExtended.length; i++) {
@@ -188,11 +194,12 @@ public class HeatingCurve extends AbstractData {
         }
 
         final double alpha = -1.0;
-        adjustedSignalExtended[0] = alpha * adjustedSignalExtended[2] - (1.0 - alpha) * adjustedSignalExtended[1]; // extrapolate
+        adjustedSignalExtended[0] = alpha * adjustedSignalExtended[2] 
+                - (1.0 - alpha) * adjustedSignalExtended[1]; // extrapolate
         // linearly
 
         /*
-		 * Submit to spline interpolation
+	 * Submit to spline interpolation
          */
         splineInterpolation = splineInterpolator.interpolate(timeExtended, adjustedSignalExtended);
     }
@@ -220,19 +227,24 @@ public class HeatingCurve extends AbstractData {
      * heating curve.
      */
     public void apply(Baseline baseline) {
-        var time = this.getTimeSequence();
-        var signal = this.getSignalData();
         adjustedSignal.clear();
-        for (int i = 0, size = time.size(); i < size; i++) {
-            adjustedSignal.add(signal.get(i) + baseline.valueAt(timeAt(i)));
+        int size = time.size();
+
+        if (size > 0) {
+
+            for (int i = 0; i < size; i++) {
+                adjustedSignal.add(signal.get(i) + baseline.valueAt(timeAt(i)));
+            }
+
+            if (time.get(0) > -startTime) {
+                time.add(0, -startTime);
+                adjustedSignal.add(0, baseline.valueAt(-startTime));
+            }
+
+            refreshInterpolation();
+
         }
 
-        if (time.get(0) > -startTime) {
-            time.add(0, -startTime);
-            adjustedSignal.add(0, baseline.valueAt(-startTime));
-        }
-
-        refreshInterpolation();
     }
 
     /**
@@ -251,6 +263,7 @@ public class HeatingCurve extends AbstractData {
      *
      * @param data the experimental data, with a time range broader than the
      * time range of this {@code HeatingCurve}.
+     * @param baseline
      * @return a new {@code HeatingCurve}, extended to match the time limits of
      * {@code data}
      */
@@ -266,10 +279,9 @@ public class HeatingCurve extends AbstractData {
         var baselineTime = data.getTimeSequence().stream().filter(t -> t < 0).collect(toList());
         var baselineSignal = baselineTime.stream().map(bTime -> baseline.valueAt(bTime)).collect(toList());
 
-        var time = this.getTimeSequence();
-
         baselineTime.addAll(time);
-        baselineSignal.addAll(adjustedSignal);
+        this.copyToLastCalculation();
+        baselineSignal.addAll(lastCalculation);
 
         return new HeatingCurve(baselineTime, baselineSignal, startTime, getName());
     }
