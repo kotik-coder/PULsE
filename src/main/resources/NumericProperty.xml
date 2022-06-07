@@ -351,7 +351,7 @@
 		abbreviation="&lt;i&gt;d&lt;/i&gt;&lt;sub&gt;las&lt;/sub&gt; (mm)"
 		visible="true"
 		descriptor="Laser spot diameter, &lt;i&gt;d&lt;/i&gt;&lt;sub&gt;las&lt;/sub&gt; (mm)"
-		dimensionfactor="1000.0" keyword="SPOT_DIAMETER" maximum="0.05"
+		dimensionfactor="1000.0" keyword="SPOT_DIAMETER" maximum="0.2"
 		minimum="1.0E-4" value="0.01" primitive-type="double" discreet="true">
 	</NumericProperty>
 	<NumericProperty

@@ -67,7 +67,6 @@ public class ClassicalProblem2D extends Problem {
     public DiscretePulse discretePulseOn(Grid grid) {
         return grid instanceof Grid2D ? new DiscretePulse2D(this, (Grid2D) grid) : super.discretePulseOn(grid);
     }
-
     
     @Override
     public void optimisationVector(ParameterVector output, List<Flag> flags) {

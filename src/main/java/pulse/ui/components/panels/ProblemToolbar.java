@@ -82,7 +82,7 @@ public class ProblemToolbar extends JToolBar {
                 se.printStackTrace();
             }
             MainGraphFrame.getInstance().plot();
-            TaskControlFrame.getInstance().getPulseFrame().plot(calc.getProblem().getPulse());
+            TaskControlFrame.getInstance().getPulseFrame().plot(calc);
         }
 
     }

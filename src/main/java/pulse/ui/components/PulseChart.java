@@ -22,10 +22,10 @@ import org.jfree.data.xy.XYSeriesCollection;
 
 import pulse.problem.statements.Problem;
 import pulse.problem.statements.Pulse;
+import pulse.tasks.Calculation;
 
-public class PulseChart extends AuxPlotter<Pulse> {
+public class PulseChart extends AuxPlotter<Calculation> {
 
-    private final static int NUM_PULSE_POINTS = 600;
     private final static double TO_MILLIS = 1E3;
 
     public PulseChart(String xLabel, String yLabel) {
@@ -59,36 +59,33 @@ public class PulseChart extends AuxPlotter<Pulse> {
     }
 
     @Override
-    public void plot(Pulse pulse) {
-        requireNonNull(pulse);
+    public void plot(Calculation c) {
+        requireNonNull(c);
 
-        var problem = (Problem) pulse.getParent();
+        Problem problem = c.getProblem();
+
         double startTime = (double) problem.getHeatingCurve().getTimeShift().getValue();
 
         var pulseDataset = new XYSeriesCollection();
-        pulseDataset.addSeries(series(problem, startTime));
+         
+        pulseDataset.addSeries(series(problem.getPulse(), c.getScheme().getGrid().getTimeStep(), 
+                problem.getProperties().timeFactor(), startTime));
 
         getPlot().setDataset(0, pulseDataset);
     }
 
-    private static XYSeries series(Problem problem, double startTime) {
-        var pulse = problem.getPulse();
-
+    private static XYSeries series(Pulse pulse, double dx, double timeFactor, double startTime) {
         var series = new XYSeries(pulse.getPulseShape().toString());
-
-        double timeLimit = (double) pulse.getPulseWidth().getValue();
-        final double timeFactor = problem.getProperties().timeFactor();
-
-        double dx = timeLimit / (NUM_PULSE_POINTS - 1);
-        double x = startTime;
-
-        series.add(TO_MILLIS * (startTime - dx / 10.), 0.0);
-        series.add(TO_MILLIS * (startTime + timeLimit + dx / 10.), 0.0);
-
         var pulseShape = pulse.getPulseShape();
+        
+        double timeLimit = pulseShape.getPulseWidth();
+        double x = startTime/timeFactor;
 
-        for (var i = 0; i < NUM_PULSE_POINTS; i++) {
-            series.add(x * TO_MILLIS, pulseShape.evaluateAt((x - startTime) / timeFactor));
+        series.add(TO_MILLIS * (startTime - dx * timeFactor / 10.), 0.0);
+        series.add(TO_MILLIS * (startTime + timeFactor*(timeLimit + dx / 10.)), 0.0);
+
+        for (int i = 0, numPoints = (int) (timeLimit/dx); i < numPoints; i++) {
+            series.add(x * timeFactor * TO_MILLIS, pulseShape.evaluateAt(x - startTime/timeFactor));
             x += dx;
         }
 

@@ -26,6 +26,7 @@ import javax.swing.event.InternalFrameAdapter;
 import javax.swing.event.InternalFrameEvent;
 
 import pulse.problem.statements.Pulse;
+import pulse.tasks.Calculation;
 import pulse.tasks.TaskManager;
 import pulse.ui.Version;
 import pulse.ui.components.PulseChart;
@@ -51,7 +52,7 @@ public class TaskControlFrame extends JFrame {
     private ResultFrame resultsFrame;
     private MainGraphFrame graphFrame;
     private LogFrame logFrame;
-    private InternalGraphFrame<Pulse> pulseFrame;
+    private InternalGraphFrame<Calculation> pulseFrame;
 
     private PulseMainMenu mainMenu;
 
@@ -201,7 +202,7 @@ public class TaskControlFrame extends JFrame {
         searchOptionsFrame = new SearchOptionsFrame();
         searchOptionsFrame.setFrameIcon(loadIcon("optimiser.png", 20, Color.white));
 
-        pulseFrame = new InternalGraphFrame<Pulse>("Pulse Shape", new PulseChart("Time (ms)", "Laser Power (a. u.)"));
+        pulseFrame = new InternalGraphFrame<Calculation>("Pulse Shape", new PulseChart("Time (ms)", "Laser Power (a. u.)"));
         pulseFrame.setFrameIcon(loadIcon("pulse.png", 20, Color.white));
         pulseFrame.setVisible(false);
 
@@ -453,7 +454,7 @@ public class TaskControlFrame extends JFrame {
         return mode;
     }
 
-    public InternalGraphFrame<Pulse> getPulseFrame() {
+    public InternalGraphFrame<Calculation> getPulseFrame() {
         return pulseFrame;
     }
 

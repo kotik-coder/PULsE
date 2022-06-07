@@ -19,7 +19,14 @@ import pulse.problem.statements.model.ExtendedThermalProperties;
 public class DiscretePulse2D extends DiscretePulse {
 
     private double discretePulseSpot;
-    private double radialFactor;
+    private double sampleRadius;
+    private double normFactor;
+    
+    /**
+     * This had to be decreased for the 2d pulses.
+     */
+    
+    private final static int WIDTH_TOLERANCE_FACTOR = 200;
 
     /**
      * The constructor for {@code DiscretePulse2D}.
@@ -35,9 +42,8 @@ public class DiscretePulse2D extends DiscretePulse {
     public DiscretePulse2D(ClassicalProblem2D problem, Grid2D grid) {
         super(problem, grid);
         var properties = (ExtendedThermalProperties) problem.getProperties();
-        init(properties);
-        
-        properties.addListener(e -> init(properties) );
+        calcPulseSpot(properties);
+        properties.addListener(e -> calcPulseSpot(properties) );
     }
     
     /**
@@ -47,7 +53,7 @@ public class DiscretePulse2D extends DiscretePulse {
      * It uses a Heaviside function to determine whether the {@code radialCoord}
      * lies within the {@code 0 <= radialCoord <= discretePulseSpot} interval.
      * It uses the {@code time} parameter to determine the discrete pulse
-     * function using {@code evaluateAt(time)}.
+     * function using {@code evaluateAt(time)}. </p>
      *
      * @param time the time for calculation
      * @param radialCoord - the radial coordinate [length dimension]
@@ -55,12 +61,26 @@ public class DiscretePulse2D extends DiscretePulse {
      * {@code coord > spotDiameter}.
      * @see pulse.problem.laser.PulseTemporalShape.laserPowerAt(double)
      */
+    
     public double evaluateAt(double time, double radialCoord) {
-        return laserPowerAt(time) * (0.5 + 0.5 * signum(discretePulseSpot - radialCoord));
+        return laserPowerAt(time) 
+                * (0.5 + 0.5 * signum(discretePulseSpot - radialCoord));
     }
     
-    private void init(ExtendedThermalProperties properties) {
-        radialFactor    = (double) properties.getSampleDiameter().getValue() / 2.0;
+    /**
+     * Calculates the laser power at a give moment in time. The total laser 
+     * energy is normalised over a beam partially illuminating the sample surface.
+     * @param time a moment in time (in dimensionless units)
+     * @return the laser power in arbitrary units
+     */
+    
+    @Override
+    public double laserPowerAt(double time) {
+        return normFactor * super.laserPowerAt(time);
+    }
+    
+    private void calcPulseSpot(ExtendedThermalProperties properties) {
+        sampleRadius    = (double) properties.getSampleDiameter().getValue() / 2.0;
         evalPulseSpot();
     }
 
@@ -72,9 +92,10 @@ public class DiscretePulse2D extends DiscretePulse {
     public final void evalPulseSpot() {
         var pulse = (Pulse2D) getPulse();
         var grid2d = (Grid2D) getGrid();
-        final double radius = (double) pulse.getSpotDiameter().getValue() / 2.0;       
-        discretePulseSpot = grid2d.gridRadialDistance(radius, radialFactor);
+        final double spotRadius = (double) pulse.getSpotDiameter().getValue() / 2.0;       
+        discretePulseSpot = grid2d.gridRadialDistance(spotRadius, sampleRadius);
         grid2d.adjustStepSize(this);
+        normFactor = sampleRadius * sampleRadius / spotRadius / spotRadius; 
     }
 
     public final double getDiscretePulseSpot() {
@@ -82,7 +103,16 @@ public class DiscretePulse2D extends DiscretePulse {
     }
     
     public final double getRadialConversionFactor() {
-        return radialFactor;
+        return sampleRadius;
+    }
+    
+    /**
+     * A smaller tolerance factor is set for 2D calculations
+     */
+    
+    @Override
+    public int getWidthToleranceFactor() {
+        return WIDTH_TOLERANCE_FACTOR;
     }
 
 }

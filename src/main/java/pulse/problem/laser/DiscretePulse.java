@@ -7,6 +7,8 @@ import pulse.math.Segment;
 import pulse.problem.schemes.Grid;
 import pulse.problem.statements.Problem;
 import pulse.problem.statements.Pulse;
+import static pulse.properties.NumericProperties.derive;
+import static pulse.properties.NumericPropertyKeyword.PULSE_WIDTH;
 import pulse.tasks.SearchTask;
 
 /**
@@ -34,7 +36,7 @@ public class DiscretePulse {
      * <i>t</i><sub>c</sub>
      * is the time factor defined in the {@code Problem} class.
      */
-    public final static int WIDTH_TOLERANCE_FACTOR = 1000;
+    private final static int WIDTH_TOLERANCE_FACTOR = 1000;
 
     /**
      * This creates a one-dimensional discrete pulse on a {@code grid}.
@@ -74,7 +76,7 @@ public class DiscretePulse {
         widthOnGrid = 0;
         recalculate();
         pulse.getPulseShape().init(data, this);
-        normalise();
+        invTotalEnergy = 1.0/totalEnergy();
     }
 
     /**
@@ -96,7 +98,7 @@ public class DiscretePulse {
      */
     public final void recalculate() {
         final double nominalWidth  = ((Number) pulse.getPulseWidth().getValue()).doubleValue();
-        final double resolvedWidth = timeConversionFactor / WIDTH_TOLERANCE_FACTOR;
+        final double resolvedWidth = timeConversionFactor / getWidthToleranceFactor();
 
         final double EPS = 1E-10;
         
@@ -112,6 +114,7 @@ public class DiscretePulse {
             //change pulse width
             setDiscreteWidth(resolvedWidth);
             shape.init(null, this);
+            //adjust the pulse object to update the visualised pulse
         } else if(nominalWidth > resolvedWidth + EPS) {
             setDiscreteWidth(nominalWidth);
         } 
@@ -119,12 +122,12 @@ public class DiscretePulse {
     }
     
     /**
-     * Calculates the total pulse energy using a numerical integrator. The 
+     * Calculates the total pulse energy using a numerical integrator.The 
      * normalisation factor is then equal to the inverse total energy.
+     * @return the total pulse energy, assuming sample area fully covered by the beam
      */
 
-    public final void normalise() {
-        invTotalEnergy = 1.0;
+    public final double totalEnergy() {
         var pulseShape = pulse.getPulseShape();
 
         var integrator = new MidpointIntegrator(new Segment(0, widthOnGrid)) {
@@ -136,8 +139,7 @@ public class DiscretePulse {
 
         };
 
-        invTotalEnergy = 1.0 / integrator.integrate();
-
+        return integrator.integrate();
     }
 
     /**
@@ -191,7 +193,18 @@ public class DiscretePulse {
      */
     
     public double resolvedPulseWidth() {
-        return timeConversionFactor / WIDTH_TOLERANCE_FACTOR;
+        return timeConversionFactor / getWidthToleranceFactor();
+    }
+    
+    /** 
+     * Assuming a characteristic time is divided by the return value of this method
+     * and is set to the minimal resolved pulse width, shows how small a pulse width 
+     * can be to enable finite pulse correction.
+     * @return the smallest fraction of a characteristic time resolved as a finite pulse.
+     */
+    
+    public int getWidthToleranceFactor() {
+        return WIDTH_TOLERANCE_FACTOR;
     }
 
 }
