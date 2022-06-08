@@ -3,7 +3,7 @@
   
   <groupId>kotik-coder</groupId>
   <artifactId>PULsE</artifactId>
-  <version>1.94F</version>
+  <version>1.95</version>
   <name>PULsE</name>
   <description>Processing Unit for Laser flash Experiments</description>
   <developers>

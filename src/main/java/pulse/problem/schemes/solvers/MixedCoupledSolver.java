@@ -74,7 +74,10 @@ public abstract class MixedCoupledSolver extends CoupledImplicitScheme
         hx = grid.getXStep();
         tau = grid.getTimeStep();
 
-        Bi1 = (double) problem.getProperties().getHeatLoss().getValue();
+        var properties = (ThermoOpticalProperties)problem.getProperties();
+        //combined biot
+        Bi1 = (double) properties.getHeatLoss().getValue() + 
+              (double) properties.getConvectiveLosses().getValue();
 
         zeta = (double) ( (ClassicalProblem)problem ).getGeometricFactor().getValue();
         

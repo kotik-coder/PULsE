@@ -17,8 +17,6 @@ package pulse.problem.schemes.solvers;
 
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.FixedPointIterations;
-import pulse.problem.statements.ParticipatingMedium;
-import pulse.problem.statements.Problem;
 import static pulse.properties.NumericProperties.def;
 import static pulse.properties.NumericProperties.derive;
 import pulse.properties.NumericProperty;

@@ -47,11 +47,12 @@ public class ImplicitDiathermicSolver extends ImplicitScheme implements Solver<D
         /* Constants */
         var properties = (DiathermicProperties) problem.getProperties();
 
-        final double Bi1 = (double) properties.getHeatLoss().getValue();
+        final double BiR = (double) properties.getHeatLoss().getValue();
+        final double BiC = (double) properties.getConvectiveLosses().getValue();
         final double eta = (double) properties.getDiathermicCoefficient().getValue();
 
-        z0 = 1.0 + HX2_2TAU + hx * Bi1 * (1.0 + eta);
-        zN_1 = -hx * eta * Bi1;
+        z0 = 1.0 + HX2_2TAU + hx * BiR * (1.0 + eta) + hx * BiC;
+        zN_1 = -hx * eta * BiR;
 
         /* End of constants */
         var tridiagonal = new BlockMatrixAlgorithm(grid);

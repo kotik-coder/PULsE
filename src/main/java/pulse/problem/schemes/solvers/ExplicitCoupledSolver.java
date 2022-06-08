@@ -56,7 +56,8 @@ public abstract class ExplicitCoupledSolver extends ExplicitScheme
         hx = grid.getXStep();
 
         var p = (ThermoOpticalProperties) problem.getProperties();
-        double Bi = (double) p.getHeatLoss().getValue();
+        //combined Biot
+        double Bi = (double) p.getHeatLoss().getValue() + (double) p.getConvectiveLosses().getValue();
 
         a = 1. / (1. + Bi * hx);
 

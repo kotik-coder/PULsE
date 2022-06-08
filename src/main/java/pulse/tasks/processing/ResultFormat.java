@@ -45,16 +45,11 @@ public class ResultFormat {
 
     private ResultFormat(List<NumericPropertyKeyword> keys) {
         nameMap = new ArrayList<>();
-        for (var key : keys) {
-            nameMap.add(key);
-        }
+        keys.forEach(key -> 
+            nameMap.add(key)
+        );
     }
-
-    private ResultFormat(ResultFormat fmt) {
-        nameMap = new ArrayList<>(fmt.nameMap.size());
-        nameMap.addAll(fmt.nameMap);
-    }
-
+    
     public static void addResultFormatListener(ResultFormatListener rfl) {
         listeners.add(rfl);
     }

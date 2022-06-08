@@ -180,7 +180,7 @@
 		visible="true"
 		descriptor="Optical thickness, &lt;i&gt;&amp;tau;&lt;/i&gt;&lt;sub&gt;0&lt;/sub&gt;"
 		dimensionfactor="1" discreet="false" keyword="OPTICAL_THICKNESS"
-		maximum="100000" minimum="1e-4" primitive-type="double" value="0.1"
+		maximum="100000" minimum="1e-3" primitive-type="double" value="0.1"
 		default-search-variable="true">
 	</NumericProperty>
 	<NumericProperty
@@ -212,7 +212,7 @@
 		default-search-variable="false">
 	</NumericProperty>
 	<NumericProperty abbreviation="&amp;eta;" visible="true"
-		dimensionfactor="1" keyword="DIATHERMIC_COEFFICIENT" maximum="2"
+		dimensionfactor="1" keyword="DIATHERMIC_COEFFICIENT" maximum="10.0"
 		minimum="0" primitive-type="double" value="0.2"
 		descriptor="Diathermic coefficient, &amp;eta;" discreet="false"
 		default-search-variable="true">
@@ -375,7 +375,7 @@
 		minimum="1.0" value="0.0" primitive-type="double" discreet="false"/>
 	<NumericProperty abbreviation="&lt;i&gt;&amp;#949;&lt;/i&gt;"
 		visible="false"
-		descriptor="Integral emissivity, &lt;i&gt;&amp;#949;&lt;/i&gt;"
+		descriptor="Hemispherical emissivity, &lt;i&gt;&amp;#949;&lt;/i&gt;"
 		dimensionfactor="1.0" keyword="EMISSIVITY" maximum="1" minimum="0.001"
 		value="0.8" primitive-type="double" discreet="false"/>
 	<NumericProperty
@@ -469,6 +469,11 @@
         <excludes>
         <keyword>HEAT_LOSS_COMBINED</keyword>
         </excludes>
+        </NumericProperty>
+        <NumericProperty keyword="HEAT_LOSS_CONVECTIVE" abbreviation="Bi&lt;sub&gt;(c)&lt;/sub&gt;"
+		visible="true" descriptor="Heat loss (convective), Bi&lt;sub&gt;(c)&lt;/sub&gt;" dimensionfactor="1"
+		maximum="100.0" minimum="0.0" primitive-type="double" value="0.2"
+		discreet="false" default-search-variable="true">
 	</NumericProperty>
 	<NumericProperty abbreviation="Gain" visible="false"
 		descriptor="Detector Gain" dimensionfactor="1" keyword="DETECTOR_GAIN"

@@ -16,7 +16,7 @@ public class SelectedKeysModel extends DefaultTableModel {
      *
      */
     private static final long serialVersionUID = 1L;
-    private List<NumericPropertyKeyword> elements;
+    private final List<NumericPropertyKeyword> elements;
     private final List<NumericPropertyKeyword> referenceList;
     private final NumericPropertyKeyword[] mandatorySelection;
 
@@ -28,7 +28,7 @@ public class SelectedKeysModel extends DefaultTableModel {
         update();
     }
 
-    public void update() {
+    public final void update() {
         update(referenceList);
     }
 

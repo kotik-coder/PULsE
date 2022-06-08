@@ -157,6 +157,13 @@ public enum NumericPropertyKeyword {
      * sample (1D and 2D problems).
      */
     HEAT_LOSS,
+    
+    /**
+     * The convective heat loss in diathermic and participating medium problems.
+     */
+    
+    HEAT_LOSS_CONVECTIVE,
+    
     /**
      * A directive for the optimiser to maintain equal heat losses on all
      * surfaces of the sample. Note that the dimensionless heat losses, i.e.

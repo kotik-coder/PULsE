@@ -169,6 +169,9 @@ public class ThermalProperties extends PropertyHolder {
     public void setHeatLoss(NumericProperty Bi) {
         requireType(Bi, HEAT_LOSS);
         this.Bi = (double) Bi.getValue();
+        if(areThermalPropertiesLoaded()) {
+            calculateEmissivity();
+        }
         firePropertyChanged(this, Bi);
     }
 
@@ -272,6 +275,7 @@ public class ThermalProperties extends PropertyHolder {
         set.add(HEAT_LOSS);
         set.add(DENSITY);
         set.add(SPECIFIC_HEAT);
+        set.add(EMISSIVITY);
         return set;
     }
 
@@ -285,15 +289,32 @@ public class ThermalProperties extends PropertyHolder {
 
     public void calculateEmissivity() {
         double newEmissivity = Bi * thermalConductivity() / (4. * Math.pow(T, 3) * l * STEFAN_BOTLZMAN);
-        var transform = new StickTransform(new Segment(0.01, 1.0));
+        var transform = new StickTransform(Segment.boundsFrom(EMISSIVITY));
         setEmissivity(derive(EMISSIVITY, 
                 transform.transform(newEmissivity))
         );
     }
     
-    public double biot() {
+    /**
+     * Calculates the radiative Biot number.
+     * @return the radiative Biot number.
+     */
+    
+    public double radiationBiot() {
         double lambda = thermalConductivity();
         return 4.0 * emissivity * STEFAN_BOTLZMAN * Math.pow(T, 3) * l / lambda;
+    }
+    
+    /**
+     * Calculates the maximum Biot number at these conditions, which
+     * corresponds to an emissivity of unity. If emissivity is non-positive,
+     * returns the maximum Biot number defined in the XML file.
+     * @return the maximum Biot number
+     */
+    
+    public double maxRadiationBiot() {
+        double absMax = Segment.boundsFrom(HEAT_LOSS).getMaximum();
+        return emissivity > 0 ? radiationBiot() / emissivity : absMax;         
     }
 
     /**
@@ -320,7 +341,7 @@ public class ThermalProperties extends PropertyHolder {
         final double t0 = c.getHalfTime();
         this.a = PARKERS_COEFFICIENT * l * l / t0;
         if (areThermalPropertiesLoaded()) {
-            Bi = biot();
+            Bi = radiationBiot();
         }
     }
 

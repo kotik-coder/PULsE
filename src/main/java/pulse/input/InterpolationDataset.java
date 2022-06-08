@@ -5,7 +5,7 @@ import static pulse.properties.NumericPropertyKeyword.DENSITY;
 import static pulse.properties.NumericPropertyKeyword.SPECIFIC_HEAT;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
@@ -14,6 +14,7 @@ import org.apache.commons.math3.analysis.interpolation.AkimaSplineInterpolator;
 
 import pulse.input.listeners.ExternalDatasetListener;
 import pulse.properties.NumericPropertyKeyword;
+import static pulse.properties.NumericPropertyKeyword.EMISSIVITY;
 import pulse.util.ImmutableDataEntry;
 
 /**
@@ -29,9 +30,10 @@ import pulse.util.ImmutableDataEntry;
 public class InterpolationDataset {
 
     private UnivariateFunction interpolation;
-    private List<ImmutableDataEntry<Double, Double>> dataset;
-    private static Map<StandartType, InterpolationDataset> standartDatasets = new HashMap<StandartType, InterpolationDataset>();
-    private static List<ExternalDatasetListener> listeners = new ArrayList<>();
+    private final List<ImmutableDataEntry<Double, Double>> dataset;
+    private static final Map<StandartType, InterpolationDataset> standartDatasets 
+            = new EnumMap<StandartType, InterpolationDataset>(StandartType.class);
+    private static final List<ExternalDatasetListener> listeners = new ArrayList<>();
 
 	/**
 	 * Creates an empty {@code InterpolationDataset}.
@@ -121,6 +123,7 @@ public class InterpolationDataset {
         }
         if (list.contains(SPECIFIC_HEAT) && list.contains(DENSITY)) {
             list.add(CONDUCTIVITY);
+            list.add(EMISSIVITY);
         }
         return list;
     }

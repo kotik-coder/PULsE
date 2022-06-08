@@ -62,7 +62,7 @@ public class ExtendedThermalProperties extends ThermalProperties {
     public void useTheoreticalEstimates(ExperimentalData c) {
         super.useTheoreticalEstimates(c);
         if (areThermalPropertiesLoaded()) {
-            Bi3 = biot();
+            Bi3 = radiationBiot();
         }
     }
 

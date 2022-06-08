@@ -58,7 +58,8 @@ public abstract class ImplicitCoupledSolver extends CoupledImplicitScheme
         final double tau = grid.getTimeStep();
 
         var p = (ThermoOpticalProperties) problem.getProperties();
-        final double Bi1 = (double) p.getHeatLoss().getValue();
+        //combined Biot
+        final double Bi1 = (double) p.getHeatLoss().getValue() + (double) p.getConvectiveLosses().getValue();
         final double Np = (double) p.getPlanckNumber().getValue();
         final double tau0 = (double) p.getOpticalThickness().getValue();
 

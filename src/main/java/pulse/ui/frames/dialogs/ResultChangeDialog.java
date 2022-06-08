@@ -3,19 +3,11 @@ package pulse.ui.frames.dialogs;
 import static javax.swing.SwingConstants.BOTTOM;
 
 import java.awt.BorderLayout;
-import java.awt.Component;
 
 import javax.swing.JDialog;
-import javax.swing.JTable;
-import javax.swing.JTextArea;
 import javax.swing.SwingConstants;
-import static javax.swing.SwingConstants.SOUTH;
-import static javax.swing.SwingConstants.TOP;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.TableCellRenderer;
 
 import pulse.tasks.processing.ResultFormat;
-import pulse.ui.Messages;
 import pulse.ui.components.models.ParameterTableModel;
 import pulse.ui.components.models.SelectedKeysModel;
 import pulse.ui.components.panels.DoubleTablePanel;
@@ -30,7 +22,6 @@ public class ResultChangeDialog extends JDialog {
     private final static int HEIGHT = 600;
 
     public ResultChangeDialog() {
-
         setTitle("Result output formatting");
         initComponents();
         setSize(WIDTH, HEIGHT);
@@ -47,8 +38,6 @@ public class ResultChangeDialog extends JDialog {
     }
 
     private void initComponents() {
-        java.awt.GridBagConstraints gridBagConstraints;
-
         MainToolbar = new javax.swing.JToolBar();
         filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0),
                 new java.awt.Dimension(32767, 0));

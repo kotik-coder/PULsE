@@ -14,6 +14,7 @@ import pulse.problem.schemes.solvers.SolverException;
 import pulse.problem.statements.model.DiathermicProperties;
 import pulse.problem.statements.model.ThermalProperties;
 import pulse.properties.Flag;
+import static pulse.properties.NumericPropertyKeyword.HEAT_LOSS_CONVECTIVE;
 import pulse.ui.Messages;
 
 /**
@@ -60,17 +61,31 @@ public class DiathermicMedium extends ClassicalProblem {
         for (int i = 0, size = output.dimension(); i < size; i++) {
 
             var key = output.getIndex(i);
+            Segment bounds = null;
+            double value = 0;
 
-            if (key == DIATHERMIC_COEFFICIENT) {
-
-                var bounds = Segment.boundsFrom(DIATHERMIC_COEFFICIENT);
-                final double etta = (double) properties.getDiathermicCoefficient().getValue();
-
-                output.setTransform(i, new StickTransform(bounds));
-                output.set(i, etta);
-                output.setParameterBounds(i, bounds);
-
+            switch (key) {
+                case DIATHERMIC_COEFFICIENT:
+                    bounds = Segment.boundsFrom(DIATHERMIC_COEFFICIENT);
+                    value = (double) properties.getDiathermicCoefficient().getValue();
+                    break;
+                case HEAT_LOSS_CONVECTIVE:
+                    bounds = Segment.boundsFrom(HEAT_LOSS_CONVECTIVE);
+                    value  = (double) properties.getConvectiveLosses().getValue();
+                    break;                    
+                case HEAT_LOSS:
+                    if(properties.areThermalPropertiesLoaded()) {
+                        value  = (double) properties.getHeatLoss().getValue();
+                        bounds = new Segment(0.0, properties.maxRadiationBiot() );
+                        break;   
+                    }    
+                default:
+                    continue;
             }
+            
+            output.setTransform(i, new StickTransform(bounds));
+            output.set(i, value);
+            output.setParameterBounds(i, bounds);
 
         }
 
@@ -90,9 +105,10 @@ public class DiathermicMedium extends ClassicalProblem {
                 case DIATHERMIC_COEFFICIENT:
                     properties.setDiathermicCoefficient(derive(DIATHERMIC_COEFFICIENT, params.inverseTransform(i)));
                     break;
+                case HEAT_LOSS_CONVECTIVE:
+                    properties.setConvectiveLosses(derive(HEAT_LOSS_CONVECTIVE, params.inverseTransform(i)));
+                    break;
                 default:
-                    continue;
-
             }
 
         }
