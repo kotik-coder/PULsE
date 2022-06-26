@@ -43,6 +43,14 @@ Click [<b>here</b>](https://www.draw.io/?lightbox=1&highlight=0000ff&edit=_blank
 
 ## More info
 
+This software is citable with the following DOI:
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6622739.svg)](https://doi.org/10.5281/zenodo.6622739)
+
+For a Journal reference, please use:
+
+[Lunev, A. et al. Software Impacts 6 (2020) 100044](https://doi.org/10.1016/j.simpa.2020.100044)
+
 Please refer to the software [GitHub Page](https://kotik-coder.github.io/) for a [quickstart guide](https://kotik-coder.github.io/PULsE_Quickstart_Guide.pdf), input file examples and download links.
 
 ## Buy me a coffee
