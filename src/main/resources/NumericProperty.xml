@@ -21,21 +21,31 @@
 		dimensionfactor="1" discreet="false" keyword="MODEL_WEIGHT"
 		maximum="1" minimum="0" primitive-type="double" value="0">
 	</NumericProperty>
+	<NumericProperty abbreviation="&lt;i&gt;n&lt;/i&gt;"
+		visible="true" descriptor="High-frequency waves (max)"
+		dimensionfactor="1" discreet="false" keyword="MAX_HIGH_FREQ_WAVES"
+		maximum="16" minimum="0" primitive-type="int" value="3">
+	</NumericProperty>
+	<NumericProperty abbreviation="&lt;i&gt;n&lt;/i&gt;"
+		visible="true" descriptor="Low-frequency waves (max)"
+		dimensionfactor="1" discreet="false" keyword="MAX_LOW_FREQ_WAVES"
+		maximum="16" minimum="0" primitive-type="int" value="0">
+	</NumericProperty>
 	<NumericProperty abbreviation="&lt;i&gt;A&lt;/i&gt;"
 		visible="true" descriptor="Baseline amplitude, &lt;i&gt;A&lt;/i&gt;"
 		dimensionfactor="1" discreet="false" keyword="BASELINE_AMPLITUDE"
-		maximum="10" minimum="0" primitive-type="double" value="0.1" default-search-variable="true">
+		maximum="5" minimum="0" primitive-type="double" value="0.1" default-search-variable="false">
 	</NumericProperty>
 	<NumericProperty abbreviation="&amp;phi;" visible="true"
 		descriptor="Baseline phase shift, &amp;phi;" dimensionfactor="1"
-		discreet="false" keyword="BASELINE_PHASE_SHIFT" maximum="6.28"
-		minimum="0" value="0.1" primitive-type="double"
+		discreet="false" keyword="BASELINE_PHASE_SHIFT" maximum="6.28318"
+		minimum="0.0" value="0.1" primitive-type="double"
 		default-search-variable="true">
 	</NumericProperty>
 	<NumericProperty abbreviation="&amp;omega;" visible="true"
 		descriptor="Baseline frequency, &amp;omega; (Hz)" dimensionfactor="1"
-		discreet="false" keyword="BASELINE_FREQUENCY" maximum="300"
-		minimum="1" primitive-type="double" value="50"
+		discreet="false" keyword="BASELINE_FREQUENCY" maximum="20000"
+		minimum="1E-4" primitive-type="double" value="50"
 		default-search-variable="true">
 	</NumericProperty>
 	<NumericProperty abbreviation="&amp;sigma;" visible="true"
@@ -311,7 +321,7 @@
 	<NumericProperty abbreviation="Fixed-point error"
 		visible="false" descriptor="Fixed-point iteration solver error"
 		dimensionfactor="1.0" keyword="NONLINEAR_PRECISION" maximum="1e-2"
-		minimum="1.0E-12" value="1e-8" primitive-type="double"
+		minimum="1.0E-12" value="1e-4" primitive-type="double"
 		discreet="false">
 	</NumericProperty>
 	<NumericProperty abbreviation="&lt;i&gt;N&lt;/i&gt;"
@@ -373,6 +383,20 @@
 		descriptor="Thermal conductivity, &lt;i&gt;&amp;#955;&lt;/i&gt; (W&amp;times;m&lt;sup&gt;-1&lt;/sup&gt;K&lt;sup&gt;-1&lt;/sup&gt;)"
 		dimensionfactor="1.0" keyword="CONDUCTIVITY" maximum="10000.0"
 		minimum="1.0" value="0.0" primitive-type="double" discreet="false"/>
+	<NumericProperty
+		abbreviation="&lt;i&gt;g&lt;/i&gt;"
+		visible="true"
+		descriptor="Energy exchange coefficient (solid), &lt;i&gt;g&lt;/i&gt;"
+		dimensionfactor="1.0" keyword="SOLID_EXCHANGE_COEFFICIENT" maximum = "1000.0"
+		minimum="0.01" value="1.0" primitive-type="double" discreet="false"
+		default-search-variable="true"/>
+	<NumericProperty
+		abbreviation="&lt;i&gt;g&lt;/i&gt;'"
+		visible="true"
+		descriptor="Energy exchange coefficient (gas), &lt;i&gt;g&lt;/i&gt;'"
+		dimensionfactor="1.0" keyword="GAS_EXCHANGE_COEFFICIENT" maximum = "10000.0"
+		minimum="0.01" value="10.0" primitive-type="double" discreet="false"
+		default-search-variable="true"/>
 	<NumericProperty abbreviation="&lt;i&gt;&amp;#949;&lt;/i&gt;"
 		visible="false"
 		descriptor="Hemispherical emissivity, &lt;i&gt;&amp;#949;&lt;/i&gt;"
@@ -440,7 +464,15 @@
 		dimensionfactor="1.0" keyword="BASELINE_INTERCEPT" maximum="20.0"
 		minimum="-20.0" value="0.0" primitive-type="double" discreet="false"
 		default-search-variable="false" />
-       	<NumericProperty 
+	<NumericProperty 
+                abbreviation="Bi&lt;sub&gt;g&lt;/sub&gt;"
+		visible="true"
+		descriptor="Heat losses (gas), Bi&lt;sub&gt;g&lt;/sub&gt;"
+		dimensionfactor="1.0" keyword="HEAT_LOSS_GAS" maximum="100.0"
+		minimum="0.0" value="0.2" primitive-type="double" discreet="false"
+		default-search-variable="true">
+        </NumericProperty>
+	<NumericProperty 
                 abbreviation="Bi (combined)"
 		visible="false"
 		descriptor="Heat losses (combined), Bi"
