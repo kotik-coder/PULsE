@@ -19,9 +19,6 @@ public class StandardTransformations {
 
         @Override
         public double transform(double a) {
-            if(a < 0) {
-                System.err.println(a);
-            }
             return log(a);
         }
 
