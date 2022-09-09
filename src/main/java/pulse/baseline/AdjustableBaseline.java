@@ -1,16 +1,16 @@
 package pulse.baseline;
 
-import static pulse.properties.NumericProperties.derive;
-import static pulse.properties.NumericProperty.requireType;
-import static pulse.properties.NumericPropertyKeyword.BASELINE_INTERCEPT;
 import java.util.List;
+import static pulse.properties.NumericPropertyKeyword.BASELINE_INTERCEPT;
 import java.util.Set;
+import pulse.math.Parameter;
 
 import pulse.math.ParameterVector;
-import pulse.math.Segment;
-import pulse.properties.Flag;
+import static pulse.properties.NumericProperties.derive;
 import pulse.properties.NumericProperty;
+import static pulse.properties.NumericProperty.requireType;
 import pulse.properties.NumericPropertyKeyword;
+import static pulse.properties.NumericPropertyKeyword.BASELINE_SLOPE;
 import pulse.util.PropertyHolder;
 
 /**
@@ -21,27 +21,31 @@ import pulse.util.PropertyHolder;
 public abstract class AdjustableBaseline extends Baseline {
 
     private double intercept;
+    private double slope;
 
     /**
      * Creates a flat baseline equal to the argument.
      *
      * @param intercept the constant baseline value.
      */
-    public AdjustableBaseline(double intercept) {
+    public AdjustableBaseline(double intercept, double slope) {
         this.intercept = intercept;
+        this.slope = slope;
     }
 
     /**
-     * @return the constant value of this {@code FlatBaseline}
+     * Calculates the linear function {@code g(x) = intercept + slope*time}
+     *
+     * @param x the argument of the linear function
+     * @return the result of this simple calculation
      */
     @Override
     public double valueAt(double x) {
-        return intercept;
+        return intercept + x * slope;
     }
 
     protected double mean(List<Double> x) {
-        double sum = x.stream().reduce((a, b) -> a + b).get();
-        return sum / x.size();
+        return x.stream().mapToDouble(d -> d).average().getAsDouble();
     }
 
     /**
@@ -70,6 +74,29 @@ public abstract class AdjustableBaseline extends Baseline {
     }
 
     /**
+     * Provides getter accessibility to the slope as a NumericProperty
+     *
+     * @return a NumericProperty derived from
+     * NumericPropertyKeyword.BASELINE_SLOPE with a value equal to slop
+     */
+    public NumericProperty getSlope() {
+        return derive(BASELINE_SLOPE, slope);
+    }
+
+    /**
+     * Checks whether {@code slope} is a baseline slope property and updates the
+     * respective value of this baseline.
+     *
+     * @param slope a {@code NumericProperty} of the {@code BASELINE_SLOPE} type
+     * @see set
+     */
+    public void setSlope(NumericProperty slope) {
+        requireType(slope, BASELINE_SLOPE);
+        this.slope = (double) slope.getValue();
+        firePropertyChanged(this, slope);
+    }
+
+    /**
      * Lists the {@code intercept} as accessible property for this
      * {@code FlatBaseline}.
      *
@@ -91,13 +118,17 @@ public abstract class AdjustableBaseline extends Baseline {
     }
 
     @Override
-    public void optimisationVector(ParameterVector output, List<Flag> flags) {
-        for (int i = 0, size = output.dimension(); i < size; i++) {
+    public void optimisationVector(ParameterVector output) {
+        for (Parameter p : output.getParameters()) {
 
-            var key = output.getIndex(i);
+            if (p != null) {
 
-            if (key == BASELINE_INTERCEPT) {
-                output.set(i, intercept, key);
+                var key = p.getIdentifier().getKeyword();
+
+                if (key == BASELINE_INTERCEPT) {
+                    p.setValue(intercept);
+                }
+
             }
 
         }
@@ -106,10 +137,12 @@ public abstract class AdjustableBaseline extends Baseline {
 
     @Override
     public void assign(ParameterVector params) {
-        for (int i = 0, size = params.dimension(); i < size; i++) {
+        for (Parameter p : params.getParameters()) {
 
-            if (params.getIndex(i) == BASELINE_INTERCEPT) {
-                setIntercept(derive(BASELINE_INTERCEPT, params.get(i)));
+            if (p.getIdentifier().getKeyword() == BASELINE_INTERCEPT) {
+                setIntercept(
+                        derive(BASELINE_INTERCEPT, p.inverseTransform())
+                );
             }
 
         }

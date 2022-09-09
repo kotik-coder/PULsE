@@ -87,7 +87,7 @@ public class Launcher {
             });
 
         } else {
-            System.out.println("An instance of PULsE is already running!");
+            System.out.println(Messages.getString("msg.running"));
         }
 
     }

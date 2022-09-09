@@ -7,8 +7,6 @@ import pulse.math.Segment;
 import pulse.problem.schemes.Grid;
 import pulse.problem.statements.Problem;
 import pulse.problem.statements.Pulse;
-import static pulse.properties.NumericProperties.derive;
-import static pulse.properties.NumericPropertyKeyword.PULSE_WIDTH;
 import pulse.tasks.SearchTask;
 
 /**
@@ -36,7 +34,7 @@ public class DiscretePulse {
      * <i>t</i><sub>c</sub>
      * is the time factor defined in the {@code Problem} class.
      */
-    private final static int WIDTH_TOLERANCE_FACTOR = 1000;
+    private final static int WIDTH_TOLERANCE_FACTOR = 10000;
 
     /**
      * This creates a one-dimensional discrete pulse on a {@code grid}.
@@ -58,7 +56,8 @@ public class DiscretePulse {
                 = Objects.requireNonNull(problem.specificAncestor(SearchTask.class),
                         "Problem has not been assigned to a SearchTask");
 
-        ExperimentalData data = ((SearchTask) ancestor).getExperimentalCurve();
+        ExperimentalData data = 
+                (ExperimentalData) ( ((SearchTask) ancestor).getInput() );
         init(data);
         
         pulse.addListener(e -> {
@@ -118,6 +117,8 @@ public class DiscretePulse {
         } else if(nominalWidth > resolvedWidth + EPS) {
             setDiscreteWidth(nominalWidth);
         } 
+        
+        invTotalEnergy = 1.0/totalEnergy();
         
     }
     

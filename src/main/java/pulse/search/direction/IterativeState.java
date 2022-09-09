@@ -5,6 +5,7 @@ import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.ITERATION;
 
 import pulse.properties.NumericProperty;
+import pulse.search.GeneralTask;
 
 public class IterativeState {
 
@@ -21,6 +22,10 @@ public class IterativeState {
     public IterativeState(IterativeState other) {
         this.parameters = new ParameterVector(other.parameters);
         this.cost = other.cost;
+    }
+    
+    public IterativeState(GeneralTask t) {
+        this.parameters = t.searchVector();
     }
     
     //default constructor

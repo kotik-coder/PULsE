@@ -1,10 +1,9 @@
 package pulse.search.statistics;
 
-import static java.lang.Math.abs;
 import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.OPTIMISER_STATISTIC;
+import pulse.search.GeneralTask;
 
-import pulse.tasks.SearchTask;
 
 /**
  * A statistical optimality criterion relying on absolute deviations or the L1
@@ -26,11 +25,13 @@ public class AbsoluteDeviations extends OptimiserStatistic {
     /**
      * Calculates the L1 norm statistic, which simply sums up the absolute
      * values of residuals.
+     * @param t
      */
     @Override
-    public void evaluate(SearchTask t) {
+    public void evaluate(GeneralTask t) {
         calculateResiduals(t);
-        final double statistic = getResiduals().stream().map(r -> abs(r[1])).reduce(Double::sum).get() / getResiduals().size();
+        final double statistic = getResiduals().stream()
+                .mapToDouble(a -> Math.abs(a)).average().getAsDouble();
         setStatistic(derive(OPTIMISER_STATISTIC, statistic));
     }
 

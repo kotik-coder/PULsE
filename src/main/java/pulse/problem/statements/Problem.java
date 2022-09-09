@@ -7,23 +7,25 @@ import static pulse.properties.NumericPropertyKeyword.TIME_SHIFT;
 
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import pulse.HeatingCurve;
 import pulse.baseline.Baseline;
+import pulse.baseline.FlatBaseline;
 import pulse.baseline.LinearBaseline;
 import pulse.input.ExperimentalData;
+import pulse.math.Parameter;
 import pulse.math.ParameterVector;
 import pulse.math.Segment;
-import pulse.math.transforms.InvLenSqTransform;
 import pulse.math.transforms.StickTransform;
 import pulse.problem.laser.DiscretePulse;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.Grid;
 import pulse.problem.schemes.solvers.Solver;
 import pulse.problem.schemes.solvers.SolverException;
+import static pulse.problem.schemes.solvers.SolverException.SolverExceptionType.ILLEGAL_PARAMETERS;
 import pulse.problem.statements.model.ThermalProperties;
-import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import static pulse.properties.NumericPropertyKeyword.DIFFUSIVITY;
@@ -57,9 +59,9 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
     private static boolean hideDetailedAdjustment = true;
     private ProblemComplexity complexity = ProblemComplexity.LOW;
 
-    private InstanceDescriptor<? extends Baseline> instanceDescriptor 
+    private InstanceDescriptor<? extends Baseline> instanceDescriptor
             = new InstanceDescriptor<>(
-            "Baseline Selector", Baseline.class);
+                    "Baseline Selector", Baseline.class);
 
     /**
      * Creates a {@code Problem} with default parameters (as found in the .XML
@@ -74,10 +76,8 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
     protected Problem() {
         initProperties();
         setHeatingCurve(new HeatingCurve());
-
-        instanceDescriptor.attemptUpdate(LinearBaseline.class.getSimpleName());
         addListeners();
-        initBaseline();
+        instanceDescriptor.attemptUpdate(LinearBaseline.class.getSimpleName());
     }
 
     /**
@@ -88,13 +88,10 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
      */
     public Problem(Problem p) {
         initProperties(p.getProperties().copy());
-
         setHeatingCurve(new HeatingCurve(p.getHeatingCurve()));
         curve.setNumPoints(p.getHeatingCurve().getNumPoints());
-
-        instanceDescriptor.attemptUpdate(p.getBaseline().getClass().getSimpleName());
+        setBaseline(p.getBaseline());
         addListeners();
-        setBaseline( p.getBaseline().copy() );
     }
 
     public abstract Problem copy();
@@ -133,7 +130,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
     public final List<DifferenceScheme> availableSolutions() {
         var allSchemes = Reflexive.instancesOf(DifferenceScheme.class);
         return allSchemes.stream().filter(scheme -> scheme instanceof Solver)
-                .filter(s -> Arrays.asList(s.domain()).contains(this.getClass()) )
+                .filter(s -> Arrays.asList(s.domain()).contains(this.getClass()))
                 .collect(Collectors.toList());
     }
 
@@ -165,7 +162,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
      */
     public final void setPulse(Pulse pulse) {
         this.pulse = pulse;
-        pulse.setParent(this);               
+        this.pulse.setParent(this);
     }
 
     /**
@@ -176,7 +173,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
      * @param c the {@code ExperimentalData} object
      */
     public void retrieveData(ExperimentalData c) {
-        baseline.fitTo(c); // used to estimate the floor of the signal range
+        baseline.fitTo(c); 
         estimateSignalRange(c);
         updateProperties(this, c.getMetadata());
         properties.useTheoreticalEstimates(c);
@@ -194,9 +191,11 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
      * @see pulse.input.ExperimentalData.maxTemperature()
      */
     public void estimateSignalRange(ExperimentalData c) {
-        var maxPoint = c.maxAdjustedSignal();
-        final double signalHeight = maxPoint.getY() - baseline.valueAt(maxPoint.getX());
-        properties.setMaximumTemperature(derive(MAXTEMP, signalHeight));
+        var maxPoint = c.getHalfTimeCalculator().getFilteredMaximum();
+        var flatBaseline = new FlatBaseline();
+        flatBaseline.fitTo(c);
+        final double signalSpan = maxPoint.getY() - flatBaseline.valueAt(maxPoint.getX());
+        properties.setMaximumTemperature(derive(MAXTEMP, signalSpan));
     }
 
     /**
@@ -217,29 +216,25 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
 	 * class, or putting them in the XML file
      */
     @Override
-    public void optimisationVector(ParameterVector output, List<Flag> flags) {
+    public void optimisationVector(ParameterVector output) {
 
-        baseline.optimisationVector(output, flags);
+        baseline.optimisationVector(output);
 
-        for (int i = 0, size = output.dimension(); i < size; i++) {
+        for (Parameter p : output.getParameters()) {
 
-            var key = output.getIndex(i);
+            var key = p.getIdentifier().getKeyword();
 
             Segment bounds = Segment.boundsFrom(key);
-            double value = 0;
-            
+            double value;
+
             switch (key) {
                 case THICKNESS:
                     value = (double) properties.getSampleThickness().getValue();
                     break;
                 case DIFFUSIVITY:
-                    final double a = (double) properties.getDiffusivity().getValue();
-                    output.setTransform(i, new InvLenSqTransform(properties));
-                    bounds = new Segment(0.01 * a, 20.0 * a);
-                    output.setParameterBounds(i, bounds);
-                    output.set(i, a);
-                    //custom transform here -- skip assigning StickTransform
-                    continue;
+                    value = (double) properties.getDiffusivity().getValue();
+                    bounds = new Segment(0.01 * value, 20.0 * value);
+                    break;
                 case MAXTEMP:
                     final double signalHeight = (double) properties.getMaximumTemperature().getValue();
                     bounds = new Segment(0.5 * signalHeight, 1.5 * signalHeight);
@@ -247,7 +242,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
                     break;
                 case HEAT_LOSS:
                     value = (double) properties.getHeatLoss().getValue();
-                    output.setTransform(i, new StickTransform(bounds));
+                    p.setTransform(new StickTransform(bounds));
                     break;
                 case TIME_SHIFT:
                     double magnitude = 0.25 * properties.timeFactor();
@@ -257,11 +252,11 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
                 default:
                     continue;
             }
-            
-            output.setTransform(i, new StickTransform(bounds));
-            output.setParameterBounds(i, bounds);
-            output.set(i, value);
-            
+
+            p.setTransform(new StickTransform(bounds));
+            p.setBounds(bounds);
+            p.setValue(value);
+
         }
 
     }
@@ -276,25 +271,25 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
     @Override
     public void assign(ParameterVector params) throws SolverException {
         baseline.assign(params);
-        
-        List<NumericProperty> malformedList = params.findMalformedElements();
-        
-        if(!malformedList.isEmpty()) {
-            StringBuilder sb = new StringBuilder("Cannot assign values: ");
-            malformedList.forEach(p -> 
-                sb.append(String.format("%n %-25s", p.toString()))
-            );
-            throw new SolverException(sb.toString());
-        }
-        
-        for (int i = 0, size = params.dimension(); i < size; i++) {
 
-            double value = params.inverseTransform(i);
-            var key = params.getIndex(i);
+        List<NumericProperty> malformedList = params.findMalformedElements();
+
+        if (!malformedList.isEmpty()) {
+            StringBuilder sb = new StringBuilder("Cannot assign values: ");
+            malformedList.forEach(p
+                    -> sb.append(String.format("%n %-25s", p.toString()))
+            );
+            throw new SolverException(sb.toString(), ILLEGAL_PARAMETERS);
+        }
+
+        for (Parameter p : params.getParameters()) {
+
+            double value = p.inverseTransform();
+            var key = p.getIdentifier().getKeyword();
 
             switch (key) {
                 case THICKNESS:
-                    properties.setSampleThickness(derive(THICKNESS, value ));
+                    properties.setSampleThickness(derive(THICKNESS, value));
                     break;
                 case DIFFUSIVITY:
                     properties.setDiffusivity(derive(DIFFUSIVITY, value));
@@ -412,16 +407,10 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
      * @see pulse.baseline.Baseline.apply(Baseline)
      */
     public final void setBaseline(Baseline baseline) {
-        this.baseline = baseline;
-        curve.apply(baseline);
-
-        baseline.setParent(this);
-
-        var searchTask = (SearchTask) this.specificAncestor(SearchTask.class);
-        if (searchTask != null) {
-            var experimentalData = searchTask.getExperimentalCurve();
-            baseline.fitTo(experimentalData);
-        }
+        instanceDescriptor.setSelectedDescriptor(baseline.getClass().getSimpleName());
+        this.baseline = baseline.copy();
+        this.baseline.setParent(this);
+        curve.apply(this.baseline);
     }
 
     public final InstanceDescriptor<? extends Baseline> getBaselineDescriptor() {
@@ -429,8 +418,14 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
     }
 
     private void initBaseline() {
-        var baseline = instanceDescriptor.newInstance(Baseline.class);
-        setBaseline(baseline);
+        setBaseline(instanceDescriptor.newInstance(Baseline.class));
+        var searchTask = (SearchTask) this.specificAncestor(SearchTask.class);
+        if (searchTask != null) {
+            var experimentalData = (ExperimentalData) searchTask.getInput();
+            Executors.newSingleThreadExecutor().submit(()
+                    -> baseline.fitTo(experimentalData)
+            );
+        }
         parameterListChanged();
     }
 

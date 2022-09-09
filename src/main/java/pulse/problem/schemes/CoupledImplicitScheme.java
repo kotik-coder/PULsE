@@ -6,6 +6,7 @@ import java.util.Set;
 
 import pulse.problem.schemes.rte.RTECalculationStatus;
 import pulse.problem.schemes.solvers.SolverException;
+import static pulse.problem.schemes.solvers.SolverException.SolverExceptionType.RTE_SOLVER_ERROR;
 import pulse.problem.statements.ParticipatingMedium;
 import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
@@ -58,7 +59,8 @@ public abstract class CoupledImplicitScheme extends ImplicitScheme {
     public final void setCalculationStatus(RTECalculationStatus calculationStatus) throws SolverException {
         this.calculationStatus = calculationStatus;
         if (calculationStatus != RTECalculationStatus.NORMAL) {
-            throw new SolverException(calculationStatus.toString());
+            throw new SolverException(calculationStatus.toString(), 
+                    RTE_SOLVER_ERROR);
         }
     }
     

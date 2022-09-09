@@ -2,6 +2,7 @@ package pulse.math.linear;
 
 import static java.lang.Math.abs;
 import static java.lang.Math.sqrt;
+import java.util.List;
 import static pulse.math.linear.ArithmeticOperations.DIFFERENCE;
 import static pulse.math.linear.ArithmeticOperations.DIFF_SQUARED;
 import static pulse.math.linear.ArithmeticOperations.PRODUCT;
@@ -63,7 +64,7 @@ public class Vector {
      *
      * @return the integer dimension
      */
-    public int dimension() {
+    public final int dimension() {
         return x.length;
     }
 
@@ -121,7 +122,7 @@ public class Vector {
         }
         return v;
     }
-
+    
     /**
      * Component-wise vector multiplication
      */

@@ -32,8 +32,10 @@ public class InstanceCellEditor extends DefaultCellEditor {
                 try {
                     descriptor.attemptUpdate(e.getItem());
                 } catch(NullPointerException npe) {
-                    System.out.println("Error updating " + descriptor.getDescriptor(false) 
-                            + ". Cannot be set to " + e.getItem());
+                    String text = "Error updating " + descriptor.getDescriptor(false)
+                            + ". Cannot be set to " + e.getItem();
+                    System.out.println(text);
+                    npe.printStackTrace();
                 }
             }
         });

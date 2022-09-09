@@ -14,8 +14,10 @@ import static pulse.util.Reflexive.instancesOf;
 
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
@@ -32,9 +34,11 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeSelectionModel;
 import javax.swing.tree.TreePath;
+import pulse.input.ExperimentalData;
 
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.statements.Problem;
+import pulse.tasks.Calculation;
 import pulse.tasks.SearchTask;
 import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.TaskSelectionEvent;
@@ -44,6 +48,7 @@ import pulse.ui.components.listeners.ProblemSelectionEvent;
 import pulse.ui.components.panels.ProblemToolbar;
 import pulse.ui.components.panels.SettingsToolBar;
 import pulse.ui.frames.TaskControlFrame.Mode;
+import pulse.ui.frames.dialogs.ProgressDialog;
 
 @SuppressWarnings("serial")
 public class ProblemStatementFrame extends JInternalFrame {
@@ -108,22 +113,25 @@ public class ProblemStatementFrame extends JInternalFrame {
         /*
 		 * Scheme list and scroller
          */
-        schemeSelectionList = new JList<DifferenceScheme>();
+        schemeSelectionList = new JList<>();
         schemeSelectionList.setSelectionMode(SINGLE_SELECTION);
-        schemeSelectionList.setModel(new DefaultListModel<DifferenceScheme>());
+        schemeSelectionList.setModel(new DefaultListModel<>());
 
         schemeSelectionList.addListSelectionListener((ListSelectionEvent arg0) -> {
-            if (TaskControlFrame.getInstance().getMode() != Mode.PROBLEM) {
-                return;
-            }
+            if (TaskControlFrame.getInstance().getMode() == Mode.PROBLEM) {
 
-            var selectedValue = schemeSelectionList.getSelectedValue();
+                var selectedValue = schemeSelectionList.getSelectedValue();
 
-            if (arg0.getValueIsAdjusting() || !(selectedValue instanceof DifferenceScheme)) {
-                ((DefaultTableModel) schemeTable.getModel()).setRowCount(0);
-            }
-            else {
-                changeSchemes(selectedValue);
+                if (selectedValue != null) {
+
+                    if (arg0.getValueIsAdjusting() || !(selectedValue instanceof DifferenceScheme)) {
+                        ((DefaultTableModel) schemeTable.getModel()).setRowCount(0);
+                    } else {
+                        changeSchemes(selectedValue);
+                    }
+
+                }
+
             }
 
         });
@@ -195,7 +203,7 @@ public class ProblemStatementFrame extends JInternalFrame {
                 //for all tasks
                 instance.getTaskList().stream().
                         //select the problem statement of the current calculation
-                        map(t -> t.getCurrentCalculation().getProblem())
+                        map(t -> ((Calculation) t.getResponse()).getProblem())
                         //that is non-null
                         .filter(problem -> problem != null)
                         //for each problem, update its properties in a separete thread
@@ -215,13 +223,9 @@ public class ProblemStatementFrame extends JInternalFrame {
     }
 
     private void update(SearchTask selectedTask) {
-
-        if(selectedTask == null)
-            return;
-        
-        var calc = selectedTask.getCurrentCalculation();
-        var selectedProblem = selectedTask == null ? null : calc.getProblem();
-        var selectedScheme = selectedTask == null ? null : calc.getScheme();
+        var calc = (Calculation) selectedTask.getResponse();
+        var selectedProblem = calc.getProblem();
+        var selectedScheme = calc.getScheme();
 
         // problem
         if (selectedProblem == null) {
@@ -237,95 +241,139 @@ public class ProblemStatementFrame extends JInternalFrame {
             setSelectedElement(schemeSelectionList, selectedScheme);
             schemeTable.setPropertyHolder(selectedScheme);
         }
-
     }
 
     private void changeSchemes(DifferenceScheme newScheme) {
         var instance = TaskManager.getManagerInstance();
         var selectedTask = instance.getSelectedTask();
+
+        var schemeLoaderTracker = new ProgressDialog();
+        schemeLoaderTracker.setTitle("Initialising solution schemes...");
+        schemeLoaderTracker.setLocationRelativeTo(null);
+        schemeLoaderTracker.setAlwaysOnTop(true);
+
+        List<Callable<DifferenceScheme>> callableList;
+
         if (instance.isSingleStatement()) {
 
-            var callableList = instance.getTaskList().stream().map(t -> new Callable<DifferenceScheme>() {
+            callableList = instance.getTaskList().stream().map(t -> new Callable<DifferenceScheme>() {
                 @Override
                 public DifferenceScheme call() throws Exception {
                     changeScheme(t, newScheme);
-                    return t.getCurrentCalculation().getScheme();
+                    schemeLoaderTracker.incrementProgress();
+                    return ((Calculation) t.getResponse()).getScheme();
                 }
 
             }).collect(Collectors.toList());
 
+        } else {
+            callableList = Arrays.asList(() -> {
+                changeScheme(selectedTask, newScheme);
+                return selectedTask.getResponse().getScheme();
+            });
+        }
+
+        schemeLoaderTracker.trackProgress(callableList.size() - 1);
+
+        CompletableFuture.runAsync(() -> {
             try {
                 schemeListExecutor.invokeAll(callableList);
             } catch (InterruptedException ex) {
-                Logger.getLogger(ProblemStatementFrame.class.getName()).log(Level.SEVERE, null, ex);
+                ex.printStackTrace();
             }
+        }).thenRun(() -> {
 
-        } else {
-            changeScheme(selectedTask, newScheme);
-        }
-        schemeTable.setPropertyHolder(selectedTask.getCurrentCalculation().getScheme());
-        if (selectedTask.getCurrentCalculation().getProblem().getComplexity() == HIGH) {
-            showMessageDialog(null, getString("complexity.warning"), "High complexity", INFORMATION_MESSAGE);
-        }
+            var c = (Calculation) selectedTask.getResponse();
+            schemeTable.setPropertyHolder(c.getScheme());
+            if (c.getProblem().getComplexity() == HIGH) {
+                showMessageDialog(null, getString("complexity.warning"),
+                        "High complexity", INFORMATION_MESSAGE);
+            }
+            Executors.newSingleThreadExecutor().submit(() -> ProblemToolbar.plot(null));
+        });
     }
 
     private void changeProblems(Problem newlySelectedProblem, Object source) {
 
         var instance = TaskManager.getManagerInstance();
-        var selectedTask = instance.getSelectedTask();
+        var task = instance.getSelectedTask();
+        var selectedCalc = ((Calculation) task.getResponse());
+
+        var problemLoaderTracker = new ProgressDialog();
+        problemLoaderTracker.setTitle("Changing problem statements...");
+        problemLoaderTracker.setLocationRelativeTo(null);
+        problemLoaderTracker.setAlwaysOnTop(true);
+
+        List<Callable<Problem>> callableList;
 
         if (source != instance) {
+            //apply to all tasks
             if (instance.isSingleStatement()) {
 
-                var callableList = instance.getTaskList().stream().map(t -> new Callable<Problem>() {
+                callableList = instance.getTaskList().stream().map(t -> new Callable<Problem>() {
                     @Override
                     public Problem call() throws Exception {
                         changeProblem(t, newlySelectedProblem);
-                        return t.getCurrentCalculation().getProblem();
+                        var result = ((Calculation) t.getResponse()).getProblem();
+                        problemLoaderTracker.incrementProgress();
+                        return result;
                     }
 
                 }).collect(Collectors.toList());
+
+            } //apply only to this task
+            else {
+                callableList = Arrays.asList(() -> {
+                    changeProblem(task, newlySelectedProblem);
+                    return ((Calculation) task.getResponse()).getProblem();
+                });
+            }
+
+            problemLoaderTracker.trackProgress(callableList.size() - 1);
+
+            CompletableFuture.runAsync(() -> {
                 try {
                     problemListExecutor.invokeAll(callableList);
                 } catch (InterruptedException ex) {
-                    Logger.getLogger(ProblemStatementFrame.class.getName()).log(Level.SEVERE, null, ex);
+                    ex.printStackTrace();
                 }
-
-            } else {
-                changeProblem(selectedTask, newlySelectedProblem);
             }
+            ).thenRun(() -> {
+                problemTable.setPropertyHolder(selectedCalc.getProblem());
+                // after problem is selected for this task, show available difference schemes
+                var defaultModel = (DefaultListModel<DifferenceScheme>) (schemeSelectionList.getModel());
+                defaultModel.clear();
+                var schemes = newlySelectedProblem.availableSolutions();
+                schemes.forEach(s -> defaultModel.addElement(s));
+                selectDefaultScheme(schemeSelectionList, selectedCalc.getProblem());
+                schemeSelectionList.setToolTipText(null);
+            });
 
         }
-
-        problemTable.setPropertyHolder(selectedTask.getCurrentCalculation().getProblem());
-        // after problem is selected for this task, show available difference schemes
-        var defaultModel = (DefaultListModel<DifferenceScheme>) (schemeSelectionList.getModel());
-        defaultModel.clear();
-        var schemes = newlySelectedProblem.availableSolutions();
-        schemes.forEach(s -> defaultModel.addElement(s));
-        selectDefaultScheme(schemeSelectionList, selectedTask.getCurrentCalculation().getProblem());
-        schemeSelectionList.setToolTipText(null);
-
-        Executors.newSingleThreadExecutor().submit(() -> ProblemToolbar.plot(null));
 
     }
 
     private void changeProblem(SearchTask task, Problem newProblem) {
-        var data = task.getExperimentalCurve();
-        var calc = task.getCurrentCalculation();
+        var data = (ExperimentalData) task.getInput();
+        var calc = (Calculation) task.getResponse();
         var oldProblem = calc.getProblem(); // stores previous information
         var np = newProblem.copy();
 
         if (oldProblem != null) {
             np.initProperties(oldProblem.getProperties().copy());
             np.getPulse().initFrom(oldProblem.getPulse());
+            np.setBaseline(oldProblem.getBaseline());
+            np.updateProperties(np, data.getMetadata());
         }
 
         calc.setProblem(np, data); // copies information from old problem to new problem type
 
+        if (oldProblem == null) {
+            np.retrieveData(data);
+        }
+
         task.checkProblems(true);
         toolbar.highlightButtons(!np.isReady());
-
     }
 
     private static void selectDefaultScheme(JList<DifferenceScheme> list, Problem p) {
@@ -348,8 +396,8 @@ public class ProblemStatementFrame extends JInternalFrame {
     private void changeScheme(SearchTask task, DifferenceScheme newScheme) {
 
         // TODO
-        var calc = task.getCurrentCalculation();
-        var data = task.getExperimentalCurve();
+        var calc = (Calculation) task.getResponse();
+        var data = (ExperimentalData) task.getInput();
 
         if (calc.getScheme() == null) {
             calc.setScheme(newScheme.copy(), data);

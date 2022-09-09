@@ -2,7 +2,6 @@ package pulse.search.direction;
 
 import static pulse.properties.NumericProperties.def;
 import static pulse.properties.NumericProperties.derive;
-import static pulse.properties.NumericProperties.isDiscrete;
 import static pulse.properties.NumericProperty.requireType;
 import static pulse.properties.NumericPropertyKeyword.GRADIENT_RESOLUTION;
 
@@ -14,15 +13,15 @@ import pulse.problem.schemes.solvers.SolverException;
 import pulse.properties.NumericProperties;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
-import pulse.tasks.SearchTask;
+import pulse.search.GeneralTask;
 
 public abstract class GradientBasedOptimiser extends PathOptimiser {
 
     private double gradientResolution;
     private double gradientStep;
-    
-    private final static double resolutionHigh = (double)def(GRADIENT_RESOLUTION).getValue();
-    private final static double resolutionLow = 5E-2; //TODO 
+
+    private final static double RESOLUTION_HIGH = (double) def(GRADIENT_RESOLUTION).getValue();
+    private final static double RESOLUTION_LOW = 5E-2; //TODO 
 
     /**
      * Abstract constructor that sets up the default
@@ -34,6 +33,7 @@ public abstract class GradientBasedOptimiser extends PathOptimiser {
      */
     protected GradientBasedOptimiser() {
         super();
+        this.gradientResolution = gradientStep = RESOLUTION_HIGH;
     }
 
     /**
@@ -44,9 +44,11 @@ public abstract class GradientBasedOptimiser extends PathOptimiser {
      *
      * @see pulse.properties.Flag.defaultList()
      */
+    @Override
     public void reset() {
         super.reset();
-        gradientResolution = (double) def(GRADIENT_RESOLUTION).getValue();
+        gradientResolution = RESOLUTION_HIGH;
+        gradientStep = gradientResolution;
     }
 
     /**
@@ -74,26 +76,29 @@ public abstract class GradientBasedOptimiser extends PathOptimiser {
      * @return the gradient of the target function
      * @throws SolverException
      */
-    public Vector gradient(SearchTask task) throws SolverException {
+    public Vector gradient(GeneralTask task) throws SolverException {
 
         final var params = task.searchVector();
+        final var pVector = params.toVector();
         var grad = new Vector(params.dimension());
-
-        for (int i = 0; i < params.dimension(); i++) {
-            NumericProperty defProp = NumericProperties.def(params.getIndex(i));            
-            double dx = dx(defProp, params.get(i));
+        final var ps = params.getParameters();
+        
+        for (int i = 0, size = params.dimension(); i < size; i++) {
+            var key = ps.get(i).getIdentifier().getKeyword();
+            var defProp = key != null ? NumericProperties.def(key) : null;
+            double dx = dx(defProp, ps.get(i).inverseTransform());
 
             final var shift = new Vector(params.dimension());
             shift.set(i, 0.5 * dx);
 
-            task.assign(new ParameterVector(params, params.sum(shift)));
-            final double ss2 = task.solveProblemAndCalculateCost();
+            var shiftVector = new ParameterVector(params, pVector.sum(shift));
+            task.assign(shiftVector);
+            final double ss2 = task.objectiveFunction();
 
-            task.assign(new ParameterVector(params, params.subtract(shift)));
-            final double ss1 = task.solveProblemAndCalculateCost();
+            task.assign(new ParameterVector(params, pVector.subtract(shift)));
+            final double ss1 = task.objectiveFunction();
 
             grad.set(i, (ss2 - ss1) / dx);
-
         }
 
         task.assign(params);
@@ -101,35 +106,29 @@ public abstract class GradientBasedOptimiser extends PathOptimiser {
         return grad;
 
     }
-    
+
     /**
-     * Calculates the gradient step. Ensures dx is not zero even if the parameter values is.
-     * Applicable to discrete properties.
-     * @param defProp the default property 
+     * Calculates the gradient step. Ensures dx is not zero even if the
+     * parameter values is. Applicable to discrete properties.
+     *
+     * @param defProp the default property
      * @param value the value of the parameter under the optimisation vector
      * @return the gradient step
      */
-
     protected double dx(NumericProperty defProp, double value) {
-        boolean discrete = defProp.isDiscrete();
-        return (discrete ? resolutionLow : resolutionHigh)
-                * (Math.abs(value) < 1E-20
-                ? defProp.getMaximum().doubleValue()
-                : value);
-    }
+        double result;
 
-    /**
-     * Checks whether a discrete property is being optimised and selects the
-     * gradient step best suited to the optimisation strategy. Should be called
-     * before creating the optimisation path.
-     *
-     * @param task the search task defining the search vector
-     */
-    public void configure(SearchTask task) {
-        var params = task.searchVector();
-        boolean discreteGradient = params.getIndices().stream().anyMatch(index -> isDiscrete(index));
-        final double dxGrid = task.getCurrentCalculation().getScheme().getGrid().getXStep();
-        gradientStep = discreteGradient ? dxGrid : (double) getGradientResolution().getValue();
+        if (defProp == null) {
+            result = gradientResolution * (Math.abs(value) < 1E-20 ? 0.01 : value);
+        } else {
+            boolean discrete = defProp.isDiscrete();
+            result = (discrete ? RESOLUTION_LOW : gradientResolution)
+                    * (Math.abs(value) < 1E-20
+                    ? defProp.getMaximum().doubleValue()
+                    : value);
+        }
+
+        return result;
     }
 
     public void setGradientResolution(NumericProperty resolution) {

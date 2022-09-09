@@ -19,6 +19,7 @@
 package pulse.search.direction.pso;
 
 import pulse.problem.schemes.solvers.SolverException;
+import pulse.search.GeneralTask;
 import pulse.tasks.SearchTask;
 
 /**
@@ -43,10 +44,10 @@ public class Particle {
         this.current = state;
     }
 
-    public void evaluate(SearchTask t) throws SolverException {
+    public void evaluate(GeneralTask t) throws SolverException {
         var params = t.searchVector();
         t.assign(current.getPosition());
-        current.setFitness(t.solveProblemAndCalculateCost());
+        current.setFitness(t.objectiveFunction());
         t.assign(params);
 
         if (current.isBetterThan(pbest)) {

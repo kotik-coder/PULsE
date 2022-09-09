@@ -15,12 +15,14 @@ import java.util.concurrent.Executors;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import pulse.input.ExperimentalData;
 
 import pulse.input.InterpolationDataset;
 import pulse.input.InterpolationDataset.StandartType;
 import pulse.io.readers.MetaFilePopulator;
 import pulse.io.readers.ReaderManager;
 import pulse.problem.laser.NumericPulse;
+import pulse.tasks.Calculation;
 import pulse.tasks.SearchTask;
 import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.TaskRepositoryEvent;
@@ -99,7 +101,7 @@ public class DataLoader {
 
         // attempt to fill metadata and problem
         for (SearchTask task : instance.getTaskList()) {
-            var data = task.getExperimentalCurve();
+            var data = (ExperimentalData) task.getInput();
 
             try {
                 handler.populate(file, data.getMetadata());
@@ -109,7 +111,7 @@ public class DataLoader {
                 e.printStackTrace();
             }
 
-            var p = task.getCurrentCalculation().getProblem();
+            var p = ( (Calculation) task.getResponse() ).getProblem();
             if (p != null) {
                 p.retrieveData(data);
             }
@@ -146,7 +148,7 @@ public class DataLoader {
 
                             if (task != null) {
                                 pool.submit(() -> {
-                                    var metadata = task.getExperimentalCurve().getMetadata();
+                                    var metadata = ((ExperimentalData) task.getInput()).getMetadata();
                                     metadata.setPulseData(pulseData);
                                     metadata.getPulseDescriptor()
                                             .setSelectedDescriptor(

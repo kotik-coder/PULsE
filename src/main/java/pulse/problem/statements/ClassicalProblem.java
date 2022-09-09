@@ -1,7 +1,7 @@
 package pulse.problem.statements;
 
-import java.util.List;
 import java.util.Set;
+import pulse.math.Parameter;
 import pulse.math.ParameterVector;
 import pulse.math.Segment;
 import pulse.math.transforms.StickTransform;
@@ -9,7 +9,6 @@ import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.solvers.ImplicitLinearisedSolver;
 import pulse.problem.schemes.solvers.SolverException;
 import pulse.problem.statements.model.ThermalProperties;
-import pulse.properties.Flag;
 import static pulse.properties.NumericProperties.def;
 import static pulse.properties.NumericProperties.derive;
 import pulse.properties.NumericProperty;
@@ -95,19 +94,18 @@ public class ClassicalProblem extends Problem {
     }
 
     @Override
-    public void optimisationVector(ParameterVector output, List<Flag> flags) {
+    public void optimisationVector(ParameterVector output) {
 
-        super.optimisationVector(output, flags);
+        super.optimisationVector(output);
 
-        for (int i = 0, size = output.dimension(); i < size; i++) {
+        for (Parameter p : output.getParameters()) {
 
-            var key = output.getIndex(i);
+            var key = p.getIdentifier().getKeyword();
 
             if (key == SOURCE_GEOMETRIC_FACTOR) {
                 var bounds = Segment.boundsFrom(SOURCE_GEOMETRIC_FACTOR);
-                output.setParameterBounds(i, bounds);
-                output.setTransform(i, new StickTransform(bounds));
-                output.set(i, bias);
+                p.setTransform(new StickTransform(bounds));
+                p.setValue(bias);
             }
 
         }
@@ -117,10 +115,10 @@ public class ClassicalProblem extends Problem {
     @Override
     public void assign(ParameterVector params) throws SolverException {
         super.assign(params);
-        for (int i = 0, size = params.dimension(); i < size; i++) {
+        for (Parameter p : params.getParameters()) {
 
-            double value = params.get(i);
-            var key = params.getIndex(i);
+            double value = p.inverseTransform();
+            var key = p.getIdentifier().getKeyword();
 
             if (key == SOURCE_GEOMETRIC_FACTOR) {
                 setGeometricFactor(derive(SOURCE_GEOMETRIC_FACTOR, value));

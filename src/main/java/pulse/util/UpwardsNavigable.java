@@ -19,21 +19,21 @@ import pulse.tasks.SearchTask;
 public abstract class UpwardsNavigable implements Descriptive {
 
     private UpwardsNavigable parent;
-    private List<HierarchyListener> listeners = new ArrayList<HierarchyListener>();
+    private final List<HierarchyListener> listeners = new ArrayList<>();
 
-    public void removeHierarchyListeners() {
+    public final void removeHierarchyListeners() {
         this.listeners.clear();
     }
 
-    public void removeHierarchyListener(HierarchyListener l) {
+    public final void removeHierarchyListener(HierarchyListener l) {
         this.listeners.remove(l);
     }
 
-    public void addHierarchyListener(HierarchyListener l) {
+    public final void addHierarchyListener(HierarchyListener l) {
         this.listeners.add(l);
     }
 
-    public List<HierarchyListener> getHierarchyListeners() {
+    public final List<HierarchyListener> getHierarchyListeners() {
         return listeners;
     }
 
@@ -76,7 +76,6 @@ public abstract class UpwardsNavigable implements Descriptive {
         if (aClass.equals(this.getClass())) {
             return this;
         }
-        var parent = this.getParent();
         UpwardsNavigable result = null;
         if (parent != null) {
             result = parent.getClass().equals(aClass) ? parent : parent.specificAncestor(aClass);

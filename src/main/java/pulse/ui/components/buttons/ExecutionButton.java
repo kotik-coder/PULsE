@@ -50,12 +50,12 @@ public class ExecutionButton extends JButton {
             }
             var problematicTask = instance.getTaskList().stream().filter(t -> {
                 t.checkProblems(true);
-                return t.getCurrentCalculation().getStatus() == INCOMPLETE;
+                return t.getStatus() == INCOMPLETE;
             }).findFirst();
             if (problematicTask.isPresent()) {
                 var t = problematicTask.get();
                 showMessageDialog(getWindowAncestor((Component) e.getSource()),
-                        t + " is " + t.getCurrentCalculation().getStatus().getMessage(), "Problems found",
+                        t + " is " + t.getStatus().getMessage(), "Problems found",
                         ERROR_MESSAGE);
             } else {
                 instance.executeAll();

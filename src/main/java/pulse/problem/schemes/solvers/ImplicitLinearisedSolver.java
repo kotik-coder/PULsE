@@ -42,17 +42,19 @@ import pulse.properties.NumericProperty;
  * both the heat equation and the boundary conditions.
  * </p>
  *
+ * @param <T> a subclass of ClassicalProblem
  * @see super.solve(Problem)
  */
-public class ImplicitLinearisedSolver extends ImplicitScheme implements Solver<ClassicalProblem> {
-
-    private double Bi1HTAU;
+public class ImplicitLinearisedSolver<T extends ClassicalProblem> extends ImplicitScheme 
+        implements Solver<T> {
 
     private int N;
-    private double tau;
-
-    private double HH;
-    private double _2HTAU;
+    
+    protected double Bi1HTAU;
+    protected double tau;
+    protected double HH;
+    protected double _2HTAU;
+    
     private double zeta;
 
     public ImplicitLinearisedSolver() {

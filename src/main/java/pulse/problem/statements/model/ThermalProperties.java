@@ -66,6 +66,7 @@ public class ThermalProperties extends PropertyHolder {
         this.a = p.a;
         this.Bi = p.Bi;
         this.T = p.T;
+        this.signalHeight = p.signalHeight;
         this.emissivity = p.emissivity;
         initListeners();
         fill();
@@ -280,7 +281,7 @@ public class ThermalProperties extends PropertyHolder {
     }
 
     public final double thermalConductivity() {
-        return a * cP * rho;
+        return a * getThermalMass();
     }
 
     public NumericProperty getThermalConductivity() {
@@ -327,6 +328,10 @@ public class ThermalProperties extends PropertyHolder {
     public double timeFactor() {
         return l * l / a;
     }
+    
+    public double getThermalMass() {
+        return cP * rho;
+    }
 
     /**
      * Calculates the half-rise time <i>t</i><sub>1/2</sub> of {@code c} and
@@ -338,7 +343,7 @@ public class ThermalProperties extends PropertyHolder {
      * @see pulse.input.ExperimentalData.halfRiseTime()
      */
     public void useTheoreticalEstimates(ExperimentalData c) {
-        final double t0 = c.getHalfTime();
+        final double t0 = c.getHalfTimeCalculator().getHalfTime();
         this.a = PARKERS_COEFFICIENT * l * l / t0;
         if (areThermalPropertiesLoaded()) {
             Bi = radiationBiot();
@@ -352,7 +357,7 @@ public class ThermalProperties extends PropertyHolder {
     public double maximumHeating(Pulse2D pulse) {
         final double Q = (double) pulse.getLaserEnergy().getValue();
         final double dLas = (double) pulse.getSpotDiameter().getValue();
-        return 4.0 * emissivity * Q / (PI * dLas * dLas * l * cP * rho);
+        return 4.0 * emissivity * Q / (PI * dLas * dLas * l * getThermalMass() );
     }
 
     public NumericProperty getEmissivity() {

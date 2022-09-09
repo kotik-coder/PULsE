@@ -27,9 +27,11 @@ import javax.swing.ImageIcon;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JSeparator;
+import pulse.input.ExperimentalData;
 
 import pulse.problem.schemes.solvers.Solver;
 import pulse.problem.schemes.solvers.SolverException;
+import pulse.tasks.Calculation;
 import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.TaskRepositoryEvent;
 import pulse.tasks.processing.Result;
@@ -69,8 +71,9 @@ public class TaskPopupMenu extends JPopupMenu {
                         getString("TaskTablePopupMenu.EmptySelection2"), //$NON-NLS-1$
                         getString("TaskTablePopupMenu.11"), ERROR_MESSAGE); //$NON-NLS-1$
             } else {
+                var input = (ExperimentalData) t.getInput();
                 showMessageDialog(getWindowAncestor((Component) e.getSource()),
-                        t.getExperimentalCurve().getMetadata().toString(), "Metadata", PLAIN_MESSAGE);
+                        input.getMetadata().toString(), "Metadata", PLAIN_MESSAGE);
             }
         });
 
@@ -78,14 +81,14 @@ public class TaskPopupMenu extends JPopupMenu {
 
         instance.addSelectionListener(event -> {
             instance.getSelectedTask().checkProblems(false);
-            var details = instance.getSelectedTask().getCurrentCalculation().getStatus().getDetails();
+            var details = instance.getSelectedTask().getStatus().getDetails();
             itemShowStatus.setEnabled((details != null) & (details != NONE));
         });
 
         itemShowStatus.addActionListener((ActionEvent e) -> {
             var t = instance.getSelectedTask();
             if (t != null) {
-                var d = t.getCurrentCalculation().getStatus().getDetails();
+                var d = t.getStatus().getDetails();
                 showMessageDialog(getWindowAncestor((Component) e.getSource()),
                         "<html>This is due to " + d.toString() + "</html>", "Problems with " + t, INFORMATION_MESSAGE);
             }
@@ -100,7 +103,7 @@ public class TaskPopupMenu extends JPopupMenu {
                         getString("TaskTablePopupMenu.ErrorTitle"), ERROR_MESSAGE); //$NON-NLS-1$
             } else {
                 t.checkProblems(true);
-                var status = t.getCurrentCalculation().getStatus();
+                var status = t.getStatus();
 
                 if (status == DONE) {
                     var dialogButton = YES_NO_OPTION;
@@ -115,7 +118,7 @@ public class TaskPopupMenu extends JPopupMenu {
                     }
                 } else if (status != READY) {
                     showMessageDialog(getWindowAncestor((Component) e.getSource()),
-                            t.toString() + " is " + t.getCurrentCalculation().getStatus().getMessage(), //$NON-NLS-1$
+                            t.toString() + " is " + t.getStatus().getMessage(), //$NON-NLS-1$
                             getString("TaskTablePopupMenu.TaskNotReady"), //$NON-NLS-1$
                             ERROR_MESSAGE);
                 } else {
@@ -136,7 +139,7 @@ public class TaskPopupMenu extends JPopupMenu {
             if (t == null) {
                 return;
             }
-            var current = t.getCurrentCalculation();
+            var current = (Calculation) t.getResponse();
             if (current != null) {
                 var r = new Result(t, getInstance());
                 current.setResult(r);
@@ -175,8 +178,8 @@ public class TaskPopupMenu extends JPopupMenu {
                     getString("TaskTablePopupMenu.11"), ERROR_MESSAGE); //$NON-NLS-1$
         } else {
 
-            var calc = t.getCurrentCalculation();
-            var statusDetails = calc.getStatus().getDetails();
+            var calc = (Calculation) t.getResponse();
+            var statusDetails = t.getStatus().getDetails();
 
             if (statusDetails == MISSING_HEATING_CURVE) {
 

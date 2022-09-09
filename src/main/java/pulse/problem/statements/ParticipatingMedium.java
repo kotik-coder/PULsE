@@ -33,10 +33,10 @@ public class ParticipatingMedium extends NonlinearProblem {
     }
 
     @Override
-    public void optimisationVector(ParameterVector output, List<Flag> flags) {
-        super.optimisationVector(output, flags);
+    public void optimisationVector(ParameterVector output) {
+        super.optimisationVector(output);
         var properties = (ThermoOpticalProperties) getProperties();
-        properties.optimisationVector(output, flags);
+        properties.optimisationVector(output);
     }
 
     @Override

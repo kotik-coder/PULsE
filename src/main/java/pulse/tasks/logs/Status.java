@@ -1,6 +1,9 @@
 package pulse.tasks.logs;
 
 import java.awt.Color;
+import java.util.Objects;
+import pulse.problem.schemes.solvers.SolverException;
+import pulse.problem.schemes.solvers.SolverException.SolverExceptionType;
 
 /**
  * An enum that represents the different states in which a {@code SearchTask}
@@ -129,6 +132,21 @@ public enum Status {
             sb.append(" : ").append(details.toString());
         }
         return sb.toString();
+    }
+    
+    public static Status troubleshoot(SolverException e1) {
+        Objects.requireNonNull(e1, "Solver exception cannot be null when calling troubleshoot!");
+        Status status = null;
+        if(e1.getType() != SolverExceptionType.OPTIMISATION_TIMEOUT) {
+            status = Status.FAILED;
+            status.setDetails(Details.SOLVER_ERROR);
+            status.setDetailedMessage(e1.getMessage());        
+        }
+        else {
+            status = Status.TIMEOUT;
+            status.setDetails(Details.MAX_ITERATIONS_REACHED);
+        }
+        return status;
     }
 
 }

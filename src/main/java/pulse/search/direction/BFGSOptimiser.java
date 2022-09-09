@@ -6,7 +6,7 @@ import static pulse.math.linear.SquareMatrix.outerProduct;
 import pulse.math.linear.SquareMatrix;
 import pulse.math.linear.Vector;
 import pulse.problem.schemes.solvers.SolverException;
-import pulse.tasks.SearchTask;
+import pulse.search.GeneralTask;
 import pulse.ui.Messages;
 
 /**
@@ -53,7 +53,7 @@ public class BFGSOptimiser extends CompositePathOptimiser {
      * @throws SolverException
      */
     @Override
-    public void prepare(SearchTask task) throws SolverException {
+    public void prepare(GeneralTask task) throws SolverException {
         var p = (ComplexPath) task.getIterativeState();
         Vector dir = p.getDirection(); //p[k]
 

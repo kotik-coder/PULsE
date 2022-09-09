@@ -1,10 +1,11 @@
 package pulse.tasks.logs;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.Collections;
 import java.util.List;
+import pulse.math.Parameter;
+import pulse.math.ParameterIdentifier;
+import pulse.properties.NumericProperties;
 
-import pulse.properties.NumericProperty;
 import pulse.tasks.SearchTask;
 import pulse.tasks.TaskManager;
 import pulse.ui.Messages;
@@ -19,7 +20,7 @@ import pulse.ui.Messages;
  */
 public class DataLogEntry extends LogEntry {
 
-    private List<NumericProperty> entry;
+    private List<Parameter> entry;
 
     /**
      * Creates a new {@code DataLogEntry} based on the current values of the
@@ -52,13 +53,14 @@ public class DataLogEntry extends LogEntry {
      */
     private void fill() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
         var task = TaskManager.getManagerInstance().getTask(getIdentifier());
-
-        entry = task.alteredParameters();
-        Collections.sort(entry, (p1, p2) -> p1.getDescriptor(false).compareTo(p2.getDescriptor(false)));
-        entry.add(0, task.getIterativeState().getIteration());
+        entry = task.searchVector().getParameters();
+        var pval = task.getIterativeState().getIteration();
+        var pid = new Parameter(new ParameterIdentifier(pval.getType()));
+        pid.setValue( (int) pval.getValue() );
+        entry.add(0, pid);
     }
 
-    public List<NumericProperty> getData() {
+    public List<Parameter> getData() {
         return entry;
     }
 
@@ -83,13 +85,26 @@ public class DataLogEntry extends LogEntry {
          */
         sb.append("<table>");
 
-        for (NumericProperty p : entry) {
+        for (Parameter p : entry) {
             sb.append("<tr><td>");
-            sb.append(p.getAbbreviation(false));
+            var def = NumericProperties.def(p.getIdentifier().getKeyword());
+            boolean b = def.getValue() instanceof Integer;
+            Number val;
+            if(b) {
+                val = (int) Math.rint(p.getApparentValue());
+            } else{
+                val = p.getApparentValue();
+            }
+            def.setValue(val);
+            sb.append(def.getAbbreviation(false));
+            int index = p.getIdentifier().getIndex();
+            if(index > 0) {
+                sb.append(" - ").append(index);
+            }
             sb.append("</td><<td>");
             sb.append(Messages.getString("DataLogEntry.FontTagNumber")); //$NON-NLS-1$
             sb.append("<b>");
-            sb.append(p.formattedOutput());
+            sb.append(def.formattedOutput());
             sb.append("</b>");
             sb.append(Messages.getString("DataLogEntry.FontTagClose")); //$NON-NLS-1$
             sb.append("</td><br></tr>");

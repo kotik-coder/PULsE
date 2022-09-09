@@ -6,8 +6,7 @@ import static pulse.properties.NumericPropertyKeyword.TEST_STATISTIC;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 import org.apache.commons.math3.stat.inference.TestUtils;
-
-import pulse.tasks.SearchTask;
+import pulse.search.GeneralTask;
 
 /**
  * The Kolmogorov-Smirnov normality test as implemented in
@@ -20,7 +19,7 @@ public class KSTest extends NormalityTest {
     private NormalDistribution nd;
 
     @Override
-    public boolean test(SearchTask task) {
+    public boolean test(GeneralTask task) {
         evaluate(task);
                 
         this.setStatistic(derive(TEST_STATISTIC, 
@@ -29,9 +28,9 @@ public class KSTest extends NormalityTest {
     }
 
     @Override
-    public void evaluate(SearchTask t) {
+    public void evaluate(GeneralTask t) {
         calculateResiduals(t);
-        residuals = transformResiduals();
+        residuals = residualsArray();
 
         final double sd = (new StandardDeviation()).evaluate(residuals);
         nd = new NormalDistribution(0.0, sd); // null hypothesis: normal distribution with zero mean and empirical

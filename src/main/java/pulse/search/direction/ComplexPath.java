@@ -3,6 +3,7 @@ package pulse.search.direction;
 import static pulse.math.linear.Matrices.createIdentityMatrix;
 
 import pulse.math.linear.SquareMatrix;
+import pulse.search.GeneralTask;
 import pulse.tasks.SearchTask;
 
 /**
@@ -18,7 +19,7 @@ public class ComplexPath extends GradientGuidedPath {
     private SquareMatrix hessian;
     private SquareMatrix inverseHessian;
 
-    protected ComplexPath(SearchTask task) {
+    protected ComplexPath(GeneralTask task) {
         super(task);
     }
 
@@ -29,8 +30,8 @@ public class ComplexPath extends GradientGuidedPath {
      * @param task
      */
     @Override
-    public void configure(SearchTask task) {
-        hessian = createIdentityMatrix(ActiveFlags.activeParameters(task).size());
+    public void configure(GeneralTask task) {
+        hessian = createIdentityMatrix(this.getParameters().dimension());
         inverseHessian = createIdentityMatrix(hessian.getData().length);
         super.configure(task);
     }

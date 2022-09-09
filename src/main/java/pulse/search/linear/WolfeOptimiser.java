@@ -6,6 +6,7 @@ import pulse.math.ParameterVector;
 import pulse.math.Segment;
 import pulse.math.linear.Vector;
 import pulse.problem.schemes.solvers.SolverException;
+import pulse.search.GeneralTask;
 import pulse.search.direction.GradientBasedOptimiser;
 import pulse.search.direction.GradientGuidedPath;
 import pulse.search.direction.PathOptimiser;
@@ -64,7 +65,7 @@ public class WolfeOptimiser extends LinearOptimiser {
      * @throws SolverException
      */
     @Override
-    public double linearStep(SearchTask task) throws SolverException {
+    public double linearStep(GeneralTask task) throws SolverException {
         
         GradientGuidedPath p = (GradientGuidedPath) task.getIterativeState();
         
@@ -75,9 +76,10 @@ public class WolfeOptimiser extends LinearOptimiser {
         final double G1P_ABS = abs(G1P);
         
         var params = task.searchVector();
+        var vParams = params.toVector();
         Segment segment = domain(params, direction);
         
-        double cost1 = task.solveProblemAndCalculateCost();
+        double cost1 = task.objectiveFunction();
         
         double randomConfinedValue = 0;
         double g2p;
@@ -88,11 +90,11 @@ public class WolfeOptimiser extends LinearOptimiser {
             
             randomConfinedValue = segment.randomValue();
             
-            final var newParams = params.sum(direction.multiply(randomConfinedValue));
+            final var newParams = vParams.sum(direction.multiply(randomConfinedValue));
             
             task.assign(new ParameterVector(params, newParams));
             
-            final double cost2 = task.solveProblemAndCalculateCost();
+            final double cost2 = task.objectiveFunction();
 
             /**
              * Checks if the first Armijo inequality is not satisfied. In this

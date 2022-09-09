@@ -59,6 +59,7 @@ public class ResidualStatisticExporter implements Exporter<ResidualStatistic> {
 
     private void printHTML(ResidualStatistic hc, FileOutputStream fos) {
         try (var stream = new PrintStream(fos)) {
+            var time = hc.getTimeSequence();
             var residuals = hc.getResiduals();
             int residualsLength = residuals == null ? 0 : residuals.size();
             stream.print(getString("ResultTableExporter.style"));
@@ -71,8 +72,8 @@ public class ResidualStatisticExporter implements Exporter<ResidualStatistic> {
             stream.print("</tr></thead>");
 
             for (int i = 0; i < residualsLength; i++) {
-                double tr = residuals.get(i)[0];
-                double Tr = residuals.get(i)[1];
+                double tr = time.get(i);
+                double Tr = residuals.get(i);
                 stream.printf("%n<tr><td>%.8f</td><td>%.8f</td></tr>", tr, Tr);
             }
 
@@ -83,6 +84,7 @@ public class ResidualStatisticExporter implements Exporter<ResidualStatistic> {
 
     private void printCSV(ResidualStatistic hc, FileOutputStream fos) {
         try (var stream = new PrintStream(fos)) {
+            var time = hc.getTimeSequence();
             var residuals = hc.getResiduals();
             int residualsLength = residuals == null ? 0 : residuals.size();
             final String TIME_LABEL = getString("HeatingCurve.6");
@@ -90,9 +92,9 @@ public class ResidualStatisticExporter implements Exporter<ResidualStatistic> {
             stream.print(TIME_LABEL + "\t" + RESIDUAL_LABEL + "\t");
             double tr, Tr;
             for (int i = 0; i < residualsLength; i++) {
-                tr = residuals.get(i)[0];
+                tr = time.get(i);
                 stream.printf("%n%3.8f", tr);
-                Tr = residuals.get(i)[1];
+                Tr = residuals.get(i);
                 stream.printf("\t%3.8f", Tr);
             }
         }

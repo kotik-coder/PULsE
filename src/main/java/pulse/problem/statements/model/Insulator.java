@@ -17,6 +17,15 @@ public class Insulator extends AbsorptionModel {
         super();
         R = (double) def(REFLECTANCE).getValue();
     }
+    
+    public Insulator(AbsorptionModel m) {
+        super(m);
+        if(m instanceof Insulator) {
+            R = (double) ((Insulator) m).getReflectance().getValue();
+        } else {
+            R = (double) def(REFLECTANCE).getValue();
+        }
+    }
 
     @Override
     public double absorption(SpectralRange spectrum, double x) {
@@ -46,6 +55,11 @@ public class Insulator extends AbsorptionModel {
         var set = super.listedKeywords();
         set.add(REFLECTANCE);
         return set;
+    }
+
+    @Override
+    public AbsorptionModel copy() {
+        return new Insulator(this);
     }
 
 }

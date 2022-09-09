@@ -6,6 +6,7 @@ import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.LINEAR_RESOLUTION;
 
 import java.util.Set;
+import pulse.math.Parameter;
 
 import pulse.math.ParameterVector;
 import pulse.math.Segment;
@@ -13,6 +14,7 @@ import pulse.math.linear.Vector;
 import pulse.problem.schemes.solvers.SolverException;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
+import pulse.search.GeneralTask;
 import pulse.tasks.SearchTask;
 import pulse.util.PropertyHolder;
 import pulse.util.Reflexive;
@@ -45,7 +47,7 @@ public abstract class LinearOptimiser extends PropertyHolder implements Reflexiv
      * to a lower SSR value of this {@code task}
      * @throws SolverException
      */
-    public abstract double linearStep(SearchTask task) throws SolverException;
+    public abstract double linearStep(GeneralTask task) throws SolverException;
 
     /**
      * Sets the domain for this linear search on {@code p}.
@@ -68,29 +70,32 @@ public abstract class LinearOptimiser extends PropertyHolder implements Reflexiv
         double alphaMax = Double.POSITIVE_INFINITY;
         double alpha;
 
-        for (int i = 0; i < x.dimension(); i++) {
+        var params = x.getParameters();
 
-            final double component = p.get(i);
+        for (Parameter xp : params) {
+
+            final double component = p.get(params.indexOf(xp));
 
             //check if zero
-            if (component < EPS && component > -EPS) {
-                continue;
-            }
+            if (Math.abs(component) > EPS) {
 
-            var bound = x.getTransformedBounds(i);
+                var bound = xp.getTransformedBounds();
 
-            alpha = abs(
-                    ((component > 0 ? bound.getMaximum() : bound.getMinimum()) - x.get(i))
-                    / component);
+                alpha = abs(
+                        ((component > 0 ? bound.getMaximum()
+                                : bound.getMinimum()) - xp.inverseTransform())
+                        / component);
 
-            if (Double.isFinite(alpha) && alpha < alphaMax) {
-                alphaMax = alpha;
+                if (Double.isFinite(alpha) && alpha < alphaMax) {
+                    alphaMax = alpha;
+                }
+
             }
 
         }
 
         //check that alphaMax is not zero! otherwise the optimise will crash
-        return new Segment(0.0, 
+        return new Segment(0.0,
                 Math.max(alphaMax, 1E-10));
 
     }
@@ -135,7 +140,7 @@ public abstract class LinearOptimiser extends PropertyHolder implements Reflexiv
         set.add(LINEAR_RESOLUTION);
         return set;
     }
-    
+
     @Override
     public void set(NumericPropertyKeyword type, NumericProperty property) {
         if (type == LINEAR_RESOLUTION) {

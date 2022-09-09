@@ -1,6 +1,6 @@
 package pulse.search.statistics;
 
-import pulse.tasks.SearchTask;
+import pulse.search.GeneralTask;
 
 public class EmptyTest extends NormalityTest {
 
@@ -8,7 +8,7 @@ public class EmptyTest extends NormalityTest {
      * Always returns true
      */
     @Override
-    public boolean test(SearchTask task) {
+    public boolean test(GeneralTask task) {
         return true;
     }
 
@@ -18,7 +18,7 @@ public class EmptyTest extends NormalityTest {
     }
 
     @Override
-    public void evaluate(SearchTask t) {
+    public void evaluate(GeneralTask t) {
         // deliberately empty
     }
 

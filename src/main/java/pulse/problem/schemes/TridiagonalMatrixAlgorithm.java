@@ -3,7 +3,7 @@ package pulse.problem.schemes;
 /**
  * Implements the tridiagonal matrix algorithm (Thomas algorithms) for solving
  * systems of linear equations. Applicable to such systems where the forming
- * matrix has a tridiagonal form.
+ * matrix has a tridiagonal form: A<sub>i</sub>*x<sub>i-1</sub> - B<sub>i</sub> x<sub>i</sub> + C<sub>i</sub> x<sub>i+1</sub> = -F<sub>i</sub>.
  *
  */
 public class TridiagonalMatrixAlgorithm {

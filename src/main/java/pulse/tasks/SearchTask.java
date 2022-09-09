@@ -2,12 +2,10 @@ package pulse.tasks;
 
 import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.TIME_LIMIT;
-import static pulse.search.direction.ActiveFlags.activeParameters;
 import static pulse.search.direction.PathOptimiser.getInstance;
 import static pulse.tasks.logs.Details.ABNORMAL_DISTRIBUTION_OF_RESIDUALS;
 import static pulse.tasks.logs.Details.INCOMPATIBLE_OPTIMISER;
 import static pulse.tasks.logs.Details.INSUFFICIENT_DATA_IN_PROBLEM_STATEMENT;
-import static pulse.tasks.logs.Details.MAX_ITERATIONS_REACHED;
 import static pulse.tasks.logs.Details.MISSING_BUFFER;
 import static pulse.tasks.logs.Details.MISSING_DIFFERENCE_SCHEME;
 import static pulse.tasks.logs.Details.MISSING_HEATING_CURVE;
@@ -21,25 +19,23 @@ import static pulse.tasks.logs.Status.FAILED;
 import static pulse.tasks.logs.Status.INCOMPLETE;
 import static pulse.tasks.logs.Status.IN_PROGRESS;
 import static pulse.tasks.logs.Status.READY;
-import static pulse.tasks.processing.Buffer.getSize;
 import static pulse.util.Reflexive.instantiate;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import pulse.input.ExperimentalData;
 import pulse.input.InterpolationDataset;
+import pulse.math.ParameterIdentifier;
 import pulse.math.ParameterVector;
 import pulse.problem.schemes.solvers.SolverException;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
+import pulse.search.GeneralTask;
 import pulse.search.direction.ActiveFlags;
-import pulse.search.direction.IterativeState;
 import pulse.search.statistics.CorrelationTest;
 import pulse.search.statistics.NormalityTest;
 import pulse.tasks.listeners.DataCollectionListener;
@@ -47,16 +43,12 @@ import pulse.tasks.listeners.StatusChangeListener;
 import pulse.tasks.listeners.TaskRepositoryEvent;
 import pulse.tasks.logs.CorrelationLogEntry;
 import pulse.tasks.logs.DataLogEntry;
-import pulse.tasks.logs.Details;
 import pulse.tasks.logs.Log;
 import pulse.tasks.logs.LogEntry;
 import pulse.tasks.logs.StateEntry;
 import pulse.tasks.logs.Status;
-import pulse.tasks.processing.Buffer;
 import pulse.tasks.processing.CorrelationBuffer;
-import pulse.util.Accessible;
 import static pulse.tasks.logs.Status.AWAITING_TERMINATION;
-import static pulse.tasks.logs.Status.TERMINATED;
 
 /**
  * A {@code SearchTask} is the most important class in {@code PULsE}. It
@@ -68,15 +60,11 @@ import static pulse.tasks.logs.Status.TERMINATED;
  *
  * @see pulse.tasks.TaskManager
  */
-public class SearchTask extends Accessible implements Runnable {
+public class SearchTask extends GeneralTask {
 
     private Calculation current;
     private List<Calculation> stored;
     private ExperimentalData curve;
-
-    private IterativeState path;    //current sate
-    private IterativeState best;    //best state 
-    private Buffer buffer;
     private Log log;
 
     private final CorrelationBuffer correlationBuffer;
@@ -89,8 +77,8 @@ public class SearchTask extends Accessible implements Runnable {
      * lower than this constant, the result will be considered
      * {@code AMBIGUOUS}.
      */
-    private List<DataCollectionListener> listeners;
-    private List<StatusChangeListener> statusChangeListeners;
+    private final List<DataCollectionListener> listeners;
+    private final List<StatusChangeListener> statusChangeListeners;
 
     /**
      * <p>
@@ -104,6 +92,7 @@ public class SearchTask extends Accessible implements Runnable {
      * @param curve the {@code ExperimentalData}
      */
     public SearchTask(ExperimentalData curve) {
+        super();
         this.statusChangeListeners = new CopyOnWriteArrayList<>();
         this.listeners = new CopyOnWriteArrayList<>();
         current = new Calculation(this);
@@ -114,23 +103,7 @@ public class SearchTask extends Accessible implements Runnable {
         clear();
         addListeners();
     }
-
-    /**
-     * Update the best state. The instance of this class stores two objects of
-     * the type IterativeState: the current state of the optimiser and the
-     * global best state. Calling this method will check if a new global best is
-     * found, and if so, this will store its parameters in the corresponding
-     * variable. This will then be used at the final stage of running the search
-     * task, comparing the converged result to the global best, and selecting
-     * whichever has the lowest cost. Such routine is required due to the
-     * possibility of some optimisers going uphill.
-     */
-    public void storeState() {
-        if (best == null || best.getCost() > path.getCost()) {
-            best = new IterativeState(path);
-        }
-    }
-
+    
     private void addListeners() {
         InterpolationDataset.addListener(e -> {
             if (current.getProblem() != null) {
@@ -171,218 +144,22 @@ public class SearchTask extends Accessible implements Runnable {
     public void clear() {
         stored = new ArrayList<>();
         curve.resetRanges();
-        buffer = new Buffer();
         correlationBuffer.clear();
-        buffer.setParent(this);
         log = new Log(this);
 
         initCorrelationTest();
         initNormalityTest();
 
-        this.path = null;
+        //this.path = null;
         current.clear();
 
         this.checkProblems(true);
     }
-
-    /**
-     * This will use the current {@code DifferenceScheme} to solve the
-     * {@code Problem} for this {@code SearchTask} and calculate the SSR value
-     * showing how well (or bad) the calculated solution describes the
-     * {@code ExperimentalData}.
-     *
-     * @return the value of SSR (sum of squared residuals).
-     * @throws SolverException
-     */
-    public double solveProblemAndCalculateCost() throws SolverException {
-        current.process();
-        var rs = current.getOptimiserStatistic();
-        rs.evaluate(this);
-        return (double) rs.getStatistic().getValue();
-    }
-
+    
     public List<NumericProperty> alteredParameters() {
-        return activeParameters(this).stream().map(key -> this.numericProperty(key)).collect(Collectors.toList());
-    }
-
-    /**
-     * Generates a search vector (= optimisation vector) using the search flags
-     * set by the {@code PathSolver}.
-     *
-     * @return an {@code IndexedVector} with search parameters of this
-     * {@code SearchTaks}
-     * @see pulse.search.direction.PathSolver.getSearchFlags()
-     * @see pulse.problem.statements.Problem.optimisationVector(List<Flag>)
-     */
-    public ParameterVector searchVector() {
-        var flags = ActiveFlags.getAllFlags();
-        var keywords = activeParameters(this);
-        var optimisationVector = new ParameterVector(keywords);
-
-        current.getProblem().optimisationVector(optimisationVector, flags);
-        curve.getRange().optimisationVector(optimisationVector, flags);
-
-        return optimisationVector;
-    }
-
-    /**
-     * Assigns the values of the parameters of this {@code SearchTask} to
-     * {@code searchParameters}.
-     *
-     * @param searchParameters an {@code IndexedVector} with relevant search
-     * parameters
-     * @throws pulse.problem.schemes.solvers.SolverException
-     * @see pulse.problem.statements.Problem.assign(IndexedVector)
-     */
-    public void assign(ParameterVector searchParameters) throws SolverException {
-        current.getProblem().assign(searchParameters);
-        curve.getRange().assign(searchParameters);
-    }
-
-    /**
-     * <p>
-     * Runs this task if is either {@code READY} or {@code QUEUED}. Otherwise,
-     * will do nothing. After making some preparatory steps, will initiate a
-     * loop with successive calls to {@code PathSolver.iteration(this)}, filling
-     * the buffer and notifying any data change listeners in parallel. This loop
-     * will go on until either converging results are obtained, or a timeout is
-     * reached, or if an execution error happens. Whether the run has been
-     * successful will be determined by comparing the associated
-     * <i>R</i><sup>2</sup> value with the {@code SUCCESS_CUTOFF}.
-     * </p>
-     */
-    @Override
-    public void run() {
-
-        current.setResult(null);
-
-        /* check of status */
-        switch (current.getStatus()) {
-            case READY:
-            case QUEUED:
-                setStatus(IN_PROGRESS);
-                break;
-            default:
-                return;
-        }
-
-        /* preparatory steps */
-        current.getProblem().parameterListChanged(); // get updated list of parameters
-
-        var optimiser = getInstance();
-
-        path = optimiser.initState(this);
-
-        var errorTolerance = (double) optimiser.getErrorTolerance().getValue();
-        int bufferSize = (Integer) getSize().getValue();
-        buffer.init();
-        correlationBuffer.clear();
-
-        /* search cycle */
-        /* sets an independent thread for manipulating the buffer */
-        List<CompletableFuture<Void>> bufferFutures = new ArrayList<>(bufferSize);
-        var singleThreadExecutor = Executors.newSingleThreadExecutor();
-
-        try {
-            solveProblemAndCalculateCost();
-        } catch (SolverException e1) {
-            notifyFailedStatus(e1);
-        }
-
-        outer:
-        do {
-
-            bufferFutures.clear();
-
-            for (var i = 0; i < bufferSize; i++) {
-
-                try {
-                    for (boolean finished = false; !finished;) {
-                        finished = optimiser.iteration(this);
-                    }
-                } catch (SolverException e) {
-                    notifyFailedStatus(e);
-                    break outer;
-                }
-
-                //if global best is better than the converged value
-                if (best != null && best.getCost() < path.getCost()) {
-                    try {
-                        //assign the global best parameters
-                        assign(path.getParameters());
-                        //and try to re-calculate
-                        solveProblemAndCalculateCost();
-                    } catch (SolverException ex) {
-                        notifyFailedStatus(ex);
-                    }
-                }
-
-                final var j = i;
-                
-                bufferFutures.add(CompletableFuture.runAsync(() -> {
-                    buffer.fill(this, j);
-                    correlationBuffer.inflate(this);
-                    notifyDataListeners(new DataLogEntry(this));
-                }, singleThreadExecutor));
-
-            }
-
-            bufferFutures.forEach(future -> future.join());
-
-        } while (buffer.isErrorTooHigh(errorTolerance) 
-                && current.getStatus() == IN_PROGRESS);
-
-        singleThreadExecutor.shutdown();
-
-        if (current.getStatus() == IN_PROGRESS) {
-            runChecks();
-        } 
-
-    }
-
-    private void runChecks() {
-
-        if (!normalityTest.test(this)) { // first, check if the residuals are normally-distributed
-            var status = FAILED;
-            status.setDetails(ABNORMAL_DISTRIBUTION_OF_RESIDUALS);
-            setStatus(status);
-        } else {
-
-            var test = correlationBuffer.test(correlationTest); // second, check there are no unexpected
-            // correlations
-            notifyDataListeners(new CorrelationLogEntry(this));
-
-            if (test) {
-                var status = AMBIGUOUS;
-                status.setDetails(SIGNIFICANT_CORRELATION_BETWEEN_PARAMETERS);
-                setStatus(status);
-            } else {
-                // lastly, check if the parameter values estimated in this procedure are
-                // reasonable
-
-                var properties = alteredParameters();
-
-                if (properties.stream().anyMatch(np -> !np.validate())) {
-                    var status = FAILED;
-                    status.setDetails(PARAMETER_VALUES_NOT_SENSIBLE);
-                    setStatus(status);
-                } else {
-                    current.getModelSelectionCriterion().evaluate(this);
-                    setStatus(DONE);
-                }
-
-            }
-
-        }
-    }
-
-    public void notifyFailedStatus(SolverException e1) {
-        var status = Status.FAILED;
-        status.setDetails(Details.SOLVER_ERROR);
-        status.setDetailedMessage(e1.getMessage());
-        e1.printStackTrace();
-        setStatus(status);
-    }
+        return activeParameters().stream().map(key -> 
+                this.numericProperty(key)).collect(Collectors.toList());
+    }       
 
     public void addTaskListener(DataCollectionListener toAdd) {
         listeners.add(toAdd);
@@ -404,15 +181,7 @@ public class SearchTask extends Accessible implements Runnable {
     public String toString() {
         return getIdentifier().toString();
     }
-
-    public ExperimentalData getExperimentalCurve() {
-        return curve;
-    }
-
-    public IterativeState getIterativeState() {
-        return path;
-    }
-
+    
     /**
      * Adopts the {@code curve} by this {@code SearchTask}.
      *
@@ -425,28 +194,6 @@ public class SearchTask extends Accessible implements Runnable {
             curve.setParent(this);
         }
 
-    }
-
-    /**
-     * Will return {@code true} if status could be updated.
-     *
-     * @param status the status of the task
-     * @return {@code} true if status has been updated. {@code false} if the
-     * status was already set to {@code status} previously, or if it could not
-     * be updated at this time.
-     * @see Calculation.setStatus()
-     */
-    public boolean setStatus(Status status) {
-        Objects.requireNonNull(status);
-
-        Status oldStatus = current.getStatus();
-        boolean changed = current.setStatus(status)
-                && (oldStatus != current.getStatus());
-        if (changed) {
-            notifyStatusListeners(new StateEntry(this, status));
-        }
-
-        return changed;
     }
 
     /**
@@ -465,7 +212,7 @@ public class SearchTask extends Accessible implements Runnable {
      * @param updateStatus
      */
     public void checkProblems(boolean updateStatus) {
-        var status = current.getStatus();
+        var status = getStatus();
 
         if (status == DONE) {
             return;
@@ -484,7 +231,7 @@ public class SearchTask extends Accessible implements Runnable {
             s.setDetails(MISSING_HEATING_CURVE);
         } else if (pathSolver == null) {
             s.setDetails(MISSING_OPTIMISER);
-        } else if (buffer == null) {
+        } else if (getBuffer() == null) {
             s.setDetails(MISSING_BUFFER);
         } else if (!getInstance().compatibleWith(current.getOptimiserStatistic())) {
             s.setDetails(INCOMPATIBLE_OPTIMISER);
@@ -516,24 +263,28 @@ public class SearchTask extends Accessible implements Runnable {
             l.onStatusChange(e);
         }
     }
-
+    
     @Override
-    public String describe() {
-
-        var sb = new StringBuilder();
-        sb.append(TaskManager.getManagerInstance().getSampleName());
-        sb.append("_Task_");
-        var extId = curve.getMetadata().getExternalID();
-        if (extId < 0) {
-            sb.append("IntID_").append(identifier.getValue());
-        } else {
-            sb.append("ExtID_").append(extId);
+    public void run() {
+        correlationBuffer.clear();
+        current.setResult(null);
+        
+        /* check of status */
+        switch (getStatus()) {
+            case READY:
+            case QUEUED:
+                setStatus(IN_PROGRESS);
+                break;
+            default:
+                return;
         }
-
-        return sb.toString();
-
+        
+        current.getProblem().parameterListChanged(); // get updated list of parameters
+        setDefaultOptimiser();
+                    
+        super.run();
     }
-
+    
     /**
      * If the current task is either {@code IN_PROGRESS}, {@code QUEUED}, or
      * {@code READY}, terminates it by setting its status to {@code TERMINATED}.
@@ -541,37 +292,13 @@ public class SearchTask extends Accessible implements Runnable {
      * running).
      */
     public void terminate() {
-        switch (current.getStatus()) {
+        switch (getStatus()) {
             case IN_PROGRESS:
             case QUEUED:
-            case READY:
                 setStatus(AWAITING_TERMINATION);
                 break;
             default:
         }
-    }
-
-    @Override
-    public void set(NumericPropertyKeyword type, NumericProperty property) {
-        // intentionally left blank
-    }
-
-    /**
-     * A {@code SearchTask} is deemed equal to another one if it has the same
-     * {@code ExperimentalData}.
-     */
-    @Override
-    public boolean equals(Object o) {
-        if (o == this) {
-            return true;
-        }
-
-        if (!(o instanceof SearchTask)) {
-            return false;
-        }
-
-        return curve.equals(((SearchTask) o).getExperimentalCurve());
-
     }
 
     public NormalityTest getNormalityTest() {
@@ -595,22 +322,17 @@ public class SearchTask extends Accessible implements Runnable {
     public CorrelationTest getCorrelationTest() {
         return correlationTest;
     }
-
-    public Calculation getCurrentCalculation() {
-        return current;
-    }
-
+    
     public List<Calculation> getStoredCalculations() {
         return this.stored;
-    }
+    }    
 
     public void storeCalculation() {
         var copy = new Calculation(current);
         stored.add(copy);
-    }
+    }   
 
     public void switchTo(Calculation calc) {
-        current.setParent(null);
         current = calc;
         current.setParent(this);
         var e = new TaskRepositoryEvent(TaskRepositoryEvent.State.TASK_MODEL_SWITCH, this.getIdentifier());
@@ -640,6 +362,192 @@ public class SearchTask extends Accessible implements Runnable {
         for (var l : instance.getTaskRepositoryListeners()) {
             l.onTaskListChanged(e);
         }
+    }
+    
+    @Override
+    public boolean isInProgress() {
+        return getStatus() == IN_PROGRESS;
+    }
+   
+    @Override
+    public void intermediateProcessing() {
+        correlationBuffer.inflate(this);
+        notifyDataListeners(new DataLogEntry(this));
+    }
+    
+    @Override 
+    public void onSolverException(SolverException e) {
+        setStatus(Status.troubleshoot(e));
+    }
+
+    /**
+     * Generates a search vector (= optimisation vector) using the search flags
+     * set by the {@code PathSolver}.
+     *
+     * @return an {@code IndexedVector} with search parameters of this
+     * {@code SearchTaks}
+     * @see pulse.search.direction.PathSolver.getSearchFlags()
+     * @see pulse.problem.statements.Problem.optimisationVector(List<Flag>)
+     */
+    @Override
+    public ParameterVector searchVector() {
+        var ids = activeParameters().stream().map(id -> 
+                new ParameterIdentifier(id)).collect(Collectors.toList());
+        var optimisationVector = new ParameterVector(ids);
+
+        current.getProblem().optimisationVector(optimisationVector);
+        curve.getRange().optimisationVector(optimisationVector);
+
+        return optimisationVector;
+    }
+
+    /**
+     * Assigns the values of the parameters of this {@code SearchTask} to
+     * {@code searchParameters}.
+     *
+     * @param searchParameters an {@code IndexedVector} with relevant search
+     * parameters
+     * @throws pulse.problem.schemes.solvers.SolverException
+     * @see pulse.problem.statements.Problem.assign(IndexedVector)
+     */
+    @Override
+    public void assign(ParameterVector searchParameters) throws SolverException {
+        current.getProblem().assign(searchParameters);
+        curve.getRange().assign(searchParameters);
+    }
+
+    @Override
+    public void postProcessing() {
+
+        if (!normalityTest.test(this)) { // first, check if the residuals are normally-distributed
+            var status = FAILED;
+            status.setDetails(ABNORMAL_DISTRIBUTION_OF_RESIDUALS);
+            setStatus(status);
+        } else {
+
+            var test = correlationBuffer.test(correlationTest); // second, check there are no unexpected
+            // correlations
+            notifyDataListeners(new CorrelationLogEntry(this));
+
+            if (test) {
+                var status = AMBIGUOUS;
+                status.setDetails(SIGNIFICANT_CORRELATION_BETWEEN_PARAMETERS);
+                setStatus(status);
+            } else {
+                // lastly, check if the parameter values estimated in this procedure are
+                // reasonable
+
+                var properties = this.getIterativeState().getParameters();
+
+                if (properties.findMalformedElements().size() > 0) {
+                    var status = FAILED;
+                    status.setDetails(PARAMETER_VALUES_NOT_SENSIBLE);
+                    setStatus(status);
+                } else {
+                    current.getModelSelectionCriterion().evaluate(this);
+                    setStatus(DONE);
+                }
+
+            }
+
+        }
+    }
+    
+    
+    /**
+     * Finds what properties are being altered in the search of this SearchTask.
+     *
+     * @return a {@code List} of property types represented by
+     * {@code NumericPropertyKeyword}s
+     */
+    @Override
+    public List<NumericPropertyKeyword> activeParameters() {
+        var flags = ActiveFlags.getAllFlags();
+        //problem dependent
+        var allActiveParams = ActiveFlags.selectActiveAndListed
+                (flags, current.getProblem()); 
+        //problem independent (lower/upper bound)
+        var listed = ActiveFlags.selectActiveAndListed
+                (flags, curve.getRange() );
+        allActiveParams.addAll(listed);          
+        return allActiveParams;
+    }
+    
+        /**
+     * Will return {@code true} if status could be updated.
+     *
+     * @param status the status of the task
+     * @return {@code} true if status has been updated. {@code false} if the
+     * status was already set to {@code status} previously, or if it could not
+     * be updated at this time.
+     * @see Calculation.setStatus()
+     */
+    
+    public boolean setStatus(Status status) {
+        Objects.requireNonNull(status);
+
+        Status oldStatus = getStatus();
+        boolean changed = current.setStatus(status)
+                && (oldStatus != getStatus());
+        if (changed) {
+            notifyStatusListeners(new StateEntry(this, status));
+        }
+
+        return changed;
+    }
+    
+    public Status getStatus() {
+        return current.getStatus();
+    }
+
+    @Override
+    public void set(NumericPropertyKeyword type, NumericProperty property) {
+        // intentionally left blank
+    }
+
+    /**
+     * A {@code SearchTask} is deemed equal to another one if it has the same
+     * {@code ExperimentalData}.
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (o == this) {
+            return true;
+        }
+
+        if (!(o instanceof SearchTask)) {
+            return false;
+        }
+
+        return curve.equals(((SearchTask) o).curve);
+
+    }
+    
+    @Override
+    public String describe() {
+
+        var sb = new StringBuilder();
+        sb.append(TaskManager.getManagerInstance().getSampleName());
+        sb.append("_Task_");
+        var extId = curve.getMetadata().getExternalID();
+        if (extId < 0) {
+            sb.append("IntID_").append(identifier.getValue());
+        } else {
+            sb.append("ExtID_").append(extId);
+        }
+
+        return sb.toString();
+
+    }
+
+    @Override
+    public ExperimentalData getInput() {
+        return curve;
+    }
+
+    @Override
+    public Calculation getResponse() {
+        return current;
     }
 
 }

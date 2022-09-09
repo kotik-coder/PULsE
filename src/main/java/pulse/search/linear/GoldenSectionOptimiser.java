@@ -3,6 +3,7 @@ package pulse.search.linear;
 import pulse.math.ParameterVector;
 import pulse.math.linear.Vector;
 import pulse.problem.schemes.solvers.SolverException;
+import pulse.search.GeneralTask;
 import pulse.search.direction.GradientGuidedPath;
 import pulse.tasks.SearchTask;
 import pulse.ui.Messages;
@@ -46,11 +47,12 @@ public class GoldenSectionOptimiser extends LinearOptimiser {
      * @throws SolverException
      */
     @Override
-    public double linearStep(SearchTask task) throws SolverException {
+    public double linearStep(GeneralTask task) throws SolverException {
 
         final double EPS = 1e-14;
 
         final var params = task.searchVector();
+        var vParams = params.toVector();
         final Vector direction = ((GradientGuidedPath) task.getIterativeState()).getDirection();
 
         var segment = domain(params, direction);
@@ -61,13 +63,13 @@ public class GoldenSectionOptimiser extends LinearOptimiser {
             final double alpha = segment.getMinimum() + t;
             final double one_minus_alpha = segment.getMaximum() - t;
 
-            final var newParams1 = params.sum(direction.multiply(alpha)); // alpha
+            final var newParams1 = vParams.sum(direction.multiply(alpha)); // alpha
             task.assign(new ParameterVector(params, newParams1));
-            final double ss2 = task.solveProblemAndCalculateCost(); // f(alpha)
+            final double ss2 = task.objectiveFunction(); // f(alpha)
 
-            final var newParams2 = params.sum(direction.multiply(one_minus_alpha)); // 1 - alpha
+            final var newParams2 = vParams.sum(direction.multiply(one_minus_alpha)); // 1 - alpha
             task.assign(new ParameterVector(params, newParams2));
-            final double ss1 = task.solveProblemAndCalculateCost(); // f(1-alpha)
+            final double ss1 = task.objectiveFunction(); // f(1-alpha)
 
             task.assign(new ParameterVector(params, newParams2)); // return to old position
 

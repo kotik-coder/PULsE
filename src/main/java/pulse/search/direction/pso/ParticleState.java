@@ -1,6 +1,7 @@
 package pulse.search.direction.pso;
 
 import pulse.math.ParameterVector;
+import pulse.math.linear.Vector;
 
 public class ParticleState {
 
@@ -13,10 +14,8 @@ public class ParticleState {
         this.velocity = new ParameterVector(cur);
 
         //set initial velocity to zero
-        for (int i = 0, n = velocity.dimension(); i < n; i++) {
-            velocity.set(i, 0.0);
-        }
-
+        velocity.setValues(new Vector(cur.dimension()));
+        
         this.fitness = Double.MAX_VALUE;
     }
 
@@ -35,22 +34,16 @@ public class ParticleState {
         return this.fitness < s.fitness;
     }
 
-    public void randomise(ParameterVector pos) {
+    public final void randomise(ParameterVector pos) {
 
-        this.position = new ParameterVector(pos);
-
-        for (int i = 0, n = position.dimension(); i < n; i++) {
-
-            var bounds = position.getBounds();
-
-            double max = bounds[i].getMaximum();
-            double min = bounds[i].getMinimum();
-
-            double value = min + Math.random() * (max - min);
-            position.set(i, value);
-
-        }
-
+        double[] randomValues = pos.getParameters().stream().mapToDouble(p -> {
+            double min = p.getBounds().getMinimum();
+            double max = p.getBounds().getMaximum();
+            return min + Math.random() * (max - min);
+        }).toArray();
+        
+        Vector randomVector = new Vector(randomValues);
+        position.setValues(randomVector);
     }
 
     public ParameterVector getPosition() {

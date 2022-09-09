@@ -14,6 +14,7 @@ import javax.swing.tree.TreeSelectionModel;
 
 import pulse.problem.statements.Problem;
 import pulse.problem.statements.ProblemComplexity;
+import pulse.tasks.Calculation;
 import pulse.ui.components.controllers.ProblemCellRenderer;
 import pulse.ui.components.listeners.ProblemSelectionEvent;
 import pulse.ui.components.listeners.ProblemSelectionListener;
@@ -21,7 +22,7 @@ import pulse.ui.components.listeners.ProblemSelectionListener;
 @SuppressWarnings("serial")
 public class ProblemTree extends JTree {
 
-    private List<ProblemSelectionListener> selectionListeners;
+    private final List<ProblemSelectionListener> selectionListeners;
 
     public ProblemTree(List<Problem> allProblems) {
         super();
@@ -66,7 +67,7 @@ public class ProblemTree extends JTree {
         });
 
         instance.addSelectionListener(e -> {
-            var current = instance.getSelectedTask().getCurrentCalculation().getProblem();
+            var current = ( (Calculation) instance.getSelectedTask().getResponse() ).getProblem();
             // select appropriate problem type from list
 
             setSelectedProblem(current);
@@ -108,7 +109,7 @@ public class ProblemTree extends JTree {
         });
     }
 
-    public void addProblemSelectionListener(ProblemSelectionListener l) {
+    public final void addProblemSelectionListener(ProblemSelectionListener l) {
         selectionListeners.add(l);
     }
 

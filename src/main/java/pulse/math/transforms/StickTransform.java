@@ -15,8 +15,6 @@
  */
 package pulse.math.transforms;
 
-import static java.lang.Math.tanh;
-import static pulse.math.MathUtils.atanh;
 import pulse.math.Segment;
 
 /**

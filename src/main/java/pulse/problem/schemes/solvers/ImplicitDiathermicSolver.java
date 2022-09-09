@@ -69,10 +69,10 @@ public class ImplicitDiathermicSolver extends ImplicitScheme implements Solver<D
     }
 
     @Override
-    public void leftBoundary() {
+    public void leftBoundary(int m) {
         var tridiagonal = (BlockMatrixAlgorithm) getTridiagonalMatrixAlgorithm();
         tridiagonal.setGamma(1, -zN_1 / z0);
-        super.leftBoundary();
+        super.leftBoundary(m);
     }
 
     @Override

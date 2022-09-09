@@ -1,5 +1,6 @@
 package pulse.tasks.processing;
 
+import pulse.tasks.Calculation;
 import pulse.tasks.SearchTask;
 import pulse.ui.Messages;
 
@@ -28,7 +29,7 @@ public class Result extends AbstractResult {
             throw new IllegalArgumentException(Messages.getString("Result.NullTaskError"));
         }
 
-        setParent(task.getCurrentCalculation());
+        setParent((Calculation)task.getResponse());
 
         format.getKeywords().stream().forEach(key -> addProperty(task.numericProperty(key)));
 

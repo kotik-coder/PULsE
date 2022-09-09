@@ -2,8 +2,8 @@ package pulse.search.direction.pso;
 
 import pulse.math.ParameterVector;
 import pulse.problem.schemes.solvers.SolverException;
+import pulse.search.GeneralTask;
 import pulse.search.direction.IterativeState;
-import pulse.tasks.SearchTask;
 
 public class SwarmState extends IterativeState {
 
@@ -12,13 +12,13 @@ public class SwarmState extends IterativeState {
     private Particle[] particles;
     private NeighbourhoodTopology neighborhoodTopology;
 
-    private Particle bestSoFar;
+    private ParticleState bestSoFar;
     private int bestSoFarIndex;
 
     private final static int DEFAULT_PARTICLES = 16;
 
     public SwarmState() {
-        this(DEFAULT_PARTICLES, StaticTopologies.GLOBAL);
+        this(DEFAULT_PARTICLES, StaticTopologies.RING);
     }
 
     public SwarmState(int numberOfParticles, NeighbourhoodTopology neighborhoodTopology) {
@@ -28,13 +28,13 @@ public class SwarmState extends IterativeState {
         this.bestSoFarIndex = -1;
     }
 
-    public void evaluate(SearchTask t) throws SolverException {
-        for (var p : particles) {
+    public void evaluate(GeneralTask t) throws SolverException {
+        for (Particle p : particles) {
             p.evaluate(t);
         }
     }
 
-    public void prepare(SearchTask t) {
+    public void prepare(GeneralTask t) {
         seed = t.searchVector();
     }
 
@@ -47,9 +47,8 @@ public class SwarmState extends IterativeState {
     /**
      * Returns the best state achieved by any particle so far.
      *
-     * @return State object.
      */
-    public ParticleState bestSoFar() {
+    public void bestSoFar() {
         int bestIndex = 0;
 
         double fitness = 0;
@@ -65,11 +64,16 @@ public class SwarmState extends IterativeState {
             }
 
         }
-
-        this.bestSoFar = particles[bestIndex];
-        this.bestSoFarIndex = bestIndex;
-
-        return bestSoFar.getBestState();
+        
+        //determine the current best
+        ParticleState curBest = particles[bestIndex].getCurrentState(); 
+        
+        //is curBest the best so far?
+        if(bestSoFar == null || curBest.isBetterThan(bestSoFar) ) {
+            this.bestSoFar = curBest;
+            this.bestSoFarIndex = bestIndex;
+        }
+        
     }
 
     public NeighbourhoodTopology getNeighborhoodTopology() {
@@ -93,11 +97,11 @@ public class SwarmState extends IterativeState {
         this.particles = particles;
     }
 
-    public Particle getBestSoFar() {
+    public ParticleState getBestSoFar() {
         return bestSoFar;
     }
 
-    public void setBestSoFar(Particle bestSoFar) {
+    public void setBestSoFar(ParticleState bestSoFar) {
         this.bestSoFar = bestSoFar;
     }
 

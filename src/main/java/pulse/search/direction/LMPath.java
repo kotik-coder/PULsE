@@ -3,7 +3,7 @@ package pulse.search.direction;
 import pulse.math.linear.RectangularMatrix;
 import pulse.math.linear.SquareMatrix;
 import pulse.math.linear.Vector;
-import pulse.tasks.SearchTask;
+import pulse.search.GeneralTask;
 
 class LMPath extends ComplexPath {
 
@@ -13,12 +13,12 @@ class LMPath extends ComplexPath {
     private double lambda;
     private boolean computeJacobian;
 
-    public LMPath(SearchTask t) {
+    public LMPath(GeneralTask t) {
         super(t);
     }
 
     @Override
-    public void configure(SearchTask t) {
+    public void configure(GeneralTask t) {
         super.configure(t);
         this.lambda = 1.0;
         computeJacobian = true;

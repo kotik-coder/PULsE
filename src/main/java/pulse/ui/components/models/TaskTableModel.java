@@ -11,6 +11,8 @@ import static pulse.tasks.listeners.TaskRepositoryEvent.State.TASK_REMOVED;
 import static pulse.ui.Messages.getString;
 
 import javax.swing.table.DefaultTableModel;
+import pulse.input.ExperimentalData;
+import pulse.tasks.Calculation;
 
 import pulse.tasks.Identifier;
 import pulse.tasks.SearchTask;
@@ -51,11 +53,12 @@ public class TaskTableModel extends DefaultTableModel {
     }
 
     public void addTask(SearchTask t) {
-        var temperature = t.getExperimentalCurve()
+        var temperature = ( (ExperimentalData) t.getInput() )
                 .getMetadata().numericProperty(TEST_TEMPERATURE);
+        var calc = (Calculation) t.getResponse();
         var data = new Object[]{t.getIdentifier(), temperature, 
-            t.getCurrentCalculation().getOptimiserStatistic().getStatistic(),
-            t.getNormalityTest().getStatistic(), t.getCurrentCalculation().getStatus()};
+            calc.getOptimiserStatistic().getStatistic(),
+            t.getNormalityTest().getStatistic(), t.getStatus()};
 
         invokeLater(() -> super.addRow(data));
 
@@ -68,7 +71,7 @@ public class TaskTableModel extends DefaultTableModel {
         });
 
         t.addTaskListener((LogEntry e) -> {
-            setValueAt(t.getCurrentCalculation().getOptimiserStatistic()
+            setValueAt(calc.getOptimiserStatistic()
                     .getStatistic(), searchRow(t.getIdentifier()), SEARCH_STATISTIC_COLUMN);
         });
 

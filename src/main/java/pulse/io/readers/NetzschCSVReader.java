@@ -47,23 +47,25 @@ public class NetzschCSVReader implements CurveReader {
     private final static String THICKNESS = "Thickness_RT";
     private final static String DETECTOR_SPOT_SIZE = "Spotsize";
     private final static String DIAMETER = "Diameter";
+    private final static String L_PULSE_WIDTH = "Laser_pulse_width";
+    private final static String PULSE_WIDTH = "Pulse_width";
 
     /**
      * Note comma is included as a delimiter character here.
      */
     private final static String ENGLISH_DELIMS = "[#(),;/°Cx%^]+";
     private final static String GERMAN_DELIMS = "[#();/°Cx%^]+";
-    
+
     private static String delims;
     //default number format (British format)
     private static Locale locale;
-    
+
     private static NumberFormat format;
-    
+
     private NetzschCSVReader() {
         //do nothing
     }
-    
+
     protected void setDefaultLocale() {
         delims = ENGLISH_DELIMS;
         locale = Locale.ENGLISH;
@@ -105,26 +107,25 @@ public class NetzschCSVReader implements CurveReader {
     public List<ExperimentalData> read(File file) throws IOException {
         Objects.requireNonNull(file, Messages.getString("DATReader.1"));
         ExperimentalData curve = new ExperimentalData();
-        
-        setDefaultLocale(); //always start with a default locale
-        
-        //gets the number format for this locale
 
+        setDefaultLocale(); //always start with a default locale
+
+        //gets the number format for this locale
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
 
             int shotId = determineShotID(reader, file);
-            
-            String spot = findLineByLabel(reader, DETECTOR_SPOT_SIZE, THICKNESS, false);            
-            
+
+            String spot = findLineByLabel(reader, DETECTOR_SPOT_SIZE, THICKNESS, false);
+
             double spotSize = 0;
-            if(spot != null) {
+            if (spot != null) {
                 var spotTokens = spot.split(delims);
                 spotSize = format.parse(spotTokens[spotTokens.length - 1]).doubleValue() * TO_METRES;
             }
-                
+
             String tempLine = findLineByLabel(reader, THICKNESS, false);
             var tempTokens = tempLine.split(delims);
-            
+
             final double thickness = format.parse(tempTokens[tempTokens.length - 1]).doubleValue() * TO_METRES;
 
             tempTokens = findLineByLabel(reader, DIAMETER, false).split(delims);
@@ -132,6 +133,19 @@ public class NetzschCSVReader implements CurveReader {
 
             tempTokens = findLineByLabel(reader, SAMPLE_TEMPERATURE, false).split(delims);
             final double sampleTemperature = format.parse(tempTokens[tempTokens.length - 1]).doubleValue() + TO_KELVIN;
+
+            var line = findLineByLabel(reader, L_PULSE_WIDTH, DETECTOR, false);
+            if (line == null) {
+                line = findLineByLabel(reader, PULSE_WIDTH, DETECTOR, false);
+            }
+
+            double pulseWidth = 0;
+
+            if (line != null) {
+                tempTokens = line.split(delims);
+                pulseWidth = format.parse(tempTokens[tempTokens.length - 1])
+                        .doubleValue() * TO_SECONDS;
+            }
 
             /*
 			 * Finds the detector keyword.
@@ -147,6 +161,9 @@ public class NetzschCSVReader implements CurveReader {
             populate(curve, reader);
 
             var met = new Metadata(derive(TEST_TEMPERATURE, sampleTemperature), shotId);
+            if (pulseWidth > 1e-10) {
+                met.set(NumericPropertyKeyword.PULSE_WIDTH, derive(NumericPropertyKeyword.PULSE_WIDTH, pulseWidth));
+            }
             met.set(NumericPropertyKeyword.THICKNESS, derive(NumericPropertyKeyword.THICKNESS, thickness));
             met.set(NumericPropertyKeyword.DIAMETER, derive(NumericPropertyKeyword.DIAMETER, diameter));
             met.set(NumericPropertyKeyword.FOV_OUTER, derive(NumericPropertyKeyword.FOV_OUTER, spotSize != 0 ? spotSize : 0.85 * diameter));
@@ -154,7 +171,7 @@ public class NetzschCSVReader implements CurveReader {
 
             curve.setMetadata(met);
             curve.setRange(new Range(curve.getTimeSequence()));
-            return new ArrayList<>(Arrays.asList(curve));  
+            return new ArrayList<>(Arrays.asList(curve));
 
         } catch (ParseException ex) {
             Logger.getLogger(NetzschCSVReader.class.getName()).log(Level.SEVERE, null, ex);
@@ -163,26 +180,24 @@ public class NetzschCSVReader implements CurveReader {
         return null;
 
     }
-    
+
     /**
      * Note: the {@code line} must contain a decimal-separated number.
-     * @param line a line containing number with a decimal separator  
+     *
+     * @param line a line containing number with a decimal separator
      */
-    
     private static void guessLocaleAndFormat(String line) {
-                
-        if(line.contains(".")) {
+
+        if (line.contains(".")) {
             delims = ENGLISH_DELIMS;
             locale = Locale.ENGLISH;
-        }
-        
-        else {
+        } else {
             delims = GERMAN_DELIMS;
             locale = Locale.GERMAN;
         }
-        
+
         format = DecimalFormat.getInstance(locale);
-        format.setGroupingUsed(false); 
+        format.setGroupingUsed(false);
     }
 
     protected static void populate(AbstractData data, BufferedReader reader) throws IOException, ParseException {
@@ -192,12 +207,12 @@ public class NetzschCSVReader implements CurveReader {
 
         for (String line = reader.readLine(); line != null && !line.trim().isEmpty(); line = reader.readLine()) {
             tokens = line.split(delims);
-            
-            if(tokens.length < 2) {
+
+            if (tokens.length < 2) {
                 guessLocaleAndFormat(line);
                 tokens = line.split(delims);
             }
-                
+
             time = format.parse(tokens[0]).doubleValue() * NetzschCSVReader.TO_SECONDS;
             power = format.parse(tokens[1]).doubleValue();
             data.addPoint(time, power);
@@ -210,7 +225,7 @@ public class NetzschCSVReader implements CurveReader {
         String[] shotID = shotIDLine.split(delims);
 
         int id;
-        
+
         //check if first entry makes sense
         if (!shotID[shotID.length - 2].equalsIgnoreCase(SHOT_DATA)) {
             throw new IllegalArgumentException(file.getName()
@@ -226,37 +241,39 @@ public class NetzschCSVReader implements CurveReader {
     protected static String findLineByLabel(BufferedReader reader, String label, boolean ignoreLocale) throws IOException {
         return findLineByLabel(reader, label, "!!!", ignoreLocale);
     }
-    
+
     protected static String findLineByLabel(BufferedReader reader, String label, String stopLabel, boolean ignoreLocale) throws IOException {
 
         String line = "";
         String[] tokens;
 
         reader.mark(1000);
-        
+
         //find keyword
         outer:
         for (line = reader.readLine(); line != null; line = reader.readLine()) {
 
-            if(line.isBlank())
+            if (line.isBlank()) {
                 continue;
-            
-            if(!ignoreLocale)
+            }
+
+            if (!ignoreLocale) {
                 guessLocaleAndFormat(line);
+            }
             tokens = line.split(delims);
 
             for (String token : tokens) {
-                
+
                 if (token.equalsIgnoreCase(label)) {
                     break outer;
                 }
-                
-                if(token.equalsIgnoreCase(stopLabel)) {
+
+                if (token.equalsIgnoreCase(stopLabel)) {
                     line = null;
                     reader.reset();
                     break outer;
                 }
-                
+
             }
 
         }
@@ -264,7 +281,7 @@ public class NetzschCSVReader implements CurveReader {
         return line;
 
     }
-    
+
     /**
      * As this class uses the singleton pattern, only one instance is created
      * using an empty no-argument constructor.
@@ -274,14 +291,14 @@ public class NetzschCSVReader implements CurveReader {
     public static CurveReader getInstance() {
         return instance;
     }
-    
+
     /**
      * Get the standard delimiter chars.
+     *
      * @return delims
      */
-    
     public static String getDelims() {
         return delims;
     }
-    
+
 }

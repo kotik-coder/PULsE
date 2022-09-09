@@ -77,14 +77,14 @@ public abstract class ImplicitScheme extends OneDimensionalScheme {
     
     @Override
     public void timeStep(final int m) throws SolverException {
-        leftBoundary();
+        leftBoundary(m);
         final var V = getCurrentSolution();
         final int N = V.length - 1;
         setSolutionAt(N, evalRightBoundary(tridiagonal.getAlpha()[N], tridiagonal.getBeta()[N]));
         tridiagonal.sweep(V);
     }
 
-    public void leftBoundary() {
+    public void leftBoundary(int m) {
         tridiagonal.setBeta(1, firstBeta());
         tridiagonal.evaluateBeta(getPreviousSolution());
     }

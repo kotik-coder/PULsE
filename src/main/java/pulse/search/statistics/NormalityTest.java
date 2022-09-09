@@ -8,6 +8,7 @@ import static pulse.properties.NumericPropertyKeyword.TEST_STATISTIC;
 
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
+import pulse.search.GeneralTask;
 import pulse.tasks.SearchTask;
 
 /**
@@ -44,7 +45,7 @@ public abstract class NormalityTest extends ResidualStatistic {
         NormalityTest.significance = (double) alpha.getValue();
     }
 
-    public abstract boolean test(SearchTask task);
+    public abstract boolean test(GeneralTask task);
 
     @Override
     public NumericProperty getStatistic() {

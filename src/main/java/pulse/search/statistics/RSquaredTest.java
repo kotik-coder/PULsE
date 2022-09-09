@@ -1,13 +1,13 @@
 package pulse.search.statistics;
 
 import static java.lang.Math.pow;
+import java.util.List;
 import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.SIGNIFICANCE;
 import static pulse.properties.NumericPropertyKeyword.TEST_STATISTIC;
 
-import pulse.input.ExperimentalData;
 import pulse.properties.NumericProperty;
-import pulse.tasks.SearchTask;
+import pulse.search.GeneralTask;
 
 /**
  * The coefficient of determination represents the goodness of fit that a
@@ -25,7 +25,7 @@ public class RSquaredTest extends NormalityTest {
     }
 
     @Override
-    public boolean test(SearchTask task) {
+    public boolean test(GeneralTask task) {
         evaluate(task);
         sos = new SumOfSquares();
         return getStatistic().compareTo(signifiance) > 0;
@@ -48,35 +48,25 @@ public class RSquaredTest extends NormalityTest {
      * page</a>
      */
     @Override
-    public void evaluate(SearchTask t) {
-        var reference = t.getExperimentalCurve();
-
+    public void evaluate(GeneralTask t) {
+        var yr = t.getInput().getY();
         sos.evaluate(t);
 
-        final int start = reference.getIndexRange().getLowerBound();
-        final int end = reference.getIndexRange().getUpperBound();
-
-        final double mean = mean(reference, start, end);
+        final double mean = mean(yr);
         double TSS = 0;
-
-        for (int i = start; i < end; i++) {
-            TSS += pow(reference.signalAt(i) - mean, 2);
+        int size = yr.size();
+        
+        for (int i = 0; i < size; i++) {
+            TSS += pow(yr.get(i) - mean, 2);
         }
 
-        TSS /= (end - start);
-
+        TSS /= size;
+        
         setStatistic(derive(TEST_STATISTIC, (1. - (double) sos.getStatistic().getValue() / TSS)));
     }
 
-    private double mean(ExperimentalData data, final int start, final int end) {
-        double mean = 0;
-
-        for (int i = start; i < end; i++) {
-            mean += data.signalAt(i);
-        }
-
-        mean /= (end - start);
-        return mean;
+    private double mean(List<Double> input) {
+        return input.stream().mapToDouble(d -> d).average().getAsDouble();
     }
 
     public SumOfSquares getSumOfSquares() {

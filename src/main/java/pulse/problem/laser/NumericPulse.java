@@ -13,6 +13,7 @@ import pulse.properties.NumericPropertyKeyword;
 import pulse.tasks.SearchTask;
 
 import pulse.baseline.FlatBaseline;
+import pulse.tasks.Calculation;
 
 /**
  * A numeric pulse is given by a set of discrete {@code NumericPulseData}
@@ -58,7 +59,8 @@ public class NumericPulse extends PulseTemporalShape {
         baselineSubtractedFrom(data);
       
         //notify host pulse object of a new pulse width
-        var problem = ((SearchTask) data.getParent()).getCurrentCalculation().getProblem();
+        var problem = ( (Calculation) ((SearchTask) data.getParent())
+                .getResponse() ).getProblem();
         setPulseWidthOf(problem);
 
         //convert to dimensionless time and interpolate
@@ -77,7 +79,7 @@ public class NumericPulse extends PulseTemporalShape {
         
         //subtracts a horizontal baseline from the pulse data
         var baseline = new FlatBaseline();
-        baseline.fitNegative(pulseData);
+        baseline.fitTo(pulseData);
         
         for(int i = 0, size = pulseData.getTimeSequence().size(); i < size; i++)
             pulseData.setSignalAt(i, 

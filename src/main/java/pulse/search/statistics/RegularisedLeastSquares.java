@@ -2,8 +2,7 @@ package pulse.search.statistics;
 
 import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.OPTIMISER_STATISTIC;
-
-import pulse.tasks.SearchTask;
+import pulse.search.GeneralTask;
 
 /**
  * This is an experimental feature. The objective function here is equal to the
@@ -12,19 +11,16 @@ import pulse.tasks.SearchTask;
  * dimensionality are favoured.
  *
  */
-public class RegularisedLeastSquares extends OptimiserStatistic {
+public class RegularisedLeastSquares extends SumOfSquares {
 
     private double lambda = 1e-4;
-    private SumOfSquares sos;
-
+   
     public RegularisedLeastSquares() {
         super();
-        sos = new SumOfSquares();
     }
 
     public RegularisedLeastSquares(RegularisedLeastSquares rls) {
         super(rls);
-        sos = new SumOfSquares(rls.sos);
         this.lambda = rls.lambda;
     }
 
@@ -47,21 +43,17 @@ public class RegularisedLeastSquares extends OptimiserStatistic {
 	 * @see pulse.search.statistics.SumOfSquares
      */
     @Override
-    public void evaluate(SearchTask t) {
-        sos.evaluate(t);
-        final double ssr = (double) sos.getStatistic().getValue();
-        final double statistic = ssr + lambda * t.searchVector().lengthSq();
+    public void evaluate(GeneralTask t) {
+        calculateResiduals(t);
+        super.evaluate(t);
+        final double ssr = (double) getStatistic().getValue();
+        final double statistic = ssr + lambda * t.searchVector().toVector().lengthSq();
         setStatistic(derive(OPTIMISER_STATISTIC, statistic));
     }
 
     @Override
     public String getDescriptor() {
         return "<html><i>L</i><sub>2</sub> Regularised Least Squares</html>";
-    }
-
-    @Override
-    public double variance() {
-        return (double) sos.getStatistic().getValue();
     }
 
     @Override

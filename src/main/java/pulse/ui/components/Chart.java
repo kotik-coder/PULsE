@@ -41,6 +41,7 @@ import pulse.input.ExperimentalData;
 import pulse.input.IndexRange;
 import pulse.input.Range;
 import pulse.input.listeners.DataEvent;
+import pulse.problem.schemes.solvers.SolverException;
 import pulse.properties.NumericProperties;
 import static pulse.properties.NumericPropertyKeyword.LOWER_BOUND;
 import static pulse.properties.NumericPropertyKeyword.UPPER_BOUND;
@@ -90,10 +91,9 @@ public class Chart {
                 }
 
                 SwingUtilities.invokeLater(() -> {
-                    
+
                     //process dragged events        
-                    Range range = instance.getSelectedTask()
-                            .getExperimentalCurve().getRange();
+                    Range range = ((ExperimentalData) (instance.getSelectedTask().getInput())).getRange();
                     double value = xCoord(e) / factor;  //convert to seconds back from ms -- if needed
 
                     if (lowerMarker.getState() != MovableValueMarker.State.IDLE) {
@@ -107,7 +107,7 @@ public class Chart {
                     } else {
                         super.mouseDragged(e);
                     }
-                    
+
                 });
 
             }
@@ -118,12 +118,13 @@ public class Chart {
             //for each new task
             var eventTask = instance.getTask(e.getId());
             if (e.getState() == TaskRepositoryEvent.State.TASK_ADDED) {
+                var data = (ExperimentalData) eventTask.getInput();
                 //add passive data listener
-                eventTask.getExperimentalCurve().addDataListener((DataEvent e1) -> {
+                data.addDataListener((DataEvent e1) -> {
                     //that will be triggered only when this task is selected
                     if (instance.getSelectedTask() == eventTask) {
                         //update marker values
-                        var segment = eventTask.getExperimentalCurve().getRange().getSegment();
+                        var segment = data.getRange().getSegment();
                         lowerMarker.setValue(segment.getMinimum() * factor); //convert to ms -- if needed
                         upperMarker.setValue(segment.getMaximum() * factor); //convert to ms -- if needed
                     }
@@ -221,7 +222,7 @@ public class Chart {
             plot.setDataset(i, null);
         }
 
-        var rawData = task.getExperimentalCurve();
+        var rawData = (ExperimentalData) task.getInput();
         var segment = rawData.getRange().getSegment();
 
         adjustAxisLabel(segment.getMaximum());
@@ -239,7 +240,7 @@ public class Chart {
         lowerMarker = new MovableValueMarker(segment.getMinimum() * factor);
         upperMarker = new MovableValueMarker(segment.getMaximum() * factor);
 
-        final double margin = (lowerMarker.getValue() + upperMarker.getValue())/20.0;
+        final double margin = (lowerMarker.getValue() + upperMarker.getValue()) / 20.0;
 
         //add listener to handle range adjustment
         var lowerMarkerListener = new MouseOnMarkerListener(this, lowerMarker, upperMarker, margin);
@@ -251,13 +252,22 @@ public class Chart {
         plot.addDomainMarker(upperMarker);
         plot.addDomainMarker(lowerMarker);
 
-        var calc = task.getCurrentCalculation();
+        var calc = (Calculation) task.getResponse();
         var problem = calc.getProblem();
 
         if (problem != null) {
 
             var solution = problem.getHeatingCurve();
             var scheme = calc.getScheme();
+
+            if (solution != null && !solution.isFull()) {
+                try {
+                    calc.process();
+                } catch (SolverException ex) {
+                    System.out.println("Could not plot solution! See details in debug.");
+                    ex.printStackTrace();
+                }
+            }
 
             if (solution != null && scheme != null) {
 
@@ -298,7 +308,7 @@ public class Chart {
     public void plotSingle(HeatingCurve curve) {
         requireNonNull(curve);
 
-        var plot = chart.getXYPlot();
+        plot = chart.getXYPlot();
 
         var classicDataset = new XYSeriesCollection();
 
@@ -339,6 +349,7 @@ public class Chart {
         var problem = calc.getProblem();
         var baseline = problem.getBaseline();
 
+        var time = calc.getOptimiserStatistic().getTimeSequence();
         var residuals = calc.getOptimiserStatistic().getResiduals();
         var size = residuals.size();
 
@@ -348,7 +359,7 @@ public class Chart {
         var series = new XYSeries(format("Residuals (offset %3.2f)", offset));
 
         for (var i = 0; i < size; i++) {
-            series.add(factor * residuals.get(i)[0], (Number) (residuals.get(i)[1] + offset));
+            series.add(factor * time.get(i), (Number) (residuals.get(i) + offset));
         }
 
         return series;
