@@ -44,6 +44,7 @@ import pulse.search.statistics.CorrelationTest;
 import pulse.search.statistics.NormalityTest;
 import pulse.search.statistics.OptimiserStatistic;
 import pulse.search.statistics.SumOfSquares;
+import pulse.tasks.Calculation;
 import pulse.tasks.listeners.TaskRepositoryEvent;
 import pulse.tasks.processing.Buffer;
 import pulse.ui.components.listeners.ExitRequestListener;
@@ -244,7 +245,8 @@ public class PulseMainMenu extends JMenuBar {
                 if (((AbstractButton) e.getItem()).isSelected()) {
                     var text = ((AbstractButton) e.getItem()).getText();
                     setSelectedOptimiserDescriptor(text);
-                    getManagerInstance().getTaskList().stream().forEach(t -> t.getCurrentCalculation().initOptimiser());
+                    getManagerInstance().getTaskList().stream().forEach(t -> 
+                            ( (Calculation) t.getResponse() ).initOptimiser());
                 }
 
             });

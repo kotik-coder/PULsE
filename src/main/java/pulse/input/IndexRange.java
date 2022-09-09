@@ -20,13 +20,14 @@ public class IndexRange {
     private int iStart;
     private int iEnd;
 
-    /**
-     * Construct an empty index range where the start index is set to -1 and the
-     * end index is set to 0.
-     */
-    public IndexRange() {
-        iStart = -1;
-        iEnd = 0;
+    public IndexRange(IndexRange other) {
+        iStart = other.iStart;
+        iEnd = other.iEnd;
+    }
+    
+    public IndexRange(int start, int end) {
+        this.iStart = start;
+        this.iEnd = end;
     }
 
     /**
@@ -73,7 +74,7 @@ public class IndexRange {
      * @see closestLeft
      * @see closestRight
      */
-    public void setLowerBound(List<Double> data, double a) {
+    public final void setLowerBound(List<Double> data, double a) {
         iStart = a > 0 ? closestLeft(a, data) : closestRight(0, data);
     }
 
@@ -90,7 +91,7 @@ public class IndexRange {
      * @see closestLeft
      * @see closestRight
      */
-    public void setUpperBound(List<Double> data, double b) {
+    public final void setUpperBound(List<Double> data, double b) {
         iEnd = closestRight(b, data);
     }
 
@@ -104,9 +105,9 @@ public class IndexRange {
      * @see setLowerBound
      * @see setUpperBound
      */
-    public void set(List<Double> data, Range range) {
+    public final void set(List<Double> data, Range range) {
         var segment = range.getSegment();
-        setLowerBound(data, Math.max(0.0, segment.getMinimum()));
+        setLowerBound(data, segment.getMinimum());
         setUpperBound(data, segment.getMaximum());
     }
 
@@ -116,7 +117,7 @@ public class IndexRange {
      *
      * @return the start index
      */
-    public int getLowerBound() {
+    public final int getLowerBound() {
         return iStart;
     }
 
@@ -126,7 +127,7 @@ public class IndexRange {
      *
      * @return the end index
      */
-    public int getUpperBound() {
+    public final int getUpperBound() {
         return iEnd;
     }
 

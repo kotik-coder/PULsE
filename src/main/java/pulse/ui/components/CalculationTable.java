@@ -4,6 +4,8 @@ import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
 import static pulse.ui.frames.MainGraphFrame.getChart;
 
 import java.awt.Dimension;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
@@ -23,9 +25,11 @@ public class CalculationTable extends JTable {
     private final static int HEADER_HEIGHT = 30;
 
     private TaskTableRenderer taskTableRenderer;
+    private ExecutorService plotExecutor;
 
     public CalculationTable() {
         super();
+        plotExecutor = Executors.newSingleThreadExecutor();
         setDefaultEditor(Object.class, null);
         taskTableRenderer = new TaskTableRenderer();
         this.setRowSelectionAllowed(true);
@@ -67,7 +71,7 @@ public class CalculationTable extends JTable {
     }
 
     public void identifySelection(SearchTask t) {
-        int modelIndex = t.getStoredCalculations().indexOf(t.getCurrentCalculation());
+        int modelIndex = t.getStoredCalculations().indexOf(t.getResponse());
         if (modelIndex > -1) {
             this.getSelectionModel().setSelectionInterval(modelIndex, modelIndex);
         }
@@ -81,10 +85,12 @@ public class CalculationTable extends JTable {
             var task = TaskManager.getManagerInstance().getSelectedTask();
             var id = convertRowIndexToModel(this.getSelectedRow());
             if (!lsm.getValueIsAdjusting() && id > -1 && id < task.getStoredCalculations().size()) {
-                
-                task.switchTo(task.getStoredCalculations().get(id));
-                getChart().plot(task, true);
-            
+
+                plotExecutor.submit(() -> {
+                    task.switchTo(task.getStoredCalculations().get(id));
+                    getChart().plot(task, true);
+                });
+
             }
 
         });

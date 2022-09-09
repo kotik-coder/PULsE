@@ -12,8 +12,6 @@ import pulse.problem.schemes.solvers.SolverException;
 import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
-import static pulse.properties.NumericPropertyKeyword.GRID_DENSITY;
-import static pulse.properties.NumericPropertyKeyword.TAU_FACTOR;
 import pulse.util.PropertyHolder;
 import pulse.util.Reflexive;
 
@@ -93,11 +91,8 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
     protected void prepare(Problem problem) throws SolverException {
         if (discretePulse == null) {
             discretePulse = problem.discretePulseOn(grid);
-        }    
-        else {
-            discretePulse.recalculate();
-        }
-        
+        }   
+        discretePulse.recalculate();
         clearArrays();
     }
 

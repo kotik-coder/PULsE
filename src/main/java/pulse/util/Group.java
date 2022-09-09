@@ -25,7 +25,9 @@ public class Group extends UpwardsNavigable {
 
         var methods = this.getClass().getMethods();
         for (var m : methods) {
-            if (m.getParameterCount() > 0 || !Group.class.isAssignableFrom(m.getReturnType())
+            
+            if (m.getParameterCount() > 0 
+                    || !Group.class.isAssignableFrom(m.getReturnType())
                     || m.getReturnType().isAssignableFrom(getClass())) {
                 continue;
             }
@@ -39,7 +41,7 @@ public class Group extends UpwardsNavigable {
                 e.printStackTrace();
             }
 
-            /* Ignore null, factor/instance methods returning same accessibles */
+            /* Ignore null, factory/instance methods returning same accessibles */
             if (a == null || a.getDescriptor().equals(getDescriptor())) {
                 continue;
             }

@@ -13,6 +13,8 @@ public class Segment {
 
     private double a;
     private double b;
+    
+    public final static Segment UNBOUNDED = new Segment(Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
 
     /**
      * Creates a {@code Segment} bounded by {@code a} and {@code b}.

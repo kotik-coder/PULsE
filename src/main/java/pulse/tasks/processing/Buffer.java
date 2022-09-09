@@ -13,7 +13,7 @@ import pulse.math.ParameterVector;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
-import pulse.tasks.SearchTask;
+import pulse.search.GeneralTask;
 import pulse.util.PropertyHolder;
 
 /**
@@ -61,8 +61,9 @@ public class Buffer extends PropertyHolder {
      * @param t the {@code SearchTask}
      * @param bufferElement the {@code bufferElement} which will be written over
      */
-    public void fill(SearchTask t, int bufferElement) {
-        statistic[bufferElement] = (double) t.getCurrentCalculation().getOptimiserStatistic().getStatistic().getValue();
+    public final void fill(GeneralTask t, int bufferElement) {
+        statistic[bufferElement] = (double) t.getResponse()
+                .getOptimiserStatistic().getStatistic().getValue();
         data[bufferElement] = t.searchVector();
     }
 
@@ -80,7 +81,7 @@ public class Buffer extends PropertyHolder {
         boolean result = false;
 
         for (int i = 0; i < e.length && (!result); i++) {
-            var index = data[0].getIndex(i);
+            var index = data[0].getParameters().get(i).getIdentifier().getKeyword();
             final double av = average(index);
             e[i] = variance(index) / (av * av);
 
@@ -105,7 +106,7 @@ public class Buffer extends PropertyHolder {
         double av = 0;
 
         for (ParameterVector v : data) {
-            av += v.getParameterValue(index);
+            av += v.getParameterValue(index, 0);
         }
 
         return av / data.length;
@@ -142,7 +143,7 @@ public class Buffer extends PropertyHolder {
         double av = average(index);
 
         for (ParameterVector v : data) {
-            final double s = v.getParameterValue(index) - av;
+            final double s = v.getParameterValue(index, 0) - av;
             sd += s * s;
         }
 
@@ -188,7 +189,7 @@ public class Buffer extends PropertyHolder {
      */
     @Override
     public List<Property> listedTypes() {
-        return new ArrayList<Property>(Arrays.asList(def(BUFFER_SIZE)));
+        return new ArrayList<>(Arrays.asList(def(BUFFER_SIZE)));
     }
 
 }

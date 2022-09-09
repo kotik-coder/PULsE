@@ -20,7 +20,7 @@ public abstract class CorrelationTest extends PropertyHolder implements Reflexiv
                     "Correlation Test Selector", CorrelationTest.class);
 
     static {
-        instanceDescriptor.setSelectedDescriptor(PearsonCorrelation.class.getSimpleName());
+        instanceDescriptor.setSelectedDescriptor(EmptyCorrelationTest.class.getSimpleName());
     }
     
     public CorrelationTest() {

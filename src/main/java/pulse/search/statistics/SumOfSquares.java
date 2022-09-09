@@ -2,8 +2,7 @@ package pulse.search.statistics;
 
 import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.OPTIMISER_STATISTIC;
-
-import pulse.tasks.SearchTask;
+import pulse.search.GeneralTask;
 
 /**
  * The standard optimality criterion of the L2 norm condition, or simply
@@ -39,11 +38,12 @@ public class SumOfSquares extends OptimiserStatistic {
      * @param t The task containing the reference and calculated curves
      * @see calculateResiduals()
      */
+
     @Override
-    public void evaluate(SearchTask t) {
+    public void evaluate(GeneralTask t) {
         calculateResiduals(t);
-        final double statistic = getResiduals().stream().map(r -> r[1] * r[1])
-                                .reduce(Double::sum).get() / getResiduals().size();
+        final double statistic = getResiduals().stream().mapToDouble(r -> r * r)
+                .average().getAsDouble();
         setStatistic(derive(OPTIMISER_STATISTIC, statistic));
     }
 

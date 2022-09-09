@@ -10,15 +10,19 @@ import static pulse.util.Reflexive.instantiate;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import pulse.Response;
 
 import pulse.input.ExperimentalData;
 import pulse.input.Metadata;
+import pulse.math.Segment;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.solvers.Solver;
 import pulse.problem.schemes.solvers.SolverException;
+import static pulse.problem.schemes.solvers.SolverException.SolverExceptionType.ILLEGAL_PARAMETERS;
 import pulse.problem.statements.Problem;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
+import pulse.search.GeneralTask;
 import pulse.search.statistics.BICStatistic;
 import pulse.search.statistics.FTest;
 import pulse.search.statistics.ModelSelectionCriterion;
@@ -30,7 +34,7 @@ import pulse.util.InstanceDescriptor;
 import pulse.util.PropertyEvent;
 import pulse.util.PropertyHolder;
 
-public class Calculation extends PropertyHolder implements Comparable<Calculation> {
+public class Calculation extends PropertyHolder implements Comparable<Calculation>, Response {
 
     private Status status;
     public final static double RELATIVE_TIME_MARGIN = 1.01;
@@ -96,7 +100,6 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
         this.problem = problem;
         problem.setParent(this);
         problem.removeHeatingCurveListeners();
-        problem.retrieveData(curve);
         addProblemListeners(problem, curve);
     }
 
@@ -165,7 +168,7 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
             list.forEach(np
                     -> sb.append(String.format("%n %-25s", np))
             );
-            throw new SolverException(sb.toString());
+            throw new SolverException(sb.toString(), ILLEGAL_PARAMETERS);
         }
         ((Solver) scheme).solve(problem);
     }
@@ -248,6 +251,7 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
         initModelCriterion();
     }
 
+    @Override
     public OptimiserStatistic getOptimiserStatistic() {
         return os;
     }
@@ -349,6 +353,35 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
         if (result != null) {
             result.setParent(this);
         }
+    }
+
+    @Override
+    public double evaluate(double t) {
+        return problem.getHeatingCurve().interpolateSignalAt(t);
+    }
+    
+    @Override
+    public Segment accessibleRange() {
+        var hc = problem.getHeatingCurve();
+        return new Segment(hc.timeAt(0), hc.timeLimit());
+    }
+
+   /**
+     * This will use the current {@code DifferenceScheme} to solve the
+     * {@code Problem} for this {@code SearchTask} and calculate the SSR value
+     * showing how well (or bad) the calculated solution describes the
+     * {@code ExperimentalData}.
+     *
+     * @param task
+     * @return the value of SSR (sum of squared residuals).
+     * @throws pulse.problem.schemes.solvers.SolverException
+     */
+    
+    @Override
+    public double objectiveFunction(GeneralTask task) throws SolverException {
+        process();
+        os.evaluate(task);
+        return (double) os.getStatistic().getValue();
     }
 
 }

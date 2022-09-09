@@ -113,8 +113,12 @@ public class TaskControlFrame extends JFrame {
 
             @Override
             public void onProblemStatementShowRequest() {
-                problemStatementFrame.update();
-                setProblemStatementFrameVisible(true);
+                if (TaskManager.getManagerInstance().getSelectedTask() != null) {
+                    problemStatementFrame.update();
+                    setProblemStatementFrameVisible(true);
+                } else {
+                    System.out.println("Please select a task");
+                }
             }
 
             @Override

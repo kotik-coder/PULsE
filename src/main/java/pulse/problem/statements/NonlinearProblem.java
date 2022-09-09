@@ -1,6 +1,5 @@
 package pulse.problem.statements;
 
-import java.util.List;
 import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.CONDUCTIVITY;
 import static pulse.properties.NumericPropertyKeyword.DENSITY;
@@ -11,13 +10,13 @@ import static pulse.properties.NumericPropertyKeyword.TEST_TEMPERATURE;
 import java.util.Set;
 
 import pulse.input.ExperimentalData;
+import pulse.math.Parameter;
 import pulse.math.ParameterVector;
 import pulse.math.Segment;
 import pulse.math.transforms.StickTransform;
 import pulse.problem.schemes.DifferenceScheme;
 import pulse.problem.schemes.ImplicitScheme;
 import pulse.problem.schemes.solvers.SolverException;
-import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import static pulse.properties.NumericPropertyKeyword.LASER_ENERGY;
@@ -82,10 +81,10 @@ public class NonlinearProblem extends ClassicalProblem {
         super.assign(params);
         getProperties().calculateEmissivity();
 
-        for (int i = 0, size = params.dimension(); i < size; i++) {
+        for (Parameter p : params.getParameters()) {
 
-            double value = params.inverseTransform(i);
-            NumericPropertyKeyword key = params.getIndex(i);
+            double value = p.inverseTransform();
+            NumericPropertyKeyword key = p.getIdentifier().getKeyword();
 
             if (key == LASER_ENERGY) {
                 this.getPulse().setLaserEnergy(derive(key, value));
@@ -104,18 +103,18 @@ public class NonlinearProblem extends ClassicalProblem {
      */
     
     @Override
-    public void optimisationVector(ParameterVector output, List<Flag> flags) {
-        super.optimisationVector(output, flags);
+    public void optimisationVector(ParameterVector output) {
+        super.optimisationVector(output);
         
-        for (int i = 0, size = output.dimension(); i < size; i++) {
+        for (Parameter p : output.getParameters()) {
 
-            var key = output.getIndex(i);
+            var key = p.getIdentifier().getKeyword();
 
             if(key == LASER_ENERGY) {
                 var bounds = Segment.boundsFrom(LASER_ENERGY);
-                output.setParameterBounds(i, bounds);
-                output.setTransform(i, new StickTransform(bounds));
-                output.set(i, (double) getPulse().getLaserEnergy().getValue());
+                p.setBounds(bounds);
+                p.setTransform(new StickTransform(bounds));
+                p.setValue( (double) getPulse().getLaserEnergy().getValue());
             }
 
         }

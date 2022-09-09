@@ -5,6 +5,7 @@ import org.ejml.dense.row.CommonOps_DDRM;
 
 import pulse.math.linear.Vector;
 import pulse.problem.schemes.solvers.SolverException;
+import static pulse.problem.schemes.solvers.SolverException.SolverExceptionType.OPTIMISATION_ERROR;
 
 public interface HessianDirectionSolver extends DirectionSolver {
 
@@ -38,7 +39,7 @@ public interface HessianDirectionSolver extends DirectionSolver {
             var dirv = new DMatrixRMaj(dimg, 1);
 
             if (!CommonOps_DDRM.solve(hess, antigrad, dirv)) {
-                throw new SolverException("Singular matrix!");
+                throw new SolverException("Singular matrix!", OPTIMISATION_ERROR);
             }
 
             result = new Vector(dirv.getData());

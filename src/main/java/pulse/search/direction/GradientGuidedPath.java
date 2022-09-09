@@ -4,6 +4,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import pulse.math.linear.Vector;
 import pulse.problem.schemes.solvers.SolverException;
+import static pulse.problem.schemes.solvers.SolverException.SolverExceptionType.OPTIMISATION_ERROR;
+import pulse.search.GeneralTask;
 import pulse.tasks.SearchTask;
 import pulse.tasks.logs.Status;
 
@@ -32,7 +34,8 @@ public class GradientGuidedPath extends IterativeState {
     private Vector gradient;
     private double minimumPoint;
 
-    protected GradientGuidedPath(SearchTask t) {
+    protected GradientGuidedPath(GeneralTask t) {
+        super(t);
         configure(t);
     }
 
@@ -41,15 +44,15 @@ public class GradientGuidedPath extends IterativeState {
      * direction of search.Sets the minimum point to 0.0.
      *
      * @param t the {@code SearchTask}, for which this {@code Path} is created.
-     * @throws pulse.problem.schemes.solvers.SolverException
      * @see pulse.search.direction.PathSolver.direction(Path)
      */
-    public void configure(SearchTask t) {
+    public void configure(GeneralTask t) {
         super.reset();
         try {
             this.gradient = ((GradientBasedOptimiser) PathOptimiser.getInstance()).gradient(t);
         } catch (SolverException ex) {
-            t.notifyFailedStatus(ex);
+            t.onSolverException( new SolverException("Gradient calculation error", OPTIMISATION_ERROR));
+            ex.printStackTrace();
         }
         minimumPoint = 0.0;
     }

@@ -30,10 +30,10 @@ public class ResidualsChart extends AuxPlotter<ResidualStatistic> {
         var pulseDataset = new HistogramDataset();
         pulseDataset.setType(HistogramType.RELATIVE_FREQUENCY);
 
-        var residuals = stat.transformResiduals();
+        var residuals = stat.residualsArray();
 
         if (residuals.length > 0) {
-            pulseDataset.addSeries("H1", stat.transformResiduals(), binCount);
+            pulseDataset.addSeries("H1", residuals, binCount);
         }
 
         getPlot().setDataset(0, pulseDataset);

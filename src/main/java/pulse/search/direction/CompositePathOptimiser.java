@@ -7,17 +7,17 @@ import java.util.List;
 import pulse.math.ParameterVector;
 import static pulse.math.linear.Matrices.createIdentityMatrix;
 import pulse.problem.schemes.solvers.SolverException;
+import static pulse.problem.schemes.solvers.SolverException.SolverExceptionType.OPTIMISATION_TIMEOUT;
 import pulse.properties.Property;
+import pulse.search.GeneralTask;
 import pulse.search.linear.LinearOptimiser;
 import pulse.search.linear.WolfeOptimiser;
-import pulse.tasks.SearchTask;
-import pulse.tasks.logs.Status;
 import pulse.util.InstanceDescriptor;
 
 public abstract class CompositePathOptimiser extends GradientBasedOptimiser {
 
     private InstanceDescriptor<? extends LinearOptimiser> instanceDescriptor 
-            = new InstanceDescriptor<LinearOptimiser>(
+            = new InstanceDescriptor<>(
             "Linear Optimiser Selector", LinearOptimiser.class);
 
     private LinearOptimiser linearSolver;
@@ -46,7 +46,7 @@ public abstract class CompositePathOptimiser extends GradientBasedOptimiser {
     }
 
     @Override
-    public boolean iteration(SearchTask task) throws SolverException {
+    public boolean iteration(GeneralTask task) throws SolverException {
         var p = (GradientGuidedPath) task.getIterativeState(); // the previous state of the task
         
         boolean accept = true;
@@ -56,11 +56,11 @@ public abstract class CompositePathOptimiser extends GradientBasedOptimiser {
          */
         if (compare(p.getIteration(), getMaxIterations()) > 0) {
 
-            task.setStatus(Status.TIMEOUT);
+            throw new SolverException(OPTIMISATION_TIMEOUT);
 
         } else {
 
-            double initialCost = task.solveProblemAndCalculateCost();
+            double initialCost = task.getResponse().objectiveFunction(task);
             var parameters     = task.searchVector();  
 
             p.setParameters(parameters); // store current parameters
@@ -70,11 +70,15 @@ public abstract class CompositePathOptimiser extends GradientBasedOptimiser {
             p.setLinearStep(step);
 
             // new set of parameters determined through search
-            var candidateParams = parameters.sum(dir.multiply(step)); 		
+            var candidateParams = parameters.toVector().sum(dir.multiply(step)); 		
+            var candidateVector = new ParameterVector(parameters, candidateParams);
             
-            task.assign(new ParameterVector(parameters, candidateParams)); // assign new parameters
-
-            double newCost = task.solveProblemAndCalculateCost(); // calculate the sum of squared residuals
+            if(candidateVector.findMalformedElements().isEmpty()) {
+                task.assign(candidateVector); // assign new parameters
+            }
+            
+            double newCost = task.getResponse().objectiveFunction(task); 
+            // calculate the sum of squared residuals
 
             if (newCost > initialCost - EPS 
                     && p.getFailedAttempts() < MAX_FAILED_ATTEMPTS 
@@ -134,8 +138,7 @@ public abstract class CompositePathOptimiser extends GradientBasedOptimiser {
      * @return a {@code Path} instance
      */
     @Override
-    public GradientGuidedPath initState(SearchTask t) {
-        this.configure(t);
+    public GradientGuidedPath initState(GeneralTask t) {
         return new ComplexPath(t);
     }
 

@@ -10,6 +10,7 @@ import pulse.problem.schemes.TridiagonalMatrixAlgorithm;
 import pulse.problem.schemes.rte.Fluxes;
 import pulse.problem.schemes.rte.RTECalculationStatus;
 import pulse.problem.schemes.rte.RadiativeTransferSolver;
+import static pulse.problem.schemes.solvers.SolverException.SolverExceptionType.RTE_SOLVER_ERROR;
 import pulse.problem.statements.ClassicalProblem;
 import pulse.problem.statements.ParticipatingMedium;
 import pulse.problem.statements.Problem;
@@ -103,7 +104,8 @@ public abstract class ImplicitCoupledSolver extends CoupledImplicitScheme
 
         var status = getCalculationStatus();
         if (status != RTECalculationStatus.NORMAL) {
-            throw new SolverException(status.toString());
+            throw new SolverException(status.toString(), 
+                    RTE_SOLVER_ERROR);
         }
 
     }

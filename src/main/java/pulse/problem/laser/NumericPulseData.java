@@ -1,6 +1,10 @@
 package pulse.problem.laser;
 
+import java.util.List;
 import pulse.AbstractData;
+import pulse.DiscreteInput;
+import pulse.input.IndexRange;
+import pulse.input.Range;
 
 /**
  * An instance of the {@code AbstractData} class, which also declares an
@@ -8,7 +12,7 @@ import pulse.AbstractData;
  * measurement imported from an external source.
  *
  */
-public class NumericPulseData extends AbstractData {
+public class NumericPulseData extends AbstractData implements DiscreteInput {
 
     private final int externalID;
 
@@ -55,4 +59,19 @@ public class NumericPulseData extends AbstractData {
         return super.timeLimit();
     }
 
+    @Override
+    public List<Double> getX() {
+        return getTimeSequence();
+    }
+
+    @Override
+    public List<Double> getY() {
+        return getSignalData();
+    }
+
+    @Override
+    public IndexRange getIndexRange() {
+        return new IndexRange(this.getTimeSequence(), Range.UNLIMITED);
+    }
+    
 }

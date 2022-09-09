@@ -14,8 +14,8 @@ import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.properties.Property;
+import pulse.search.GeneralTask;
 import pulse.search.statistics.OptimiserStatistic;
-import pulse.tasks.SearchTask;
 import pulse.tasks.TaskManager;
 import pulse.util.PropertyHolder;
 import pulse.util.Reflexive;
@@ -93,15 +93,15 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
      * @see direction(Path)
      * @see pulse.search.linear.LinearOptimiser
      */
-    public abstract boolean iteration(SearchTask task) throws SolverException;
-
+    public abstract boolean iteration(GeneralTask task) throws SolverException;
+    
     /**
      * Defines a set of procedures to be run at the end of the search iteration.
      *
      * @param task the {@code SearchTask} undergoing optimisation
      * @throws SolverException
      */
-    public abstract void prepare(SearchTask task) throws SolverException;
+    public abstract void prepare(GeneralTask task) throws SolverException;
 
     public NumericProperty getErrorTolerance() {
         return derive(ERROR_TOLERANCE, errorTolerance);
@@ -232,6 +232,6 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
      * @param t the task, the optimisation path of which will be tracked
      * @return a {@code Path} instance
      */
-    public abstract IterativeState initState(SearchTask t);
+    public abstract IterativeState initState(GeneralTask t);
 
 }

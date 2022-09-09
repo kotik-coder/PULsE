@@ -1,8 +1,5 @@
 package pulse.properties;
 
-import java.text.ParseException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import pulse.math.Segment;
 import static pulse.properties.NumericProperties.compare;
 import static pulse.properties.NumericProperties.derive;

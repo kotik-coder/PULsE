@@ -1,10 +1,8 @@
 package pulse.search;
 
-import java.util.List;
 
 import pulse.math.ParameterVector;
 import pulse.problem.schemes.solvers.SolverException;
-import pulse.properties.Flag;
 
 /**
  * An interface for dealing with optimisation variables. The variables are
@@ -19,13 +17,13 @@ public interface Optimisable {
      * updated, the types of which are listed as indices in the {@code params}
      * vector.
      *
-     * @param params the optimisation vector, containing a similar set of
+     * @param input the optimisation vector, containing a similar set of
      * parameters to this {@code Problem}
      * @throws SolverException if {@code params} contains invalid parameter
      * values
      * @see pulse.util.PropertyHolder.listedTypes()
      */
-    public void assign(ParameterVector params) throws SolverException;
+    public void assign(ParameterVector input) throws SolverException;
 
     /**
      * Calculates the vector argument defined on
@@ -33,9 +31,7 @@ public interface Optimisable {
      * to the scalar objective function for this {@code Optimisable}.
      *
      * @param output the output vector where the result will be stored
-     * @param flags a list of {@code Flag} objects, which determine the basis of
-     * the search
      */
-    public void optimisationVector(ParameterVector output, List<Flag> flags);
+    public void optimisationVector(ParameterVector output);
 
 }

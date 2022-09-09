@@ -7,15 +7,13 @@ import static pulse.properties.NumericPropertyKeyword.LASER_ABSORPTIVITY;
 import static pulse.properties.NumericPropertyKeyword.THERMAL_ABSORPTIVITY;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import pulse.math.Parameter;
 import pulse.math.ParameterVector;
-import pulse.math.Segment;
 import static pulse.math.transforms.StandardTransformations.ABS;
 import pulse.math.transforms.Transformable;
 import pulse.problem.schemes.solvers.SolverException;
-import pulse.properties.Flag;
 import static pulse.properties.NumericProperties.derive;
 
 import pulse.properties.NumericProperty;
@@ -34,6 +32,11 @@ public abstract class AbsorptionModel extends PropertyHolder implements Reflexiv
         absorptionMap = new HashMap<>();
         absorptionMap.put(LASER, def(LASER_ABSORPTIVITY));
         absorptionMap.put(THERMAL, def(THERMAL_ABSORPTIVITY));
+    }
+    
+    protected AbsorptionModel(AbsorptionModel c) {
+        this.absorptionMap = new HashMap<>();
+        this.absorptionMap.putAll(c.absorptionMap);
     }
 
     public abstract double absorption(SpectralRange range, double x);
@@ -105,9 +108,9 @@ public abstract class AbsorptionModel extends PropertyHolder implements Reflexiv
     }
     
     @Override
-    public void optimisationVector(ParameterVector output, List<Flag> flags) {
-        for (int i = 0, size = output.dimension(); i < size; i++) {
-            var key = output.getIndex(i);
+    public void optimisationVector(ParameterVector output) {
+        for (Parameter p : output.getParameters()) {
+            var key = p.getIdentifier().getKeyword();
             double value = 0;
 
             Transformable transform = ABS;
@@ -127,9 +130,8 @@ public abstract class AbsorptionModel extends PropertyHolder implements Reflexiv
             }
 
             //do this for the listed key values 
-            output.setParameterBounds(i, Segment.boundsFrom(key));
-            output.setTransform(i, transform);
-            output.set(i, value);
+            p.setTransform(transform);
+            p.setValue(value);
 
         }
 
@@ -139,14 +141,14 @@ public abstract class AbsorptionModel extends PropertyHolder implements Reflexiv
     public void assign(ParameterVector params) throws SolverException {
         double value;
 
-        for (int i = 0, size = params.dimension(); i < size; i++) {
-            var key = params.getIndex(i);
+        for (Parameter p : params.getParameters()) {
+            var key = p.getIdentifier().getKeyword();
 
             switch (key) {
                 case LASER_ABSORPTIVITY:
                 case THERMAL_ABSORPTIVITY:
                 case COMBINED_ABSORPTIVITY:
-                    value = params.inverseTransform(i);
+                    value = p.inverseTransform();
                     break;
                 default:
                     continue;
@@ -156,5 +158,7 @@ public abstract class AbsorptionModel extends PropertyHolder implements Reflexiv
 
         }
     }
+    
+    public abstract AbsorptionModel copy();
 
 }

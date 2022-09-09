@@ -4,8 +4,8 @@ import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.TEST_STATISTIC;
 
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
+import pulse.search.GeneralTask;
 
-import pulse.tasks.SearchTask;
 import umontreal.ssj.gof.GofStat;
 import umontreal.ssj.probdist.NormalDist;
 
@@ -21,12 +21,14 @@ public class AndersonDarlingTest extends NormalityTest {
      * test with the input parameters formed by the {@code task} residuals and a
      * normal distribution with zero mean and variance equal to the residuals
      * variance.
+     * @param task
+     * @return 
      */
     @Override
-    public boolean test(SearchTask task) {
+    public boolean test(GeneralTask task) {
         calculateResiduals(task);
 
-        double[] residuals = super.transformResiduals();
+        double[] residuals = residualsArray();
         var nd = new NormalDist(0.0, (new StandardDeviation()).evaluate(residuals));
         var testResult = GofStat.andersonDarling(residuals, nd);
 
@@ -42,7 +44,7 @@ public class AndersonDarlingTest extends NormalityTest {
     }
 
     @Override
-    public void evaluate(SearchTask t) {
+    public void evaluate(GeneralTask t) {
         test(t);
     }
 

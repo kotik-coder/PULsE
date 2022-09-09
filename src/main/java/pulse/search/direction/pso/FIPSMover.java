@@ -16,28 +16,29 @@ public class FIPSMover implements Mover {
     }
 
     @Override
-    public ParticleState attemptMove(Particle p, Particle[] neighbours) {
+    public ParticleState attemptMove(Particle p, Particle[] neighbours, ParticleState gBest) {
         var current = p.getCurrentState();
+        var curPos = current.getPosition();
+        var curPosV = curPos.toVector();
+        
+        final int n = curPos.dimension();
+        final double nLength = (double) neighbours.length;
 
-        var pos = current.getPosition();
-
-        final int n = pos.dimension();
-        var nsum = new Vector(n);
+        Vector nsum = new Vector(n); 
 
         for (var neighbour : neighbours) {
-            var nPos = neighbour.getCurrentState().getPosition();
-            nsum = nsum.sum(Vector.random(n, 0.0, phi).multComponents(nPos.subtract(pos)));
+            var nBestPos = neighbour.getBestState().getPosition();  //best position ever achieved so far by the neighbour
+            nsum = nsum.sum(Vector.random(n, 0.0, phi/nLength)
+                    .multComponents(nBestPos.toVector().subtract(curPosV))
+            );
         }
 
-        nsum = nsum.multiply(1.0 / ((double) neighbours.length));
-
-        var newVelocity = (current.getVelocity().sum(nsum)).multiply(chi);
-        var newPosition = pos.sum(newVelocity);
-        System.out.println(newPosition);
-
+        var newVelocity = (current.getVelocity().toVector().sum(nsum)).multiply(chi);
+        var newPosition = curPosV.sum(newVelocity);
+       
         return new ParticleState(
-                new ParameterVector(pos, newPosition),
-                new ParameterVector(pos, newVelocity));
+                new ParameterVector(curPos, newPosition),
+                new ParameterVector(curPos, newVelocity));
 
     }
 

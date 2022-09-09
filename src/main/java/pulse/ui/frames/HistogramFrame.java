@@ -9,6 +9,7 @@ import javax.swing.JSeparator;
 import javax.swing.JSlider;
 
 import pulse.search.statistics.ResidualStatistic;
+import pulse.tasks.Calculation;
 import pulse.tasks.TaskManager;
 import pulse.ui.components.AuxPlotter;
 import pulse.ui.components.ResidualsChart;
@@ -29,7 +30,9 @@ public class HistogramFrame extends ExternalGraphFrame<ResidualStatistic> {
         getContentPane().add(panel, SOUTH);
         slider.addChangeListener(e -> {
             ((ResidualsChart) chart).setBinCount(slider.getValue());
-            plot(TaskManager.getManagerInstance().getSelectedTask().getCurrentCalculation().getOptimiserStatistic());
+            var c = (Calculation) TaskManager.getManagerInstance().getSelectedTask()
+                    .getResponse();
+            plot(c.getOptimiserStatistic());
             info.setText("Number of bins: " + slider.getValue());
         });
     }

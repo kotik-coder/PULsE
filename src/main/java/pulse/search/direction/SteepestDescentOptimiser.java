@@ -2,7 +2,7 @@ package pulse.search.direction;
 
 import pulse.math.linear.Vector;
 import pulse.problem.schemes.solvers.SolverException;
-import pulse.tasks.SearchTask;
+import pulse.search.GeneralTask;
 import pulse.ui.Messages;
 
 /**
@@ -36,7 +36,7 @@ public class SteepestDescentOptimiser extends CompositePathOptimiser {
      * @throws SolverException
      */
     @Override
-    public void prepare(SearchTask task) throws SolverException {
+    public void prepare(GeneralTask task) throws SolverException {
         ((GradientGuidedPath) task.getIterativeState()).setGradient(gradient(task));
     }
 
@@ -63,8 +63,7 @@ public class SteepestDescentOptimiser extends CompositePathOptimiser {
      * @return a {@code Path} instance
      */
     @Override
-    public GradientGuidedPath initState(SearchTask t) {
-        this.configure(t);
+    public GradientGuidedPath initState(GeneralTask t) {
         return new GradientGuidedPath(t);
     }
 

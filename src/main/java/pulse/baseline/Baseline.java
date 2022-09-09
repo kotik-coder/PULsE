@@ -1,15 +1,11 @@
 package pulse.baseline;
 
-import static java.lang.Double.NEGATIVE_INFINITY;
-import static java.lang.Math.min;
-
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import pulse.AbstractData;
+import pulse.DiscreteInput;
 
 import pulse.input.ExperimentalData;
 import pulse.input.IndexRange;
+import pulse.input.Range;
 import pulse.search.Optimisable;
 import pulse.util.PropertyHolder;
 import pulse.util.Reflexive;
@@ -27,6 +23,8 @@ import pulse.util.Reflexive;
  */
 public abstract class Baseline extends PropertyHolder implements Reflexive, Optimisable {
 
+    public final static int MIN_BASELINE_POINTS = 15;
+    
     public abstract Baseline copy();
 
     /**
@@ -48,74 +46,10 @@ public abstract class Baseline extends PropertyHolder implements Reflexive, Opti
      * values, triggering whatever events are associated with them.
      * </p>
      *
-     * @param x a list of independent variable values
-     * @param y a list of dependent variable values
-     * @param size the size of the region
+     * @param x
+     * @param y
      */
-    protected abstract void doFit(List<Double> x, List<Double> y, int size);
-
-    /**
-     * Selects part of the {@code data} that can be used for baseline estimation
-     * (typically, this means selecting 'negative' time values and the
-     * corresponding signal) data and runs the fitting algorithms,
-     *
-     * @param data the experimental data
-     * @param rangeMin the minimum of the time range
-     * @param rangeMax the maximum of the time range
-     */
-    public void fitTo(ExperimentalData data, double rangeMin, double rangeMax) {
-        var indexRange = data.getIndexRange();
-
-        Objects.requireNonNull(indexRange);
-
-        if (!indexRange.isValid()) {
-            throw new IllegalArgumentException("Index range not valid: " + indexRange);
-        }
-
-        List<Double> x = new ArrayList<>();
-        List<Double> y = new ArrayList<>();
-
-        int size = 0;
-
-        for (int i = IndexRange.closestLeft(rangeMin, data.getTimeSequence()) + 1, max = min(indexRange.getLowerBound(),
-                IndexRange.closestRight(rangeMax, data.getTimeSequence())); i < max; i++, size++) {
-
-            x.add(data.timeAt(i));
-            y.add(data.signalAt(i));
-
-        }
-
-        if (size > 0) // do fitting only if data is present
-        {
-            doFit(x, y, size);
-        }
-
-    }
-    
-    /**
-     * Fit to an abstract set of data, using only the subset corresponding to the negative time range.
-     * @param data a dataset
-     */
-    
-    public void fitNegative(AbstractData data) {
-        final int MIN_POINTS = 15;
-     
-        var time = data.getTimeSequence();
-        var signal = data.getSignalData();
-        
-        var subsetTime      = new ArrayList<Double>();
-        var subsetSignal    = new ArrayList<Double>();
-        
-        int i;
-        
-        for(i = 0; time.get(i) < 0; i++) {
-            subsetTime.add(time.get(i));
-            subsetSignal.add(signal.get(i));
-        }
-        
-        if(i > MIN_POINTS)
-            doFit(subsetTime, subsetSignal, i);
-    }
+    protected abstract void doFit(List<Double> x, List<Double> y);
 
     /**
      * Calls {@code fitTo} using the default time range for the data:
@@ -125,9 +59,20 @@ public abstract class Baseline extends PropertyHolder implements Reflexive, Opti
      * @param data the experimental data stretching to negative time values
      * @see fitTo(ExperimentalData,double,double)
      */
-    public void fitTo(ExperimentalData data) {
-        final double ZERO_LEFT = -1E-5;
-        fitTo(data, NEGATIVE_INFINITY, ZERO_LEFT);
+    public void fitTo(DiscreteInput data) {
+       var filtered = Range.NEGATIVE.filter(data);
+       if(filtered[0].size() > MIN_BASELINE_POINTS) {
+            doFit(filtered[0], filtered[1]);
+       }
+    }
+    
+    public void fitTo(List<Double> x, List<Double> y) {
+       int index = IndexRange.closestLeft(0, x);
+       var xx = x.subList(0, index + 1);
+       var yy = y.subList(0, index + 1);
+       if(xx.size() > MIN_BASELINE_POINTS) {
+            doFit(xx, yy);
+       }
     }
     
 }

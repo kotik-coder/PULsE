@@ -7,8 +7,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import pulse.math.ParameterIdentifier;
 
 import pulse.math.ParameterVector;
+import pulse.math.linear.Vector;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.search.statistics.CorrelationTest;
 import pulse.search.statistics.EmptyCorrelationTest;
@@ -18,9 +20,9 @@ import pulse.util.ImmutablePair;
 
 public class CorrelationBuffer {
 
-    private List<ParameterVector> params;
-    private static Set<ImmutablePair<NumericPropertyKeyword>> excludePairList;
-    private static Set<NumericPropertyKeyword> excludeSingleList;
+    private final List<ParameterVector> params;
+    private static final Set<ImmutablePair<NumericPropertyKeyword>> excludePairList;
+    private static final Set<NumericPropertyKeyword> excludeSingleList;
 
     private final static double DEFAULT_THRESHOLD = 1E-3;
     
@@ -58,17 +60,18 @@ public class CorrelationBuffer {
         
         for(i = 0; i < size - 1; i = i + 2) {
             
-            ParameterVector diff = new ParameterVector( params.get(i), params.get(i + 1).subtract(params.get(i) ));
-            if(diff.lengthSq()/params.get(i).lengthSq() < thresholdSq)
+            Vector vParams = params.get(i).toVector();
+            Vector vPlusOneParams = params.get(i + 1).toVector();
+            Vector vDiff = vPlusOneParams.subtract(vParams);
+            if(vDiff.lengthSq()/vParams.lengthSq() < thresholdSq)
                 break;    
         }
         
         for(int j = size - 1; j > i; j--)
-            params.remove(j);
-       
+            params.remove(j);       
     }
 
-    public Map<ImmutablePair<NumericPropertyKeyword>, Double> evaluate(CorrelationTest t) {
+    public Map<ImmutablePair<ParameterIdentifier>, Double> evaluate(CorrelationTest t) {
         if (params.isEmpty()) {
             throw new IllegalStateException("Zero number of entries in parameter list");
         }
@@ -79,24 +82,40 @@ public class CorrelationBuffer {
 
         truncate(DEFAULT_THRESHOLD);
         
-        var indices = params.get(0).getIndices();
-        var map = indices.stream()
-                .map(index -> new ImmutableDataEntry<>(index, params.stream().mapToDouble(v -> v.getParameterValue(index)).toArray()))
+        List<ParameterIdentifier> indices = params.get(0).getParameters().stream()
+                .map(ps -> ps.getIdentifier()).collect(Collectors.toList());
+        Map<ParameterIdentifier, double[]> map = indices.stream()
+                .map(index -> new ImmutableDataEntry<>(index, params.stream().mapToDouble(
+                        v -> v.getParameterValue(index.getKeyword(), index.getIndex())).toArray()))
                 .collect(Collectors.toMap(x -> x.getKey(), x -> x.getValue()));
 
         int indicesSize = indices.size();
-        var correlationMap = new HashMap<ImmutablePair<NumericPropertyKeyword>, Double>();
-        ImmutablePair<NumericPropertyKeyword> pair = null;
+        var correlationMap = new HashMap<ImmutablePair<ParameterIdentifier>, Double>();
+        ImmutablePair<NumericPropertyKeyword> pair;
 
         for (int i = 0; i < indicesSize; i++) {
 
-            if (!excludeSingleList.contains(indices.get(i))) {
+            var iKey = indices.get(i).getKeyword();
+            
+            if (!excludeSingleList.contains(iKey)) {                
+                
                 for (int j = i + 1; j < indicesSize; j++) {
-                    pair = new ImmutablePair<>(indices.get(i), indices.get(j));
-                    if (!excludeSingleList.contains(indices.get(j)) && !excludePairList.contains(pair)) {
-                        correlationMap.put(pair, t.evaluate(map.get(indices.get(i)), map.get(indices.get(j))));
+                    
+                    var jKey = indices.get(j).getKeyword();
+                    
+                    pair = new ImmutablePair<>(iKey, jKey);
+                    
+                    if (!excludeSingleList.contains(jKey) 
+                     && !excludePairList.contains(pair)) {  
+                        
+                        correlationMap.put( 
+                            new ImmutablePair<>(indices.get(i), indices.get(j)),
+                            t.evaluate(map.get(indices.get(i)), map.get(indices.get(j))));
+                        
                     }
+                    
                 }
+                
             }
 
         }
@@ -112,6 +131,8 @@ public class CorrelationBuffer {
             return false;
         }
 
+        var values = map.values();
+        
         return map.values().stream().anyMatch(d -> t.compareToThreshold(d));
     }
 

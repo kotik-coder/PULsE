@@ -9,6 +9,7 @@ import pulse.problem.schemes.ExplicitScheme;
 import pulse.problem.schemes.RadiativeTransferCoupling;
 import pulse.problem.schemes.rte.Fluxes;
 import pulse.problem.schemes.rte.RTECalculationStatus;
+import static pulse.problem.schemes.solvers.SolverException.SolverExceptionType.RTE_SOLVER_ERROR;
 import pulse.problem.statements.ParticipatingMedium;
 import pulse.problem.statements.Problem;
 import pulse.problem.statements.model.ThermoOpticalProperties;
@@ -147,7 +148,8 @@ public abstract class ExplicitCoupledSolver extends ExplicitScheme
     public void setCalculationStatus(RTECalculationStatus calculationStatus) throws SolverException {
         this.status = calculationStatus;
         if (status != RTECalculationStatus.NORMAL) {
-            throw new SolverException(status.toString());
+            throw new SolverException(status.toString(), 
+                    RTE_SOLVER_ERROR);
         }
     }
     

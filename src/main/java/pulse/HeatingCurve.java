@@ -10,6 +10,7 @@ import static pulse.properties.NumericProperty.requireType;
 import static pulse.properties.NumericPropertyKeyword.TIME_SHIFT;
 
 import java.util.ArrayList;
+import static java.util.Collections.max;
 import java.util.List;
 import java.util.Set;
 
@@ -48,8 +49,8 @@ public class HeatingCurve extends AbstractData {
     private final List<HeatingCurveListener> listeners
             = new ArrayList<>();
 
-    private UnivariateInterpolator splineInterpolator;
-    private UnivariateFunction splineInterpolation;
+    private UnivariateInterpolator interpolator;
+    private UnivariateFunction interpolation;
 
     protected HeatingCurve(List<Double> time, List<Double> signal, final double startTime, String name) {
         super(time, name);
@@ -64,7 +65,7 @@ public class HeatingCurve extends AbstractData {
     public HeatingCurve() {
         super();
         adjustedSignal = new ArrayList<>((int) this.getNumPoints().getValue());
-        splineInterpolator = new SplineInterpolator();
+        interpolator = new SplineInterpolator();
     }
 
     /**
@@ -78,8 +79,8 @@ public class HeatingCurve extends AbstractData {
         super(c);
         this.adjustedSignal = new ArrayList<>(c.adjustedSignal);
         this.startTime = c.startTime;
-        splineInterpolator = new SplineInterpolator();
-        if (c.splineInterpolation != null) {
+        interpolator = new SplineInterpolator();
+        if (c.interpolation != null) {
             this.refreshInterpolation();
         }
     }
@@ -100,7 +101,7 @@ public class HeatingCurve extends AbstractData {
         adjustedSignal = new ArrayList<>((int) count.getValue());
         startTime = (double) def(TIME_SHIFT).getValue();
 
-        splineInterpolator = new SplineInterpolator();
+        interpolator = new SplineInterpolator();
     }
 
     //TODO
@@ -163,7 +164,7 @@ public class HeatingCurve extends AbstractData {
      */
     public void scale(double scale) {
         final int count = this.actualNumPoints();
-        for (int i = 0; i < count; i++) {
+        for (int i = 0, max = Math.min(count, signal.size()); i < max; i++) {
             signal.set(i, signal.get(i) * scale);
         }
         var dataEvent = new CurveEvent(RESCALED, this);
@@ -201,7 +202,8 @@ public class HeatingCurve extends AbstractData {
         /*
 	 * Submit to spline interpolation
          */
-        splineInterpolation = splineInterpolator.interpolate(timeExtended, adjustedSignalExtended);
+        
+        interpolation = interpolator.interpolate(timeExtended, adjustedSignalExtended);
     }
 
     /**
@@ -346,8 +348,8 @@ public class HeatingCurve extends AbstractData {
         firePropertyChanged(this, startTime);
     }
 
-    public UnivariateFunction getSplineInterpolation() {
-        return splineInterpolation;
+    public UnivariateFunction getInterpolation() {
+        return interpolation;
     }
 
     public List<Double> getBaselineCorrectedData() {
@@ -376,6 +378,13 @@ public class HeatingCurve extends AbstractData {
         }
 
         return super.equals(o) && adjustedSignal.containsAll(((HeatingCurve) o).adjustedSignal);
+    }
+    
+    public double interpolateSignalAt(double x) {
+        double min = this.timeAt(0);
+        double max = timeLimit();
+        return min < x && max > x ? interpolation.value(x)
+                : (x < min ? signalAt(0) : signalAt(actualNumPoints() - 1));
     }
 
 }

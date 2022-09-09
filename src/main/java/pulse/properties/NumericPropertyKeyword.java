@@ -360,8 +360,38 @@ public enum NumericPropertyKeyword {
      * compared to rear face. Can be a number between zero and unity. 
      */
     
-    SOURCE_GEOMETRIC_FACTOR;
-
+    SOURCE_GEOMETRIC_FACTOR,
+    
+    /**
+     * Max. no. of high-frequency waves in the sinusoidal baseline.
+     */
+    
+    MAX_HIGH_FREQ_WAVES,
+    
+    /**
+    * Max. no. of low-frequency waves in the sinusoidal baseline.
+    */
+    
+    MAX_LOW_FREQ_WAVES,
+    
+    /**
+     * Energy exchange coefficient in the two-temperature model (g).
+     */
+    
+    SOLID_EXCHANGE_COEFFICIENT,
+    
+    /**
+     * Energy exchange coefficient in the two-temperature model (g').
+     */
+    
+    GAS_EXCHANGE_COEFFICIENT,
+    
+    /**
+     * Heat loss for the gas in the 2T-model.
+     */
+    
+    HEAT_LOSS_GAS;
+    
     public static Optional<NumericPropertyKeyword> findAny(String key) {
         return Arrays.asList(values()).stream().filter(keys -> keys.toString().equalsIgnoreCase(key)).findAny();
     }

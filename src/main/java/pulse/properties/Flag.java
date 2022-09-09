@@ -24,9 +24,17 @@ public class Flag implements Property {
      * {@code Flag}
      */
     public Flag(NumericPropertyKeyword type) {
-        this.index = type;
-        value = false;
+        this(type, false);
     }
+    
+    public Flag(Flag f) {
+        this(f.index, f.value);
+    }
+    
+    public Flag(NumericPropertyKeyword type, boolean flag) {
+        this.index = type;
+        this.value = flag;
+    }   
 
     /**
      * Creates a {@code Flag} with the following pre-specified parameters: type

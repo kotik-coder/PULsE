@@ -17,6 +17,7 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableRowSorter;
 
 import pulse.properties.NumericProperty;
+import pulse.tasks.Calculation;
 import pulse.tasks.SearchTask;
 import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.TaskRepositoryEvent;
@@ -77,35 +78,41 @@ public class ResultTable extends JTable implements Descriptive {
          */
         TaskManager.getManagerInstance().addTaskRepositoryListener((TaskRepositoryEvent e) -> {
             var t = instance.getTask(e.getId());
-            switch (e.getState()) {
-                case TASK_FINISHED:
-                    var r = t.getCurrentCalculation().getResult();
-                    var resultTableModel = (ResultTableModel) getModel();
-                    Objects.requireNonNull(r, "Task finished with a null result!");
-                    invokeLater(() -> resultTableModel.addRow(r));
-                    break;
-                case TASK_REMOVED:
-                case TASK_RESET:
-                    ((ResultTableModel) getModel()).removeAll(e.getId());
-                    getSelectionModel().clearSelection();
-                    break;
-                case BEST_MODEL_SELECTED:
-                    for (var c : t.getStoredCalculations()) {
-                        if (c.getResult() != null && c != t.getCurrentCalculation()) {
-                            ((ResultTableModel) getModel()).remove(c.getResult());
+            
+            if(t != null) {
+
+                var cc = (Calculation) t.getResponse();
+
+                switch (e.getState()) {
+                    case TASK_FINISHED:
+                        var r = cc.getResult();
+                        var resultTableModel = (ResultTableModel) getModel();
+                        Objects.requireNonNull(r, "Task finished with a null result!");
+                        invokeLater(() -> resultTableModel.addRow(r));
+                        break;
+                    case TASK_REMOVED:
+                    case TASK_RESET:
+                        ((ResultTableModel) getModel()).removeAll(e.getId());
+                        getSelectionModel().clearSelection();
+                        break;
+                    case BEST_MODEL_SELECTED:
+                        for (var c : t.getStoredCalculations()) {
+                            if (c.getResult() != null && c != cc) {
+                                ((ResultTableModel) getModel()).remove(c.getResult());
+                            }
                         }
-                    }
-                    this.select(t.getCurrentCalculation().getResult());
-                    break;
-                case TASK_MODEL_SWITCH:
-                    var c = t.getCurrentCalculation();
-                    this.getSelectionModel().clearSelection();
-                    if (c != null && c.getResult() != null) {
-                        select(c.getResult());
-                    }
-                    break;
-                default:
-                    break;
+                        this.select(cc.getResult());
+                        break;
+                    case TASK_MODEL_SWITCH:
+                        this.getSelectionModel().clearSelection();
+                        if (cc != null && cc.getResult() != null) {
+                            select(cc.getResult());
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            
             }
         });
 

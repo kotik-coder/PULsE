@@ -16,15 +16,16 @@ import pulse.math.linear.RectangularMatrix;
 import pulse.math.linear.SquareMatrix;
 import pulse.math.linear.Vector;
 import pulse.problem.schemes.solvers.SolverException;
+import static pulse.problem.schemes.solvers.SolverException.SolverExceptionType.ILLEGAL_PARAMETERS;
+import static pulse.problem.schemes.solvers.SolverException.SolverExceptionType.OPTIMISATION_ERROR;
+import static pulse.problem.schemes.solvers.SolverException.SolverExceptionType.OPTIMISATION_TIMEOUT;
 import pulse.properties.NumericProperties;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
+import pulse.search.GeneralTask;
 import static pulse.search.direction.CompositePathOptimiser.EPS;
 import pulse.search.statistics.OptimiserStatistic;
-import pulse.search.statistics.ResidualStatistic;
 import pulse.search.statistics.SumOfSquares;
-import pulse.tasks.SearchTask;
-import pulse.tasks.logs.Status;
 import pulse.ui.Messages;
 
 /**
@@ -35,7 +36,7 @@ import pulse.ui.Messages;
  */
 public class LMOptimiser extends GradientBasedOptimiser {
 
-    private static LMOptimiser instance = new LMOptimiser();
+    private static final LMOptimiser instance = new LMOptimiser();
     private double dampingRatio;
     
     /**
@@ -53,7 +54,7 @@ public class LMOptimiser extends GradientBasedOptimiser {
     }
 
     @Override
-    public boolean iteration(SearchTask task) throws SolverException {
+    public boolean iteration(GeneralTask task) throws SolverException {
         var p = (LMPath) task.getIterativeState(); // the previous path of the task
 
         boolean accept = true; //accept the step by default
@@ -63,11 +64,11 @@ public class LMOptimiser extends GradientBasedOptimiser {
          */
         if (compare(p.getIteration(), getMaxIterations()) > 0) {
 
-            task.setStatus(Status.TIMEOUT);
+            throw new SolverException(OPTIMISATION_TIMEOUT);
 
         } else {
 
-            double initialCost = task.solveProblemAndCalculateCost();
+            double initialCost = task.objectiveFunction();
             var parameters = task.searchVector();
 
             p.setParameters(parameters); // store current parameters
@@ -76,16 +77,17 @@ public class LMOptimiser extends GradientBasedOptimiser {
 
             var lmDirection = getSolver().direction(p);
 
-            var candidate = parameters.sum(lmDirection);
+            var candidate = parameters.toVector().sum(lmDirection);
             
             if( Arrays.stream( candidate.getData() ).anyMatch(el -> !Double.isFinite(el) ) ) {
-                throw new SolverException("Illegal candidate parameters: not finite! " + p.getIteration());
+                throw new SolverException("Illegal candidate parameters: not finite! "
+                        + p.getIteration(), ILLEGAL_PARAMETERS);
             }
                 
             task.assign(new ParameterVector(
                     parameters, candidate)); // assign new parameters
                         
-            double newCost = task.solveProblemAndCalculateCost(); // calculate the sum of squared residuals
+            double newCost = task.objectiveFunction(); // calculate the sum of squared residuals
 
             /*
 			 * Delayed gratification
@@ -115,11 +117,12 @@ public class LMOptimiser extends GradientBasedOptimiser {
      * Hessian matrix.
      */
     @Override
-    public void prepare(SearchTask task) throws SolverException {
+    public void prepare(GeneralTask task) throws SolverException {
         var p = (LMPath) task.getIterativeState();
+        var rs = task.getResponse().getOptimiserStatistic();
 
         //store residual vector at current parameters
-        p.setResidualVector(new Vector(residualVector(task.getCurrentCalculation().getOptimiserStatistic())));
+        p.setResidualVector(new Vector(rs.residualsArray()));
 
         // Calculate the Jacobian -- if needed
         if (p.isComputeJacobian()) {
@@ -132,7 +135,8 @@ public class LMOptimiser extends GradientBasedOptimiser {
         p.setGradient(g1);
         
         if(Arrays.stream(g1.getData()).anyMatch(v -> !Double.isFinite(v))) {
-            throw new SolverException("Could not calculate objective function gradient");
+            throw new SolverException("Could not calculate objective function gradient",
+            OPTIMISATION_ERROR);
         }
             
         // the Hessian is then regularised by adding labmda*I
@@ -166,39 +170,51 @@ public class LMOptimiser extends GradientBasedOptimiser {
      * @throws SolverException
      * @see pulse.search.statistics.ResidualStatistic.calculateResiduals()
      */
-    public RectangularMatrix jacobian(SearchTask task) throws SolverException {
+    public RectangularMatrix jacobian(GeneralTask task) throws SolverException {
 
-        var residualCalculator = task.getCurrentCalculation().getOptimiserStatistic();
+        var residualCalculator = task.getResponse().getOptimiserStatistic();
         
         var p = ((LMPath) task.getIterativeState());
 
         final var params = p.getParameters();
+        final var pVector = params.toVector();
 
         final int numPoints = p.getResidualVector().dimension();
         final int numParams = params.dimension();
 
         var jacobian = new double[numPoints][numParams];
-
+        var ps = params.getParameters();
+        
         for (int i = 0; i < numParams; i++) {
 
-            double dx = dx( NumericProperties.def(params.getIndex(i)), params.get(i));
+            var key = ps.get(i).getIdentifier().getKeyword();
+            double dx = dx( 
+                    key != null ? NumericProperties.def(key) : null, 
+                    ps.get(i).inverseTransform());
 
             final var shift = new Vector(numParams);
             shift.set(i, 0.5 * dx);
 
             // + shift
-            task.assign(new ParameterVector(params, params.sum(shift)));
-            task.solveProblemAndCalculateCost();
-            var r1 = residualVector(residualCalculator);
+            task.assign(new ParameterVector(params, pVector.sum(shift)));
+            task.objectiveFunction();
+            var r = residualCalculator.getResiduals();
+            
+            for (int j = 0, realNumPoints = Math.min(numPoints, r.size()); 
+                 j < realNumPoints; j++) {
 
+                jacobian[j][i] = r.get(j) / dx;
+
+            }
+            
             // - shift
-            task.assign(new ParameterVector(params, params.subtract(shift)));
-            task.solveProblemAndCalculateCost();
-            var r2 = residualVector(residualCalculator);
+            task.assign(new ParameterVector(params, pVector.subtract(shift)));
+            task.objectiveFunction();
 
-            for (int j = 0, realNumPoints = Math.min(numPoints, r2.length); j < realNumPoints; j++) {
+            for (int j = 0, realNumPoints = Math.min(numPoints, r.size()); 
+                    j < realNumPoints; j++) {
 
-                jacobian[j][i] = (r1[j] - r2[j]) / dx;
+                jacobian[j][i] -= r.get(j) / dx;
 
             }
 
@@ -210,14 +226,9 @@ public class LMOptimiser extends GradientBasedOptimiser {
         return Matrices.createMatrix(jacobian);
 
     }
-
-    private static double[] residualVector(ResidualStatistic rs) {
-        return rs.getResiduals().stream().mapToDouble(array -> array[1]).toArray();
-    }
-
+    
     @Override
-    public GradientGuidedPath initState(SearchTask t) {
-        this.configure(t);
+    public GradientGuidedPath initState(GeneralTask t) {
         return new LMPath(t);
     }
 

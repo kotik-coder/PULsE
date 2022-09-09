@@ -20,6 +20,7 @@ import javax.swing.JToolBar;
 
 import pulse.problem.schemes.solvers.Solver;
 import pulse.problem.schemes.solvers.SolverException;
+import pulse.tasks.Calculation;
 import pulse.tasks.TaskManager;
 import pulse.ui.components.buttons.LoaderButton;
 import pulse.ui.frames.MainGraphFrame;
@@ -61,15 +62,16 @@ public class ProblemToolbar extends JToolBar {
 
         var t = instance.getSelectedTask();
 
-        var calc = t.getCurrentCalculation();
+        var calc = (Calculation) t.getResponse();
 
         t.checkProblems(true);
-        var status = t.getCurrentCalculation().getStatus();
+        var status = t.getStatus();
 
         if (status == INCOMPLETE && !status.checkProblemStatementSet()) {
 
             getDefaultToolkit().beep();
-            showMessageDialog(getWindowAncestor((Component) e.getSource()), calc.getStatus().getMessage(),
+            showMessageDialog(getWindowAncestor((Component) e.getSource()), 
+                    calc.getStatus().getMessage(),
                     getString("ProblemStatementFrame.ErrorTitle"), //$NON-NLS-1$
                     ERROR_MESSAGE);
 

@@ -223,8 +223,7 @@ public class ResultTableModel extends DefaultTableModel {
         if (result instanceof Result) {
 
             //result must have a valid ancestor!
-            var ancestor = Objects.requireNonNull(
-                    result.specificAncestor(SearchTask.class),
+            var ancestor = Objects.requireNonNull(result.specificAncestor(SearchTask.class),
                     "Result " + result.toString() + " does not belong a SearchTask!");
 
             //the ancestor then has the SearchTask type
@@ -232,8 +231,7 @@ public class ResultTableModel extends DefaultTableModel {
 
             //any old result asssociated withis this task
             var oldResult = results.stream().filter(r
-                    -> r.specificAncestor(
-                            SearchTask.class) == parentTask).findAny();
+                    -> r.specificAncestor(SearchTask.class) == parentTask).findAny();
 
             //check the following only if the old result is present
             if (oldResult.isPresent()) {
@@ -249,7 +247,8 @@ public class ResultTableModel extends DefaultTableModel {
                     Status status = Status.DONE;
 
                     //better result than already present -- update table
-                    if (parentTask.getCurrentCalculation().isBetterThan(oldCalculation.get())) {
+                    var c = (Calculation) parentTask.getResponse();
+                    if (c.isBetterThan(oldCalculation.get())) {
                         remove(oldResultExisting);
                         status.setDetails(Details.BETTER_CALCULATION_RESULTS_THAN_PREVIOUSLY_OBTAINED);
                         parentTask.setStatus(status);

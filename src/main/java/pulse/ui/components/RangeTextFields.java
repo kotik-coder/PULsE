@@ -1,30 +1,15 @@
-/*
- * Copyright 2021 Artem Lunev <artem.v.lunev@gmail.com>.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package pulse.ui.components;
 
 import java.awt.Color;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFormattedTextField;
 import javax.swing.text.NumberFormatter;
+import pulse.input.ExperimentalData;
 import pulse.input.Range;
 import pulse.input.listeners.DataEvent;
 import pulse.tasks.SearchTask;
@@ -36,7 +21,6 @@ import pulse.ui.components.panels.ChartToolbar;
 /**
  * Two JFormattedTextFields used to display the range of the currently
  * selected task.
- * @author Artem Lunev <artem.v.lunev@gmail.com>
  */
 public final class RangeTextFields {
 
@@ -69,7 +53,7 @@ public final class RangeTextFields {
         //when a new task is selected
         instance.addSelectionListener((TaskSelectionEvent e) -> {
             var task = instance.getSelectedTask();
-            var segment = task.getExperimentalCurve().getRange().getSegment();
+            var segment = ( (ExperimentalData) task.getInput() ).getRange().getSegment();
             //update the textfield values
             lowerLimitField.setValue(segment.getMinimum());
             upperLimitField.setValue(segment.getMaximum());
@@ -109,8 +93,8 @@ public final class RangeTextFields {
      */
 
     private static boolean isEditValid(JFormattedTextField jtf, boolean upperBound) {
-        Range range = TaskManager.getManagerInstance().getSelectedTask()
-                .getExperimentalCurve().getRange();
+        Range range = ( (ExperimentalData) TaskManager.getManagerInstance().getSelectedTask()
+                .getInput() ).getRange();
 
         double candidateValue = 0.0;
         try {
@@ -195,10 +179,11 @@ public final class RangeTextFields {
     }
 
     private void updateTextfieldsFromTask(SearchTask newTask) {
+        var data = (ExperimentalData) newTask.getInput();
         //add data listeners in case when the range of the selected task is changed
-        newTask.getExperimentalCurve().addDataListener((DataEvent e1) -> {
+        data.addDataListener((DataEvent e1) -> {
             if (TaskManager.getManagerInstance().getSelectedTask() == newTask) {
-                var segment = newTask.getExperimentalCurve().getRange().getSegment();
+                var segment = data.getRange().getSegment();
                 lowerLimitField.setValue(segment.getMinimum());
                 upperLimitField.setValue(segment.getMaximum());
             }

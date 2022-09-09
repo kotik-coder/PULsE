@@ -95,14 +95,6 @@ public class TaskManager extends UpwardsNavigable {
         selectionListeners = new CopyOnWriteArrayList<>();
         taskRepositoryListeners = new CopyOnWriteArrayList<>();
         addHierarchyListener(statementListener);
-        /*
-        Calculate the half-time once data is loaded.
-         */
-        addTaskRepositoryListener((TaskRepositoryEvent e) -> {
-            if (e.getState() == TaskRepositoryEvent.State.TASK_ADDED) {
-                getTask(e.getId()).getExperimentalCurve().calculateHalfTime();
-            }
-        });
     }
 
     /**
@@ -123,35 +115,40 @@ public class TaskManager extends UpwardsNavigable {
      * @param t a {@code SearchTask} that will be executed
      */
     public void execute(SearchTask t) {
-        t.checkProblems(t.getCurrentCalculation().getStatus() != Status.DONE);
+        t.checkProblems(t.getStatus() != Status.DONE);
 
         //try to start cmputation 
         // notify listeners computation is about to start
         if (!t.setStatus(QUEUED)) {
             return;
         }
-
+        
         // notify listeners calculation started
         notifyListeners(new TaskRepositoryEvent(TASK_SUBMITTED, t.getIdentifier()));
-
+        
         // run task t -- after task completed, write result and trigger listeners
         CompletableFuture.runAsync(t).thenRun(() -> {
-            var current = t.getCurrentCalculation();
+            Calculation current = (Calculation)t.getResponse();
             var e = new TaskRepositoryEvent(TASK_FINISHED, t.getIdentifier());
-            if (current.getStatus() == DONE) {
-                current.setResult(new Result(t, ResultFormat.getInstance()));
-                //notify listeners before the task is re-assigned
+            if (null == current.getStatus()) {
                 notifyListeners(e);
-                t.storeCalculation();
             } 
-            else if(current.getStatus() == AWAITING_TERMINATION) {
-                t.setStatus(Status.TERMINATED);
-            }
-            else {
-                notifyListeners(e);
+            else switch (current.getStatus()) {
+                case DONE:
+                    current.setResult(new Result(t, ResultFormat.getInstance()));
+                    //notify listeners before the task is re-assigned
+                    notifyListeners(e);
+                    t.storeCalculation();
+                    break;
+                case AWAITING_TERMINATION:
+                    t.setStatus(Status.TERMINATED);
+                    break;
+                default:
+                    notifyListeners(e);
+                    break;
             }
         });
-
+        
     }
 
     /**
@@ -174,7 +171,7 @@ public class TaskManager extends UpwardsNavigable {
     public void executeAll() {
 
         var queue = tasks.stream().filter(t -> {
-            switch (t.getCurrentCalculation().getStatus()) {
+            switch (t.getStatus()) {
                 case IN_PROGRESS:
                 case EXECUTION_ERROR:
                     return false;
@@ -198,7 +195,7 @@ public class TaskManager extends UpwardsNavigable {
      */
     public boolean isTaskQueueEmpty() {
         return !tasks.stream().anyMatch(t -> {
-            var status = t.getCurrentCalculation().getStatus();
+            var status = t.getStatus();
             return status == QUEUED || status == IN_PROGRESS;
         });
     }
@@ -262,7 +259,8 @@ public class TaskManager extends UpwardsNavigable {
             return null;
         }
 
-        return optional.get().getExperimentalCurve().getMetadata().getSampleName();
+        return ( (ExperimentalData) optional.get().getInput() )
+                .getMetadata().getSampleName();
     }
 
     /**
@@ -308,7 +306,8 @@ public class TaskManager extends UpwardsNavigable {
      */
     public SearchTask getTask(int externalId) {
         var o = tasks.stream().filter(t
-                -> Integer.compare(t.getExperimentalCurve().getMetadata().getExternalID(),
+                -> Integer.compare( ( (ExperimentalData) t.getInput())
+                        .getMetadata().getExternalID(),
                         externalId) == 0).findFirst();
         return o.isPresent() ? o.get() : null;
     }
@@ -340,7 +339,7 @@ public class TaskManager extends UpwardsNavigable {
         curves.stream().forEach((ExperimentalData curve) -> {
             var task = new SearchTask(curve);
             addTask(task);
-            var data = task.getExperimentalCurve();
+            var data = (ExperimentalData) task.getInput();
             if (!data.isAcquisitionTimeSensible()) {
                 data.truncate();
             }
@@ -374,7 +373,6 @@ public class TaskManager extends UpwardsNavigable {
         };
 
         Executors.newSingleThreadExecutor().submit(loader);
-
     }
 
     /**
@@ -512,8 +510,8 @@ public class TaskManager extends UpwardsNavigable {
 
     public void evaluate() {
         tasks.stream().forEach(t -> {
-            var properties = t.getCurrentCalculation().getProblem().getProperties();
-            var c = t.getExperimentalCurve();
+            var properties = ( (Calculation) t.getResponse() ).getProblem().getProperties();
+            var c = (ExperimentalData)t.getInput();
             properties.useTheoreticalEstimates(c);
         });
     }

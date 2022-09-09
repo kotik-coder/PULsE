@@ -9,7 +9,6 @@ import pulse.problem.schemes.solvers.ImplicitTranslucentSolver;
 import pulse.problem.schemes.solvers.SolverException;
 import pulse.problem.statements.model.AbsorptionModel;
 import pulse.problem.statements.model.BeerLambertAbsorption;
-import pulse.properties.Flag;
 import pulse.properties.NumericPropertyKeyword;
 import static pulse.properties.NumericPropertyKeyword.SOURCE_GEOMETRIC_FACTOR;
 import pulse.properties.Property;
@@ -21,20 +20,22 @@ public class PenetrationProblem extends ClassicalProblem {
     private InstanceDescriptor<AbsorptionModel> instanceDescriptor
             = new InstanceDescriptor<>(
                     "Absorption Model Selector", AbsorptionModel.class);
-    private AbsorptionModel absorption = instanceDescriptor.newInstance(AbsorptionModel.class);
+    private AbsorptionModel absorption;
 
     public PenetrationProblem() {
         super();
         instanceDescriptor.setSelectedDescriptor(BeerLambertAbsorption.class.getSimpleName());
         instanceDescriptor.addListener(() -> initAbsorption());
+        absorption = instanceDescriptor.newInstance(AbsorptionModel.class);
         absorption.setParent(this);
     }
 
     public PenetrationProblem(PenetrationProblem p) {
         super(p);
-        instanceDescriptor.setSelectedDescriptor((String) p.getAbsorptionSelector().getValue());
+        instanceDescriptor.setSelectedDescriptor(BeerLambertAbsorption.class.getSimpleName());
         instanceDescriptor.addListener(() -> initAbsorption());
-        initAbsorption();
+        this.absorption = p.getAbsorptionModel().copy();
+        this.absorption.setParent(this);
     }
 
     private void initAbsorption() {
@@ -70,9 +71,9 @@ public class PenetrationProblem extends ClassicalProblem {
     }
 
     @Override
-    public void optimisationVector(ParameterVector output, List<Flag> flags) {
-        super.optimisationVector(output, flags);
-        absorption.optimisationVector(output, flags);
+    public void optimisationVector(ParameterVector output) {
+        super.optimisationVector(output);
+        absorption.optimisationVector(output);
     }
 
     @Override

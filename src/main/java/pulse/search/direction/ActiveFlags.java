@@ -3,12 +3,13 @@ package pulse.search.direction;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import pulse.problem.statements.Problem;
+import pulse.input.ExperimentalData;
 import pulse.properties.Flag;
 import pulse.properties.NumericPropertyKeyword;
-import pulse.tasks.SearchTask;
+import pulse.tasks.Calculation;
 import pulse.tasks.TaskManager;
 import pulse.util.PropertyHolder;
 
@@ -41,12 +42,12 @@ public class ActiveFlags {
             return set;
         }
 
-        var p = t.getCurrentCalculation().getProblem();
+        var p = ( (Calculation) t.getResponse() ).getProblem();
 
         if (p != null) {
 
             var fullList = p.listedKeywords();
-            fullList.addAll(t.getExperimentalCurve().listedKeywords());
+            fullList.addAll( ( (ExperimentalData) t.getInput() ).listedKeywords());
             NumericPropertyKeyword key;
 
             for (Flag property : flags) {
@@ -61,28 +62,45 @@ public class ActiveFlags {
 
         return set;
     }
-
+    
+    public static Flag get(NumericPropertyKeyword key) {
+        var flag = flags.stream().filter(f -> f.getType() == key).findAny();
+        return flag.isPresent() ? flag.get() : null;
+    }    
+    
     /**
-     * Finds what properties are being altered in the search
-     *
-     * @param t task for which the active parameters should be listed
-     * @return a {@code List} of property types represented by
-     * {@code NumericPropertyKeyword}s
+     * Creates a deep copy of the flags collection.
+     * @return a deep copy of the flags
      */
-    public static List<NumericPropertyKeyword> activeParameters(SearchTask t) {
-        var c = t.getCurrentCalculation();
-        //problem dependent
-        var allActiveParams = selectActiveAndListed(flags, c.getProblem()); 
-        //problem independent (lower/upper bound)
-        var listed = selectActiveAndListed(flags, t.getExperimentalCurve().getRange() );
-        allActiveParams.addAll(listed);          
-        return allActiveParams;
+    
+    public static List<Flag> storeState() {
+        var copy = new ArrayList<Flag>();
+        for(Flag f : flags) {
+            copy.add(new Flag(f));
+        }
+        return copy;
+    }
+    
+    /**
+     * Loads the argument into the current list of flags.
+     * This will update any matching flags and assign values correpon
+     * @param flags 
+     */
+    
+    public static void loadState(List<Flag> flags) {
+        for(Flag f : ActiveFlags.flags) {
+            Optional<Flag> existingFlag = flags.stream().filter(fl ->
+                    fl.getType() == f.getType()).findFirst();
+            if(existingFlag.isPresent()) {
+                f.setValue((boolean) existingFlag.get().getValue());
+            }
+        }
     }
 
     public static List<NumericPropertyKeyword> selectActiveAndListed(List<Flag> flags, PropertyHolder listed) {
         //return empty list
         if(listed == null) {
-            return new ArrayList<NumericPropertyKeyword>();
+            return new ArrayList<>();
         }
             
         return selectActiveTypes(flags).stream()

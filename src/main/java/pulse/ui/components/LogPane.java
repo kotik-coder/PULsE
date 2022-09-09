@@ -90,7 +90,7 @@ public class LogPane extends JEditorPane implements Descriptive {
 
                 log.getLogEntries().stream().forEach(entry -> post(entry));
 
-                if (task.getCurrentCalculation().getStatus() == DONE) {
+                if (task.getStatus() == DONE) {
                     printTimeTaken(log);
                 }
 

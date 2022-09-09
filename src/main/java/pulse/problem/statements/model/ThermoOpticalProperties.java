@@ -1,6 +1,5 @@
 package pulse.problem.statements.model;
 
-import java.util.List;
 import static pulse.math.MathUtils.fastPowLoop;
 import static pulse.properties.NumericProperties.def;
 import static pulse.properties.NumericProperty.requireType;
@@ -10,12 +9,12 @@ import static pulse.properties.NumericPropertyKeyword.SCATTERING_ANISOTROPY;
 import java.util.Set;
 
 import pulse.input.ExperimentalData;
+import pulse.math.Parameter;
 import pulse.math.ParameterVector;
 import pulse.math.Segment;
 import pulse.math.transforms.StickTransform;
 import pulse.math.transforms.Transformable;
 import pulse.problem.schemes.solvers.SolverException;
-import pulse.properties.Flag;
 import static pulse.properties.NumericProperties.derive;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
@@ -189,14 +188,14 @@ public class ThermoOpticalProperties extends ThermalProperties implements Optimi
     }
     
     @Override
-    public void optimisationVector(ParameterVector output, List<Flag> flags) {
+    public void optimisationVector(ParameterVector output) {
         Segment bounds = null;
         double value;
         Transformable transform;
 
-        for (int i = 0, size = output.dimension(); i < size; i++) {
+        for (Parameter p : output.getParameters()) {
 
-            var key = output.getIndex(i);
+            var key = p.getIdentifier().getKeyword();
 
             switch (key) {
                 case PLANCK_NUMBER:
@@ -230,9 +229,9 @@ public class ThermoOpticalProperties extends ThermalProperties implements Optimi
             }
 
             transform = new StickTransform(bounds);
-            output.setTransform(i, transform);
-            output.set(i, value);
-            output.setParameterBounds(i, bounds);
+            p.setTransform(transform);
+            p.setValue(value);
+            p.setBounds(bounds);
 
         }
 
@@ -241,9 +240,9 @@ public class ThermoOpticalProperties extends ThermalProperties implements Optimi
     @Override
     public void assign(ParameterVector params) throws SolverException {
 
-        for (int i = 0, size = params.dimension(); i < size; i++) {
+        for (Parameter p : params.getParameters()) {
 
-            var type = params.getIndex(i);
+            var type = p.getIdentifier().getKeyword();
 
             switch (type) {
 
@@ -252,7 +251,7 @@ public class ThermoOpticalProperties extends ThermalProperties implements Optimi
                 case SCATTERING_ANISOTROPY:
                 case OPTICAL_THICKNESS:
                 case HEAT_LOSS_CONVECTIVE:
-                    set(type, derive(type, params.inverseTransform(i)));
+                    set(type, derive(type, p.inverseTransform()));
                     break;
                 default:
                     break;

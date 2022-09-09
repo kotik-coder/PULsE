@@ -3,7 +3,7 @@ package pulse.problem.statements;
 import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.SPOT_DIAMETER;
 
-import java.util.List;
+import pulse.math.Parameter;
 
 import pulse.math.ParameterVector;
 import pulse.math.Segment;
@@ -19,7 +19,6 @@ import pulse.problem.schemes.Grid2D;
 import pulse.problem.schemes.solvers.SolverException;
 import pulse.problem.statements.model.ExtendedThermalProperties;
 import pulse.problem.statements.model.ThermalProperties;
-import pulse.properties.Flag;
 import static pulse.properties.NumericPropertyKeyword.HEAT_LOSS_SIDE;
 import pulse.ui.Messages;
 
@@ -69,14 +68,14 @@ public class ClassicalProblem2D extends Problem {
     }
     
     @Override
-    public void optimisationVector(ParameterVector output, List<Flag> flags) {
-        super.optimisationVector(output, flags);
+    public void optimisationVector(ParameterVector output) {
+        super.optimisationVector(output);
         var properties = (ExtendedThermalProperties) getProperties();
         double value;
 
-        for (int i = 0, size = output.dimension(); i < size; i++) {
+        for (Parameter p : output.getParameters()) {
 
-            var key = output.getIndex(i);
+            var key = p.getIdentifier().getKeyword();
             Transformable transform = new InvDiamTransform(properties);
             var bounds = Segment.boundsFrom(key);
             
@@ -102,9 +101,9 @@ public class ClassicalProblem2D extends Problem {
                     continue;
             }
 
-            output.setTransform(i, transform);
-            output.setParameterBounds(i, bounds);
-            output.set(i, value);
+            p.setTransform(transform);
+            p.setBounds(bounds);
+            p.setValue(value);
 
         }
 
@@ -116,20 +115,20 @@ public class ClassicalProblem2D extends Problem {
         var properties = (ExtendedThermalProperties) getProperties();
 
         // TODO one-to-one mapping for FOV and SPOT_DIAMETER
-        for (int i = 0, size = params.dimension(); i < size; i++) {
-            var type = params.getIndex(i);
+        for (Parameter p : params.getParameters()) {
+            var type = p.getIdentifier().getKeyword();
             switch (type) {
                 case FOV_OUTER:
                 case FOV_INNER:
                 case HEAT_LOSS_SIDE:
                 case HEAT_LOSS_COMBINED:
-                    properties.set(type, derive(type, params.inverseTransform(i)));
+                    properties.set(type, derive(type, p.inverseTransform()));
                     break;
                 case SPOT_DIAMETER:
-                    ((Pulse2D) getPulse()).setSpotDiameter(derive(SPOT_DIAMETER, params.inverseTransform(i)));
+                    ((Pulse2D) getPulse()).setSpotDiameter(derive(SPOT_DIAMETER, 
+                            p.inverseTransform()));
                     break;
                 default:
-                    continue;
             }
         }
     }

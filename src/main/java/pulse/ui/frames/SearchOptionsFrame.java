@@ -32,6 +32,7 @@ import pulse.search.direction.ActiveFlags;
 import pulse.search.direction.LMOptimiser;
 
 import pulse.search.direction.PathOptimiser;
+import pulse.tasks.Calculation;
 import pulse.tasks.TaskManager;
 import pulse.ui.components.PropertyHolderTable;
 import pulse.ui.components.controllers.SearchListRenderer;
@@ -132,15 +133,14 @@ public class SearchOptionsFrame extends JInternalFrame {
 
         //model for the flags list already created
         if (rightTblModel instanceof SelectedKeysModel) {
-            var searchKeys = ActiveFlags.activeParameters(activeTask);
+            var searchKeys = activeTask.activeParameters();
             ((ParameterTableModel)leftTable.getModel()).populateWithAllProperties();
             ((SelectedKeysModel) rightTblModel).update(searchKeys);
         } //Create a new model for the flags list
         else {
-            if (activeTask != null
-                    && activeTask.getCurrentCalculation() != null
-                    && activeTask.getCurrentCalculation().getProblem() != null) {
-                var searchKeys = ActiveFlags.activeParameters(activeTask);
+            var c = (Calculation)activeTask.getResponse();
+            if (c != null && c.getProblem() != null) {
+                var searchKeys = activeTask.activeParameters();
                 rightTable.setModel(new SelectedKeysModel(searchKeys, mandatorySelection));
 
                 /*

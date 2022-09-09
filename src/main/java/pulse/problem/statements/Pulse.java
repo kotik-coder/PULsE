@@ -7,6 +7,7 @@ import static pulse.properties.NumericPropertyKeyword.LASER_ENERGY;
 import static pulse.properties.NumericPropertyKeyword.PULSE_WIDTH;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import pulse.input.ExperimentalData;
 
@@ -92,13 +93,12 @@ public class Pulse extends PropertyHolder {
                             .derive(NumericPropertyKeyword.LOWER_BOUND,
                                     (Number) np.getValue());
                     
-                    var range = corrTask.getExperimentalCurve().getRange();
+                    var range = ( (ExperimentalData) corrTask.getInput() ).getRange();
                     
                     if( range.getLowerBound().compareTo(pw) < 0 ) {
 
                     //update lower bound of the range for that SearchTask
-                    corrTask.getExperimentalCurve().getRange()
-                            .setLowerBound(pw);
+                    range.setLowerBound(pw);
                     
                     }
                     
@@ -141,9 +141,9 @@ public class Pulse extends PropertyHolder {
             
             //validate -- do not update if the new pulse width is greater than 2 half-times
             SearchTask task         = (SearchTask) this.specificAncestor(SearchTask.class);
-            ExperimentalData data   = task.getExperimentalCurve();
+            ExperimentalData data   = (ExperimentalData) task.getInput();
             
-            if(newValue < 2.0 * data.getHalfTime()) {
+            if(newValue < 2.0 * data.getHalfTimeCalculator().getHalfTime()) {
                 this.pulseWidth = (double) pulseWidth.getValue();
                 firePropertyChanged(this, pulseWidth);
             }

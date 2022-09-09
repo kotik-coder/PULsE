@@ -9,7 +9,6 @@ import pulse.tasks.Identifier;
 import pulse.tasks.SearchTask;
 import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.LogEntryListener;
-import pulse.tasks.listeners.StatusChangeListener;
 import pulse.ui.Messages;
 import pulse.util.Group;
 
@@ -23,8 +22,8 @@ public class Log extends Group {
     private List<LogEntry> logEntries;
     private LocalTime start;
     private LocalTime end;
-    private Identifier id;
-    private List<LogEntryListener> listeners;
+    private final Identifier id;
+    private final List<LogEntryListener> listeners;
     private static boolean verbose = false;
 
     /**
@@ -49,38 +48,32 @@ public class Log extends Group {
             /**
              * Do these actions each time data has been collected for this task.
              */
-            if (task.getCurrentCalculation().getStatus() != Status.INCOMPLETE && verbose) {
+            if (task.getStatus() != Status.INCOMPLETE && verbose) {
                 logEntries.add(le);
                 notifyListeners(le);
             }
 
         });
 
-        task.addStatusChangeListener(new StatusChangeListener() {
-
-            /**
-             * Do these actions every time the task status has changed.
-             */
-            @Override
-            public void onStatusChange(StateEntry e) {
-                logEntries.add(e);
-
-                if (e.getStatus() == Status.IN_PROGRESS) {
-                    start = e.getTime();
-                    end = null;
-                } else {
-                    end = e.getTime();
-                }
-
-                notifyListeners(e);
-
-                if (e.getState() == Status.DONE) {
-                    logFinished();
-                }
-
+        task.addStatusChangeListener((StateEntry e) -> {
+            logEntries.add(e);
+            
+            if (e.getStatus() == Status.IN_PROGRESS) {
+                start = e.getTime();
+                end = null;
+            } else {
+                end = e.getTime();
             }
-
-        });
+            
+            notifyListeners(e);
+            
+            if (e.getState() == Status.DONE) {
+                logFinished();
+            }
+        } /**
+         * Do these actions every time the task status has changed.
+         */ 
+        );
 
     }
 
@@ -92,15 +85,15 @@ public class Log extends Group {
         listeners.stream().forEach(l -> l.onNewEntry(logEntry));
     }
 
-    public List<LogEntryListener> getListeners() {
+    public final List<LogEntryListener> getListeners() {
         return listeners;
     }
 
-    public void addListener(LogEntryListener l) {
+    public final void addListener(LogEntryListener l) {
         listeners.add(l);
     }
 
-    public Identifier getIdentifier() {
+    public final Identifier getIdentifier() {
         return id;
     }
 
@@ -128,10 +121,12 @@ public class Log extends Group {
         sb.append(newLine);
         sb.append(newLine);
 
-        for (LogEntry le : logEntries) {
+        logEntries.stream().map(le -> {
             sb.append(le);
+            return le;
+        }).forEachOrdered(_item -> {
             sb.append(newLine);
-        }
+        });
 
         return sb.toString();
 

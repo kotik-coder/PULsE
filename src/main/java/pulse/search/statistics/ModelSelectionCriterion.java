@@ -12,7 +12,7 @@ import java.util.List;
 
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
-import pulse.tasks.SearchTask;
+import pulse.search.GeneralTask;
 import pulse.util.PropertyEvent;
 
 /**
@@ -38,8 +38,8 @@ public abstract class ModelSelectionCriterion extends Statistic {
     }
 
     @Override
-    public void evaluate(SearchTask t) {
-        kq = t.alteredParameters().size(); //number of parameters
+    public void evaluate(GeneralTask t) {
+        kq = t.searchVector().dimension(); //number of parameters
         calcCriterion();
     }
 
@@ -104,11 +104,11 @@ public abstract class ModelSelectionCriterion extends Statistic {
         return os;
     }
 
-    public void setOptimiserStatistic(OptimiserStatistic os) {
+    public final void setOptimiserStatistic(OptimiserStatistic os) {
         this.os = os;
     }
 
-    public void setStatistic(NumericProperty p) {
+    public final void setStatistic(NumericProperty p) {
         requireType(p, MODEL_CRITERION);
         this.criterion = (double) p.getValue();
     }

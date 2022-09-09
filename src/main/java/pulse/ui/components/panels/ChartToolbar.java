@@ -26,6 +26,7 @@ import javax.swing.JToolBar;
 import pulse.input.ExperimentalData;
 
 import pulse.input.Range;
+import pulse.tasks.Calculation;
 import pulse.tasks.TaskManager;
 import pulse.ui.Messages;
 import pulse.ui.components.RangeTextFields;
@@ -64,12 +65,13 @@ public final class ChartToolbar extends JToolBar {
         pdfBtn.addActionListener(e -> {
 
             var task = TaskManager.getManagerInstance().getSelectedTask();
+            var calc = (Calculation) task.getResponse();
 
-            if (task != null && task.getCurrentCalculation().getModelSelectionCriterion() != null) {
+            if (task != null && calc.getModelSelectionCriterion() != null) {
 
                 chFrame.setLocationRelativeTo(null);
                 chFrame.setVisible(true);
-                chFrame.plot(task.getCurrentCalculation().getOptimiserStatistic());
+                chFrame.plot(calc.getOptimiserStatistic());
 
             }
 
@@ -130,7 +132,7 @@ public final class ChartToolbar extends JToolBar {
             return;
         }
 
-        var expCurve = task.getExperimentalCurve();
+        var expCurve = (ExperimentalData) task.getInput();
 
         if (expCurve == null) {
             return;
@@ -169,7 +171,7 @@ public final class ChartToolbar extends JToolBar {
             // set range for all available experimental datasets
             TaskManager.getManagerInstance().getTaskList()
                     .stream().forEach((aTask)
-                            -> setRange(aTask.getExperimentalCurve(), a, b)
+                            -> setRange( (ExperimentalData) aTask.getInput(), a, b)
                     );
         }
 
