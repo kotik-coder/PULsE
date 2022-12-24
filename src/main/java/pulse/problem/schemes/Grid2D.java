@@ -46,7 +46,7 @@ public class Grid2D extends Grid {
     @Override
     public void setTimeFactor(NumericProperty timeFactor) {
         super.setTimeFactor(timeFactor);
-        setTimeStep((double) timeFactor.getValue() * (pow(getXStep(), 2) + pow(hy, 2)));
+        setTimeStep((double) timeFactor.getValue() * (pow(getXStep(), 2) + pow(hy, 2)) );
     }
 
     /**

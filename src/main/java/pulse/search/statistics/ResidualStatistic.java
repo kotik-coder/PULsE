@@ -40,8 +40,8 @@ public abstract class ResidualStatistic extends Statistic {
 
     public ResidualStatistic(ResidualStatistic another) {
         this.statistic = another.statistic;
-        ry = new ArrayList<>();
-        rx = new ArrayList<>();
+        ry = new ArrayList<>(another.rx);
+        rx = new ArrayList<>(another.ry);
     }
 
     /**

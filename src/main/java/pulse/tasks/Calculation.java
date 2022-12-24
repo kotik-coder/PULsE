@@ -27,6 +27,7 @@ import pulse.search.statistics.BICStatistic;
 import pulse.search.statistics.FTest;
 import pulse.search.statistics.ModelSelectionCriterion;
 import pulse.search.statistics.OptimiserStatistic;
+import pulse.search.statistics.Statistic;
 import pulse.tasks.logs.Status;
 import pulse.tasks.processing.Result;
 import pulse.ui.components.PropertyHolderTable;
@@ -57,7 +58,7 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
         status = INCOMPLETE;
         this.initOptimiser();
         setParent(t);
-        instanceDescriptor.addListener(() -> initModelCriterion());
+        instanceDescriptor.addListener(() -> initModelCriterion(rs));
     }
 
     /**
@@ -66,14 +67,23 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
      * @param c another calculation to be archived.
      */
     public Calculation(Calculation c) {
-        this.problem = c.problem.copy();
-        this.scheme = c.scheme.copy();
-        this.rs = c.rs.copy();
-        this.os = c.os.copy();
-        this.status = c.status;
+        problem = c.problem.copy();
+        scheme = c.scheme.copy();
+        rs = c.rs.copy();
+        os = c.os.copy();
+        status = c.status;
         if (c.getResult() != null) {
-            this.result = new Result(c.getResult());
+            result = new Result(c.getResult());
         }
+        instanceDescriptor.addListener(() -> initModelCriterion(rs));
+    }
+    
+    public void assumeOwnership() {
+        problem.setParent(this);
+        scheme.setParent(this);
+        rs.setParent(this);
+        os.setParent(this);
+        result.setParent(this);
     }
 
     public void clear() {
@@ -81,7 +91,7 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
         this.problem = null;
         this.scheme = null;
     }
-
+    
     /**
      * <p>
      * After setting and adopting the {@code problem} by this
@@ -248,7 +258,7 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
     public void setOptimiserStatistic(OptimiserStatistic os) {
         this.os = os;
         os.setParent(this);
-        initModelCriterion();
+        initModelCriterion(os);
     }
 
     @Override
@@ -263,11 +273,11 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
     public void initOptimiser() {
         this.setOptimiserStatistic(
                 instantiate(OptimiserStatistic.class, OptimiserStatistic.getSelectedOptimiserDescriptor()));
-        this.initModelCriterion();
+        initModelCriterion(os);
     }
 
-    public void initModelCriterion() {
-        setModelSelectionCriterion(instanceDescriptor.newInstance(ModelSelectionCriterion.class, os));
+    protected void initModelCriterion(Statistic res) {
+        setModelSelectionCriterion(instanceDescriptor.newInstance(ModelSelectionCriterion.class, res));
     }
 
     public DifferenceScheme getScheme() {

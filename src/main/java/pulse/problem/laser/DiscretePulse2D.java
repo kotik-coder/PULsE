@@ -26,7 +26,7 @@ public class DiscretePulse2D extends DiscretePulse {
      * This had to be decreased for the 2d pulses.
      */
     
-    private final static int WIDTH_TOLERANCE_FACTOR = 200;
+    private final static int WIDTH_TOLERANCE_FACTOR = 2000;
 
     /**
      * The constructor for {@code DiscretePulse2D}.

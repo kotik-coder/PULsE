@@ -11,7 +11,7 @@ public class AICStatistic extends ModelSelectionCriterion {
         super(os);
     }
 
-    public AICStatistic(AICStatistic another) {
+    public AICStatistic(ModelSelectionCriterion another) {
         super(another);
     }
 

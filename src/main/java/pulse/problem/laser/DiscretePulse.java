@@ -64,10 +64,6 @@ public class DiscretePulse {
             timeConversionFactor = problem.getProperties().timeFactor();
             init(data);
         });
-
-        grid.addListener(e
-                -> init(data)
-        );
         
     }
     

@@ -11,7 +11,7 @@ import static java.lang.Math.log;
  */
 public class BICStatistic extends ModelSelectionCriterion {
 
-    public BICStatistic(BICStatistic another) {
+    public BICStatistic(ModelSelectionCriterion another) {
         super(another);
     }
 
