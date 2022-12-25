@@ -2,6 +2,7 @@ package pulse.tasks.logs;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
+import pulse.Response;
 import pulse.math.Parameter;
 import pulse.math.ParameterIdentifier;
 import pulse.properties.NumericProperties;

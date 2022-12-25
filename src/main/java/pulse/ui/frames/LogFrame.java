@@ -22,14 +22,15 @@ import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.LogEntryListener;
 import pulse.tasks.logs.Log;
 import pulse.tasks.logs.LogEntry;
-import pulse.ui.components.LogPane;
+import pulse.ui.components.AbstractLogger;
+import pulse.ui.components.TextLogPane;
 import pulse.ui.components.panels.LogToolbar;
 import pulse.ui.components.panels.SystemPanel;
 
 @SuppressWarnings("serial")
 public class LogFrame extends JInternalFrame {
 
-    private LogPane logTextPane;
+    private AbstractLogger logger;
 
     public LogFrame() {
         super("Log", true, false, true, true);
@@ -39,9 +40,9 @@ public class LogFrame extends JInternalFrame {
     }
 
     private void initComponents() {
-        logTextPane = new LogPane();
+        logger = new TextLogPane();
         var logScroller = new JScrollPane();
-        logScroller.setViewportView(logTextPane);
+        logScroller.setViewportView(logger.getGUIComponent());
 
         getContentPane().setLayout(new BorderLayout());
         getContentPane().add(logScroller, CENTER);
@@ -54,8 +55,8 @@ public class LogFrame extends JInternalFrame {
 
         var logToolbar = new LogToolbar();
         logToolbar.addLogExportListener(() -> {
-            if (logTextPane.getDocument().getLength() > 0) {
-                askToExport(logTextPane, (JFrame) getWindowAncestor(this),
+            if (!logger.isEmpty()) {
+                askToExport(logger, (JFrame) getWindowAncestor(this),
                         getString("LogToolBar.FileFormatDescriptor"));
             }
         });
@@ -65,7 +66,7 @@ public class LogFrame extends JInternalFrame {
 
     private void scheduleLogEvents() {
         var instance = TaskManager.getManagerInstance();
-        instance.addSelectionListener(e -> logTextPane.printAll());
+        instance.addSelectionListener(e -> logger.postAll());
 
         instance.addTaskRepositoryListener(event -> {
             if (event.getState() != TASK_ADDED) {
@@ -81,13 +82,12 @@ public class LogFrame extends JInternalFrame {
                     if (instance.getSelectedTask() == task) {
 
                         try {
-                            logTextPane.getUpdateExecutor().awaitTermination(10, MILLISECONDS);
+                            logger.getUpdateExecutor().awaitTermination(10, MILLISECONDS);
                         } catch (InterruptedException e) {
                             err.println("Log not finished in time");
-                            e.printStackTrace();
                         }
 
-                        logTextPane.printTimeTaken(log);
+                        logger.printTimeTaken(log);
 
                     }
                 }
@@ -95,7 +95,7 @@ public class LogFrame extends JInternalFrame {
                 @Override
                 public void onNewEntry(LogEntry e) {
                     if (instance.getSelectedTask() == task) {
-                        logTextPane.callUpdate();
+                        logger.callUpdate();
                     }
                 }
 
@@ -105,8 +105,8 @@ public class LogFrame extends JInternalFrame {
         });
     }
 
-    public LogPane getLogTextPane() {
-        return logTextPane;
+    public AbstractLogger getLogger() {
+        return logger;
     }
 
 }

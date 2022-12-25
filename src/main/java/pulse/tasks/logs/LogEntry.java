@@ -3,6 +3,7 @@ package pulse.tasks.logs;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Objects;
+import pulse.Response;
 
 import pulse.tasks.Identifier;
 import pulse.tasks.SearchTask;
@@ -21,7 +22,8 @@ public class LogEntry {
 
     private Identifier identifier;
     private LocalTime time;
-
+    private final Response response;
+    
     /**
      * <p>
      * Creates a {@code LogEntry} from this {@code SearchTask}. The data of the
@@ -34,6 +36,11 @@ public class LogEntry {
         Objects.requireNonNull(t, Messages.getString("LogEntry.NullTaskError"));
         time = LocalDateTime.now().toLocalTime();
         identifier = t.getIdentifier();
+        this.response = t.getResponse();
+    }
+    
+    public Response getResponse() {
+        return response;
     }
 
     public Identifier getIdentifier() {

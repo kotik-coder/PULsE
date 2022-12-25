@@ -157,13 +157,13 @@ public class TaskControlFrame extends JFrame {
 
             @Override
             public void onClearRequest() {
-                logFrame.getLogTextPane().clear();
+                logFrame.getLogger().clear();
                 resultsFrame.getResultTable().clear();
             }
 
             @Override
             public void onResetRequest() {
-                logFrame.getLogTextPane().clear();
+                logFrame.getLogger().clear();
                 resultsFrame.getResultTable().removeAll();
             }
 

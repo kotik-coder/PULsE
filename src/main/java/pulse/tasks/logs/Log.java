@@ -1,6 +1,8 @@
 package pulse.tasks.logs;
 
 import java.time.LocalTime;
+import static java.time.temporal.ChronoUnit.MILLIS;
+import static java.time.temporal.ChronoUnit.SECONDS;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -185,6 +187,17 @@ public class Log extends Group {
      */
     public static void setVerbose(boolean verbose) {
         Log.verbose = verbose;
+    }
+    
+    /**
+     * Time taken where the first array element contains seconds [0] and the second contains milliseconds [1].
+     * @return an array of long values that sum um to the time taken to process a task
+     */
+    
+    public long[] timeTaken() {
+        var seconds = SECONDS.between(getStart(), getEnd());
+        var ms = MILLIS.between(getStart(), getEnd()) - 1000L * seconds;
+        return new long[] {seconds, ms};
     }
 
 }
