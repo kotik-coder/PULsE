@@ -1,5 +1,6 @@
 package pulse.ui.components;
 
+import pulse.tasks.logs.AbstractLogger;
 import static java.lang.System.err;
 import static java.time.temporal.ChronoUnit.MILLIS;
 import static java.time.temporal.ChronoUnit.SECONDS;

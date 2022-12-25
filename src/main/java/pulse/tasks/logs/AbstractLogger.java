@@ -1,11 +1,9 @@
-package pulse.ui.components;
+package pulse.tasks.logs;
 
 import java.util.concurrent.ExecutorService;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import javax.swing.JComponent;
 import pulse.tasks.TaskManager;
-import pulse.tasks.logs.Log;
-import pulse.tasks.logs.LogEntry;
 import pulse.util.Descriptive;
 
 public abstract class AbstractLogger implements Descriptive {

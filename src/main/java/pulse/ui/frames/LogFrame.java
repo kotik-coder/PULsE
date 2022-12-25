@@ -22,7 +22,7 @@ import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.LogEntryListener;
 import pulse.tasks.logs.Log;
 import pulse.tasks.logs.LogEntry;
-import pulse.ui.components.AbstractLogger;
+import pulse.tasks.logs.AbstractLogger;
 import pulse.ui.components.TextLogPane;
 import pulse.ui.components.panels.LogToolbar;
 import pulse.ui.components.panels.SystemPanel;
