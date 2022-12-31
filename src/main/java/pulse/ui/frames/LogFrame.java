@@ -6,7 +6,6 @@ import static java.awt.BorderLayout.PAGE_END;
 import static java.awt.GridBagConstraints.WEST;
 import static java.lang.System.err;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static javax.swing.SwingUtilities.getWindowAncestor;
 import static pulse.io.export.ExportManager.askToExport;
 import static pulse.tasks.listeners.TaskRepositoryEvent.State.TASK_ADDED;
 import static pulse.ui.Messages.getString;
@@ -14,16 +13,17 @@ import static pulse.ui.Messages.getString;
 import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
 
-import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
-import javax.swing.JScrollPane;
+import javax.swing.SwingUtilities;
 
 import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.LogEntryListener;
 import pulse.tasks.logs.Log;
 import pulse.tasks.logs.LogEntry;
 import pulse.tasks.logs.AbstractLogger;
+import pulse.ui.components.GraphicalLogPane;
 import pulse.ui.components.TextLogPane;
+import pulse.ui.components.listeners.LogListener;
 import pulse.ui.components.panels.LogToolbar;
 import pulse.ui.components.panels.SystemPanel;
 
@@ -31,6 +31,8 @@ import pulse.ui.components.panels.SystemPanel;
 public class LogFrame extends JInternalFrame {
 
     private AbstractLogger logger;
+    private final static AbstractLogger graphical = new GraphicalLogPane();
+    private final static AbstractLogger text = new TextLogPane();
 
     public LogFrame() {
         super("Log", true, false, true, true);
@@ -40,12 +42,10 @@ public class LogFrame extends JInternalFrame {
     }
 
     private void initComponents() {
-        logger = new TextLogPane();
-        var logScroller = new JScrollPane();
-        logScroller.setViewportView(logger.getGUIComponent());
+        logger = Log.isGraphicalLog() ? graphical : text;
 
         getContentPane().setLayout(new BorderLayout());
-        getContentPane().add(logScroller, CENTER);
+        getContentPane().add(logger.getGUIComponent(), CENTER);
 
         var gridBagConstraints = new GridBagConstraints();
         gridBagConstraints.anchor = WEST;
@@ -54,12 +54,24 @@ public class LogFrame extends JInternalFrame {
         getContentPane().add(new SystemPanel(), PAGE_END);
 
         var logToolbar = new LogToolbar();
-        logToolbar.addLogExportListener(() -> {
-            if (!logger.isEmpty()) {
-                askToExport(logger, (JFrame) getWindowAncestor(this),
-                        getString("LogToolBar.FileFormatDescriptor"));
+
+        var lel = new LogListener() {
+            @Override
+            public void onLogExportRequest() {
+                if (logger == text) {
+                    askToExport(logger, null, getString("LogToolBar.FileFormatDescriptor"));
+                } else {
+                    System.out.println("To export the log entries, please switch to text mode first!");
+                }
             }
-        });
+
+            @Override
+            public void onLogModeChanged(boolean graphical) {
+                SwingUtilities.invokeLater(() -> setGraphicalLogger(graphical));
+            }
+        };
+
+        logToolbar.addLogListener(lel);
         getContentPane().add(logToolbar, NORTH);
 
     }
@@ -107,6 +119,18 @@ public class LogFrame extends JInternalFrame {
 
     public AbstractLogger getLogger() {
         return logger;
+    }
+
+    private void setGraphicalLogger(boolean graphicalLog) {
+        var old = logger;
+        logger = graphicalLog ? graphical : text;
+
+        if (old != logger) {
+            getContentPane().remove(old.getGUIComponent());
+            getContentPane().add(logger.getGUIComponent(), BorderLayout.CENTER);
+            logger.postAll();
+        }
+
     }
 
 }

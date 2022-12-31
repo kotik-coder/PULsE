@@ -41,6 +41,7 @@ public class IterativeState {
     
     public void reset() {
         iteration = 0;
+        setCost(Double.POSITIVE_INFINITY);
     }
 
     public NumericProperty getIteration() {

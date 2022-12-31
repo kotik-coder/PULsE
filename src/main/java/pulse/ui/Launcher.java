@@ -17,8 +17,7 @@ import java.net.URLDecoder;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
-import com.alee.laf.WebLookAndFeel;
-import com.alee.skin.dark.WebDarkSkin;
+import com.formdev.flatlaf.FlatDarkLaf;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -65,9 +64,10 @@ public class Launcher {
 
             splashScreen();
 
-            WebLookAndFeel.install(WebDarkSkin.class);
+            //WebLookAndFeel.install(WebDarkSkin.class);
+            FlatDarkLaf.setup();
             try {
-                UIManager.setLookAndFeel(new WebLookAndFeel());
+                UIManager.setLookAndFeel(new FlatDarkLaf());
             } catch (Exception ex) {
                 System.err.println("Failed to initialize LaF");
             }

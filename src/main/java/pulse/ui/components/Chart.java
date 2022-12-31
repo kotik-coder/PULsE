@@ -26,6 +26,7 @@ import javax.swing.UIManager;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.annotations.XYTitleAnnotation;
+import org.jfree.chart.axis.Axis;
 import org.jfree.chart.block.BlockBorder;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
@@ -81,7 +82,7 @@ public class Chart {
         final TaskManager instance = TaskManager.getManagerInstance();
 
         chart.removeLegend();
-        chart.setBackgroundPaint(UIManager.getColor("Panel.background"));
+        chart.setBackgroundPaint(UIManager.getColor("TextPane.background"));
         chartPanel = new ChartPanel(chart) {
 
             @Override
@@ -146,16 +147,18 @@ public class Chart {
     }
 
     private void setFonts() {
-        var fontLabel = new Font("Arial", Font.PLAIN, 20);
-        var fontTicks = new Font("Arial", Font.PLAIN, 14);
-        plot.getDomainAxis().setLabelFont(fontLabel);
-        plot.getDomainAxis().setTickLabelFont(fontTicks);
-        plot.getRangeAxis().setLabelFont(fontLabel);
-        plot.getRangeAxis().setTickLabelFont(fontTicks);
+        var foreColor = UIManager.getColor("Label.foreground");
+        setAxisFontColor(plot.getDomainAxis(), foreColor);
+        setAxisFontColor(plot.getRangeAxis(), foreColor);
+    }
+    
+    public static void setAxisFontColor(Axis axis, Color color) {
+        axis.setLabelPaint(color);
+        axis.setTickLabelPaint(color);
     }
 
     private void setBackgroundAndGrid() {
-        // plot.setBackgroundPaint(UIManager.getColor("Panel.background"));
+        plot.setBackgroundPaint(UIManager.getColor("TextPane.background"));
         plot.setRangeGridlinesVisible(true);
         plot.setRangeGridlinePaint(GRAY);
 

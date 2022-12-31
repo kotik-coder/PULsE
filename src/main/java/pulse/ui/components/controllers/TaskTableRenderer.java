@@ -3,16 +3,13 @@ package pulse.ui.components.controllers;
 import static java.awt.Font.BOLD;
 
 import java.awt.Component;
-import java.awt.Font;
 import javax.swing.JLabel;
 
 import javax.swing.JTable;
 
 import pulse.properties.NumericProperty;
-import pulse.properties.Property;
 import pulse.tasks.Identifier;
 import pulse.tasks.logs.Status;
-import pulse.util.PropertyHolder;
 
 @SuppressWarnings("serial")
 public class TaskTableRenderer extends NumericPropertyRenderer {

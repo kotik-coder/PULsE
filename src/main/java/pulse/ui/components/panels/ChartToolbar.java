@@ -38,7 +38,7 @@ import pulse.ui.frames.HistogramFrame;
 public final class ChartToolbar extends JToolBar {
 
     private final static int ICON_SIZE = 16;
-    private List<PlotRequestListener> listeners;
+    private final List<PlotRequestListener> listeners;
 
     private RangeTextFields rtf;
 

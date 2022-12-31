@@ -34,6 +34,7 @@ import pulse.ui.components.PropertyHolderTable;
 import pulse.util.InstanceDescriptor;
 import pulse.util.PropertyEvent;
 import pulse.util.PropertyHolder;
+import pulse.util.UpwardsNavigable;
 
 public class Calculation extends PropertyHolder implements Comparable<Calculation>, Response {
 
@@ -78,14 +79,14 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
         instanceDescriptor.addListener(() -> initModelCriterion(rs));
     }
     
-    public void assumeOwnership() {
-        problem.setParent(this);
-        scheme.setParent(this);
-        rs.setParent(this);
-        os.setParent(this);
-        result.setParent(this);
+    public void conformTo(UpwardsNavigable owner) {
+        problem.setParent(owner);
+        scheme.setParent(owner);
+        rs.setParent(owner);
+        os.setParent(owner);
+        result.setParent(owner);
     }
-
+   
     public void clear() {
         this.status = INCOMPLETE;
         this.problem = null;

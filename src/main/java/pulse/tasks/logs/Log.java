@@ -26,7 +26,7 @@ public class Log extends Group {
     private LocalTime end;
     private final Identifier id;
     private final List<LogEntryListener> listeners;
-    private static boolean verbose = false;
+    private static boolean graphical = true;
 
     /**
      * Creates a {@code Log} for this {@code task} that will automatically store
@@ -50,7 +50,7 @@ public class Log extends Group {
             /**
              * Do these actions each time data has been collected for this task.
              */
-            if (task.getStatus() != Status.INCOMPLETE && verbose) {
+            if (task.getStatus() != Status.INCOMPLETE) {
                 logEntries.add(le);
                 notifyListeners(le);
             }
@@ -107,7 +107,7 @@ public class Log extends Group {
      * @return {@code true} if the start time is not {@code null}
      */
     public boolean isStarted() {
-        return start != null;
+        return logEntries.size() > 0;
     }
 
     /**
@@ -175,18 +175,18 @@ public class Log extends Group {
      *
      * @return {@code true} if the verbose flag is on
      */
-    public static boolean isVerbose() {
-        return verbose;
+    public static boolean isGraphicalLog() {
+        return graphical;
     }
 
     /**
      * Sets the verbose flag to {@code verbose}
      *
      * @param verbose the new value of the flag
-     * @see isVerbose()
+     * @see #isGraphicalLog()
      */
-    public static void setVerbose(boolean verbose) {
-        Log.verbose = verbose;
+    public static void setGraphicalLog(boolean verbose) {
+        Log.graphical = verbose;
     }
     
     /**

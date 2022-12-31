@@ -2,10 +2,11 @@ package pulse.tasks.logs;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
-import pulse.Response;
 import pulse.math.Parameter;
 import pulse.math.ParameterIdentifier;
 import pulse.properties.NumericProperties;
+import static pulse.properties.NumericProperties.def;
+import static pulse.properties.NumericPropertyKeyword.OBJECTIVE_FUNCTION;
 
 import pulse.tasks.SearchTask;
 import pulse.tasks.TaskManager;
@@ -55,10 +56,19 @@ public class DataLogEntry extends LogEntry {
     private void fill() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
         var task = TaskManager.getManagerInstance().getTask(getIdentifier());
         entry = task.searchVector().getParameters();
+        //iteration
         var pval = task.getIterativeState().getIteration();
         var pid = new Parameter(new ParameterIdentifier(pval.getType()));
-        pid.setValue( (int) pval.getValue() );
+        pid.setValue((int) pval.getValue());
+        //cost
+        var costId = new Parameter(new ParameterIdentifier(OBJECTIVE_FUNCTION));
+        var costval = task.getIterativeState().getCost();
+        //
         entry.add(0, pid);
+        if (NumericProperties.isValueSensible(def(OBJECTIVE_FUNCTION), costval)) {
+            costId.setValue(costval);
+            entry.add(costId);
+        }
     }
 
     public List<Parameter> getData() {
@@ -91,15 +101,15 @@ public class DataLogEntry extends LogEntry {
             var def = NumericProperties.def(p.getIdentifier().getKeyword());
             boolean b = def.getValue() instanceof Integer;
             Number val;
-            if(b) {
+            if (b) {
                 val = (int) Math.rint(p.getApparentValue());
-            } else{
+            } else {
                 val = p.getApparentValue();
             }
             def.setValue(val);
             sb.append(def.getAbbreviation(false));
             int index = p.getIdentifier().getIndex();
-            if(index > 0) {
+            if (index > 0) {
                 sb.append(" - ").append(index);
             }
             sb.append("</td><<td>");

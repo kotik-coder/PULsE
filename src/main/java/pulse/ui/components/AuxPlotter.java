@@ -1,58 +1,85 @@
 package pulse.ui.components;
 
+import java.awt.Color;
 import java.awt.Font;
+import javax.swing.JLabel;
 
 import javax.swing.UIManager;
+import org.jfree.chart.ChartFactory;
 
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.CombinedDomainXYPlot;
+import static org.jfree.chart.plot.PlotOrientation.VERTICAL;
 import org.jfree.chart.plot.XYPlot;
 
 public abstract class AuxPlotter<T> {
-
+    
     private ChartPanel chartPanel;
     private JFreeChart chart;
     private XYPlot plot;
-
+    
+    public AuxPlotter() {
+        //empty
+    }
+    
     public AuxPlotter(String xLabel, String yLabel) {
-        createChart(xLabel, yLabel);
-        chart.setBackgroundPaint(UIManager.getColor("Panel.background"));
-
-        plot = chart.getXYPlot();
-        setFonts();
-
+        setChart( ChartFactory.createScatterPlot("", xLabel, yLabel, null, VERTICAL, true, true, false) );
+      
+        setPlot( chart.getXYPlot() );
         chart.removeLegend();
-        chartPanel = new ChartPanel(chart);
+
+        setFonts();
     }
-
-    public void setFonts() {
-        var fontLabel = new Font("Arial", Font.PLAIN, 20);
-        var fontTicks = new Font("Arial", Font.PLAIN, 16);
-        var plot = getPlot();
-        plot.getDomainAxis().setLabelFont(fontLabel);
-        plot.getDomainAxis().setTickLabelFont(fontTicks);
-        plot.getRangeAxis().setLabelFont(fontLabel);
-        plot.getRangeAxis().setTickLabelFont(fontTicks);
+    
+    public final void setFonts() {
+        var jlabel = new JLabel();
+        var label = jlabel.getFont().deriveFont(20f);
+        var ticks = jlabel.getFont().deriveFont(16f);
+        chart.getTitle().setFont(jlabel.getFont().deriveFont(20f));
+        
+        if (plot instanceof CombinedDomainXYPlot) {
+            var combinedPlot = (CombinedDomainXYPlot) plot;
+            combinedPlot.getSubplots().stream().forEach(sp -> setFontsForPlot((XYPlot)sp, label, ticks));
+        } else {
+            setFontsForPlot(plot, label, ticks);            
+        }
+        
     }
-
-    public abstract void createChart(String xLabel, String yLabel);
-
+    
+    private void setFontsForPlot(XYPlot p, Font label, Font ticks) {
+        var foreColor = UIManager.getColor("Label.foreground");
+        var domainAxis = p.getDomainAxis();
+        Chart.setAxisFontColor(domainAxis, foreColor);        
+        var rangeAxis = p.getRangeAxis();
+        Chart.setAxisFontColor(rangeAxis, foreColor);
+    }
+      
     public abstract void plot(T t);
-
-    public ChartPanel getChartPanel() {
+    
+    public final ChartPanel getChartPanel() {
         return chartPanel;
     }
-
-    public JFreeChart getChart() {
+    
+    public final JFreeChart getChart() {
         return chart;
     }
-
-    public XYPlot getPlot() {
+    
+    public final XYPlot getPlot() {
         return plot;
     }
-
-    public void setChart(JFreeChart chart) {
-        this.chart = chart;
+    
+    public final void setPlot(XYPlot plot) {
+        this.plot = plot;
+        plot.setBackgroundPaint(chart.getBackgroundPaint());
     }
-
+    
+    public final void setChart(JFreeChart chart) {
+        this.chart = chart;
+        var color = UIManager.getLookAndFeelDefaults().getColor("TextPane.background");
+        chart.setBackgroundPaint(color);
+        chartPanel = new ChartPanel(chart);
+        this.plot = chart.getXYPlot();
+    }
+    
 }

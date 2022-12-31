@@ -1,13 +1,11 @@
 package pulse.ui.components.controllers;
 
-import com.alee.utils.swing.PopupMenuAdapter;
 import java.awt.Component;
 import java.awt.event.ItemEvent;
 
 import javax.swing.DefaultCellEditor;
 import javax.swing.JComboBox;
 import javax.swing.JTable;
-import javax.swing.event.PopupMenuEvent;
 
 import pulse.util.InstanceDescriptor;
 
@@ -39,17 +37,7 @@ public class InstanceCellEditor extends DefaultCellEditor {
                 }
             }
         });
-
-        combobox.addPopupMenuListener(new PopupMenuAdapter() {
-
-            @Override
-            public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
-                fireEditingCanceled();
-            }
-
-        }
-        );
-
+        
         return combobox;
     }
 

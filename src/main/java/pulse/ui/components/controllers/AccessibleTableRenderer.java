@@ -1,6 +1,5 @@
 package pulse.ui.components.controllers;
 
-import static java.awt.Color.RED;
 
 import java.awt.Component;
 import java.awt.Font;
@@ -8,7 +7,6 @@ import java.awt.Font;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JTable;
-import javax.swing.UIManager;
 
 import pulse.properties.Flag;
 import pulse.properties.NumericProperty;

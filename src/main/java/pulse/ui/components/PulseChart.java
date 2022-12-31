@@ -41,16 +41,11 @@ public class PulseChart extends AuxPlotter<Calculation> {
         getPlot().setRenderer(rendererPulse);
     }
 
-    @Override
-    public void createChart(String xLabel, String yLabel) {
-        setChart(ChartFactory.createScatterPlot("", xLabel, yLabel, null, VERTICAL, true, true, false));
-    }
-
     private void setLegendTitle() {
         var plot = getPlot();
         var lt = new LegendTitle(plot);
         lt.setItemFont(new Font("Dialog", PLAIN, 16));
-        //lt.setBackgroundPaint(new Color(200, 200, 255, 100));
+        lt.setBackgroundPaint(new Color(200, 200, 255, 100));
         lt.setFrame(new BlockBorder(black));
         lt.setPosition(RectangleEdge.RIGHT);
         var ta = new XYTitleAnnotation(0.5, 0.2, lt, RectangleAnchor.CENTER);

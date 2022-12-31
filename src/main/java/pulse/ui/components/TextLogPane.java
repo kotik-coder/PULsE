@@ -2,22 +2,19 @@ package pulse.ui.components;
 
 import pulse.tasks.logs.AbstractLogger;
 import static java.lang.System.err;
-import static java.time.temporal.ChronoUnit.MILLIS;
-import static java.time.temporal.ChronoUnit.SECONDS;
 import static javax.swing.text.DefaultCaret.ALWAYS_UPDATE;
-import static pulse.tasks.logs.Status.DONE;
 import static pulse.ui.Messages.getString;
 
 import java.io.IOException;
 import javax.swing.JComponent;
 
 import javax.swing.JEditorPane;
+import javax.swing.JScrollPane;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultCaret;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
 
-import pulse.tasks.TaskManager;
 import pulse.tasks.logs.Log;
 import pulse.tasks.logs.LogEntry;
 
@@ -25,12 +22,15 @@ import pulse.tasks.logs.LogEntry;
 public class TextLogPane extends AbstractLogger {
 
     private final JEditorPane editor;
+    private final JScrollPane pane;
     
     public TextLogPane() {
         editor = new JEditorPane();
         editor.setContentType("text/html");
         editor.setEditable(false);
         ( (DefaultCaret) editor.getCaret() ).setUpdatePolicy(ALWAYS_UPDATE);
+        pane = new JScrollPane();
+        pane.setViewportView(editor);
     }
 
     @Override
@@ -64,30 +64,6 @@ public class TextLogPane extends AbstractLogger {
     }
 
     @Override
-    public void postAll() {
-        clear();
-
-        var task = TaskManager.getManagerInstance().getSelectedTask();
-
-        if (task != null) {
-
-            var log = task.getLog();
-
-            if (log.isStarted()) {
-
-                log.getLogEntries().stream().forEach(entry -> post(entry));
-
-                if (task.getStatus() == DONE) {
-                    printTimeTaken(log);
-                }
-
-            }
-
-        }
-
-    }
-
-    @Override
     public void clear() {
         try {
             editor.getDocument().remove(0, editor.getDocument().getLength());
@@ -98,7 +74,7 @@ public class TextLogPane extends AbstractLogger {
     
     @Override
     public JComponent getGUIComponent() {
-        return editor;
+        return pane;
     }
 
     @Override
