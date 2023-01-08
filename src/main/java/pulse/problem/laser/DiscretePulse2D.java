@@ -26,7 +26,7 @@ public class DiscretePulse2D extends DiscretePulse {
      * This had to be decreased for the 2d pulses.
      */
     
-    private final static int WIDTH_TOLERANCE_FACTOR = 2000;
+    private final static int WIDTH_TOLERANCE_FACTOR = 1000;
 
     /**
      * The constructor for {@code DiscretePulse2D}.
@@ -90,7 +90,7 @@ public class DiscretePulse2D extends DiscretePulse {
      * @see pulse.problem.schemes.Grid2D.gridRadialDistance(double,double)
      */
     public final void evalPulseSpot() {
-        var pulse = (Pulse2D) getPulse();
+        var pulse = (Pulse2D) getPhysicalPulse();
         var grid2d = (Grid2D) getGrid();
         final double spotRadius = (double) pulse.getSpotDiameter().getValue() / 2.0;       
         discretePulseSpot = grid2d.gridRadialDistance(spotRadius, sampleRadius);

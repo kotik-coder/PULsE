@@ -64,7 +64,7 @@ public class NumericPulse extends PulseTemporalShape {
         setPulseWidthOf(problem);
 
         //convert to dimensionless time and interpolate
-        double timeFactor = problem.getProperties().timeFactor();
+        double timeFactor = problem.getProperties().characteristicTime();
         doInterpolation(timeFactor);
     }
     

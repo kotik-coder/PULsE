@@ -4,13 +4,11 @@ import static java.awt.Color.RED;
 import static java.awt.Color.black;
 import static java.awt.Font.PLAIN;
 import static java.util.Objects.requireNonNull;
-import static org.jfree.chart.plot.PlotOrientation.VERTICAL;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 
-import org.jfree.chart.ChartFactory;
 import org.jfree.chart.annotations.XYTitleAnnotation;
 import org.jfree.chart.block.BlockBorder;
 import org.jfree.chart.renderer.xy.XYDifferenceRenderer;
@@ -63,8 +61,8 @@ public class PulseChart extends AuxPlotter<Calculation> {
 
         var pulseDataset = new XYSeriesCollection();
          
-        pulseDataset.addSeries(series(problem.getPulse(), c.getScheme().getGrid().getTimeStep(), 
-                problem.getProperties().timeFactor(), startTime));
+        pulseDataset.addSeries(series(problem.getPulse(), c.getScheme().getGrid().getTimeStep()/20.0, 
+                problem.getProperties().characteristicTime(), startTime));
 
         getPlot().setDataset(0, pulseDataset);
     }
@@ -76,8 +74,8 @@ public class PulseChart extends AuxPlotter<Calculation> {
         double timeLimit = pulseShape.getPulseWidth();
         double x = startTime/timeFactor;
 
-        series.add(TO_MILLIS * (startTime - dx * timeFactor / 10.), 0.0);
-        series.add(TO_MILLIS * (startTime + timeFactor*(timeLimit + dx / 10.)), 0.0);
+        series.add(TO_MILLIS * (startTime - dx * timeFactor / 100.), 0.0);
+        series.add(TO_MILLIS * (startTime + timeFactor*(timeLimit + dx / 100.)), 0.0);
 
         for (int i = 0, numPoints = (int) (timeLimit/dx); i < numPoints; i++) {
             series.add(x * timeFactor * TO_MILLIS, pulseShape.evaluateAt(x - startTime/timeFactor));

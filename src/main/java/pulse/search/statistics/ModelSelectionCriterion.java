@@ -38,6 +38,35 @@ public abstract class ModelSelectionCriterion extends Statistic {
     }
 
     @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 43 * hash + this.kq;
+        hash = 43 * hash + (int) (Double.doubleToLongBits(this.criterion) ^ (Double.doubleToLongBits(this.criterion) >>> 32));
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final ModelSelectionCriterion other = (ModelSelectionCriterion) obj;
+        if (this.kq != other.kq) {
+            return false;
+        }
+        if (Double.doubleToLongBits(this.criterion) != Double.doubleToLongBits(other.criterion)) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
     public void evaluate(GeneralTask t) {
         kq = t.searchVector().dimension(); //number of parameters
         calcCriterion();

@@ -20,9 +20,9 @@ import pulse.ui.Messages;
  */
 public class LogEntry {
 
-    private Identifier identifier;
-    private LocalTime time;
-    private final Response response;
+    private final Identifier identifier;
+    private final LocalTime time;
+    private final LogEntry previous;
     
     /**
      * <p>
@@ -36,11 +36,17 @@ public class LogEntry {
         Objects.requireNonNull(t, Messages.getString("LogEntry.NullTaskError"));
         time = LocalDateTime.now().toLocalTime();
         identifier = t.getIdentifier();
-        this.response = t.getResponse();
+        var list = t.getLog().getLogEntries();
+        if(list != null && !list.isEmpty()) {
+            previous = list.get(list.size() - 1);
+        }
+        else {
+            previous = null;
+        }
     }
     
-    public Response getResponse() {
-        return response;
+    public LogEntry getPreviousEntry() {
+        return previous;
     }
 
     public Identifier getIdentifier() {

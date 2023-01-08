@@ -75,7 +75,7 @@ public class AdiabaticSolution {
     private final static double solutionAt(ThermalProperties p, double time, int precision) {
 
         final double EPS = 1E-8;
-        final double Fo = time / p.timeFactor();
+        final double Fo = time / p.characteristicTime();
 
         if (time < EPS) {
             return 0;

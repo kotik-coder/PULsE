@@ -9,6 +9,7 @@ import static pulse.tasks.logs.Status.INCOMPLETE;
 import static pulse.util.Reflexive.instantiate;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import pulse.Response;
 
@@ -330,27 +331,6 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
         return sThis.compareTo(sAnother);
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (o == this) {
-            return true;
-        }
-
-        if (o == null) {
-            return false;
-        }
-
-        if (!(o instanceof Calculation)) {
-            return false;
-        }
-
-        var c = (Calculation) o;
-
-        return (os.getStatistic().equals(c.getOptimiserStatistic().getStatistic())
-                && rs.getStatistic().equals(c.getModelSelectionCriterion().getStatistic()));
-
-    }
-
     public static InstanceDescriptor<? extends ModelSelectionCriterion> getModelSelectionDescriptor() {
         return instanceDescriptor;
     }
@@ -393,6 +373,39 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
         process();
         os.evaluate(task);
         return (double) os.getStatistic().getValue();
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 79 * hash + Objects.hashCode(this.problem);
+        hash = 79 * hash + Objects.hashCode(this.scheme);
+        hash = 79 * hash + Objects.hashCode(this.result);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Calculation other = (Calculation) obj;
+        if (!Objects.equals(this.problem, other.problem)) {
+            return false;
+        }
+        if (!Objects.equals(this.scheme, other.scheme)) {
+            return false;
+        }
+        if (!Objects.equals(this.result, other.result)) {
+            return false;
+        }
+        return true;
     }
 
 }

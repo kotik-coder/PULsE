@@ -6,6 +6,7 @@ import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.TIME_SHIFT;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
@@ -245,7 +246,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
                     p.setTransform(new StickTransform(bounds));
                     break;
                 case TIME_SHIFT:
-                    double magnitude = 0.25 * properties.timeFactor();
+                    double magnitude = 0.25 * properties.characteristicTime();
                     bounds = new Segment(-magnitude, magnitude);
                     value = (double) curve.getTimeShift().getValue();
                     break;

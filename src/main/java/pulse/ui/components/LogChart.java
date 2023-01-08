@@ -6,9 +6,14 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import static java.awt.Color.WHITE;
 import static java.awt.Color.black;
+import java.awt.Dimension;
 import java.time.Duration;
+import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import javax.swing.SwingUtilities;
 
 import org.jfree.chart.JFreeChart;
@@ -35,6 +40,7 @@ import pulse.tasks.SearchTask;
 import pulse.tasks.TaskManager;
 import pulse.tasks.logs.DataLogEntry;
 import pulse.tasks.logs.Log;
+import pulse.tasks.logs.StateEntry;
 import pulse.tasks.logs.Status;
 import pulse.tasks.processing.Buffer;
 import pulse.ui.ColorGenerator;
@@ -44,7 +50,8 @@ public class LogChart extends AuxPlotter<Log> {
     private final Map<ParameterIdentifier, XYPlot> plots;
     private Color[] colors;
     private static final ColorGenerator cg = new ColorGenerator();
-    private Response r;
+    public final static int HEIGHT_FACTOR = 75;
+    public final static int MARGIN = 10;
 
     public LogChart() {
         var plot = new CombinedDomainXYPlot(new NumberAxis("Iteration"));
@@ -58,13 +65,14 @@ public class LogChart extends AuxPlotter<Log> {
 
     public final void clear() {
         var p = (CombinedDomainXYPlot) getPlot();
-        p.getDomainAxis().setAutoRange(true);
         if (p != null) {
+            if (p.getDomainAxis() != null) {
+                p.getDomainAxis().setAutoRange(true);
+            }
             plots.values().stream().forEach(pp -> p.remove(pp));
         }
         plots.clear();
         colors = new Color[0];
-        r = null;
     }
 
     private void setLegendTitle(Plot plot) {
@@ -87,6 +95,11 @@ public class LogChart extends AuxPlotter<Log> {
 
         plots.put(key, plot);
         ((CombinedDomainXYPlot) getPlot()).add(plot);
+
+        int height = HEIGHT_FACTOR * plots.size();
+        int width = getChartPanel().getParent().getWidth() - MARGIN;
+        getChartPanel().setPreferredSize(new Dimension(width, height));
+        getChartPanel().revalidate();
 
         var dataset = new XYSeriesCollection();
         var series = new XYSeries(key.toString());
@@ -115,7 +128,7 @@ public class LogChart extends AuxPlotter<Log> {
         var domainAxis = (NumberAxis) getPlot().getDomainAxis();
         domainAxis.setLabel(iterationMode ? "Iteration" : "Time (ms)");
         domainAxis.setAutoRange(!iterationMode);
-        if(iterationMode) {
+        if (iterationMode) {
             domainAxis.setTickUnit(new NumberTickUnit(1));
         } else {
             domainAxis.setAutoTickUnitSelection(true);
@@ -126,10 +139,18 @@ public class LogChart extends AuxPlotter<Log> {
     public void plot(Log l) {
         requireNonNull(l);
 
-        l.getLogEntries().stream()
-                .filter(le -> le instanceof DataLogEntry)
-                .forEach(d -> plot((DataLogEntry) d,
-                Duration.between(l.getStart(), d.getTime()).toMillis()));
+        List<LocalTime> startTimes = l.getLogEntries().stream()
+                .filter(le -> le instanceof DataLogEntry && le.getPreviousEntry() instanceof StateEntry)
+                .map(entry -> entry.getTime()).collect(Collectors.toList());
+
+        if (!startTimes.isEmpty()) {
+            var recentStart = startTimes.get(startTimes.size() - 1);
+            l.getLogEntries().stream().filter(le -> le.getTime().isAfter(recentStart))
+                    .filter(e -> e instanceof DataLogEntry).forEach(dle
+                    -> plot((DataLogEntry) dle,
+                            Duration.between(recentStart, dle.getTime()).toMillis()));
+        }
+
     }
 
     private static void adjustRange(XYPlot pl, int iteration, int bufSize) {
@@ -138,7 +159,7 @@ public class LogChart extends AuxPlotter<Log> {
         var domainAxis = pl.getDomainAxis();
         var r = domainAxis.getRange();
         var newR = new Range(lower, lower + bufSize);
-        
+
         if (!r.equals(newR) && iteration > lower) {
             ((XYPlot) pl).getDomainAxis().setRange(lower, lower + bufSize);
         }
@@ -185,7 +206,7 @@ public class LogChart extends AuxPlotter<Log> {
                     runningAverage.add(iterationOrTime, buf.average(np.getKeyword()));
                 }
 
-                SwingUtilities.invokeLater(() -> adjustRange((XYPlot)pl, (int)iterationOrTime, bufSize));
+                SwingUtilities.invokeLater(() -> adjustRange((XYPlot) pl, (int) iterationOrTime, bufSize));
 
             } else {
                 var domainAxis = ((XYPlot) pl).getDomainAxis();

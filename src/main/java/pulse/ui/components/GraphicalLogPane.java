@@ -1,6 +1,8 @@
 package pulse.ui.components;
 
 import javax.swing.JComponent;
+import javax.swing.JScrollPane;
+import javax.swing.ScrollPaneConstants;
 import static pulse.properties.NumericPropertyKeyword.ITERATION;
 import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.TaskRepositoryEvent;
@@ -14,9 +16,13 @@ import static pulse.tasks.logs.Status.DONE;
 public class GraphicalLogPane extends AbstractLogger {
     
     private final LogChart chart;
+    private final JScrollPane pane;
     
     public GraphicalLogPane() {
+        pane = new JScrollPane();
+        pane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         chart = new LogChart();
+        pane.setViewportView(chart.getChartPanel());
         TaskManager.getManagerInstance().addTaskRepositoryListener( e -> {
             if(e.getState() == TaskRepositoryEvent.State.TASK_SUBMITTED) {
                 chart.clear();
@@ -26,7 +32,7 @@ public class GraphicalLogPane extends AbstractLogger {
 
     @Override
     public JComponent getGUIComponent() {
-        return chart.getChartPanel();
+        return pane;
     }
 
     @Override

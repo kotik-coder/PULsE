@@ -7,7 +7,10 @@ import pulse.math.Segment;
 import pulse.problem.schemes.Grid;
 import pulse.problem.statements.Problem;
 import pulse.problem.statements.Pulse;
+import static pulse.properties.NumericProperties.derive;
+import static pulse.properties.NumericPropertyKeyword.TAU_FACTOR;
 import pulse.tasks.SearchTask;
+import pulse.util.PropertyHolderListener;
 
 /**
  * A {@code DiscretePulse} is an object that acts as a medium between the
@@ -20,9 +23,10 @@ public class DiscretePulse {
 
     private final Grid grid;
     private final Pulse pulse;
-    
+    private final ExperimentalData data;
+
     private double widthOnGrid;
-    private double timeConversionFactor;
+    private double characteristicTime;
     private double invTotalEnergy; //normalisation factor
 
     /**
@@ -49,29 +53,28 @@ public class DiscretePulse {
      */
     public DiscretePulse(Problem problem, Grid grid) {
         this.grid = grid;
-        timeConversionFactor = problem.getProperties().timeFactor();
+        characteristicTime = problem.getProperties().characteristicTime();
         this.pulse = problem.getPulse();
 
         Object ancestor
                 = Objects.requireNonNull(problem.specificAncestor(SearchTask.class),
                         "Problem has not been assigned to a SearchTask");
 
-        ExperimentalData data = 
-                (ExperimentalData) ( ((SearchTask) ancestor).getInput() );
-        init(data);
-        
+        data = (ExperimentalData) (((SearchTask) ancestor).getInput());
+        init();
+
+        PropertyHolderListener phl = e -> {
+            characteristicTime = problem.getProperties().characteristicTime();
+            widthOnGrid = 0;
+            init();
+        };
+
         pulse.addListener(e -> {
-            timeConversionFactor = problem.getProperties().timeFactor();
-            init(data);
+            widthOnGrid = 0;
+            init();
         });
-        
-    }
-    
-    private void init(ExperimentalData data) {
-        widthOnGrid = 0;
-        recalculate();
-        pulse.getPulseShape().init(data, this);
-        invTotalEnergy = 1.0/totalEnergy();
+        problem.addListener(phl);
+
     }
 
     /**
@@ -91,39 +94,77 @@ public class DiscretePulse {
      *
      * @see pulse.problem.schemes.Grid.gridTime(double,double)
      */
-    public final void recalculate() {
-        final double nominalWidth  = ((Number) pulse.getPulseWidth().getValue()).doubleValue();
-        final double resolvedWidth = timeConversionFactor / getWidthToleranceFactor();
+    public final void init() {
+        final double nominalWidth = ((Number) pulse.getPulseWidth().getValue()).doubleValue();
+        final double resolvedWidth = resolvedPulseWidthSeconds();
 
         final double EPS = 1E-10;
-        
+
+        double oldValue = widthOnGrid;
+        this.widthOnGrid = pulseWidthGrid();
+
         /**
          * The pulse is too short, which makes calculations too expensive. Can
          * we replace it with a rectangular pulse shape instead?
          */
-        
-        if (nominalWidth < resolvedWidth - EPS && widthOnGrid < EPS) {
+        if (nominalWidth < resolvedWidth - EPS && oldValue < EPS) {
             //change shape to rectangular
             var shape = new RectangularPulse();
-            pulse.setPulseShape(shape);            
-            //change pulse width
-            setDiscreteWidth(resolvedWidth);
+            pulse.setPulseShape(shape);
             shape.init(null, this);
-            //adjust the pulse object to update the visualised pulse
-        } else if(nominalWidth > resolvedWidth + EPS) {
-            setDiscreteWidth(nominalWidth);
-        } 
-        
-        invTotalEnergy = 1.0/totalEnergy();
-        
-    }
-    
-    /**
-     * Calculates the total pulse energy using a numerical integrator.The 
-     * normalisation factor is then equal to the inverse total energy.
-     * @return the total pulse energy, assuming sample area fully covered by the beam
-     */
+        } else {
+            pulse.getPulseShape().init(data, this);
+        }
 
+        invTotalEnergy = 1.0 / totalEnergy();
+    }
+
+    /**
+     * Optimises the {@code Grid} parameters so that the timestep is
+     * sufficiently small to enable accurate pulse correction.
+     * <p>
+     * This can change the {@code tauFactor} and {@code tau} variables in the
+     * {@code Grid} object if {@code discretePulseWidth/(M - 1) < grid.tau},
+     * where M is the required number of pulse calculations.
+     * </p>
+     *
+     * @see PulseTemporalShape.getRequiredDiscretisation()
+     */
+    public double pulseWidthGrid() {
+        //minimum number of points for pulse calculation
+        int reqPoints = pulse.getPulseShape().getRequiredDiscretisation();
+        //physical pulse width in time units
+        double experimentalWidth = (double) pulse.getPulseWidth().getValue();
+
+        //minimum resolved pulse width in time units for that specific problem
+        double resolvedWidth = resolvedPulseWidthSeconds();
+
+        double pWidth = Math.max(experimentalWidth, resolvedWidth);
+
+        final double EPS = 1E-10;
+
+        double newTau = pWidth / characteristicTime / reqPoints;
+
+        double result = 0;
+
+        if (newTau < grid.getTimeStep() - EPS) {
+            double newTauFactor = (double) grid.getTimeFactor().getValue() / 2.0;
+            grid.setTimeFactor(derive(TAU_FACTOR, newTauFactor));
+            result = pulseWidthGrid();
+        } else {
+            result = grid.gridTime(pWidth, characteristicTime);
+        }
+
+        return result;
+    }
+
+    /**
+     * Calculates the total pulse energy using a numerical integrator.The
+     * normalisation factor is then equal to the inverse total energy.
+     *
+     * @return the total pulse energy, assuming sample area fully covered by the
+     * beam
+     */
     public final double totalEnergy() {
         var pulseShape = pulse.getPulseShape();
 
@@ -140,19 +181,14 @@ public class DiscretePulse {
     }
 
     /**
-     * Gets the discrete dimensionless pulse width, which is a multiplier of the current
-     * grid timestep. The pulse width is converted to the dimensionless pulse width by 
-     * dividing the real value by <i>l</i><sup>2</sup>/a.
+     * Gets the discrete dimensionless pulse width, which is a multiplier of the
+     * current grid timestep. The pulse width is converted to the dimensionless
+     * pulse width by dividing the real value by <i>l</i><sup>2</sup>/a.
      *
      * @return the dimensionless pulse width mapped to the grid.
      */
     public double getDiscreteWidth() {
         return widthOnGrid;
-    }
-    
-    private void setDiscreteWidth(double width) {
-        widthOnGrid = grid.gridTime(width, timeConversionFactor);
-        grid.adjustTimeStep(this);
     }
 
     /**
@@ -160,7 +196,7 @@ public class DiscretePulse {
      *
      * @return the {@code Pulse} object
      */
-    public Pulse getPulse() {
+    public Pulse getPhysicalPulse() {
         return pulse;
     }
 
@@ -172,34 +208,36 @@ public class DiscretePulse {
     public Grid getGrid() {
         return grid;
     }
-    
+
     /**
-     * Gets the dimensional factor required to convert real time variable into
-     * a dimensional variable, defined in the {@code Problem} class
+     * Gets the dimensional factor required to convert real time variable into a
+     * dimensional variable, defined in the {@code Problem} class
+     *
      * @return the conversion factor
      */
-    
-    public double getConversionFactor() {
-        return timeConversionFactor;
+    public double getCharacteristicTime() {
+        return characteristicTime;
     }
-    
+
     /**
-     * Gets the minimal resolved pulse width defined by the {@code WIDTH_TOLERANCE_FACTOR}
-     * and the characteristic time given by the {@code getConversionFactor}.
-     * @return 
+     * Gets the minimal resolved pulse width defined by the
+     * {@code WIDTH_TOLERANCE_FACTOR} and the characteristic time given by the
+     * {@code getConversionFactor}.
+     *
+     * @return
      */
-    
-    public double resolvedPulseWidth() {
-        return timeConversionFactor / getWidthToleranceFactor();
+    public double resolvedPulseWidthSeconds() {
+        return characteristicTime / getWidthToleranceFactor();
     }
-    
-    /** 
-     * Assuming a characteristic time is divided by the return value of this method
-     * and is set to the minimal resolved pulse width, shows how small a pulse width 
-     * can be to enable finite pulse correction.
-     * @return the smallest fraction of a characteristic time resolved as a finite pulse.
+
+    /**
+     * Assuming a characteristic time is divided by the return value of this
+     * method and is set to the minimal resolved pulse width, shows how small a
+     * pulse width can be to enable finite pulse correction.
+     *
+     * @return the smallest fraction of a characteristic time resolved as a
+     * finite pulse.
      */
-    
     public int getWidthToleranceFactor() {
         return WIDTH_TOLERANCE_FACTOR;
     }

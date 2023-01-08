@@ -68,7 +68,6 @@ public class Grid2D extends Grid {
             adjustStepSize(pulse);
         }
         
-        adjustTimeStep(pulse);
     }
 
     @Override
