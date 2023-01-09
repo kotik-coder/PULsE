@@ -1,5 +1,6 @@
 package pulse.math;
 
+import java.util.Objects;
 import pulse.properties.NumericPropertyKeyword;
 
 public class ParameterIdentifier {
@@ -14,6 +15,14 @@ public class ParameterIdentifier {
     
     public ParameterIdentifier(NumericPropertyKeyword keyword) {
         this(keyword, 0);
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 29 * hash + Objects.hashCode(this.keyword);
+        hash = 29 * hash + this.index;
+        return hash;
     }
     
     public ParameterIdentifier(int index) {
@@ -30,24 +39,28 @@ public class ParameterIdentifier {
     
     @Override
     public boolean equals(Object id) {
-        if(!id.getClass().equals(ParameterIdentifier.class)) {
+        if(id.getClass() == null) {
+            return false;
+        }
+        
+        var classA = id.getClass();
+        var classB = this.getClass();
+        
+        if(classA != classB) {
             return false;
         }
         
         var pid = (ParameterIdentifier) id;
-        
-        boolean result = true;
-        
-        if(keyword != pid.keyword || index != pid.index)
-            result = false;
-        
-        return result;
-        
+        return keyword == pid.keyword && Math.abs(index - pid.index) < 1;
     }
     
     @Override
     public String toString() {
-        return keyword + " # " + index; 
+        StringBuilder sb = new StringBuilder("").append(keyword);
+        if(index > 0) {
+            sb.append(" # ").append(index);
+        }
+        return sb.toString();
     }
     
 }

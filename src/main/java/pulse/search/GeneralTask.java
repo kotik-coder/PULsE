@@ -64,6 +64,7 @@ public abstract class GeneralTask<I extends DiscreteInput, R extends Response>
     @Override
     public void run() {
         setDefaultOptimiser();
+        best = null;
         setIterativeState( optimiser.initState(this) );
 
         var errorTolerance = (double) optimiser.getErrorTolerance().getValue();

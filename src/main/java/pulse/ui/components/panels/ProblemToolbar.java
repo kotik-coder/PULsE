@@ -13,7 +13,6 @@ import static pulse.ui.Messages.getString;
 import java.awt.Component;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
-import java.util.concurrent.Executors;
 
 import javax.swing.JButton;
 import javax.swing.JToolBar;

@@ -4,7 +4,6 @@ import static pulse.math.linear.Matrices.createIdentityMatrix;
 
 import pulse.math.linear.SquareMatrix;
 import pulse.search.GeneralTask;
-import pulse.tasks.SearchTask;
 
 /**
  * <p>

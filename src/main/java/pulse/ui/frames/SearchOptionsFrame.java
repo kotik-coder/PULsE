@@ -48,7 +48,6 @@ public class SearchOptionsFrame extends JInternalFrame {
     private final JTable rightTable;
     private final PathSolversList pathList;
 
-    private final static Font FONT = new Font(getString("PropertyHolderTable.FontName"), ITALIC, 16);
     private final static List<PathOptimiser> pathSolvers = instancesOf(PathOptimiser.class);
 
     private final NumericPropertyKeyword[] mandatorySelection = new NumericPropertyKeyword[]{MAXTEMP};
@@ -196,7 +195,6 @@ public class SearchOptionsFrame extends JInternalFrame {
                 }
             });
 
-            setFont(FONT);
             setSelectionMode(SINGLE_SELECTION);
             setCellRenderer(new SearchListRenderer());
 

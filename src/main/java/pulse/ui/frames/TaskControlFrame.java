@@ -55,6 +55,8 @@ public class TaskControlFrame extends JFrame {
     private InternalGraphFrame<Calculation> pulseFrame;
 
     private PulseMainMenu mainMenu;
+    
+    private final static int ICON_SIZE = 16;
 
     public static TaskControlFrame getInstance() {
         return instance;
@@ -157,13 +159,13 @@ public class TaskControlFrame extends JFrame {
 
             @Override
             public void onClearRequest() {
-                logFrame.getLogTextPane().clear();
+                logFrame.getLogger().clear();
                 resultsFrame.getResultTable().clear();
             }
 
             @Override
             public void onResetRequest() {
-                logFrame.getLogTextPane().clear();
+                logFrame.getLogger().clear();
                 resultsFrame.getResultTable().removeAll();
             }
 
@@ -188,26 +190,26 @@ public class TaskControlFrame extends JFrame {
         setJMenuBar(mainMenu);
 
         logFrame = new LogFrame();
-        logFrame.setFrameIcon(loadIcon("log.png", 20, Color.white));
+        logFrame.setFrameIcon(loadIcon("log.png", ICON_SIZE, Color.white));
         resultsFrame = new ResultFrame();
-        resultsFrame.setFrameIcon(loadIcon("result.png", 20, Color.white));
+        resultsFrame.setFrameIcon(loadIcon("result.png", ICON_SIZE, Color.white));
         previewFrame = new PreviewFrame();
-        previewFrame.setFrameIcon(loadIcon("preview.png", 20, Color.white));
+        previewFrame.setFrameIcon(loadIcon("preview.png", ICON_SIZE, Color.white));
         taskManagerFrame = new TaskManagerFrame();
-        taskManagerFrame.setFrameIcon(loadIcon("task_manager.png", 20, Color.white));
+        taskManagerFrame.setFrameIcon(loadIcon("task_manager.png", ICON_SIZE, Color.white));
         graphFrame = MainGraphFrame.getInstance();
-        graphFrame.setFrameIcon(loadIcon("curves.png", 20, Color.white));
+        graphFrame.setFrameIcon(loadIcon("curves.png", ICON_SIZE, Color.white));
 
         problemStatementFrame = new ProblemStatementFrame();
-        problemStatementFrame.setFrameIcon(loadIcon("heat_problem.png", 20, Color.white));
+        problemStatementFrame.setFrameIcon(loadIcon("heat_problem.png", ICON_SIZE, Color.white));
         modelFrame = new ModelSelectionFrame();
-        modelFrame.setFrameIcon(loadIcon("stored.png", 20, Color.white));
+        modelFrame.setFrameIcon(loadIcon("stored.png", ICON_SIZE, Color.white));
 
         searchOptionsFrame = new SearchOptionsFrame();
-        searchOptionsFrame.setFrameIcon(loadIcon("optimiser.png", 20, Color.white));
+        searchOptionsFrame.setFrameIcon(loadIcon("optimiser.png", ICON_SIZE, Color.white));
 
         pulseFrame = new InternalGraphFrame<Calculation>("Pulse Shape", new PulseChart("Time (ms)", "Laser Power (a. u.)"));
-        pulseFrame.setFrameIcon(loadIcon("pulse.png", 20, Color.white));
+        pulseFrame.setFrameIcon(loadIcon("pulse.png", ICON_SIZE, Color.white));
         pulseFrame.setVisible(false);
 
         /*

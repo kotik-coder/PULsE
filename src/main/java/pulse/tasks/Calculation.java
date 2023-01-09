@@ -9,6 +9,7 @@ import static pulse.tasks.logs.Status.INCOMPLETE;
 import static pulse.util.Reflexive.instantiate;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import pulse.Response;
 
@@ -27,12 +28,14 @@ import pulse.search.statistics.BICStatistic;
 import pulse.search.statistics.FTest;
 import pulse.search.statistics.ModelSelectionCriterion;
 import pulse.search.statistics.OptimiserStatistic;
+import pulse.search.statistics.Statistic;
 import pulse.tasks.logs.Status;
 import pulse.tasks.processing.Result;
 import pulse.ui.components.PropertyHolderTable;
 import pulse.util.InstanceDescriptor;
 import pulse.util.PropertyEvent;
 import pulse.util.PropertyHolder;
+import pulse.util.UpwardsNavigable;
 
 public class Calculation extends PropertyHolder implements Comparable<Calculation>, Response {
 
@@ -57,7 +60,7 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
         status = INCOMPLETE;
         this.initOptimiser();
         setParent(t);
-        instanceDescriptor.addListener(() -> initModelCriterion());
+        instanceDescriptor.addListener(() -> initModelCriterion(rs));
     }
 
     /**
@@ -66,22 +69,31 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
      * @param c another calculation to be archived.
      */
     public Calculation(Calculation c) {
-        this.problem = c.problem.copy();
-        this.scheme = c.scheme.copy();
-        this.rs = c.rs.copy();
-        this.os = c.os.copy();
-        this.status = c.status;
+        problem = c.problem.copy();
+        scheme = c.scheme.copy();
+        rs = c.rs.copy();
+        os = c.os.copy();
+        status = c.status;
         if (c.getResult() != null) {
-            this.result = new Result(c.getResult());
+            result = new Result(c.getResult());
         }
+        instanceDescriptor.addListener(() -> initModelCriterion(rs));
     }
-
+    
+    public void conformTo(UpwardsNavigable owner) {
+        problem.setParent(owner);
+        scheme.setParent(owner);
+        rs.setParent(owner);
+        os.setParent(owner);
+        result.setParent(owner);
+    }
+   
     public void clear() {
         this.status = INCOMPLETE;
         this.problem = null;
         this.scheme = null;
     }
-
+    
     /**
      * <p>
      * After setting and adopting the {@code problem} by this
@@ -248,7 +260,7 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
     public void setOptimiserStatistic(OptimiserStatistic os) {
         this.os = os;
         os.setParent(this);
-        initModelCriterion();
+        initModelCriterion(os);
     }
 
     @Override
@@ -263,11 +275,11 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
     public void initOptimiser() {
         this.setOptimiserStatistic(
                 instantiate(OptimiserStatistic.class, OptimiserStatistic.getSelectedOptimiserDescriptor()));
-        this.initModelCriterion();
+        initModelCriterion(os);
     }
 
-    public void initModelCriterion() {
-        setModelSelectionCriterion(instanceDescriptor.newInstance(ModelSelectionCriterion.class, os));
+    protected void initModelCriterion(Statistic res) {
+        setModelSelectionCriterion(instanceDescriptor.newInstance(ModelSelectionCriterion.class, res));
     }
 
     public DifferenceScheme getScheme() {
@@ -319,27 +331,6 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
         return sThis.compareTo(sAnother);
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (o == this) {
-            return true;
-        }
-
-        if (o == null) {
-            return false;
-        }
-
-        if (!(o instanceof Calculation)) {
-            return false;
-        }
-
-        var c = (Calculation) o;
-
-        return (os.getStatistic().equals(c.getOptimiserStatistic().getStatistic())
-                && rs.getStatistic().equals(c.getModelSelectionCriterion().getStatistic()));
-
-    }
-
     public static InstanceDescriptor<? extends ModelSelectionCriterion> getModelSelectionDescriptor() {
         return instanceDescriptor;
     }
@@ -382,6 +373,39 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
         process();
         os.evaluate(task);
         return (double) os.getStatistic().getValue();
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 79 * hash + Objects.hashCode(this.problem);
+        hash = 79 * hash + Objects.hashCode(this.scheme);
+        hash = 79 * hash + Objects.hashCode(this.result);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Calculation other = (Calculation) obj;
+        if (!Objects.equals(this.problem, other.problem)) {
+            return false;
+        }
+        if (!Objects.equals(this.scheme, other.scheme)) {
+            return false;
+        }
+        if (!Objects.equals(this.result, other.result)) {
+            return false;
+        }
+        return true;
     }
 
 }

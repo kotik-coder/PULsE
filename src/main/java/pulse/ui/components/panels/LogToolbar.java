@@ -1,7 +1,5 @@
 package pulse.ui.components.panels;
 
-import static pulse.tasks.logs.Log.isVerbose;
-import static pulse.tasks.logs.Log.setVerbose;
 import static pulse.ui.Messages.getString;
 import static pulse.util.ImageUtils.loadIcon;
 
@@ -14,13 +12,15 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JToolBar;
 
-import pulse.ui.components.listeners.LogExportListener;
+import static pulse.tasks.logs.Log.setGraphicalLog;
+import static pulse.tasks.logs.Log.isGraphicalLog;
+import pulse.ui.components.listeners.LogListener;
 
 @SuppressWarnings("serial")
 public class LogToolbar extends JToolBar {
 
     private final static int ICON_SIZE = 16;
-    private List<LogExportListener> listeners;
+    private List<LogListener> listeners;
 
     public LogToolbar() {
         super();
@@ -35,23 +35,24 @@ public class LogToolbar extends JToolBar {
         var saveLogBtn = new JButton(loadIcon("save.png", ICON_SIZE, Color.white));
         saveLogBtn.setToolTipText("Save");
 
-        var verboseCheckBox = new JCheckBox(getString("LogToolBar.Verbose")); //$NON-NLS-1$
-        verboseCheckBox.setSelected(isVerbose());
-        verboseCheckBox.setHorizontalAlignment(CENTER);
+        var logmodeCheckbox = new JCheckBox(getString("LogToolBar.Verbose")); //$NON-NLS-1$
+        logmodeCheckbox.setSelected(isGraphicalLog());
+        logmodeCheckbox.setHorizontalAlignment(CENTER);
 
-        verboseCheckBox.addActionListener(event -> setVerbose(verboseCheckBox.isSelected()));
+        logmodeCheckbox.addActionListener(event -> {
+            boolean selected = logmodeCheckbox.isSelected();
+            setGraphicalLog(selected);
+            listeners.stream().forEach(l -> l.onLogModeChanged(selected));
+        });
 
-        saveLogBtn.addActionListener(e -> notifyLog());
+        saveLogBtn.addActionListener(e -> listeners.stream().forEach(l -> l.onLogExportRequest()));
 
         add(saveLogBtn);
-        add(verboseCheckBox);
+
+        add(logmodeCheckbox);
     }
 
-    public void notifyLog() {
-        listeners.stream().forEach(l -> l.onLogExportRequest());
-    }
-
-    public void addLogExportListener(LogExportListener l) {
+    public void addLogListener(LogListener l) {
         listeners.add(l);
     }
 

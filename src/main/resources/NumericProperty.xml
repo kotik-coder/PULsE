@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <NumericProperties>
+	<NumericProperty abbreviation="Cost"
+		visible="true" descriptor="Objective function"
+		dimensionfactor="1" discreet="false" keyword="OBJECTIVE_FUNCTION"
+		maximum="1E6" minimum="0.0" primitive-type="double" value="0.0">
+	</NumericProperty>
 	<NumericProperty abbreviation="Correlation threshold"
 		visible="false" descriptor="Correlation threshold"
 		dimensionfactor="1" discreet="false" keyword="CORRELATION_THRESHOLD"
@@ -362,7 +367,7 @@
 		visible="true"
 		descriptor="Laser spot diameter, &lt;i&gt;d&lt;/i&gt;&lt;sub&gt;las&lt;/sub&gt; (mm)"
 		dimensionfactor="1000.0" keyword="SPOT_DIAMETER" maximum="0.2"
-		minimum="1.0E-4" value="0.01" primitive-type="double" discreet="true">
+		minimum="1.0E-4" value="0.01" primitive-type="double" discreet="true" default-search-variable="false">
 	</NumericProperty>
 	<NumericProperty
 		abbreviation="&lt;i&gt;t&lt;/i&gt;&lt;sub&gt;lim&lt;/sub&gt;"
@@ -434,12 +439,12 @@
 		discreet="false"/>
 	<NumericProperty abbreviation="Buffer size" visible="false"
 		descriptor="Buffer size" dimensionfactor="1" keyword="BUFFER_SIZE"
-		maximum="32" minimum="1" value="8" primitive-type="int"
+		maximum="32" minimum="4" value="5" primitive-type="int"
 		discreet="false"/>
 	<NumericProperty abbreviation="Resolution (total)"
 		visible="false" descriptor="Resolution (total)"
 		dimensionfactor="1.0" keyword="ERROR_TOLERANCE" maximum="0.1"
-		minimum="1.0E-7" value="0.00001" primitive-type="double"
+		minimum="1.0E-7" value="0.001" primitive-type="double"
 		discreet="false"/>
 	<NumericProperty abbreviation="FOV&lt;sub&gt;inner&lt;/sub&gt; (mm)"
 		visible="true"

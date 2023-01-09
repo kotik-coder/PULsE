@@ -8,6 +8,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.table.TableCellRenderer;
@@ -50,10 +51,7 @@ public class CalculationTable extends JTable {
         var instance = TaskManager.getManagerInstance();
         instance.addTaskRepositoryListener(e -> {
 
-            if (e.getState() == TaskRepositoryEvent.State.TASK_MODEL_SWITCH) {
-                var t = instance.getTask(e.getId());
-                identifySelection(t);
-            } else if (e.getState() == TaskRepositoryEvent.State.TASK_CRITERION_SWITCH) {
+            if (e.getState() == TaskRepositoryEvent.State.TASK_CRITERION_SWITCH) {
                 update(TaskManager.getManagerInstance().getSelectedTask());
             }
 
@@ -84,7 +82,9 @@ public class CalculationTable extends JTable {
         lsm.addListSelectionListener((ListSelectionEvent e) -> {
             var task = TaskManager.getManagerInstance().getSelectedTask();
             var id = convertRowIndexToModel(this.getSelectedRow());
-            if (!lsm.getValueIsAdjusting() && id > -1 && id < task.getStoredCalculations().size()) {
+            if (!lsm.getValueIsAdjusting()
+                    && id > -1
+                    && id < task.getStoredCalculations().size()) {
 
                 plotExecutor.submit(() -> {
                     task.switchTo(task.getStoredCalculations().get(id));

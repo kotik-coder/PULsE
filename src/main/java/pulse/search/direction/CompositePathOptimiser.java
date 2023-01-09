@@ -61,6 +61,7 @@ public abstract class CompositePathOptimiser extends GradientBasedOptimiser {
         } else {
 
             double initialCost = task.getResponse().objectiveFunction(task);
+            p.setCost(initialCost);
             var parameters     = task.searchVector();  
 
             p.setParameters(parameters); // store current parameters
@@ -94,6 +95,7 @@ public abstract class CompositePathOptimiser extends GradientBasedOptimiser {
                 task.storeState();
                 p.resetFailedAttempts();
                 this.prepare(task);	 // update gradients, Hessians, etc. -> for the next step, [k + 1]
+                p.setCost(newCost);
                 p.incrementStep();       // increment the counter of successful steps
             }                                                                                                          
 

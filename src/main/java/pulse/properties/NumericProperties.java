@@ -1,11 +1,8 @@
 package pulse.properties;
 
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.util.List;
 
 import pulse.io.export.XMLConverter;
-import pulse.ui.Messages;
 
 /**
  * Default operations with NumericProperties
@@ -59,9 +56,9 @@ public class NumericProperties {
         msg.append("Acceptable region for ");
         msg.append("parameter : ");
         msg.append(p.getValue().getClass().getSimpleName());
-        msg.append(" [ " + p.getMinimum());
-        msg.append(" : " + p.getMaximum() + " ]. ");
-        msg.append("Value received: " + value);
+        msg.append(" [ ").append(p.getMinimum());
+        msg.append(" : ").append(p.getMaximum()).append(" ]. ");
+        msg.append("Value received: ").append(value);
         return msg.toString();
     }
 

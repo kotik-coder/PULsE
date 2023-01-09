@@ -41,7 +41,7 @@ public class LinearBaseline extends AdjustableBaseline {
         super(intercept, slope);
     }
     
-    public LinearBaseline(LinearBaseline baseline) {
+    public LinearBaseline(AdjustableBaseline baseline) {
         super( (double) baseline.getIntercept().getValue(), 
                (double) baseline.getSlope().getValue()
              );

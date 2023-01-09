@@ -7,7 +7,6 @@ import static pulse.properties.NumericPropertyKeyword.LASER_ENERGY;
 import static pulse.properties.NumericPropertyKeyword.PULSE_WIDTH;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import pulse.input.ExperimentalData;
 
@@ -217,7 +216,8 @@ public class Pulse extends PropertyHolder {
 
     public void setPulseShape(PulseTemporalShape pulseShape) {
         this.pulseShape = pulseShape;
-        pulseShape.setParent(this);        
+        pulseShape.setParent(this);    
+        
     }
 
 }

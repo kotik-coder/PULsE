@@ -325,7 +325,7 @@ public class ThermalProperties extends PropertyHolder {
      *
      * @return the time factor
      */
-    public double timeFactor() {
+    public double characteristicTime() {
         return l * l / a;
     }
     

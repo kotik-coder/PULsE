@@ -1,6 +1,5 @@
 package pulse.ui.components;
 
-import static java.awt.Color.WHITE;
 import static java.awt.event.ItemEvent.SELECTED;
 import static pulse.ui.Messages.getString;
 
@@ -46,11 +45,10 @@ public class TaskBox extends JComboBox<SearchTask> {
         });
     }
 
-    public void init() {
+    public final void init() {
         setMaximumSize(new Dimension(32767, 24));
         setMinimumSize(new Dimension(250, 20));
         setToolTipText(getString("TaskBox.DefaultText")); //$NON-NLS-1$
-        setBackground(WHITE);
     }
 
 }

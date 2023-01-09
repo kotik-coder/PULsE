@@ -69,6 +69,7 @@ public class LMOptimiser extends GradientBasedOptimiser {
         } else {
 
             double initialCost = task.objectiveFunction();
+            p.setCost(initialCost);
             var parameters = task.searchVector();
 
             p.setParameters(parameters); // store current parameters
@@ -88,7 +89,7 @@ public class LMOptimiser extends GradientBasedOptimiser {
                     parameters, candidate)); // assign new parameters
                         
             double newCost = task.objectiveFunction(); // calculate the sum of squared residuals
-
+            
             /*
 			 * Delayed gratification
              */
@@ -103,6 +104,7 @@ public class LMOptimiser extends GradientBasedOptimiser {
                 p.resetFailedAttempts();
                 p.setLambda(p.getLambda() / 3.0);
                 p.setComputeJacobian(false);
+                p.setCost(newCost);
                 p.incrementStep(); // increment the counter of successful steps
             }
 

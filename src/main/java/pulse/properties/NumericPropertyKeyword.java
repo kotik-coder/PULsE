@@ -390,7 +390,13 @@ public enum NumericPropertyKeyword {
      * Heat loss for the gas in the 2T-model.
      */
     
-    HEAT_LOSS_GAS;
+    HEAT_LOSS_GAS,
+    
+    /**
+     * Value of objective function.
+     */
+    
+    OBJECTIVE_FUNCTION;
     
     public static Optional<NumericPropertyKeyword> findAny(String key) {
         return Arrays.asList(values()).stream().filter(keys -> keys.toString().equalsIgnoreCase(key)).findAny();

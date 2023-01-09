@@ -1,5 +1,6 @@
 package pulse.problem.schemes;
 
+import java.util.Objects;
 import static pulse.properties.NumericProperties.def;
 import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericProperty.requireType;
@@ -92,7 +93,7 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
         if (discretePulse == null) {
             discretePulse = problem.discretePulseOn(grid);
         }   
-        discretePulse.recalculate();
+        discretePulse.init();
         clearArrays();
     }
 
@@ -114,13 +115,13 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
         int numPoints = (int) curve.getNumPoints().getValue();
 
         final double startTime   = (double) curve.getTimeShift().getValue();
-        final double timeSegment = (endTime - startTime - offset) / problem.getProperties().timeFactor();
+        final double timeSegment = (endTime - startTime - offset) / problem.getProperties().characteristicTime();
 
         double tau = grid.getTimeStep();
         final double dt = timeSegment / (numPoints - 1);
         timeInterval = Math.max( (int) (dt / tau), 1);
 
-        double wFactor = timeInterval * tau * problem.getProperties().timeFactor();
+        double wFactor = timeInterval * tau * problem.getProperties().characteristicTime();
 
         // First point (index = 0) is always (0.0, 0.0)
         curve.addPoint(0.0, 0.0);

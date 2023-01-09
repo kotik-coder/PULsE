@@ -22,7 +22,7 @@ public class TrapezoidalPulse extends PulseTemporalShape {
     private double fall;
     private double h;
 
-    private final static int MIN_POINTS = 6;
+    private final static int MIN_POINTS = 8;
     
     /**
      * Constructs a trapezoidal pulse using a default segmentation principle.

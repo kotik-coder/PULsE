@@ -11,6 +11,7 @@ import static pulse.properties.NumericPropertyKeyword.TAU_FACTOR;
 import java.util.Set;
 
 import pulse.problem.laser.DiscretePulse;
+import pulse.problem.statements.Pulse;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.util.PropertyHolder;
@@ -61,37 +62,6 @@ public class Grid extends PropertyHolder {
      */
     public Grid copy() {
         return new Grid(getGridDensity(), getTimeFactor());
-    }
-
-    /**
-     * Optimises the {@code Grid} parameters so that the timestep is
-     * sufficiently small to enable accurate pulse correction.
-     * <p>
-     * This can change the {@code tauFactor} and {@code tau} variables in the
-     * {@code Grid} object if {@code discretePulseWidth/(M - 1) < grid.tau},
-     * where M is the required number of pulse calculations.
-     * </p>
-     *
-     * @param pulse the discrete pulse representation
-     * @see PulseTemporalShape.getRequiredDiscretisation()
-     */
-    public final void adjustTimeStep(DiscretePulse pulse) {
-        double timeFactor = pulse.getConversionFactor(); 
-    
-        final int reqPoints     = pulse.getPulse().getPulseShape().getRequiredDiscretisation();
-        
-        double pNominalWidth    = (double) pulse.getPulse().getPulseWidth().getValue();
-        double pResolvedWidth   = pulse.resolvedPulseWidth();
-        double pWidth           = pNominalWidth < pResolvedWidth ? pResolvedWidth : pNominalWidth;
-        
-        double newTau       = pWidth / timeFactor / (reqPoints > 1 ? reqPoints - 1 : 1);
-        double newTauFactor = newTau / (hx * hx);
-        
-        final double EPS = 1E-10;
-        if (newTauFactor < tauFactor - EPS) {
-            setTimeFactor(derive(TAU_FACTOR, newTauFactor));
-        }
-        
     }
 
     /**
@@ -223,7 +193,7 @@ public class Grid extends PropertyHolder {
      * @return a double representing the time on the finite grid
      */
     public final double gridTime(double time, double dimensionFactor) {
-        return rint((time / dimensionFactor) / tau) * tau;
+        return ( (int) (time / dimensionFactor / tau) ) * tau;
     }
 
     /**

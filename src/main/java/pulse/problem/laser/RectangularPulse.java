@@ -14,7 +14,7 @@ import pulse.properties.NumericPropertyKeyword;
  */
 public class RectangularPulse extends PulseTemporalShape {
 
-    private final static int MIN_POINTS = 4;
+    private final static int MIN_POINTS = 2;
     
     /**
      * @param time the time measured from the start of the laser pulse.

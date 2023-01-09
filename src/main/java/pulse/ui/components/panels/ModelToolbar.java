@@ -18,7 +18,7 @@ import pulse.tasks.listeners.TaskRepositoryEvent;
 @SuppressWarnings("serial")
 public class ModelToolbar extends JToolBar {
 
-    private final static int ICON_SIZE = 20;
+    private final static int ICON_SIZE = 16;
 
     public ModelToolbar() {
         super();

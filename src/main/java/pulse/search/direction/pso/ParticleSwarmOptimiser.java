@@ -46,7 +46,8 @@ public class ParticleSwarmOptimiser extends PathOptimiser {
         swarmState.incrementStep();
 
         task.assign(swarmState.getBestSoFar().getPosition());
-        task.objectiveFunction();
+        double cost = task.objectiveFunction();
+        swarmState.setCost(cost);
 
         return true;
     }

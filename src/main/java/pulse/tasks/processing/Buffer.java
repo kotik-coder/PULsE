@@ -8,10 +8,14 @@ import static pulse.properties.NumericPropertyKeyword.BUFFER_SIZE;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
+import org.apache.commons.math3.stat.regression.SimpleRegression;
+import pulse.math.ParameterIdentifier;
 
 import pulse.math.ParameterVector;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
+import static pulse.properties.NumericPropertyKeyword.OBJECTIVE_FUNCTION;
 import pulse.properties.Property;
 import pulse.search.GeneralTask;
 import pulse.util.PropertyHolder;
@@ -48,7 +52,7 @@ public class Buffer extends PropertyHolder {
     /*
 	 * Re-inits the storage.
      */
-    public void init() {
+    public final void init() {
         this.data = new ParameterVector[size];
         statistic = new double[size];
     }
@@ -105,11 +109,17 @@ public class Buffer extends PropertyHolder {
 
         double av = 0;
 
-        for (ParameterVector v : data) {
-            av += v.getParameterValue(index, 0);
+        if (index == OBJECTIVE_FUNCTION) {
+            av = Arrays.stream(statistic).average().getAsDouble();
+        } else {
+
+            for (ParameterVector v : data) {
+                av += v.getParameterValue(index, 0);
+            }
+            av /= data.length;
         }
 
-        return av / data.length;
+        return av;
 
     }
 

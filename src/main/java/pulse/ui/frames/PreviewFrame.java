@@ -15,6 +15,7 @@ import static pulse.util.ImageUtils.loadIcon;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import static java.awt.Color.WHITE;
 import java.awt.GridLayout;
 import java.awt.Rectangle;
 import java.util.ArrayList;
@@ -46,6 +47,7 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 
 import pulse.tasks.processing.ResultFormat;
+import pulse.ui.components.Chart;
 
 @SuppressWarnings("serial")
 public class PreviewFrame extends JInternalFrame {
@@ -93,7 +95,6 @@ public class PreviewFrame extends JInternalFrame {
         toolbar.add(selectX);
 
         selectXBox = new JComboBox<>();
-        selectXBox.setFont(selectXBox.getFont().deriveFont(11));
 
         toolbar.add(selectXBox);
         toolbar.add(new JSeparator());
@@ -102,7 +103,6 @@ public class PreviewFrame extends JInternalFrame {
         toolbar.add(selectY);
 
         selectYBox = new JComboBox<>();
-        selectYBox.setFont(selectYBox.getFont().deriveFont(11));
         toolbar.add(selectYBox);
 
         var drawSmoothBtn = new JToggleButton();
@@ -229,6 +229,9 @@ public class PreviewFrame extends JInternalFrame {
         //plot.setRangeGridlinesVisible(false);
         //plot.setDomainGridlinesVisible(false);        
 
+        var fore = UIManager.getColor("Label.foreground");
+        plot.setDomainGridlinePaint(fore);
+        
         plot.getRenderer(1).setSeriesPaint(1, SMOOTH_COLOR);
         plot.getRenderer(0).setSeriesPaint(0, RESULT_COLOR);
         plot.getRenderer(0).setSeriesShape(0, 
@@ -244,6 +247,9 @@ public class PreviewFrame extends JInternalFrame {
         cp.setMinimumDrawHeight(10);
 
         chart.setBackgroundPaint(UIManager.getColor("Panel.background"));
+        plot.setBackgroundPaint(chart.getBackgroundPaint());
+        Chart.setAxisFontColor(plot.getDomainAxis(), fore);
+        Chart.setAxisFontColor(plot.getRangeAxis(), fore);
         
         return cp;
     }

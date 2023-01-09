@@ -6,6 +6,7 @@ import static pulse.properties.NumericProperty.requireType;
 import static pulse.properties.NumericPropertyKeyword.OPTIMISER_STATISTIC;
 
 import java.util.List;
+import java.util.Objects;
 import pulse.DiscreteInput;
 import pulse.Response;
 import pulse.input.IndexRange;
@@ -31,6 +32,39 @@ public abstract class ResidualStatistic extends Statistic {
     private List<Double> rx;
     private List<Double> ry;
 
+    @Override
+    public int hashCode() {
+        int hash = 5;
+        hash = 53 * hash + (int) (Double.doubleToLongBits(this.statistic) ^ (Double.doubleToLongBits(this.statistic) >>> 32));
+        hash = 53 * hash + Objects.hashCode(this.rx);
+        hash = 53 * hash + Objects.hashCode(this.ry);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final ResidualStatistic other = (ResidualStatistic) obj;
+        if (Double.doubleToLongBits(this.statistic) != Double.doubleToLongBits(other.statistic)) {
+            return false;
+        }
+        if (!Objects.equals(this.rx, other.rx)) {
+            return false;
+        }
+        if (!Objects.equals(this.ry, other.ry)) {
+            return false;
+        }
+        return true;
+    }
+
     public ResidualStatistic() {
         super();
         ry = new ArrayList<>();
@@ -40,8 +74,8 @@ public abstract class ResidualStatistic extends Statistic {
 
     public ResidualStatistic(ResidualStatistic another) {
         this.statistic = another.statistic;
-        ry = new ArrayList<>();
-        rx = new ArrayList<>();
+        ry = new ArrayList<>(another.rx);
+        rx = new ArrayList<>(another.ry);
     }
 
     /**

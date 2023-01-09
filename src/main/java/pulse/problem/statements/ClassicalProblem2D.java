@@ -28,7 +28,7 @@ import pulse.ui.Messages;
  * pulse-to-diameter ratio.
  *
  */
-public class ClassicalProblem2D extends Problem {
+public class ClassicalProblem2D extends ClassicalProblem {
 
     public ClassicalProblem2D() {
         super();
@@ -82,12 +82,14 @@ public class ClassicalProblem2D extends Problem {
             switch (key) {
                 case FOV_OUTER:
                     value = (double) properties.getFOVOuter().getValue();
+                    transform = new StickTransform(bounds);
                     break;
                 case FOV_INNER:
                     value = (double) properties.getFOVInner().getValue();
                     break;
                 case SPOT_DIAMETER:
                     value = (double) ((Pulse2D) getPulse()).getSpotDiameter().getValue();
+                    transform = new StickTransform(bounds);
                     break;
                 case HEAT_LOSS_SIDE:
                     value = (double) properties.getSideLosses().getValue();

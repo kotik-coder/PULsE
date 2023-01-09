@@ -3,7 +3,7 @@
   
   <groupId>kotik-coder</groupId>
   <artifactId>PULsE</artifactId>
-  <version>1.97</version>
+  <version>1.97b</version>
   <name>PULsE</name>
   <description>Processing Unit for Laser flash Experiments</description>
   <developers>
@@ -18,8 +18,7 @@
             <name>The Apache License, Version 2.0</name>
             <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
         </license>
-  </licenses>
-  
+  </licenses> 
     <dependencies>
   	<dependency>
   		<groupId>org.jfree</groupId>
@@ -27,11 +26,11 @@
   		<version>1.5.0</version>
   	</dependency>
 	<dependency>
-	    <groupId>com.weblookandfeel</groupId>
-	    <artifactId>weblaf-ui</artifactId>
-	    <version>1.2.13</version>
+            <groupId>com.formdev</groupId>
+            <artifactId>flatlaf</artifactId>
+            <version>3.0</version>
 	</dependency>
-  	<dependency>
+	<dependency>
   		<groupId>org.apache.commons</groupId>
   		<artifactId>commons-math3</artifactId>
   		<version>3.6.1</version>

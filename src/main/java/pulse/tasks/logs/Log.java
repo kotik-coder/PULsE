@@ -1,6 +1,8 @@
 package pulse.tasks.logs;
 
 import java.time.LocalTime;
+import static java.time.temporal.ChronoUnit.MILLIS;
+import static java.time.temporal.ChronoUnit.SECONDS;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -24,7 +26,7 @@ public class Log extends Group {
     private LocalTime end;
     private final Identifier id;
     private final List<LogEntryListener> listeners;
-    private static boolean verbose = false;
+    private static boolean graphical = true;
 
     /**
      * Creates a {@code Log} for this {@code task} that will automatically store
@@ -48,7 +50,7 @@ public class Log extends Group {
             /**
              * Do these actions each time data has been collected for this task.
              */
-            if (task.getStatus() != Status.INCOMPLETE && verbose) {
+            if (task.getStatus() != Status.INCOMPLETE) {
                 logEntries.add(le);
                 notifyListeners(le);
             }
@@ -105,7 +107,7 @@ public class Log extends Group {
      * @return {@code true} if the start time is not {@code null}
      */
     public boolean isStarted() {
-        return start != null;
+        return logEntries.size() > 0;
     }
 
     /**
@@ -173,18 +175,29 @@ public class Log extends Group {
      *
      * @return {@code true} if the verbose flag is on
      */
-    public static boolean isVerbose() {
-        return verbose;
+    public static boolean isGraphicalLog() {
+        return graphical;
     }
 
     /**
      * Sets the verbose flag to {@code verbose}
      *
      * @param verbose the new value of the flag
-     * @see isVerbose()
+     * @see #isGraphicalLog()
      */
-    public static void setVerbose(boolean verbose) {
-        Log.verbose = verbose;
+    public static void setGraphicalLog(boolean verbose) {
+        Log.graphical = verbose;
+    }
+    
+    /**
+     * Time taken where the first array element contains seconds [0] and the second contains milliseconds [1].
+     * @return an array of long values that sum um to the time taken to process a task
+     */
+    
+    public long[] timeTaken() {
+        var seconds = SECONDS.between(getStart(), getEnd());
+        var ms = MILLIS.between(getStart(), getEnd()) - 1000L * seconds;
+        return new long[] {seconds, ms};
     }
 
 }

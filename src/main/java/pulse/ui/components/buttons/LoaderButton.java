@@ -19,7 +19,6 @@ import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
 
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.UIManager;
@@ -27,7 +26,6 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import org.apache.commons.math3.exception.OutOfRangeException;
 
 import pulse.input.InterpolationDataset;
-import pulse.ui.Messages;
 import pulse.util.ImageUtils;
 
 @SuppressWarnings("serial")
@@ -36,8 +34,8 @@ public class LoaderButton extends JButton {
     private InterpolationDataset.StandartType dataType;
     private static File dir;
 
-    private final static Color NOT_HIGHLIGHTED = UIManager.getColor("Button.background");
-    private final static Color HIGHLIGHTED = ImageUtils.blend(NOT_HIGHLIGHTED, Color.red, 0.75f);
+    private final static Color NOT_HIGHLIGHTED  = UIManager.getColor("Button.background");
+    private final static Color HIGHLIGHTED      = ImageUtils.blend(NOT_HIGHLIGHTED, Color.red, 0.35f);
 
     public LoaderButton() {
         super();
@@ -49,7 +47,7 @@ public class LoaderButton extends JButton {
         init();
     }
 
-    public void init() {
+    public final void init() {
 
         InterpolationDataset.addListener(e -> {
             if (dataType == e) {
@@ -86,18 +84,17 @@ public class LoaderButton extends JButton {
                 showMessageDialog(getWindowAncestor((Component) arg0.getSource()), getString("LoaderButton.ReadError"), //$NON-NLS-1$
                         getString("LoaderButton.IOError"), //$NON-NLS-1$
                         ERROR_MESSAGE);
-            }
-            catch(OutOfRangeException ofre) {
+            } catch (OutOfRangeException ofre) {
                 getDefaultToolkit().beep();
                 StringBuilder sb = new StringBuilder(getString("TextWrap.0"));
-                sb.append(getString("LoaderButton.OFRErrorDescriptor") );
+                sb.append(getString("LoaderButton.OFRErrorDescriptor"));
                 sb.append(ofre.getMessage());
                 sb.append(getString("LoaderButton.OFRErrorDescriptor2"));
                 sb.append(getString("TextWrap.1"));
-                showMessageDialog(getWindowAncestor((Component) arg0.getSource()), 
-                        sb.toString(), 
+                showMessageDialog(getWindowAncestor((Component) arg0.getSource()),
+                        sb.toString(),
                         getString("LoaderButton.OFRError"), //$NON-NLS-1$
-                ERROR_MESSAGE);
+                        ERROR_MESSAGE);
             }
             var size = getDataset(dataType).getData().size();
             var label = "";
@@ -113,8 +110,10 @@ public class LoaderButton extends JButton {
                 default:
                     throw new IllegalStateException("Unknown data type: " + dataType);
             }
+            StringBuilder sb = new StringBuilder("<html>");
+            sb.append(label).append(" data loaded! A total of ").append(size).append(" data points loaded.</html>");
             showMessageDialog(getWindowAncestor((Component) arg0.getSource()),
-                    "<html>" + label + " data loaded! A total of " + size + " data points loaded.</html>",
+                    sb.toString(),
                     "Data loaded", INFORMATION_MESSAGE);
         });
     }
@@ -124,7 +123,7 @@ public class LoaderButton extends JButton {
     }
 
     public void highlight(boolean highlighted) {
-        setBorder(highlighted ? BorderFactory.createLineBorder(HIGHLIGHTED) : null);
+        setBackground(highlighted ? HIGHLIGHTED : NOT_HIGHLIGHTED);
     }
 
     public void highlightIfNeeded() {

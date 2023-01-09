@@ -280,8 +280,7 @@ public class SearchTask extends GeneralTask {
         }
         
         current.getProblem().parameterListChanged(); // get updated list of parameters
-        setDefaultOptimiser();
-                    
+        
         super.run();
     }
     
@@ -333,8 +332,12 @@ public class SearchTask extends GeneralTask {
     }   
 
     public void switchTo(Calculation calc) {
-        current = calc;
+        current.setParent(null);
+        current.conformTo(null);
+        current = new Calculation(calc);
         current.setParent(this);
+        calc.conformTo(calc);
+        current.setStatus(Status.READY);
         var e = new TaskRepositoryEvent(TaskRepositoryEvent.State.TASK_MODEL_SWITCH, this.getIdentifier());
         fireRepositoryEvent(e);
     }

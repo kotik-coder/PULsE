@@ -4,22 +4,23 @@ import static pulse.io.export.Extension.HTML;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import javax.swing.JEditorPane;
 
 import javax.swing.text.BadLocationException;
 import javax.swing.text.html.HTMLEditorKit;
 
-import pulse.ui.components.LogPane;
+import pulse.ui.components.TextLogPane;
 
 /**
  * Similar to a {@code LogExporter}, except that it works only on the contents
  * of a {@code LogPane} currently being displayed to the user.
  *
  */
-public class LogPaneExporter implements Exporter<LogPane> {
+public class TextLogPaneExporter implements Exporter<TextLogPane> {
 
-    private static LogPaneExporter instance = new LogPaneExporter();
+    private static TextLogPaneExporter instance = new TextLogPaneExporter();
 
-    private LogPaneExporter() {
+    private TextLogPaneExporter() {
         // intentionally blank
     }
 
@@ -29,10 +30,11 @@ public class LogPaneExporter implements Exporter<LogPane> {
      * argument is ignored. After exporting, the stream is explicitly closed.
      */
     @Override
-    public void printToStream(LogPane pane, FileOutputStream fos, Extension extension) {
-        var kit = (HTMLEditorKit) pane.getEditorKit();
+    public void printToStream(TextLogPane pane, FileOutputStream fos, Extension extension) {
+        var editorPane = (JEditorPane) pane.getGUIComponent();
+        var kit = (HTMLEditorKit) editorPane.getEditorKit();
         try {
-            kit.write(fos, pane.getDocument(), 0, pane.getDocument().getLength());
+            kit.write(fos, editorPane.getDocument(), 0, editorPane.getDocument().getLength());
         } catch (IOException | BadLocationException e) {
             System.err.println("Could not export the log pane!");
             e.printStackTrace();
@@ -50,7 +52,7 @@ public class LogPaneExporter implements Exporter<LogPane> {
      *
      * @return an instance of{@code LogPaneExporter}.
      */
-    public static LogPaneExporter getInstance() {
+    public static TextLogPaneExporter getInstance() {
         return instance;
     }
 
@@ -58,8 +60,8 @@ public class LogPaneExporter implements Exporter<LogPane> {
      * @return {@code LogPane.class}.
      */
     @Override
-    public Class<LogPane> target() {
-        return LogPane.class;
+    public Class<TextLogPane> target() {
+        return TextLogPane.class;
     }
 
     /**
