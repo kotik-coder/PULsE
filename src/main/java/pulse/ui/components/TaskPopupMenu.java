@@ -80,7 +80,7 @@ public class TaskPopupMenu extends JPopupMenu {
         var itemShowStatus = new JMenuItem("What is missing?", ICON_MISSING);
 
         instance.addSelectionListener(event -> {
-            instance.getSelectedTask().checkProblems(false);
+            instance.getSelectedTask().checkProblems();
             var details = instance.getSelectedTask().getStatus().getDetails();
             itemShowStatus.setEnabled((details != null) & (details != NONE));
         });
@@ -102,7 +102,7 @@ public class TaskPopupMenu extends JPopupMenu {
                         getString("TaskTablePopupMenu.EmptySelection"), //$NON-NLS-1$
                         getString("TaskTablePopupMenu.ErrorTitle"), ERROR_MESSAGE); //$NON-NLS-1$
             } else {
-                t.checkProblems(true);
+                t.checkProblems();
                 var status = t.getStatus();
 
                 if (status == DONE) {

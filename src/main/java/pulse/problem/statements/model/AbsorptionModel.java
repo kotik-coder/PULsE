@@ -95,7 +95,10 @@ public abstract class AbsorptionModel extends PropertyHolder implements Reflexiv
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + " : " + absorptionMap.get(LASER) + " ; " + absorptionMap.get(THERMAL);
+        var sb = new StringBuilder(getSimpleName());
+        sb.append(String.format("%n %-25s", absorptionMap.get(LASER)));
+        sb.append(String.format("%n %-25s", absorptionMap.get(THERMAL)));
+        return sb.toString();
     }
 
     @Override

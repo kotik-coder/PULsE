@@ -61,7 +61,7 @@ public class Metadata extends PropertyHolder implements Reflexive {
      * experimental setup.
      */
     public Metadata(NumericProperty temperature, int externalId) {
-        sampleName = new SampleName();
+        sampleName = new SampleName(null);
         setExternalID(externalId);
         pulseDescriptor.setSelectedDescriptor(RectangularPulse.class.getSimpleName());
         data = new TreeSet<>();
@@ -186,7 +186,7 @@ public class Metadata extends PropertyHolder implements Reflexive {
     @Override
     public List<Property> listedTypes() {
         List<Property> list = super.listedTypes();
-        list.add(new SampleName());
+        list.add(new SampleName(""));
         list.add(pulseDescriptor);
         return list;
     }

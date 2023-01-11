@@ -14,17 +14,17 @@ import static pulse.tasks.logs.Status.DONE;
 
 @SuppressWarnings("serial")
 public class GraphicalLogPane extends AbstractLogger {
-    
+
     private final LogChart chart;
     private final JScrollPane pane;
-    
+
     public GraphicalLogPane() {
         pane = new JScrollPane();
         pane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         chart = new LogChart();
         pane.setViewportView(chart.getChartPanel());
-        TaskManager.getManagerInstance().addTaskRepositoryListener( e -> {
-            if(e.getState() == TaskRepositoryEvent.State.TASK_SUBMITTED) {
+        TaskManager.getManagerInstance().addTaskRepositoryListener(e -> {
+            if (e.getState() == TaskRepositoryEvent.State.TASK_SUBMITTED) {
                 chart.clear();
             }
         });
@@ -44,16 +44,18 @@ public class GraphicalLogPane extends AbstractLogger {
 
     @Override
     public void post(LogEntry logEntry) {
-        if(logEntry instanceof DataLogEntry) {
+        if (logEntry instanceof DataLogEntry) {
             var dle = (DataLogEntry) logEntry;
             double iteration = dle.getData().stream()
                     .filter(p -> p.getIdentifier().getKeyword() == ITERATION)
                     .findAny().get().getApparentValue();
+        
             chart.changeAxis(true);
-            chart.plot((DataLogEntry)logEntry, iteration);
+            chart.plot((DataLogEntry) logEntry, iteration);
+            
         }
     }
-    
+
     @Override
     public void postAll() {
         clear();
@@ -64,18 +66,18 @@ public class GraphicalLogPane extends AbstractLogger {
 
             var log = task.getLog();
 
-            if (log.isStarted()) {
+            if (log.isStarted() && log.isFinished()) {
 
                 chart.clear();
                 chart.changeAxis(false);
                 chart.plot(log);
-
+                
                 if (task.getStatus() == DONE) {
                     printTimeTaken(log);
                 }
 
             }
-
+            
         }
 
     }

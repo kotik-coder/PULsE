@@ -157,11 +157,13 @@ public class LogChart extends AuxPlotter<Log> {
         int lower = (iteration / bufSize) * bufSize;
 
         var domainAxis = pl.getDomainAxis();
-        var r = domainAxis.getRange();
-        var newR = new Range(lower, lower + bufSize);
+        if (domainAxis != null) {
+            var r = domainAxis.getRange();
+            var newR = new Range(lower, lower + bufSize);
 
-        if (!r.equals(newR) && iteration > lower) {
-            ((XYPlot) pl).getDomainAxis().setRange(lower, lower + bufSize);
+            if (!r.equals(newR) && iteration > lower) {
+                ((XYPlot) pl).getDomainAxis().setRange(lower, lower + bufSize);
+            }
         }
     }
 

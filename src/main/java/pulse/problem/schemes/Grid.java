@@ -211,15 +211,9 @@ public class Grid extends PropertyHolder {
 
     @Override
     public String toString() {
-        var sb = new StringBuilder();
-        sb.append("<html>").
-        append(getClass().getSimpleName())
-                .append(": <math><i>h<sub>x</sub></i>=")
-                .append(format("%3.2e", hx))
-                .append("; ").
-        append("<i>&tau;</i>=")
-                .append(format("%3.2e", tau))
-                .append("; ");
+        var sb = new StringBuilder("Grid");
+        sb.append(String.format("%n %-25s", this.getGridDensity()));
+        sb.append(String.format("%n %-25s", this.getTimeFactor())); 
         return sb.toString();
     }
 

@@ -23,6 +23,7 @@ import pulse.input.ExperimentalData;
 import pulse.input.Metadata;
 import pulse.input.Range;
 import pulse.properties.NumericPropertyKeyword;
+import pulse.properties.SampleName;
 import pulse.ui.Messages;
 
 /**
@@ -49,6 +50,7 @@ public class NetzschCSVReader implements CurveReader {
     private final static String DIAMETER = "Diameter";
     private final static String L_PULSE_WIDTH = "Laser_pulse_width";
     private final static String PULSE_WIDTH = "Pulse_width";
+    private final static String MATERIAL = "Material";
 
     /**
      * Note comma is included as a delimiter character here.
@@ -115,6 +117,9 @@ public class NetzschCSVReader implements CurveReader {
 
             int shotId = determineShotID(reader, file);
 
+            String name = findLineByLabel(reader, MATERIAL, DETECTOR_SPOT_SIZE, true)
+                    .substring(MATERIAL.length() + 1)
+                    .replaceAll(delims, "");
             String spot = findLineByLabel(reader, DETECTOR_SPOT_SIZE, THICKNESS, false);
 
             double spotSize = 0;
@@ -164,6 +169,7 @@ public class NetzschCSVReader implements CurveReader {
             if (pulseWidth > 1e-10) {
                 met.set(NumericPropertyKeyword.PULSE_WIDTH, derive(NumericPropertyKeyword.PULSE_WIDTH, pulseWidth));
             }
+            met.setSampleName(new SampleName(name));
             met.set(NumericPropertyKeyword.THICKNESS, derive(NumericPropertyKeyword.THICKNESS, thickness));
             met.set(NumericPropertyKeyword.DIAMETER, derive(NumericPropertyKeyword.DIAMETER, diameter));
             met.set(NumericPropertyKeyword.FOV_OUTER, derive(NumericPropertyKeyword.FOV_OUTER, spotSize != 0 ? spotSize : 0.85 * diameter));

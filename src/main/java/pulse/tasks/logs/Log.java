@@ -27,6 +27,7 @@ public class Log extends Group {
     private final Identifier id;
     private final List<LogEntryListener> listeners;
     private static boolean graphical = true;
+    private boolean finished;
 
     /**
      * Creates a {@code Log} for this {@code task} that will automatically store
@@ -80,10 +81,12 @@ public class Log extends Group {
     }
 
     private void logFinished() {
+        finished = true;
         listeners.stream().forEach(l -> l.onLogFinished(this));
     }
 
     private void notifyListeners(LogEntry logEntry) {
+        finished = false;
         listeners.stream().forEach(l -> l.onNewEntry(logEntry));
     }
 
@@ -108,6 +111,10 @@ public class Log extends Group {
      */
     public boolean isStarted() {
         return logEntries.size() > 0;
+    }
+    
+    public boolean isFinished() {
+        return finished;
     }
 
     /**

@@ -6,8 +6,8 @@ public class SampleName implements Property {
 
     private String name;
 
-    public SampleName() {
-        //null name
+    public SampleName(String name) {
+        this.name = name;
     }
 
     @Override
@@ -41,22 +41,28 @@ public class SampleName implements Property {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (o == this) {
+    public int hashCode() {
+        int hash = 5;
+        hash = 43 * hash + Objects.hashCode(this.name);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
             return true;
         }
-
-        if (o == null) {
+        if (obj == null) {
             return false;
         }
-
-        boolean result = false;
-
-        if (o instanceof SampleName) {
-            result = name.equals(((SampleName) o).getValue());
+        if (getClass() != obj.getClass()) {
+            return false;
         }
-
-        return result;
+        final SampleName other = (SampleName) obj;
+        if (!Objects.equals(this.name, other.name)) {
+            return false;
+        }
+        return true;
     }
 
 }

@@ -99,11 +99,6 @@ public class Grid2D extends Grid {
         return rint((radial / lengthFactor) / hy) * hy;
     }
 
-    @Override
-    public String toString() {
-        return super.toString() + "<math><i>h<sub>y</sub></i>=" + format("%3.3f", hy);
-    }
-
     public double getYStep() {
         return hy;
     }

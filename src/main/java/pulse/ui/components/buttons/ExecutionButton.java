@@ -49,7 +49,7 @@ public class ExecutionButton extends JButton {
                 return;
             }
             var problematicTask = instance.getTaskList().stream().filter(t -> {
-                t.checkProblems(true);
+                t.checkProblems();
                 return t.getStatus() == INCOMPLETE;
             }).findFirst();
             if (problematicTask.isPresent()) {

@@ -24,7 +24,6 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -66,8 +65,6 @@ public class TaskManager extends UpwardsNavigable {
 
     private boolean singleStatement = true;
 
-    private final ForkJoinPool taskPool;
-
     private final List<TaskSelectionListener> selectionListeners;
     private final List<TaskRepositoryListener> taskRepositoryListeners;
 
@@ -91,7 +88,6 @@ public class TaskManager extends UpwardsNavigable {
 
     private TaskManager() {
         tasks = new ArrayList<>();
-        taskPool = new ForkJoinPool(ResourceMonitor.getInstance().getThreadsAvailable());
         selectionListeners = new CopyOnWriteArrayList<>();
         taskRepositoryListeners = new CopyOnWriteArrayList<>();
         addHierarchyListener(statementListener);
@@ -115,40 +111,41 @@ public class TaskManager extends UpwardsNavigable {
      * @param t a {@code SearchTask} that will be executed
      */
     public void execute(SearchTask t) {
-        t.checkProblems(t.getStatus() != Status.DONE);
+        t.checkProblems();
 
-        //try to start cmputation 
+        // try to start computation 
         // notify listeners computation is about to start
-        if (!t.setStatus(QUEUED)) {
+        if (t.getStatus() != QUEUED && !t.setStatus(QUEUED)) {
             return;
         }
-        
+
         // notify listeners calculation started
         notifyListeners(new TaskRepositoryEvent(TASK_SUBMITTED, t.getIdentifier()));
-        
+
         // run task t -- after task completed, write result and trigger listeners
         CompletableFuture.runAsync(t).thenRun(() -> {
-            Calculation current = (Calculation)t.getResponse();
+            Calculation current = (Calculation) t.getResponse();
             var e = new TaskRepositoryEvent(TASK_FINISHED, t.getIdentifier());
             if (null == current.getStatus()) {
                 notifyListeners(e);
-            } 
-            else switch (current.getStatus()) {
-                case DONE:
-                    current.setResult(new Result(t, ResultFormat.getInstance()));
-                    //notify listeners before the task is re-assigned
-                    notifyListeners(e);
-                    t.storeCalculation();
-                    break;
-                case AWAITING_TERMINATION:
-                    t.setStatus(Status.TERMINATED);
-                    break;
-                default:
-                    notifyListeners(e);
-                    break;
+            } else {
+                switch (current.getStatus()) {
+                    case DONE:
+                        current.setResult(new Result(t, ResultFormat.getInstance()));
+                        //notify listeners before the task is re-assigned
+                        notifyListeners(e);
+                        t.storeCalculation();
+                        break;
+                    case AWAITING_TERMINATION:
+                        t.setStatus(Status.TERMINATED);
+                        break;
+                    default:
+                        notifyListeners(e);
+                        break;
+                }
             }
         });
-        
+
     }
 
     /**
@@ -170,7 +167,7 @@ public class TaskManager extends UpwardsNavigable {
      */
     public void executeAll() {
 
-        var queue = tasks.stream().filter(t -> {
+        tasks.stream().filter(t -> {
             switch (t.getStatus()) {
                 case IN_PROGRESS:
                 case EXECUTION_ERROR:
@@ -178,11 +175,9 @@ public class TaskManager extends UpwardsNavigable {
                 default:
                     return true;
             }
-        }).collect(toList());
-
-        for (SearchTask t : queue) {
-            taskPool.submit(() -> execute(t));
-        }
+        }).forEach(t -> {
+            execute(t);
+        });
 
     }
 
@@ -259,7 +254,7 @@ public class TaskManager extends UpwardsNavigable {
             return null;
         }
 
-        return ( (ExperimentalData) optional.get().getInput() )
+        return ((ExperimentalData) optional.get().getInput())
                 .getMetadata().getSampleName();
     }
 
@@ -306,7 +301,7 @@ public class TaskManager extends UpwardsNavigable {
      */
     public SearchTask getTask(int externalId) {
         var o = tasks.stream().filter(t
-                -> Integer.compare( ( (ExperimentalData) t.getInput())
+                -> Integer.compare(((ExperimentalData) t.getInput())
                         .getMetadata().getExternalID(),
                         externalId) == 0).findFirst();
         return o.isPresent() ? o.get() : null;
@@ -510,8 +505,8 @@ public class TaskManager extends UpwardsNavigable {
 
     public void evaluate() {
         tasks.stream().forEach(t -> {
-            var properties = ( (Calculation) t.getResponse() ).getProblem().getProperties();
-            var c = (ExperimentalData)t.getInput();
+            var properties = ((Calculation) t.getResponse()).getProblem().getProperties();
+            var c = (ExperimentalData) t.getInput();
             properties.useTheoreticalEstimates(c);
         });
     }

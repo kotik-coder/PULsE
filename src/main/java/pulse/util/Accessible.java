@@ -101,17 +101,18 @@ public abstract class Accessible extends Group {
         var methods = this.getClass().getMethods();
         for (var m : methods) {
 
-            if (m.getParameterCount() > 0) {
-                continue;
-            }
+            //getters only
+            if (m.getParameterCount() == 0) {
 
-            if (Property.class.isAssignableFrom(m.getReturnType())
-                    && !NumericProperty.class.isAssignableFrom(m.getReturnType()))
+                if (Property.class.isAssignableFrom(m.getReturnType())
+                        && !NumericProperty.class.isAssignableFrom(m.getReturnType()))
 				try {
-                fields.add((Property) m.invoke(this));
-            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-                err.println("Error invoking method " + m);
-                e.printStackTrace();
+                    fields.add((Property) m.invoke(this));
+                } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+                    err.println("Error invoking method " + m);
+                    e.printStackTrace();
+                }
+
             }
 
         }

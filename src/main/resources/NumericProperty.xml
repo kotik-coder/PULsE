@@ -441,10 +441,10 @@
 		descriptor="Buffer size" dimensionfactor="1" keyword="BUFFER_SIZE"
 		maximum="32" minimum="4" value="5" primitive-type="int"
 		discreet="false"/>
-	<NumericProperty abbreviation="Resolution (total)"
-		visible="false" descriptor="Resolution (total)"
+	<NumericProperty abbreviation="Precision"
+		visible="false" descriptor="Estimation precision (rel.)"
 		dimensionfactor="1.0" keyword="ERROR_TOLERANCE" maximum="0.1"
-		minimum="1.0E-7" value="0.001" primitive-type="double"
+		minimum="1.0E-7" value="0.005" primitive-type="double"
 		discreet="false"/>
 	<NumericProperty abbreviation="FOV&lt;sub&gt;inner&lt;/sub&gt; (mm)"
 		visible="true"

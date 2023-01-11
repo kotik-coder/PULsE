@@ -3,7 +3,7 @@
   
   <groupId>kotik-coder</groupId>
   <artifactId>PULsE</artifactId>
-  <version>1.97b</version>
+  <version>1.97c</version>
   <name>PULsE</name>
   <description>Processing Unit for Laser flash Experiments</description>
   <developers>
@@ -23,7 +23,7 @@
   	<dependency>
   		<groupId>org.jfree</groupId>
   		<artifactId>jfreechart</artifactId>
-  		<version>1.5.0</version>
+  		<version>1.5.4</version>
   	</dependency>
 	<dependency>
             <groupId>com.formdev</groupId>

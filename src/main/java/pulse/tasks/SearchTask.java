@@ -103,7 +103,7 @@ public class SearchTask extends GeneralTask {
         clear();
         addListeners();
     }
-    
+
     private void addListeners() {
         InterpolationDataset.addListener(e -> {
             if (current.getProblem() != null) {
@@ -153,13 +153,13 @@ public class SearchTask extends GeneralTask {
         //this.path = null;
         current.clear();
 
-        this.checkProblems(true);
+        this.checkProblems();
     }
-    
+
     public List<NumericProperty> alteredParameters() {
-        return activeParameters().stream().map(key -> 
-                this.numericProperty(key)).collect(Collectors.toList());
-    }       
+        return activeParameters().stream().map(key
+                -> this.numericProperty(key)).collect(Collectors.toList());
+    }
 
     public void addTaskListener(DataCollectionListener toAdd) {
         listeners.add(toAdd);
@@ -181,7 +181,7 @@ public class SearchTask extends GeneralTask {
     public String toString() {
         return getIdentifier().toString();
     }
-    
+
     /**
      * Adopts the {@code curve} by this {@code SearchTask}.
      *
@@ -209,39 +209,37 @@ public class SearchTask extends GeneralTask {
      * using the {@code status.getDetails()} method.
      * </p>
      *
-     * @param updateStatus
      */
-    public void checkProblems(boolean updateStatus) {
+    public void checkProblems() {
         var status = getStatus();
 
-        if (status == DONE) {
-            return;
-        }
+        if (status != DONE) {
 
-        var pathSolver = getInstance();
-        var s = INCOMPLETE;
+            var pathSolver = getInstance();
+            var s = INCOMPLETE;
 
-        if (current.getProblem() == null) {
-            s.setDetails(MISSING_PROBLEM_STATEMENT);
-        } else if (!current.getProblem().isReady()) {
-            s.setDetails(INSUFFICIENT_DATA_IN_PROBLEM_STATEMENT);
-        } else if (current.getScheme() == null) {
-            s.setDetails(MISSING_DIFFERENCE_SCHEME);
-        } else if (curve == null) {
-            s.setDetails(MISSING_HEATING_CURVE);
-        } else if (pathSolver == null) {
-            s.setDetails(MISSING_OPTIMISER);
-        } else if (getBuffer() == null) {
-            s.setDetails(MISSING_BUFFER);
-        } else if (!getInstance().compatibleWith(current.getOptimiserStatistic())) {
-            s.setDetails(INCOMPATIBLE_OPTIMISER);
-        } else {
-            s = READY;
-        }
+            if (current.getProblem() == null) {
+                s.setDetails(MISSING_PROBLEM_STATEMENT);
+            } else if (!current.getProblem().isReady()) {
+                s.setDetails(INSUFFICIENT_DATA_IN_PROBLEM_STATEMENT);
+            } else if (current.getScheme() == null) {
+                s.setDetails(MISSING_DIFFERENCE_SCHEME);
+            } else if (curve == null) {
+                s.setDetails(MISSING_HEATING_CURVE);
+            } else if (pathSolver == null) {
+                s.setDetails(MISSING_OPTIMISER);
+            } else if (getBuffer() == null) {
+                s.setDetails(MISSING_BUFFER);
+            } else if (!getInstance().compatibleWith(current.getOptimiserStatistic())) {
+                s.setDetails(INCOMPATIBLE_OPTIMISER);
+            } else {
+                s = READY;
+            }
 
-        if (updateStatus) {
             setStatus(s);
+            
         }
+
     }
 
     public Identifier getIdentifier() {
@@ -263,12 +261,12 @@ public class SearchTask extends GeneralTask {
             l.onStatusChange(e);
         }
     }
-    
+
     @Override
     public void run() {
         correlationBuffer.clear();
         current.setResult(null);
-        
+
         /* check of status */
         switch (getStatus()) {
             case READY:
@@ -278,12 +276,12 @@ public class SearchTask extends GeneralTask {
             default:
                 return;
         }
-        
+
         current.getProblem().parameterListChanged(); // get updated list of parameters
         
         super.run();
     }
-    
+
     /**
      * If the current task is either {@code IN_PROGRESS}, {@code QUEUED}, or
      * {@code READY}, terminates it by setting its status to {@code TERMINATED}.
@@ -321,15 +319,15 @@ public class SearchTask extends GeneralTask {
     public CorrelationTest getCorrelationTest() {
         return correlationTest;
     }
-    
+
     public List<Calculation> getStoredCalculations() {
         return this.stored;
-    }    
+    }
 
     public void storeCalculation() {
         var copy = new Calculation(current);
         stored.add(copy);
-    }   
+    }
 
     public void switchTo(Calculation calc) {
         current.setParent(null);
@@ -366,19 +364,19 @@ public class SearchTask extends GeneralTask {
             l.onTaskListChanged(e);
         }
     }
-    
+
     @Override
     public boolean isInProgress() {
         return getStatus() == IN_PROGRESS;
     }
-   
+
     @Override
     public void intermediateProcessing() {
         correlationBuffer.inflate(this);
         notifyDataListeners(new DataLogEntry(this));
     }
-    
-    @Override 
+
+    @Override
     public void onSolverException(SolverException e) {
         setStatus(Status.troubleshoot(e));
     }
@@ -394,8 +392,8 @@ public class SearchTask extends GeneralTask {
      */
     @Override
     public ParameterVector searchVector() {
-        var ids = activeParameters().stream().map(id -> 
-                new ParameterIdentifier(id)).collect(Collectors.toList());
+        var ids = activeParameters().stream().map(id
+                -> new ParameterIdentifier(id)).collect(Collectors.toList());
         var optimisationVector = new ParameterVector(ids);
 
         current.getProblem().optimisationVector(optimisationVector);
@@ -455,8 +453,7 @@ public class SearchTask extends GeneralTask {
 
         }
     }
-    
-    
+
     /**
      * Finds what properties are being altered in the search of this SearchTask.
      *
@@ -467,16 +464,14 @@ public class SearchTask extends GeneralTask {
     public List<NumericPropertyKeyword> activeParameters() {
         var flags = ActiveFlags.getAllFlags();
         //problem dependent
-        var allActiveParams = ActiveFlags.selectActiveAndListed
-                (flags, current.getProblem()); 
+        var allActiveParams = ActiveFlags.selectActiveAndListed(flags, current.getProblem());
         //problem independent (lower/upper bound)
-        var listed = ActiveFlags.selectActiveAndListed
-                (flags, curve.getRange() );
-        allActiveParams.addAll(listed);          
+        var listed = ActiveFlags.selectActiveAndListed(flags, curve.getRange());
+        allActiveParams.addAll(listed);
         return allActiveParams;
     }
-    
-        /**
+
+    /**
      * Will return {@code true} if status could be updated.
      *
      * @param status the status of the task
@@ -485,20 +480,18 @@ public class SearchTask extends GeneralTask {
      * be updated at this time.
      * @see Calculation.setStatus()
      */
-    
     public boolean setStatus(Status status) {
         Objects.requireNonNull(status);
 
         Status oldStatus = getStatus();
-        boolean changed = current.setStatus(status)
-                && (oldStatus != getStatus());
+        boolean changed = current.setStatus(status) && oldStatus != status;
         if (changed) {
             notifyStatusListeners(new StateEntry(this, status));
         }
 
         return changed;
     }
-    
+
     public Status getStatus() {
         return current.getStatus();
     }
@@ -525,7 +518,7 @@ public class SearchTask extends GeneralTask {
         return curve.equals(((SearchTask) o).curve);
 
     }
-    
+
     @Override
     public String describe() {
 

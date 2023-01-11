@@ -43,7 +43,7 @@ public class LMOptimiser extends GradientBasedOptimiser {
      * Up to {@value MAX_FAILED_ATTEMPTS} failed attempts are allowed.
      */
     
-    public final static int MAX_FAILED_ATTEMPTS = 4;
+    public final static int MAX_FAILED_ATTEMPTS = 5;
 
     private LMOptimiser() {
         super();

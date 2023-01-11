@@ -79,7 +79,7 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
         }
         instanceDescriptor.addListener(() -> initModelCriterion(rs));
     }
-    
+
     public void conformTo(UpwardsNavigable owner) {
         problem.setParent(owner);
         scheme.setParent(owner);
@@ -87,13 +87,13 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
         os.setParent(owner);
         result.setParent(owner);
     }
-   
+
     public void clear() {
         this.status = INCOMPLETE;
         this.problem = null;
         this.scheme = null;
     }
-    
+
     /**
      * <p>
      * After setting and adopting the {@code problem} by this
@@ -201,31 +201,40 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
      */
     public boolean setStatus(Status status) {
 
-        boolean changeStatus = true;
+        boolean changeStatus = false;
 
-        switch (this.status) {
-            case QUEUED:
-            case IN_PROGRESS:
-                switch (status) {
-                    case QUEUED:
-                    case READY:
-                    case INCOMPLETE:
-                        changeStatus = false;
-                        break;
-                    default:
-                }
-                break;
-            case FAILED:
-            case EXECUTION_ERROR:
-            case INCOMPLETE:
-                //if the TaskManager attempts to run this calculation
-                changeStatus = status != Status.QUEUED;
-                break;
-            default:
-        }
+        if (this.getStatus() != status) {
 
-        if (changeStatus) {
-            this.status = status;
+            changeStatus = true;
+            
+            //current status is given by ** this.status **
+            //new status is the ** argument ** of this method
+            switch (this.status) {
+                case QUEUED:
+                //do not change status to queued, ready or incomplete if already in progress
+                case IN_PROGRESS:
+                    switch (status) {
+                        case QUEUED:
+                        case READY:
+                        case INCOMPLETE:
+                            changeStatus = false;
+                            break;
+                        default:
+                    }
+                    break;
+                case FAILED:
+                case EXECUTION_ERROR:
+                case INCOMPLETE:
+                    //if the TaskManager attempts to run this calculation
+                    changeStatus = status != Status.QUEUED;
+                    break;
+                default:
+            }
+
+            if (changeStatus) {
+                this.status = status;
+            }
+
         }
 
         return changeStatus;
@@ -350,14 +359,14 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
     public double evaluate(double t) {
         return problem.getHeatingCurve().interpolateSignalAt(t);
     }
-    
+
     @Override
     public Segment accessibleRange() {
         var hc = problem.getHeatingCurve();
         return new Segment(hc.timeAt(0), hc.timeLimit());
     }
 
-   /**
+    /**
      * This will use the current {@code DifferenceScheme} to solve the
      * {@code Problem} for this {@code SearchTask} and calculate the SSR value
      * showing how well (or bad) the calculated solution describes the
@@ -367,7 +376,6 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
      * @return the value of SSR (sum of squared residuals).
      * @throws pulse.problem.schemes.solvers.SolverException
      */
-    
     @Override
     public double objectiveFunction(GeneralTask task) throws SolverException {
         process();

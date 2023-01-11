@@ -78,7 +78,8 @@ public class LogFrame extends JInternalFrame {
 
     private void scheduleLogEvents() {
         var instance = TaskManager.getManagerInstance();
-        instance.addSelectionListener(e -> logger.postAll());
+        instance.addSelectionListener(
+                e -> SwingUtilities.invokeLater(() -> logger.postAll()));
 
         instance.addTaskRepositoryListener(event -> {
             if (event.getState() != TASK_ADDED) {
@@ -128,7 +129,7 @@ public class LogFrame extends JInternalFrame {
         if (old != logger) {
             getContentPane().remove(old.getGUIComponent());
             getContentPane().add(logger.getGUIComponent(), BorderLayout.CENTER);
-            logger.postAll();
+            SwingUtilities.invokeLater(() -> logger.postAll());
         }
 
     }

@@ -163,12 +163,10 @@ public class Pulse extends PropertyHolder {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(getPulseShape());
-        sb.append(" ; ");
-        sb.append(getPulseWidth());
-        sb.append(" ; ");
-        sb.append(getLaserEnergy());
+        StringBuilder sb = new StringBuilder("Pulse:");
+        sb.append(String.format("%n %-25s", getPulseShape()));
+        sb.append(String.format("%n %-25s", getPulseWidth()));
+        sb.append(String.format("%n %-25s", getLaserEnergy()));
         return sb.toString();
     }
 

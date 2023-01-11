@@ -14,14 +14,10 @@ import static pulse.util.Reflexive.instancesOf;
 
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
-import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import javax.swing.DefaultListModel;
@@ -247,98 +243,62 @@ public class ProblemStatementFrame extends JInternalFrame {
         var instance = TaskManager.getManagerInstance();
         var selectedTask = instance.getSelectedTask();
 
-        var schemeLoaderTracker = new ProgressDialog();
-        schemeLoaderTracker.setTitle("Initialising solution schemes...");
-        schemeLoaderTracker.setLocationRelativeTo(null);
-        schemeLoaderTracker.setAlwaysOnTop(true);
+        var tracker = new ProgressDialog();
+        tracker.setTitle("Initialising solution schemes...");
+        tracker.setLocationRelativeTo(null);
+        tracker.setAlwaysOnTop(true);
 
-        List<Callable<DifferenceScheme>> callableList;
+        tracker.trackProgress(instance.isSingleStatement() ? instance.getTaskList().size() : 1);
 
-        if (instance.isSingleStatement()) {
-
-            callableList = instance.getTaskList().stream().map(t -> new Callable<DifferenceScheme>() {
-                @Override
-                public DifferenceScheme call() throws Exception {
-                    changeScheme(t, newScheme);
-                    schemeLoaderTracker.incrementProgress();
-                    return ((Calculation) t.getResponse()).getScheme();
-                }
-
-            }).collect(Collectors.toList());
-
-        } else {
-            callableList = Arrays.asList(() -> {
-                changeScheme(selectedTask, newScheme);
-                return selectedTask.getResponse().getScheme();
-            });
-        }
-
-        schemeLoaderTracker.trackProgress(callableList.size() - 1);
-
-        CompletableFuture.runAsync(() -> {
-            try {
-                schemeListExecutor.invokeAll(callableList);
-            } catch (InterruptedException ex) {
-                ex.printStackTrace();
-            }
-        }).thenRun(() -> {
-
+        Runnable finishingTouch = () -> {
             var c = (Calculation) selectedTask.getResponse();
             schemeTable.setPropertyHolder(c.getScheme());
             if (c.getProblem().getComplexity() == HIGH) {
                 showMessageDialog(null, getString("complexity.warning"),
                         "High complexity", INFORMATION_MESSAGE);
             }
-            Executors.newSingleThreadExecutor().submit(() -> ProblemToolbar.plot(null));
-        });
+            ProblemToolbar.plot(null);
+            tracker.setVisible(false);
+            problemTable.requestFocus();
+        };
+
+        if (instance.isSingleStatement()) {
+
+            var runnables = instance.getTaskList().stream().map(t -> new Runnable() {
+                @Override
+                public void run() {
+                    changeScheme(t, newScheme);
+                    tracker.incrementProgress();
+                }
+
+            }).collect(Collectors.toList());
+
+            CompletableFuture.runAsync(()
+                    -> runnables.parallelStream().forEach(c -> c.run()))
+                    .thenRun(finishingTouch);
+
+        } else {
+            CompletableFuture.runAsync(() -> changeScheme(selectedTask, newScheme)).thenRun(finishingTouch);
+        }
+
     }
 
     private void changeProblems(Problem newlySelectedProblem, Object source) {
 
         var instance = TaskManager.getManagerInstance();
-        var task = instance.getSelectedTask();
-        var selectedCalc = ((Calculation) task.getResponse());
+        var selectedProblem = instance.getSelectedTask();
 
-        var problemLoaderTracker = new ProgressDialog();
-        problemLoaderTracker.setTitle("Changing problem statements...");
-        problemLoaderTracker.setLocationRelativeTo(null);
-        problemLoaderTracker.setAlwaysOnTop(true);
-
-        List<Callable<Problem>> callableList;
+        var tracker = new ProgressDialog();
+        tracker.setTitle("Changing problem statements...");
+        tracker.setLocationRelativeTo(null);
+        tracker.setAlwaysOnTop(true);
 
         if (source != instance) {
-            //apply to all tasks
-            if (instance.isSingleStatement()) {
 
-                callableList = instance.getTaskList().stream().map(t -> new Callable<Problem>() {
-                    @Override
-                    public Problem call() throws Exception {
-                        changeProblem(t, newlySelectedProblem);
-                        var result = ((Calculation) t.getResponse()).getProblem();
-                        problemLoaderTracker.incrementProgress();
-                        return result;
-                    }
+            tracker.trackProgress(instance.isSingleStatement() ? instance.getTaskList().size() : 1);
 
-                }).collect(Collectors.toList());
-
-            } //apply only to this task
-            else {
-                callableList = Arrays.asList(() -> {
-                    changeProblem(task, newlySelectedProblem);
-                    return ((Calculation) task.getResponse()).getProblem();
-                });
-            }
-
-            problemLoaderTracker.trackProgress(callableList.size() - 1);
-
-            CompletableFuture.runAsync(() -> {
-                try {
-                    problemListExecutor.invokeAll(callableList);
-                } catch (InterruptedException ex) {
-                    ex.printStackTrace();
-                }
-            }
-            ).thenRun(() -> {
+            Runnable finishingTouch = () -> {
+                var selectedCalc = (Calculation) selectedProblem.getResponse();
                 problemTable.setPropertyHolder(selectedCalc.getProblem());
                 // after problem is selected for this task, show available difference schemes
                 var defaultModel = (DefaultListModel<DifferenceScheme>) (schemeSelectionList.getModel());
@@ -347,7 +307,27 @@ public class ProblemStatementFrame extends JInternalFrame {
                 schemes.forEach(s -> defaultModel.addElement(s));
                 selectDefaultScheme(schemeSelectionList, selectedCalc.getProblem());
                 schemeSelectionList.setToolTipText(null);
-            });
+                tracker.setVisible(false);
+            };
+
+            if (instance.isSingleStatement()) {
+
+                var runnables = instance.getTaskList().stream().map(t -> new Runnable() {
+                    @Override
+                    public void run() {
+                        changeProblem(t, newlySelectedProblem);
+                        tracker.incrementProgress();
+                    }
+
+                }).collect(Collectors.toList());
+
+                CompletableFuture.runAsync(()
+                        -> runnables.parallelStream().forEach(c -> c.run()))
+                        .thenRun(finishingTouch);
+
+            } else {
+                CompletableFuture.runAsync(() -> changeProblem(selectedProblem, newlySelectedProblem)).thenRun(finishingTouch);
+            }
 
         }
 
@@ -372,7 +352,7 @@ public class ProblemStatementFrame extends JInternalFrame {
             np.retrieveData(data);
         }
 
-        task.checkProblems(true);
+        task.checkProblems();
         toolbar.highlightButtons(!np.isReady());
     }
 
@@ -413,7 +393,7 @@ public class ProblemStatementFrame extends JInternalFrame {
 
         }
 
-        task.checkProblems(true);
+        task.checkProblems();
 
     }
 

@@ -209,7 +209,7 @@ public class SearchOptionsFrame extends JInternalFrame {
                 pathTable.setPropertyHolder(optimiser);
 
                 for (var t : TaskManager.getManagerInstance().getTaskList()) {
-                    t.checkProblems(true);
+                    t.checkProblems();
                 }
             });
 

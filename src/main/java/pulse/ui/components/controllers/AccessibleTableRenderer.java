@@ -26,33 +26,29 @@ public class AccessibleTableRenderer extends NumericPropertyRenderer {
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
             int row, int column) {
 
-        Component renderer = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-
+        Component result = null;
+        
         if (value instanceof Flag) {
-            renderer = new IconCheckBox((boolean) ((Property) value).getValue());
-            ((IconCheckBox) renderer).setHorizontalAlignment(CENTER);
-        } else if (value instanceof PropertyHolder) {
-            renderer = initButton(value.toString());
+            result = new IconCheckBox((boolean) ((Property) value).getValue());
+            ((IconCheckBox) result).setHorizontalAlignment(CENTER);
         } 
-        else if (value instanceof NumericProperty) {
-            //default
-        }
-        else if (value instanceof Property) {
-            var label = (JLabel) super.getTableCellRendererComponent(table,
-                    ((Property) value).getDescriptor(true), isSelected,
-                    hasFocus, row, column);
-            label.setHorizontalAlignment(JLabel.CENTER);
-            label.setFont(label.getFont().deriveFont(Font.BOLD));
-            return label;
+        
+        else if (value instanceof PropertyHolder) {
+             var sb = new StringBuilder("Click to Edit/View ");
+             sb.append(((PropertyHolder) value).getSimpleName());
+             sb.append("...");
+             result = new JButton(sb.toString());
+             ((JButton)result).setToolTipText(value.toString());
+             ((JButton)result).setHorizontalAlignment(LEFT);
         }
 
-        return renderer;
+        else { 
+            result = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+        }
+        
+        return result;
+    
     }
-
-    private JButton initButton(String str) {
-        var button = new JButton(str);
-        button.setToolTipText(str);
-        return button;
-    }
+    
 
 }

@@ -63,7 +63,7 @@ public class ProblemToolbar extends JToolBar {
 
         var calc = (Calculation) t.getResponse();
 
-        t.checkProblems(true);
+        t.checkProblems();
         var status = t.getStatus();
 
         if (status == INCOMPLETE && !status.checkProblemStatementSet()) {
