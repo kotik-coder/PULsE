@@ -75,4 +75,9 @@ public abstract class Baseline extends PropertyHolder implements Reflexive, Opti
        }
     }
     
+    @Override
+    public String getDescriptor() {
+        return "Baseline";
+    }
+    
 }

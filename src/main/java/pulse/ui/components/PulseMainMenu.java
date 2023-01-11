@@ -71,8 +71,8 @@ public class PulseMainMenu extends JMenuBar {
     private static JMenuItem loadPulseItem;
     private static JMenuItem modelSettingsItem;
 
-    private static ExportDialog exportDialog = new ExportDialog();
-    private static FormattedInputDialog bufferDialog = new FormattedInputDialog(def(BUFFER_SIZE));
+    private static final ExportDialog exportDialog = new ExportDialog();
+    private static final FormattedInputDialog bufferDialog = new FormattedInputDialog(def(BUFFER_SIZE));
 
     private static File dir;
 
@@ -80,7 +80,8 @@ public class PulseMainMenu extends JMenuBar {
     private List<ExitRequestListener> exitListeners;
 
     public PulseMainMenu() {
-        bufferDialog.setConfirmAction(() -> Buffer.setSize(def(BUFFER_SIZE)));
+        bufferDialog.setConfirmAction(() -> 
+                Buffer.setSize(derive(BUFFER_SIZE, bufferDialog.value())));
 
         initComponents();
         initListeners();
