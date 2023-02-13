@@ -15,6 +15,7 @@ import pulse.search.GeneralTask;
  */
 public class ComplexPath extends GradientGuidedPath {
 
+    private static final long serialVersionUID = -1520823504831702183L;
     private SquareMatrix hessian;
     private SquareMatrix inverseHessian;
 

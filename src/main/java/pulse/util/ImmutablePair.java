@@ -1,6 +1,8 @@
 package pulse.util;
 
-public class ImmutablePair<T> {
+import java.io.Serializable;
+
+public class ImmutablePair<T> implements Serializable {
 
     private T anElement;
     private T anotherElement;

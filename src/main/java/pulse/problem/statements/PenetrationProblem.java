@@ -17,6 +17,7 @@ import pulse.util.InstanceDescriptor;
 
 public class PenetrationProblem extends ClassicalProblem {
 
+    private static final long serialVersionUID = -6760177658036060627L;
     private InstanceDescriptor<AbsorptionModel> instanceDescriptor
             = new InstanceDescriptor<>(
                     "Absorption Model Selector", AbsorptionModel.class);
@@ -58,7 +59,7 @@ public class PenetrationProblem extends ClassicalProblem {
         list.add(instanceDescriptor);
         return list;
     }
-    
+
     @Override
     public Set<NumericPropertyKeyword> listedKeywords() {
         var set = super.listedKeywords();

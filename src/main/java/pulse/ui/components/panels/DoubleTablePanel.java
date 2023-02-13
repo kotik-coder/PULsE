@@ -20,13 +20,13 @@ public class DoubleTablePanel extends JPanel {
 
         super();
         initComponents(leftTable, titleLeft, rightTable, titleRight);
-        
+
         moveRightBtn.addActionListener(e -> {
 
             var model = (SelectedKeysModel) rightTable.getModel();
-            NumericPropertyKeyword key = ( (ParameterTableModel) leftTable.getModel() )
-                                            .getElementAt(leftTable
-                                                    .convertRowIndexToModel(leftTable.getSelectedRow()));
+            NumericPropertyKeyword key = ((ParameterTableModel) leftTable.getModel())
+                    .getElementAt(leftTable
+                            .convertRowIndexToModel(leftTable.getSelectedRow()));
 
             if (key != null) {
                 if (!model.contains(key)) {
@@ -57,7 +57,7 @@ public class DoubleTablePanel extends JPanel {
             }
 
         });
-        
+
     }
 
     public void initComponents(JTable leftTable, String titleLeft, JTable rightTable, String titleRight) {
@@ -72,7 +72,7 @@ public class DoubleTablePanel extends JPanel {
 
         var borderLeft = createTitledBorder(titleLeft);
         leftScroller.setBorder(borderLeft);
-        
+
         leftTable.setRowHeight(80);
 
         leftScroller.setViewportView(leftTable);

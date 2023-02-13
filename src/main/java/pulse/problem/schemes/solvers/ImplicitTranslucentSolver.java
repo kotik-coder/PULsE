@@ -14,6 +14,7 @@ import pulse.properties.NumericProperty;
 
 public class ImplicitTranslucentSolver extends ImplicitScheme implements Solver<PenetrationProblem> {
 
+    private static final long serialVersionUID = -2207434474904484692L;
     private AbsorptionModel absorption;
     private int N;
 
@@ -40,12 +41,12 @@ public class ImplicitTranslucentSolver extends ImplicitScheme implements Solver<
         final double Bi1H = (double) problem.getProperties().getHeatLoss().getValue() * grid.getXStep();
         final double hx = grid.getXStep();
 
-        absorption = ((PenetrationProblem)problem).getAbsorptionModel();
-        
+        absorption = ((PenetrationProblem) problem).getAbsorptionModel();
+
         HH = hx * hx;
         _2Bi1HTAU = 2.0 * Bi1H * tau;
         b11 = 1.0 / (1.0 + 2.0 * tau / HH * (1 + Bi1H));
-       
+
         var tridiagonal = new TridiagonalMatrixAlgorithm(grid) {
 
             @Override
@@ -54,7 +55,7 @@ public class ImplicitTranslucentSolver extends ImplicitScheme implements Solver<
             }
 
         };
-                
+
         // coefficients for difference equation
         tridiagonal.setCoefA(1. / HH);
         tridiagonal.setCoefB(1. / tau + 2. / HH);
@@ -81,7 +82,7 @@ public class ImplicitTranslucentSolver extends ImplicitScheme implements Solver<
         final double tau = getGrid().getTimeStep();
         var tridiagonal = this.getTridiagonalMatrixAlgorithm();
 
-        return (HH * getPreviousSolution()[N] + HH*tau*tridiagonal.phi(N)
+        return (HH * getPreviousSolution()[N] + HH * tau * tridiagonal.phi(N)
                 + 2. * tau * betaN) / (_2Bi1HTAU + HH + 2. * tau * (1 - alphaN));
     }
 
@@ -89,7 +90,7 @@ public class ImplicitTranslucentSolver extends ImplicitScheme implements Solver<
     public double firstBeta() {
         var tridiagonal = this.getTridiagonalMatrixAlgorithm();
         double tau = getGrid().getTimeStep();
-        return (getPreviousSolution()[0] + tau*tridiagonal.phi(0))* b11;
+        return (getPreviousSolution()[0] + tau * tridiagonal.phi(0)) * b11;
     }
 
     @Override

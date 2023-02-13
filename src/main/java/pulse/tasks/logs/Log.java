@@ -11,6 +11,8 @@ import pulse.tasks.Identifier;
 import pulse.tasks.SearchTask;
 import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.LogEntryListener;
+import pulse.tasks.listeners.TaskRepositoryEvent;
+import pulse.tasks.listeners.TaskRepositoryEvent.State;
 import pulse.ui.Messages;
 import pulse.util.Group;
 
@@ -21,13 +23,15 @@ import pulse.util.Group;
  */
 public class Log extends Group {
 
+    private static final long serialVersionUID = 420096365502122145L;
     private List<LogEntry> logEntries;
     private LocalTime start;
     private LocalTime end;
-    private final Identifier id;
-    private final List<LogEntryListener> listeners;
-    private static boolean graphical = true;
+    private Identifier id;
     private boolean finished;
+    private transient List<LogEntryListener> listeners;
+
+    private static boolean graphical = true;
 
     /**
      * Creates a {@code Log} for this {@code task} that will automatically store
@@ -44,8 +48,37 @@ public class Log extends Group {
         id = task.getIdentifier();
 
         this.logEntries = new CopyOnWriteArrayList<>();
+        initListeners();
+    }
+
+    @Override
+    public void initListeners() {
+        super.initListeners();
         listeners = new CopyOnWriteArrayList<>();
 
+        var instance = TaskManager.getManagerInstance();
+        var existingTask = instance.getTask(id);
+
+        if (existingTask != null) {
+            //task already exists - add listeners nwo
+            doAddListeners(existingTask);
+        } else {
+            //wait until task is added into repository
+            instance.addTaskRepositoryListener(event -> {
+
+                if (event.getState() == State.TASK_ADDED && event.getId().equals(id)) {
+
+                    var task = TaskManager.getManagerInstance().getTask(id);
+                    doAddListeners(task);
+                }
+            }
+            );
+
+        }
+
+    }
+
+    private void doAddListeners(SearchTask task) {
         task.addTaskListener(le -> {
 
             /**
@@ -60,24 +93,23 @@ public class Log extends Group {
 
         task.addStatusChangeListener((StateEntry e) -> {
             logEntries.add(e);
-            
+
             if (e.getStatus() == Status.IN_PROGRESS) {
                 start = e.getTime();
                 end = null;
             } else {
                 end = e.getTime();
             }
-            
+
             notifyListeners(e);
-            
+
             if (e.getState() == Status.DONE) {
                 logFinished();
             }
         } /**
          * Do these actions every time the task status has changed.
-         */ 
+         */
         );
-
     }
 
     private void logFinished() {
@@ -112,7 +144,7 @@ public class Log extends Group {
     public boolean isStarted() {
         return logEntries.size() > 0;
     }
-    
+
     public boolean isFinished() {
         return finished;
     }
@@ -195,16 +227,18 @@ public class Log extends Group {
     public static void setGraphicalLog(boolean verbose) {
         Log.graphical = verbose;
     }
-    
+
     /**
-     * Time taken where the first array element contains seconds [0] and the second contains milliseconds [1].
-     * @return an array of long values that sum um to the time taken to process a task
+     * Time taken where the first array element contains seconds [0] and the
+     * second contains milliseconds [1].
+     *
+     * @return an array of long values that sum um to the time taken to process
+     * a task
      */
-    
     public long[] timeTaken() {
         var seconds = SECONDS.between(getStart(), getEnd());
         var ms = MILLIS.between(getStart(), getEnd()) - 1000L * seconds;
-        return new long[] {seconds, ms};
+        return new long[]{seconds, ms};
     }
 
 }

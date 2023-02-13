@@ -17,7 +17,7 @@ public class SearchListRenderer extends DefaultListCellRenderer {
 
         var renderer = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
         ((JComponent) renderer).setBorder(createEmptyBorder(10, 10, 10, 10));
-   
+
         return renderer;
 
     }

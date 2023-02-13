@@ -1,18 +1,20 @@
 package pulse.math;
 
+import java.io.Serializable;
 import java.util.Objects;
 import pulse.properties.NumericPropertyKeyword;
 
-public class ParameterIdentifier {
- 
+public class ParameterIdentifier implements Serializable {
+
+    private static final long serialVersionUID = 5288875329862605319L;
     private NumericPropertyKeyword keyword;
     private int index;
-    
+
     public ParameterIdentifier(NumericPropertyKeyword keyword, int index) {
         this.keyword = keyword;
         this.index = index;
     }
-    
+
     public ParameterIdentifier(NumericPropertyKeyword keyword) {
         this(keyword, 0);
     }
@@ -24,43 +26,43 @@ public class ParameterIdentifier {
         hash = 29 * hash + this.index;
         return hash;
     }
-    
+
     public ParameterIdentifier(int index) {
         this.index = index;
     }
-    
+
     public NumericPropertyKeyword getKeyword() {
         return keyword;
     }
-    
+
     public int getIndex() {
         return index;
     }
-    
+
     @Override
     public boolean equals(Object id) {
-        if(id.getClass() == null) {
+        if (id.getClass() == null) {
             return false;
         }
-        
+
         var classA = id.getClass();
         var classB = this.getClass();
-        
-        if(classA != classB) {
+
+        if (classA != classB) {
             return false;
         }
-        
+
         var pid = (ParameterIdentifier) id;
         return keyword == pid.keyword && Math.abs(index - pid.index) < 1;
     }
-    
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("").append(keyword);
-        if(index > 0) {
+        if (index > 0) {
             sb.append(" # ").append(index);
         }
         return sb.toString();
     }
-    
+
 }

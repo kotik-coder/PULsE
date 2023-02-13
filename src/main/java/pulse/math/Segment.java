@@ -1,5 +1,6 @@
 package pulse.math;
 
+import java.io.Serializable;
 import java.util.Random;
 import pulse.properties.NumericPropertyKeyword;
 import static pulse.properties.NumericProperties.def;
@@ -9,11 +10,15 @@ import static pulse.properties.NumericProperties.def;
  * that {@code a < b}.
  *
  */
-public class Segment {
+public class Segment implements Serializable {
 
+    /**
+     *
+     */
+    private static final long serialVersionUID = -1373763811823628708L;
     private double a;
     private double b;
-    
+
     public final static Segment UNBOUNDED = new Segment(Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
 
     /**
@@ -36,17 +41,17 @@ public class Segment {
         this.a = segment.a;
         this.b = segment.b;
     }
-    
+
     /**
-     * Creates a segment representing the bounds of {@code p}, i.e. the range
-     * in which the property value is allowed to change
+     * Creates a segment representing the bounds of {@code p}, i.e. the range in
+     * which the property value is allowed to change
+     *
      * @param p a property keyword to extract default bounds
      * @return a {@code Segment} with the bounds
      */
-    
     public static Segment boundsFrom(NumericPropertyKeyword p) {
-        return new Segment(def(p).getMinimum().doubleValue(), 
-                           def(p).getMaximum().doubleValue());
+        return new Segment(def(p).getMinimum().doubleValue(),
+                def(p).getMaximum().doubleValue());
     }
 
     /**

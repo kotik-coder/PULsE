@@ -13,6 +13,8 @@ import pulse.ui.Messages;
 
 public class SR1Optimiser extends CompositePathOptimiser {
 
+    private static final long serialVersionUID = -3041166132227281210L;
+
     private static SR1Optimiser instance = new SR1Optimiser();
 
     private final static double r = 1E-8;

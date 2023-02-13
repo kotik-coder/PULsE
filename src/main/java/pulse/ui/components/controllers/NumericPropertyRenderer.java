@@ -41,7 +41,6 @@ public class NumericPropertyRenderer extends DefaultTableCellRenderer {
             result = superRenderer;
         }
 
-        
         result.setForeground(UIManager.getColor("List.foreground"));
         return result;
 

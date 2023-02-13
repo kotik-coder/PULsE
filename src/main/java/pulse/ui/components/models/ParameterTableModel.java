@@ -9,19 +9,15 @@ import java.util.List;
 
 import javax.swing.table.AbstractTableModel;
 
-import pulse.input.InterpolationDataset;
 import pulse.properties.Flag;
 import pulse.properties.NumericProperties;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.search.direction.ActiveFlags;
+import pulse.tasks.TaskManager;
 import pulse.ui.Messages;
 
 public class ParameterTableModel extends AbstractTableModel {
-    
-    /**
-     *
-     */
-    private static final long serialVersionUID = 1L;
+
     protected List<NumericPropertyKeyword> elements;
     private final boolean extendedList;
 
@@ -39,7 +35,7 @@ public class ParameterTableModel extends AbstractTableModel {
             elements.add(OPTIMISER_STATISTIC);
             elements.add(TEST_STATISTIC);
             elements.add(IDENTIFIER);
-            elements.addAll(InterpolationDataset.derivableProperties());
+            elements.addAll(TaskManager.getManagerInstance().derivableProperties());
         }
     }
 
@@ -55,19 +51,19 @@ public class ParameterTableModel extends AbstractTableModel {
 
     @Override
     public Object getValueAt(int i, int i1) {
-        if(i > -1 && i < getRowCount() && i1 > -1 && i1 < getColumnCount()) {
+        if (i > -1 && i < getRowCount() && i1 > -1 && i1 < getColumnCount()) {
             var p = NumericProperties.def(elements.get(i));
-            return i1 == 0 ? p.getAbbreviation(true) : Messages.getString("TextWrap.2") +
-                             p.getDescriptor(false) + Messages.getString("TextWrap.1");
-        }
-        else
+            return i1 == 0 ? p.getAbbreviation(true) : Messages.getString("TextWrap.2")
+                    + p.getDescriptor(false) + Messages.getString("TextWrap.1");
+        } else {
             return null;
+        }
     }
-    
+
     public boolean contains(NumericPropertyKeyword key) {
         return elements.contains(key);
     }
-    
+
     public NumericPropertyKeyword getElementAt(int index) {
         return elements.get(index);
     }

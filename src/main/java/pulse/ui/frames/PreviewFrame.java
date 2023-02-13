@@ -85,7 +85,7 @@ public class PreviewFrame extends JInternalFrame {
 
         getContentPane().add(createEmptyPanel(), CENTER);
 
-        var toolbar = new JToolBar(); 
+        var toolbar = new JToolBar();
         toolbar.setFloatable(false);
         toolbar.setLayout(new GridLayout());
 
@@ -118,7 +118,7 @@ public class PreviewFrame extends JInternalFrame {
 
         selectXBox.addItemListener(e -> replot(chart));
         selectYBox.addItemListener(e -> replot(chart));
-        this.setDefaultCloseOperation(EXIT_ON_CLOSE);                               
+        this.setDefaultCloseOperation(EXIT_ON_CLOSE);
     }
 
     private void replot(JFreeChart chart) {
@@ -146,7 +146,7 @@ public class PreviewFrame extends JInternalFrame {
         if (drawSmooth) {
             drawSmooth(plot, selectedX, selectedY);
         }
-        
+
     }
 
     private void drawSmooth(XYPlot plot, int selectedX, int selectedY) {
@@ -161,7 +161,7 @@ public class PreviewFrame extends JInternalFrame {
             //Akima spline for small number of points
             var interpolator = new AkimaSplineInterpolator();
             interpolation = interpolator.interpolate(data[selectedX][0], data[selectedY][0]);
-        } catch( NonMonotonicSequenceException e) {
+        } catch (NonMonotonicSequenceException e) {
             //do not draw if points not strictly increasing
             return;
         }
@@ -175,7 +175,7 @@ public class PreviewFrame extends JInternalFrame {
             x[i] = data[selectedX][0][0] + dx * i;
             try {
                 y[i] = interpolation.value(x[i]);
-            } catch(OutOfRangeException e) {
+            } catch (OutOfRangeException e) {
                 y[i] = Double.NaN;
             }
         }
@@ -192,14 +192,14 @@ public class PreviewFrame extends JInternalFrame {
 
         propertyNames = new ArrayList<>(size);
         String tmp;
-        
+
         selectXBox.removeAllItems();
         selectYBox.removeAllItems();
 
         for (var s : descriptors) {
             selectXBox.addItem(s);
             selectYBox.addItem(s);
-        }        
+        }
 
         selectXBox.setSelectedIndex(fmt.indexOf(TEST_TEMPERATURE));
         selectYBox.setSelectedIndex(fmt.indexOf(DIFFUSIVITY));
@@ -228,14 +228,13 @@ public class PreviewFrame extends JInternalFrame {
 
         //plot.setRangeGridlinesVisible(false);
         //plot.setDomainGridlinesVisible(false);        
-
         var fore = UIManager.getColor("Label.foreground");
         plot.setDomainGridlinePaint(fore);
-        
+
         plot.getRenderer(1).setSeriesPaint(1, SMOOTH_COLOR);
         plot.getRenderer(0).setSeriesPaint(0, RESULT_COLOR);
-        plot.getRenderer(0).setSeriesShape(0, 
-                new Rectangle(-MARKER_SIZE/2, -MARKER_SIZE/2, MARKER_SIZE, MARKER_SIZE));
+        plot.getRenderer(0).setSeriesShape(0,
+                new Rectangle(-MARKER_SIZE / 2, -MARKER_SIZE / 2, MARKER_SIZE, MARKER_SIZE));
 
         chart.removeLegend();
 
@@ -250,7 +249,7 @@ public class PreviewFrame extends JInternalFrame {
         plot.setBackgroundPaint(chart.getBackgroundPaint());
         Chart.setAxisFontColor(plot.getDomainAxis(), fore);
         Chart.setAxisFontColor(plot.getRangeAxis(), fore);
-        
+
         return cp;
     }
 

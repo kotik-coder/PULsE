@@ -17,23 +17,22 @@ import java.util.stream.DoubleStream;
  * calculated as the difference of the current value and population mean divided
  * by the population standard deviation.
  */
-
 public class ZScore {
-    
+
     private double[] avgFilter;
     private double[] stdFilter;
     private int[] signals;
-    
+
     private int lag;
     private double threshold;
     private double influence;
-    
+
     public ZScore(int lag, double threshold, double influence) {
         this.lag = lag;
         this.threshold = threshold;
         this.influence = influence;
     }
-    
+
     public ZScore() {
         this(40, 3.5, 0.3);
     }
@@ -42,32 +41,32 @@ public class ZScore {
 
         signals = new int[input.length];
         List<Double> filteredY = DoubleStream.of(input).boxed().collect(Collectors.toList());
-       
-        var initialWindow = filteredY.subList(input.length - lag, input.length - 1);
+
+        var initialWindow = new ArrayList<>(filteredY.subList(input.length - lag, input.length - 1));
 
         avgFilter = new double[input.length];
         stdFilter = new double[input.length];
-        
+
         avgFilter[input.length - lag + 1] = mean(initialWindow);
         stdFilter[input.length - lag + 1] = stdev(initialWindow);
 
         for (int i = input.length - lag; i > 0; i--) {
-            
+
             if (Math.abs(input[i] - avgFilter[i + 1]) > threshold * stdFilter[i + 1]) {
-                
+
                 signals[i] = (input[i] > avgFilter[i + 1]) ? 1 : -1;
-                filteredY.set(i, influence * input[i] 
-                                 + (1 - influence) * filteredY.get(i + 1));
-            
+                filteredY.set(i, influence * input[i]
+                        + (1 - influence) * filteredY.get(i + 1));
+
             } else {
-            
+
                 signals[i] = 0;
                 filteredY.set(i, input[i]);
-            
+
             }
 
             // Update rolling average and deviation
-            var slidingWindow = filteredY.subList(i, i + lag - 1);
+            var slidingWindow = new ArrayList<>(filteredY.subList(i, i + lag - 1));
 
             avgFilter[i] = mean(slidingWindow);
             stdFilter[i] = stdev(slidingWindow);
@@ -89,19 +88,19 @@ public class ZScore {
         }
         return ret;
     }
-    
+
     public int[] getSignals() {
         return signals;
     }
-    
+
     public double[] getFilteredAverage() {
         return avgFilter;
     }
-    
+
     public double[] getFilteredStdev() {
         return stdFilter;
     }
-    
+
     /*
     public static void main(String[] args) {
         Scanner sc = null;
@@ -129,6 +128,5 @@ public class ZScore {
         }
         
     }
-    */
-      
+     */
 }

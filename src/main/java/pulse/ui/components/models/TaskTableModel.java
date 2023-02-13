@@ -31,14 +31,21 @@ public class TaskTableModel extends DefaultTableModel {
     public TaskTableModel() {
 
         super(new Object[][]{},
-                new String[]{def(IDENTIFIER).getAbbreviation(true), 
+                new String[]{def(IDENTIFIER).getAbbreviation(true),
                     def(TEST_TEMPERATURE).getAbbreviation(true),
-                    def(OPTIMISER_STATISTIC).getAbbreviation(true), 
+                    def(OPTIMISER_STATISTIC).getAbbreviation(true),
                     def(TEST_STATISTIC).getAbbreviation(true),
                     getString("TaskTable.Status")});
 
+        resetSession();
+    }
+    
+    public void resetSession() {
+        //clear all rows
+        this.setRowCount(0);
         var instance = TaskManager.getManagerInstance();
-
+        instance.getTaskList().stream().forEach(t -> addTask(t));
+        
         /*
 		 * task removed/added listener
          */
@@ -49,14 +56,13 @@ public class TaskTableModel extends DefaultTableModel {
                 addTask(instance.getTask(e.getId()));
             }
         });
-
     }
 
     public void addTask(SearchTask t) {
-        var temperature = ( (ExperimentalData) t.getInput() )
+        var temperature = ((ExperimentalData) t.getInput())
                 .getMetadata().numericProperty(TEST_TEMPERATURE);
         var calc = (Calculation) t.getResponse();
-        var data = new Object[]{t.getIdentifier(), temperature, 
+        var data = new Object[]{t.getIdentifier(), temperature,
             calc.getOptimiserStatistic().getStatistic(),
             t.getNormalityTest().getStatistic(), t.getStatus()};
 
@@ -65,7 +71,7 @@ public class TaskTableModel extends DefaultTableModel {
         t.addStatusChangeListener((StateEntry e) -> {
             setValueAt(e.getState(), searchRow(t.getIdentifier()), STATUS_COLUMN);
             if (t.getNormalityTest() != null) {
-                setValueAt(t.getNormalityTest().getStatistic(), 
+                setValueAt(t.getNormalityTest().getStatistic(),
                         searchRow(t.getIdentifier()), TEST_STATISTIC_COLUMN);
             }
         });

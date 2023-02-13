@@ -37,7 +37,6 @@ import pulse.problem.statements.Problem;
 import pulse.tasks.Calculation;
 import pulse.tasks.SearchTask;
 import pulse.tasks.TaskManager;
-import pulse.tasks.listeners.TaskSelectionEvent;
 import pulse.ui.components.ProblemTree;
 import pulse.ui.components.PropertyHolderTable;
 import pulse.ui.components.listeners.ProblemSelectionEvent;
@@ -90,8 +89,6 @@ public class ProblemStatementFrame extends JInternalFrame {
          */
         problemTree = new ProblemTree(knownProblems);
         contentPane.add(new JScrollPane(problemTree));
-
-        var instance = getManagerInstance();
 
         problemListExecutor = Executors.newCachedThreadPool();
         schemeListExecutor = Executors.newCachedThreadPool();
@@ -188,12 +185,12 @@ public class ProblemStatementFrame extends JInternalFrame {
         getContentPane().add(contentPane, CENTER);
         getContentPane().add(toolbar, SOUTH);
 
-        /*
-		 * listeners
-         */
-        instance.addSelectionListener((TaskSelectionEvent e) -> update(instance.getSelectedTask()));
-
-        getManagerInstance().addHierarchyListener(event -> {
+        resetSession();
+    }
+    
+    public void resetSession() {
+        var instance = getManagerInstance();
+        instance.addHierarchyListener(event -> {
             if ((event.getSource() instanceof PropertyHolderTable) && instance.isSingleStatement()) {
 
                 //for all tasks
@@ -211,7 +208,6 @@ public class ProblemStatementFrame extends JInternalFrame {
             }
 
         });
-
     }
 
     public void update() {

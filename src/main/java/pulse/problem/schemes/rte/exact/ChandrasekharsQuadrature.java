@@ -11,9 +11,7 @@ import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericProperty.requireType;
 import static pulse.properties.NumericPropertyKeyword.QUADRATURE_POINTS;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.IntStream;
 
@@ -25,8 +23,6 @@ import pulse.math.linear.SquareMatrix;
 import pulse.math.linear.Vector;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
-import static pulse.properties.NumericPropertyKeyword.NONLINEAR_PRECISION;
-import pulse.properties.Property;
 
 /**
  * This quadrature methods of evaluating the composition product of the
@@ -39,10 +35,11 @@ import pulse.properties.Property;
  */
 public class ChandrasekharsQuadrature extends CompositionProduct {
 
+    private static final long serialVersionUID = 3282258803373408111L;
     private int m;
     private double expLower;
     private double expUpper;
-    private LaguerreSolver solver;
+    private transient LaguerreSolver solver;
     private double[] moments;
 
     /**
@@ -127,8 +124,8 @@ public class ChandrasekharsQuadrature extends CompositionProduct {
     /**
      * Calculates \int_{r_{min}}^{r_{max}}{x^{l+1}exp(-x)dx}.
      *
-     * @param l an integer such that 0 <= l <= 2*m - 1.
-     * @return the value of this definite integral.
+     * @param l an integer such that 0 <= l <= 2*m - 1. @re
+     * turn the value of this definite integral.
      */
     private static double auxilliaryIntegral(final double x, final int lPlusN, final double exp) {
 
@@ -261,6 +258,9 @@ public class ChandrasekharsQuadrature extends CompositionProduct {
                 break;
             default:
                 // use LaguerreSolver
+                if (solver == null) {
+                    solver = new LaguerreSolver();
+                }
                 roots = Arrays.stream(solver.solveAllComplex(c, 1.0)).mapToDouble(complex -> complex.getReal()).toArray();
         }
 

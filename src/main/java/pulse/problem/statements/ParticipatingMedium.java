@@ -1,7 +1,5 @@
 package pulse.problem.statements;
 
-
-import java.util.List;
 import java.util.Set;
 
 import pulse.math.ParameterVector;
@@ -10,12 +8,13 @@ import pulse.problem.schemes.solvers.MixedCoupledSolver;
 import pulse.problem.schemes.solvers.SolverException;
 import pulse.problem.statements.model.ThermalProperties;
 import pulse.problem.statements.model.ThermoOpticalProperties;
-import pulse.properties.Flag;
 import pulse.properties.NumericPropertyKeyword;
 import static pulse.properties.NumericPropertyKeyword.SOURCE_GEOMETRIC_FACTOR;
 import pulse.ui.Messages;
 
 public class ParticipatingMedium extends NonlinearProblem {
+
+    private static final long serialVersionUID = -8227061869299826343L;
 
     public ParticipatingMedium() {
         super();

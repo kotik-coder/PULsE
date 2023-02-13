@@ -19,12 +19,12 @@ public class ParticleSwarmOptimiser extends PathOptimiser {
     protected void moveParticles() {
         var topology = swarmState.getNeighborhoodTopology();
         for (var p : swarmState.getParticles()) {
-            p.adopt(mover.attemptMove(p, 
-                    topology.neighbours(p, swarmState), 
+            p.adopt(mover.attemptMove(p,
+                    topology.neighbours(p, swarmState),
                     swarmState.getBestSoFar()));
             var data = p.getCurrentState().getPosition().toVector().getData();
             StringBuilder sb = new StringBuilder().append(p.getId()).append(" ");
-            for(var d : data) {
+            for (var d : data) {
                 sb.append(d).append(" ");
             }
             System.err.println(sb.toString());
@@ -63,7 +63,7 @@ public class ParticleSwarmOptimiser extends PathOptimiser {
         swarmState.create();
         return swarmState;
     }
-    
+
     //TODO
     @Override
     public boolean compatibleWith(OptimiserStatistic os) {

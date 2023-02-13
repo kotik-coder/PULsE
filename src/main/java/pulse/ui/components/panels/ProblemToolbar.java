@@ -5,8 +5,6 @@ import static java.lang.System.err;
 import static javax.swing.JOptionPane.ERROR_MESSAGE;
 import static javax.swing.JOptionPane.showMessageDialog;
 import static javax.swing.SwingUtilities.getWindowAncestor;
-import static pulse.input.InterpolationDataset.StandartType.DENSITY;
-import static pulse.input.InterpolationDataset.StandartType.HEAT_CAPACITY;
 import static pulse.tasks.logs.Status.INCOMPLETE;
 import static pulse.ui.Messages.getString;
 
@@ -22,6 +20,8 @@ import pulse.problem.schemes.solvers.SolverException;
 import pulse.tasks.Calculation;
 import pulse.tasks.TaskManager;
 import pulse.ui.components.buttons.LoaderButton;
+import static pulse.ui.components.buttons.LoaderButton.DataType.DENSITY;
+import static pulse.ui.components.buttons.LoaderButton.DataType.HEAT_CAPACITY;
 import pulse.ui.frames.MainGraphFrame;
 import pulse.ui.frames.TaskControlFrame;
 
@@ -40,12 +40,12 @@ public class ProblemToolbar extends JToolBar {
         btnSimulate = new JButton(getString("ProblemStatementFrame.SimulateButton")); //$NON-NLS-1$
         add(btnSimulate);
 
-        btnLoadCv = new LoaderButton(getString("ProblemStatementFrame.LoadSpecificHeatButton")); //$NON-NLS-1$
-        btnLoadCv.setDataType(HEAT_CAPACITY);
+        btnLoadCv = new LoaderButton(HEAT_CAPACITY, 
+                getString("ProblemStatementFrame.LoadSpecificHeatButton")); //$NON-NLS-1$
         add(btnLoadCv);
 
-        btnLoadDensity = new LoaderButton(getString("ProblemStatementFrame.LoadDensityButton")); //$NON-NLS-1$
-        btnLoadDensity.setDataType(DENSITY);
+        btnLoadDensity = new LoaderButton(DENSITY,
+                getString("ProblemStatementFrame.LoadDensityButton")); //$NON-NLS-1$
         add(btnLoadDensity);
 
         btnSimulate.addActionListener((ActionEvent e)
@@ -69,7 +69,7 @@ public class ProblemToolbar extends JToolBar {
         if (status == INCOMPLETE && !status.checkProblemStatementSet()) {
 
             getDefaultToolkit().beep();
-            showMessageDialog(getWindowAncestor((Component) e.getSource()), 
+            showMessageDialog(getWindowAncestor((Component) e.getSource()),
                     calc.getStatus().getMessage(),
                     getString("ProblemStatementFrame.ErrorTitle"), //$NON-NLS-1$
                     ERROR_MESSAGE);

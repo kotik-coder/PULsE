@@ -18,7 +18,6 @@ import pulse.math.ParameterVector;
 import pulse.math.Segment;
 import pulse.math.transforms.StickTransform;
 import pulse.problem.schemes.solvers.SolverException;
-import pulse.properties.Flag;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.search.Optimisable;
@@ -32,12 +31,14 @@ import pulse.util.PropertyHolder;
  */
 public class Range extends PropertyHolder implements Optimisable {
 
-    private Segment segment;
-    
-    public final static Range UNLIMITED = new Range (Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
+    private static final long serialVersionUID = 5326569416384623525L;
+
+    private final Segment segment;
+
+    public final static Range UNLIMITED = new Range(Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
     public final static Range NEGATIVE = new Range(Double.NEGATIVE_INFINITY, -1E-16);
     public final static Range POSITIVE = new Range(1e-16, Double.POSITIVE_INFINITY);
-    
+
     /**
      * Constructs a {@code Range} from the minimum and maximum values of
      * {@code data}.
@@ -60,44 +61,43 @@ public class Range extends PropertyHolder implements Optimisable {
     public Range(double a, double b) {
         this.segment = new Segment(a, b);
     }
-    
+
     /**
-     * Contains a data double array ([0] - x, [1] - y), 
-     * where the data points have been filtered so that 
-     * each x fits into this range.
+     * Contains a data double array ([0] - x, [1] - y), where the data points
+     * have been filtered so that each x fits into this range.
+     *
      * @param input
      * @return a [2][...] array containing filtered x and y values
      */
-    
     public List<Double>[] filter(DiscreteInput input) {
-       var x = input.getX();
-       var y = input.getY();
-       
-       if(x.size() != y.size()) {
-           throw new IllegalArgumentException("x.length != y.length");
-       }
-       
-       var xf = new ArrayList<Double>();
-       var yf = new ArrayList<Double>();
-       
-       double min = segment.getMinimum();
-       double max = segment.getMaximum();
-       
-       final double eps = 1E-10;
-       
-       for(int i = 0, size = x.size(); i < size; i++) {
-           
-           if(x.get(i) > min && x.get(i) < max + eps) {
-           
-            xf.add(x.get(i));
-            yf.add(y.get(i));
-           
-           }
-           
-       }
-       
-       return new List[]{xf, yf};
-       
+        var x = input.getX();
+        var y = input.getY();
+
+        if (x.size() != y.size()) {
+            throw new IllegalArgumentException("x.length != y.length");
+        }
+
+        var xf = new ArrayList<Double>();
+        var yf = new ArrayList<Double>();
+
+        double min = segment.getMinimum();
+        double max = segment.getMaximum();
+
+        final double eps = 1E-10;
+
+        for (int i = 0, size = x.size(); i < size; i++) {
+
+            if (x.get(i) > min && x.get(i) < max + eps) {
+
+                xf.add(x.get(i));
+                yf.add(y.get(i));
+
+            }
+
+        }
+
+        return new List[]{xf, yf};
+
     }
 
     /**
@@ -139,12 +139,12 @@ public class Range extends PropertyHolder implements Optimisable {
      */
     public void setLowerBound(NumericProperty p) {
         requireType(p, LOWER_BOUND);
-        
-        if( boundLimits(false).contains( ((Number)p.getValue()).doubleValue())) {
+
+        if (boundLimits(false).contains(((Number) p.getValue()).doubleValue())) {
             segment.setMinimum((double) p.getValue());
             firePropertyChanged(this, p);
         }
-        
+
     }
 
     /**
@@ -154,12 +154,12 @@ public class Range extends PropertyHolder implements Optimisable {
      */
     public void setUpperBound(NumericProperty p) {
         requireType(p, UPPER_BOUND);
-        
-        if( boundLimits(true).contains( ((Number)p.getValue()).doubleValue()) ) {
+
+        if (boundLimits(true).contains(((Number) p.getValue()).doubleValue())) {
             segment.setMaximum((double) p.getValue());
             firePropertyChanged(this, p);
         }
-        
+
     }
 
     /**
@@ -215,26 +215,28 @@ public class Range extends PropertyHolder implements Optimisable {
         set.add(LOWER_BOUND);
         set.add(UPPER_BOUND);
         return set;
-    }    
-    
+    }
+
     /**
      * Calculates the allowed range for either the upper or lower bound.
-     * @param isUpperBound if {@code true}, will calculate the range for the upper bound, otherwise -- for the lower one.,
+     *
+     * @param isUpperBound if {@code true}, will calculate the range for the
+     * upper bound, otherwise -- for the lower one.,
      * @return a Segment range of limits for the specific bound
      */
-    
     public Segment boundLimits(boolean isUpperBound) {
-        
+
         var curve = (ExperimentalData) this.getParent();
         var seq = curve.getTimeSequence();
         double tHalf = curve.getHalfTimeCalculator().getHalfTime();
-        
+
         Segment result = null;
-        if(isUpperBound)
+        if (isUpperBound) {
             result = new Segment(2.5 * tHalf, seq.get(seq.size() - 1));
-        else
-            result = new Segment( Math.max(-0.15 * tHalf, seq.get(0)), 0.75 * tHalf);
-        
+        } else {
+            result = new Segment(Math.max(-0.15 * tHalf, seq.get(0)), 0.75 * tHalf);
+        }
+
         return result;
     }
 
@@ -250,14 +252,14 @@ public class Range extends PropertyHolder implements Optimisable {
      */
     @Override
     public void optimisationVector(ParameterVector output) {
-        
+
         Segment bounds;
-        
+
         for (Parameter p : output.getParameters()) {
 
             var key = p.getIdentifier().getKeyword();
             double value;
-            
+
             switch (key) {
                 case UPPER_BOUND:
                     bounds = boundLimits(true);
@@ -270,7 +272,7 @@ public class Range extends PropertyHolder implements Optimisable {
                 default:
                     continue;
             }
-            
+
             var transform = new StickTransform(bounds);
 
             p.setBounds(bounds);
@@ -292,7 +294,7 @@ public class Range extends PropertyHolder implements Optimisable {
         for (Parameter p : params.getParameters()) {
 
             var key = p.getIdentifier().getKeyword();
-            var np = derive( key, p.inverseTransform() );
+            var np = derive(key, p.inverseTransform());
 
             switch (key) {
                 case UPPER_BOUND:

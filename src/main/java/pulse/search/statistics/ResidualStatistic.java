@@ -102,9 +102,8 @@ public abstract class ResidualStatistic extends Statistic {
     public final void calculateResiduals(DiscreteInput reference, Response estimate, int min, int max) {
         var y = reference.getY();
         var x = reference.getX();
-   
+
         //if size has not changed, use the old list
-        
         if (ry.size() == max - min + 1) {
 
             for (int i = min; i < max; i++) {
@@ -113,13 +112,10 @@ public abstract class ResidualStatistic extends Statistic {
 
             }
 
-        } 
-        
-        //else create a new list
-        
+        } //else create a new list
         else {
 
-            rx = x.subList(min, max);
+            rx = new ArrayList<>(x.subList(min, max));
             ry.clear();
 
             for (int i = min; i < max; i++) {
@@ -131,18 +127,18 @@ public abstract class ResidualStatistic extends Statistic {
         }
 
     }
-    
+
     public void calculateResiduals(DiscreteInput reference, Response estimate) {
         var y = reference.getY();
         var x = reference.getX();
-     
+
         var estimateRange = estimate.accessibleRange();
 
         int min = (int) Math.max(reference.getIndexRange().getLowerBound(),
-                IndexRange.closestLeft(estimateRange.getMinimum(), x) );
+                IndexRange.closestLeft(estimateRange.getMinimum(), x));
         int max = (int) Math.min(reference.getIndexRange().getUpperBound(),
-                IndexRange.closestRight(estimateRange.getMaximum(), x) );
-  
+                IndexRange.closestRight(estimateRange.getMaximum(), x));
+
         calculateResiduals(reference, estimate, min, max);
     }
 

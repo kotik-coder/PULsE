@@ -1,8 +1,9 @@
 package pulse.tasks.listeners;
 
+import java.io.Serializable;
 import pulse.tasks.processing.ResultFormat;
 
-public class ResultFormatEvent {
+public class ResultFormatEvent implements Serializable {
 
     private ResultFormat rf;
 

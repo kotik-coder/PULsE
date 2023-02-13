@@ -34,11 +34,11 @@ public class TaskTableRenderer extends NumericPropertyRenderer {
 
             superRenderer.setForeground(((Status) value).getColor());
             superRenderer.setFont(superRenderer.getFont().deriveFont(BOLD));
-            ((JLabel)superRenderer).setHorizontalAlignment(JLabel.CENTER);
+            ((JLabel) superRenderer).setHorizontalAlignment(JLabel.CENTER);
 
             return superRenderer;
 
-        } 
+        }
 
         return superRenderer;
 

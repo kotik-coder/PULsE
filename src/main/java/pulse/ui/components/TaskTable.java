@@ -56,40 +56,17 @@ public class TaskTable extends JTable {
         setSelectionMode(SINGLE_INTERVAL_SELECTION);
         setShowHorizontalLines(false);
 
-        var model = new TaskTableModel();
-        setModel(model);
-
         var th = new TableHeader(getColumnModel());
 
         setTableHeader(th);
-
         getTableHeader().setPreferredSize(new Dimension(50, HEADER_HEIGHT));
-
         setAutoCreateRowSorter(true);
-        var sorter = new TableRowSorter<DefaultTableModel>();
-        sorter.setModel(model);
-        var list = new ArrayList<RowSorter.SortKey>();
-
-        for (var i = 0; i < this.getModel().getColumnCount(); i++) {
-            list.add(new RowSorter.SortKey(i, ASCENDING));
-            if (i == TaskTableModel.STATUS_COLUMN) {
-                sorter.setComparator(i, statusComparator);
-            } else {
-                sorter.setComparator(i, numericComparator);
-            }
-        }
-
-        sorter.setSortKeys(list);
-        setRowSorter(sorter);
-
         initListeners();
         menu = new TaskPopupMenu();
 
     }
 
     public void initListeners() {
-
-        var instance = TaskManager.getManagerInstance();
 
         /*
 		 * mouse listener
@@ -98,6 +75,8 @@ public class TaskTable extends JTable {
 
             @Override
             public void mouseClicked(MouseEvent e) {
+
+                var instance = TaskManager.getManagerInstance();
 
                 if (rowAtPoint(e.getPoint()) >= 0 && rowAtPoint(e.getPoint()) == getSelectedRow() && isRightMouseButton(e)) {
                     var task = instance.getSelectedTask();
@@ -116,21 +95,50 @@ public class TaskTable extends JTable {
         var reference = this;
 
         lsm.addListSelectionListener((ListSelectionEvent e) -> {
+            var instance = TaskManager.getManagerInstance();
             if (!lsm.getValueIsAdjusting() && !lsm.isSelectionEmpty()) {
                 var id = (Identifier) getValueAt(lsm.getMinSelectionIndex(), 0);
                 instance.selectTask(id, reference);
             }
         });
 
+        resetSession();
+
+    }
+
+    public void resetSession() {
+        var model = new TaskTableModel();
+        setModel(model);
+
+        var sorter = new TableRowSorter<DefaultTableModel>();
+        sorter.setModel(model);
+        var list = new ArrayList<RowSorter.SortKey>();
+
+        for (var i = 0; i < this.getModel().getColumnCount(); i++) {
+            list.add(new RowSorter.SortKey(i, ASCENDING));
+            if (i == TaskTableModel.STATUS_COLUMN) {
+                sorter.setComparator(i, statusComparator);
+            } else {
+                sorter.setComparator(i, numericComparator);
+            }
+        }
+
+        sorter.setSortKeys(list);
+        setRowSorter(sorter);
+
+        var instance = TaskManager.getManagerInstance();
         instance.addSelectionListener((TaskSelectionEvent e) -> {
+
             // simply ignore call if event is triggered by taskTable
-            if (e.getSource() instanceof TaskTable) {
+            if (e.getSource() == this) {
                 return;
             }
 
             var id = instance.getSelectedTask().getIdentifier();
             Identifier idFromTable = null;
             int i = 0;
+            
+            clearSelection();
 
             for (i = 0; i < getRowCount() && !id.equals(idFromTable); i++) {
                 idFromTable = (Identifier) getValueAt(i, 0);
@@ -139,9 +147,7 @@ public class TaskTable extends JTable {
             if (i < getRowCount()) {
                 setRowSelectionInterval(i, i);
             }
-            clearSelection();
         });
-
     }
 
     @Override

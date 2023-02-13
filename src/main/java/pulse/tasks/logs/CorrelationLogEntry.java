@@ -35,12 +35,14 @@ public class CorrelationLogEntry extends LogEntry {
         for (ImmutablePair<ParameterIdentifier> key : map.keySet()) {
             sb.append("<tr><td>");
             sb.append(def(key.getFirst().getKeyword()).getAbbreviation(false));
-            if(key.getFirst().getIndex() > 0) 
+            if (key.getFirst().getIndex() > 0) {
                 sb.append(" - ").append(key.getFirst().getIndex());
+            }
             sb.append("</td><td>");
             sb.append(def(key.getSecond().getKeyword()).getAbbreviation(false));
-            if(key.getSecond().getIndex() > 0) 
+            if (key.getSecond().getIndex() > 0) {
                 sb.append(" - ").append(key.getSecond().getIndex());
+            }
             sb.append("</td><td>");
             if (test.compareToThreshold(map.get(key))) {
                 sb.append("<font color='red'>");

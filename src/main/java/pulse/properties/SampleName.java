@@ -4,6 +4,7 @@ import java.util.Objects;
 
 public class SampleName implements Property {
 
+    private static final long serialVersionUID = -965821128124753850L;
     private String name;
 
     public SampleName(String name) {

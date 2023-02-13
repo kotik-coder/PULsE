@@ -1,5 +1,6 @@
 package pulse.problem.schemes.rte.dom;
 
+import java.io.Serializable;
 import pulse.math.LegendrePoly;
 import pulse.math.MathUtils;
 
@@ -10,7 +11,9 @@ import pulse.math.MathUtils;
  * @author Teymur Aliev, Vadim Zborovskii, Artem Lunev
  *
  */
-public class CompositeGaussianQuadrature {
+public class CompositeGaussianQuadrature implements Serializable {
+
+    private static final long serialVersionUID = 780827333372523309L;
 
     private LegendrePoly poly;
 

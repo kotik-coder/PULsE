@@ -3,6 +3,7 @@ package pulse.ui.components;
 import java.awt.Color;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.io.Serializable;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.logging.Level;
@@ -19,20 +20,19 @@ import pulse.tasks.listeners.TaskSelectionEvent;
 import pulse.ui.components.panels.ChartToolbar;
 
 /**
- * Two JFormattedTextFields used to display the range of the currently
- * selected task.
+ * Two JFormattedTextFields used to display the range of the currently selected
+ * task.
  */
-public final class RangeTextFields {
+public final class RangeTextFields implements Serializable {
 
     private JFormattedTextField lowerLimitField;
     private JFormattedTextField upperLimitField;
 
     /**
-     * Creates textfield objects, which may be accessed with getters from this instance.
-     * Additionally, binds listeners to all current and future tasks in order to observe
-     * and reflect upon the changes with the textfield.
+     * Creates textfield objects, which may be accessed with getters from this
+     * instance. Additionally, binds listeners to all current and future tasks
+     * in order to observe and reflect upon the changes with the textfield.
      */
-    
     public RangeTextFields() {
         initTextFields();
 
@@ -53,18 +53,17 @@ public final class RangeTextFields {
         //when a new task is selected
         instance.addSelectionListener((TaskSelectionEvent e) -> {
             var task = instance.getSelectedTask();
-            var segment = ( (ExperimentalData) task.getInput() ).getRange().getSegment();
+            var segment = ((ExperimentalData) task.getInput()).getRange().getSegment();
             //update the textfield values
             lowerLimitField.setValue(segment.getMinimum());
             upperLimitField.setValue(segment.getMaximum());
         });
 
     }
-    
+
     /*
     Creates a formatter for the textfields
-    */
-
+     */
     private NumberFormatter initFormatter() {
         var format = new DecimalFormat();
         format.setMinimumFractionDigits(1);
@@ -83,18 +82,19 @@ public final class RangeTextFields {
         formatter.setOverwriteMode(true);
         return formatter;
     }
-    
+
     /**
      * Checks if the candidate value produced by the formatter is sensible, i.e.
-     * if it lies within the bounds defined in the Range class. 
+     * if it lies within the bounds defined in the Range class.
+     *
      * @param jtf the textfield containing the candidate value as text
-     * @param upperBound whether the upper bound is checked ({@code false} if the lower bound is checked)
+     * @param upperBound whether the upper bound is checked ({@code false} if
+     * the lower bound is checked)
      * @return {@code true} if the edit may proceed
      */
-
     private static boolean isEditValid(JFormattedTextField jtf, boolean upperBound) {
-        Range range = ( (ExperimentalData) TaskManager.getManagerInstance().getSelectedTask()
-                .getInput() ).getRange();
+        Range range = ((ExperimentalData) TaskManager.getManagerInstance().getSelectedTask()
+                .getInput()).getRange();
 
         double candidateValue = 0.0;
         try {
@@ -107,12 +107,11 @@ public final class RangeTextFields {
 
         return range.boundLimits(upperBound).contains(candidateValue);
     }
-    
-    /**
-     * Creates a formatter and initialised the textfields, setting up rules
-     * for edit validation. 
-     */
 
+    /**
+     * Creates a formatter and initialised the textfields, setting up rules for
+     * edit validation.
+     */
     private void initTextFields() {
         var instance = TaskManager.getManagerInstance();
 
@@ -153,7 +152,7 @@ public final class RangeTextFields {
             }
 
         };
-        
+
         var fl = new FocusListener() {
             @Override
             public void focusGained(FocusEvent arg0) {
@@ -189,11 +188,11 @@ public final class RangeTextFields {
             }
         });
     }
-    
+
     public JFormattedTextField getLowerLimitField() {
         return lowerLimitField;
     }
-    
+
     public JFormattedTextField getUpperLimitField() {
         return upperLimitField;
     }

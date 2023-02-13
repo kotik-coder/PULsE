@@ -14,9 +14,10 @@ import pulse.util.PropertyHolder;
 
 public class OptimisablePolyline extends PropertyHolder implements Optimisable {
 
+    private static final long serialVersionUID = 418264754603533971L;
     private final double[] x;
     private final double[] y;
-    private final List<AssignmentListener> listeners;
+    private List<AssignmentListener> listeners;
 
     public OptimisablePolyline(List<Point2D> data) {
         x = data.stream().mapToDouble(d -> d.getX()).toArray();
@@ -27,7 +28,7 @@ public class OptimisablePolyline extends PropertyHolder implements Optimisable {
     @Override
     public void assign(ParameterVector input) throws SolverException {
         var ps = input.getParameters();
-        for(int i = 0, size = ps.size(); i < size; i++) {
+        for (int i = 0, size = ps.size(); i < size; i++) {
             y[i] = ps.get(i).getApparentValue();
         }
         listeners.stream().forEach(l -> l.onValueAssigned());
@@ -37,7 +38,7 @@ public class OptimisablePolyline extends PropertyHolder implements Optimisable {
     public void optimisationVector(ParameterVector output) {
         output.setValues(new Vector(y));
     }
-    
+
     public List<Point2D> points() {
         return DiscreteInput.convert(x, y);
     }
@@ -46,15 +47,15 @@ public class OptimisablePolyline extends PropertyHolder implements Optimisable {
     public void set(NumericPropertyKeyword type, NumericProperty property) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-    
+
     public double[] getX() {
         return x;
     }
-    
+
     public double[] getY() {
         return y;
     }
-    
+
     public void addAssignmentListener(AssignmentListener listener) {
         listeners.add(listener);
     }

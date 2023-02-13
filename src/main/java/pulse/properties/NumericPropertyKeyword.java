@@ -157,13 +157,10 @@ public enum NumericPropertyKeyword {
      * sample (1D and 2D problems).
      */
     HEAT_LOSS,
-    
     /**
      * The convective heat loss in diathermic and participating medium problems.
      */
-    
     HEAT_LOSS_CONVECTIVE,
-    
     /**
      * A directive for the optimiser to maintain equal heat losses on all
      * surfaces of the sample. Note that the dimensionless heat losses, i.e.
@@ -224,7 +221,6 @@ public enum NumericPropertyKeyword {
      * Statistical significance for calculating the critical value.
      */
     SIGNIFICANCE,
-
     /**
      * Optimiser statistic (usually, RSS).
      */
@@ -354,50 +350,36 @@ public enum NumericPropertyKeyword {
      * damping. A value of 1 gives pure Marquardt damping.
      */
     DAMPING_RATIO,
-    
     /**
      * Determines how much weight is attributed to the front-face light source
-     * compared to rear face. Can be a number between zero and unity. 
+     * compared to rear face. Can be a number between zero and unity.
      */
-    
     SOURCE_GEOMETRIC_FACTOR,
-    
     /**
      * Max. no. of high-frequency waves in the sinusoidal baseline.
      */
-    
     MAX_HIGH_FREQ_WAVES,
-    
     /**
-    * Max. no. of low-frequency waves in the sinusoidal baseline.
-    */
-    
+     * Max. no. of low-frequency waves in the sinusoidal baseline.
+     */
     MAX_LOW_FREQ_WAVES,
-    
     /**
      * Energy exchange coefficient in the two-temperature model (g).
      */
-    
     SOLID_EXCHANGE_COEFFICIENT,
-    
     /**
      * Energy exchange coefficient in the two-temperature model (g').
      */
-    
     GAS_EXCHANGE_COEFFICIENT,
-    
     /**
      * Heat loss for the gas in the 2T-model.
      */
-    
     HEAT_LOSS_GAS,
-    
     /**
      * Value of objective function.
      */
-    
     OBJECTIVE_FUNCTION;
-    
+
     public static Optional<NumericPropertyKeyword> findAny(String key) {
         return Arrays.asList(values()).stream().filter(keys -> keys.toString().equalsIgnoreCase(key)).findAny();
     }

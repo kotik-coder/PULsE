@@ -258,7 +258,7 @@ public abstract class AbstractData extends PropertyHolder {
     public boolean ignoreSiblings() {
         return true;
     }
-    
+
     public boolean isFull() {
         return actualNumPoints() >= count;
     }

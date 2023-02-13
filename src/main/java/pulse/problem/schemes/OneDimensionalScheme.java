@@ -15,8 +15,7 @@ public abstract class OneDimensionalScheme extends DifferenceScheme {
     protected OneDimensionalScheme(NumericProperty timeLimit) {
         super(timeLimit);
     }
-    
-    
+
     @Override
     public void clearArrays() {
         final int N = (int) getGrid().getGridDensity().getValue();
@@ -32,9 +31,9 @@ public abstract class OneDimensionalScheme extends DifferenceScheme {
     /**
      * Overwrites previously calculated temperature values with the calculations
      * made at the current time step
+     *
      * @throws SolverException if the calculation failed
      */
-    
     @Override
     public void finaliseStep() throws SolverException {
         System.arraycopy(V, 0, U, 0, V.length);

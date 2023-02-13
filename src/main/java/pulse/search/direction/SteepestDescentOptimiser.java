@@ -16,6 +16,10 @@ import pulse.ui.Messages;
  */
 public class SteepestDescentOptimiser extends CompositePathOptimiser {
 
+    /**
+     *
+     */
+    private static final long serialVersionUID = -6868259511333467862L;
     private static SteepestDescentOptimiser instance = new SteepestDescentOptimiser();
 
     private SteepestDescentOptimiser() {

@@ -1,5 +1,7 @@
 package pulse.problem.schemes.rte.dom;
 
+import java.io.Serializable;
+
 /**
  * A globally C<sup>1</sup> Hermite interpolator used to interpolate intensities
  * and derivatives in discrete ordinates method when solving the radiative
@@ -8,8 +10,9 @@ package pulse.problem.schemes.rte.dom;
  * @author Vadim Zborovskii, Artem Lunev
  *
  */
-public class HermiteInterpolator {
+public class HermiteInterpolator implements Serializable {
 
+    private static final long serialVersionUID = -1973954803574711053L;
     protected double y1;
     protected double y0;
     protected double d1;

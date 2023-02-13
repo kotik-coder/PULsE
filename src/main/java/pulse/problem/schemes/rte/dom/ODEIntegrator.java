@@ -21,9 +21,9 @@ public abstract class ODEIntegrator extends PropertyHolder implements Reflexive 
 
     protected void init(NonlinearProblem problem) {
         extract((ThermoOpticalProperties) problem.getProperties());
-        setEmissionFunction( new BlackbodySpectrum(problem) );
+        setEmissionFunction(new BlackbodySpectrum(problem));
     }
-        
+
     protected void extract(ThermoOpticalProperties properties) {
         discretisation.setEmissivity((double) properties.getEmissivity().getValue());
         discretisation.setGrid(new StretchedGrid((double) properties.getOpticalThickness().getValue()));

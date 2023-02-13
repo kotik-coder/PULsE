@@ -1,5 +1,6 @@
 package pulse.problem.laser;
 
+import java.io.Serializable;
 import java.util.Objects;
 import pulse.input.ExperimentalData;
 import pulse.math.MidpointIntegrator;
@@ -19,8 +20,9 @@ import pulse.util.PropertyHolderListener;
  *
  * @see pulse.problem.statements.Pulse
  */
-public class DiscretePulse {
+public class DiscretePulse implements Serializable {
 
+    private static final long serialVersionUID = 5826506918603729615L;
     private final Grid grid;
     private final Pulse pulse;
     private final ExperimentalData data;

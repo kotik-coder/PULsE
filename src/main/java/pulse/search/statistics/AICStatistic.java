@@ -7,6 +7,8 @@ package pulse.search.statistics;
  */
 public class AICStatistic extends ModelSelectionCriterion {
 
+    private static final long serialVersionUID = 8549601688520099629L;
+
     public AICStatistic(OptimiserStatistic os) {
         super(os);
     }

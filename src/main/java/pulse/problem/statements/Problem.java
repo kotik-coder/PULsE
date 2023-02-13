@@ -1,5 +1,6 @@
 package pulse.problem.statements;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import static pulse.input.listeners.CurveEventType.RESCALED;
 import static pulse.properties.NumericProperties.derive;
@@ -52,6 +53,10 @@ import pulse.util.Reflexive;
  */
 public abstract class Problem extends PropertyHolder implements Reflexive, Optimisable {
 
+    /**
+     *
+     */
+    private static final long serialVersionUID = 7275327427201737684L;
     private ThermalProperties properties;
     private HeatingCurve curve;
     private Baseline baseline;
@@ -174,7 +179,7 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
      * @param c the {@code ExperimentalData} object
      */
     public void retrieveData(ExperimentalData c) {
-        baseline.fitTo(c); 
+        baseline.fitTo(c);
         estimateSignalRange(c);
         updateProperties(this, c.getMetadata());
         properties.useTheoreticalEstimates(c);
@@ -423,9 +428,8 @@ public abstract class Problem extends PropertyHolder implements Reflexive, Optim
         var searchTask = (SearchTask) this.specificAncestor(SearchTask.class);
         if (searchTask != null) {
             var experimentalData = (ExperimentalData) searchTask.getInput();
-            Executors.newSingleThreadExecutor().submit(()
-                    -> baseline.fitTo(experimentalData)
-            );
+            Runnable baselineFitter = (Runnable & Serializable) () -> baseline.fitTo(experimentalData);
+            Executors.newSingleThreadExecutor().submit(baselineFitter);
         }
         parameterListChanged();
     }

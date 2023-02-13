@@ -29,7 +29,7 @@ import pulse.util.Reflexive;
  */
 public abstract class DifferenceScheme extends PropertyHolder implements Reflexive {
 
-    private DiscretePulse discretePulse;
+    private transient DiscretePulse discretePulse;
     private Grid grid;
 
     private double timeLimit;
@@ -92,7 +92,7 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
     protected void prepare(Problem problem) throws SolverException {
         if (discretePulse == null) {
             discretePulse = problem.discretePulseOn(grid);
-        }   
+        }
         discretePulse.init();
         clearArrays();
     }
@@ -114,12 +114,12 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
 
         int numPoints = (int) curve.getNumPoints().getValue();
 
-        final double startTime   = (double) curve.getTimeShift().getValue();
+        final double startTime = (double) curve.getTimeShift().getValue();
         final double timeSegment = (endTime - startTime - offset) / problem.getProperties().characteristicTime();
 
         double tau = grid.getTimeStep();
         final double dt = timeSegment / (numPoints - 1);
-        timeInterval = Math.max( (int) (dt / tau), 1);
+        timeInterval = Math.max((int) (dt / tau), 1);
 
         double wFactor = timeInterval * tau * problem.getProperties().characteristicTime();
 
@@ -297,16 +297,16 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
             setTimeLimit(property);
         }
     }
-    
+
     public abstract double signal();
-    
+
     public abstract void clearArrays();
 
     public abstract void timeStep(int m) throws SolverException;
 
     public abstract void finaliseStep() throws SolverException;
 
-        /**
+    /**
      * Retrieves all problem statements that can be solved with this
      * implementation of the difference scheme.
      *
@@ -322,5 +322,5 @@ public abstract class DifferenceScheme extends PropertyHolder implements Reflexi
      * @return an exact copy of this {@code DifferenceScheme}.
      */
     public abstract DifferenceScheme copy();
-    
+
 }

@@ -4,7 +4,6 @@ import java.util.List;
 
 import pulse.problem.schemes.rte.RadiativeTransferSolver;
 import pulse.problem.schemes.rte.dom.DiscreteOrdinatesMethod;
-import pulse.problem.statements.ClassicalProblem;
 import pulse.problem.statements.ParticipatingMedium;
 import pulse.problem.statements.Problem;
 import pulse.problem.statements.model.ThermoOpticalProperties;
@@ -16,9 +15,11 @@ import pulse.util.PropertyHolder;
 
 public class RadiativeTransferCoupling extends PropertyHolder {
 
+    private static final long serialVersionUID = -8969606772435213260L;
     private RadiativeTransferSolver rte;
-    private InstanceDescriptor<? extends RadiativeTransferSolver> instanceDescriptor = new InstanceDescriptor<RadiativeTransferSolver>(
-            "RTE Solver Selector", RadiativeTransferSolver.class);
+    private InstanceDescriptor<? extends RadiativeTransferSolver> instanceDescriptor
+            = new InstanceDescriptor<RadiativeTransferSolver>(
+                    "RTE Solver Selector", RadiativeTransferSolver.class);
 
     public RadiativeTransferCoupling() {
         instanceDescriptor.setSelectedDescriptor(DiscreteOrdinatesMethod.class.getSimpleName());
@@ -34,7 +35,7 @@ public class RadiativeTransferCoupling extends PropertyHolder {
     public void init(ParticipatingMedium problem, Grid grid) {
 
         if (rte == null) {
-            
+
             if (!(problem.getProperties() instanceof ThermoOpticalProperties)) {
                 throw new IllegalArgumentException("Illegal problem type: " + problem);
             }

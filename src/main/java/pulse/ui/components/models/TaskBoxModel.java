@@ -17,10 +17,6 @@ import pulse.tasks.listeners.TaskRepositoryEvent;
  */
 public class TaskBoxModel extends AbstractListModel<SearchTask> implements ComboBoxModel<SearchTask> {
 
-    /**
-     *
-     */
-    private static final long serialVersionUID = 5394433933807306979L;
     protected SearchTask selectedTask;
 
     public TaskBoxModel() {

@@ -1,6 +1,5 @@
 package pulse.ui.components.controllers;
 
-
 import java.awt.Component;
 import java.awt.Font;
 
@@ -27,28 +26,23 @@ public class AccessibleTableRenderer extends NumericPropertyRenderer {
             int row, int column) {
 
         Component result = null;
-        
+
         if (value instanceof Flag) {
             result = new IconCheckBox((boolean) ((Property) value).getValue());
             ((IconCheckBox) result).setHorizontalAlignment(CENTER);
-        } 
-        
-        else if (value instanceof PropertyHolder) {
-             var sb = new StringBuilder("Click to Edit/View ");
-             sb.append(((PropertyHolder) value).getSimpleName());
-             sb.append("...");
-             result = new JButton(sb.toString());
-             ((JButton)result).setToolTipText(value.toString());
-             ((JButton)result).setHorizontalAlignment(LEFT);
-        }
-
-        else { 
+        } else if (value instanceof PropertyHolder) {
+            var sb = new StringBuilder("Click to Edit/View ");
+            sb.append(((PropertyHolder) value).getSimpleName());
+            sb.append("...");
+            result = new JButton(sb.toString());
+            ((JButton) result).setToolTipText(value.toString());
+            ((JButton) result).setHorizontalAlignment(LEFT);
+        } else {
             result = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
         }
-        
+
         return result;
-    
+
     }
-    
 
 }

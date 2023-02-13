@@ -1,7 +1,6 @@
 package pulse.input.listeners;
 
-import pulse.input.InterpolationDataset.StandartType;
-
+import java.io.Serializable;
 /**
  * A listener associated with the {@code InterpolationDataset} static repository
  * of interpolations.
@@ -9,11 +8,7 @@ import pulse.input.InterpolationDataset.StandartType;
  */
 public interface ExternalDatasetListener {
 
-    /**
-     * Triggered when a data {@code type} has been loaded.
-     *
-     * @param type a type of the dataset, for which an interpolation is created.
-     */
-    public void onDataLoaded(StandartType type);
+    public void onSpecificHeatDataLoaded();
+    public void onDensityDataLoaded();
 
 }

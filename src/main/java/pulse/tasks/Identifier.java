@@ -15,6 +15,7 @@ import pulse.ui.Messages;
  */
 public class Identifier extends NumericProperty {
 
+    private static final long serialVersionUID = 3751417739136256453L;
     private static int lastId = -1;
 
     private Identifier(int value, boolean addToList) {
@@ -57,5 +58,5 @@ public class Identifier extends NumericProperty {
     public String toString() {
         return Messages.getString("Identifier.Tag") + " " + getValue();
     }
-
+  
 }

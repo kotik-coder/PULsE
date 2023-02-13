@@ -29,6 +29,10 @@ import pulse.util.PropertyHolder;
  */
 public class Buffer extends PropertyHolder {
 
+    /**
+     *
+     */
+    private static final long serialVersionUID = 3613745885879508057L;
     private ParameterVector[] data;
     private double[] statistic;
     private static int size = (int) def(BUFFER_SIZE).getValue();

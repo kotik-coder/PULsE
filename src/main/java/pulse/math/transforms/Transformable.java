@@ -1,11 +1,13 @@
 package pulse.math.transforms;
 
+import java.io.Serializable;
+
 /**
  * An interface for performing reversible one-to-one mapping of the model
  * parameters.
  *
  */
-public interface Transformable {
+public interface Transformable extends Serializable {
 
     /**
      * Performs the selected transform with {@code value}

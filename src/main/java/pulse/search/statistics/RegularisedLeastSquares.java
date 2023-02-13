@@ -13,8 +13,9 @@ import pulse.search.GeneralTask;
  */
 public class RegularisedLeastSquares extends SumOfSquares {
 
+    private static final long serialVersionUID = -7398979361944447180L;
     private double lambda = 1e-4;
-   
+
     public RegularisedLeastSquares() {
         super();
     }

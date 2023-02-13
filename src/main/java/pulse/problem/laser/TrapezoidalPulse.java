@@ -18,12 +18,13 @@ import pulse.properties.NumericPropertyKeyword;
  */
 public class TrapezoidalPulse extends PulseTemporalShape {
 
+    private static final long serialVersionUID = 2089809680713225034L;
     private double rise;
     private double fall;
     private double h;
 
     private final static int MIN_POINTS = 8;
-    
+
     /**
      * Constructs a trapezoidal pulse using a default segmentation principle.
      * The reader is referred to the {@code .xml} file containing the default
@@ -42,7 +43,7 @@ public class TrapezoidalPulse extends PulseTemporalShape {
         this.fall = another.fall;
         this.h = another.h;
     }
-    
+
     /**
      * Calculates the height of the trapezium which under current segmentation
      * will yield an area of unity.
@@ -125,7 +126,7 @@ public class TrapezoidalPulse extends PulseTemporalShape {
     public PulseTemporalShape copy() {
         return new TrapezoidalPulse(this);
     }
-    
+
     @Override
     public int getRequiredDiscretisation() {
         return MIN_POINTS;

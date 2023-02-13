@@ -44,7 +44,6 @@ public class ResultTable extends JTable implements Descriptive {
 
         var model = new ResultTableModel(fmt);
         setModel(model);
-        setRowSorter(sorter());
 
         model.addListener(event -> setRowSorter(sorter()));
 
@@ -60,6 +59,12 @@ public class ResultTable extends JTable implements Descriptive {
         headersSize.height = RESULTS_HEADER_HEIGHT;
         getTableHeader().setPreferredSize(headersSize);
 
+        resetSession();
+    }
+
+    public void resetSession() {
+        ((ResultTableModel)getModel()).resetSession();
+        
         /*
 		 * Listen to TaskTable and select appropriate results when task selection
 		 * changes
@@ -76,10 +81,10 @@ public class ResultTable extends JTable implements Descriptive {
 		 * Automatically add finished tasks to this result table Automatically remove
 		 * results if corresponding task is removed
          */
-        TaskManager.getManagerInstance().addTaskRepositoryListener((TaskRepositoryEvent e) -> {
+        instance.addTaskRepositoryListener((TaskRepositoryEvent e) -> {
             var t = instance.getTask(e.getId());
-            
-            if(t != null) {
+
+            if (t != null) {
 
                 var cc = (Calculation) t.getResponse();
 
@@ -112,10 +117,12 @@ public class ResultTable extends JTable implements Descriptive {
                     default:
                         break;
                 }
-            
+
             }
         });
-
+        
+        setRowSorter(sorter());
+        
     }
 
     public void clear() {
@@ -124,7 +131,8 @@ public class ResultTable extends JTable implements Descriptive {
     }
 
     private TableRowSorter<ResultTableModel> sorter() {
-        var sorter = new TableRowSorter<ResultTableModel>((ResultTableModel) getModel());
+        var model = (ResultTableModel) getModel();
+        var sorter = new TableRowSorter<ResultTableModel>(model);
         var list = new ArrayList<RowSorter.SortKey>();
         Comparator<NumericProperty> numericComparator = (i1, i2) -> i1.compareTo(i2);
 

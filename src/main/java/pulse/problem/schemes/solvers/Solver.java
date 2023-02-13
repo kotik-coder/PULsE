@@ -1,5 +1,6 @@
 package pulse.problem.schemes.solvers;
 
+import java.io.Serializable;
 import pulse.problem.statements.Problem;
 
 /**
@@ -9,7 +10,7 @@ import pulse.problem.statements.Problem;
  *
  * @param <T> an instance of Problem
  */
-public interface Solver<T extends Problem> {
+public interface Solver<T extends Problem> extends Serializable {
 
     /**
      * Calculates the solution of the {@code t} and stores it in the respective

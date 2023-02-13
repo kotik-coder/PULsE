@@ -13,6 +13,7 @@ import pulse.properties.NumericProperty;
 
 public class ExplicitTranslucentSolver extends ExplicitScheme implements Solver<PenetrationProblem> {
 
+    private static final long serialVersionUID = -3693226611473383024L;
     private int N;
     private double hx;
     private double tau;
@@ -33,7 +34,7 @@ public class ExplicitTranslucentSolver extends ExplicitScheme implements Solver<
         super.prepare(problem);
 
         var grid = getGrid();
-        model = ((PenetrationProblem)problem).getAbsorptionModel();
+        model = ((PenetrationProblem) problem).getAbsorptionModel();
 
         N = (int) grid.getGridDensity().getValue();
         hx = grid.getXStep();

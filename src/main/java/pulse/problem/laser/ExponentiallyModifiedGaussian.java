@@ -24,10 +24,11 @@ import pulse.properties.NumericPropertyKeyword;
  */
 public class ExponentiallyModifiedGaussian extends PulseTemporalShape {
 
+    private static final long serialVersionUID = -4437794069527301235L;
     private double mu;
     private double sigma;
     private double lambda;
-   
+
     private final static int MIN_POINTS = 10;
 
     /**

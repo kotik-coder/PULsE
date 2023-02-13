@@ -23,6 +23,7 @@ import pulse.util.InstanceDescriptor;
  */
 public class DiscreteOrdinatesMethod extends RadiativeTransferSolver {
 
+    private static final long serialVersionUID = 2881363894773388976L;
     private InstanceDescriptor<AdaptiveIntegrator> integratorDescriptor = new InstanceDescriptor<AdaptiveIntegrator>(
             "Integrator selector", AdaptiveIntegrator.class);
     private InstanceDescriptor<IterativeSolver> iterativeSolverSelector = new InstanceDescriptor<IterativeSolver>(
@@ -55,7 +56,6 @@ public class DiscreteOrdinatesMethod extends RadiativeTransferSolver {
         setIterativeSolver(iterativeSolverSelector.newInstance(IterativeSolver.class));
 
         phaseFunctionSelector.setSelectedDescriptor(HenyeyGreensteinPF.class.getSimpleName());
-        phaseFunctionSelector.addListener(() -> initPhaseFunction(properties, discrete));
         initPhaseFunction(properties, discrete);
 
         init(problem, grid);
@@ -66,7 +66,8 @@ public class DiscreteOrdinatesMethod extends RadiativeTransferSolver {
 
         iterativeSolverSelector
                 .addListener(() -> setIterativeSolver(iterativeSolverSelector.newInstance(IterativeSolver.class)));
-
+        
+        phaseFunctionSelector.addListener(() -> initPhaseFunction(properties, discrete));
     }
 
     @Override
@@ -78,7 +79,7 @@ public class DiscreteOrdinatesMethod extends RadiativeTransferSolver {
         if (status == RTECalculationStatus.NORMAL) {
             fluxesAndDerivatives(tempArray.length);
         }
-        
+
         fireStatusUpdate(status);
         return status;
     }
@@ -94,10 +95,10 @@ public class DiscreteOrdinatesMethod extends RadiativeTransferSolver {
         for (int i = 0; i < nExclusive; i++) {
             double flux = DOUBLE_PI * discrete.firstMoment(interpolation[0], i);
             fluxes.setFlux(i, flux);
-            fluxes.setFluxDerivative(i, 
+            fluxes.setFluxDerivative(i,
                     -DOUBLE_PI * discrete.firstMoment(interpolation[1], i));
         }
-        
+
     }
 
     @Override
@@ -108,8 +109,8 @@ public class DiscreteOrdinatesMethod extends RadiativeTransferSolver {
     @Override
     public void init(ParticipatingMedium problem, Grid grid) {
         super.init(problem, grid);
-        var top = (ThermoOpticalProperties)problem.getProperties();
-        initPhaseFunction(top, 
+        var top = (ThermoOpticalProperties) problem.getProperties();
+        initPhaseFunction(top,
                 integrator.getDiscretisation());
         integrator.init(problem);
         integrator.getPhaseFunction().init(top);

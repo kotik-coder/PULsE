@@ -25,15 +25,16 @@ import pulse.search.Optimisable;
 
 public abstract class AbsorptionModel extends PropertyHolder implements Reflexive, Optimisable {
 
+    private static final long serialVersionUID = -8937860285061335131L;
     private Map<SpectralRange, NumericProperty> absorptionMap;
-    
+
     protected AbsorptionModel() {
         setPrefix("Absorption model");
         absorptionMap = new HashMap<>();
         absorptionMap.put(LASER, def(LASER_ABSORPTIVITY));
         absorptionMap.put(THERMAL, def(THERMAL_ABSORPTIVITY));
     }
-    
+
     protected AbsorptionModel(AbsorptionModel c) {
         this.absorptionMap = new HashMap<>();
         this.absorptionMap.putAll(c.absorptionMap);
@@ -109,7 +110,7 @@ public abstract class AbsorptionModel extends PropertyHolder implements Reflexiv
         set.add(COMBINED_ABSORPTIVITY);
         return set;
     }
-    
+
     @Override
     public void optimisationVector(ParameterVector output) {
         for (Parameter p : output.getParameters()) {
@@ -117,7 +118,7 @@ public abstract class AbsorptionModel extends PropertyHolder implements Reflexiv
             double value = 0;
 
             Transformable transform = ABS;
-            
+
             switch (key) {
                 case LASER_ABSORPTIVITY:
                     value = (double) (getLaserAbsorptivity()).getValue();
@@ -161,7 +162,7 @@ public abstract class AbsorptionModel extends PropertyHolder implements Reflexiv
 
         }
     }
-    
+
     public abstract AbsorptionModel copy();
 
 }

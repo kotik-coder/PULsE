@@ -11,6 +11,8 @@ import pulse.math.Segment;
  */
 public class AtanhTransform extends BoundedParameterTransform {
 
+    private static final long serialVersionUID = -6322775329000050307L;
+
     /**
      * Only the upper bound of the argument is used.
      *

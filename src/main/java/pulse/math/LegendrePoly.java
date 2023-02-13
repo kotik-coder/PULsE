@@ -1,5 +1,6 @@
 package pulse.math;
 
+import java.io.Serializable;
 import static pulse.math.MathUtils.fastPowInt;
 import static pulse.math.MathUtils.fastPowLoop;
 import static pulse.properties.NumericProperties.def;
@@ -21,8 +22,9 @@ import org.apache.commons.math3.analysis.solvers.LaguerreSolver;
  * @see <a href="https://en.wikipedia.org/wiki/Legendre_polynomials">Wiki
  * page</a>
  */
-public class LegendrePoly {
+public class LegendrePoly implements Serializable {
 
+    private static final long serialVersionUID = -6859690814783610846L;
     private double[] c;
     private int n;
 

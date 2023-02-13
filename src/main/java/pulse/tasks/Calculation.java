@@ -39,6 +39,7 @@ import pulse.util.UpwardsNavigable;
 
 public class Calculation extends PropertyHolder implements Comparable<Calculation>, Response {
 
+    private static final long serialVersionUID = 8098141563821512602L;
     private Status status;
     public final static double RELATIVE_TIME_MARGIN = 1.01;
 
@@ -111,7 +112,7 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
     public void setProblem(Problem problem, ExperimentalData curve) {
         this.problem = problem;
         problem.setParent(this);
-        problem.removeHeatingCurveListeners();
+        problem.removeListeners();
         addProblemListeners(problem, curve);
     }
 
@@ -206,7 +207,7 @@ public class Calculation extends PropertyHolder implements Comparable<Calculatio
         if (this.getStatus() != status) {
 
             changeStatus = true;
-            
+
             //current status is given by ** this.status **
             //new status is the ** argument ** of this method
             switch (this.status) {

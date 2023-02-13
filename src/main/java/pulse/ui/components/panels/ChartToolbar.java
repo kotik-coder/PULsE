@@ -171,7 +171,7 @@ public final class ChartToolbar extends JToolBar {
             // set range for all available experimental datasets
             TaskManager.getManagerInstance().getTaskList()
                     .stream().forEach((aTask)
-                            -> setRange( (ExperimentalData) aTask.getInput(), a, b)
+                            -> setRange((ExperimentalData) aTask.getInput(), a, b)
                     );
         }
 

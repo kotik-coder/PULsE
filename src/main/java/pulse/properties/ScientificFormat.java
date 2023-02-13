@@ -30,6 +30,7 @@ import java.util.logging.Logger;
  */
 public class ScientificFormat extends NumberFormat {
 
+    private static final long serialVersionUID = -6509402151736747913L;
     private final int dimensionFactor;
     private final double dimensionDelta;
 

@@ -3,7 +3,6 @@ package pulse.tasks;
 import static java.time.LocalDateTime.now;
 import static java.time.format.DateTimeFormatter.ISO_WEEK_DATE;
 import static java.util.Objects.requireNonNull;
-import static java.util.stream.Collectors.toList;
 import static pulse.io.readers.ReaderManager.curveReaders;
 import static pulse.io.readers.ReaderManager.read;
 import static pulse.tasks.listeners.TaskRepositoryEvent.State.SHUTDOWN;
@@ -18,6 +17,8 @@ import static pulse.tasks.logs.Status.QUEUED;
 import static pulse.util.Group.contents;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -28,11 +29,19 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import pulse.input.ExperimentalData;
+import pulse.input.InterpolationDataset;
 import pulse.input.listeners.DataEvent;
 import pulse.input.listeners.DataEventType;
+import pulse.input.listeners.ExternalDatasetListener;
+import pulse.properties.NumericPropertyKeyword;
+import static pulse.properties.NumericPropertyKeyword.CONDUCTIVITY;
+import static pulse.properties.NumericPropertyKeyword.DENSITY;
+import static pulse.properties.NumericPropertyKeyword.EMISSIVITY;
+import static pulse.properties.NumericPropertyKeyword.SPECIFIC_HEAT;
 
 import pulse.properties.SampleName;
 import pulse.search.direction.PathOptimiser;
+import pulse.tasks.listeners.SessionListener;
 import pulse.tasks.listeners.TaskRepositoryEvent;
 import pulse.tasks.listeners.TaskRepositoryListener;
 import pulse.tasks.listeners.TaskSelectionEvent;
@@ -44,7 +53,6 @@ import pulse.tasks.processing.ResultFormat;
 import pulse.util.Group;
 import pulse.util.HierarchyListener;
 import pulse.util.PropertyHolder;
-import pulse.util.ResourceMonitor;
 import pulse.util.UpwardsNavigable;
 
 /**
@@ -56,40 +64,76 @@ import pulse.util.UpwardsNavigable;
  * </p>
  *
  */
-public class TaskManager extends UpwardsNavigable {
+public final class TaskManager extends UpwardsNavigable {
 
-    private static final TaskManager instance = new TaskManager();
-
+    /**
+     *
+     */
+    private static final long serialVersionUID = -4255751786167667650L;
     private List<SearchTask> tasks;
     private SearchTask selectedTask;
-
     private boolean singleStatement = true;
+    private HierarchyListener statementListener;
 
-    private final List<TaskSelectionListener> selectionListeners;
-    private final List<TaskRepositoryListener> taskRepositoryListeners;
+    private transient List<TaskSelectionListener> selectionListeners;
+    private transient List<TaskRepositoryListener> taskRepositoryListeners;
+    private transient List<ExternalDatasetListener> externalListeners;
 
-    private final static String DEFAULT_NAME = "Measurement_" + now().format(ISO_WEEK_DATE);
-
-    private final HierarchyListener statementListener = e -> {
-
-        if (!(e.getSource() instanceof PropertyHolder)) {
-
-            var task = (SearchTask) e.getPropertyHolder().specificAncestor(SearchTask.class);
-            for (SearchTask t : tasks) {
-                if (t == task) {
-                    continue;
-                }
-                t.update(e.getProperty());
-            }
-
-        }
-
-    };
+    private static TaskManager instance = new TaskManager();
+    
+    private static List<SessionListener> globalListeners = new ArrayList<>();
+    
+    private InterpolationDataset cpDataset;
+    private InterpolationDataset rhoDataset;
 
     private TaskManager() {
         tasks = new ArrayList<>();
+        initListeners();
+    }
+    
+    /**
+     * Creates a list of property keywords that can be derived with help of the
+     * loaded data. For example, if heat capacity and density data is available,
+     * the returned list will contain {@code CONDUCTIVITY}.
+     *
+     * @return
+     */
+    public List<NumericPropertyKeyword> derivableProperties() {
+        var list = new ArrayList<NumericPropertyKeyword>();
+        if (cpDataset != null) {
+            list.add(SPECIFIC_HEAT);
+        }
+        if (rhoDataset != null) {
+            list.add(DENSITY);
+        }
+        if (rhoDataset != null && cpDataset != null) {
+            list.add(CONDUCTIVITY);
+            list.add(EMISSIVITY);
+        }
+        return list;
+    }
+    
+    @Override
+    public void initListeners() {
+        super.initListeners();
         selectionListeners = new CopyOnWriteArrayList<>();
         taskRepositoryListeners = new CopyOnWriteArrayList<>();
+        externalListeners = new CopyOnWriteArrayList<>();
+        statementListener = e -> {
+
+            if (!(e.getSource() instanceof PropertyHolder)) {
+
+                var task = (SearchTask) e.getPropertyHolder().specificAncestor(SearchTask.class);
+                for (SearchTask t : tasks) {
+                    if (t == task) {
+                        continue;
+                    }
+                    t.update(e.getProperty());
+                }
+
+            }
+
+        };
         addHierarchyListener(statementListener);
     }
 
@@ -211,7 +255,7 @@ public class TaskManager extends UpwardsNavigable {
 
     }
 
-    private void fireTaskSelected(Object source) {
+    public void fireTaskSelected(Object source) {
         var e = new TaskSelectionEvent(source);
         for (var l : selectionListeners) {
             l.onSelectionChanged(e);
@@ -349,7 +393,7 @@ public class TaskManager extends UpwardsNavigable {
      */
     public void generateTasks(List<File> files) {
         requireNonNull(files, "Null list of files passed to generatesTasks(...)");
-
+        
         //this is the loader runnable submitted to the executor service
         Runnable loader = () -> {
             var pool = Executors.newSingleThreadExecutor();
@@ -463,8 +507,8 @@ public class TaskManager extends UpwardsNavigable {
         taskRepositoryListeners.add(listener);
     }
 
-    public TaskSelectionListener[] getSelectionListeners() {
-        return (TaskSelectionListener[]) selectionListeners.toArray();
+    public List<TaskSelectionListener> getSelectionListeners() {
+        return  selectionListeners;
     }
 
     public void removeSelectionListeners() {
@@ -500,7 +544,9 @@ public class TaskManager extends UpwardsNavigable {
     @Override
     public String describe() {
         var name = getSampleName();
-        return name == null || name.getValue() == null ? DEFAULT_NAME : name.toString();
+        return name == null || name.getValue() == null
+                ? "Measurement_" + now().format(ISO_WEEK_DATE)
+                : name.toString();
     }
 
     public void evaluate() {
@@ -530,6 +576,24 @@ public class TaskManager extends UpwardsNavigable {
     public boolean isSingleStatement() {
         return singleStatement;
     }
+    
+    public static void assumeNewState(TaskManager loaded) {
+        TaskManager.instance = null;
+        TaskManager.instance = loaded;
+        globalListeners.stream().forEach(l -> l.onNewSessionLoaded());
+    }
+    
+    public void addExternalDatasetListener(ExternalDatasetListener edl) {
+        this.externalListeners.add(edl);
+    }
+    
+    public static void addSessionListener(SessionListener sl) {
+        globalListeners.add(sl);
+    }
+    
+    public static void removeSessionListeners() {
+        globalListeners.clear();
+    }
 
     /**
      * Sets the flag to isolate or inter-connects changes in all instances of
@@ -546,6 +610,36 @@ public class TaskManager extends UpwardsNavigable {
         } else {
             this.addHierarchyListener(statementListener);
         }
+    }
+    
+    /*
+    Serialization
+    */
+    
+    private void readObject(ObjectInputStream ois)
+            throws ClassNotFoundException, IOException {
+        // default deserialization
+        ois.defaultReadObject();
+    }
+    
+    public InterpolationDataset getDensityDataset() {
+        return rhoDataset;
+    }
+    
+    public InterpolationDataset getSpecificHeatDataset() {
+        return cpDataset;
+    }
+    
+    public void setDensityDataset(InterpolationDataset dataset) {
+        this.rhoDataset = dataset;
+        this.externalListeners.stream().forEach(l -> l.onDensityDataLoaded());
+        evaluate();
+    }
+    
+    public void setSpecificHeatDataset(InterpolationDataset dataset) {
+        this.cpDataset = dataset;
+        this.externalListeners.stream().forEach(l -> l.onSpecificHeatDataLoaded());
+        evaluate();
     }
 
 }

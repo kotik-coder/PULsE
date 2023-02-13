@@ -1,5 +1,6 @@
 package pulse.search.direction;
 
+import java.io.Serializable;
 import pulse.math.ParameterVector;
 import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.ITERATION;
@@ -7,38 +8,41 @@ import static pulse.properties.NumericPropertyKeyword.ITERATION;
 import pulse.properties.NumericProperty;
 import pulse.search.GeneralTask;
 
-public class IterativeState {
+public class IterativeState implements Serializable {
 
+    private static final long serialVersionUID = -3924087865736298552L;
     private ParameterVector parameters;
     private double cost = Double.POSITIVE_INFINITY;
     private int iteration;
     private int failedAttempts;
 
     /**
-     * Stores the parameter vector and cost function value associated with the specified state.
+     * Stores the parameter vector and cost function value associated with the
+     * specified state.
+     *
      * @param other another state of the optimiser
      */
-    
     public IterativeState(IterativeState other) {
         this.parameters = new ParameterVector(other.parameters);
         this.cost = other.cost;
     }
-    
+
     public IterativeState(GeneralTask t) {
         this.parameters = t.searchVector();
     }
-    
+
     //default constructor
-    public IterativeState() {}
-    
+    public IterativeState() {
+    }
+
     public double getCost() {
         return cost;
     }
-    
+
     public void setCost(double cost) {
         this.cost = cost;
     }
-    
+
     public void reset() {
         iteration = 0;
         setCost(Double.POSITIVE_INFINITY);
@@ -63,7 +67,7 @@ public class IterativeState {
     public void incrementFailedAttempts() {
         failedAttempts++;
     }
-    
+
     public ParameterVector getParameters() {
         return parameters;
     }

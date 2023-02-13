@@ -18,6 +18,11 @@ import pulse.properties.NumericProperty;
 public abstract class MixedScheme extends ImplicitScheme {
 
     /**
+     *
+     */
+    private static final long serialVersionUID = -770528855578192638L;
+
+    /**
      * Constructs a default semi-implicit scheme using the default values of
      * {@code GRID_DENSITY} and {@code TAU_FACTOR}.
      */

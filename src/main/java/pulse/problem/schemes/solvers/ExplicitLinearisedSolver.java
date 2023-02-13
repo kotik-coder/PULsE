@@ -46,6 +46,7 @@ import pulse.properties.NumericProperty;
  */
 public class ExplicitLinearisedSolver extends ExplicitScheme implements Solver<ClassicalProblem> {
 
+    private static final long serialVersionUID = 3084350485569519036L;
     private int N;
     private double hx;
     private double a;
@@ -66,8 +67,8 @@ public class ExplicitLinearisedSolver extends ExplicitScheme implements Solver<C
     @Override
     public void prepare(Problem problem) throws SolverException {
         super.prepare(problem);
-        
-        zeta = (double) ( (ClassicalProblem) problem).getGeometricFactor().getValue();
+
+        zeta = (double) ((ClassicalProblem) problem).getGeometricFactor().getValue();
 
         N = (int) getGrid().getGridDensity().getValue();
         hx = getGrid().getXStep();

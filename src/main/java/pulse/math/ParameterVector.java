@@ -1,9 +1,8 @@
 package pulse.math;
 
+import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import pulse.math.linear.Vector;
@@ -15,9 +14,10 @@ import pulse.properties.NumericPropertyKeyword;
  * A wrapper subclass that assigns {@code ParameterIdentifier}s to specific
  * components of the vector. Used when constructing the optimisation vector.
  */
-public class ParameterVector {
+public class ParameterVector implements Serializable {
 
-    private List<Parameter> params;
+    private static final long serialVersionUID = -4678286597080149891L;
+    private final List<Parameter> params;
 
     /**
      * Constructs an {@code IndexedVector} with the specified list of keywords.
@@ -109,11 +109,11 @@ public class ParameterVector {
             throw new IllegalArgumentException("Illegal vector dimension: "
                     + dim + " != " + this.dimension());
         }
-        
-        for(int i = 0; i < dim; i++) {
+
+        for (int i = 0; i < dim; i++) {
             params.get(i).setValue(v.get(i));
         }
-                
+
     }
 
     public int dimension() {

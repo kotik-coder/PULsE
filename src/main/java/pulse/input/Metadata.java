@@ -42,11 +42,12 @@ import pulse.util.Reflexive;
  */
 public class Metadata extends PropertyHolder implements Reflexive {
 
+    private static final long serialVersionUID = -7954252611294551707L;
     private Set<NumericProperty> data;
     private SampleName sampleName;
     private int externalID;
 
-    private InstanceDescriptor<? extends PulseTemporalShape> pulseDescriptor 
+    private InstanceDescriptor<? extends PulseTemporalShape> pulseDescriptor
             = new InstanceDescriptor<>("Pulse Shape Selector", PulseTemporalShape.class);
 
     private NumericPulseData pulseData;
@@ -117,13 +118,14 @@ public class Metadata extends PropertyHolder implements Reflexive {
 
     public final void setPulseData(NumericPulseData pulseData) {
         this.pulseData = pulseData;
-        this.set(PULSE_WIDTH, derive(PULSE_WIDTH, pulseData.pulseWidth()) );
+        this.set(PULSE_WIDTH, derive(PULSE_WIDTH, pulseData.pulseWidth()));
     }
 
     /**
      * If a Numerical Pulse has been loaded (for example, when importing from
      * Proteus), this will return an object describing this data.
-     * @return 
+     *
+     * @return
      */
     public final NumericPulseData getPulseData() {
         return pulseData;

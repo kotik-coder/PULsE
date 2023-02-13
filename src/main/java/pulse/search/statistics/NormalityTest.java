@@ -20,9 +20,10 @@ import pulse.tasks.SearchTask;
  * residuals. As this is the pre-requisite for optimisers based on the ordinary
  * least-square statistic, the normality test can also be used to estimate if a
  * fit 'failed' or 'succeeded' in describing the data.
- * 
+ *
  * The test consists in testing the relation <math>statistic < critValue</math>,
- * where the critical value is determined based on a given level of significance.
+ * where the critical value is determined based on a given level of
+ * significance.
  *
  */
 public abstract class NormalityTest extends ResidualStatistic {

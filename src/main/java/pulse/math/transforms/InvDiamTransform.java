@@ -8,6 +8,7 @@ import pulse.problem.statements.model.ExtendedThermalProperties;
  */
 public class InvDiamTransform implements Transformable {
 
+    private static final long serialVersionUID = 1809584085307619279L;
     private double d;
 
     public InvDiamTransform(ExtendedThermalProperties etp) {

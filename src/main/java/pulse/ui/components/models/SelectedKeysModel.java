@@ -1,6 +1,5 @@
 package pulse.ui.components.models;
 
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,10 +11,6 @@ import pulse.ui.Messages;
 
 public class SelectedKeysModel extends DefaultTableModel {
 
-    /**
-     *
-     */
-    private static final long serialVersionUID = 1L;
     private final List<NumericPropertyKeyword> elements;
     private final List<NumericPropertyKeyword> referenceList;
     private final NumericPropertyKeyword[] mandatorySelection;
@@ -36,7 +31,7 @@ public class SelectedKeysModel extends DefaultTableModel {
         elements.clear();
         elements.addAll(keys);
     }
-    
+
     @Override
     public int getRowCount() {
         return elements != null ? elements.size() : 0;
@@ -46,29 +41,29 @@ public class SelectedKeysModel extends DefaultTableModel {
     public int getColumnCount() {
         return 2;
     }
-    
+
     @Override
     public Object getValueAt(int i, int i1) {
-        if(i > -1 && i < getRowCount() && i1 > -1 && i1 < getColumnCount()) {
+        if (i > -1 && i < getRowCount() && i1 > -1 && i1 < getColumnCount()) {
             var p = NumericProperties.def(elements.get(i));
-            return i1 == 0 ? p.getAbbreviation(true) : Messages.getString("TextWrap.2") +
-                        p.getDescriptor(false) + Messages.getString("TextWrap.1");
-        }
-        else
+            return i1 == 0 ? p.getAbbreviation(true) : Messages.getString("TextWrap.2")
+                    + p.getDescriptor(false) + Messages.getString("TextWrap.1");
+        } else {
             return null;
+        }
     }
-    
+
     public void addElement(NumericPropertyKeyword key) {
         elements.add(key);
         var e = NumericProperties.def(key);
         int index = elements.size() - 1;
         super.fireTableRowsInserted(index, index);
     }
-    
+
     public boolean contains(NumericPropertyKeyword key) {
         return elements.contains(key);
     }
-    
+
     public List<NumericPropertyKeyword> getData() {
         return elements;
     }
@@ -76,7 +71,7 @@ public class SelectedKeysModel extends DefaultTableModel {
     public NumericPropertyKeyword getElementAt(int index) {
         return elements.get(index);
     }
-    
+
     public boolean removeElement(NumericPropertyKeyword key) {
 
         if (!elements.contains(key)) {
@@ -88,7 +83,7 @@ public class SelectedKeysModel extends DefaultTableModel {
                 return false;
             }
         }
-        
+
         var index = elements.indexOf(key);
         super.fireTableRowsDeleted(index, index);
         elements.remove(key);

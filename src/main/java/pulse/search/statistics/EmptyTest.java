@@ -4,6 +4,8 @@ import pulse.search.GeneralTask;
 
 public class EmptyTest extends NormalityTest {
 
+    private static final long serialVersionUID = 5919796302195242667L;
+
     /**
      * Always returns true
      */

@@ -2,7 +2,6 @@ package pulse.problem.schemes.rte.dom;
 
 import static java.lang.Math.sqrt;
 
-import pulse.problem.statements.ParticipatingMedium;
 import pulse.problem.statements.model.ThermoOpticalProperties;
 
 /**
@@ -11,6 +10,7 @@ import pulse.problem.statements.model.ThermoOpticalProperties;
  */
 public class HenyeyGreensteinPF extends PhaseFunction {
 
+    private static final long serialVersionUID = -2196189314681832809L;
     private double a1;
     private double a2;
     private double b1;

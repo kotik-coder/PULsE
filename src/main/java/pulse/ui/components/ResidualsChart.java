@@ -19,7 +19,7 @@ public class ResidualsChart extends AuxPlotter<ResidualStatistic> {
         setFonts();
         binCount = 32;
     }
-    
+
     @Override
     public void plot(ResidualStatistic stat) {
         requireNonNull(stat);

@@ -11,6 +11,7 @@ package pulse.problem.schemes;
  */
 public class BlockMatrixAlgorithm extends TridiagonalMatrixAlgorithm {
 
+    private static final long serialVersionUID = -6553638438386098008L;
     private final double[] gamma;
     private final double[] p;
     private final double[] q;
@@ -36,7 +37,7 @@ public class BlockMatrixAlgorithm extends TridiagonalMatrixAlgorithm {
         super.evaluateBeta(U);
         var alpha = getAlpha();
         var beta = getBeta();
-        
+
         final int N = getGridPoints();
 
         p[N - 1] = beta[N];
@@ -51,7 +52,7 @@ public class BlockMatrixAlgorithm extends TridiagonalMatrixAlgorithm {
     @Override
     public void evaluateBeta(final double[] U, final int start, final int endExclusive) {
         var alpha = getAlpha();
-        
+
         final double h = this.getGridStep();
         final double HX2_TAU = h * h / this.getTimeStep();
 

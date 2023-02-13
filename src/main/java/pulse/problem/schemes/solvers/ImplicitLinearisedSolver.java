@@ -45,16 +45,18 @@ import pulse.properties.NumericProperty;
  * @param <T> a subclass of ClassicalProblem
  * @see super.solve(Problem)
  */
-public class ImplicitLinearisedSolver<T extends ClassicalProblem> extends ImplicitScheme 
+public class ImplicitLinearisedSolver<T extends ClassicalProblem> extends ImplicitScheme
         implements Solver<T> {
 
+    private static final long serialVersionUID = -5182202341972279175L;
+
     private int N;
-    
+
     protected double Bi1HTAU;
     protected double tau;
     protected double HH;
     protected double _2HTAU;
-    
+
     private double zeta;
 
     public ImplicitLinearisedSolver() {
@@ -78,8 +80,8 @@ public class ImplicitLinearisedSolver<T extends ClassicalProblem> extends Implic
         N = (int) grid.getGridDensity().getValue();
         final double hx = grid.getXStep();
         tau = grid.getTimeStep();
-        
-        zeta = (double) ((ClassicalProblem)problem).getGeometricFactor().getValue();
+
+        zeta = (double) ((ClassicalProblem) problem).getGeometricFactor().getValue();
 
         final double Bi1 = (double) problem.getProperties().getHeatLoss().getValue();
 
@@ -114,7 +116,7 @@ public class ImplicitLinearisedSolver<T extends ClassicalProblem> extends Implic
 
     @Override
     public double evalRightBoundary(final double alphaN, final double betaN) {
-        return (HH * getPreviousSolution()[N] + 2. * tau * betaN 
+        return (HH * getPreviousSolution()[N] + 2. * tau * betaN
                 + _2HTAU * (1.0 - zeta) * getCurrentPulseValue() //additional term due to stray light 
                 ) / (2 * Bi1HTAU + HH - 2. * tau * (alphaN - 1));
     }

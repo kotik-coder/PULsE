@@ -11,6 +11,8 @@ import pulse.properties.NumericProperty;
  */
 public abstract class MidpointIntegrator extends FixedIntervalIntegrator {
 
+    private static final long serialVersionUID = -5434607461290096748L;
+
     public MidpointIntegrator(Segment bounds, NumericProperty segments) {
         super(bounds, segments);
     }

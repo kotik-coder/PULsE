@@ -30,6 +30,11 @@ import pulse.ui.Messages;
  */
 public class ClassicalProblem2D extends ClassicalProblem {
 
+    /**
+     *
+     */
+    private static final long serialVersionUID = 8974995052071820422L;
+
     public ClassicalProblem2D() {
         super();
         setPulse(new Pulse2D());
@@ -66,7 +71,7 @@ public class ClassicalProblem2D extends ClassicalProblem {
     public DiscretePulse discretePulseOn(Grid grid) {
         return grid instanceof Grid2D ? new DiscretePulse2D(this, (Grid2D) grid) : super.discretePulseOn(grid);
     }
-    
+
     @Override
     public void optimisationVector(ParameterVector output) {
         super.optimisationVector(output);
@@ -78,7 +83,7 @@ public class ClassicalProblem2D extends ClassicalProblem {
             var key = p.getIdentifier().getKeyword();
             Transformable transform = new InvDiamTransform(properties);
             var bounds = Segment.boundsFrom(key);
-            
+
             switch (key) {
                 case FOV_OUTER:
                     value = (double) properties.getFOVOuter().getValue();
@@ -127,7 +132,7 @@ public class ClassicalProblem2D extends ClassicalProblem {
                     properties.set(type, derive(type, p.inverseTransform()));
                     break;
                 case SPOT_DIAMETER:
-                    ((Pulse2D) getPulse()).setSpotDiameter(derive(SPOT_DIAMETER, 
+                    ((Pulse2D) getPulse()).setSpotDiameter(derive(SPOT_DIAMETER,
                             p.inverseTransform()));
                     break;
                 default:

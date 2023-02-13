@@ -4,6 +4,8 @@ import pulse.properties.NumericProperty;
 
 public class FluxesAndImplicitDerivatives extends Fluxes {
 
+    private static final long serialVersionUID = -4161296401342482405L;
+
     public FluxesAndImplicitDerivatives(NumericProperty gridDensity, NumericProperty opticalThickness) {
         super(gridDensity, opticalThickness);
     }

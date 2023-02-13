@@ -1,5 +1,6 @@
 package pulse.problem.schemes.rte.dom;
 
+import java.io.Serializable;
 import static pulse.math.MathUtils.approximatelyEquals;
 
 import java.util.Arrays;
@@ -11,8 +12,9 @@ import pulse.util.Descriptive;
  * discretisation of a radiative transfer equation.
  *
  */
-public class OrdinateSet implements Descriptive {
+public class OrdinateSet implements Descriptive, Serializable {
 
+    private static final long serialVersionUID = 4850346144315192409L;
     private double[] mu;
     private double[] w;
 

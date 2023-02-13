@@ -1,6 +1,5 @@
 package pulse.search;
 
-
 import pulse.math.ParameterVector;
 import pulse.problem.schemes.solvers.SolverException;
 

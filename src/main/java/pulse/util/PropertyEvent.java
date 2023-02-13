@@ -1,5 +1,6 @@
 package pulse.util;
 
+import java.io.Serializable;
 import pulse.properties.Property;
 
 /**
@@ -7,7 +8,7 @@ import pulse.properties.Property;
  * {@code PropertyHolder}.
  *
  */
-public class PropertyEvent {
+public class PropertyEvent implements Serializable {
 
     private Object source;
     private PropertyHolder propertyHolder;

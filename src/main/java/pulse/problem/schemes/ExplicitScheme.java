@@ -20,6 +20,11 @@ import pulse.properties.NumericProperty;
 public abstract class ExplicitScheme extends OneDimensionalScheme {
 
     /**
+     *
+     */
+    private static final long serialVersionUID = -3025913683505686334L;
+
+    /**
      * Constructs a default explicit scheme using the default values of
      * {@code GRID_DENSITY} and {@code TAU_FACTOR}.
      */

@@ -33,6 +33,8 @@ import pulse.ui.Messages;
  */
 public class DiathermicMedium extends ClassicalProblem {
 
+    private static final long serialVersionUID = -98674255799114512L;
+
     public DiathermicMedium() {
         super();
     }
@@ -69,18 +71,18 @@ public class DiathermicMedium extends ClassicalProblem {
                     break;
                 case HEAT_LOSS_CONVECTIVE:
                     bounds = Segment.boundsFrom(HEAT_LOSS_CONVECTIVE);
-                    value  = (double) properties.getConvectiveLosses().getValue();
-                    break;                    
+                    value = (double) properties.getConvectiveLosses().getValue();
+                    break;
                 case HEAT_LOSS:
-                    if(properties.areThermalPropertiesLoaded()) {
-                        value  = (double) properties.getHeatLoss().getValue();
-                        bounds = new Segment(0.0, properties.maxRadiationBiot() );
-                        break;   
-                    }    
+                    if (properties.areThermalPropertiesLoaded()) {
+                        value = (double) properties.getHeatLoss().getValue();
+                        bounds = new Segment(0.0, properties.maxRadiationBiot());
+                        break;
+                    }
                 default:
                     continue;
             }
-            
+
             p.setTransform(new StickTransform(bounds));
             p.setValue(value);
             p.setBounds(bounds);
@@ -101,11 +103,11 @@ public class DiathermicMedium extends ClassicalProblem {
             switch (key) {
 
                 case DIATHERMIC_COEFFICIENT:
-                    properties.setDiathermicCoefficient(derive(DIATHERMIC_COEFFICIENT, 
+                    properties.setDiathermicCoefficient(derive(DIATHERMIC_COEFFICIENT,
                             p.inverseTransform()));
                     break;
                 case HEAT_LOSS_CONVECTIVE:
-                    properties.setConvectiveLosses(derive(HEAT_LOSS_CONVECTIVE, 
+                    properties.setConvectiveLosses(derive(HEAT_LOSS_CONVECTIVE,
                             p.inverseTransform()));
                     break;
                 default:

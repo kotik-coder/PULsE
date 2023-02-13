@@ -55,8 +55,8 @@ public class NetzschPulseCSVReader implements PulseDataReader {
         Objects.requireNonNull(file, Messages.getString("DATReader.1"));
 
         NumericPulseData data = null;
-        
-        ( (NetzschCSVReader) NetzschCSVReader.getInstance() )
+
+        ((NetzschCSVReader) NetzschCSVReader.getInstance())
                 .setDefaultLocale(); //always start with a default locale
 
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {

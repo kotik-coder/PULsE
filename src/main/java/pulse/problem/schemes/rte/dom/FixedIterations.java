@@ -6,6 +6,8 @@ import pulse.problem.schemes.rte.RTECalculationStatus;
 
 public class FixedIterations extends IterativeSolver {
 
+    private static final long serialVersionUID = -7308041206602757928L;
+
     @Override
     public RTECalculationStatus doIterations(AdaptiveIntegrator integrator) {
 

@@ -2,8 +2,6 @@ package pulse.problem.statements.model;
 
 import static java.lang.Math.PI;
 import java.util.List;
-import static pulse.input.InterpolationDataset.getDataset;
-import static pulse.input.InterpolationDataset.StandartType.HEAT_CAPACITY;
 import static pulse.properties.NumericProperties.def;
 import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericProperty.requireType;
@@ -13,17 +11,18 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import pulse.input.ExperimentalData;
-import pulse.input.InterpolationDataset;
-import pulse.input.InterpolationDataset.StandartType;
+import pulse.input.listeners.ExternalDatasetListener;
 import pulse.math.Segment;
 import pulse.math.transforms.StickTransform;
 import pulse.problem.statements.Pulse2D;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
+import pulse.tasks.TaskManager;
 import pulse.util.PropertyHolder;
 
 public class ThermalProperties extends PropertyHolder {
 
+    private static final long serialVersionUID = 1868313258119863995L;
     private double a;
     private double l;
     private double Bi;
@@ -56,7 +55,6 @@ public class ThermalProperties extends PropertyHolder {
         signalHeight = (double) def(MAXTEMP).getValue();
         T = (double) def(TEST_TEMPERATURE).getValue();
         emissivity = (double) def(EMISSIVITY).getValue();
-        initListeners();
         fill();
     }
 
@@ -68,7 +66,6 @@ public class ThermalProperties extends PropertyHolder {
         this.T = p.T;
         this.signalHeight = p.signalHeight;
         this.emissivity = p.emissivity;
-        initListeners();
         fill();
     }
 
@@ -76,17 +73,6 @@ public class ThermalProperties extends PropertyHolder {
         var list = this.numericData().stream()
                 .filter(np -> !np.validate()).collect(Collectors.toList());
         return list;
-    }
-
-    private void fill() {
-        var rhoCurve = getDataset(StandartType.DENSITY);
-        var cpCurve = getDataset(StandartType.HEAT_CAPACITY);
-        if (rhoCurve != null) {
-            rho = rhoCurve.interpolateAt(T);
-        }
-        if (cpCurve != null) {
-            cP = cpCurve.interpolateAt(T);
-        }
     }
 
     /**
@@ -99,21 +85,31 @@ public class ThermalProperties extends PropertyHolder {
      * {@code TaskManager}.
      * </p>
      */
-    private void initListeners() {
+    
+    private void fill() {
+        var i = TaskManager.getManagerInstance();
+        var rhoCurve = i.getDensityDataset();
+        var cpCurve = i.getSpecificHeatDataset();
+        if (rhoCurve != null) {
+            rho = rhoCurve.interpolateAt(T);
+        }
+        if (cpCurve != null) {
+            cP = cpCurve.interpolateAt(T);
+        }
 
-        InterpolationDataset.addListener(e -> {
-            if (getParent() == null) {
-                return;
+        i.addExternalDatasetListener(new ExternalDatasetListener() {
+            @Override
+            public void onSpecificHeatDataLoaded() {
+                cP = i.getSpecificHeatDataset().interpolateAt(T);
             }
 
-            if (e == StandartType.DENSITY) {
-                rho = getDataset(StandartType.DENSITY).interpolateAt(T);
-            } else if (e == StandartType.HEAT_CAPACITY) {
-                cP = getDataset(StandartType.HEAT_CAPACITY).interpolateAt(T);
+            @Override
+            public void onDensityDataLoaded() {
+                rho = i.getDensityDataset().interpolateAt(T);
             }
-
+        
         });
-
+        
     }
 
     public ThermalProperties copy() {
@@ -170,7 +166,7 @@ public class ThermalProperties extends PropertyHolder {
     public void setHeatLoss(NumericProperty Bi) {
         requireType(Bi, HEAT_LOSS);
         this.Bi = (double) Bi.getValue();
-        if(areThermalPropertiesLoaded()) {
+        if (areThermalPropertiesLoaded()) {
             calculateEmissivity();
         }
         firePropertyChanged(this, Bi);
@@ -248,13 +244,14 @@ public class ThermalProperties extends PropertyHolder {
         requireType(T, TEST_TEMPERATURE);
         this.T = (double) T.getValue();
 
-        var heatCapacity = getDataset(HEAT_CAPACITY);
+        var i = TaskManager.getManagerInstance();
+        var heatCapacity = i.getSpecificHeatDataset();
 
         if (heatCapacity != null) {
             cP = heatCapacity.interpolateAt(this.T);
         }
 
-        var density = getDataset(StandartType.DENSITY);
+        var density = i.getDensityDataset();
 
         if (density != null) {
             rho = density.interpolateAt(this.T);
@@ -291,31 +288,31 @@ public class ThermalProperties extends PropertyHolder {
     public void calculateEmissivity() {
         double newEmissivity = Bi * thermalConductivity() / (4. * Math.pow(T, 3) * l * STEFAN_BOTLZMAN);
         var transform = new StickTransform(Segment.boundsFrom(EMISSIVITY));
-        setEmissivity(derive(EMISSIVITY, 
+        setEmissivity(derive(EMISSIVITY,
                 transform.transform(newEmissivity))
         );
     }
-    
+
     /**
      * Calculates the radiative Biot number.
+     *
      * @return the radiative Biot number.
      */
-    
     public double radiationBiot() {
         double lambda = thermalConductivity();
         return 4.0 * emissivity * STEFAN_BOTLZMAN * Math.pow(T, 3) * l / lambda;
     }
-    
+
     /**
-     * Calculates the maximum Biot number at these conditions, which
-     * corresponds to an emissivity of unity. If emissivity is non-positive,
-     * returns the maximum Biot number defined in the XML file.
+     * Calculates the maximum Biot number at these conditions, which corresponds
+     * to an emissivity of unity. If emissivity is non-positive, returns the
+     * maximum Biot number defined in the XML file.
+     *
      * @return the maximum Biot number
      */
-    
     public double maxRadiationBiot() {
         double absMax = Segment.boundsFrom(HEAT_LOSS).getMaximum();
-        return emissivity > 0 ? radiationBiot() / emissivity : absMax;         
+        return emissivity > 0 ? radiationBiot() / emissivity : absMax;
     }
 
     /**
@@ -328,7 +325,7 @@ public class ThermalProperties extends PropertyHolder {
     public double characteristicTime() {
         return l * l / a;
     }
-    
+
     public double getThermalMass() {
         return cP * rho;
     }
@@ -357,7 +354,7 @@ public class ThermalProperties extends PropertyHolder {
     public double maximumHeating(Pulse2D pulse) {
         final double Q = (double) pulse.getLaserEnergy().getValue();
         final double dLas = (double) pulse.getSpotDiameter().getValue();
-        return 4.0 * emissivity * Q / (PI * dLas * dLas * l * getThermalMass() );
+        return 4.0 * emissivity * Q / (PI * dLas * dLas * l * getThermalMass());
     }
 
     public NumericProperty getEmissivity() {

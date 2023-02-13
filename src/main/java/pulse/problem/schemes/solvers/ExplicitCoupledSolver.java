@@ -32,7 +32,7 @@ public abstract class ExplicitCoupledSolver extends ExplicitScheme
     private double zeta;
 
     private boolean autoUpdateFluxes = true; //should be false for nonlinear solvers
-    
+
     public ExplicitCoupledSolver() {
         this(derive(GRID_DENSITY, 80), derive(TAU_FACTOR, 0.5));
     }
@@ -49,7 +49,7 @@ public abstract class ExplicitCoupledSolver extends ExplicitScheme
 
         var grid = getGrid();
 
-        coupling.init((ParticipatingMedium)problem, grid);
+        coupling.init((ParticipatingMedium) problem, grid);
         fluxes = coupling.getRadiativeTransferEquation().getFluxes();
         setCalculationStatus(fluxes.checkArrays());
 
@@ -69,7 +69,7 @@ public abstract class ExplicitCoupledSolver extends ExplicitScheme
         HX_NP = hx / Np;
         prefactor = tau * opticalThickness / Np;
 
-        zeta = (double) ((ParticipatingMedium)problem).getGeometricFactor().getValue();
+        zeta = (double) ((ParticipatingMedium) problem).getGeometricFactor().getValue();
     }
 
     @Override
@@ -139,7 +139,7 @@ public abstract class ExplicitCoupledSolver extends ExplicitScheme
     public String toString() {
         return getString("ExplicitScheme.4");
     }
-    
+
     @Override
     public Class<? extends Problem>[] domain() {
         return new Class[]{ParticipatingMedium.class};
@@ -148,15 +148,15 @@ public abstract class ExplicitCoupledSolver extends ExplicitScheme
     public void setCalculationStatus(RTECalculationStatus calculationStatus) throws SolverException {
         this.status = calculationStatus;
         if (status != RTECalculationStatus.NORMAL) {
-            throw new SolverException(status.toString(), 
+            throw new SolverException(status.toString(),
                     RTE_SOLVER_ERROR);
         }
     }
-    
+
     public final boolean isAutoUpdateFluxes() {
         return this.autoUpdateFluxes;
     }
-    
+
     public final void setAutoUpdateFluxes(boolean auto) {
         this.autoUpdateFluxes = auto;
     }

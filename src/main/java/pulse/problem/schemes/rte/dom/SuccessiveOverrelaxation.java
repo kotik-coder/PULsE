@@ -5,17 +5,15 @@ import static pulse.properties.NumericProperties.def;
 import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.RELAXATION_PARAMETER;
 
-import java.util.List;
 import java.util.Set;
 
 import pulse.problem.schemes.rte.RTECalculationStatus;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
-import static pulse.properties.NumericPropertyKeyword.NONLINEAR_PRECISION;
-import pulse.properties.Property;
 
 public class SuccessiveOverrelaxation extends IterativeSolver {
 
+    private static final long serialVersionUID = 1135563981945852881L;
     private double W;
 
     public SuccessiveOverrelaxation() {

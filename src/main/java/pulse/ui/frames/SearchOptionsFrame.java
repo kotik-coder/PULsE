@@ -88,11 +88,11 @@ public class SearchOptionsFrame extends JInternalFrame {
         leftTable.setModel(new ParameterTableModel(false));
         leftTable.setTableHeader(null);
         leftTable.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        
+
         rightTable = new javax.swing.JTable();
         rightTable.setTableHeader(null);
         rightTable.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-         
+
         var mainContainer = new DoubleTablePanel(leftTable, "All Parameters", rightTable, "Optimised Parameters");
 
         getContentPane().add(pathListScroller, gbc);
@@ -109,7 +109,7 @@ public class SearchOptionsFrame extends JInternalFrame {
         tableScroller.setBorder(
                 createTitledBorder("Select search variables and settings"));
         getContentPane().add(tableScroller, gbc);
-       
+
     }
 
     public void update() {
@@ -126,18 +126,18 @@ public class SearchOptionsFrame extends JInternalFrame {
 
         leftTable.setAutoCreateRowSorter(true);
         leftTable.getRowSorter().toggleSortOrder(0);
-        
+
         var rightTblModel = rightTable.getModel();
         var activeTask = TaskManager.getManagerInstance().getSelectedTask();
 
         //model for the flags list already created
         if (rightTblModel instanceof SelectedKeysModel) {
             var searchKeys = activeTask.activeParameters();
-            ((ParameterTableModel)leftTable.getModel()).populateWithAllProperties();
+            ((ParameterTableModel) leftTable.getModel()).populateWithAllProperties();
             ((SelectedKeysModel) rightTblModel).update(searchKeys);
         } //Create a new model for the flags list
         else {
-            var c = (Calculation)activeTask.getResponse();
+            var c = (Calculation) activeTask.getResponse();
             if (c != null && c.getProblem() != null) {
                 var searchKeys = activeTask.activeParameters();
                 rightTable.setModel(new SelectedKeysModel(searchKeys, mandatorySelection));
@@ -148,28 +148,28 @@ public class SearchOptionsFrame extends JInternalFrame {
                 rightTable.getModel().addTableModelListener(new TableModelListener() {
 
                     private void updateFlag(TableModelEvent arg0, boolean value) {
-                        var source = (NumericPropertyKeyword) 
-                                ( (SelectedKeysModel)rightTable.getModel() )
-                                        .getElementAt(arg0.getFirstRow());
+                        var source = (NumericPropertyKeyword) ((SelectedKeysModel) rightTable.getModel())
+                                .getElementAt(arg0.getFirstRow());
                         var flag = new Flag(source);
                         flag.setValue(value);
                         PathOptimiser.getInstance().update(flag);
                     }
-                    
+
                     @Override
                     public void tableChanged(TableModelEvent tme) {
-                        if(tme.getType() == TableModelEvent.INSERT)
+                        if (tme.getType() == TableModelEvent.INSERT) {
                             updateFlag(tme, true);
-                        else if(tme.getType() == TableModelEvent.DELETE)
+                        } else if (tme.getType() == TableModelEvent.DELETE) {
                             updateFlag(tme, false);
+                        }
                     }
-                    
+
                 });
 
             }
         }
         pathTable.updateTable();
-        
+
     }
 
     class PathSolversList extends JList<PathOptimiser> {
@@ -179,10 +179,6 @@ public class SearchOptionsFrame extends JInternalFrame {
             super();
 
             setModel(new AbstractListModel<PathOptimiser>() {
-                /**
-                 *
-                 */
-                private static final long serialVersionUID = -7683200230096704268L;
 
                 @Override
                 public int getSize() {

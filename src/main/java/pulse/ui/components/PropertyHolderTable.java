@@ -155,11 +155,6 @@ public class PropertyHolderTable extends JTable {
             return new DefaultCellEditor((JComboBox<?>) value);
         }
 
-        if (value instanceof Enum) {
-            return new DefaultCellEditor(
-                    new JComboBox<Object>(((Enum<?>) value).getDeclaringClass().getEnumConstants()));
-        }
-
         if (value instanceof InstanceDescriptor) {
             return new InstanceCellEditor((InstanceDescriptor<?>) value);
         }
@@ -187,7 +182,7 @@ public class PropertyHolderTable extends JTable {
                     value, false, false, row, column), ((Flag) value).getType());
         }
 
-        return getDefaultEditor(value.getClass());
+        return super.getCellEditor(row, column);
 
     }
 

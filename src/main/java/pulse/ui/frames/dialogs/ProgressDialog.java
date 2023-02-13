@@ -6,10 +6,16 @@ import static javax.swing.SwingConstants.HORIZONTAL;
 import java.awt.Dimension;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.IOException;
+import java.util.concurrent.CompletableFuture;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.JDialog;
 import javax.swing.JProgressBar;
 import javax.swing.SwingWorker;
+import pulse.util.Serializer;
+import static pulse.util.Serializer.deserialize;
 
 @SuppressWarnings("serial")
 public class ProgressDialog extends JDialog implements PropertyChangeListener {
@@ -82,6 +88,27 @@ public class ProgressDialog extends JDialog implements PropertyChangeListener {
 
         progressWorker.addPropertyChangeListener(this);
         progressWorker.execute();
+    }
+
+    public interface ProgressWorker {
+
+        public default void work() {
+            var dialog = new ProgressDialog();
+            dialog.setLocationRelativeTo(null);
+            dialog.trackProgress(1);
+            CompletableFuture.runAsync(() -> {
+                try {
+                    action();
+                } catch (Exception ex) {
+                    Logger.getLogger(Serializer.class.getName()).log(Level.SEVERE, "Failed to load session", ex);
+                    System.err.println("Failed to load session.");
+                }
+            })
+                    .thenRun(() -> dialog.incrementProgress());
+        }
+
+        public void action();
+
     }
 
 }

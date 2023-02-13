@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import static javax.swing.SwingUtilities.invokeLater;
 
 import javax.swing.table.DefaultTableModel;
@@ -17,6 +18,7 @@ import pulse.tasks.Calculation;
 
 import pulse.tasks.Identifier;
 import pulse.tasks.SearchTask;
+import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.ResultFormatEvent;
 import pulse.tasks.logs.Details;
 import pulse.tasks.logs.Status;
@@ -36,14 +38,22 @@ public class ResultTableModel extends DefaultTableModel {
 
     public ResultTableModel(ResultFormat fmt, int rowCount) {
         super(fmt.abbreviations().toArray(), rowCount);
-        this.fmt = fmt;
         results = new ArrayList<>();
+        this.fmt = fmt;
         tooltips = tooltips();
         listeners = new ArrayList<>();
     }
 
     public ResultTableModel(ResultFormat fmt) {
         this(fmt, 0);
+    }
+
+    public void resetSession() {
+        clear();
+        changeFormat(ResultFormat.getInstance());
+        var repo = TaskManager.getManagerInstance();
+        repo.getTaskList().stream()
+                .forEach(t -> addRow(t.findBestCalculation().getResult()));
     }
 
     public void addListener(ResultListener listener) {
@@ -219,24 +229,28 @@ public class ResultTableModel extends DefaultTableModel {
     public void addRow(AbstractResult result) {
         Objects.requireNonNull(result, "Entry added to the results table must not be null");
 
+        var instance = TaskManager.getManagerInstance();
+
         //ignore average results
         if (result instanceof Result) {
 
             //result must have a valid ancestor!
-            var ancestor = Objects.requireNonNull(result.specificAncestor(SearchTask.class),
-                    "Result " + result.toString() + " does not belong a SearchTask!");
-
-            //the ancestor then has the SearchTask type
-            SearchTask parentTask = (SearchTask) ancestor;
+            var id = ((Result) result).getTaskIdentifier();
+            SearchTask parentTask = instance.getTask(id);
 
             //any old result asssociated withis this task
-            var oldResult = results.stream().filter(r
-                    -> r.specificAncestor(SearchTask.class) == parentTask).findAny();
+            var linkedResults = results.stream()
+                    .filter(r -> r instanceof Result)
+                    .filter(rr -> ((Result) rr).getTaskIdentifier().equals(parentTask.getIdentifier()))
+                    .collect(Collectors.toList());
 
-            //check the following only if the old result is present
-            if (oldResult.isPresent()) {
-
-                AbstractResult oldResultExisting = oldResult.get();
+            if (linkedResults.size() > 1) {
+                //table can't contain more than one result associated with a task
+                throw new IllegalStateException("More than one result found associated with " + parentTask.getIdentifier());
+            } else if (linkedResults.size() == 1) {
+                //check the following only if the old result is present
+                AbstractResult oldResultExisting = linkedResults.get(0);
+                //find specific calculation for this result
                 Optional<Calculation> oldCalculation = parentTask.getStoredCalculations().stream()
                         .filter(c -> c.getResult().equals(oldResultExisting)).findAny();
 

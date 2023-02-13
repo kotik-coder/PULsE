@@ -30,6 +30,8 @@ import pulse.util.PropertyHolder;
  */
 public class Harmonic extends PropertyHolder implements Optimisable, Comparable<Harmonic> {
 
+    private static final long serialVersionUID = 3732379391172485157L;
+
     private int rank = -1;
 
     private double amplitude;
@@ -135,7 +137,7 @@ public class Harmonic extends PropertyHolder implements Optimisable, Comparable<
     public void optimisationVector(ParameterVector output) {
 
         var params = output.getParameters();
-        
+
         for (int i = 0, size = params.size(); i < size; i++) {
 
             var p = params.get(i);
@@ -182,13 +184,13 @@ public class Harmonic extends PropertyHolder implements Optimisable, Comparable<
                     var newParam = new Parameter(newId, transform, bounds);
                     newParam.setValue(value);
                     params.add(newParam);
-                    
+
                 }
 
             }
 
         }
-        
+
     }
 
     @Override
@@ -259,7 +261,7 @@ public class Harmonic extends PropertyHolder implements Optimisable, Comparable<
 
     @Override
     public String toString() {
-        return String.format("[%1d]: f = %3.2f, A = %3.2f, phi = %3.2f", 
+        return String.format("[%1d]: f = %3.2f, A = %3.2f, phi = %3.2f",
                 rank, frequency, amplitude, phaseShift);
     }
 

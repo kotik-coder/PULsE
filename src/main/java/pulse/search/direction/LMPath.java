@@ -7,6 +7,7 @@ import pulse.search.GeneralTask;
 
 class LMPath extends ComplexPath {
 
+    private static final long serialVersionUID = -7154616034580697035L;
     private Vector residualVector;
     private RectangularMatrix jacobian;
     private SquareMatrix nonregularisedHessian;

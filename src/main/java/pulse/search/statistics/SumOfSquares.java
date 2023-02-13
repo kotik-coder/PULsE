@@ -11,6 +11,8 @@ import pulse.search.GeneralTask;
  */
 public class SumOfSquares extends OptimiserStatistic {
 
+    private static final long serialVersionUID = 3959714755977689591L;
+
     public SumOfSquares() {
         super();
     }
@@ -38,7 +40,6 @@ public class SumOfSquares extends OptimiserStatistic {
      * @param t The task containing the reference and calculated curves
      * @see calculateResiduals()
      */
-
     @Override
     public void evaluate(GeneralTask t) {
         calculateResiduals(t);

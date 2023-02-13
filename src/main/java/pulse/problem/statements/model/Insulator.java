@@ -11,16 +11,17 @@ import pulse.properties.NumericPropertyKeyword;
 
 public class Insulator extends AbsorptionModel {
 
+    private static final long serialVersionUID = -3519941060924868530L;
     private double R;
 
     public Insulator() {
         super();
         R = (double) def(REFLECTANCE).getValue();
     }
-    
+
     public Insulator(AbsorptionModel m) {
         super(m);
-        if(m instanceof Insulator) {
+        if (m instanceof Insulator) {
             R = (double) ((Insulator) m).getReflectance().getValue();
         } else {
             R = (double) def(REFLECTANCE).getValue();

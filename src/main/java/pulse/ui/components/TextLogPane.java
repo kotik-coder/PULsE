@@ -23,12 +23,12 @@ public class TextLogPane extends AbstractLogger {
 
     private final JEditorPane editor;
     private final JScrollPane pane;
-    
+
     public TextLogPane() {
         editor = new JEditorPane();
         editor.setContentType("text/html");
         editor.setEditable(false);
-        ( (DefaultCaret) editor.getCaret() ).setUpdatePolicy(ALWAYS_UPDATE);
+        ((DefaultCaret) editor.getCaret()).setUpdatePolicy(ALWAYS_UPDATE);
         pane = new JScrollPane();
         pane.setViewportView(editor);
     }
@@ -52,7 +52,6 @@ public class TextLogPane extends AbstractLogger {
         }
 
     }
- 
 
     public void printTimeTaken(Log log) {
         var time = log.timeTaken();
@@ -71,7 +70,7 @@ public class TextLogPane extends AbstractLogger {
             e.printStackTrace();
         }
     }
-    
+
     @Override
     public JComponent getGUIComponent() {
         return pane;

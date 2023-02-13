@@ -1,10 +1,12 @@
 package pulse.properties;
 
+import java.io.Serializable;
+
 /**
  * The basic interface for properties. The only declared functionality consists
  * in the ability to report the associated value and deliver text description.
  */
-public interface Property {
+public interface Property extends Serializable {
 
     /**
      * Retrieves the value of this {@code Property}.

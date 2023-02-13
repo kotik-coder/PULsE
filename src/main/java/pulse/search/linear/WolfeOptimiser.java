@@ -25,7 +25,12 @@ import pulse.ui.Messages;
  * page</a>
  */
 public class WolfeOptimiser extends LinearOptimiser {
-    
+
+    /**
+     *
+     */
+    private static final long serialVersionUID = 5200832276052099700L;
+
     private static WolfeOptimiser instance = new WolfeOptimiser();
 
     /**
@@ -38,7 +43,7 @@ public class WolfeOptimiser extends LinearOptimiser {
      * gradient projection, equal to {@value C2}.
      */
     public final static double C2 = 0.8;
-    
+
     private WolfeOptimiser() {
         super();
     }
@@ -66,34 +71,34 @@ public class WolfeOptimiser extends LinearOptimiser {
      */
     @Override
     public double linearStep(GeneralTask task) throws SolverException {
-        
+
         GradientGuidedPath p = (GradientGuidedPath) task.getIterativeState();
-        
+
         final Vector direction = p.getDirection();
         final Vector g1 = p.getGradient();
-        
+
         final double G1P = g1.dot(direction);
         final double G1P_ABS = abs(G1P);
-        
+
         var params = task.searchVector();
         var vParams = params.toVector();
         Segment segment = domain(params, direction);
-        
+
         double cost1 = task.objectiveFunction();
-        
+
         double randomConfinedValue = 0;
         double g2p;
-        
+
         var optimiser = (GradientBasedOptimiser) PathOptimiser.getInstance();
-        
+
         for (double initialLength = segment.length(); segment.length() / initialLength > searchResolution;) {
-            
+
             randomConfinedValue = segment.randomValue();
-            
+
             final var newParams = vParams.sum(direction.multiply(randomConfinedValue));
-            
+
             task.assign(new ParameterVector(params, newParams));
-            
+
             final double cost2 = task.objectiveFunction();
 
             /**
@@ -105,7 +110,7 @@ public class WolfeOptimiser extends LinearOptimiser {
                 segment.setMaximum(randomConfinedValue);
                 continue;
             }
-            
+
             final var g2 = optimiser.gradient(task);
             g2p = g2.dot(direction);
 
@@ -121,16 +126,16 @@ public class WolfeOptimiser extends LinearOptimiser {
 			 * if( g2p >= C2*G1P ) break;
              */
             segment.setMinimum(randomConfinedValue);
-            
+
         }
-        
+
         task.assign(params);
         p.setGradient(g1);
-        
+
         return randomConfinedValue;
-        
+
     }
-    
+
     @Override
     public String toString() {
         return Messages.getString("WolfeSolver.Descriptor"); //$NON-NLS-1$
@@ -145,5 +150,5 @@ public class WolfeOptimiser extends LinearOptimiser {
     public static WolfeOptimiser getInstance() {
         return instance;
     }
-    
+
 }

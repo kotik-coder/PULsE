@@ -8,10 +8,11 @@ import static pulse.properties.NumericPropertyKeyword.BASELINE_INTERCEPT;
 /**
  * A flat baseline.
  */
-
 public class FlatBaseline extends AdjustableBaseline {
-    
-        /**
+
+    private static final long serialVersionUID = -4867631788950622739L;
+
+    /**
      * A primitive constructor, which initialises a {@code CONSTANT} baseline
      * with zero intercept and slope.
      */
@@ -27,8 +28,7 @@ public class FlatBaseline extends AdjustableBaseline {
     public FlatBaseline(double intercept) {
         super(intercept, 0.0);
     }
-    
-    
+
     @Override
     protected void doFit(List<Double> x, List<Double> y) {
         double intercept = mean(y);
@@ -37,12 +37,12 @@ public class FlatBaseline extends AdjustableBaseline {
 
     @Override
     public Baseline copy() {
-        return new FlatBaseline((double)getIntercept().getValue());
+        return new FlatBaseline((double) getIntercept().getValue());
     }
 
     @Override
     public String toString() {
         return getClass().getSimpleName() + " = " + format("%3.2f", getIntercept().getValue());
     }
-    
+
 }

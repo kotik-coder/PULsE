@@ -30,11 +30,11 @@ public abstract class SimpleOptimisationTask<T extends PropertyHolder & Optimisa
         this.input = input;
         this.optimisable = optimisable;
     }
-    
+
     @Override
     public void run() {
         var optimiser = PathOptimiser.getInstance();
-        if(optimiser == null) {
+        if (optimiser == null) {
             PathOptimiser.setInstance(LMOptimiser.getInstance());
         }
         super.run();
@@ -74,17 +74,17 @@ public abstract class SimpleOptimisationTask<T extends PropertyHolder & Optimisa
     public void set(NumericPropertyKeyword type, NumericProperty property) {
         optimisable.set(type, property);
     }
-    
+
     @Override
-    public List<NumericPropertyKeyword> activeParameters() {        
+    public List<NumericPropertyKeyword> activeParameters() {
         return selectActiveAndListed(ActiveFlags.getAllFlags(), optimisable);
     }
-   
+
     @Override
     public void setDefaultOptimiser() {
         setOptimiser(LMOptimiser.getInstance());
     }
-    
+
     @Override
     public DiscreteInput getInput() {
         return input;

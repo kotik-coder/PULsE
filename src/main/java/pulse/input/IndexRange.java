@@ -1,5 +1,6 @@
 package pulse.input;
 
+import java.io.Serializable;
 import static java.util.Objects.requireNonNull;
 
 import java.util.List;
@@ -15,8 +16,9 @@ import java.util.List;
  * @see pulse.input.Range
  *
  */
-public class IndexRange {
+public class IndexRange implements Serializable {
 
+    private static final long serialVersionUID = 7983756487957427969L;
     private int iStart;
     private int iEnd;
 
@@ -24,7 +26,7 @@ public class IndexRange {
         iStart = other.iStart;
         iEnd = other.iEnd;
     }
-    
+
     public IndexRange(int start, int end) {
         this.iStart = start;
         this.iEnd = end;

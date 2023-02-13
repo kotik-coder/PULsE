@@ -19,12 +19,10 @@ public enum CurveEventType {
      * procedure.
      */
     TIME_ORIGIN_CHANGED,
-    
     /**
-     * A calculation associated with this curve has finished and 
-     * the required arrays have been filled.
+     * A calculation associated with this curve has finished and the required
+     * arrays have been filled.
      */
-    
     CALCULATION_FINISHED;
 
 }

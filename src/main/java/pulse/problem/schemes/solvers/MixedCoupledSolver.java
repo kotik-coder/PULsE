@@ -19,7 +19,7 @@ import pulse.problem.statements.model.ThermoOpticalProperties;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 
-public abstract class MixedCoupledSolver extends CoupledImplicitScheme 
+public abstract class MixedCoupledSolver extends CoupledImplicitScheme
         implements Solver<ParticipatingMedium> {
 
     private RadiativeTransferSolver rte;
@@ -74,13 +74,13 @@ public abstract class MixedCoupledSolver extends CoupledImplicitScheme
         hx = grid.getXStep();
         tau = grid.getTimeStep();
 
-        var properties = (ThermoOpticalProperties)problem.getProperties();
+        var properties = (ThermoOpticalProperties) problem.getProperties();
         //combined biot
-        Bi1 = (double) properties.getHeatLoss().getValue() + 
-              (double) properties.getConvectiveLosses().getValue();
+        Bi1 = (double) properties.getHeatLoss().getValue()
+                + (double) properties.getConvectiveLosses().getValue();
 
-        zeta = (double) ( (ClassicalProblem)problem ).getGeometricFactor().getValue();
-        
+        zeta = (double) ((ClassicalProblem) problem).getGeometricFactor().getValue();
+
         var tridiagonal = new TridiagonalMatrixAlgorithm(grid) {
 
             @Override
@@ -95,7 +95,7 @@ public abstract class MixedCoupledSolver extends CoupledImplicitScheme
                 var U = getPreviousSolution();
                 return super.beta(f + ONE_MINUS_SIGMA * (U[i] - 2.0 * U[i - 1] + U[i - 2]) / HX2, TAU0_NP * phi, i);
             }
-            
+
             @Override
             public void evaluateBeta(final double[] U) {
                 var fluxes = rte.getFluxes();
@@ -168,10 +168,10 @@ public abstract class MixedCoupledSolver extends CoupledImplicitScheme
         var U = getPreviousSolution();
         final double phi = TAU0_NP * fluxes.fluxDerivativeFront();
         return (_2TAUHX
-                * (getCurrentPulseValue() * zeta - SIGMA_NP * fluxes.getFlux(0) 
+                * (getCurrentPulseValue() * zeta - SIGMA_NP * fluxes.getFlux(0)
                 - ONE_MINUS_SIGMA_NP * fluxes.getStoredFlux(0))
-                + HX2 * (U[0] + phi * tau) + _2TAU_ONE_MINUS_SIGMA * 
-                (U[1] - U[0] * ONE_PLUS_Bi1_HX)) * BETA1_FACTOR;
+                + HX2 * (U[0] + phi * tau) + _2TAU_ONE_MINUS_SIGMA
+                * (U[1] - U[0] * ONE_PLUS_Bi1_HX)) * BETA1_FACTOR;
     }
 
     @Override

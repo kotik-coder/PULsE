@@ -1,5 +1,6 @@
 package pulse.tasks.logs;
 
+import java.io.Serializable;
 import java.util.concurrent.ExecutorService;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import javax.swing.JComponent;
@@ -7,9 +8,9 @@ import pulse.tasks.TaskManager;
 import static pulse.tasks.logs.Status.DONE;
 import pulse.util.Descriptive;
 
-public abstract class AbstractLogger implements Descriptive {
+public abstract class AbstractLogger implements Descriptive, Serializable {
 
-    private final ExecutorService updateExecutor;
+    private ExecutorService updateExecutor;
 
     public AbstractLogger() {
         updateExecutor = newSingleThreadExecutor();
@@ -27,7 +28,7 @@ public abstract class AbstractLogger implements Descriptive {
         if (log.isStarted()) {
             post(log.lastEntry());
         }
-        
+
     }
 
     public ExecutorService getUpdateExecutor() {

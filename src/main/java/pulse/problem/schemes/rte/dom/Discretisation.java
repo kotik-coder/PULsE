@@ -23,6 +23,7 @@ import pulse.util.PropertyHolder;
  */
 public class Discretisation extends PropertyHolder {
 
+    private static final long serialVersionUID = 7069987686586911101L;
     private DiscreteQuantities quantities;
     private StretchedGrid grid;
     private OrdinateSet ordinates;

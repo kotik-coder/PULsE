@@ -30,7 +30,7 @@ public class InstanceDescriptor<T extends Reflexive> implements Property {
         allDescriptors = nameMap.get(c);
         selectedDescriptor = allDescriptors.iterator().next();
         this.generalDescriptor = generalDescriptor;
-        listeners = new ArrayList<DescriptorChangeListener>();
+        listeners = new ArrayList<>();
     }
 
     public InstanceDescriptor(Class<T> c, Object... arguments) {
@@ -50,15 +50,15 @@ public class InstanceDescriptor<T extends Reflexive> implements Property {
     @Override
     public boolean attemptUpdate(Object object) {
         var string = object.toString();
-            
+
         if (selectedDescriptor.equals(string)) {
             return false;
         }
-        
-        if(!allDescriptors.contains(string)) {
+
+        if (!allDescriptors.contains(string)) {
             throw new IllegalArgumentException("Unknown descriptor: " + selectedDescriptor);
         }
-            
+
         this.selectedDescriptor = string;
         listeners.stream().forEach(l -> l.onDescriptorChanged());
         return true;

@@ -11,8 +11,9 @@ import pulse.search.GeneralTask;
  */
 public class RangePenalisedLeastSquares extends SumOfSquares {
 
+    private static final long serialVersionUID = 4068238957339821770L;
     private double lambda = 0.1;
-   
+
     public RangePenalisedLeastSquares() {
         super();
     }
@@ -43,7 +44,7 @@ public class RangePenalisedLeastSquares extends SumOfSquares {
         var x = t.getInput().getX();
         double partialRange = t.getInput().bounds().length();
         double fullRange = x.get(x.size() - 1) - x.get(IndexRange.closestLeft(0.0, x));
-        final double statistic = ssr + lambda * (fullRange - partialRange)/fullRange;
+        final double statistic = ssr + lambda * (fullRange - partialRange) / fullRange;
         setStatistic(derive(OPTIMISER_STATISTIC, statistic));
     }
 
@@ -51,7 +52,7 @@ public class RangePenalisedLeastSquares extends SumOfSquares {
     public String getDescriptor() {
         return "<html>Range-Penalised Least Squares</html>";
     }
-    
+
     @Override
     public OptimiserStatistic copy() {
         return new RangePenalisedLeastSquares(this);

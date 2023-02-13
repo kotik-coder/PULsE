@@ -1,9 +1,9 @@
 package pulse.tasks.logs;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Objects;
-import pulse.Response;
 
 import pulse.tasks.Identifier;
 import pulse.tasks.SearchTask;
@@ -18,12 +18,13 @@ import pulse.ui.Messages;
  * </p>
  *
  */
-public class LogEntry {
+public class LogEntry implements Serializable {
 
+    private static final long serialVersionUID = -6797821686964650045L;
     private final Identifier identifier;
     private final LocalTime time;
     private final LogEntry previous;
-    
+
     /**
      * <p>
      * Creates a {@code LogEntry} from this {@code SearchTask}. The data of the
@@ -37,14 +38,13 @@ public class LogEntry {
         time = LocalDateTime.now().toLocalTime();
         identifier = t.getIdentifier();
         var list = t.getLog().getLogEntries();
-        if(list != null && !list.isEmpty()) {
+        if (list != null && !list.isEmpty()) {
             previous = list.get(list.size() - 1);
-        }
-        else {
+        } else {
             previous = null;
         }
     }
-    
+
     public LogEntry getPreviousEntry() {
         return previous;
     }

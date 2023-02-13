@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
  */
 public class Flag implements Property {
 
+    private static final long serialVersionUID = 4927536419752406797L;
     private NumericPropertyKeyword index;
     private boolean value;
     private String descriptor;
@@ -26,15 +27,15 @@ public class Flag implements Property {
     public Flag(NumericPropertyKeyword type) {
         this(type, false);
     }
-    
+
     public Flag(Flag f) {
         this(f.index, f.value);
     }
-    
+
     public Flag(NumericPropertyKeyword type, boolean flag) {
         this.index = type;
         this.value = flag;
-    }   
+    }
 
     /**
      * Creates a {@code Flag} with the following pre-specified parameters: type

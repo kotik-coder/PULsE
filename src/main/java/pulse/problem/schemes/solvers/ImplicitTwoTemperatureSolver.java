@@ -22,6 +22,7 @@ import static pulse.properties.NumericPropertyKeyword.NONLINEAR_PRECISION;
 public class ImplicitTwoTemperatureSolver extends ImplicitScheme
         implements Solver<TwoTemperatureModel>, FixedPointIterations {
 
+    private static final long serialVersionUID = 7955478815933535623L;
     private AbsorptionModel absorption;
     private TridiagonalMatrixAlgorithm gasSolver;
 

@@ -30,6 +30,7 @@ import pulse.ui.Messages;
  */
 public class NumericPropertyFormatter extends AbstractFormatter {
 
+    private static final long serialVersionUID = -7733589481239097566L;
     private NumericPropertyKeyword key;
     private Segment bounds;
     private boolean convertDimension = true;
@@ -74,9 +75,9 @@ public class NumericPropertyFormatter extends AbstractFormatter {
                     : (double) value;
             double absAdjustedValue = Math.abs(adjustedValue);
 
-            if (addHtmlTags && 
-                    ( (absAdjustedValue > UPPER_LIMIT) 
-                   || (absAdjustedValue < LOWER_LIMIT && absAdjustedValue > ZERO)) ) {
+            if (addHtmlTags
+                    && ((absAdjustedValue > UPPER_LIMIT)
+                    || (absAdjustedValue < LOWER_LIMIT && absAdjustedValue > ZERO))) {
                 //format with scientific notations
                 f = new ScientificFormat(p.getDimensionFactor(), p.getDimensionDelta());
             } else {
@@ -85,7 +86,7 @@ public class NumericPropertyFormatter extends AbstractFormatter {
             }
 
         }
-        
+
         return f;
 
     }

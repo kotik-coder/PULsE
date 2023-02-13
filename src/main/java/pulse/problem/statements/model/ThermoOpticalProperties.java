@@ -25,6 +25,7 @@ import pulse.search.Optimisable;
 
 public class ThermoOpticalProperties extends ThermalProperties implements Optimisable {
 
+    private static final long serialVersionUID = 3573682830421468534L;
     private double opticalThickness;
     private double planckNumber;
     private double scatteringAlbedo;
@@ -33,29 +34,29 @@ public class ThermoOpticalProperties extends ThermalProperties implements Optimi
 
     public ThermoOpticalProperties() {
         super();
-        this.opticalThickness   = (double) def(OPTICAL_THICKNESS).getValue();
-        this.planckNumber       = (double) def(PLANCK_NUMBER).getValue();
-        scatteringAnisotropy    = (double) def(SCATTERING_ANISOTROPY).getValue();
-        scatteringAlbedo        = (double) def(SCATTERING_ALBEDO).getValue();
-        convectiveLosses        = (double) def(HEAT_LOSS_CONVECTIVE).getValue();
+        this.opticalThickness = (double) def(OPTICAL_THICKNESS).getValue();
+        this.planckNumber = (double) def(PLANCK_NUMBER).getValue();
+        scatteringAnisotropy = (double) def(SCATTERING_ANISOTROPY).getValue();
+        scatteringAlbedo = (double) def(SCATTERING_ALBEDO).getValue();
+        convectiveLosses = (double) def(HEAT_LOSS_CONVECTIVE).getValue();
     }
 
     public ThermoOpticalProperties(ThermalProperties p) {
         super(p);
-        opticalThickness        = (double) def(OPTICAL_THICKNESS).getValue();
-        planckNumber            = (double) def(PLANCK_NUMBER).getValue();
-        scatteringAlbedo        = (double) def(SCATTERING_ALBEDO).getValue();
-        scatteringAnisotropy    = (double) def(SCATTERING_ANISOTROPY).getValue();
-        convectiveLosses        = (double) def(HEAT_LOSS_CONVECTIVE).getValue();
+        opticalThickness = (double) def(OPTICAL_THICKNESS).getValue();
+        planckNumber = (double) def(PLANCK_NUMBER).getValue();
+        scatteringAlbedo = (double) def(SCATTERING_ALBEDO).getValue();
+        scatteringAnisotropy = (double) def(SCATTERING_ANISOTROPY).getValue();
+        convectiveLosses = (double) def(HEAT_LOSS_CONVECTIVE).getValue();
     }
 
     public ThermoOpticalProperties(ThermoOpticalProperties p) {
         super(p);
-        this.opticalThickness       = p.opticalThickness;
-        this.planckNumber           = p.planckNumber;
-        this.scatteringAlbedo       = p.scatteringAlbedo;
-        this.scatteringAnisotropy   = p.scatteringAnisotropy;
-        this.convectiveLosses       = p.convectiveLosses;
+        this.opticalThickness = p.opticalThickness;
+        this.planckNumber = p.planckNumber;
+        this.scatteringAlbedo = p.scatteringAlbedo;
+        this.scatteringAnisotropy = p.scatteringAnisotropy;
+        this.convectiveLosses = p.convectiveLosses;
     }
 
     @Override
@@ -135,7 +136,7 @@ public class ThermoOpticalProperties extends ThermalProperties implements Optimi
         this.scatteringAnisotropy = (double) A1.getValue();
         firePropertyChanged(this, A1);
     }
-    
+
     public void setConvectiveLosses(NumericProperty losses) {
         requireType(losses, HEAT_LOSS_CONVECTIVE);
         this.convectiveLosses = (double) losses.getValue();
@@ -145,7 +146,7 @@ public class ThermoOpticalProperties extends ThermalProperties implements Optimi
     public NumericProperty getConvectiveLosses() {
         return derive(HEAT_LOSS_CONVECTIVE, convectiveLosses);
     }
-    
+
     public NumericProperty getScatteringAlbedo() {
         return derive(SCATTERING_ALBEDO, scatteringAlbedo);
     }
@@ -173,7 +174,7 @@ public class ThermoOpticalProperties extends ThermalProperties implements Optimi
     public String getDescriptor() {
         return "Thermo-Physical & Optical Properties";
     }
-    
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder(super.toString());
@@ -186,7 +187,7 @@ public class ThermoOpticalProperties extends ThermalProperties implements Optimi
         sb.append(String.format("%n %-25s", this.getDensity()));
         return sb.toString();
     }
-    
+
     @Override
     public void optimisationVector(ParameterVector output) {
         Segment bounds = null;
@@ -220,9 +221,9 @@ public class ThermoOpticalProperties extends ThermalProperties implements Optimi
                     bounds = Segment.boundsFrom(HEAT_LOSS_CONVECTIVE);
                     break;
                 case HEAT_LOSS:
-                    value  = (double) getHeatLoss().getValue();
-                    bounds = new Segment(0.0, maxRadiationBiot() );
-                    break;   
+                    value = (double) getHeatLoss().getValue();
+                    bounds = new Segment(0.0, maxRadiationBiot());
+                    break;
                 default:
                     continue;
 

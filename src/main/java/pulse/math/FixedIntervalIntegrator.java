@@ -20,6 +20,7 @@ import pulse.properties.NumericPropertyKeyword;
  */
 public abstract class FixedIntervalIntegrator extends AbstractIntegrator {
 
+    private static final long serialVersionUID = -5304597610450009326L;
     private int integrationSegments;
 
     /**

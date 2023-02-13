@@ -1,9 +1,10 @@
 package pulse.search.direction;
 
+import java.io.Serializable;
 import pulse.math.linear.Vector;
 import pulse.problem.schemes.solvers.SolverException;
 
-public interface DirectionSolver {
+public interface DirectionSolver extends Serializable {
 
     /**
      * Finds the direction of the minimum using the previously calculated values

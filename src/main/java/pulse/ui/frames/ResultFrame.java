@@ -122,13 +122,19 @@ public class ResultFrame extends JInternalFrame {
     private void showInputDialog() {
         averageWindowDialog.setLocationRelativeTo(null);
         averageWindowDialog.setVisible(true);
-        averageWindowDialog.setConfirmAction(() -> 
-                ((ResultTableModel)resultTable.getModel())
-                .merge(averageWindowDialog.value().doubleValue()));
+        averageWindowDialog.setConfirmAction(()
+                -> ((ResultTableModel) resultTable.getModel())
+                        .merge(averageWindowDialog.value().doubleValue()));
     }
 
     public ResultTable getResultTable() {
         return resultTable;
+    }
+
+    public void removeAllListeners() {
+        if (listeners != null) {
+            listeners.clear();
+        }
     }
 
 }

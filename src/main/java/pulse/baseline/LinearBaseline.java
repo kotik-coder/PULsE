@@ -29,6 +29,8 @@ import static pulse.properties.NumericPropertyKeyword.BASELINE_INTERCEPT;
  */
 public class LinearBaseline extends AdjustableBaseline {
 
+    private static final long serialVersionUID = -7334390731462268504L;
+
     /**
      * A primitive constructor, which initialises a {@code CONSTANT} baseline
      * with zero intercept and slope.
@@ -36,19 +38,19 @@ public class LinearBaseline extends AdjustableBaseline {
     public LinearBaseline() {
         super(0.0, 0.0);
     }
-    
+
     public LinearBaseline(double intercept, double slope) {
         super(intercept, slope);
     }
-    
+
     public LinearBaseline(AdjustableBaseline baseline) {
-        super( (double) baseline.getIntercept().getValue(), 
-               (double) baseline.getSlope().getValue()
-             );
+        super((double) baseline.getIntercept().getValue(),
+                (double) baseline.getSlope().getValue()
+        );
     }
 
     @Override
-    protected void doFit(List<Double> x, List<Double> y) {        
+    protected void doFit(List<Double> x, List<Double> y) {
         double meanx = mean(x);
         double meany = mean(y);
 
@@ -63,7 +65,7 @@ public class LinearBaseline extends AdjustableBaseline {
             xxbar += (x1 - meanx) * (x1 - meanx);
             xybar += (x1 - meanx) * (y1 - meany);
         }
-        
+
         double slope = xybar / xxbar;
         double intercept = meany - slope * meanx;
 
@@ -74,8 +76,8 @@ public class LinearBaseline extends AdjustableBaseline {
     @Override
     public String toString() {
         var slope = getSlope().getValue();
-        return getClass().getSimpleName() + " = " + 
-                format("%3.2f + t * ( %3.2f )", getIntercept().getValue(), slope);
+        return getClass().getSimpleName() + " = "
+                + format("%3.2f + t * ( %3.2f )", getIntercept().getValue(), slope);
     }
 
     @Override
@@ -121,9 +123,9 @@ public class LinearBaseline extends AdjustableBaseline {
         for (Parameter p : params.getParameters()) {
 
             var key = p.getIdentifier().getKeyword();
-            
+
             if (key == BASELINE_SLOPE) {
-                setSlope( derive(BASELINE_SLOPE, p.inverseTransform() ));
+                setSlope(derive(BASELINE_SLOPE, p.inverseTransform()));
             }
 
         }

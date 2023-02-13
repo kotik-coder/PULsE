@@ -16,13 +16,16 @@ import umontreal.ssj.probdist.NormalDist;
  */
 public class AndersonDarlingTest extends NormalityTest {
 
+    private static final long serialVersionUID = -7471878404063688512L;
+
     /**
      * This uses the SSJ statistical library to calculate the Anderson-Darling
      * test with the input parameters formed by the {@code task} residuals and a
      * normal distribution with zero mean and variance equal to the residuals
      * variance.
+     *
      * @param task
-     * @return 
+     * @return
      */
     @Override
     public boolean test(GeneralTask task) {
@@ -33,7 +36,7 @@ public class AndersonDarlingTest extends NormalityTest {
         var testResult = GofStat.andersonDarling(residuals, nd);
 
         this.setStatistic(derive(TEST_STATISTIC, testResult[0]));
-        
+
         //compare the p-value and the significance
         return testResult[1] > significance;
     }

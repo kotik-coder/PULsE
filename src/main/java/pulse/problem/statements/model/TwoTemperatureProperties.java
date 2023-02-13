@@ -11,10 +11,11 @@ import static pulse.properties.NumericPropertyKeyword.SOLID_EXCHANGE_COEFFICIENT
 
 public class TwoTemperatureProperties extends ThermalProperties {
 
+    private static final long serialVersionUID = 4157382023954200467L;
     private double exchangeSolid;
     private double exchangeGas;
     private double gasHeatLoss;
-   
+
     public TwoTemperatureProperties() {
         super();
         exchangeSolid = (double) def(SOLID_EXCHANGE_COEFFICIENT).getValue();
@@ -29,8 +30,7 @@ public class TwoTemperatureProperties extends ThermalProperties {
             this.exchangeSolid = np.exchangeSolid;
             this.exchangeGas = np.exchangeGas;
             this.gasHeatLoss = np.gasHeatLoss;
-        }
-        else {
+        } else {
             exchangeSolid = (double) def(SOLID_EXCHANGE_COEFFICIENT).getValue();
             exchangeGas = (double) def(GAS_EXCHANGE_COEFFICIENT).getValue();
             gasHeatLoss = (double) def(HEAT_LOSS_GAS).getValue();
@@ -80,7 +80,7 @@ public class TwoTemperatureProperties extends ThermalProperties {
     public NumericProperty getSolidExchangeCoefficient() {
         return derive(SOLID_EXCHANGE_COEFFICIENT, exchangeSolid);
     }
-    
+
     public NumericProperty getGasExchangeCoefficient() {
         return derive(GAS_EXCHANGE_COEFFICIENT, exchangeGas);
     }
@@ -90,7 +90,7 @@ public class TwoTemperatureProperties extends ThermalProperties {
         this.exchangeSolid = (double) p.getValue();
         firePropertyChanged(this, p);
     }
-    
+
     public void setGasExchangeCoefficient(NumericProperty p) {
         NumericProperty.requireType(p, GAS_EXCHANGE_COEFFICIENT);
         this.exchangeGas = (double) p.getValue();

@@ -1,7 +1,9 @@
 package pulse.math.filters;
 
-public interface AssignmentListener {
- 
+import java.io.Serializable;
+
+public interface AssignmentListener extends Serializable {
+
     public void onValueAssigned();
-    
+
 }

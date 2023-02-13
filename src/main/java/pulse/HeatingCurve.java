@@ -1,6 +1,8 @@
 package pulse;
 
-import static java.util.Collections.max;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import static java.util.stream.Collectors.toList;
 import static pulse.input.listeners.CurveEventType.RESCALED;
 import static pulse.input.listeners.CurveEventType.TIME_ORIGIN_CHANGED;
@@ -17,12 +19,14 @@ import java.util.Set;
 import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
 import org.apache.commons.math3.analysis.interpolation.UnivariateInterpolator;
+import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 
 import pulse.baseline.Baseline;
 import pulse.input.ExperimentalData;
 import pulse.input.listeners.CurveEvent;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
+import pulse.util.FunctionSerializer;
 
 /**
  * The {@code HeatingCurve} represents a time-temperature profile (a
@@ -42,20 +46,30 @@ import pulse.properties.NumericPropertyKeyword;
  */
 public class HeatingCurve extends AbstractData {
 
-    private final List<Double> adjustedSignal;
+    /**
+     *
+     */
+    private static final long serialVersionUID = 7071147065094996971L;
+    private List<Double> adjustedSignal;
     private List<Double> lastCalculation;
     private double startTime;
 
-    private final List<HeatingCurveListener> listeners
-            = new ArrayList<>();
+    private List<HeatingCurveListener> listeners;
 
-    private UnivariateInterpolator interpolator;
-    private UnivariateFunction interpolation;
+    private transient UnivariateInterpolator interpolator;
+    private transient UnivariateFunction interpolation;
 
     protected HeatingCurve(List<Double> time, List<Double> signal, final double startTime, String name) {
         super(time, name);
         this.adjustedSignal = signal;
         this.startTime = startTime;
+        initListeners();
+    }
+
+    @Override
+    public void initListeners() {
+        super.initListeners();
+        listeners = new ArrayList<>();
     }
 
     /**
@@ -167,7 +181,7 @@ public class HeatingCurve extends AbstractData {
         for (int i = 0, max = Math.min(count, signal.size()); i < max; i++) {
             signal.set(i, signal.get(i) * scale);
         }
-        var dataEvent = new CurveEvent(RESCALED, this);
+        var dataEvent = new CurveEvent(RESCALED);
         fireCurveEvent(dataEvent);
     }
 
@@ -195,14 +209,13 @@ public class HeatingCurve extends AbstractData {
         }
 
         final double alpha = -1.0;
-        adjustedSignalExtended[0] = alpha * adjustedSignalExtended[2] 
+        adjustedSignalExtended[0] = alpha * adjustedSignalExtended[2]
                 - (1.0 - alpha) * adjustedSignalExtended[1]; // extrapolate
         // linearly
 
         /*
 	 * Submit to spline interpolation
          */
-        
         interpolation = interpolator.interpolate(timeExtended, adjustedSignalExtended);
     }
 
@@ -343,7 +356,7 @@ public class HeatingCurve extends AbstractData {
     public void setTimeShift(NumericProperty startTime) {
         requireType(startTime, TIME_SHIFT);
         this.startTime = (double) startTime.getValue();
-        var dataEvent = new CurveEvent(TIME_ORIGIN_CHANGED, this);
+        var dataEvent = new CurveEvent(TIME_ORIGIN_CHANGED);
         fireCurveEvent(dataEvent);
         firePropertyChanged(this, startTime);
     }
@@ -357,11 +370,14 @@ public class HeatingCurve extends AbstractData {
     }
 
     public void addHeatingCurveListener(HeatingCurveListener l) {
+        if (listeners == null) {
+            listeners = new ArrayList<>();
+        }
         this.listeners.add(l);
     }
 
     @Override
-    public void removeHeatingCurveListeners() {
+    public void removeListeners() {
         listeners.clear();
     }
 
@@ -379,12 +395,31 @@ public class HeatingCurve extends AbstractData {
 
         return super.equals(o) && adjustedSignal.containsAll(((HeatingCurve) o).adjustedSignal);
     }
-    
+
     public double interpolateSignalAt(double x) {
         double min = this.timeAt(0);
         double max = timeLimit();
         return min < x && max > x ? interpolation.value(x)
                 : (x < min ? signalAt(0) : signalAt(actualNumPoints() - 1));
+    }
+
+    /*
+    * Serialization
+     */
+    private void writeObject(ObjectOutputStream oos)
+            throws IOException {
+        // default serialization 
+        oos.defaultWriteObject();
+        // write the object
+        FunctionSerializer.writeSplineFunction((PolynomialSplineFunction) interpolation, oos);
+    }
+
+    private void readObject(ObjectInputStream ois)
+            throws ClassNotFoundException, IOException {
+        // default deserialization
+        ois.defaultReadObject();
+        this.interpolation = FunctionSerializer.readSplineFunction(ois);
+        this.interpolator = new SplineInterpolator();
     }
 
 }

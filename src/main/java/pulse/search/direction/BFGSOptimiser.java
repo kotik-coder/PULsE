@@ -30,6 +30,10 @@ import pulse.ui.Messages;
  */
 public class BFGSOptimiser extends CompositePathOptimiser {
 
+    /**
+     *
+     */
+    private static final long serialVersionUID = -8542438015176648987L;
     private static BFGSOptimiser instance = new BFGSOptimiser();
 
     private BFGSOptimiser() {
@@ -68,9 +72,9 @@ public class BFGSOptimiser extends CompositePathOptimiser {
         p.setHessian(hessian); // g_k, g_k+1, p_k+1, B_k, alpha_k+1
         p.setGradient(g1); // set g1 as the new gradient for next step
     }
-    
+
     /**
-     * Uses the BFGS formula to calculate the Hessian. 
+     * Uses the BFGS formula to calculate the Hessian.
      *
      * @param g1 gradient at step <i>k</i>
      * @param g2 gradient at step <i>k</i>+1

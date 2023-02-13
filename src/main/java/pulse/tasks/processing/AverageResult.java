@@ -18,6 +18,8 @@ import pulse.properties.NumericPropertyKeyword;
  */
 public class AverageResult extends AbstractResult {
 
+    private static final long serialVersionUID = 5279249996318155238L;
+
     private final List<AbstractResult> results;
 
     public final static int SIGNIFICANT_FIGURES = 2;
@@ -28,11 +30,10 @@ public class AverageResult extends AbstractResult {
      * <p>
      * It will also use the {@code resultFormat}. A method will be invoked to:
      * (a) calculate the mean values of the list of {@code NumericProperty}
-     * according to the {@code resultFormat}; (b) calculate the statistical error; 
-     * (c) create a {@code BigDecimal} representation
-     * of the values and the errors, so that only {@value SIGNIFICANT_FIGURES}
-     * significant figures are left for consistency between the {@code value}
-     * and the {@code error}.
+     * according to the {@code resultFormat}; (b) calculate the statistical
+     * error; (c) create a {@code BigDecimal} representation of the values and
+     * the errors, so that only {@value SIGNIFICANT_FIGURES} significant figures
+     * are left for consistency between the {@code value} and the {@code error}.
      * </p>
      *
      * @param res a list of {@code AbstractResult}s that are going to be
@@ -72,16 +73,16 @@ public class AverageResult extends AbstractResult {
 
             if (!Double.isFinite(err[j])) {
                 p = derive(key, av[j]); // ignore error as the value is not finite
-            } else if(NumericProperties.def(key).getValue() instanceof Double) {
-                var stdBig  = new BigDecimal(err[j]);
-                var avBig   = new BigDecimal(av[j]);
+            } else if (NumericProperties.def(key).getValue() instanceof Double) {
+                var stdBig = new BigDecimal(err[j]);
+                var avBig = new BigDecimal(av[j]);
 
                 var error = stdBig.setScale(
                         SIGNIFICANT_FIGURES - stdBig.precision() + stdBig.scale(),
                         RoundingMode.HALF_UP);
 
-                var mean = stdBig.precision() > 1 ? 
-                        avBig.setScale(error.scale(), RoundingMode.CEILING) 
+                var mean = stdBig.precision() > 1
+                        ? avBig.setScale(error.scale(), RoundingMode.CEILING)
                         : avBig;
 
                 p = derive(key, mean.doubleValue());
@@ -89,8 +90,8 @@ public class AverageResult extends AbstractResult {
 
             } else {
                 //if integer
-                p = derive(key, (int)Math.round( av[j] ) );
-                p.setError((int)Math.round( err[j] ) );
+                p = derive(key, (int) Math.round(av[j]));
+                p.setError((int) Math.round(err[j]));
             }
 
             addProperty(p);

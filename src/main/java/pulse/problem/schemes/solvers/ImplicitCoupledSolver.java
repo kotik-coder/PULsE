@@ -17,7 +17,7 @@ import pulse.problem.statements.Problem;
 import pulse.problem.statements.model.ThermoOpticalProperties;
 import pulse.properties.NumericProperty;
 
-public abstract class ImplicitCoupledSolver extends CoupledImplicitScheme 
+public abstract class ImplicitCoupledSolver extends CoupledImplicitScheme
         implements Solver<ParticipatingMedium> {
 
     private RadiativeTransferSolver rte;
@@ -50,7 +50,7 @@ public abstract class ImplicitCoupledSolver extends CoupledImplicitScheme
         final var grid = getGrid();
 
         var coupling = getCoupling();
-        coupling.init( (ParticipatingMedium) problem, grid);
+        coupling.init((ParticipatingMedium) problem, grid);
         rte = coupling.getRadiativeTransferEquation();
 
         N = (int) getGrid().getGridDensity().getValue();
@@ -72,7 +72,7 @@ public abstract class ImplicitCoupledSolver extends CoupledImplicitScheme
         v1 = 1.0 + HX2_2TAU + hx * Bi1;
 
         fluxes = rte.getFluxes();
-        
+
         var tridiagonal = new TridiagonalMatrixAlgorithm(grid) {
 
             @Override
@@ -91,8 +91,8 @@ public abstract class ImplicitCoupledSolver extends CoupledImplicitScheme
 
         tridiagonal.evaluateAlpha();
         setTridiagonalMatrixAlgorithm(tridiagonal);
-        
-        zeta = (double) ((ClassicalProblem)problem).getGeometricFactor().getValue();
+
+        zeta = (double) ((ClassicalProblem) problem).getGeometricFactor().getValue();
     }
 
     @Override
@@ -104,7 +104,7 @@ public abstract class ImplicitCoupledSolver extends CoupledImplicitScheme
 
         var status = getCalculationStatus();
         if (status != RTECalculationStatus.NORMAL) {
-            throw new SolverException(status.toString(), 
+            throw new SolverException(status.toString(),
                     RTE_SOLVER_ERROR);
         }
 

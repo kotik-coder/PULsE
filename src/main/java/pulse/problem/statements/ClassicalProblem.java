@@ -24,6 +24,10 @@ import pulse.ui.Messages;
  */
 public class ClassicalProblem extends Problem {
 
+    /**
+     *
+     */
+    private static final long serialVersionUID = -1915004757733565502L;
     private double bias;
 
     public ClassicalProblem() {

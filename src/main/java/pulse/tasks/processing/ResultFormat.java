@@ -1,5 +1,6 @@
 package pulse.tasks.processing;
 
+import java.io.Serializable;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
 import static pulse.properties.NumericProperties.def;
@@ -11,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import pulse.properties.NumericPropertyKeyword;
+import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.ResultFormatEvent;
 import pulse.tasks.listeners.ResultFormatListener;
 
@@ -22,7 +24,12 @@ import pulse.tasks.listeners.ResultFormatListener;
  * characters.
  * </p>
  */
-public class ResultFormat {
+public class ResultFormat implements Serializable {
+
+    /**
+     *
+     */
+    private static final long serialVersionUID = -3155104011585735097L;
 
     private List<NumericPropertyKeyword> nameMap;
 
@@ -45,13 +52,20 @@ public class ResultFormat {
 
     private ResultFormat(List<NumericPropertyKeyword> keys) {
         nameMap = new ArrayList<>();
-        keys.forEach(key -> 
-            nameMap.add(key)
+        keys.forEach(key
+                -> nameMap.add(key)
         );
+        TaskManager.addSessionListener(() -> format = this);
     }
-    
+
     public static void addResultFormatListener(ResultFormatListener rfl) {
         listeners.add(rfl);
+    }
+
+    public static void removeListeners() {
+        if (listeners != null) {
+            listeners.clear();
+        }
     }
 
     public static ResultFormat generateFormat(List<NumericPropertyKeyword> keys) {

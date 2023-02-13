@@ -50,12 +50,13 @@ import pulse.properties.NumericProperty;
  */
 public class MixedLinearisedSolver extends MixedScheme implements Solver<ClassicalProblem> {
 
+    private static final long serialVersionUID = 2233988060956648641L;
     private double b1;
     private double b2;
     private double b3;
     private double c1;
     private double c2;
-    
+
     private double zeta;
 
     private final static double EPS = 1e-7; // a small value ensuring numeric stability
@@ -93,8 +94,8 @@ public class MixedLinearisedSolver extends MixedScheme implements Solver<Classic
         b3 = hx * tau;
         c1 = b2;
         c2 = Bi1HTAU + HH;
-        
-        zeta = (double) ((ClassicalProblem)problem).getGeometricFactor().getValue();
+
+        zeta = (double) ((ClassicalProblem) problem).getGeometricFactor().getValue();
 
         var tridiagonal = new TridiagonalMatrixAlgorithm(grid) {
 
@@ -128,15 +129,15 @@ public class MixedLinearisedSolver extends MixedScheme implements Solver<Classic
         final double tau = grid.getTimeStep();
         final int N = (int) grid.getGridDensity().getValue();
 
-        return ( c1 * U[N] + tau * betaN + b3 * (1.0 - zeta) * getCurrentPulseValue() 
-                - tau * (U[N] - U[N - 1]) ) / (c2 - tau * (alphaN - 1));
+        return (c1 * U[N] + tau * betaN + b3 * (1.0 - zeta) * getCurrentPulseValue()
+                - tau * (U[N] - U[N - 1])) / (c2 - tau * (alphaN - 1));
     }
-    
+
     @Override
     public double pulse(int m) {
         final double tau = getGrid().getTimeStep();
         var pulse = getDiscretePulse();
-        return pulse.laserPowerAt((m - 1 + EPS) * tau) + pulse.laserPowerAt((m - EPS) * tau); 
+        return pulse.laserPowerAt((m - 1 + EPS) * tau) + pulse.laserPowerAt((m - EPS) * tau);
     }
 
     @Override

@@ -41,8 +41,8 @@ public class NumericProperties {
         double v = val.doubleValue();
         final double EPS = 1E-12;
         boolean ok = true;
-        
-        if(        !Double.isFinite(v) 
+
+        if (!Double.isFinite(v)
                 || v > property.getMaximum().doubleValue() + EPS
                 || v < property.getMinimum().doubleValue() - EPS) {
             ok = false;
@@ -91,7 +91,7 @@ public class NumericProperties {
         Double d1 = ((Number) a.getValue()).doubleValue();
         Double d2 = ((Number) b.getValue()).doubleValue();
 
-        final double eps = 1E-8 * (d1 + d2) / 2.0;
+        final double eps = 1E-8 * Math.abs(d1 + d2) / 2.0;
 
         return Math.abs(d1 - d2) < eps ? 0 : d1.compareTo(d2);
     }
@@ -99,8 +99,7 @@ public class NumericProperties {
     /**
      * Searches for the default {@code NumericProperty} corresponding to
      * {@code keyword} in the list of pre-defined properties loaded from the
-     * respective {@code .xml} file, and if found creates a new
-     * {
+     * respective {@code .xml} file, and if found creates a new {
      *
      * @NumericProperty} which will replicate all field of the latter, but will
      * set its value to {@code value}.

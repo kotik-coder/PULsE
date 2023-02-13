@@ -1,5 +1,6 @@
 package pulse.math;
 
+import java.io.Serializable;
 import pulse.util.PropertyHolder;
 import pulse.util.Reflexive;
 
@@ -10,7 +11,7 @@ import pulse.util.Reflexive;
  * or more variables and the other to actually do the integration.
  *
  */
-public abstract class AbstractIntegrator extends PropertyHolder implements Reflexive {
+public abstract class AbstractIntegrator extends PropertyHolder implements Reflexive, Serializable {
 
     private Segment integrationBounds;
 

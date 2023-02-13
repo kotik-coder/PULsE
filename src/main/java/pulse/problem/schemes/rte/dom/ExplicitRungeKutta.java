@@ -16,6 +16,7 @@ import pulse.util.DiscreteSelector;
  */
 public class ExplicitRungeKutta extends AdaptiveIntegrator {
 
+    private static final long serialVersionUID = -2478658861611086402L;
     private ButcherTableau tableau;
     private DiscreteSelector<ButcherTableau> tableauSelector;
 

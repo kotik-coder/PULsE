@@ -1,5 +1,6 @@
 package pulse.math.linear;
 
+import java.io.Serializable;
 import static pulse.math.MathUtils.approximatelyEquals;
 import static pulse.math.linear.ArithmeticOperations.DIFFERENCE;
 import static pulse.math.linear.ArithmeticOperations.SUM;
@@ -7,8 +8,9 @@ import static pulse.math.linear.Matrices.createMatrix;
 
 import pulse.ui.Messages;
 
-public class RectangularMatrix {
+public class RectangularMatrix implements Serializable {
 
+    private static final long serialVersionUID = -8184303238440935851L;
     protected final double[][] x;
 
     protected RectangularMatrix(double[][] args) {

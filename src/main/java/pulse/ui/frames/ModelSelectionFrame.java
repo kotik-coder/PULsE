@@ -24,13 +24,17 @@ public class ModelSelectionFrame extends JInternalFrame {
         setSize(new Dimension(400, 400));
         setTitle("Stored Calculations");
         getContentPane().add(new ModelToolbar(), BorderLayout.SOUTH);
+        resetSession();
+        this.setDefaultCloseOperation(HIDE_ON_CLOSE);
+    }
+
+    public void resetSession() {
         var instance = TaskManager.getManagerInstance();
         instance.addTaskRepositoryListener(e -> {
             if (e.getState() == TASK_BROWSING_REQUEST) {
                 table.update(instance.getTask(e.getId()));
             }
         });
-        this.setDefaultCloseOperation(HIDE_ON_CLOSE);
     }
 
 }

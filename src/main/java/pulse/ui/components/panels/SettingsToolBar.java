@@ -19,8 +19,6 @@ import pulse.ui.components.TaskBox;
 
 public class SettingsToolBar extends JToolBar {
 
-    private static final long serialVersionUID = -1171612225785102673L;
-
     private JCheckBox cbSingleStatement, cbHideDetails;
 
     public SettingsToolBar(PropertyHolderTable... tables) {

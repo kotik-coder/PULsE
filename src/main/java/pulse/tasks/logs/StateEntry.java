@@ -8,6 +8,7 @@ import pulse.tasks.TaskManager;
 
 public class StateEntry extends LogEntry {
 
+    private static final long serialVersionUID = 8380229394939453079L;
     private Status status;
 
     public StateEntry(SearchTask task, Status status) {
@@ -41,7 +42,7 @@ public class StateEntry extends LogEntry {
         if (status.getDetails() != NONE) {
             sb.append(" due to <b>" + status.getDetails() + "</b>");
         }
-        if(status.getDetailedMessage().length() > 0) {
+        if (status.getDetailedMessage().length() > 0) {
             sb.append(" Details: ");
             sb.append(status.getDetailedMessage());
         }

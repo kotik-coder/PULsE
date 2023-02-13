@@ -17,6 +17,8 @@ import pulse.properties.NumericProperty;
  */
 public class ADILinearisedSolver extends ADIScheme implements Solver<ClassicalProblem2D> {
 
+    private static final long serialVersionUID = 5354981341912770336L;
+
     private TridiagonalMatrixAlgorithm tridiagonal;
 
     private int N;
@@ -77,12 +79,12 @@ public class ADILinearisedSolver extends ADIScheme implements Solver<ClassicalPr
     public ADILinearisedSolver(NumericProperty N, NumericProperty timeFactor, NumericProperty timeLimit) {
         super(N, timeFactor, timeLimit);
     }
-    
+
     @Override
     public void clearArrays() {
-        N   = (int) getGrid().getGridDensity().getValue();
-        U1  = new double[N + 1][N + 1];
-        U2  = new double[N + 1][N + 1];
+        N = (int) getGrid().getGridDensity().getValue();
+        U1 = new double[N + 1][N + 1];
+        U2 = new double[N + 1][N + 1];
 
         U1_E = new double[N + 3][N + 3];
         U2_E = new double[N + 3][N + 3];
@@ -117,7 +119,6 @@ public class ADILinearisedSolver extends ADIScheme implements Solver<ClassicalPr
         l = (double) properties.getSampleThickness().getValue();
 
         // end
-
         // a[i]*u[i-1] - b[i]*u[i] + c[i]*u[i+1] = F[i]
         lastIndex = (int) (fovOuter / d / hx);
         lastIndex = lastIndex > N ? N : lastIndex;

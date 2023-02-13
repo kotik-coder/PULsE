@@ -85,11 +85,11 @@ public class ExportDialog extends JDialog {
         var returnVal = fileChooser.showOpenDialog(this);
 
         File f = null;
-        
+
         if (returnVal == APPROVE_OPTION) {
             dir = f = fileChooser.getSelectedFile();
         }
-        
+
         return f;
 
     }
@@ -250,7 +250,7 @@ public class ExportDialog extends JDialog {
         var browseBtn = new JButton("Browse...");
 
         browseBtn.addActionListener(e -> directoryField.setText(directoryQuery()
-                .getPath() + separator + projectName + separator) );
+                .getPath() + separator + projectName + separator));
 
         var exportBtn = new JButton("Export");
 

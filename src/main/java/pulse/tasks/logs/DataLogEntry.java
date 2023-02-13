@@ -22,6 +22,7 @@ import pulse.ui.Messages;
  */
 public class DataLogEntry extends LogEntry {
 
+    private static final long serialVersionUID = -8995240410369870205L;
     private List<Parameter> entry;
 
     /**

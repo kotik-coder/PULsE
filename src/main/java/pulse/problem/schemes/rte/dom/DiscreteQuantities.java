@@ -1,12 +1,15 @@
 package pulse.problem.schemes.rte.dom;
 
+import java.io.Serializable;
+
 /**
  * Defines the main quantities calculated within the discrete ordinates method.
  * This includes the various intensity and flux arrays used internally by the
  * integrators.
  */
-public class DiscreteQuantities {
+public class DiscreteQuantities implements Serializable {
 
+    private static final long serialVersionUID = -3997479317699236996L;
     private double[][] I;
     private double[][] Ik;
     private double[][] f;

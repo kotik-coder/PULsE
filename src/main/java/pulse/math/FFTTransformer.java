@@ -1,15 +1,17 @@
 package pulse.math;
 
+import java.io.Serializable;
 import org.apache.commons.math3.complex.Complex;
 import org.apache.commons.math3.transform.DftNormalization;
 import org.apache.commons.math3.transform.FastFourierTransformer;
 import org.apache.commons.math3.transform.TransformType;
 
-public class FFTTransformer {
+public class FFTTransformer implements Serializable {
 
+    private static final long serialVersionUID = -5424502578926616928L;
     private double[] amplitudeSpec;
     private double[] phaseSpec;
-    
+
     private int n;  //number of input points
     private Complex[] buffer;
 
@@ -18,7 +20,7 @@ public class FFTTransformer {
     public FFTTransformer(double[] realInput) {
         this(Window.HANN, realInput, new double[realInput.length]);
     }
-    
+
     public FFTTransformer(Window window, double[] realInput) {
         this(window, realInput, new double[realInput.length]);
     }
@@ -68,7 +70,7 @@ public class FFTTransformer {
     public double[] sampling(double[] x) {
         final double totalTime = x[n - 2] - x[0];
         double[] sample = new double[buffer.length / 2];
-        double fs = n/totalTime; //sampling rate 
+        double fs = n / totalTime; //sampling rate 
         for (int i = 0; i < sample.length; i++) {
             sample[i] = i * fs / buffer.length;
         }
@@ -132,5 +134,5 @@ public class FFTTransformer {
     public double[] getPhaseSpectrum() {
         return phaseSpec;
     }
-    
+
 }

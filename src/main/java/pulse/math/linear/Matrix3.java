@@ -6,6 +6,8 @@ package pulse.math.linear;
  */
 class Matrix3 extends SquareMatrix {
 
+    private static final long serialVersionUID = -2671066600560428989L;
+
     protected Matrix3(double[][] args) {
         super(args);
     }

@@ -19,6 +19,11 @@ import pulse.ui.Messages;
 public class GoldenSectionOptimiser extends LinearOptimiser {
 
     /**
+     *
+     */
+    private static final long serialVersionUID = -369106060533186038L;
+
+    /**
      * The golden section &phi;, which is approximately equal to 0.618033989.
      */
     public final static double PHI = 1.0 - (3.0 - Math.sqrt(5.0)) / 2.0;

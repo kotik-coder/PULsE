@@ -30,6 +30,10 @@ import pulse.util.PropertyHolder;
  */
 public class Pulse extends PropertyHolder {
 
+    /**
+     *
+     */
+    private static final long serialVersionUID = 3564455042006771282L;
     private double pulseWidth;
     private double laserEnergy;
 
@@ -50,11 +54,8 @@ public class Pulse extends PropertyHolder {
         laserEnergy = (double) def(LASER_ENERGY).getValue();
         instanceDescriptor.setSelectedDescriptor(RectangularPulse.class.getSimpleName());
         initShape();
-        instanceDescriptor.addListener(() -> {
-            initShape();
-            this.firePropertyChanged(instanceDescriptor, instanceDescriptor);
-        });
-        addListeners();
+        addInstanceListener();
+        initListeners();
     }
 
     /**
@@ -67,14 +68,20 @@ public class Pulse extends PropertyHolder {
         this.pulseShape = p.getPulseShape();
         this.pulseWidth = p.pulseWidth;
         this.laserEnergy = p.laserEnergy;
-        addListeners();
+        addInstanceListener();
+        initListeners();
     }
 
-    private void addListeners() {
+    private void addInstanceListener() {
         instanceDescriptor.addListener(() -> {
             initShape();
             this.firePropertyChanged(instanceDescriptor, instanceDescriptor);
         });
+    }
+    
+    @Override
+    public void initListeners() {
+        super.initListeners();
         addListener((PropertyEvent event) -> {
 
             //when a property of the pulse is changed
@@ -91,16 +98,16 @@ public class Pulse extends PropertyHolder {
                     NumericProperty pw = NumericProperties
                             .derive(NumericPropertyKeyword.LOWER_BOUND,
                                     (Number) np.getValue());
-                    
-                    var range = ( (ExperimentalData) corrTask.getInput() ).getRange();
-                    
-                    if( range.getLowerBound().compareTo(pw) < 0 ) {
 
-                    //update lower bound of the range for that SearchTask
-                    range.setLowerBound(pw);
-                    
+                    var range = ((ExperimentalData) corrTask.getInput()).getRange();
+
+                    if (range.getLowerBound().compareTo(pw) < 0) {
+
+                        //update lower bound of the range for that SearchTask
+                        range.setLowerBound(pw);
+
                     }
-                    
+
                 }
 
             }
@@ -131,24 +138,24 @@ public class Pulse extends PropertyHolder {
         requireType(pulseWidth, PULSE_WIDTH);
 
         double newValue = (double) pulseWidth.getValue();
-        
+
         double relChange = Math.abs((newValue - this.pulseWidth) / (this.pulseWidth + newValue));
         final double EPS = 1E-3;
-        
+
         //do not update -- if new value is the same as the previous one
         if (relChange > EPS && newValue > 0) {
-            
+
             //validate -- do not update if the new pulse width is greater than 2 half-times
-            SearchTask task         = (SearchTask) this.specificAncestor(SearchTask.class);
-            ExperimentalData data   = (ExperimentalData) task.getInput();
-            
-            if(newValue < 2.0 * data.getHalfTimeCalculator().getHalfTime()) {
+            SearchTask task = (SearchTask) this.specificAncestor(SearchTask.class);
+            ExperimentalData data = (ExperimentalData) task.getInput();
+
+            if (newValue < 2.0 * data.getHalfTimeCalculator().getHalfTime()) {
                 this.pulseWidth = (double) pulseWidth.getValue();
                 firePropertyChanged(this, pulseWidth);
             }
-            
+
         }
-        
+
     }
 
     public NumericProperty getLaserEnergy() {
@@ -214,8 +221,8 @@ public class Pulse extends PropertyHolder {
 
     public void setPulseShape(PulseTemporalShape pulseShape) {
         this.pulseShape = pulseShape;
-        pulseShape.setParent(this);    
-        
+        pulseShape.setParent(this);
+
     }
 
 }

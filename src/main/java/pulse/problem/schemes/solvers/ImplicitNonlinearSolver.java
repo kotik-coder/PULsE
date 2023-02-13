@@ -17,6 +17,7 @@ import static pulse.properties.NumericPropertyKeyword.NONLINEAR_PRECISION;
 
 public class ImplicitNonlinearSolver extends ImplicitScheme implements Solver<NonlinearProblem>, FixedPointIterations {
 
+    private static final long serialVersionUID = -6263519219698662707L;
     private int N;
     private double HH;
     private double tau;
@@ -139,7 +140,7 @@ public class ImplicitNonlinearSolver extends ImplicitScheme implements Solver<No
 
     @Override
     public double evalRightBoundary(double alphaN, double betaN) {
-        return c2 * (2. * betaN * tau + HH * getPreviousSolution()[N] 
+        return c2 * (2. * betaN * tau + HH * getPreviousSolution()[N]
                 + c1 * (fastPowLoop(getCurrentSolution()[N] * dT_T + 1, 4) - 1));
     }
 

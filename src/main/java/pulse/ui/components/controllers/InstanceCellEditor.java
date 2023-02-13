@@ -29,7 +29,7 @@ public class InstanceCellEditor extends DefaultCellEditor {
             if (e.getStateChange() == ItemEvent.SELECTED) {
                 try {
                     descriptor.attemptUpdate(e.getItem());
-                } catch(NullPointerException npe) {
+                } catch (NullPointerException npe) {
                     String text = "Error updating " + descriptor.getDescriptor(false)
                             + ". Cannot be set to " + e.getItem();
                     System.out.println(text);
@@ -37,7 +37,7 @@ public class InstanceCellEditor extends DefaultCellEditor {
                 }
             }
         });
-        
+
         return combobox;
     }
 

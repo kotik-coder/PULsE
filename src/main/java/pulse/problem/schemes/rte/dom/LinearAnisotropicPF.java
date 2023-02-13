@@ -9,6 +9,7 @@ import pulse.problem.statements.model.ThermoOpticalProperties;
  */
 public class LinearAnisotropicPF extends PhaseFunction {
 
+    private static final long serialVersionUID = 7074989018933263351L;
     private double g;
 
     public LinearAnisotropicPF(ThermoOpticalProperties top, Discretisation intensities) {
@@ -29,7 +30,7 @@ public class LinearAnisotropicPF extends PhaseFunction {
 
     @Override
     public double function(final int i, final int k) {
-        return 1.0 + g * cosineTheta(i,k);
+        return 1.0 + g * cosineTheta(i, k);
     }
 
 }

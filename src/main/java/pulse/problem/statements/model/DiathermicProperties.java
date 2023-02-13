@@ -11,6 +11,7 @@ import static pulse.properties.NumericPropertyKeyword.HEAT_LOSS_CONVECTIVE;
 
 public class DiathermicProperties extends ThermalProperties {
 
+    private static final long serialVersionUID = 1294930368429607512L;
     private double diathermicCoefficient;
     private double convectiveLosses;
 
@@ -42,7 +43,7 @@ public class DiathermicProperties extends ThermalProperties {
         requireType(diathermicCoefficient, DIATHERMIC_COEFFICIENT);
         this.diathermicCoefficient = (double) diathermicCoefficient.getValue();
     }
-    
+
     public NumericProperty getConvectiveLosses() {
         return derive(HEAT_LOSS_CONVECTIVE, convectiveLosses);
     }

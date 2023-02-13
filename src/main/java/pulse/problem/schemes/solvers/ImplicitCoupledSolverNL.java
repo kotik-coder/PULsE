@@ -30,6 +30,7 @@ import pulse.ui.Messages;
  */
 public class ImplicitCoupledSolverNL extends ImplicitCoupledSolver implements FixedPointIterations {
 
+    private static final long serialVersionUID = -3993380888844448942L;
     private double nonlinearPrecision;
 
     public ImplicitCoupledSolverNL() {
@@ -43,7 +44,7 @@ public class ImplicitCoupledSolverNL extends ImplicitCoupledSolver implements Fi
         nonlinearPrecision = (double) def(NONLINEAR_PRECISION).getValue();
         setAutoUpdateFluxes(false);
     }
-    
+
     @Override
     public void timeStep(final int m) throws SolverException {
         doIterations(getCurrentSolution(), nonlinearPrecision, m);
@@ -77,16 +78,16 @@ public class ImplicitCoupledSolverNL extends ImplicitCoupledSolver implements Fi
             super.set(type, property);
         }
     }
-   
+
     @Override
     public DifferenceScheme copy() {
         var grid = getGrid();
         return new ImplicitCoupledSolverNL(grid.getGridDensity(), grid.getTimeFactor(), getTimeLimit());
     }
-    
+
     @Override
     public String toString() {
         return Messages.getString("ImplicitScheme.5");
     }
-    
+
 }

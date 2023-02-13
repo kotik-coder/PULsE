@@ -12,6 +12,7 @@ import pulse.properties.NumericPropertyKeyword;
 
 public class Pulse2D extends Pulse {
 
+    private static final long serialVersionUID = 8753396877032808678L;
     private double spotDiameter;
 
     /**

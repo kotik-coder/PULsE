@@ -1,5 +1,6 @@
 package pulse.problem.schemes.rte.dom;
 
+import java.io.Serializable;
 import pulse.math.linear.Matrices;
 import pulse.math.linear.SquareMatrix;
 import pulse.math.linear.Vector;
@@ -10,8 +11,9 @@ import pulse.util.Descriptive;
  * Variable names correspond to the standard notations.
  *
  */
-public class ButcherTableau implements Descriptive {
+public class ButcherTableau implements Descriptive, Serializable {
 
+    private static final long serialVersionUID = -8856270519744473886L;
     private Vector b;
     private Vector bHat;
     private Vector c;

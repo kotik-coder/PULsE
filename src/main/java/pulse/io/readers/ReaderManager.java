@@ -214,27 +214,28 @@ public class ReaderManager {
         }
 
         var es = Executors.newSingleThreadExecutor();
-        
+
         var callableList = new ArrayList<Callable<T>>();
-        
+
         for (File f : directory.listFiles()) {
             Callable<T> callable = () -> read(readers, f);
             callableList.add(callable);
         }
-        
+
         Set<T> result = new HashSet<>();
-        
+
         try {
             List<Future<T>> futures = es.invokeAll(callableList);
-            
-            for(Future<T> f : futures)
+
+            for (Future<T> f : futures) {
                 result.add(f.get());
- 
+            }
+
         } catch (InterruptedException ex) {
-            Logger.getLogger(ReaderManager.class.getName()).log(Level.SEVERE, 
+            Logger.getLogger(ReaderManager.class.getName()).log(Level.SEVERE,
                     "Reading interrupted when loading files from " + directory.toString(), ex);
         } catch (ExecutionException ex) {
-            Logger.getLogger(ReaderManager.class.getName()).log(Level.SEVERE, 
+            Logger.getLogger(ReaderManager.class.getName()).log(Level.SEVERE,
                     "Error executing read operation using concurrency", ex);
         }
 

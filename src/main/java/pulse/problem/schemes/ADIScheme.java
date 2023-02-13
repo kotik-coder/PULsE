@@ -15,6 +15,11 @@ import pulse.properties.NumericProperty;
 public abstract class ADIScheme extends DifferenceScheme {
 
     /**
+     *
+     */
+    private static final long serialVersionUID = 4772650159522354367L;
+
+    /**
      * Creates a new {@code ADIScheme} with default values of grid density and
      * time factor.
      */
@@ -56,13 +61,14 @@ public abstract class ADIScheme extends DifferenceScheme {
     public String toString() {
         return getString("ADIScheme.4");
     }
-    
+
     /**
-     * Contains only an empty statement, as the pulse needs to be calculated not only
-     * for the time step {@code m} but also accounting for the radial coordinate
+     * Contains only an empty statement, as the pulse needs to be calculated not
+     * only for the time step {@code m} but also accounting for the radial
+     * coordinate
+     *
      * @param m thte time step
      */
-    
     @Override
     public void prepareStep(int m) {
         //do nothing

@@ -60,8 +60,8 @@ public class PulseChart extends AuxPlotter<Calculation> {
         double startTime = (double) problem.getHeatingCurve().getTimeShift().getValue();
 
         var pulseDataset = new XYSeriesCollection();
-         
-        pulseDataset.addSeries(series(problem.getPulse(), c.getScheme().getGrid().getTimeStep()/20.0, 
+
+        pulseDataset.addSeries(series(problem.getPulse(), c.getScheme().getGrid().getTimeStep() / 20.0,
                 problem.getProperties().characteristicTime(), startTime));
 
         getPlot().setDataset(0, pulseDataset);
@@ -70,15 +70,15 @@ public class PulseChart extends AuxPlotter<Calculation> {
     private static XYSeries series(Pulse pulse, double dx, double timeFactor, double startTime) {
         var series = new XYSeries(pulse.getPulseShape().toString());
         var pulseShape = pulse.getPulseShape();
-        
+
         double timeLimit = pulseShape.getPulseWidth();
-        double x = startTime/timeFactor;
+        double x = startTime / timeFactor;
 
         series.add(TO_MILLIS * (startTime - dx * timeFactor / 100.), 0.0);
-        series.add(TO_MILLIS * (startTime + timeFactor*(timeLimit + dx / 100.)), 0.0);
+        series.add(TO_MILLIS * (startTime + timeFactor * (timeLimit + dx / 100.)), 0.0);
 
-        for (int i = 0, numPoints = (int) (timeLimit/dx); i < numPoints; i++) {
-            series.add(x * timeFactor * TO_MILLIS, pulseShape.evaluateAt(x - startTime/timeFactor));
+        for (int i = 0, numPoints = (int) (timeLimit / dx); i < numPoints; i++) {
+            series.add(x * timeFactor * TO_MILLIS, pulseShape.evaluateAt(x - startTime / timeFactor));
             x += dx;
         }
 

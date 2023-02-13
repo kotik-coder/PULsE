@@ -18,7 +18,7 @@ public class ImplicitDiathermicSolver extends ImplicitScheme implements Solver<D
     private double z0;
     private double zN_1;
     private double zeta;
-   
+
     public ImplicitDiathermicSolver() {
         super();
     }
@@ -65,7 +65,7 @@ public class ImplicitDiathermicSolver extends ImplicitScheme implements Solver<D
         tridiagonal.evaluateAlpha();
         setTridiagonalMatrixAlgorithm(tridiagonal);
 
-        zeta = (double) ((ClassicalProblem)problem).getGeometricFactor().getValue();
+        zeta = (double) ((ClassicalProblem) problem).getGeometricFactor().getValue();
     }
 
     @Override
@@ -85,7 +85,7 @@ public class ImplicitDiathermicSolver extends ImplicitScheme implements Solver<D
         var tri = (BlockMatrixAlgorithm) getTridiagonalMatrixAlgorithm();
         var p = tri.getP();
         var q = tri.getQ();
-        return (HX2_2TAU * getPreviousSolution()[N] + (1.0 - zeta) *hx * getCurrentPulseValue() 
+        return (HX2_2TAU * getPreviousSolution()[N] + (1.0 - zeta) * hx * getCurrentPulseValue()
                 - zN_1 * p[0] + p[N - 1])
                 / (z0 + zN_1 * q[0] - q[N - 1]);
     }

@@ -1,11 +1,13 @@
 package pulse.problem.schemes.rte;
 
+import java.io.Serializable;
+
 /**
  * Used to listed to status updates in {@code RadiativeTransferSolver}
  * subclasses.
  *
  */
-public interface RTECalculationListener {
+public interface RTECalculationListener extends Serializable {
 
     /**
      * Invoked when a sub-step of the RTE solution has finished.

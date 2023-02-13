@@ -1,20 +1,18 @@
 package pulse.input;
 
-import static pulse.properties.NumericPropertyKeyword.CONDUCTIVITY;
-import static pulse.properties.NumericPropertyKeyword.DENSITY;
-import static pulse.properties.NumericPropertyKeyword.SPECIFIC_HEAT;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 
 import java.util.ArrayList;
-import java.util.EnumMap;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.analysis.interpolation.AkimaSplineInterpolator;
+import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 
-import pulse.input.listeners.ExternalDatasetListener;
-import pulse.properties.NumericPropertyKeyword;
-import static pulse.properties.NumericPropertyKeyword.EMISSIVITY;
+import pulse.util.FunctionSerializer;
 import pulse.util.ImmutableDataEntry;
 
 /**
@@ -27,19 +25,19 @@ import pulse.util.ImmutableDataEntry;
  *
  * @see pulse.input.listeners.ExternalDatasetListener
  */
-public class InterpolationDataset {
+public class InterpolationDataset implements Serializable {
 
-    private UnivariateFunction interpolation;
+    /**
+     *
+     */
+    private static final long serialVersionUID = 7439474910490135034L;
+    private transient UnivariateFunction interpolation;
     private final List<ImmutableDataEntry<Double, Double>> dataset;
-    private static final Map<StandartType, InterpolationDataset> standartDatasets 
-            = new EnumMap<StandartType, InterpolationDataset>(StandartType.class);
-    private static final List<ExternalDatasetListener> listeners = new ArrayList<>();
 
-	/**
-	 * Creates an empty {@code InterpolationDataset}.
-	 */
-
-	public InterpolationDataset() {
+    /**
+     * Creates an empty {@code InterpolationDataset}.
+     */
+    public InterpolationDataset() {
         dataset = new ArrayList<>();
     }
 
@@ -66,7 +64,7 @@ public class InterpolationDataset {
     }
 
     /**
-     * Constructs a new spline interpolator and uses the available dataset to
+     * Constructs a new Akima spline interpolator and uses the available dataset to
      * produce a {@code SplineInterpolation}.
      */
     public void doInterpolation() {
@@ -84,65 +82,22 @@ public class InterpolationDataset {
         return dataset;
     }
 
-    /**
-     * Retrieves a standard dataset previously loaded by the respective reader.
-     *
-     * @param type the standard dataset type
-     * @return an {@code InterpolationDataset} corresponding to {@code type}
+    /*
+     * Serialization
      */
-    public static InterpolationDataset getDataset(StandartType type) {
-        return standartDatasets.get(type);
+    private void writeObject(ObjectOutputStream oos)
+            throws IOException {
+        // default serialization 
+        oos.defaultWriteObject();
+        // write the object
+        FunctionSerializer.writeSplineFunction((PolynomialSplineFunction) interpolation, oos);
     }
 
-    /**
-     * Puts a datset specified by {@code type} into the static hash map of this
-     * class, using {@code type} as key. Triggers {@code onDensityDataLoaded}
-     *
-     * @param dataset a dataset to be appended to the static hash map
-     * @param type the dataset type
-     */
-    public static void setDataset(InterpolationDataset dataset, StandartType type) {
-        standartDatasets.put(type, dataset);
-        listeners.stream().forEach(l -> l.onDataLoaded(type));
-    }
-
-    /**
-     * Creates a list of property keywords that can be derived with help of the
-     * loaded data. For example, if heat capacity and density data is available,
-     * the returned list will contain {@code CONDUCTIVITY}.
-     *
-     * @return
-     */
-    public static List<NumericPropertyKeyword> derivableProperties() {
-        var list = new ArrayList<NumericPropertyKeyword>();
-        if (standartDatasets.containsKey(StandartType.HEAT_CAPACITY)) {
-            list.add(SPECIFIC_HEAT);
-        }
-        if (standartDatasets.containsKey(StandartType.DENSITY)) {
-            list.add(DENSITY);
-        }
-        if (list.contains(SPECIFIC_HEAT) && list.contains(DENSITY)) {
-            list.add(CONDUCTIVITY);
-            list.add(EMISSIVITY);
-        }
-        return list;
-    }
-
-    public static void addListener(ExternalDatasetListener l) {
-        listeners.add(l);
-    }
-
-    public enum StandartType {
-
-        /**
-         * A keyword for the heat capacity dataset (in J/kg/K).
-         */
-        HEAT_CAPACITY,
-        /**
-         * A keyword for the density dataset (in kg/m<sup>3</sup>).
-         */
-        DENSITY;
-
+    private void readObject(ObjectInputStream ois)
+            throws ClassNotFoundException, IOException {
+        // default deserialization
+        ois.defaultReadObject();
+        this.interpolation = FunctionSerializer.readSplineFunction(ois);
     }
 
 }

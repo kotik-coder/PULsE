@@ -1,6 +1,8 @@
 package pulse.tasks.listeners;
 
-public interface TaskSelectionListener {
+import java.io.Serializable;
+
+public interface TaskSelectionListener extends Serializable {
 
     public void onSelectionChanged(TaskSelectionEvent e);
 

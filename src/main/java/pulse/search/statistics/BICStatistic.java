@@ -11,6 +11,8 @@ import static java.lang.Math.log;
  */
 public class BICStatistic extends ModelSelectionCriterion {
 
+    private static final long serialVersionUID = 737642724262758403L;
+
     public BICStatistic(ModelSelectionCriterion another) {
         super(another);
     }

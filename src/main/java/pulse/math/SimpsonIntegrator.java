@@ -11,6 +11,8 @@ import pulse.properties.NumericProperty;
  */
 public abstract class SimpsonIntegrator extends FixedIntervalIntegrator {
 
+    private static final long serialVersionUID = -7800272372472765906L;
+
     public SimpsonIntegrator(Segment bounds) {
         super(bounds);
     }

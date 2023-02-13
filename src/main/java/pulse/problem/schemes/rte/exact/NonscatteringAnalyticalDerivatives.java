@@ -20,6 +20,7 @@ import pulse.problem.statements.model.ThermoOpticalProperties;
  */
 public class NonscatteringAnalyticalDerivatives extends NonscatteringRadiativeTransfer {
 
+    private static final long serialVersionUID = -7549047672012708753L;
     private static FunctionWithInterpolation ei2 = ExponentialIntegrals.get(2);
 
     public NonscatteringAnalyticalDerivatives(ParticipatingMedium problem, Grid grid) {
@@ -31,8 +32,9 @@ public class NonscatteringAnalyticalDerivatives extends NonscatteringRadiativeTr
     /**
      * Evaluates fluxes and their derivatives using analytical formulae and the
      * selected numerical quadrature.Usually works best with the
-    {@code ChandrasekharsQuadrature}
-     * @return 
+     * {@code ChandrasekharsQuadrature}
+     *
+     * @return
      */
     @Override
     public RTECalculationStatus compute(double U[]) {

@@ -1,6 +1,6 @@
 package pulse.input.listeners;
 
-import pulse.HeatingCurve;
+import java.io.Serializable;
 
 /**
  * A {@code CurveEvent} is associated with an {@code HeatingCurve} object.
@@ -8,21 +8,18 @@ import pulse.HeatingCurve;
  * @see pulse.HeatingCurve
  *
  */
-public class CurveEvent {
+public class CurveEvent implements Serializable {
 
     private CurveEventType type;
-    private HeatingCurve data;
 
     /**
      * Constructs a {@code CurveEvent} object, combining the {@code type} and
      * associated {@code data}
      *
      * @param type the type of this event
-     * @param data the source of the event
      */
-    public CurveEvent(CurveEventType type, HeatingCurve data) {
+    public CurveEvent(CurveEventType type) {
         this.type = type;
-        this.data = data;
     }
 
     /**
@@ -32,16 +29,6 @@ public class CurveEvent {
      */
     public CurveEventType getType() {
         return type;
-    }
-
-    /**
-     * Used to get the {@code HeatingCurve} object that has undergone certain
-     * changes specified by this event type.
-     *
-     * @return the associated data
-     */
-    public HeatingCurve getData() {
-        return data;
     }
 
 }

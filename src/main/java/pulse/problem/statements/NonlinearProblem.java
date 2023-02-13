@@ -25,6 +25,11 @@ import pulse.ui.Messages;
 
 public class NonlinearProblem extends ClassicalProblem {
 
+    /**
+     *
+     */
+    private static final long serialVersionUID = -5266939533182313886L;
+
     public NonlinearProblem() {
         super();
         setPulse(new Pulse2D());
@@ -68,14 +73,15 @@ public class NonlinearProblem extends ClassicalProblem {
     }
 
     /**
-     * 
-     * Does the same as super-class method plus updates the laser energy, if needed.
+     *
+     * Does the same as super-class method plus updates the laser energy, if
+     * needed.
+     *
      * @param params
      * @throws pulse.problem.schemes.solvers.SolverException
      * @see pulse.problem.statements.Problem.getPulse()
-     * 
-     */ 
-    
+     *
+     */
     @Override
     public void assign(ParameterVector params) throws SolverException {
         super.assign(params);
@@ -92,29 +98,30 @@ public class NonlinearProblem extends ClassicalProblem {
 
         }
     }
-    
+
     /**
-     * 
-     * Does the same as super-class method plus extracts the laser energy and stores it in the {@code output}, if needed.
+     *
+     * Does the same as super-class method plus extracts the laser energy and
+     * stores it in the {@code output}, if needed.
+     *
      * @param output
      * @param flags
      * @see pulse.problem.statements.Problem.getPulse()
-     * 
+     *
      */
-    
     @Override
     public void optimisationVector(ParameterVector output) {
         super.optimisationVector(output);
-        
+
         for (Parameter p : output.getParameters()) {
 
             var key = p.getIdentifier().getKeyword();
 
-            if(key == LASER_ENERGY) {
+            if (key == LASER_ENERGY) {
                 var bounds = Segment.boundsFrom(LASER_ENERGY);
                 p.setBounds(bounds);
                 p.setTransform(new StickTransform(bounds));
-                p.setValue( (double) getPulse().getLaserEnergy().getValue());
+                p.setValue((double) getPulse().getLaserEnergy().getValue());
             }
 
         }

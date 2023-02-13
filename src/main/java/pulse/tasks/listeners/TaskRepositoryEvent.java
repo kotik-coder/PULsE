@@ -21,7 +21,6 @@ public class TaskRepositoryEvent {
     }
 
     public enum State {
-
         /**
          * Indicates a task has been added to the repository.
          */
@@ -59,6 +58,10 @@ public class TaskRepositoryEvent {
          * Indicates the task has discarded superfluous calculations.
          */
         BEST_MODEL_SELECTED,
+        /**
+         * A new state has been loaded.
+         */
+        NEW_STATE,
         /**
          * The repository has been shut down/
          */

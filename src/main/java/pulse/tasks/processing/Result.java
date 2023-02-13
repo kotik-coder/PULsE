@@ -1,6 +1,7 @@
 package pulse.tasks.processing;
 
 import pulse.tasks.Calculation;
+import pulse.tasks.Identifier;
 import pulse.tasks.SearchTask;
 import pulse.ui.Messages;
 
@@ -12,6 +13,12 @@ import pulse.ui.Messages;
  * @see pulse.tasks.Identifier
  */
 public class Result extends AbstractResult {
+
+    /**
+     *
+     */
+    private static final long serialVersionUID = 471531411060979791L;
+    private Identifier id;
 
     /**
      * Creates an individual {@code Result} related to the current state of
@@ -29,14 +36,19 @@ public class Result extends AbstractResult {
             throw new IllegalArgumentException(Messages.getString("Result.NullTaskError"));
         }
 
-        setParent((Calculation)task.getResponse());
+        id = task.getIdentifier();
+        setParent((Calculation) task.getResponse());
 
         format.getKeywords().stream().forEach(key -> addProperty(task.numericProperty(key)));
-
     }
 
     public Result(Result r) {
         super(r);
+        id = r.getTaskIdentifier();
+    }
+    
+    public Identifier getTaskIdentifier() {
+        return id;
     }
 
 }

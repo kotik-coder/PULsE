@@ -27,6 +27,8 @@ import javax.swing.ImageIcon;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JSeparator;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 import pulse.input.ExperimentalData;
 
 import pulse.problem.schemes.solvers.Solver;
@@ -61,10 +63,9 @@ public class TaskPopupMenu extends JPopupMenu {
                 ICON_GRAPH);
         itemExtendedChart.addActionListener(e -> plot(true));
 
-        var instance = TaskManager.getManagerInstance();
-
         var itemShowMeta = new JMenuItem("Show metadata", ICON_METADATA);
         itemShowMeta.addActionListener((ActionEvent e) -> {
+            var instance = TaskManager.getManagerInstance();
             var t = instance.getSelectedTask();
             if (t == null) {
                 showMessageDialog(getWindowAncestor((Component) e.getSource()),
@@ -79,13 +80,8 @@ public class TaskPopupMenu extends JPopupMenu {
 
         var itemShowStatus = new JMenuItem("What is missing?", ICON_MISSING);
 
-        instance.addSelectionListener(event -> {
-            instance.getSelectedTask().checkProblems();
-            var details = instance.getSelectedTask().getStatus().getDetails();
-            itemShowStatus.setEnabled((details != null) & (details != NONE));
-        });
-
         itemShowStatus.addActionListener((ActionEvent e) -> {
+            var instance = TaskManager.getManagerInstance();
             var t = instance.getSelectedTask();
             if (t != null) {
                 var d = t.getStatus().getDetails();
@@ -96,6 +92,7 @@ public class TaskPopupMenu extends JPopupMenu {
 
         var itemExecute = new JMenuItem(getString("TaskTablePopupMenu.Execute"), ICON_RUN); //$NON-NLS-1$
         itemExecute.addActionListener((ActionEvent e) -> {
+            var instance = TaskManager.getManagerInstance();
             var t = instance.getSelectedTask();
             if (t == null) {
                 showMessageDialog(getWindowAncestor((Component) e.getSource()),
@@ -130,11 +127,12 @@ public class TaskPopupMenu extends JPopupMenu {
 
         var itemReset = new JMenuItem(getString("TaskTablePopupMenu.Reset"), ICON_RESET);
 
-        itemReset.addActionListener((ActionEvent arg0) -> instance.getSelectedTask().clear());
+        itemReset.addActionListener((ActionEvent arg0) -> TaskManager.getManagerInstance().getSelectedTask().clear());
 
         var itemGenerateResult = new JMenuItem(getString("TaskTablePopupMenu.GenerateResult"), ICON_RESULT);
 
         itemGenerateResult.addActionListener((ActionEvent arg0) -> {
+            var instance = TaskManager.getManagerInstance();
             var t = instance.getSelectedTask();
             if (t == null) {
                 return;
@@ -152,8 +150,32 @@ public class TaskPopupMenu extends JPopupMenu {
 
         itemViewStored.setEnabled(false);
 
-        itemViewStored.addActionListener(arg0 -> instance.notifyListeners(
-                new TaskRepositoryEvent(TASK_BROWSING_REQUEST, instance.getSelectedTask().getIdentifier())));
+        itemViewStored.addActionListener(arg0 -> {
+            var instance = TaskManager.getManagerInstance();
+            instance.notifyListeners(
+                    new TaskRepositoryEvent(TASK_BROWSING_REQUEST, instance.getSelectedTask().getIdentifier()));
+        });
+
+        this.addPopupMenuListener(new PopupMenuListener() {
+            @Override
+            public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+                var instance = TaskManager.getManagerInstance();
+                instance.getSelectedTask().checkProblems();
+                var details = instance.getSelectedTask().getStatus().getDetails();
+                itemShowStatus.setEnabled((details != null) & (details != NONE));
+            }
+
+            @Override
+            public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
+                //
+            }
+
+            @Override
+            public void popupMenuCanceled(PopupMenuEvent e) {
+                //.
+            }
+
+        });
 
         add(itemShowMeta);
         add(itemShowStatus);

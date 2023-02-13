@@ -14,6 +14,7 @@ import pulse.problem.schemes.rte.RTECalculationStatus;
  */
 public class TRBDF2 extends AdaptiveIntegrator {
 
+    private static final long serialVersionUID = 5488454845395333565L;
     /*
 	 * Coefficients of the Butcher tableau as originally defined in M.E. Hosea, L.E
 	 * Shampine/Applied Numerical Mathematics 20 (1996) 21-37

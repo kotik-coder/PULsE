@@ -20,6 +20,7 @@ import pulse.search.statistics.OptimiserStatistic;
 
 public class PolylineOptimiser extends SimpleOptimisationTask {
 
+    private static final long serialVersionUID = -9056678836812293655L;
     private final OptimiserStatistic sos;
     private final PolylineResponse response;
     private final OptimisablePolyline optimisableCurve;

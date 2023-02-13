@@ -5,17 +5,15 @@ import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.DOM_GRID_DENSITY;
 import static pulse.properties.NumericPropertyKeyword.GRID_STRETCHING_FACTOR;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
-import static pulse.properties.NumericPropertyKeyword.NONLINEAR_PRECISION;
-import pulse.properties.Property;
 import pulse.util.PropertyHolder;
 
 public class StretchedGrid extends PropertyHolder {
+
+    private static final long serialVersionUID = -7987714138817824037L;
 
     private double[] nodes;
 

@@ -23,11 +23,13 @@ import pulse.util.PropertyEvent;
 
 public class TwoTemperatureModel extends PenetrationProblem {
 
+    private static final long serialVersionUID = 2567125396986165234L;
+
     private Gas gas;
 
     private InstanceDescriptor<Gas> instanceDescriptor
             = new InstanceDescriptor<>("Gas Selector", Gas.class);
-    
+
     public TwoTemperatureModel() {
         super();
         setComplexity(ProblemComplexity.MODERATE);
@@ -92,7 +94,7 @@ public class TwoTemperatureModel extends PenetrationProblem {
                     continue;
             }
 
-            p.setTransform(new StickTransform(bounds)); 
+            p.setTransform(new StickTransform(bounds));
             p.setValue(value);
             p.setBounds(bounds);
 
@@ -109,7 +111,7 @@ public class TwoTemperatureModel extends PenetrationProblem {
 
             var key = p.getIdentifier().getKeyword();
             var np = derive(key, p.inverseTransform());
-            
+
             switch (key) {
                 case SOLID_EXCHANGE_COEFFICIENT:
                     ttp.setSolidExchangeCoefficient(np);
@@ -124,7 +126,7 @@ public class TwoTemperatureModel extends PenetrationProblem {
             }
 
         }
-        
+
     }
 
     @Override

@@ -61,10 +61,6 @@ import pulse.properties.NumericProperty;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.*/
 public class NumberEditor extends DefaultCellEditor {
 
-    /**
-     *
-     */
-    private static final long serialVersionUID = 1L;
     JFormattedTextField ftf;
     NumberFormat numberFormat;
     private boolean DEBUG = false;
@@ -104,10 +100,6 @@ public class NumberEditor extends DefaultCellEditor {
         // JFormattedTextField's focusLostBehavior property.)
         ftf.getInputMap().put(getKeyStroke(VK_ENTER, 0), "check");
         ftf.getActionMap().put("check", new AbstractAction() {
-            /**
-             *
-             */
-            private static final long serialVersionUID = 1L;
 
             @Override
             public void actionPerformed(ActionEvent e) {

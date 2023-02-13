@@ -23,13 +23,13 @@ public abstract class Fluxes implements DerivativeCalculator {
     public void store() {
         System.arraycopy(fluxes, 0, storedFluxes, 0, N + 1); // store previous results
     }
-    
+
     /**
-     * Checks whether all stored values are finite. This is equivalent to summing
-     * all elements and checking whether the sum if finite.
+     * Checks whether all stored values are finite. This is equivalent to
+     * summing all elements and checking whether the sum if finite.
+     *
      * @return {@code true} if the elements are finite.
      */
-
     public RTECalculationStatus checkArrays() {
         double sum = Arrays.stream(fluxes).sum() + Arrays.stream(storedFluxes).sum();
         return Double.isFinite(sum) ? NORMAL : INVALID_FLUXES;

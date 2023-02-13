@@ -17,6 +17,8 @@ import pulse.util.InstanceDescriptor;
 
 public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSolver {
 
+    private static final long serialVersionUID = 4934841542530728191L;
+
     private static final FunctionWithInterpolation ei3 = ExponentialIntegrals.get(3);
 
     private double emissivity;
@@ -27,9 +29,9 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
     private double radiosityFront;
     private double radiosityRear;
 
-    private InstanceDescriptor<CompositionProduct> instanceDescriptor 
+    private InstanceDescriptor<CompositionProduct> instanceDescriptor
             = new InstanceDescriptor<CompositionProduct>(
-            "Quadrature Selector", CompositionProduct.class);
+                    "Quadrature Selector", CompositionProduct.class);
 
     protected NonscatteringRadiativeTransfer(ParticipatingMedium problem, Grid grid) {
         super();
@@ -50,6 +52,7 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
      * The superclass method will update the interpolation that the blackbody
      * spectrum uses to evaluate the temperature profile and calculate the
      * radiosities.A {@code NORMAL}status is always returned.
+     *
      * @param array
      */
     @Override
@@ -182,7 +185,7 @@ public abstract class NonscatteringRadiativeTransfer extends RadiativeTransferSo
      */
     private void radiosities() {
         final double doubleReflectivity = 2.0 * (1.0 - emissivity);
-        
+
         final double b = b(doubleReflectivity);
         final double sq = 1.0 - b * b;
         final double a1 = a1(doubleReflectivity);

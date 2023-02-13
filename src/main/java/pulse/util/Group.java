@@ -25,8 +25,8 @@ public class Group extends UpwardsNavigable {
 
         var methods = this.getClass().getMethods();
         for (var m : methods) {
-            
-            if (m.getParameterCount() > 0 
+
+            if (m.getParameterCount() > 0
                     || !Group.class.isAssignableFrom(m.getReturnType())
                     || m.getReturnType().isAssignableFrom(getClass())) {
                 continue;

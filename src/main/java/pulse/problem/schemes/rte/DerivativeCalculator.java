@@ -1,11 +1,13 @@
 package pulse.problem.schemes.rte;
 
+import java.io.Serializable;
+
 /**
  * This is basically a coupling interface between a {@code Solver} and a
  * {@code RadiativeTransferSolver}.
  *
  */
-public interface DerivativeCalculator {
+public interface DerivativeCalculator extends Serializable {
 
     /**
      * Calculates the average value of the flux derivatives at the

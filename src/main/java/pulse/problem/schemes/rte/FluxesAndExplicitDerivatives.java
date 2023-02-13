@@ -1,19 +1,17 @@
 package pulse.problem.schemes.rte;
 
-import java.util.Arrays;
-import static pulse.problem.schemes.rte.RTECalculationStatus.INVALID_FLUXES;
-import static pulse.problem.schemes.rte.RTECalculationStatus.NORMAL;
 import pulse.properties.NumericProperty;
 
 public class FluxesAndExplicitDerivatives extends Fluxes {
 
+    private static final long serialVersionUID = -6308711091434946173L;
     private double fd[];
     private double fdStored[];
 
     public FluxesAndExplicitDerivatives(NumericProperty gridDensity, NumericProperty opticalThickness) {
         super(gridDensity, opticalThickness);
     }
-    
+
     @Override
     public void init() {
         super.init();

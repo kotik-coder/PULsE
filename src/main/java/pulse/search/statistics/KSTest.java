@@ -21,10 +21,10 @@ public class KSTest extends NormalityTest {
     @Override
     public boolean test(GeneralTask task) {
         evaluate(task);
-                
-        this.setStatistic(derive(TEST_STATISTIC, 
-                TestUtils.kolmogorovSmirnovStatistic(nd, residuals)));        
-        return !TestUtils.kolmogorovSmirnovTest(nd, residuals, this.significance);        
+
+        this.setStatistic(derive(TEST_STATISTIC,
+                TestUtils.kolmogorovSmirnovStatistic(nd, residuals)));
+        return !TestUtils.kolmogorovSmirnovTest(nd, residuals, this.significance);
     }
 
     @Override

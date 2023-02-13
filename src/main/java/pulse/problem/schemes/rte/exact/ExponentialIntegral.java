@@ -16,6 +16,7 @@ import pulse.properties.NumericProperty;
  */
 class ExponentialIntegral extends MidpointIntegrator {
 
+    private static final long serialVersionUID = -5818633555456309668L;
     private double t;
     private int order;
 

@@ -1,5 +1,6 @@
 package pulse.math.linear;
 
+import java.io.Serializable;
 import static java.lang.Math.abs;
 import static java.lang.Math.sqrt;
 import java.util.List;
@@ -16,8 +17,12 @@ import pulse.ui.Messages;
  * and ODE solvers.
  * </p>
  */
-public class Vector {
+public class Vector implements Serializable {
 
+    /**
+     *
+     */
+    private static final long serialVersionUID = 5560069982536341831L;
     private double[] x;
 
     /**
@@ -122,7 +127,7 @@ public class Vector {
         }
         return v;
     }
-    
+
     /**
      * Component-wise vector multiplication
      */

@@ -32,7 +32,7 @@ public class StaticTopologies {
 
         final int latticeParameter = (int) Math.sqrt(ps.length);
 
-        final int row    = i / latticeParameter;
+        final int row = i / latticeParameter;
         final int column = i - row * latticeParameter;
 
         final int above = column + (row > 0

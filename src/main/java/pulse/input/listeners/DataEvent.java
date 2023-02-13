@@ -1,5 +1,6 @@
 package pulse.input.listeners;
 
+import java.io.Serializable;
 import pulse.AbstractData;
 
 /**
@@ -7,7 +8,7 @@ import pulse.AbstractData;
  * {@code ExperimentalData}.
  *
  */
-public class DataEvent {
+public class DataEvent implements Serializable {
 
     private DataEventType type;
     private AbstractData data;

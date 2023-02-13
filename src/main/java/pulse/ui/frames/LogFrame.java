@@ -27,7 +27,6 @@ import pulse.ui.components.listeners.LogListener;
 import pulse.ui.components.panels.LogToolbar;
 import pulse.ui.components.panels.SystemPanel;
 
-@SuppressWarnings("serial")
 public class LogFrame extends JInternalFrame {
 
     private AbstractLogger logger;
@@ -76,7 +75,7 @@ public class LogFrame extends JInternalFrame {
 
     }
 
-    private void scheduleLogEvents() {
+    public void scheduleLogEvents() {
         var instance = TaskManager.getManagerInstance();
         instance.addSelectionListener(
                 e -> SwingUtilities.invokeLater(() -> logger.postAll()));

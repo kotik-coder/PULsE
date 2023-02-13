@@ -46,6 +46,7 @@ import static pulse.properties.NumericPropertyKeyword.MAX_LOW_FREQ_WAVES;
  */
 public class SinusoidalBaseline extends LinearBaseline {
 
+    private static final long serialVersionUID = -6858521208790195992L;
     private List<Harmonic> hiFreq;
     private List<Harmonic> loFreq;
     private List<Harmonic> active;
@@ -87,10 +88,10 @@ public class SinusoidalBaseline extends LinearBaseline {
             newH.setParent(baseline);
         }
         for (Harmonic h : hiFreq) {
-           baseline.hiFreq.add(new Harmonic(h));
+            baseline.hiFreq.add(new Harmonic(h));
         }
         for (Harmonic h : loFreq) {
-           baseline.loFreq.add(new Harmonic(h));
+            baseline.loFreq.add(new Harmonic(h));
         }
         return baseline;
     }
@@ -98,7 +99,7 @@ public class SinusoidalBaseline extends LinearBaseline {
     @Override
     public void optimisationVector(ParameterVector output) {
         super.optimisationVector(output);
-        active.forEach(h -> h.optimisationVector(output) );
+        active.forEach(h -> h.optimisationVector(output));
     }
 
     @Override
@@ -124,7 +125,7 @@ public class SinusoidalBaseline extends LinearBaseline {
         double maxAmp = 0;
 
         hiFreq = new ArrayList<>();
-        
+
         double span = x[x.length - 1] - x[0];
         double lowerFrequency = 4.0 / span;
 
@@ -146,7 +147,7 @@ public class SinusoidalBaseline extends LinearBaseline {
         tmp.sort(null);
         Collections.reverse(tmp);
         //leave out a maximum of n harmonics
-        return tmp.subList(0, Math.min(tmp.size(), limit));
+        return new ArrayList<>(tmp.subList(0, Math.min(tmp.size(), limit)));
     }
 
     private void labelActive() {
@@ -237,25 +238,25 @@ public class SinusoidalBaseline extends LinearBaseline {
     public void setHiFreqMax(NumericProperty maxHarmonics) {
         NumericProperty.requireType(maxHarmonics, MAX_HIGH_FREQ_WAVES);
         int oldValue = this.maxHighFreqHarmonics;
-       
+
         if ((int) maxHarmonics.getValue() != oldValue) {
-            
+
             var lowFreq = new ArrayList<Harmonic>();
             int size = active.size();
-            
-            if(maxHighFreqHarmonics < size) { 
+
+            if (maxHighFreqHarmonics < size) {
                 lowFreq = new ArrayList<>(active.subList(maxHighFreqHarmonics, size));
             }
-            
+
             this.maxHighFreqHarmonics = (int) maxHarmonics.getValue();
             active.clear();
             active.addAll(sort(hiFreq, maxHighFreqHarmonics));
             active.addAll(lowFreq);
             this.labelActive();
             this.firePropertyChanged(this, maxHarmonics);
-        
+
         }
-        
+
     }
 
     public NumericProperty getLowFreqMax() {
@@ -267,7 +268,7 @@ public class SinusoidalBaseline extends LinearBaseline {
         int oldValue = this.maxLowFreqHarmonics;
         if ((int) maxHarmonics.getValue() != oldValue) {
             this.maxLowFreqHarmonics = (int) maxHarmonics.getValue();
-            active = active.subList(0, maxHighFreqHarmonics);
+            active = new ArrayList<>(active.subList(0, maxHighFreqHarmonics));
             active.addAll(this.sort(loFreq, maxLowFreqHarmonics));
             this.labelActive();
             this.firePropertyChanged(this, maxHarmonics);
@@ -279,7 +280,7 @@ public class SinusoidalBaseline extends LinearBaseline {
         super.set(type, property);
 
         switch (type) {
-            
+
             case MAX_HIGH_FREQ_WAVES:
                 setHiFreqMax(property);
                 break;
@@ -346,12 +347,11 @@ public class SinusoidalBaseline extends LinearBaseline {
         /*
         These harmonics are inaccessible by FFT
          */
-
         for (double f = freq; f > 1.0 / (2.0 * span); f /= 2.0) {
             loFreq.add(new Harmonic(amp, f, 0.0));
         }
 
-       active.addAll(loFreq.subList(0, Math.min(loFreq.size(), maxLowFreqHarmonics)));
+        active.addAll(loFreq.subList(0, Math.min(loFreq.size(), maxLowFreqHarmonics)));
     }
 
     @Override

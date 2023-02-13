@@ -1,6 +1,8 @@
 package pulse.problem.schemes;
 
 import static java.lang.Math.abs;
+
+import java.io.Serializable;
 import java.util.Arrays;
 import pulse.problem.schemes.solvers.SolverException;
 import static pulse.problem.schemes.solvers.SolverException.SolverExceptionType.FINITE_DIFFERENCE_ERROR;
@@ -10,7 +12,7 @@ import static pulse.problem.schemes.solvers.SolverException.SolverExceptionType.
  * page</a>
  *
  */
-public interface FixedPointIterations {
+public interface FixedPointIterations extends Serializable {
 
     /**
      * Performs iterations until the convergence criterion is satisfied.The
@@ -30,9 +32,9 @@ public interface FixedPointIterations {
 
         final int N = V.length - 1;
 
-        for (double V_0 = error + 1, V_N = error + 1; 
-                   abs(V[0] - V_0)/abs(V[0] + V_0 + 1e-16) > error
-                || abs(V[N] - V_N)/abs(V[N] + V_N + 1e-16) > error; finaliseIteration(V)) {
+        for (double V_0 = error + 1, V_N = error + 1;
+                abs(V[0] - V_0) / abs(V[0] + V_0 + 1e-16) > error
+                || abs(V[N] - V_N) / abs(V[N] + V_N + 1e-16) > error; finaliseIteration(V)) {
 
             V_N = V[N];
             V_0 = V[0];

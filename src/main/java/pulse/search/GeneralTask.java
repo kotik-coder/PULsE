@@ -15,41 +15,41 @@ import pulse.tasks.processing.Buffer;
 import static pulse.tasks.processing.Buffer.getSize;
 import pulse.util.Accessible;
 
-public abstract class GeneralTask<I extends DiscreteInput, R extends Response> 
+public abstract class GeneralTask<I extends DiscreteInput, R extends Response>
         extends Accessible implements Runnable {
 
     private IterativeState path;    //current sate
     private IterativeState best;    //best state 
-    
+
     private final Buffer buffer;
     private PathOptimiser optimiser;
-    
+
     public GeneralTask() {
         buffer = new Buffer();
         buffer.setParent(this);
     }
-    
+
     public abstract List<NumericPropertyKeyword> activeParameters();
 
     /**
-     * Creates a search vector populated by parameters that
-     * are included in the optimisation routine.
+     * Creates a search vector populated by parameters that are included in the
+     * optimisation routine.
+     *
      * @return the parameter vector with optimisation parameters
      */
-    
     public abstract ParameterVector searchVector();
-    
+
     /**
-     * Tries to assign a selected set of parameters to the search vector
-     * used in optimisation.
-     * @param pv a parameter vector containing all of the optimisation parameters
-     * whose values will be assigned to this task
-     * @throws SolverException 
+     * Tries to assign a selected set of parameters to the search vector used in
+     * optimisation.
+     *
+     * @param pv a parameter vector containing all of the optimisation
+     * parameters whose values will be assigned to this task
+     * @throws SolverException
      */
-    
     public abstract void assign(ParameterVector pv) throws SolverException;
-    
-     /**
+
+    /**
      * <p>
      * Runs this task if is either {@code READY} or {@code QUEUED}. Otherwise,
      * will do nothing. After making some preparatory steps, will initiate a
@@ -65,9 +65,9 @@ public abstract class GeneralTask<I extends DiscreteInput, R extends Response>
     public void run() {
         setDefaultOptimiser();
         best = null;
-        setIterativeState( optimiser.initState(this) );
+        setIterativeState(optimiser.initState(this));
 
-        var errorTolerance = (double) optimiser.getErrorTolerance().getValue();
+        double errorTolerance = (double) optimiser.getErrorTolerance().getValue();
         int bufferSize = (Integer) getSize().getValue();
         buffer.init();
         //correlationBuffer.clear();
@@ -78,7 +78,7 @@ public abstract class GeneralTask<I extends DiscreteInput, R extends Response>
         var singleThreadExecutor = Executors.newSingleThreadExecutor();
 
         var response = getResponse();
-        
+
         try {
             response.objectiveFunction(this);
         } catch (SolverException e1) {
@@ -100,7 +100,7 @@ public abstract class GeneralTask<I extends DiscreteInput, R extends Response>
                     onSolverException(e);
                     break outer;
                 }
-                
+
                 //if global best is better than the converged value
                 if (best != null && best.getCost() < path.getCost()) {
                     try {
@@ -114,7 +114,7 @@ public abstract class GeneralTask<I extends DiscreteInput, R extends Response>
                 }
 
                 final var j = i;
-                
+
                 bufferFutures.add(CompletableFuture.runAsync(() -> {
                     buffer.fill(this, j);
                     intermediateProcessing();
@@ -123,52 +123,50 @@ public abstract class GeneralTask<I extends DiscreteInput, R extends Response>
             }
 
             bufferFutures.forEach(future -> future.join());
-        
-        } while (buffer.isErrorTooHigh(errorTolerance) 
+
+        } while (buffer.isErrorTooHigh(errorTolerance)
                 && isInProgress());
 
         singleThreadExecutor.shutdown();
 
         if (isInProgress()) {
             postProcessing();
-        } 
+        }
 
-    }        
+    }
 
-    public abstract boolean isInProgress();       
-    
+    public abstract boolean isInProgress();
+
     /**
-     * Override this to add intermediate processing of results e.g.
-     * with a correlation test.
+     * Override this to add intermediate processing of results e.g. with a
+     * correlation test.
      */
-    
     public void intermediateProcessing() {
         //empty
     }
-    
+
     /**
      * Specifies what should be done when a solver exception is encountered.
      * Empty by default
+     *
      * @param e1 a solver exception
      */
-    
     public void onSolverException(SolverException e1) {
         //empty
     }
-    
+
     /**
-     * Override this to add post-processing checks
-     * e.g. normality tests or range checking.
+     * Override this to add post-processing checks e.g. normality tests or range
+     * checking.
      */
-    
     public void postProcessing() {
         //empty
     }
-    
+
     public final Buffer getBuffer() {
         return buffer;
     }
-    
+
     public void setIterativeState(IterativeState state) {
         this.path = state;
     }
@@ -196,23 +194,24 @@ public abstract class GeneralTask<I extends DiscreteInput, R extends Response>
             best = new IterativeState(path);
         }
     }
-    
+
     public final void setOptimiser(PathOptimiser optimiser) {
         this.optimiser = optimiser;
     }
-    
+
     public void setDefaultOptimiser() {
         var instance = PathOptimiser.getInstance();
-        if(optimiser == null || optimiser != instance) {
+        if (optimiser == null || optimiser != instance) {
             setOptimiser(PathOptimiser.getInstance());
         }
     }
-    
+
     public double objectiveFunction() throws SolverException {
         return getResponse().objectiveFunction(this);
     }
-    
-    public abstract I getInput();    
+
+    public abstract I getInput();
+
     public abstract R getResponse();
-    
+
 }

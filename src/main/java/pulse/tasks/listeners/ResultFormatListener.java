@@ -1,6 +1,8 @@
 package pulse.tasks.listeners;
 
-public interface ResultFormatListener {
+import java.io.Serializable;
+
+public interface ResultFormatListener extends Serializable {
 
     public void resultFormatChanged(ResultFormatEvent rfe);
 

@@ -30,6 +30,10 @@ import pulse.tasks.logs.Status;
  */
 public class GradientGuidedPath extends IterativeState {
 
+    /**
+     *
+     */
+    private static final long serialVersionUID = -6450999613326096767L;
     private Vector direction;
     private Vector gradient;
     private double minimumPoint;
@@ -51,7 +55,7 @@ public class GradientGuidedPath extends IterativeState {
         try {
             this.gradient = ((GradientBasedOptimiser) PathOptimiser.getInstance()).gradient(t);
         } catch (SolverException ex) {
-            t.onSolverException( new SolverException("Gradient calculation error", OPTIMISATION_ERROR));
+            t.onSolverException(new SolverException("Gradient calculation error", OPTIMISATION_ERROR));
             ex.printStackTrace();
         }
         minimumPoint = 0.0;
@@ -79,6 +83,6 @@ public class GradientGuidedPath extends IterativeState {
 
     public void setLinearStep(double min) {
         minimumPoint = min;
-    }    
+    }
 
 }

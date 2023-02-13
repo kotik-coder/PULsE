@@ -28,24 +28,24 @@ import pulse.ui.Messages;
  *
  * @author Artem Lunev <artem.v.lunev@gmail.com>
  */
-public class ExplicitCoupledSolverNL extends ExplicitCoupledSolver 
-        implements FixedPointIterations
-{
+public class ExplicitCoupledSolverNL extends ExplicitCoupledSolver
+        implements FixedPointIterations {
 
+    private static final long serialVersionUID = 4214528397984492532L;
     private double nonlinearPrecision;
-    
+
     public ExplicitCoupledSolverNL() {
         super();
         nonlinearPrecision = (double) def(NONLINEAR_PRECISION).getValue();
         setAutoUpdateFluxes(false);
     }
-    
+
     public ExplicitCoupledSolverNL(NumericProperty N, NumericProperty timeFactor) {
         super(N, timeFactor);
         nonlinearPrecision = (double) def(NONLINEAR_PRECISION).getValue();
         setAutoUpdateFluxes(false);
     }
-    
+
     @Override
     public void timeStep(int m) throws SolverException {
         doIterations(getCurrentSolution(), nonlinearPrecision, m);
@@ -61,13 +61,13 @@ public class ExplicitCoupledSolverNL extends ExplicitCoupledSolver
         FixedPointIterations.super.finaliseIteration(V);
         setCalculationStatus(this.getCoupling().getRadiativeTransferEquation().compute(V));
     }
-    
+
     @Override
     public DifferenceScheme copy() {
         var grid = getGrid();
         return new ExplicitCoupledSolverNL(grid.getGridDensity(), grid.getTimeFactor());
     }
-    
+
     public final NumericProperty getNonlinearPrecision() {
         return derive(NONLINEAR_PRECISION, nonlinearPrecision);
     }
@@ -84,10 +84,10 @@ public class ExplicitCoupledSolverNL extends ExplicitCoupledSolver
             super.set(type, property);
         }
     }
-    
+
     @Override
     public String toString() {
         return Messages.getString("ExplicitScheme.5");
     }
-    
+
 }

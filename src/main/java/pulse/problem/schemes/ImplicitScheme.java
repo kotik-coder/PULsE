@@ -18,6 +18,10 @@ import pulse.properties.NumericProperty;
  */
 public abstract class ImplicitScheme extends OneDimensionalScheme {
 
+    /**
+     *
+     */
+    private static final long serialVersionUID = 2785615380656900783L;
     private TridiagonalMatrixAlgorithm tridiagonal;
 
     /**
@@ -67,14 +71,15 @@ public abstract class ImplicitScheme extends OneDimensionalScheme {
     }
 
     /**
-     * Calculates the solution at the boundaries using the boundary conditions 
-     * specific to the problem statement and runs the tridiagonal matrix algorithm
-     * to evaluate solution at the intermediate grid points.
+     * Calculates the solution at the boundaries using the boundary conditions
+     * specific to the problem statement and runs the tridiagonal matrix
+     * algorithm to evaluate solution at the intermediate grid points.
+     *
      * @param m the time step
-     * @throws SolverException if the calculation failed 
-     * @see leftBoundary(), evalRightBoundary(), pulse.problem.schemes.TridiagonalMatrixAlgorithm.sweep()
+     * @throws SolverException if the calculation failed
+     * @see leftBoundary(), evalRightBoundary(),
+     * pulse.problem.schemes.TridiagonalMatrixAlgorithm.sweep()
      */
-    
     @Override
     public void timeStep(final int m) throws SolverException {
         leftBoundary(m);

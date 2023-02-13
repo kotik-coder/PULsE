@@ -30,6 +30,8 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
@@ -39,6 +41,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JSeparator;
+import pulse.util.Serializer;
 
 import pulse.search.statistics.CorrelationTest;
 import pulse.search.statistics.NormalityTest;
@@ -80,25 +83,39 @@ public class PulseMainMenu extends JMenuBar {
     private List<ExitRequestListener> exitListeners;
 
     public PulseMainMenu() {
-        bufferDialog.setConfirmAction(() -> 
-                Buffer.setSize(derive(BUFFER_SIZE, bufferDialog.value())));
+        bufferDialog.setConfirmAction(()
+                -> Buffer.setSize(derive(BUFFER_SIZE, bufferDialog.value())));
 
         initComponents();
         initListeners();
         assignMenuFunctions();
-        addListeners();
+        reset();
 
         listeners = new ArrayList<>();
         exitListeners = new ArrayList<>();
     }
 
-    private void addListeners() {
-        getManagerInstance().addTaskRepositoryListener(event -> {
+    private void enableIfNeeded() {
+        var instance = getManagerInstance();
+        boolean enabled = instance.getTaskList().size() > 0;
+        loadMetadataItem.setEnabled(enabled);
+        loadPulseItem.setEnabled(enabled);
+        modelSettingsItem.setEnabled(enabled);
+        searchSettingsItem.setEnabled(enabled);
+    }
+
+    public final void reset() {
+        var instance = getManagerInstance();
+
+        instance.addTaskRepositoryListener(event -> {
             if (event.getState() == TASK_ADDED) {
                 exportCurrentItem.setEnabled(true);
                 exportAllItem.setEnabled(true);
             }
         });
+
+        enableIfNeeded();
+        instance.addTaskRepositoryListener((TaskRepositoryEvent e) -> enableIfNeeded());
     }
 
     private void initListeners() {
@@ -171,7 +188,35 @@ public class PulseMainMenu extends JMenuBar {
         fileMenu.add(exportCurrentItem);
         fileMenu.add(exportAllItem);
         fileMenu.add(new JSeparator());
+
+        var serializeItem = new JMenuItem("Save Session...");
+        fileMenu.add(serializeItem);
+        serializeItem.addActionListener(e -> {
+            try {
+                Serializer.serialize();
+            } catch (IOException ex) {
+                Logger.getLogger(PulseMainMenu.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (ClassNotFoundException ex) {
+                Logger.getLogger(PulseMainMenu.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        });
+        var deserializeItem = new JMenuItem("Load Session...");
+
+        fileMenu.add(deserializeItem);
+        deserializeItem.addActionListener(e -> {
+
+            try {
+                Serializer.deserialize();
+            } catch (IOException ex) {
+                Logger.getLogger(PulseMainMenu.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (ClassNotFoundException ex) {
+                Logger.getLogger(PulseMainMenu.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
+        });
+
         fileMenu.add(exitItem);
+
         add(fileMenu);
 
         settingsMenu.add(modelSettingsItem);
@@ -246,8 +291,8 @@ public class PulseMainMenu extends JMenuBar {
                 if (((AbstractButton) e.getItem()).isSelected()) {
                     var text = ((AbstractButton) e.getItem()).getText();
                     setSelectedOptimiserDescriptor(text);
-                    getManagerInstance().getTaskList().stream().forEach(t -> 
-                            ( (Calculation) t.getResponse() ).initOptimiser());
+                    getManagerInstance().getTaskList().stream().forEach(t
+                            -> ((Calculation) t.getResponse()).initOptimiser());
                 }
 
             });
@@ -275,29 +320,30 @@ public class PulseMainMenu extends JMenuBar {
         JRadioButtonMenuItem corrItem = null;
 
         var ct = CorrelationTest.init();
-        
+
         for (var corrName : allDescriptors(CorrelationTest.class)) {
             corrItem = new JRadioButtonMenuItem(corrName);
             corrItems.add(corrItem);
             correlationsSubMenu.add(corrItem);
-            
-            if(ct.getDescriptor().equalsIgnoreCase(corrName))
+
+            if (ct.getDescriptor().equalsIgnoreCase(corrName)) {
                 corrItem.setSelected(true);
-            
+            }
+
             corrItem.addItemListener(e -> {
 
                 if (((AbstractButton) e.getItem()).isSelected()) {
                     var text = ((AbstractButton) e.getItem()).getText();
                     var allTests = Reflexive.instancesOf(CorrelationTest.class);
-                    var optionalTest = allTests.stream().filter(test -> 
-                                       test.getDescriptor().equalsIgnoreCase(corrName)).findAny();
-                    
-                    if(optionalTest.isPresent()) {
+                    var optionalTest = allTests.stream().filter(test
+                            -> test.getDescriptor().equalsIgnoreCase(corrName)).findAny();
+
+                    if (optionalTest.isPresent()) {
                         CorrelationTest.getTestDescriptor()
                                 .setSelectedDescriptor(optionalTest.get().getClass().getSimpleName());
                         getManagerInstance().getTaskList().stream().forEach(t -> t.initCorrelationTest());
                     }
-                    
+
                 }
 
             });
@@ -337,20 +383,6 @@ public class PulseMainMenu extends JMenuBar {
             changeDialog.setVisible(true);
         });
 
-        getManagerInstance().addTaskRepositoryListener((TaskRepositoryEvent e) -> {
-            if (getManagerInstance().getTaskList().size() > 0) {
-                loadMetadataItem.setEnabled(true);
-                loadPulseItem.setEnabled(true);;
-                modelSettingsItem.setEnabled(true);
-                searchSettingsItem.setEnabled(true);
-            } else {
-                loadMetadataItem.setEnabled(false);
-                loadPulseItem.setEnabled(false);
-                modelSettingsItem.setEnabled(false);
-                searchSettingsItem.setEnabled(false);
-            }
-        });
-
         exportAllItem.setEnabled(true);
         exportAllItem.addActionListener(e -> {
             exportDialog.setLocationRelativeTo(null);
@@ -367,6 +399,16 @@ public class PulseMainMenu extends JMenuBar {
             }
 
         });
+
+    }
+
+    public void removeAllListeners() {
+        if (listeners != null) {
+            listeners.clear();
+        }
+        if (exitListeners != null) {
+            exitListeners.clear();
+        }
 
     }
 

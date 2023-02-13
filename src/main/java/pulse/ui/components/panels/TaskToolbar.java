@@ -68,6 +68,10 @@ public class TaskToolbar extends JToolBar {
         execBtn.setToolTipText("Execute All Tasks");
         add(execBtn);
     }
+    
+    public void resetSession() {
+        ((ExecutionButton)execBtn).resetSession();
+    }
 
     public void setRemoveEnabled(boolean b) {
         removeBtn.setEnabled(b);
@@ -117,6 +121,12 @@ public class TaskToolbar extends JToolBar {
 
     public void addTaskActionListener(TaskActionListener l) {
         listeners.add(l);
+    }
+    
+    public void removeListeners() {
+        if(listeners != null) {
+            listeners.clear();
+        }
     }
 
 }

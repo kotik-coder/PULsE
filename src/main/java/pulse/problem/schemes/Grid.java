@@ -2,7 +2,6 @@ package pulse.problem.schemes;
 
 import static java.lang.Math.pow;
 import static java.lang.Math.rint;
-import static java.lang.String.format;
 import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericProperty.requireType;
 import static pulse.properties.NumericPropertyKeyword.GRID_DENSITY;
@@ -10,8 +9,6 @@ import static pulse.properties.NumericPropertyKeyword.TAU_FACTOR;
 
 import java.util.Set;
 
-import pulse.problem.laser.DiscretePulse;
-import pulse.problem.statements.Pulse;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
 import pulse.util.PropertyHolder;
@@ -28,6 +25,7 @@ import pulse.util.PropertyHolder;
  */
 public class Grid extends PropertyHolder {
 
+    private static final long serialVersionUID = -4293010190416468656L;
     private double hx;
     private double tau;
     private double tauFactor;
@@ -47,7 +45,7 @@ public class Grid extends PropertyHolder {
         this.N = (int) gridDensity.getValue();
         this.tauFactor = (double) timeFactor.getValue();
         hx = 1. / N;
-        setTimeStep(tauFactor * pow(hx, 2));   
+        setTimeStep(tauFactor * pow(hx, 2));
     }
 
     protected Grid() {
@@ -121,7 +119,7 @@ public class Grid extends PropertyHolder {
 
     protected final void setTimeStep(double tau) {
         this.tau = tau;
-        
+
     }
 
     /**
@@ -166,7 +164,7 @@ public class Grid extends PropertyHolder {
         requireType(gridDensity, GRID_DENSITY);
         this.N = (int) gridDensity.getValue();
         hx = 1. / N;
-        setTimeStep(tauFactor * pow(hx, 2));  
+        setTimeStep(tauFactor * pow(hx, 2));
         firePropertyChanged(this, gridDensity);
     }
 
@@ -179,7 +177,7 @@ public class Grid extends PropertyHolder {
     public void setTimeFactor(NumericProperty timeFactor) {
         requireType(timeFactor, TAU_FACTOR);
         this.tauFactor = (double) timeFactor.getValue();
-        setTimeStep(tauFactor * pow(hx, 2));        
+        setTimeStep(tauFactor * pow(hx, 2));
         firePropertyChanged(this, timeFactor);
     }
 
@@ -193,7 +191,7 @@ public class Grid extends PropertyHolder {
      * @return a double representing the time on the finite grid
      */
     public final double gridTime(double time, double dimensionFactor) {
-        return ( (int) (time / dimensionFactor / tau) ) * tau;
+        return ((int) (time / dimensionFactor / tau)) * tau;
     }
 
     /**
@@ -213,7 +211,7 @@ public class Grid extends PropertyHolder {
     public String toString() {
         var sb = new StringBuilder("Grid");
         sb.append(String.format("%n %-25s", this.getGridDensity()));
-        sb.append(String.format("%n %-25s", this.getTimeFactor())); 
+        sb.append(String.format("%n %-25s", this.getTimeFactor()));
         return sb.toString();
     }
 

@@ -1,5 +1,7 @@
 package pulse.util;
 
+import java.io.Serializable;
+
 /**
  * A {@code DataEntry} is an immutable ordered pair of an instance of {@code T},
  * which is considered to be the 'key', and an instance of {@code R}, which is
@@ -8,7 +10,7 @@ package pulse.util;
  * @param <T> the key
  * @param <R> the value
  */
-public class ImmutableDataEntry<T, R> {
+public class ImmutableDataEntry<T, R> implements Serializable {
 
     private T key;
     private R value;

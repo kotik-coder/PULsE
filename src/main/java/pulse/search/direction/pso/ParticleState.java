@@ -15,7 +15,7 @@ public class ParticleState {
 
         //set initial velocity to zero
         velocity.setValues(new Vector(cur.dimension()));
-        
+
         this.fitness = Double.MAX_VALUE;
     }
 
@@ -41,7 +41,7 @@ public class ParticleState {
             double max = p.getBounds().getMaximum();
             return min + Math.random() * (max - min);
         }).toArray();
-        
+
         Vector randomVector = new Vector(randomValues);
         position.setValues(randomVector);
     }

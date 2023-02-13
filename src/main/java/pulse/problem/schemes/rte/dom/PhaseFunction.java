@@ -1,10 +1,10 @@
 package pulse.problem.schemes.rte.dom;
 
-import pulse.problem.statements.ParticipatingMedium;
+import java.io.Serializable;
 import pulse.problem.statements.model.ThermoOpticalProperties;
 import pulse.util.Reflexive;
 
-public abstract class PhaseFunction implements Reflexive {
+public abstract class PhaseFunction implements Reflexive, Serializable {
 
     private final Discretisation intensities;
     private double anisotropy;
@@ -14,15 +14,15 @@ public abstract class PhaseFunction implements Reflexive {
         this.intensities = intensities;
         init(top);
     }
-    
-    /** 
-     * Calculates the cosine of the scattering angle as the product 
-     * of the two discrete cosine nodes.
+
+    /**
+     * Calculates the cosine of the scattering angle as the product of the two
+     * discrete cosine nodes.
+     *
      * @param i
      * @param k
-     * @return 
+     * @return
      */
-    
     public final double cosineTheta(int i, int k) {
         final var ordinates = getDiscreteIntensities().getOrdinates();
         return ordinates.getNode(k) * ordinates.getNode(i);

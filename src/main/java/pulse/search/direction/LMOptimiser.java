@@ -36,13 +36,13 @@ import pulse.ui.Messages;
  */
 public class LMOptimiser extends GradientBasedOptimiser {
 
+    private static final long serialVersionUID = -7954867240278082038L;
     private static final LMOptimiser instance = new LMOptimiser();
     private double dampingRatio;
-    
+
     /**
      * Up to {@value MAX_FAILED_ATTEMPTS} failed attempts are allowed.
      */
-    
     public final static int MAX_FAILED_ATTEMPTS = 5;
 
     private LMOptimiser() {
@@ -79,17 +79,17 @@ public class LMOptimiser extends GradientBasedOptimiser {
             var lmDirection = getSolver().direction(p);
 
             var candidate = parameters.toVector().sum(lmDirection);
-            
-            if( Arrays.stream( candidate.getData() ).anyMatch(el -> !Double.isFinite(el) ) ) {
+
+            if (Arrays.stream(candidate.getData()).anyMatch(el -> !Double.isFinite(el))) {
                 throw new SolverException("Illegal candidate parameters: not finite! "
                         + p.getIteration(), ILLEGAL_PARAMETERS);
             }
-                
+
             task.assign(new ParameterVector(
                     parameters, candidate)); // assign new parameters
-                        
+
             double newCost = task.objectiveFunction(); // calculate the sum of squared residuals
-            
+
             /*
 			 * Delayed gratification
              */
@@ -135,12 +135,12 @@ public class LMOptimiser extends GradientBasedOptimiser {
         // the Jacobian is then used to calculate the 'gradient'
         Vector g1 = halfGradient(p); // g1
         p.setGradient(g1);
-        
-        if(Arrays.stream(g1.getData()).anyMatch(v -> !Double.isFinite(v))) {
+
+        if (Arrays.stream(g1.getData()).anyMatch(v -> !Double.isFinite(v))) {
             throw new SolverException("Could not calculate objective function gradient",
-            OPTIMISATION_ERROR);
+                    OPTIMISATION_ERROR);
         }
-            
+
         // the Hessian is then regularised by adding labmda*I
         var hessian = p.getNonregularisedHessian();
         var damping = (levenbergDamping(hessian).multiply(dampingRatio)
@@ -175,7 +175,7 @@ public class LMOptimiser extends GradientBasedOptimiser {
     public RectangularMatrix jacobian(GeneralTask task) throws SolverException {
 
         var residualCalculator = task.getResponse().getOptimiserStatistic();
-        
+
         var p = ((LMPath) task.getIterativeState());
 
         final var params = p.getParameters();
@@ -186,12 +186,12 @@ public class LMOptimiser extends GradientBasedOptimiser {
 
         var jacobian = new double[numPoints][numParams];
         var ps = params.getParameters();
-        
+
         for (int i = 0; i < numParams; i++) {
 
             var key = ps.get(i).getIdentifier().getKeyword();
-            double dx = dx( 
-                    key != null ? NumericProperties.def(key) : null, 
+            double dx = dx(
+                    key != null ? NumericProperties.def(key) : null,
                     ps.get(i).inverseTransform());
 
             final var shift = new Vector(numParams);
@@ -201,19 +201,19 @@ public class LMOptimiser extends GradientBasedOptimiser {
             task.assign(new ParameterVector(params, pVector.sum(shift)));
             task.objectiveFunction();
             var r = residualCalculator.getResiduals();
-            
-            for (int j = 0, realNumPoints = Math.min(numPoints, r.size()); 
-                 j < realNumPoints; j++) {
+
+            for (int j = 0, realNumPoints = Math.min(numPoints, r.size());
+                    j < realNumPoints; j++) {
 
                 jacobian[j][i] = r.get(j) / dx;
 
             }
-            
+
             // - shift
             task.assign(new ParameterVector(params, pVector.subtract(shift)));
             task.objectiveFunction();
 
-            for (int j = 0, realNumPoints = Math.min(numPoints, r.size()); 
+            for (int j = 0, realNumPoints = Math.min(numPoints, r.size());
                     j < realNumPoints; j++) {
 
                 jacobian[j][i] -= r.get(j) / dx;
@@ -221,14 +221,14 @@ public class LMOptimiser extends GradientBasedOptimiser {
             }
 
         }
-        
+
         // revert to original params
         task.assign(params);
 
         return Matrices.createMatrix(jacobian);
 
     }
-    
+
     @Override
     public GradientGuidedPath initState(GeneralTask t) {
         return new LMPath(t);
@@ -260,8 +260,8 @@ public class LMOptimiser extends GradientBasedOptimiser {
     private SquareMatrix marquardtDamping(SquareMatrix hessian) {
         return hessian.blockDiagonal();
     }
-    
-   @Override
+
+    @Override
     public Set<NumericPropertyKeyword> listedKeywords() {
         var set = super.listedKeywords();
         set.add(DAMPING_RATIO);

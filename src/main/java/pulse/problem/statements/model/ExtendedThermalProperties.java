@@ -19,6 +19,7 @@ import static pulse.properties.NumericPropertyKeyword.HEAT_LOSS_COMBINED;
 
 public class ExtendedThermalProperties extends ThermalProperties {
 
+    private static final long serialVersionUID = 452882822074681811L;
     private double d;
     private double Bi3;
     private double fovOuter;

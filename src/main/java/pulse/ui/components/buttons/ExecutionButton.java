@@ -28,9 +28,9 @@ public class ExecutionButton extends JButton {
         setIcon(state.getIcon());
         setToolTipText(state.getMessage());
 
-        var instance = TaskManager.getManagerInstance();
-
         this.addActionListener((ActionEvent e) -> {
+            var instance = TaskManager.getManagerInstance();
+
             /*
              * STOP PRESSED?
              */
@@ -62,6 +62,12 @@ public class ExecutionButton extends JButton {
             }
         });
 
+        resetSession();
+
+    }
+    
+    public void resetSession() {
+        var instance = TaskManager.getManagerInstance();
         instance.addTaskRepositoryListener((TaskRepositoryEvent e) -> {
             switch (e.getState()) {
                 case TASK_SUBMITTED:
@@ -81,7 +87,6 @@ public class ExecutionButton extends JButton {
                     return;
             }
         });
-
     }
 
     public void setExecutionState(ExecutionState state) {

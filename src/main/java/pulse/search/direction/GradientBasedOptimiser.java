@@ -82,7 +82,7 @@ public abstract class GradientBasedOptimiser extends PathOptimiser {
         final var pVector = params.toVector();
         var grad = new Vector(params.dimension());
         final var ps = params.getParameters();
-        
+
         for (int i = 0, size = params.dimension(); i < size; i++) {
             var key = ps.get(i).getIdentifier().getKeyword();
             var defProp = key != null ? NumericProperties.def(key) : null;

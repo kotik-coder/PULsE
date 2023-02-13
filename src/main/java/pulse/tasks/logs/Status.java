@@ -37,13 +37,10 @@ public enum Status {
      * Termination requested.
      */
     AWAITING_TERMINATION(Color.DARK_GRAY),
-    
     /**
      * Task terminated
      */
-    
     TERMINATED(Color.DARK_GRAY),
-    
     /**
      * Task has been queued and is waiting to be executed.
      */
@@ -82,11 +79,11 @@ public enum Status {
     public void setDetails(Details details) {
         this.details = details;
     }
-    
+
     public String getDetailedMessage() {
         return message;
     }
-    
+
     public void setDetailedMessage(String str) {
         this.message = str;
     }
@@ -133,16 +130,15 @@ public enum Status {
         }
         return sb.toString();
     }
-    
+
     public static Status troubleshoot(SolverException e1) {
         Objects.requireNonNull(e1, "Solver exception cannot be null when calling troubleshoot!");
         Status status = null;
-        if(e1.getType() != SolverExceptionType.OPTIMISATION_TIMEOUT) {
+        if (e1.getType() != SolverExceptionType.OPTIMISATION_TIMEOUT) {
             status = Status.FAILED;
             status.setDetails(Details.SOLVER_ERROR);
-            status.setDetailedMessage(e1.getMessage());        
-        }
-        else {
+            status.setDetailedMessage(e1.getMessage());
+        } else {
             status = Status.TIMEOUT;
             status.setDetails(Details.MAX_ITERATIONS_REACHED);
         }

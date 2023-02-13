@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 
 import pulse.input.ExperimentalData;
 import pulse.input.InterpolationDataset;
+import pulse.input.listeners.ExternalDatasetListener;
 import pulse.math.ParameterIdentifier;
 import pulse.math.ParameterVector;
 import pulse.problem.schemes.solvers.SolverException;
@@ -62,23 +63,27 @@ import static pulse.tasks.logs.Status.AWAITING_TERMINATION;
  */
 public class SearchTask extends GeneralTask {
 
+    /**
+     *
+     */
+    private static final long serialVersionUID = -6763815749875446528L;
     private Calculation current;
     private List<Calculation> stored;
     private ExperimentalData curve;
     private Log log;
 
-    private final CorrelationBuffer correlationBuffer;
+    private CorrelationBuffer correlationBuffer;
     private CorrelationTest correlationTest;
     private NormalityTest normalityTest;
 
-    private final Identifier identifier;
+    private Identifier identifier;
     /**
      * If {@code SearchTask} finishes, and its <i>R<sup>2</sup></i> value is
      * lower than this constant, the result will be considered
      * {@code AMBIGUOUS}.
      */
-    private final List<DataCollectionListener> listeners;
-    private final List<StatusChangeListener> statusChangeListeners;
+    private transient List<DataCollectionListener> listeners;
+    private transient List<StatusChangeListener> statusChangeListeners;
 
     /**
      * <p>
@@ -92,27 +97,29 @@ public class SearchTask extends GeneralTask {
      * @param curve the {@code ExperimentalData}
      */
     public SearchTask(ExperimentalData curve) {
-        super();
-        this.statusChangeListeners = new CopyOnWriteArrayList<>();
-        this.listeners = new CopyOnWriteArrayList<>();
         current = new Calculation(this);
         this.identifier = new Identifier();
         this.curve = curve;
         curve.setParent(this);
         correlationBuffer = new CorrelationBuffer();
+        initListeners();
         clear();
-        addListeners();
     }
 
-    private void addListeners() {
-        InterpolationDataset.addListener(e -> {
-            if (current.getProblem() != null) {
-                var p = current.getProblem().getProperties();
-                if (p.areThermalPropertiesLoaded()) {
-                    p.useTheoreticalEstimates(curve);
-                }
+    private void updateThermalProperties() {
+        if (current.getProblem() != null) {
+            var p = current.getProblem().getProperties();
+            if (p.areThermalPropertiesLoaded()) {
+                p.useTheoreticalEstimates(curve);
             }
-        });
+        }
+    }
+
+    @Override
+    public void initListeners() {
+        super.initListeners();
+        this.statusChangeListeners = new CopyOnWriteArrayList<>();
+        this.listeners = new CopyOnWriteArrayList<>();
 
         /**
          * Sets the difference scheme's time limit to the upper bound of the
@@ -237,7 +244,7 @@ public class SearchTask extends GeneralTask {
             }
 
             setStatus(s);
-            
+
         }
 
     }
@@ -278,7 +285,7 @@ public class SearchTask extends GeneralTask {
         }
 
         current.getProblem().parameterListChanged(); // get updated list of parameters
-        
+
         super.run();
     }
 
@@ -353,9 +360,12 @@ public class SearchTask extends GeneralTask {
     }
 
     public void switchToBestModel() {
-        this.switchTo(findBestCalculation());
-        var e = new TaskRepositoryEvent(TaskRepositoryEvent.State.BEST_MODEL_SELECTED, this.getIdentifier());
-        fireRepositoryEvent(e);
+        var best = findBestCalculation();
+        if (current != best && best != null) {
+            this.switchTo(best);
+            var e = new TaskRepositoryEvent(TaskRepositoryEvent.State.BEST_MODEL_SELECTED, this.getIdentifier());
+            fireRepositoryEvent(e);
+        }
     }
 
     private void fireRepositoryEvent(TaskRepositoryEvent e) {

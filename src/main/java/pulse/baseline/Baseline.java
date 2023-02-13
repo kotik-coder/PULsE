@@ -1,5 +1,6 @@
 package pulse.baseline;
 
+import java.util.ArrayList;
 import java.util.List;
 import pulse.DiscreteInput;
 
@@ -24,7 +25,7 @@ import pulse.util.Reflexive;
 public abstract class Baseline extends PropertyHolder implements Reflexive, Optimisable {
 
     public final static int MIN_BASELINE_POINTS = 15;
-    
+
     public abstract Baseline copy();
 
     /**
@@ -60,24 +61,24 @@ public abstract class Baseline extends PropertyHolder implements Reflexive, Opti
      * @see fitTo(ExperimentalData,double,double)
      */
     public void fitTo(DiscreteInput data) {
-       var filtered = Range.NEGATIVE.filter(data);
-       if(filtered[0].size() > MIN_BASELINE_POINTS) {
+        var filtered = Range.NEGATIVE.filter(data);
+        if (filtered[0].size() > MIN_BASELINE_POINTS) {
             doFit(filtered[0], filtered[1]);
-       }
+        }
     }
-    
+
     public void fitTo(List<Double> x, List<Double> y) {
-       int index = IndexRange.closestLeft(0, x);
-       var xx = x.subList(0, index + 1);
-       var yy = y.subList(0, index + 1);
-       if(xx.size() > MIN_BASELINE_POINTS) {
+        int index = IndexRange.closestLeft(0, x);
+        var xx = new ArrayList<>(x.subList(0, index + 1));
+        var yy = new ArrayList<>(y.subList(0, index + 1));
+        if (xx.size() > MIN_BASELINE_POINTS) {
             doFit(xx, yy);
-       }
+        }
     }
-    
+
     @Override
     public String getDescriptor() {
         return "Baseline";
     }
-    
+
 }

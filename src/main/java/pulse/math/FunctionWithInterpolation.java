@@ -1,18 +1,25 @@
 package pulse.math;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
+import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
+import pulse.util.FunctionSerializer;
 
 /**
  * An abstract class for univariate functions with the capacity of spline
  * interpolation.
  *
  */
-public abstract class FunctionWithInterpolation {
+public abstract class FunctionWithInterpolation implements Serializable {
 
+    private static final long serialVersionUID = -303222542756574714L;
     private Segment tBounds;
     private int lookupTableSize;
-    private UnivariateFunction interpolation;
+    private transient UnivariateFunction interpolation;
 
     public final static int NUM_PARTITIONS = 8192;
 
@@ -112,6 +119,28 @@ public abstract class FunctionWithInterpolation {
 
         var splineInterpolation = new SplineInterpolator();
         interpolation = splineInterpolation.interpolate(tArray, lookupTable);
+    }
+
+    /*
+     * Serialization
+     */
+    private void writeObject(ObjectOutputStream oos)
+            throws IOException {
+        // default serialization 
+        oos.defaultWriteObject();
+        // write the object
+        oos.writeObject(tBounds);
+        oos.writeInt(lookupTableSize);
+        FunctionSerializer.writeSplineFunction((PolynomialSplineFunction) interpolation, oos);
+    }
+
+    private void readObject(ObjectInputStream ois)
+            throws ClassNotFoundException, IOException {
+        // default deserialization
+        ois.defaultReadObject();
+        this.tBounds = (Segment) ois.readObject();
+        this.lookupTableSize = ois.readInt();
+        this.interpolation = FunctionSerializer.readSplineFunction(ois);
     }
 
 }

@@ -14,6 +14,8 @@ import pulse.problem.statements.model.ThermoOpticalProperties;
  */
 public class NonscatteringDiscreteDerivatives extends NonscatteringRadiativeTransfer {
 
+    private static final long serialVersionUID = -6919734351838124553L;
+
     public NonscatteringDiscreteDerivatives(ParticipatingMedium problem, Grid grid) {
         super(problem, grid);
         var properties = (ThermoOpticalProperties) problem.getProperties();

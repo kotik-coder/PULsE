@@ -16,7 +16,6 @@ import pulse.util.PropertyHolder;
 
 public class DataFrame extends JFrame {
 
-    private static final long serialVersionUID = 1L;
     private JPanel contentPane;
     private PropertyHolderTable dataTable;
     private Component ancestorFrame;

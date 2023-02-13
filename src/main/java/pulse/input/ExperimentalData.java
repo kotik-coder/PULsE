@@ -27,11 +27,15 @@ import pulse.util.PropertyHolderListener;
  */
 public class ExperimentalData extends AbstractData implements DiscreteInput {
 
+    /**
+     *
+     */
+    private static final long serialVersionUID = 7950893319753173094L;
     private HalfTimeCalculator calculator;
     private Metadata metadata;
     private IndexRange indexRange;
     private Range range;
-    private List<DataListener> dataListeners;
+    private transient List<DataListener> dataListeners;
 
     /**
      * This is the cutoff factor which is used as a criterion for data
@@ -49,10 +53,16 @@ public class ExperimentalData extends AbstractData implements DiscreteInput {
      */
     public ExperimentalData() {
         super();
-        dataListeners = new ArrayList<>();
         setPrefix("RawData");
         setNumPoints(derive(NUMPOINTS, 0));
-        indexRange = new IndexRange(0,0);
+        indexRange = new IndexRange(0, 0);
+        initListeners();
+    }
+
+    @Override
+    public void initListeners() {
+        super.initListeners();
+        dataListeners = new ArrayList<>();
         this.addDataListener((DataEvent e) -> {
             if (e.getType() == DataEventType.DATA_LOADED) {
                 preprocess();
@@ -61,6 +71,9 @@ public class ExperimentalData extends AbstractData implements DiscreteInput {
     }
 
     public final void addDataListener(DataListener listener) {
+        if(dataListeners == null) {
+            dataListeners = new ArrayList<>();
+        }
         dataListeners.add(listener);
     }
 

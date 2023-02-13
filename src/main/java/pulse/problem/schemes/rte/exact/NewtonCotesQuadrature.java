@@ -2,13 +2,11 @@ package pulse.problem.schemes.rte.exact;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static pulse.properties.NumericProperties.def;
 import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericProperty.requireType;
 import static pulse.properties.NumericPropertyKeyword.INTEGRATION_CUTOFF;
 import static pulse.properties.NumericPropertyKeyword.INTEGRATION_SEGMENTS;
 
-import java.util.List;
 import java.util.Set;
 
 import pulse.math.FixedIntervalIntegrator;
@@ -16,8 +14,6 @@ import pulse.math.MidpointIntegrator;
 import pulse.math.Segment;
 import pulse.properties.NumericProperty;
 import pulse.properties.NumericPropertyKeyword;
-import static pulse.properties.NumericPropertyKeyword.NONLINEAR_PRECISION;
-import pulse.properties.Property;
 
 /**
  * A class for evaluating the composition product using a simple Newton-Cotes
@@ -26,6 +22,7 @@ import pulse.properties.Property;
  */
 public class NewtonCotesQuadrature extends CompositionProduct {
 
+    private static final long serialVersionUID = -177127670003926420L;
     private final static int DEFAULT_SEGMENTS = 64;
     private final static double DEFAULT_CUTOFF = 16.0;
     private FixedIntervalIntegrator integrator;

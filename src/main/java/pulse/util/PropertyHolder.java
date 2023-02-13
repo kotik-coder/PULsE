@@ -22,7 +22,7 @@ import pulse.properties.Property;
 public abstract class PropertyHolder extends Accessible {
 
     private List<Property> parameters = listedTypes();
-    private List<PropertyHolderListener> listeners;
+    private transient List<PropertyHolderListener> listeners;
     private String prefix;
 
     /**
@@ -63,8 +63,9 @@ public abstract class PropertyHolder extends Accessible {
         return listedKeywords().stream().map(key -> def(key)).collect(Collectors.toList());
     }
 
-    public PropertyHolder() {
-        this.listeners = new ArrayList<>();
+    public void initListeners() {
+        super.initListeners();
+        listeners = new ArrayList<>();
     }
 
     /**
@@ -195,7 +196,9 @@ public abstract class PropertyHolder extends Accessible {
 
     public void firePropertyChanged(Object source, Property property) {
         var event = new PropertyEvent(source, this, property);
-        listeners.forEach(l -> l.onPropertyChanged(event));
+        if (listeners != null) {
+            listeners.forEach(l -> l.onPropertyChanged(event));
+        }
 
         /*
 		 * If the changes are triggered by an external GUI component (such as
@@ -220,11 +223,19 @@ public abstract class PropertyHolder extends Accessible {
         propertyHolder.data().stream().forEach(entry -> this.updateProperty(sourceComponent, entry));
     }
 
-    public void removeHeatingCurveListeners() {
-        this.listeners.clear();
+    public void removeListeners() {
+        if(listeners == null) {
+            listeners = new ArrayList<>();
+        }
+        else {
+            listeners.clear();
+        }
     }
 
     public void addListener(PropertyHolderListener l) {
+        if (listeners == null) {
+            this.listeners = new ArrayList<>();
+        }
         this.listeners.add(l);
     }
 

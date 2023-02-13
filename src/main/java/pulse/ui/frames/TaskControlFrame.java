@@ -18,6 +18,7 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.Objects;
 
 import javax.swing.JDesktopPane;
 import javax.swing.JFrame;
@@ -25,7 +26,6 @@ import javax.swing.JInternalFrame;
 import javax.swing.event.InternalFrameAdapter;
 import javax.swing.event.InternalFrameEvent;
 
-import pulse.problem.statements.Pulse;
 import pulse.tasks.Calculation;
 import pulse.tasks.TaskManager;
 import pulse.ui.Version;
@@ -55,7 +55,7 @@ public class TaskControlFrame extends JFrame {
     private InternalGraphFrame<Calculation> pulseFrame;
 
     private PulseMainMenu mainMenu;
-    
+
     private final static int ICON_SIZE = 16;
 
     public static TaskControlFrame getInstance() {
@@ -75,6 +75,27 @@ public class TaskControlFrame extends JFrame {
         setIconImage(loadIcon("logo.png", 32).getImage());
         addListeners();
         setDefaultCloseOperation(EXIT_ON_CLOSE);
+        TaskManager.addSessionListener(() -> resetSession());
+    }
+
+    public void resetSession() {
+        Objects.requireNonNull(mainMenu, "Menu not created");
+        var s = TaskManager.getManagerInstance();
+        s.addSelectionListener(e -> graphFrame.plot());
+        problemStatementFrame.resetSession();
+        taskManagerFrame.resetSession();
+        modelFrame.resetSession();
+        resultsFrame.getResultTable().resetSession();
+        logFrame.getLogger().clear();
+        logFrame.scheduleLogEvents();
+        mainMenu.reset();
+        s.addTaskRepositoryListener(e
+                -> {
+            if (e.getState() == TASK_BROWSING_REQUEST) {
+                setModelSelectionFrameVisible(true);
+            }
+        }
+        );
     }
 
     private void addListeners() {
@@ -135,15 +156,6 @@ public class TaskControlFrame extends JFrame {
                 exit(0);
             }
         });
-
-        var manager = TaskManager.getManagerInstance();
-        manager.addTaskRepositoryListener(e
-                -> {
-            if (e.getState() == TASK_BROWSING_REQUEST) {
-                setModelSelectionFrameVisible(true);
-            }
-        }
-        );
 
         addResultFormatListener(rfe -> ((ResultTableModel) resultsFrame.getResultTable().getModel())
                 .changeFormat(rfe.getResultFormat()));

@@ -14,6 +14,7 @@ import pulse.input.Range;
  */
 public class NumericPulseData extends AbstractData implements DiscreteInput {
 
+    private static final long serialVersionUID = 8142129124831241206L;
     private final int externalID;
 
     /**
@@ -54,7 +55,7 @@ public class NumericPulseData extends AbstractData implements DiscreteInput {
     public int getExternalID() {
         return externalID;
     }
-    
+
     public double pulseWidth() {
         return super.timeLimit();
     }
@@ -73,5 +74,5 @@ public class NumericPulseData extends AbstractData implements DiscreteInput {
     public IndexRange getIndexRange() {
         return new IndexRange(this.getTimeSequence(), Range.UNLIMITED);
     }
-    
+
 }

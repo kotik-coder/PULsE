@@ -4,6 +4,8 @@ import pulse.math.Segment;
 
 public class PeriodicTransform extends BoundedParameterTransform {
 
+    private static final long serialVersionUID = 4564881912462997982L;
+
     /**
      * Only the upper bound of the argument is used.
      *
@@ -23,7 +25,7 @@ public class PeriodicTransform extends BoundedParameterTransform {
         double max = getBounds().getMaximum();
         double min = getBounds().getMinimum();
         double len = max - min;
-        
+
         return a > max ? transform(a - len) : (a < min ? transform(a + len) : a);
     }
 

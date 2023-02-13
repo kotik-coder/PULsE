@@ -16,6 +16,7 @@ import pulse.search.GeneralTask;
  */
 public class RSquaredTest extends NormalityTest {
 
+    private static final long serialVersionUID = -2022982190434832373L;
     private SumOfSquares sos;
     private static NumericProperty signifiance = derive(SIGNIFICANCE, 0.2);
 
@@ -55,13 +56,13 @@ public class RSquaredTest extends NormalityTest {
         final double mean = mean(yr);
         double TSS = 0;
         int size = yr.size();
-        
+
         for (int i = 0; i < size; i++) {
             TSS += pow(yr.get(i) - mean, 2);
         }
 
         TSS /= size;
-        
+
         setStatistic(derive(TEST_STATISTIC, (1. - (double) sos.getStatistic().getValue() / TSS)));
     }
 

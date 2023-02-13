@@ -28,6 +28,12 @@ public class TaskManagerFrame extends JInternalFrame {
         setVisible(true);
     }
 
+    public void resetSession() {
+        taskTable.resetSession();
+        taskToolbar.resetSession();
+        adjustEnabledControls();
+    }
+
     private void manageListeners() {
         taskToolbar.addTaskActionListener(new TaskActionListener() {
 
@@ -62,21 +68,21 @@ public class TaskManagerFrame extends JInternalFrame {
         taskToolbar = new TaskToolbar();
         getContentPane().add(taskToolbar, PAGE_START);
     }
+    
+    private void enableIfNeeded() {
+        var ttm = (TaskTableModel) taskTable.getModel();
+
+        boolean enabled = ttm.getRowCount() > 0;
+        taskToolbar.setClearEnabled(enabled);
+        taskToolbar.setResetEnabled(enabled);
+        taskToolbar.setExecEnabled(enabled);
+    }
 
     private void adjustEnabledControls() {
         var ttm = (TaskTableModel) taskTable.getModel();
 
-        ttm.addTableModelListener((TableModelEvent arg0) -> {
-            if (ttm.getRowCount() < 1) {
-                taskToolbar.setClearEnabled(false);
-                taskToolbar.setResetEnabled(false);
-                taskToolbar.setExecEnabled(false);
-            } else {
-                taskToolbar.setClearEnabled(true);
-                taskToolbar.setResetEnabled(true);
-                taskToolbar.setExecEnabled(true);
-            }
-        });
+        enableIfNeeded();
+        ttm.addTableModelListener((TableModelEvent arg0) -> enableIfNeeded() );
 
         taskTable.getSelectionModel().addListSelectionListener((ListSelectionEvent arg0) -> {
             var selection = taskTable.getSelectedRows();

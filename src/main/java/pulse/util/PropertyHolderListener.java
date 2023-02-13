@@ -1,10 +1,12 @@
 package pulse.util;
 
+import java.io.Serializable;
+
 /**
  * A listener used by {@code PropertyHolder}s to track changes with the
  * associated {@code Propert}ies.
  */
-public interface PropertyHolderListener {
+public interface PropertyHolderListener extends Serializable {
 
     /**
      * This event is triggered by any {@code PropertyHolder}, the properties of

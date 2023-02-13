@@ -13,5 +13,5 @@ import pulse.util.Reflexive;
 public abstract class Statistic extends PropertyHolder implements Reflexive {
 
     public abstract void evaluate(GeneralTask t);
-  
+
 }

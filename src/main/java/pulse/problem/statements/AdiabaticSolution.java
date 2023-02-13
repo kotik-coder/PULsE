@@ -1,5 +1,6 @@
 package pulse.problem.statements;
 
+import java.io.Serializable;
 import static java.lang.Math.PI;
 import static java.lang.Math.exp;
 import static java.lang.Math.pow;
@@ -9,8 +10,9 @@ import static pulse.properties.NumericPropertyKeyword.NUMPOINTS;
 import pulse.HeatingCurve;
 import pulse.problem.statements.model.ThermalProperties;
 
-public class AdiabaticSolution {
+public class AdiabaticSolution implements Serializable {
 
+    private static final long serialVersionUID = 4240406501288696621L;
     public final static int DEFAULT_CLASSIC_PRECISION = 200;
     public final static int DEFAULT_POINTS = 100;
 

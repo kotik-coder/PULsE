@@ -19,6 +19,7 @@ import pulse.properties.Property;
 
 public class ExplicitNonlinearSolver extends ExplicitScheme implements Solver<NonlinearProblem>, FixedPointIterations {
 
+    private static final long serialVersionUID = -5392648684733420360L;
     private int N;
     private double hx;
 

@@ -21,6 +21,7 @@ import com.formdev.flatlaf.FlatDarkLaf;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import pulse.util.Serializer;
 
 /**
  * <p>
@@ -51,7 +52,7 @@ public class Launcher {
      */
     public static void main(String[] args) {
         new Launcher();
- 
+
         if (!LOCK.exists()) {
 
             try {
@@ -59,7 +60,7 @@ public class Launcher {
             } catch (IOException ex) {
                 Logger.getLogger(Launcher.class.getName()).log(Level.SEVERE, "Unable to create lock file", ex);
             }
-            
+
             LOCK.deleteOnExit();
 
             splashScreen();
@@ -148,7 +149,7 @@ public class Launcher {
                 errorLog.delete();
             }
             //delete lock explicitly on abnormal termination
-            if(LOCK.exists()) {
+            if (LOCK.exists()) {
                 LOCK.delete();
             }
         };

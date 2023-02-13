@@ -94,7 +94,7 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
      * @see pulse.search.linear.LinearOptimiser
      */
     public abstract boolean iteration(GeneralTask task) throws SolverException;
-    
+
     /**
      * Defines a set of procedures to be run at the end of the search iteration.
      *
@@ -216,7 +216,7 @@ public abstract class PathOptimiser extends PropertyHolder implements Reflexive 
     /**
      * Checks if this optimiser is compatible with the statistic passed to the
      * method as its argument.By default, this will accept any
-    {@code OptimiserStatistic}
+     * {@code OptimiserStatistic}
      *
      * @param os a selected optimiser metric
      * @return {@code true}, if not specified otherwise by its subclass

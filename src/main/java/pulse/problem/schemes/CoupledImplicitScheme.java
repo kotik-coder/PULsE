@@ -14,6 +14,7 @@ import pulse.properties.NumericPropertyKeyword;
 
 public abstract class CoupledImplicitScheme extends ImplicitScheme {
 
+    private static final long serialVersionUID = 1974655675470727643L;
     private RadiativeTransferCoupling coupling;
     private RTECalculationStatus calculationStatus;
     private boolean autoUpdateFluxes = true; //should be false for nonlinear solvers
@@ -29,11 +30,11 @@ public abstract class CoupledImplicitScheme extends ImplicitScheme {
         this(N, timeFactor);
         setTimeLimit(timeLimit);
     }
-    
+
     @Override
     public void finaliseStep() throws SolverException {
         super.finaliseStep();
-        if(autoUpdateFluxes) {
+        if (autoUpdateFluxes) {
             var rte = this.getCoupling().getRadiativeTransferEquation();
             setCalculationStatus(rte.compute(getCurrentSolution()));
         }
@@ -59,11 +60,11 @@ public abstract class CoupledImplicitScheme extends ImplicitScheme {
     public final void setCalculationStatus(RTECalculationStatus calculationStatus) throws SolverException {
         this.calculationStatus = calculationStatus;
         if (calculationStatus != RTECalculationStatus.NORMAL) {
-            throw new SolverException(calculationStatus.toString(), 
+            throw new SolverException(calculationStatus.toString(),
                     RTE_SOLVER_ERROR);
         }
     }
-    
+
     public final RadiativeTransferCoupling getCoupling() {
         return coupling;
     }
@@ -72,15 +73,15 @@ public abstract class CoupledImplicitScheme extends ImplicitScheme {
         this.coupling = coupling;
         this.coupling.setParent(this);
     }
-    
+
     public final boolean isAutoUpdateFluxes() {
         return this.autoUpdateFluxes;
     }
-    
+
     public final void setAutoUpdateFluxes(boolean auto) {
         this.autoUpdateFluxes = auto;
     }
-    
+
     @Override
     public Class<? extends Problem>[] domain() {
         return new Class[]{ParticipatingMedium.class};

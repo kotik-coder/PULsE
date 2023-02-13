@@ -1,5 +1,6 @@
 package pulse.util;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,10 +17,14 @@ import pulse.tasks.SearchTask;
  * </p>
  *
  */
-public abstract class UpwardsNavigable implements Descriptive {
+public abstract class UpwardsNavigable implements Descriptive, Serializable {
 
     private UpwardsNavigable parent;
-    private final List<HierarchyListener> listeners = new ArrayList<>();
+    private transient List<HierarchyListener> listeners;
+
+    public void initListeners() {
+        listeners = new ArrayList<>();
+    }
 
     public final void removeHierarchyListeners() {
         this.listeners.clear();
@@ -48,7 +53,9 @@ public abstract class UpwardsNavigable implements Descriptive {
      */
     public void tellParent(PropertyEvent e) {
         if (parent != null) {
-            parent.listeners.forEach(l -> l.onChildPropertyChanged(e));
+            if (parent.listeners != null) {
+                parent.listeners.forEach(l -> l.onChildPropertyChanged(e));
+            }
             parent.tellParent(e);
         }
     }

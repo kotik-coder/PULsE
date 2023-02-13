@@ -64,16 +64,16 @@ public class SwarmState extends IterativeState {
             }
 
         }
-        
+
         //determine the current best
-        ParticleState curBest = particles[bestIndex].getCurrentState(); 
-        
+        ParticleState curBest = particles[bestIndex].getCurrentState();
+
         //is curBest the best so far?
-        if(bestSoFar == null || curBest.isBetterThan(bestSoFar) ) {
+        if (bestSoFar == null || curBest.isBetterThan(bestSoFar)) {
             this.bestSoFar = curBest;
             this.bestSoFarIndex = bestIndex;
         }
-        
+
     }
 
     public NeighbourhoodTopology getNeighborhoodTopology() {

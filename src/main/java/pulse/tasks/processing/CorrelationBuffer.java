@@ -1,5 +1,6 @@
 package pulse.tasks.processing;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -18,14 +19,15 @@ import pulse.tasks.SearchTask;
 import pulse.util.ImmutableDataEntry;
 import pulse.util.ImmutablePair;
 
-public class CorrelationBuffer {
+public class CorrelationBuffer implements Serializable {
 
-    private final List<ParameterVector> params;
+    private static final long serialVersionUID = 1672281370094463238L;
+    private List<ParameterVector> params;
     private static final Set<ImmutablePair<NumericPropertyKeyword>> excludePairList;
     private static final Set<NumericPropertyKeyword> excludeSingleList;
 
     private final static double DEFAULT_THRESHOLD = 1E-3;
-    
+
     static {
         excludePairList = new HashSet<>();
         excludeSingleList = new HashSet<>();
@@ -48,27 +50,28 @@ public class CorrelationBuffer {
     public void clear() {
         params.clear();
     }
-    
+
     /**
      * Truncates the buffer by excluding nearly-converged results.
      */
-    
     private void truncate(double threshold) {
         int i = 0;
         int size = params.size();
-        final double thresholdSq = threshold*threshold;
-        
-        for(i = 0; i < size - 1; i = i + 2) {
-            
+        final double thresholdSq = threshold * threshold;
+
+        for (i = 0; i < size - 1; i = i + 2) {
+
             Vector vParams = params.get(i).toVector();
             Vector vPlusOneParams = params.get(i + 1).toVector();
             Vector vDiff = vPlusOneParams.subtract(vParams);
-            if(vDiff.lengthSq()/vParams.lengthSq() < thresholdSq)
-                break;    
+            if (vDiff.lengthSq() / vParams.lengthSq() < thresholdSq) {
+                break;
+            }
         }
-        
-        for(int j = size - 1; j > i; j--)
-            params.remove(j);       
+
+        for (int j = size - 1; j > i; j--) {
+            params.remove(j);
+        }
     }
 
     public Map<ImmutablePair<ParameterIdentifier>, Double> evaluate(CorrelationTest t) {
@@ -81,12 +84,12 @@ public class CorrelationBuffer {
         }
 
         truncate(DEFAULT_THRESHOLD);
-        
+
         List<ParameterIdentifier> indices = params.get(0).getParameters().stream()
                 .map(ps -> ps.getIdentifier()).collect(Collectors.toList());
         Map<ParameterIdentifier, double[]> map = indices.stream()
                 .map(index -> new ImmutableDataEntry<>(index, params.stream().mapToDouble(
-                        v -> v.getParameterValue(index.getKeyword(), index.getIndex())).toArray()))
+                v -> v.getParameterValue(index.getKeyword(), index.getIndex())).toArray()))
                 .collect(Collectors.toMap(x -> x.getKey(), x -> x.getValue()));
 
         int indicesSize = indices.size();
@@ -96,26 +99,26 @@ public class CorrelationBuffer {
         for (int i = 0; i < indicesSize; i++) {
 
             var iKey = indices.get(i).getKeyword();
-            
-            if (!excludeSingleList.contains(iKey)) {                
-                
+
+            if (!excludeSingleList.contains(iKey)) {
+
                 for (int j = i + 1; j < indicesSize; j++) {
-                    
+
                     var jKey = indices.get(j).getKeyword();
-                    
+
                     pair = new ImmutablePair<>(iKey, jKey);
-                    
-                    if (!excludeSingleList.contains(jKey) 
-                     && !excludePairList.contains(pair)) {  
-                        
-                        correlationMap.put( 
-                            new ImmutablePair<>(indices.get(i), indices.get(j)),
-                            t.evaluate(map.get(indices.get(i)), map.get(indices.get(j))));
-                        
+
+                    if (!excludeSingleList.contains(jKey)
+                            && !excludePairList.contains(pair)) {
+
+                        correlationMap.put(
+                                new ImmutablePair<>(indices.get(i), indices.get(j)),
+                                t.evaluate(map.get(indices.get(i)), map.get(indices.get(j))));
+
                     }
-                    
+
                 }
-                
+
             }
 
         }
@@ -132,7 +135,7 @@ public class CorrelationBuffer {
         }
 
         var values = map.values();
-        
+
         return map.values().stream().anyMatch(d -> t.compareToThreshold(d));
     }
 

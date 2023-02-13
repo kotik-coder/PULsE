@@ -67,7 +67,7 @@ public class ProblemTree extends JTree {
         });
 
         instance.addSelectionListener(e -> {
-            var current = ( (Calculation) instance.getSelectedTask().getResponse() ).getProblem();
+            var current = ((Calculation) instance.getSelectedTask().getResponse()).getProblem();
             // select appropriate problem type from list
 
             setSelectedProblem(current);

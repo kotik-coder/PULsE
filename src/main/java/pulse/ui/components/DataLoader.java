@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.Executors;
 
 import javax.swing.JFileChooser;
@@ -17,8 +16,6 @@ import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import pulse.input.ExperimentalData;
 
-import pulse.input.InterpolationDataset;
-import pulse.input.InterpolationDataset.StandartType;
 import pulse.io.readers.MetaFilePopulator;
 import pulse.io.readers.ReaderManager;
 import pulse.problem.laser.NumericPulse;
@@ -111,7 +108,7 @@ public class DataLoader {
                 e.printStackTrace();
             }
 
-            var p = ( (Calculation) task.getResponse() ).getProblem();
+            var p = ((Calculation) task.getResponse()).getProblem();
             if (p != null) {
                 p.retrieveData(data);
             }
@@ -175,14 +172,25 @@ public class DataLoader {
      *
      * @param f a {@code File} containing a property specified by the
      * {@code type}
-     * @param type the type of the loaded data
      * @throws IOException if file cannot be read
      * @see pulse.tasks.TaskManager.evaluate()
      */
-    public static void load(StandartType type, File f) throws IOException {
-        Objects.requireNonNull(f);
-        InterpolationDataset.setDataset(read(datasetReaders(), f), type);
-        TaskManager.getManagerInstance().evaluate();
+    public static void loadDensity(File f) throws IOException {
+        TaskManager.getManagerInstance().setDensityDataset(read(datasetReaders(), f));
+    }
+    
+        /**
+     * Uses the {@code ReaderManager} to create an {@code InterpolationDataset}
+     * from data stored in {@code f} and updates the associated properties of
+     * each task.
+     *
+     * @param f a {@code File} containing a property specified by the
+     * {@code type}
+     * @throws IOException if file cannot be read
+     * @see pulse.tasks.TaskManager.evaluate()
+     */
+    public static void loadSpecificHeat(File f) throws IOException {
+        TaskManager.getManagerInstance().setSpecificHeatDataset(read(datasetReaders(), f));
     }
 
     private static List<File> userInput(String descriptor, List<String> extensions) {

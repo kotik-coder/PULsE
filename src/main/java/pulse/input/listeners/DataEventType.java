@@ -15,11 +15,9 @@ public enum DataEventType {
      */
 
     RANGE_CHANGED,
-    
     /**
      * All data points loaded and are ready for processing.
      */
-    
     DATA_LOADED;
 
 }

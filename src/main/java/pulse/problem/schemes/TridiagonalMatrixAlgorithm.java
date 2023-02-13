@@ -1,13 +1,17 @@
 package pulse.problem.schemes;
 
+import java.io.Serializable;
+
 /**
  * Implements the tridiagonal matrix algorithm (Thomas algorithms) for solving
  * systems of linear equations. Applicable to such systems where the forming
- * matrix has a tridiagonal form: A<sub>i</sub>*x<sub>i-1</sub> - B<sub>i</sub> x<sub>i</sub> + C<sub>i</sub> x<sub>i+1</sub> = -F<sub>i</sub>.
+ * matrix has a tridiagonal form: A<sub>i</sub>*x<sub>i-1</sub> - B<sub>i</sub>
+ * x<sub>i</sub> + C<sub>i</sub> x<sub>i+1</sub> = -F<sub>i</sub>.
  *
  */
-public class TridiagonalMatrixAlgorithm {
+public class TridiagonalMatrixAlgorithm implements Serializable {
 
+    private static final long serialVersionUID = 8201903787985856087L;
     private final double tau;
     private final double h;
 
@@ -21,10 +25,10 @@ public class TridiagonalMatrixAlgorithm {
 
     public TridiagonalMatrixAlgorithm(Grid grid) {
         tau = grid.getTimeStep();
-        N   = grid.getGridDensityValue();
-        h   = grid.getXStep();
-        alpha   = new double[N + 2];
-        beta    = new double[N + 2];               
+        N = grid.getGridDensityValue();
+        h = grid.getXStep();
+        alpha = new double[N + 2];
+        beta = new double[N + 2];
     }
 
     /**
@@ -59,6 +63,7 @@ public class TridiagonalMatrixAlgorithm {
     /**
      * Calculates the {@code beta} coefficients as part of the tridiagonal
      * matrix algorithm.
+     *
      * @param U
      * @param start
      * @param endExclusive
@@ -116,15 +121,15 @@ public class TridiagonalMatrixAlgorithm {
     protected double getCoefC() {
         return c;
     }
-    
+
     public final double getTimeStep() {
         return tau;
     }
-    
+
     public final int getGridPoints() {
         return N;
     }
-    
+
     public final double getGridStep() {
         return h;
     }

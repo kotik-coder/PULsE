@@ -2,7 +2,6 @@ package pulse.problem.schemes;
 
 import static java.lang.Math.pow;
 import static java.lang.Math.rint;
-import static java.lang.String.format;
 
 import pulse.problem.laser.DiscretePulse;
 import pulse.problem.laser.DiscretePulse2D;
@@ -19,6 +18,7 @@ import pulse.properties.NumericProperty;
  */
 public class Grid2D extends Grid {
 
+    private static final long serialVersionUID = 564113358979595637L;
     private double hy;
 
     protected Grid2D() {
@@ -46,7 +46,7 @@ public class Grid2D extends Grid {
     @Override
     public void setTimeFactor(NumericProperty timeFactor) {
         super.setTimeFactor(timeFactor);
-        setTimeStep((double) timeFactor.getValue() * (pow(getXStep(), 2) + pow(hy, 2)) );
+        setTimeStep((double) timeFactor.getValue() * (pow(getXStep(), 2) + pow(hy, 2)));
     }
 
     /**
@@ -56,18 +56,17 @@ public class Grid2D extends Grid {
      *
      * @param pulse the discrete puls representation
      */
-    
     public void adjustStepSize(DiscretePulse pulse) {
-        var pulse2d = (DiscretePulse2D)pulse;
+        var pulse2d = (DiscretePulse2D) pulse;
         double pulseSpotSize = pulse2d.getDiscretePulseSpot();
 
-        if(hy > pulseSpotSize) {
+        if (hy > pulseSpotSize) {
             final int INCREMENT = 5;
             final int newN = getGridDensityValue() + INCREMENT;
             setGridDensityValue(newN);
             adjustStepSize(pulse);
         }
-        
+
     }
 
     @Override

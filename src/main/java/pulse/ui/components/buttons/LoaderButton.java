@@ -6,12 +6,8 @@ import static javax.swing.JOptionPane.ERROR_MESSAGE;
 import static javax.swing.JOptionPane.INFORMATION_MESSAGE;
 import static javax.swing.JOptionPane.showMessageDialog;
 import static javax.swing.SwingUtilities.getWindowAncestor;
-import static pulse.input.InterpolationDataset.getDataset;
-import static pulse.input.InterpolationDataset.StandartType.DENSITY;
-import static pulse.input.InterpolationDataset.StandartType.HEAT_CAPACITY;
 import static pulse.io.readers.ReaderManager.getDatasetExtensions;
 import static pulse.ui.Messages.getString;
-import static pulse.ui.components.DataLoader.load;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -26,34 +22,34 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import org.apache.commons.math3.exception.OutOfRangeException;
 
 import pulse.input.InterpolationDataset;
+import pulse.tasks.TaskManager;
+import static pulse.ui.components.DataLoader.loadDensity;
+import static pulse.ui.components.DataLoader.loadSpecificHeat;
 import pulse.util.ImageUtils;
 
 @SuppressWarnings("serial")
 public class LoaderButton extends JButton {
 
-    private InterpolationDataset.StandartType dataType;
+    private final DataType dataType;
     private static File dir;
 
-    private final static Color NOT_HIGHLIGHTED  = UIManager.getColor("Button.background");
-    private final static Color HIGHLIGHTED      = ImageUtils.blend(NOT_HIGHLIGHTED, Color.red, 0.35f);
+    private final static Color NOT_HIGHLIGHTED = UIManager.getColor("Button.background");
+    private final static Color HIGHLIGHTED = ImageUtils.blend(NOT_HIGHLIGHTED, Color.red, 0.35f);
 
-    public LoaderButton() {
+    public LoaderButton(DataType type) {
         super();
+        this.dataType = type;
         init();
     }
 
-    public LoaderButton(String str) {
+    public LoaderButton(DataType type, String str) {
         super(str);
+        this.dataType = type;
         init();
     }
-
+  
     public final void init() {
-
-        InterpolationDataset.addListener(e -> {
-            if (dataType == e) {
-                highlight(false);
-            }
-        });
+        highlight(false);
 
         addActionListener((ActionEvent arg0) -> {
             var fileChooser = new JFileChooser();
@@ -71,10 +67,10 @@ public class LoaderButton extends JButton {
             try {
                 switch (dataType) {
                     case HEAT_CAPACITY:
-                        load(HEAT_CAPACITY, fileChooser.getSelectedFile());
+                        loadSpecificHeat(fileChooser.getSelectedFile());
                         break;
                     case DENSITY:
-                        load(DENSITY, fileChooser.getSelectedFile());
+                        loadDensity(fileChooser.getSelectedFile());
                         break;
                     default:
                         throw new IllegalStateException("Unrecognised type: " + dataType);
@@ -96,7 +92,7 @@ public class LoaderButton extends JButton {
                         getString("LoaderButton.OFRError"), //$NON-NLS-1$
                         ERROR_MESSAGE);
             }
-            var size = getDataset(dataType).getData().size();
+            int size = getDataset().getData().size();
             var label = "";
             switch (dataType) {
                 case HEAT_CAPACITY:
@@ -115,19 +111,26 @@ public class LoaderButton extends JButton {
             showMessageDialog(getWindowAncestor((Component) arg0.getSource()),
                     sb.toString(),
                     "Data loaded", INFORMATION_MESSAGE);
+            highlight(false);
         });
     }
-
-    public void setDataType(InterpolationDataset.StandartType dataType) {
-        this.dataType = dataType;
+    
+    public InterpolationDataset getDataset() {
+        var i = TaskManager.getManagerInstance();
+        return dataType == DataType.HEAT_CAPACITY ? 
+                i.getSpecificHeatDataset() : i.getDensityDataset();
     }
-
+    
     public void highlight(boolean highlighted) {
         setBackground(highlighted ? HIGHLIGHTED : NOT_HIGHLIGHTED);
     }
 
     public void highlightIfNeeded() {
-        highlight(getDataset(dataType) == null);
+        highlight(getDataset() == null);
+    }
+    
+    public enum DataType {
+        HEAT_CAPACITY, DENSITY;
     }
 
 }

@@ -1,6 +1,5 @@
 package pulse.problem.laser;
 
-
 import pulse.input.ExperimentalData;
 import pulse.util.PropertyHolder;
 import pulse.util.Reflexive;
@@ -23,7 +22,7 @@ public abstract class PulseTemporalShape extends PropertyHolder implements Refle
     public PulseTemporalShape(PulseTemporalShape another) {
         this.width = another.width;
     }
-    
+
     /**
      * This evaluates the dimensionless, discretised pulse function on a
      * {@code grid} needed to evaluate the heat source in the difference scheme.
@@ -64,7 +63,7 @@ public abstract class PulseTemporalShape extends PropertyHolder implements Refle
     public void setPulseWidth(double width) {
         this.width = width;
     }
-    
+
     public abstract int getRequiredDiscretisation();
 
 }

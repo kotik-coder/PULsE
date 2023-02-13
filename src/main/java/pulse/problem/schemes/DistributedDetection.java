@@ -1,5 +1,6 @@
 package pulse.problem.schemes;
 
+import java.io.Serializable;
 import java.util.stream.IntStream;
 
 import pulse.problem.statements.model.AbsorptionModel;
@@ -11,7 +12,9 @@ import pulse.problem.statements.model.SpectralRange;
  * {@code AbsorptionModel}.
  *
  */
-public class DistributedDetection {
+public class DistributedDetection implements Serializable {
+
+    private static final long serialVersionUID = 3587781877001360511L;
 
     /**
      * Calculates the effective signal registered by the detector, which takes

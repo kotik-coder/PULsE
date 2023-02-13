@@ -4,11 +4,8 @@ import static java.awt.BorderLayout.CENTER;
 import static java.awt.BorderLayout.LINE_END;
 import static java.awt.BorderLayout.PAGE_END;
 import java.util.concurrent.Executors;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.swing.JInternalFrame;
-import pulse.problem.schemes.solvers.SolverException;
 
 import pulse.tasks.TaskManager;
 import pulse.tasks.logs.Status;

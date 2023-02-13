@@ -4,7 +4,6 @@ import static pulse.properties.NumericProperties.derive;
 import static pulse.properties.NumericPropertyKeyword.OPTIMISER_STATISTIC;
 import pulse.search.GeneralTask;
 
-
 /**
  * A statistical optimality criterion relying on absolute deviations or the L1
  * norm condition. Similar to the least squares technique, it attempts to find a
@@ -13,6 +12,8 @@ import pulse.search.GeneralTask;
  *
  */
 public class AbsoluteDeviations extends OptimiserStatistic {
+
+    private static final long serialVersionUID = 3385019714627583467L;
 
     public AbsoluteDeviations() {
         super();
@@ -25,6 +26,7 @@ public class AbsoluteDeviations extends OptimiserStatistic {
     /**
      * Calculates the L1 norm statistic, which simply sums up the absolute
      * values of residuals.
+     *
      * @param t
      */
     @Override

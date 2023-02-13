@@ -22,15 +22,15 @@ public abstract class CorrelationTest extends PropertyHolder implements Reflexiv
     static {
         instanceDescriptor.setSelectedDescriptor(EmptyCorrelationTest.class.getSimpleName());
     }
-    
+
     public CorrelationTest() {
         //intentionally blank
     }
 
     public static CorrelationTest init() {
-       return instanceDescriptor.newInstance(CorrelationTest.class);
+        return instanceDescriptor.newInstance(CorrelationTest.class);
     }
-    
+
     public final static InstanceDescriptor<CorrelationTest> getTestDescriptor() {
         return instanceDescriptor;
     }

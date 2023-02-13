@@ -1,12 +1,14 @@
 package pulse.math;
 
+import java.io.Serializable;
 import pulse.math.transforms.Transformable;
 
 /**
  * Parameter class
  */
-public class Parameter {
+public class Parameter implements Serializable {
 
+    private static final long serialVersionUID = 3222166682943107207L;
     private ParameterIdentifier index;
     private Transformable transform;
     private Segment bound;
@@ -17,9 +19,9 @@ public class Parameter {
         this.transform = transform;
         this.bound = bound;
     }
-    
+
     public Parameter(ParameterIdentifier index) {
-        if(index.getKeyword() != null) {
+        if (index.getKeyword() != null) {
             bound = Segment.boundsFrom(index.getKeyword());
         }
         this.index = index;
@@ -80,8 +82,8 @@ public class Parameter {
 
     public void setValue(double value, boolean ignoreTransform) {
         this.value = transform == null || ignoreTransform
-                   ? value
-                   : transform.transform(value);
+                ? value
+                : transform.transform(value);
     }
 
     public void setValue(double value) {

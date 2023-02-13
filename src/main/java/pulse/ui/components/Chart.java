@@ -19,6 +19,7 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.MouseEvent;
+import java.io.Serializable;
 import javax.swing.SwingUtilities;
 
 import javax.swing.UIManager;
@@ -52,10 +53,10 @@ import pulse.tasks.TaskManager;
 import pulse.tasks.listeners.TaskRepositoryEvent;
 import pulse.ui.components.listeners.MouseOnMarkerListener;
 
-public class Chart {
+public class Chart implements Serializable {
 
-    private ChartPanel chartPanel;
-    private JFreeChart chart;
+    private final ChartPanel chartPanel;
+    private final JFreeChart chart;
     private XYPlot plot;
 
     private float opacity = 0.15f;
@@ -151,7 +152,7 @@ public class Chart {
         setAxisFontColor(plot.getDomainAxis(), foreColor);
         setAxisFontColor(plot.getRangeAxis(), foreColor);
     }
-    
+
     public static void setAxisFontColor(Axis axis, Color color) {
         axis.setLabelPaint(color);
         axis.setTickLabelPaint(color);

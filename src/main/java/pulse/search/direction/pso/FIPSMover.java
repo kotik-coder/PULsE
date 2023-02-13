@@ -20,22 +20,22 @@ public class FIPSMover implements Mover {
         var current = p.getCurrentState();
         var curPos = current.getPosition();
         var curPosV = curPos.toVector();
-        
+
         final int n = curPos.dimension();
         final double nLength = (double) neighbours.length;
 
-        Vector nsum = new Vector(n); 
+        Vector nsum = new Vector(n);
 
         for (var neighbour : neighbours) {
             var nBestPos = neighbour.getBestState().getPosition();  //best position ever achieved so far by the neighbour
-            nsum = nsum.sum(Vector.random(n, 0.0, phi/nLength)
+            nsum = nsum.sum(Vector.random(n, 0.0, phi / nLength)
                     .multComponents(nBestPos.toVector().subtract(curPosV))
             );
         }
 
         var newVelocity = (current.getVelocity().toVector().sum(nsum)).multiply(chi);
         var newPosition = curPosV.sum(newVelocity);
-       
+
         return new ParticleState(
                 new ParameterVector(curPos, newPosition),
                 new ParameterVector(curPos, newVelocity));

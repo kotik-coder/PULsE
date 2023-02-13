@@ -49,10 +49,10 @@ public class GraphicalLogPane extends AbstractLogger {
             double iteration = dle.getData().stream()
                     .filter(p -> p.getIdentifier().getKeyword() == ITERATION)
                     .findAny().get().getApparentValue();
-        
+
             chart.changeAxis(true);
             chart.plot((DataLogEntry) logEntry, iteration);
-            
+
         }
     }
 
@@ -71,13 +71,13 @@ public class GraphicalLogPane extends AbstractLogger {
                 chart.clear();
                 chart.changeAxis(false);
                 chart.plot(log);
-                
+
                 if (task.getStatus() == DONE) {
                     printTimeTaken(log);
                 }
 
             }
-            
+
         }
 
     }

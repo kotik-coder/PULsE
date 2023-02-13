@@ -8,7 +8,6 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 
 //import com.alee.managers.icon.LazyIcon;
-
 import pulse.problem.statements.Problem;
 import pulse.util.ImageUtils;
 import static pulse.util.ImageUtils.loadIcon;
@@ -17,7 +16,7 @@ import static pulse.util.ImageUtils.loadIcon;
 public class ProblemCellRenderer extends DefaultTreeCellRenderer {
 
     private static ImageIcon defaultIcon = loadIcon("leaf.png", 16);
-    
+
     public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, boolean expanded, boolean leaf,
             int row, boolean hasFocus) {
 

@@ -30,6 +30,7 @@ import pulse.ui.Messages;
  */
 public class MixedCoupledSolverNL extends MixedCoupledSolver implements FixedPointIterations {
 
+    private static final long serialVersionUID = -8344384560376683594L;
     private double nonlinearPrecision;
 
     public MixedCoupledSolverNL() {
@@ -43,7 +44,7 @@ public class MixedCoupledSolverNL extends MixedCoupledSolver implements FixedPoi
         nonlinearPrecision = (double) def(NONLINEAR_PRECISION).getValue();
         setAutoUpdateFluxes(false);
     }
-    
+
     @Override
     public void timeStep(final int m) throws SolverException {
         doIterations(getCurrentSolution(), nonlinearPrecision, m);
@@ -77,16 +78,16 @@ public class MixedCoupledSolverNL extends MixedCoupledSolver implements FixedPoi
             super.set(type, property);
         }
     }
-    
+
     @Override
     public DifferenceScheme copy() {
         var grid = getGrid();
         return new MixedCoupledSolverNL(grid.getGridDensity(), grid.getTimeFactor(), getTimeLimit());
     }
-    
+
     @Override
     public String toString() {
         return Messages.getString("MixedScheme2.5");
     }
-    
+
 }

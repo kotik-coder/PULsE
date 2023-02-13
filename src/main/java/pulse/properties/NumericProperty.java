@@ -22,6 +22,11 @@ import static pulse.properties.NumericProperties.printRangeAndNumber;
  */
 public class NumericProperty implements Property, Comparable<NumericProperty> {
 
+    /**
+     *
+     */
+    private static final long serialVersionUID = -7132274623596750984L;
+
     private Number value;
 
     private Number minimum;
@@ -263,6 +268,7 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
     @Override
     public int compareTo(NumericProperty arg0) {
         final int result = this.getType().compareTo(arg0.getType());
+        int res = compare(this, arg0);
         return result != 0 ? result : compare(this, arg0);
     }
 
@@ -310,34 +316,35 @@ public class NumericProperty implements Property, Comparable<NumericProperty> {
     public void setOptimisable(boolean optimisable) {
         this.optimisable = optimisable;
     }
-    
+
     public Number getDimensionDelta() {
-        if(type == NumericPropertyKeyword.TEST_TEMPERATURE)
+        if (type == NumericPropertyKeyword.TEST_TEMPERATURE) {
             return -273.15;
-        else
+        } else {
             return 0.0;
+        }
     }
-    
+
     /**
-     * Represents the bounds specified for this numeric property 
-     * as a {@code Segment} object. The bound numbers are taken by
-     * their double values and assigned to the segment.
+     * Represents the bounds specified for this numeric property as a
+     * {@code Segment} object. The bound numbers are taken by their double
+     * values and assigned to the segment.
+     *
      * @return the bounds in which this property is allowed to change
      */
-    
     public Segment getBounds() {
         return new Segment(minimum.doubleValue(), maximum.doubleValue());
     }
-    
+
     /**
      * Uses a {@code NumericPropertyFormatter} to generate a formatted output
-     * @return a formatted string output with the value (and error -- if available)
-     * of this numeric property
+     *
+     * @return a formatted string output with the value (and error -- if
+     * available) of this numeric property
      */
-    
     public String formattedOutput() {
         var num = new NumericPropertyFormatter(this, true, true);
         return num.numberFormat(this).format(value);
     }
-    
+
 }

@@ -1,5 +1,6 @@
 package pulse.tasks.processing;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -16,14 +17,15 @@ import pulse.util.ImmutablePair;
  *
  * @author Artem Lunev <artem.v.lunev@gmail.com>
  */
-class ResultStatistics {
+class ResultStatistics implements Serializable {
 
+    private static final long serialVersionUID = 4617029204359661289L;
     private double[] av;
     private double[] err;
 
     /**
      * Confidence level of {@value CONFIDENCE_LEVEL} for error calculation using
-     * <i>t</i>-distribution quantiles. 
+     * <i>t</i>-distribution quantiles.
      */
     public final static double CONFIDENCE_LEVEL = 0.95;
 
@@ -41,8 +43,9 @@ class ResultStatistics {
      * assuming a {@value CONFIDENCE_LEVEL} confidence level, by calculating a
      * standard deviation for each {@code NumericPropertyKeyword} and
      * multiplying the result by the quantile value of the
-     * <i>t</i>-distribution. The inverse cumulative distribution function of 
-     * Student distribution is calculated using {@code ApacheCommonsMath} library.
+     * <i>t</i>-distribution. The inverse cumulative distribution function of
+     * Student distribution is calculated using {@code ApacheCommonsMath}
+     * library.
      *
      * @param results a list of individual (or average) results to be processed
      */
@@ -60,23 +63,21 @@ class ResultStatistics {
         The number of elements in the parameter list. This ASSUMES that the input
         list contains results with the same number of output parameters!
          */
-        
         StandardDeviation sd = new StandardDeviation(true); //bias-corrected sd
         double sqrtn = Math.sqrt(results.size());
 
         //calculate average values
-        
         var stats = ResultFormat.getInstance().getKeywords().stream()
-            .map(key -> map.get(key))    //preserve the original order of keywods
-            .map(c -> {
-            double mean = openStream(c).average().orElse(0.0); //fail-safe, in case if avg is undefined
-            return new ImmutablePair<Double>(
-                    mean, //the mean value
-                    sd.evaluate(openStream(c).toArray(), mean) //that would be the sample standard deviation
-                    / sqrtn //however, since we are calculating the std of the MEAN, 
-                            //we need to divide the result by sqrtn
-            );
-        }).collect(Collectors.toList());
+                .map(key -> map.get(key)) //preserve the original order of keywods
+                .map(c -> {
+                    double mean = openStream(c).average().orElse(0.0); //fail-safe, in case if avg is undefined
+                    return new ImmutablePair<Double>(
+                            mean, //the mean value
+                            sd.evaluate(openStream(c).toArray(), mean) //that would be the sample standard deviation
+                            / sqrtn //however, since we are calculating the std of the MEAN, 
+                    //we need to divide the result by sqrtn
+                    );
+                }).collect(Collectors.toList());
 
         av = stats.stream().mapToDouble(pair -> pair.getFirst()).toArray(); //store mean values
 
@@ -90,7 +91,7 @@ class ResultStatistics {
         ).toArray(); //store errors
 
     }
-    
+
     private DoubleStream openStream(List<Double> input) {
         return input.stream().mapToDouble(d -> d);
     }

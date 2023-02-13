@@ -14,10 +14,6 @@ import pulse.ui.components.panels.DoubleTablePanel;
 
 public class ResultChangeDialog extends JDialog {
 
-    /**
-     *
-     */
-    private static final long serialVersionUID = 1L;
     private final static int WIDTH = 1000;
     private final static int HEIGHT = 600;
 
@@ -51,34 +47,36 @@ public class ResultChangeDialog extends JDialog {
         setDefaultCloseOperation(HIDE_ON_CLOSE);
 
         leftTbl = new javax.swing.JTable() {
-            
+
             @Override
-            public boolean isCellEditable(int row, int column) {                
-                    return false;               
-            };
-     
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        ;
+
         };        
         
         leftTbl.setModel(new ParameterTableModel(true));
         leftTbl.setTableHeader(null);
 
         rightTbl = new javax.swing.JTable() {
-            
+
             @Override
-            public boolean isCellEditable(int row, int column) {                
-                    return false;               
-            };
-     
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        ;
+
         };
         
         rightTbl.setModel(new SelectedKeysModel(
                 ResultFormat.getInstance().getKeywords(),
                 ResultFormat.getMinimalArray()));
         rightTbl.setTableHeader(null);
-        
+
         MainContainer = new DoubleTablePanel(leftTbl, "All Parameters",
                 rightTbl, "Output");
-                
+
         getContentPane().add(MainContainer, BorderLayout.CENTER);
 
         MainToolbar.setFloatable(false);

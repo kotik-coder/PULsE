@@ -18,15 +18,17 @@ package pulse.math.transforms;
 import pulse.math.Segment;
 
 /**
- * A simple bounded transform which makes the parameter stick to the 
- * boundaries upon reaching them. For insatnce, when a parameter <math>x</math>
+ * A simple bounded transform which makes the parameter stick to the boundaries
+ * upon reaching them. For insatnce, when a parameter <math>x</math>
  * attempts to escape its bounds due to a larger increment then allowed, this
  * transform will return it directly to the respective boundary, where it will
  * "stick".
+ *
  * @author Artem Lunev <artem.v.lunev@gmail.com>
  */
-
 public class StickTransform extends BoundedParameterTransform {
+
+    private static final long serialVersionUID = -8709273330809657074L;
 
     /**
      * Only the upper bound of the argument is used.
@@ -57,5 +59,5 @@ public class StickTransform extends BoundedParameterTransform {
     public double inverse(double t) {
         return transform(t);
     }
-    
+
 }
