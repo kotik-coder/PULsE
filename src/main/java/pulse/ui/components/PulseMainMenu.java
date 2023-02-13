@@ -194,11 +194,9 @@ public class PulseMainMenu extends JMenuBar {
         serializeItem.addActionListener(e -> {
             try {
                 Serializer.serialize();
-            } catch (IOException ex) {
+            } catch (IOException | ClassNotFoundException ex) {
                 Logger.getLogger(PulseMainMenu.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (ClassNotFoundException ex) {
-                Logger.getLogger(PulseMainMenu.class.getName()).log(Level.SEVERE, null, ex);
-            }
+            } 
         });
         var deserializeItem = new JMenuItem("Load Session...");
 
@@ -208,8 +206,6 @@ public class PulseMainMenu extends JMenuBar {
             try {
                 Serializer.deserialize();
             } catch (IOException ex) {
-                Logger.getLogger(PulseMainMenu.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (ClassNotFoundException ex) {
                 Logger.getLogger(PulseMainMenu.class.getName()).log(Level.SEVERE, null, ex);
             }
 
