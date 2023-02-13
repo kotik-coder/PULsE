@@ -42,7 +42,7 @@ public class Serializer {
             String ext = filter.getExtensions()[0];
             File fileToBeSaved;
             if (!fileChooser.getSelectedFile().getAbsolutePath().endsWith(ext)) {
-                fileToBeSaved = new File(fileChooser.getSelectedFile() + ext);
+                fileToBeSaved = new File(fileChooser.getSelectedFile() + "." + ext);
             } else {
                 fileToBeSaved = fileChooser.getSelectedFile();
             }
