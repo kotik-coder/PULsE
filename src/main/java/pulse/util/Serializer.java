@@ -30,7 +30,7 @@ public class Serializer {
         fileChooser.setMultiSelectionEnabled(false);
         fileChooser.setFileSelectionMode(FILES_ONLY);
         fileChooser.setFileFilter(filter);
-        File f = new File("./Saved/");
+        File f = new File("Saved/");
         if (!f.exists()) {
             f.mkdir();
         }
@@ -66,7 +66,7 @@ public class Serializer {
         fileChooser.setMultiSelectionEnabled(false);
         fileChooser.setFileSelectionMode(FILES_ONLY);
         fileChooser.setFileFilter(filter);
-        File f = new File("./Saved/");
+        File f = new File("Saved/");
         if (f.exists()) {
             fileChooser.setCurrentDirectory(f);
         }
