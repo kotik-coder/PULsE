@@ -21,7 +21,6 @@ import com.formdev.flatlaf.FlatDarkLaf;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import pulse.util.Serializer;
 
 /**
  * <p>
@@ -36,7 +35,7 @@ public class Launcher {
 
     private PrintStream errStream;
     private File errorLog;
-    private final static boolean DEBUG = true;
+    private final static boolean DEBUG = false;
 
     private static final File LOCK = new File("pulse.lock");
 

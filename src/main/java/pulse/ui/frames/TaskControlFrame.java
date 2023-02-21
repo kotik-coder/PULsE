@@ -71,24 +71,15 @@ public class TaskControlFrame extends JFrame {
         setExtendedState(getExtendedState() | MAXIMIZED_BOTH);
         initComponents();
         initListeners();
-        TaskManager.getManagerInstance().addSelectionListener(e -> graphFrame.plot());
         setIconImage(loadIcon("logo.png", 32).getImage());
         addListeners();
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         TaskManager.addSessionListener(() -> resetSession());
+        addRepositoryListeners(TaskManager.getManagerInstance());
     }
-
-    public void resetSession() {
-        Objects.requireNonNull(mainMenu, "Menu not created");
-        var s = TaskManager.getManagerInstance();
+    
+    private void addRepositoryListeners(TaskManager s) {
         s.addSelectionListener(e -> graphFrame.plot());
-        problemStatementFrame.resetSession();
-        taskManagerFrame.resetSession();
-        modelFrame.resetSession();
-        resultsFrame.getResultTable().resetSession();
-        logFrame.getLogger().clear();
-        logFrame.scheduleLogEvents();
-        mainMenu.reset();
         s.addTaskRepositoryListener(e
                 -> {
             if (e.getState() == TASK_BROWSING_REQUEST) {
@@ -96,6 +87,18 @@ public class TaskControlFrame extends JFrame {
             }
         }
         );
+    }
+
+    public void resetSession() {
+        Objects.requireNonNull(mainMenu, "Menu not created");
+        problemStatementFrame.resetSession();
+        taskManagerFrame.resetSession();
+        modelFrame.resetSession();
+        resultsFrame.getResultTable().resetSession();
+        logFrame.getLogger().clear();
+        logFrame.scheduleLogEvents();
+        mainMenu.reset();
+        addRepositoryListeners(TaskManager.getManagerInstance());
     }
 
     private void addListeners() {
